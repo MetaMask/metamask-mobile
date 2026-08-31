@@ -9,7 +9,7 @@ import {
 import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroundDapp.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
-import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import {
   DappServer,
   DappVariants,
@@ -90,7 +90,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       const platform = currentDeviceDetails.platform;
       const DAPP_URL = getDappUrlForBrowser(platform);
 
-      await AppiumContextHelpers.withNativeAction(async () => {
+      await PlaywrightContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -98,11 +98,11 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       });
       await sleep(5000);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await AppiumContextHelpers.withNativeAction(async () => {
+      await PlaywrightContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton({
@@ -115,17 +115,17 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       }, DAPP_URL);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await AppiumContextHelpers.withNativeAction(async () => {
+      await PlaywrightContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         // Purposely not interacting with the approval but we still spend some time
         // on the app
@@ -136,23 +136,23 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await AppiumContextHelpers.withNativeAction(async () => {
+      await PlaywrightContextHelpers.withNativeAction(async () => {
         await refreshMobileBrowser();
       });
       await sleep(2000);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(false);
       }, DAPP_URL);
 
       await sleep(10000);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(false);
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await AppiumContextHelpers.withNativeAction(async () => {
+      await PlaywrightContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton({
           shouldCooldown: true,
@@ -164,7 +164,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
       }, DAPP_URL);
@@ -173,7 +173,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       // Read-only method should hit rpc endpoint instead of wallet
       //
       await Gestures.terminateApp(currentDeviceDetails);
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapGetBalance();
         await sleep(10000);
         // Balance response should contain "Balance:" prefix
@@ -184,7 +184,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM session timeout'), () => {
       // Reset dapp state
       //
 
-      await AppiumContextHelpers.withWebAction(async () => {
+      await PlaywrightContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

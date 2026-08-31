@@ -7,104 +7,104 @@ import {
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class TokenOverview {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.CONTAINER);
   }
 
-  get tokenPrice(): Promise<AppiumElement> {
+  get tokenPrice(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  get sendButton(): Promise<AppiumElement> {
+  get sendButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SEND_BUTTON);
   }
 
   /** Today's change display (e.g. "+2.5% Today") - used by performance tests */
-  get todaysChange(): Promise<AppiumElement> {
+  get todaysChange(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TODAYS_CHANGE);
   }
 
-  get priceChartDotEnd(): Promise<AppiumElement> {
+  get priceChartDotEnd(): EncapsulatedElementType {
     // Appium historically matched TOKEN_PRICE for this marker.
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.TOKEN_PRICE);
   }
 
-  get priceChartContainer(): Promise<AppiumElement> {
+  get priceChartContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TokenOverviewSelectorsIDs.PRICE_CHART_CONTAINER,
     );
   }
 
-  get unstakeButton(): Promise<AppiumElement> {
+  get unstakeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.UNSTAKE_BUTTON);
   }
 
-  get stakeMoreButton(): Promise<AppiumElement> {
+  get stakeMoreButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
-  get stakedBalance(): Promise<AppiumElement> {
+  get stakedBalance(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
   }
 
-  get actionSheetSendButton(): Promise<AppiumElement> {
+  get actionSheetSendButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get swapButton(): Promise<AppiumElement> {
+  get swapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
 
-  get bridgeButton(): Promise<AppiumElement> {
+  get bridgeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.BRIDGE_BUTTON);
   }
 
-  get claimButton(): Promise<AppiumElement> {
+  get claimButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.CLAIM_BUTTON);
   }
 
-  get receiveButton(): Promise<AppiumElement> {
+  get receiveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
   }
 
-  get noChartData(): Promise<AppiumElement> {
+  get noChartData(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText.NO_CHART_DATA);
   }
 
-  get closeButton(): Promise<AppiumElement> {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get unstakingBanner(): Promise<AppiumElement> {
+  get unstakingBanner(): EncapsulatedElementType {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.UNSTAKING_BANNER);
   }
 
-  get chartPeriod1d(): Promise<AppiumElement> {
+  get chartPeriod1d(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1d']);
   }
 
-  get chartPeriod1w(): Promise<AppiumElement> {
+  get chartPeriod1w(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1w']);
   }
 
-  get chartPeriod1m(): Promise<AppiumElement> {
+  get chartPeriod1m(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1m']);
   }
 
-  get chartPeriod3m(): Promise<AppiumElement> {
+  get chartPeriod3m(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3m']);
   }
 
-  get chartPeriod1y(): Promise<AppiumElement> {
+  get chartPeriod1y(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['1y']);
   }
 
-  get chartPeriod3y(): Promise<AppiumElement> {
+  get chartPeriod3y(): EncapsulatedElementType {
     return Matchers.getElementByText(TokenOverviewSelectorsText['3y']);
   }
 

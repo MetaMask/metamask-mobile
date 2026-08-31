@@ -22,7 +22,7 @@ import type {
   EarnAssetMetadata,
   EarnAssetRole,
   EarnExperience,
-  EarnRate,
+  EarnRateStatus,
 } from '../types/earnAssets';
 import {
   buildEarnAssets,
@@ -53,27 +53,19 @@ const parseRatePercent = (value: string | number | null | undefined) => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const createEarnRate = ({
-  type,
+const getRateStatus = ({
   percentage,
   isLoading,
   isError,
 }: {
-  type: EarnRate['type'];
   percentage?: number;
   isLoading?: boolean;
   isError?: boolean;
-}): EarnRate => {
-  if (percentage !== undefined) {
-    return { type, percentage, status: 'ready' };
-  }
-  if (isLoading) {
-    return { type, status: 'loading' };
-  }
-  if (isError) {
-    return { type, status: 'error' };
-  }
-  return { type, status: 'unavailable' };
+}): EarnRateStatus => {
+  if (percentage !== undefined) return 'ready';
+  if (isLoading) return 'loading';
+  if (isError) return 'error';
+  return 'unavailable';
 };
 
 /**
@@ -157,7 +149,8 @@ const getHeldEarnExperiences = ({
   token,
   assetId,
   role,
-  trxRate,
+  trxRatePercent,
+  trxRateStatus,
   isPooledStakingEnabled,
   isStablecoinLendingEnabled,
   isTrxStakingEnabled,
@@ -167,7 +160,8 @@ const getHeldEarnExperiences = ({
   >['earnTokens'][number];
   assetId: EarnAssetId;
   role: Exclude<EarnAssetRole, 'funding'>;
-  trxRate: EarnRate;
+  trxRatePercent?: number;
+  trxRateStatus: EarnRateStatus;
   isPooledStakingEnabled: boolean;
   isStablecoinLendingEnabled: boolean;
   isTrxStakingEnabled: boolean;
@@ -195,12 +189,10 @@ const getHeldEarnExperiences = ({
 
     // Markets only available for stablecoin lending.
     const market = experience.market;
-    const rate = isTrxStaking
-      ? trxRate
-      : createEarnRate({
-          type: isPooledStaking ? 'APR' : 'APY',
-          percentage: parseRatePercent(experience.apr),
-        });
+    const percentage = isTrxStaking
+      ? trxRatePercent
+      : parseRatePercent(experience.apr);
+    const status = isTrxStaking ? trxRateStatus : getRateStatus({ percentage });
 
     return [
       {
@@ -211,7 +203,11 @@ const getHeldEarnExperiences = ({
             : `pooled:${assetId}`,
         type: experience.type,
         role,
-        rate,
+        rate: {
+          type: isTrxStaking || isPooledStaking ? 'APR' : 'APY',
+          percentage,
+          status,
+        },
         isFeeSubsidized: false,
         market,
       },
@@ -263,6 +259,42 @@ const useEarnAssetCatalogue = () => {
     enabled: isStablecoinLendingEnabled && isEarnEligible,
   });
 
+  const lendingAssetIds = useMemo(
+    () =>
+      isStablecoinLendingEnabled && isEarnEligible
+        ? [
+            ...new Set(
+              lendingMarkets.map((market) =>
+                getLendingAssetId(market.chainId, market.underlying.address),
+              ),
+            ),
+          ]
+        : [],
+    [isEarnEligible, isStablecoinLendingEnabled, lendingMarkets],
+  );
+  const {
+    tokensByAssetId: lendingMetadata,
+    isLoading: isLendingMetadataLoading,
+    isSettled: isLendingMetadataSettled,
+    error: lendingMetadataError,
+    refresh: refreshLendingMetadata,
+  } = useEarnSectionTokenMetadata(lendingAssetIds);
+
+  const moneyRateStatus = getRateStatus({
+    percentage: moneyApyPercent,
+    isLoading: isMoneyApyLoading,
+    isError: isMoneyApyError,
+  });
+  const trxRatePercent = parseRatePercent(trxApyPercent);
+  const trxRateStatus = getRateStatus({
+    percentage: trxRatePercent,
+    isLoading:
+      trxFetchStatus === FetchStatus.Initial ||
+      trxFetchStatus === FetchStatus.Fetching,
+    isError: trxFetchStatus === FetchStatus.Error,
+  });
+  const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
+  const ethRateStatus = getRateStatus({ percentage: ethRatePercent });
   const walletAssetsById = useMemo(
     () =>
       new Map(
@@ -274,47 +306,8 @@ const useEarnAssetCatalogue = () => {
     [walletAssets],
   );
 
-  const discoveryLendingAssetIds = useMemo(
-    () =>
-      isStablecoinLendingEnabled && isEarnEligible
-        ? [
-            ...new Set(
-              lendingMarkets
-                .map((market) =>
-                  getLendingAssetId(market.chainId, market.underlying.address),
-                )
-                .filter((assetId) => !walletAssetsById.has(assetId)),
-            ),
-          ]
-        : [],
-    [
-      isEarnEligible,
-      isStablecoinLendingEnabled,
-      lendingMarkets,
-      walletAssetsById,
-    ],
-  );
-  const {
-    tokensByAssetId: lendingMetadata,
-    isLoading: isLendingMetadataLoading,
-    isSettled: isLendingMetadataSettled,
-    error: lendingMetadataError,
-    refresh: refreshLendingMetadata,
-  } = useEarnSectionTokenMetadata(discoveryLendingAssetIds);
-
-  const trxRatePercent = parseRatePercent(trxApyPercent);
-  const ethRatePercent = parseRatePercent(mainnetVaultApy?.apyPercentString);
-
   const candidates = useMemo(() => {
     const nextCandidates: EarnAsset[] = [];
-    const trxRate = createEarnRate({
-      type: 'APR',
-      percentage: trxRatePercent,
-      isLoading:
-        trxFetchStatus === FetchStatus.Initial ||
-        trxFetchStatus === FetchStatus.Fetching,
-      isError: trxFetchStatus === FetchStatus.Error,
-    });
 
     /**
      * Held candidates are added before discovery candidates so buildEarnAssets
@@ -332,7 +325,8 @@ const useEarnAssetCatalogue = () => {
             token,
             assetId,
             role,
-            trxRate,
+            trxRatePercent,
+            trxRateStatus,
             isPooledStakingEnabled,
             isStablecoinLendingEnabled,
             isTrxStakingEnabled,
@@ -362,12 +356,11 @@ const useEarnAssetCatalogue = () => {
               id: `money:${assetId}`,
               type: 'MONEY_ACCOUNT_DEPOSIT',
               role: 'funding',
-              rate: createEarnRate({
+              rate: {
                 type: 'APY',
                 percentage: moneyApyPercent,
-                isLoading: isMoneyApyLoading,
-                isError: isMoneyApyError,
-              }),
+                status: moneyRateStatus,
+              },
               isFeeSubsidized: isMoneyDepositFeeSubsidized(
                 relayFixedSpread,
                 token,
@@ -387,18 +380,6 @@ const useEarnAssetCatalogue = () => {
 
         const address = market.underlying.address;
         const assetId = getLendingAssetId(market.chainId, address);
-        const lendingExperience = {
-          id: experienceId,
-          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-          role: 'underlying' as const,
-          rate: createEarnRate({
-            type: 'APY',
-            percentage: ratePercentage,
-          }),
-          isFeeSubsidized: false,
-          market,
-        };
-
         const metadata = lendingMetadata[assetId];
         if (!metadata || metadata.decimals === undefined) return;
 
@@ -418,7 +399,22 @@ const useEarnAssetCatalogue = () => {
               isStaked: false,
               chainId,
             },
-            [lendingExperience],
+            [
+              {
+                id: experienceId,
+                type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+                role: 'underlying',
+                rate: {
+                  type: 'APY',
+                  percentage: ratePercentage,
+                  status: getRateStatus({
+                    percentage: ratePercentage,
+                  }),
+                },
+                isFeeSubsidized: false,
+                market,
+              },
+            ],
           ),
         );
       });
@@ -434,10 +430,11 @@ const useEarnAssetCatalogue = () => {
               id: `pooled:${ETH_MAINNET_ASSET_ID}`,
               type: EARN_EXPERIENCES.POOLED_STAKING,
               role: 'underlying',
-              rate: createEarnRate({
+              rate: {
                 type: 'APR',
                 percentage: ethRatePercent,
-              }),
+                status: ethRateStatus,
+              },
               isFeeSubsidized: false,
             },
           ],
@@ -455,7 +452,11 @@ const useEarnAssetCatalogue = () => {
               id: `trx-staking:${TRX_NATIVE_TOKEN_ADDRESS}`,
               type: EARN_EXPERIENCES.TRX_STAKING,
               role: 'underlying',
-              rate: trxRate,
+              rate: {
+                type: 'APR',
+                percentage: trxRatePercent,
+                status: trxRateStatus,
+              },
               isFeeSubsidized: false,
             },
           ],
@@ -468,6 +469,7 @@ const useEarnAssetCatalogue = () => {
     earnOutputTokens,
     earnTokens,
     ethRatePercent,
+    ethRateStatus,
     isEarnEligible,
     isMoneyAccountVisible,
     isPooledStakingEnabled,
@@ -477,11 +479,10 @@ const useEarnAssetCatalogue = () => {
     lendingMarkets,
     moneyApyPercent,
     moneyDepositAssets,
-    isMoneyApyError,
-    isMoneyApyLoading,
+    moneyRateStatus,
     relayFixedSpread,
     trxRatePercent,
-    trxFetchStatus,
+    trxRateStatus,
     walletAssetsById,
   ]);
 
@@ -495,7 +496,7 @@ const useEarnAssetCatalogue = () => {
   );
   const hasMissingLendingMetadata =
     isLendingMetadataSettled &&
-    discoveryLendingAssetIds.some(
+    lendingAssetIds.some(
       (assetId) => lendingMetadata[assetId]?.decimals === undefined,
     );
   const hasUnresolvedMoneyAsset =
@@ -590,12 +591,7 @@ const useEarnAssetCatalogue = () => {
       errors,
       refresh,
       moneyApyPercent,
-      moneyRateStatus: createEarnRate({
-        type: 'APY',
-        percentage: moneyApyPercent,
-        isLoading: isMoneyApyLoading,
-        isError: isMoneyApyError,
-      }).status,
+      moneyRateStatus,
     }),
     [
       assets,
@@ -603,9 +599,8 @@ const useEarnAssetCatalogue = () => {
       errors,
       hasError,
       isLoading,
-      isMoneyApyError,
-      isMoneyApyLoading,
       moneyApyPercent,
+      moneyRateStatus,
       refresh,
     ],
   );

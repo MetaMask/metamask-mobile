@@ -3,11 +3,17 @@ jest.mock('child_process', () => {
     jest.requireActual<typeof import('child_process')>('child_process');
   return {
     ...actual,
-    execFile: jest.fn() };
+    execFile: jest.fn(),
+  };
 });
 
 import { execFile } from 'child_process';
-import { __clearAndroidAdbUdidCacheForTests, parseAdbDevicesOutput, parseAvdNameFromEmuOutput, resolveAndroidAdbUdidForDevice } from './resolveAndroidAdbUdid';
+import {
+  __clearAndroidAdbUdidCacheForTests,
+  parseAdbDevicesOutput,
+  parseAvdNameFromEmuOutput,
+  resolveAndroidAdbUdidForDevice,
+} from './resolveAndroidAdbUdid';
 import { ProviderName } from '../../../../types';
 
 const execFileMock = execFile as unknown as jest.Mock;

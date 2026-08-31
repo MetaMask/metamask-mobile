@@ -144,10 +144,7 @@ export function ActivityListItemRowLayout({
   ) : undefined;
   const amountColumn =
     primaryAmountNode || secondaryAmountNode ? (
-      <View
-        style={styles.listItemAmounts}
-        testID={`activity-amount-column-${testIdSuffix}`}
-      >
+      <View style={styles.listItemAmounts}>
         {primaryAmountNode}
         {secondaryAmountNode}
       </View>

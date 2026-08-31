@@ -49,7 +49,6 @@ import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
-import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
 import { usePerpsSyncedChartPrice } from '../../hooks/usePerpsSyncedChartPrice';
 import {
   PerpsOrderProvider,
@@ -350,8 +349,6 @@ const PerpsProMarketView = () => {
     handleFavoritePress,
     handlePerpsModeChange,
   } = usePerpsMarketHeaderActions({ symbol: market?.symbol });
-
-  usePerpsRecordMarketViewed(market?.symbol);
 
   if (!market?.symbol) {
     return (

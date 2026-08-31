@@ -1,22 +1,22 @@
 import { BackupAndSyncViewSelectorsIDs } from '../../selectors/Settings/BackupAndSyncView.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class BackupAndSyncView {
-  get accountSyncToggle(): Promise<AppiumElement> {
+  get accountSyncToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BackupAndSyncViewSelectorsIDs.ACCOUNT_SYNC_TOGGLE,
     );
   }
 
-  get backupAndSyncToggle(): Promise<AppiumElement> {
+  get backupAndSyncToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BackupAndSyncViewSelectorsIDs.BACKUP_AND_SYNC_TOGGLE,
     );
   }
 
-  get contactSyncToggle(): Promise<AppiumElement> {
+  get contactSyncToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BackupAndSyncViewSelectorsIDs.CONTACTS_SYNC_TOGGLE,
     );

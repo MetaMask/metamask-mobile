@@ -2,11 +2,9 @@ import { within } from '@testing-library/react-native';
 import Engine from '../../../app/core/Engine';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
-  PredictDecimal,
   PredictEntityId,
   PredictEvent,
   PredictFeedId,
-  PredictMarket,
   PredictTimestamp,
 } from '../../../app/components/UI/PredictNext/types';
 
@@ -52,64 +50,6 @@ const makeEvent = (
 });
 
 export const makePredictNextEvent = makeEvent;
-
-const makeStandardMarket = ({
-  id,
-  label,
-  yesAskPrice,
-  noAskPrice,
-  volume,
-}: {
-  id: string;
-  label: string;
-  yesAskPrice?: string;
-  noAskPrice?: string;
-  volume?: string;
-}): PredictMarket => ({
-  id: id as PredictEntityId,
-  question: `Will ${label} win?`,
-  status: 'active',
-  volume,
-  outcomes: [
-    {
-      id: `${id}-yes` as PredictEntityId,
-      side: 'yes',
-      label,
-      askPrice: yesAskPrice as PredictDecimal | undefined,
-    },
-    {
-      id: `${id}-no` as PredictEntityId,
-      side: 'no',
-      label: `Not ${label}`,
-      askPrice: noAskPrice as PredictDecimal | undefined,
-    },
-  ],
-});
-
-export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
-  ...makeEvent('world-series', 'Who will win the World Series?'),
-  markets: [
-    makeStandardMarket({
-      id: 'dodgers',
-      label: 'Dodgers',
-      yesAskPrice: '0.38',
-      noAskPrice: '0.62',
-      volume: '3200000',
-    }),
-    makeStandardMarket({
-      id: 'yankees',
-      label: 'Yankees',
-      yesAskPrice: '0.24',
-      noAskPrice: '0.76',
-      volume: '2100000',
-    }),
-    makeStandardMarket({
-      id: 'field',
-      label: 'Field',
-      yesAskPrice: '0',
-    }),
-  ],
-});
 
 export const makePredictNextGameEvent = (
   id: string,
@@ -203,36 +143,16 @@ export const messengerCall = Engine.controllerMessenger
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
-  details,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
-  details?: readonly PredictEvent[] | Error;
 } = {}) => {
-  const defaultDetails = [
-    ...(nfl instanceof Error ? [] : nfl),
-    ...(ncaa instanceof Error ? [] : ncaa),
-  ];
-
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
-      if (action === 'PredictMarketDataService:getEvent') {
-        const result = details ?? defaultDetails;
-        if (result instanceof Error) {
-          return Promise.reject(result);
-        }
-
-        const event = result.find(({ id }) => id === resourceId);
-        return event
-          ? Promise.resolve(event)
-          : Promise.reject(new Error('Event not found'));
-      }
-
+    (action: string, _venueId: string, feedId: PredictFeedId) => {
       if (action !== 'PredictMarketDataService:getFeed') {
         return Promise.resolve(undefined);
       }
 
-      const feedId = resourceId as PredictFeedId;
       const result = feedId === 'sports-football-nfl-games' ? nfl : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
@@ -248,13 +168,6 @@ export const configurePredictNextFeeds = ({
     },
   );
 };
-
-export const configurePredictNextEvent = (event: PredictEvent | Error) =>
-  configurePredictNextFeeds({
-    nfl: [],
-    ncaa: [],
-    details: event instanceof Error ? event : [event],
-  });
 
 export const expectPredictNextGameCard = (
   section: Parameters<typeof within>[0],

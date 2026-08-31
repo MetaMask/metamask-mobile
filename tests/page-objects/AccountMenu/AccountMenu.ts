@@ -1,48 +1,48 @@
 import { AccountsMenuSelectorsIDs } from '../../../app/components/Views/AccountsMenu/AccountsMenu.testIds';
 import Matchers from '../../../tests/framework/Matchers';
 import Gestures from '../../../tests/framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class AccountMenu {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID,
     );
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.BACK_BUTTON);
   }
 
-  get settingsButton(): Promise<AppiumElement> {
+  get settingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SETTINGS);
   }
 
-  get contactsButton(): Promise<AppiumElement> {
+  get contactsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.CONTACTS);
   }
 
-  get manageCardButton(): Promise<AppiumElement> {
+  get manageCardButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.MANAGE_CARD);
   }
 
-  get permissionsButton(): Promise<AppiumElement> {
+  get permissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.PERMISSIONS);
   }
 
-  get aboutMetaMaskButton(): Promise<AppiumElement> {
+  get aboutMetaMaskButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.ABOUT_METAMASK);
   }
 
-  get requestFeatureButton(): Promise<AppiumElement> {
+  get requestFeatureButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.REQUEST_FEATURE);
   }
 
-  get supportButton(): Promise<AppiumElement> {
+  get supportButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.SUPPORT);
   }
 
-  get lockButton(): Promise<AppiumElement> {
+  get lockButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountsMenuSelectorsIDs.LOCK);
   }
 
@@ -94,7 +94,7 @@ class AccountMenu {
     });
   }
 
-  get notificationsButton(): Promise<AppiumElement> {
+  get notificationsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON,
     );

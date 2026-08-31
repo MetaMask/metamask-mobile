@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import { type AppiumElement, PlatformDetector } from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
 
 const TIMEOUT = {
   KEYPAD_DIGIT: 10000,
@@ -9,47 +9,47 @@ const TIMEOUT = {
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): Promise<AppiumElement> {
+  get keypad(): EncapsulatedElementType {
     return Matchers.getElementByID('deposit-keyboard');
   }
 
   /** Amount input - wdio PerpsDepositScreen uses 'custom-amount-input' for isAmountInputVisible */
-  get amountInput(): Promise<AppiumElement> {
+  get amountInput(): EncapsulatedElementType {
     return Matchers.getElementByID('custom-amount-input');
   }
 
   /** Add funds button - wdio uses getElementByText('Add funds') for isAddFundsVisible */
-  get addFundsButton(): Promise<AppiumElement> {
+  get addFundsButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Add funds');
   }
 
   /** Total text - wdio uses getElementByText('Total') for isTotalVisible */
-  get totalText(): Promise<AppiumElement> {
+  get totalText(): EncapsulatedElementType {
     return Matchers.getElementByText('Total');
   }
 
   // Continue button (toolbar text)
-  get continueButtonByText(): Promise<AppiumElement> {
+  get continueButtonByText(): EncapsulatedElementType {
     return Matchers.getElementByText('Continue');
   }
 
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): Promise<AppiumElement> {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID('confirm-button');
   }
 
-  get infoRow(): Promise<AppiumElement> {
+  get infoRow(): EncapsulatedElementType {
     return Matchers.getElementByID('info-row');
   }
 
   // Pay with row (open selector)
-  get payWithRow(): Promise<AppiumElement> {
+  get payWithRow(): EncapsulatedElementType {
     return Matchers.getElementByID('pay-with');
   }
 
-  get usdcOption(): Promise<AppiumElement> {
+  get usdcOption(): EncapsulatedElementType {
     return Matchers.getElementByText('USDC');
   }
 

@@ -1,13 +1,21 @@
-import { useCallback } from 'react';
-import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { useCallback, useContext } from 'react';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import { strings } from '../../../../../locales/i18n';
+import { useTheme } from '../../../../util/theme';
 
 export const useCopyTokenContractAddress = (
   contractAddress: string | null,
   onCopyAddress?: () => void,
-) =>
-  useCallback(async () => {
+) => {
+  const { toastRef } = useContext(ToastContext);
+  const { colors } = useTheme();
+
+  return useCallback(async () => {
     if (!contractAddress) {
       return;
     }
@@ -15,10 +23,14 @@ export const useCopyTokenContractAddress = (
     await ClipboardManager.setString(contractAddress);
     onCopyAddress?.();
 
-    toast({
-      title: strings('account_details.account_copied_to_clipboard'),
-      severity: ToastSeverity.Success,
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Confirmation,
+      iconColor: colors.success.default,
+      labelOptions: [
+        { label: strings('account_details.account_copied_to_clipboard') },
+      ],
       hasNoTimeout: false,
-      showCloseButton: false,
     });
-  }, [contractAddress, onCopyAddress]);
+  }, [contractAddress, onCopyAddress, toastRef, colors]);
+};

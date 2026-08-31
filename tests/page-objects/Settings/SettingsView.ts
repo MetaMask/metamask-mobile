@@ -5,62 +5,62 @@ import {
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import type { ScrollContainer } from '../../framework/index';
 
 class SettingsView {
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(SettingsViewSelectorsText.TITLE);
   }
 
-  get generalSettingsButton(): Promise<AppiumElement> {
+  get generalSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.GENERAL);
   }
 
-  get advancedButton(): Promise<AppiumElement> {
+  get advancedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.ADVANCED);
   }
 
-  get contactsSettingsButton(): Promise<AppiumElement> {
+  get contactsSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACTS);
   }
 
-  get securityAndPrivacyButton(): Promise<AppiumElement> {
+  get securityAndPrivacyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SECURITY);
   }
 
-  get notificationsButton(): Promise<AppiumElement> {
+  get notificationsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
   }
 
-  get aesCryptoTestForm(): Promise<AppiumElement> {
+  get aesCryptoTestForm(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
     );
   }
 
-  get lockSettingsButton(): Promise<AppiumElement> {
+  get lockSettingsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.LOCK);
   }
-  get contactSupportButton(): Promise<AppiumElement> {
+  get contactSupportButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.CONTACT);
   }
 
-  get contactSupportSectionTitle(): Promise<AppiumElement> {
+  get contactSupportSectionTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SettingsViewSelectorsText.CONTACT_SUPPORT_TITLE,
     );
   }
 
-  get backupAndSyncSectionButton(): Promise<AppiumElement> {
+  get backupAndSyncSectionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACKUP_AND_SYNC);
   }
 
-  get snapsSectionButton(): Promise<AppiumElement> {
+  get snapsSectionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.SNAPS);
   }
 
-  get alertButton(): Promise<AppiumElement> {
+  get alertButton(): EncapsulatedElementType {
     // Case-insensitive: Android AlertDialog may show "YES" vs locale "Yes".
     const yes = CommonSelectorsText.YES_ALERT_BUTTON.replace(
       /[.*+?^${}()|[\]\\]/g,
@@ -205,7 +205,7 @@ class SettingsView {
     });
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.BACK_BUTTON);
   }
 

@@ -502,17 +502,15 @@ describe('TokenDetails', () => {
     });
   });
 
-  it('does not render a full-page loader when txLoading is true', () => {
+  it('renders loader when txLoading is true', () => {
     mockUseTokenTransactions.mockReturnValue({
       ...defaultUseTokenTransactionsReturn,
       loading: true,
     });
 
-    const { UNSAFE_queryAllByType } = render(<TokenDetails />);
+    const { UNSAFE_getByType } = render(<TokenDetails />);
 
-    // Content (and its own skeletons) mounts immediately instead of being
-    // blocked behind a full-page spinner while transactions load.
-    expect(UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
   });
 
   it('requests the auto-add of the network for the token chain', () => {
@@ -1176,21 +1174,12 @@ describe('TokenDetails', () => {
       );
     });
 
-    it('does not re-render TokenDetails when the share sheet opens', async () => {
-      render(<TokenDetails />);
-      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
-
+    it('closes ShareTokenBottomSheet when onClose is invoked', async () => {
+      const { getByTestId, queryByTestId } = render(<TokenDetails />);
       await invokeSharePress();
 
-      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
-        headerRenderCount,
-      );
-    });
+      expect(getByTestId('share-token-sheet')).toBeTruthy();
 
-    it('closes ShareTokenBottomSheet without re-rendering TokenDetails', async () => {
-      const { queryByTestId } = render(<TokenDetails />);
-      await invokeSharePress();
-      const headerRenderCount = mockTokenDetailsInlineHeader.mock.calls.length;
       const { onClose } = (mockShareTokenBottomSheet.mock.calls.at(-1)?.[0] ??
         {}) as { onClose: () => void };
 
@@ -1198,10 +1187,7 @@ describe('TokenDetails', () => {
         onClose();
       });
 
-      expect(queryByTestId('share-token-sheet')).not.toBeOnTheScreen();
-      expect(mockTokenDetailsInlineHeader).toHaveBeenCalledTimes(
-        headerRenderCount,
-      );
+      expect(queryByTestId('share-token-sheet')).toBeNull();
     });
   });
 

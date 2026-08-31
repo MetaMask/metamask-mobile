@@ -1,10 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import { UnifiedTransactionsViewSelectorsIDs } from '../../../app/components/Views/UnifiedTransactionsView/UnifiedTransactionsView.testIds';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class UnifiedTransactionsView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       UnifiedTransactionsViewSelectorsIDs.CONTAINER,
     );

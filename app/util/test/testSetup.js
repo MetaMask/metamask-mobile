@@ -54,25 +54,10 @@ jest.mock('expo-modules-core', () => ({
   NativeModulesProxy: {},
   requireNativeModule: jest.fn(() => ({})),
   requireOptionalNativeModule: jest.fn(() => null),
-  // Native view managers resolve to a host component name so that children
-  // (and their testIDs) still render in tests.
-  requireNativeViewManager: jest.fn((name) => name),
   Platform: { OS: 'ios' },
   CodedError: class CodedError extends Error {},
   UnavailabilityError: class UnavailabilityError extends Error {},
   LegacyEventEmitter: jest.fn(),
-}));
-
-// Mock expo-screen-capture: it reaches for a native module at import time, so
-// importing it unmocked throws in Jest.
-jest.mock('expo-screen-capture', () => ({
-  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
-  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
-  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
-  removeScreenshotListener: jest.fn(),
-  isAvailableAsync: jest.fn().mockResolvedValue(true),
-  usePreventScreenCapture: jest.fn(),
-  useScreenshotListener: jest.fn(),
 }));
 
 // Mock Expo's fetch implementation

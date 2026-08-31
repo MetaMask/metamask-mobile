@@ -9,7 +9,7 @@ import {
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 import Utilities from '../../framework/Utilities';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
 import type { ScrollContainer } from '../../framework/types';
@@ -36,7 +36,7 @@ class PerpsMarketListView {
    * HeaderCompactStandard back on explore market list (see PerpsMarketListView.tsx).
    * Navigates from the market list back to Perps portfolio home.
    */
-  get headerBackButton(): Promise<AppiumElement> {
+  get headerBackButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`,
     );
@@ -64,15 +64,15 @@ class PerpsMarketListView {
   }
 
   /** List header - wdio PerpsMarketListView uses 'perps-home' for isHeaderVisible */
-  get listHeader(): Promise<AppiumElement> {
+  get listHeader(): EncapsulatedElementType {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER);
   }
 
-  get header(): Promise<AppiumElement> {
+  get header(): EncapsulatedElementType {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST);
   }
 
-  get marketRowItemBTC(): Promise<AppiumElement> {
+  get marketRowItemBTC(): EncapsulatedElementType {
     return Matchers.getElementByID(
       getPerpsMarketRowItemSelector.rowItem('BTC'),
     );

@@ -102,8 +102,6 @@ const mockFiatOrdersModule = jest.requireMock(
 ) as {
   selectHasAgreedTransakNativePolicy: jest.Mock;
 };
-const mockUseRampAccountAddress = jest.requireMock('./useRampAccountAddress')
-  .default as jest.Mock;
 const mockDeviceIsAndroid = jest.requireMock('../../../../util/device')
   .isAndroid as jest.Mock;
 const mockLinkingOpenURL = jest.requireMock(
@@ -238,13 +236,6 @@ async function invoke(
 describe('useContinueWithQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetAllMocks();
-    (Date.now as unknown as jest.Mock).mockReturnValue(123);
-    mockUseRampAccountAddress.mockReturnValue(
-      '0x1234567890123456789012345678901234567890',
-    );
-    mockDeviceIsAndroid.mockReturnValue(false);
-    mockLinkingOpenURL.mockResolvedValue(undefined);
     mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
       false,
     );
@@ -526,44 +517,6 @@ describe('useContinueWithQuote', () => {
         index: 0,
         routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
       });
-    });
-
-    it('registers a precreated order with chainId on the Android external-browser path', async () => {
-      mockDeviceIsAndroid.mockReturnValue(true);
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        orderId: 'ord-android-1',
-      });
-
-      const { result } = renderHook(() => useContinueWithQuote());
-
-      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
-
-      expect(caught).toBeUndefined();
-      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
-        orderId: 'ord-android-1',
-        providerCode: 'moonpay',
-        walletAddress: '0x1234567890123456789012345678901234567890',
-        chainId: '1',
-      });
-    });
-
-    it('does not register a precreated order when chainId is missing', async () => {
-      mockDeviceIsAndroid.mockReturnValue(true);
-      mockUseRampsController.mockReturnValue(
-        buildController({ selectedToken: null }),
-      );
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://widget.example.com/checkout',
-        orderId: 'ord-no-chain',
-      });
-
-      const { result } = renderHook(() => useContinueWithQuote());
-
-      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
-
-      expect(caught).toBeUndefined();
-      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
     });
 
     it('resets to order details after InAppBrowser success', async () => {

@@ -30,12 +30,12 @@ const styleSheet = (params: {
     },
     /** Same pattern as AdvancedChart: overlay does not participate in flex layout with AreaChart. */
     loadingOverlayContainer: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
     },
     noDataOverlayContainer: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
     },
     chartLoading: {
       width: '100%',

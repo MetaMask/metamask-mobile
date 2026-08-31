@@ -51,10 +51,9 @@ jest.mock(
 // Mock Rive React Native - automatically uses the __mocks__ file via jest.config.js
 // We need to import helper functions to access the mock
 import {
-  __getLastRiveViewMethods,
-  __mockRiveTriggerInput,
-  __resetRiveMocks,
-} from '../../../__mocks__/rive-app-react-native';
+  __getLastMockedMethods,
+  __clearLastMockedMethods,
+} from '../../../__mocks__/rive-react-native';
 
 describe('OnboardingAnimation', () => {
   const mockSetStartFoxAnimation = jest.fn();
@@ -73,7 +72,7 @@ describe('OnboardingAnimation', () => {
     mockHasTestOverrides = false;
 
     // Clear Rive mock methods using the mock helper
-    __resetRiveMocks();
+    __clearLastMockedMethods();
 
     // Clear any pending timers
     jest.clearAllTimers();
@@ -109,10 +108,10 @@ describe('OnboardingAnimation', () => {
     it('initializes Rive component with correct props', () => {
       render(<OnboardingAnimation {...defaultProps} />);
 
-      const mockedMethods = __getLastRiveViewMethods();
+      const mockedMethods = __getLastMockedMethods();
       expect(mockedMethods).toBeDefined();
-      expect(mockedMethods?.setBooleanInputValue).toBeDefined();
-      expect(mockedMethods?.triggerInput).toBeDefined();
+      expect(mockedMethods?.setInputState).toBeDefined();
+      expect(mockedMethods?.fireState).toBeDefined();
     });
   });
 
@@ -120,10 +119,12 @@ describe('OnboardingAnimation', () => {
     it('does not trigger animation when startOnboardingAnimation is false', () => {
       render(<OnboardingAnimation {...defaultProps} />);
 
-      expect(__mockRiveTriggerInput).not.toHaveBeenCalled();
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods?.setInputState).not.toHaveBeenCalled();
+      expect(mockedMethods?.fireState).not.toHaveBeenCalled();
     });
 
-    it('fires the Start trigger when startOnboardingAnimation becomes true', () => {
+    it('renders component properly when startOnboardingAnimation becomes true', () => {
       const { rerender, getByTestId } = render(
         <OnboardingAnimation {...defaultProps} />,
       );
@@ -132,10 +133,6 @@ describe('OnboardingAnimation', () => {
       rerender(
         <OnboardingAnimation {...defaultProps} startOnboardingAnimation />,
       );
-
-      // triggerInput takes only the trigger name; the state machine is the
-      // stateMachineName view prop in the nitro runtime
-      expect(__mockRiveTriggerInput).toHaveBeenCalledWith('Start');
 
       // Component should still render correctly
       expect(getByTestId('metamask-wordmark-animation')).toBeOnTheScreen();
@@ -224,7 +221,7 @@ describe('OnboardingAnimation', () => {
       );
 
       // Clear any mock calls from initial render
-      __resetRiveMocks();
+      __clearLastMockedMethods();
 
       // Trigger animation
       rerender(
@@ -236,7 +233,7 @@ describe('OnboardingAnimation', () => {
       );
 
       // In E2E mode, Rive component is not rendered at all
-      const mockedMethods = __getLastRiveViewMethods();
+      const mockedMethods = __getLastMockedMethods();
 
       // The Rive component should not be rendered in E2E mode
       expect(mockedMethods).toBeUndefined();
@@ -352,9 +349,9 @@ describe('OnboardingAnimation', () => {
       expect(riveComponent).toBeOnTheScreen();
 
       // Verify Rive methods are available
-      const mockedMethods = __getLastRiveViewMethods();
-      expect(mockedMethods?.setBooleanInputValue).toBeDefined();
-      expect(mockedMethods?.triggerInput).toBeDefined();
+      const mockedMethods = __getLastMockedMethods();
+      expect(mockedMethods?.setInputState).toBeDefined();
+      expect(mockedMethods?.fireState).toBeDefined();
     });
   });
 

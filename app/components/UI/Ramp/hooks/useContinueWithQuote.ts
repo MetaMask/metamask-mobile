@@ -345,12 +345,12 @@ export function useContinueWithQuote(
           );
 
         if (useExternalBrowser) {
-          if (effectiveOrderId && effectiveWallet && network) {
+          if (effectiveOrderId && effectiveWallet) {
             addPrecreatedOrder({
               orderId: effectiveOrderId,
               providerCode,
               walletAddress: effectiveWallet,
-              chainId: network,
+              chainId: network || undefined,
             });
           }
 

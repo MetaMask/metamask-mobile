@@ -1,10 +1,10 @@
 import { PerpsOrderDetailsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class PerpsOrderDetailsView {
-  get cancelOrderButton(): Promise<AppiumElement> {
+  get cancelOrderButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
     );

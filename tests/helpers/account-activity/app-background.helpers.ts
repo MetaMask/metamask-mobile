@@ -1,4 +1,4 @@
-import { getDriver } from '../../framework/AppiumUtilities.js';
+import { getDriver } from '../../framework/PlaywrightUtilities.js';
 import { PlatformDetector } from '../../framework/PlatformLocator.js';
 
 export async function sendAppToHome(): Promise<void> {

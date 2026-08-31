@@ -11,6 +11,9 @@ import { Alert } from '../../types/alerts';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
+import { useInsufficientPredictBalanceAlert } from './useInsufficientPredictBalanceAlert';
+import { useInsufficientPerpsBalanceAlert } from './useInsufficientPerpsBalanceAlert';
+import { useInsufficientMoneyAccountBalanceAlert } from './useInsufficientMoneyAccountBalanceAlert';
 import { useFiatBuyLimitAlert } from './useFiatBuyLimitAlert';
 import { useBurnAddressAlert } from './useBurnAddressAlert';
 import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
@@ -39,6 +42,10 @@ function useTransactionAlerts(): Alert[] {
   const insufficientPayTokenBalanceAlert =
     useInsufficientPayTokenBalanceAlert();
   const noPayTokenQuotesAlert = useNoPayTokenQuotesAlert();
+  const insufficientPredictBalanceAlert = useInsufficientPredictBalanceAlert();
+  const insufficientPerpsBalanceAlert = useInsufficientPerpsBalanceAlert();
+  const insufficientMoneyAccountBalanceAlert =
+    useInsufficientMoneyAccountBalanceAlert();
   const fiatBuyLimitAlert = useFiatBuyLimitAlert();
   const burnAddressAlert = useBurnAddressAlert();
   const headlessBuyErrorAlert = useHeadlessBuyErrorAlert();
@@ -59,6 +66,9 @@ function useTransactionAlerts(): Alert[] {
       ...signedOrSubmittedAlert,
       ...insufficientPayTokenBalanceAlert,
       ...noPayTokenQuotesAlert,
+      ...insufficientPredictBalanceAlert,
+      ...insufficientPerpsBalanceAlert,
+      ...insufficientMoneyAccountBalanceAlert,
       ...fiatBuyLimitAlert,
       ...burnAddressAlert,
       ...headlessBuyErrorAlert,
@@ -78,6 +88,9 @@ function useTransactionAlerts(): Alert[] {
       signedOrSubmittedAlert,
       insufficientPayTokenBalanceAlert,
       noPayTokenQuotesAlert,
+      insufficientPredictBalanceAlert,
+      insufficientPerpsBalanceAlert,
+      insufficientMoneyAccountBalanceAlert,
       fiatBuyLimitAlert,
       burnAddressAlert,
       headlessBuyErrorAlert,

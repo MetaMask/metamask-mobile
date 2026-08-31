@@ -151,10 +151,6 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from the Money tab
    */
   fromMoney?: boolean;
-  /**
-   * Whether browser was opened from Earn strategy selection
-   */
-  fromEarnStrategySelection?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

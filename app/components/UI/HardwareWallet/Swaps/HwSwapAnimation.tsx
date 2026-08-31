@@ -1,12 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import {
-  Alignment,
-  Fit,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
 import {
   Box,
   BoxAlignItems,
@@ -72,14 +66,14 @@ export interface HwSwapAnimationProps {
  * `progress` changes. The parent only needs to pass the current flow state.
  */
 export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
-  const { riveFile } = useRiveFile(genericHardwareWalletRiveFile);
-  const { riveViewRef, setHybridRef } = useRive();
+  const riveRef = useRef<RiveRef>(null);
+  const [isRivePlaying, setIsRivePlaying] = useState(false);
 
   useEffect(() => {
-    if (!riveViewRef) return;
+    if (!isRivePlaying) return;
     const trigger = getHardwareWalletRiveTrigger(progress);
-    riveViewRef.triggerInput(trigger);
-  }, [progress, riveViewRef]);
+    riveRef.current?.fireState(HARDWARE_WALLET_RIVE_STATE_MACHINE, trigger);
+  }, [progress, isRivePlaying]);
 
   return (
     <Box
@@ -87,19 +81,18 @@ export function HwSwapAnimation({ progress }: HwSwapAnimationProps) {
       justifyContent={BoxJustifyContent.Center}
       twClassName="h-32"
     >
-      {riveFile && (
-        <RiveView
-          hybridRef={setHybridRef}
-          testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
-          file={riveFile}
-          artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
-          stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
-          autoPlay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-          style={styles.riveAnimation}
-        />
-      )}
+      <Rive
+        ref={riveRef}
+        testID={HardwareWalletsSwapsSelectorsIDs.RIVE_ANIMATION}
+        source={genericHardwareWalletRiveFile}
+        artboardName={HARDWARE_WALLET_RIVE_ARTBOARD}
+        stateMachineName={HARDWARE_WALLET_RIVE_STATE_MACHINE}
+        autoplay
+        fit={Fit.Contain}
+        alignment={Alignment.Center}
+        style={styles.riveAnimation}
+        onPlay={() => setIsRivePlaying(true)}
+      />
     </Box>
   );
 }

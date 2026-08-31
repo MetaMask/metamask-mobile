@@ -40,25 +40,14 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
   const { handleTrade } = useTradeNavigation(asset);
   const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const perpsMarketSymbol = asset.hlPerpsMarket?.[0];
-  const priceEntry = perpsMarketSymbol
-    ? perpsPriceBySymbol[perpsMarketSymbol]
-    : undefined;
-  const hasFinitePrice =
-    priceEntry?.price !== undefined && Number.isFinite(priceEntry.price);
-
-  // Perps prices are always quoted in USD. Wait for a finite quote before
-  // formatting so partial live ticks never render the empty "—" state.
+  // Perps prices are always quoted in USD
   const secondaryLine = useMemo(() => {
-    if (!hasFinitePrice || !priceEntry) {
-      return undefined;
-    }
-    return formatAssetPrice(
-      priceEntry.price,
-      priceEntry.percentChange24h,
-      'USD',
-    );
-  }, [hasFinitePrice, priceEntry]);
+    const symbol = asset.hlPerpsMarket?.[0];
+    if (!symbol) return undefined;
+    const entry = perpsPriceBySymbol[symbol];
+    if (!entry) return undefined;
+    return formatAssetPrice(entry.price, entry.percentChange24h, 'USD');
+  }, [asset.hlPerpsMarket, perpsPriceBySymbol]);
 
   const handleTradeWithTracking = useCallback(() => {
     const perpsMarket = asset.hlPerpsMarket?.[0];
@@ -88,6 +77,8 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
     createEventBuilder,
   ]);
 
+  const perpsMarketSymbol = asset.hlPerpsMarket?.[0];
+
   return (
     <AssetRow
       asset={asset}
@@ -99,7 +90,6 @@ const PerpsRow: React.FC<PerpsRowProps> = ({
       }
       onAction={perpsMarketSymbol ? handleTradeWithTracking : undefined}
       secondaryLine={secondaryLine}
-      isPriceLoading={Boolean(perpsMarketSymbol) && !hasFinitePrice}
     />
   );
 };

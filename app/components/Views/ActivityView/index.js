@@ -51,8 +51,15 @@ import styleSheet from './ActivityView.styles';
 import { selectIsActivityRedesignEnabled } from './selectors/featureFlags';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter enum; route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import ActivityScreen from '../ActivityScreen/ActivityScreen';
+
+// Lazily loaded so the redesigned Activity screen and its dependencies are not
+// evaluated when `tmcuActivityRedesignEnabled` is off, keeping the legacy path
+// fully isolated.
+const ActivityScreen = React.lazy(
+  () =>
+    // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+    import('../ActivityScreen/ActivityScreen'),
+);
 
 const LegacyActivityView = () => {
   const { colors } = useTheme();
@@ -102,7 +109,7 @@ const LegacyActivityView = () => {
 
   // Prevent back button returning to confirmation screen in case that users are redirected after a successful transaction.
   const handleNavigateHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+    navigation.navigate(Routes.HOME_TABS);
   }, [navigation]);
 
   const handleBackPress = useCallback(() => {
@@ -309,7 +316,9 @@ const ActivityView = () => {
   );
 
   return isActivityRedesignEnabled ? (
-    <ActivityScreen />
+    <React.Suspense fallback={null}>
+      <ActivityScreen />
+    </React.Suspense>
   ) : (
     <LegacyActivityView />
   );

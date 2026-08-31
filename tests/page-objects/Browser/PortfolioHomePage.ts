@@ -5,61 +5,56 @@ import {
 } from '../../selectors/Browser/PortfolioPage.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
 
 class PortfolioHomePage {
-  getConnectWalletButton(pageUrl: string): Promise<AppiumElement> {
+  get connectWalletButton(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsWebID.CONNECT_WALLET_BUTTON,
-      pageUrl,
     );
   }
 
-  getCloseIconPrivacyModal(pageUrl: string): Promise<AppiumElement> {
+  get closeIconPrivacyModal(): WebElement {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsXpath.CLOSE_PRIVACY_MODAL,
-      pageUrl,
     );
   }
 
-  getAccountButton(pageUrl: string): Promise<AppiumElement> {
+  get accountButton(): WebElement {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsXpath.ACCOUNT_ICON_HREF,
-      pageUrl,
     );
   }
 
-  getBurgerMenu(pageUrl: string): Promise<AppiumElement> {
+  get burgerMenu(): WebElement {
     return Matchers.getElementByWebID(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       PortfolioPageSelectorsWebID.BURGER_MENU_BUTTON,
-      pageUrl,
     );
   }
 
-  async tapConnectMetaMask(pageUrl: string): Promise<void> {
-    await Gestures.waitAndTap(this.getConnectWalletButton(pageUrl), {
+  async tapConnectMetaMask(): Promise<void> {
+    await Gestures.waitAndTap(this.connectWalletButton, {
       elemDescription: 'Portfolio - Connect MetaMask button',
     });
   }
 
-  async closePrivacyModal(pageUrl: string): Promise<void> {
-    await Gestures.waitAndTap(this.getCloseIconPrivacyModal(pageUrl), {
+  async closePrivacyModal(): Promise<void> {
+    await Gestures.waitAndTap(this.closeIconPrivacyModal, {
       elemDescription: 'Portfolio - Close privacy modal',
     });
   }
 
-  async tapAccountButton(pageUrl: string): Promise<void> {
-    await Gestures.waitAndTap(this.getAccountButton(pageUrl), {
+  async tapAccountButton(): Promise<void> {
+    await Gestures.waitAndTap(this.accountButton, {
       elemDescription: 'Portfolio - Account button',
     });
   }
 
-  async tapBurgerMenu(pageUrl: string): Promise<void> {
-    await Gestures.waitAndTap(this.getBurgerMenu(pageUrl), {
+  async tapBurgerMenu(): Promise<void> {
+    await Gestures.waitAndTap(this.burgerMenu, {
       elemDescription: 'Portfolio - Burger menu',
     });
   }

@@ -1,7 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import { type ScrollContainer } from '../../framework';
 import { MarketInsightsSelectorsIDs } from '../../../app/components/UI/MarketInsights/MarketInsights.testIds';
 
 class MarketInsightsView {
@@ -17,8 +16,8 @@ class MarketInsightsView {
     return Matchers.getElementByID(MarketInsightsSelectorsIDs.BUY_BUTTON);
   }
 
-  get scrollView(): ScrollContainer {
-    return Matchers.scrollContainer(MarketInsightsSelectorsIDs.VIEW_SCROLL);
+  get scrollView(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(MarketInsightsSelectorsIDs.VIEW_SCROLL);
   }
 
   get thumbsUpButton() {

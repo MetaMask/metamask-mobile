@@ -180,11 +180,7 @@ describe('ConfirmAddAsset', () => {
     expect(mockAddNetworkIfMissing.mock.invocationCallOrder[0]).toBeLessThan(
       mockAddTokenList.mock.invocationCallOrder[0],
     );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.WALLET.TOKENS_FULL_VIEW,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
   });
 
   it('adds a missing network once per unique chain when importing multiple tokens', async () => {
@@ -280,11 +276,7 @@ describe('ConfirmAddAsset', () => {
     });
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.TOKENS_FULL_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
     });
   });
 
@@ -313,8 +305,6 @@ describe('ConfirmAddAsset', () => {
     expect(getByTestId(TESTID_BOTTOMSHEETFOOTER_BUTTON)).toBeEnabled();
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.WALLET.TOKENS_FULL_VIEW,
-      undefined,
-      { pop: true },
     );
   });
 

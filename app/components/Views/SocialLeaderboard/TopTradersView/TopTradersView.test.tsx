@@ -204,7 +204,6 @@ const buildResult = (
   traders: fixtureTraders,
   isLoading: false,
   isFetching: true,
-  hasFetched: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
@@ -248,12 +247,6 @@ jest.mock(
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
-
-let mockIsMasterNotificationsEnabled = true;
-jest.mock('../../../../selectors/notifications', () => ({
-  ...jest.requireActual('../../../../selectors/notifications'),
-  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
-}));
 
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: (options?: UseTopTradersHookOptions) =>
@@ -329,7 +322,6 @@ describe('TopTradersView', () => {
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
-    mockIsMasterNotificationsEnabled = true;
     mockHasNotificationPreferences.mockReturnValue(true);
     mockRouteParams = {};
     mockNotificationPreferences = { ...defaultNotificationPreferences };
@@ -828,23 +820,6 @@ describe('TopTradersView', () => {
         Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
         expect.objectContaining({ onSetupComplete: expect.any(Function) }),
       );
-    });
-
-    it('intercepts the follow with the feature notifications gate when the master toggle is off', async () => {
-      mockIsMasterNotificationsEnabled = false;
-
-      renderWithProvider(<TopTradersView />);
-
-      await act(async () => {
-        fireEvent.press(screen.getAllByText('Follow')[0]);
-      });
-
-      expect(mockToggleFollow).not.toHaveBeenCalled();
-      expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
-        params: { feature: 'socialAI', autoDismiss: true },
-      });
     });
 
     it('performs the follow when the deferred setup action runs', async () => {

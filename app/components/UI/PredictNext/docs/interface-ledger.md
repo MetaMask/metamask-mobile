@@ -12,7 +12,7 @@ The agreed next-contract direction is documented in [`canonical-read-model-and-a
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
-- Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend and its exact complementary No probability.
+- Event responses provide the initial price snapshot. A separate price read is not part of this slice; future Live Updates may patch cached Outcomes.
 - Market status is a small browse projection, not a lossless Venue lifecycle.
 - Event status is intentionally absent.
 - `PredictVenueStatus` contains the root `venueId`, an `available | degraded | unavailable` status, and the backend observation time as `PredictTimestamp`.
@@ -31,10 +31,9 @@ The reduced browse status will be replaced by the Kalshi lifecycle vocabulary: `
 marketDataQueries.getVenueStatus(venueId);
 marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
-marketDataQueries.getMarketHistory(venueId, marketId, range);
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. The first price-bearing Event list/detail and Venue Status policy is one minute, with no background polling.
 
 ## Runtime boundary
 

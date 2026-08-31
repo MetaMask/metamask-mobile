@@ -1,15 +1,15 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { sleep, type AppiumElement } from '../../framework';
+import { sleep, type EncapsulatedElementType } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 class SwitchChainModal {
-  get connectButton(): Promise<AppiumElement> {
+  get connectButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
 
-  getNetworkText(network: string): Promise<AppiumElement> {
+  getNetworkText(network: string): EncapsulatedElementType {
     return Matchers.getElementByNativeXPath(
       `//android.widget.TextView[@text="Requesting for ${network}"]`,
     );

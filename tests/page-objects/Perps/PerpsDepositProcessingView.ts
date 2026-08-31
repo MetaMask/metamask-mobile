@@ -2,28 +2,28 @@ import { PerpsDepositProcessingViewSelectorsIDs } from '../../../app/components/
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class PerpsDepositProcessingView {
-  get headerTitle(): Promise<AppiumElement> {
+  get headerTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.HEADER_TITLE,
     );
   }
 
-  get statusTitle(): Promise<AppiumElement> {
+  get statusTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.STATUS_TITLE,
     );
   }
 
-  get statusDescription(): Promise<AppiumElement> {
+  get statusDescription(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.STATUS_DESCRIPTION,
     );
   }
 
-  get viewBalanceButton(): Promise<AppiumElement> {
+  get viewBalanceButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsDepositProcessingViewSelectorsIDs.VIEW_BALANCE_BUTTON,
     );

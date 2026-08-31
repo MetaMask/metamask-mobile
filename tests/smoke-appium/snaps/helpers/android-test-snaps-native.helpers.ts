@@ -1,7 +1,7 @@
 import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Assertions from '../../../framework/Assertions';
 import Matchers from '../../../framework/Matchers';
-import { createAppiumLogger } from '../../../framework/appiumLogger';
+import { createPlaywrightLogger } from '../../../framework/playwrightLogger';
 import {
   TEST_SNAPS_ANDROID_SCROLL_LABELS,
   testSnapsAndroidScrollOptions,
@@ -9,7 +9,7 @@ import {
 
 export { TEST_SNAPS_ANDROID_SCROLL_LABELS, testSnapsAndroidScrollOptions };
 
-const logger = createAppiumLogger('AndroidTestSnapsNative');
+const logger = createPlaywrightLogger('AndroidTestSnapsNative');
 
 let loggedNativeBridgeMode = false;
 

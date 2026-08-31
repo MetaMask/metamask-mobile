@@ -49,7 +49,7 @@ jobs:
             contents: write
             members: read
       - name: Merge previous releases
-        uses: metamask/github-tools/.github/actions/merge-previous-releases@v1
+        uses: metamask/github-tools/.github/actions/merge-previous-releases@v1.2.0
         with:
           new-release-branch: ${{ github.event.ref }}
           github-token: ${{ steps.get-token.outputs.token }}

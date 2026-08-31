@@ -65,8 +65,6 @@ export const createStyles = (
       lineHeight: 18,
       marginTop: 0,
       color: colors.text.default,
-      flexShrink: 1,
-      minWidth: 0,
     } as TextStyle,
     listItemTitleFailed: {
       color: colors.error.default,
@@ -83,7 +81,7 @@ export const createStyles = (
     } as TextStyle,
     listItemAmounts: {
       alignItems: 'flex-end',
-      flexShrink: 0,
+      flexShrink: 1,
       maxWidth: '45%',
       minWidth: 0,
     },
@@ -115,14 +113,11 @@ export const createStyles = (
     titleRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      flexShrink: 1,
-      minWidth: 0,
     },
     titleSpinner: {
       height: 18,
       justifyContent: 'center',
       marginLeft: 6,
-      flexShrink: 0,
       transform: [{ translateY: -2 }],
     },
     statusRow: {

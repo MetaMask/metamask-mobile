@@ -2,22 +2,22 @@ import { ApproveComponentIDs } from '../../../app/components/Views/confirmations
 import { TEXTFIELD_TEST_ID } from '../../../app/component-library/components/Form/TextField/TextField.constants';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement, PlatformDetector } from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
 
 const EDIT_SPENDING_CAP_MODAL_TITLE = 'Edit approval limit';
 
 class TokenApproveConfirmation {
-  get SpendingCapValue(): Promise<AppiumElement> {
+  get SpendingCapValue(): EncapsulatedElementType {
     return Matchers.getElementByID(ApproveComponentIDs.SPENDING_CAP_VALUE);
   }
 
-  get EditSpendingCapButton(): Promise<AppiumElement> {
+  get EditSpendingCapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_BUTTON,
     );
   }
 
-  get EditSpendingCapInput(): Promise<AppiumElement> {
+  get EditSpendingCapInput(): EncapsulatedElementType {
     // iOS exposes the generic TextField id; Android uses the specific input id.
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByID(TEXTFIELD_TEST_ID);
@@ -25,7 +25,7 @@ class TokenApproveConfirmation {
     return Matchers.getElementByID(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
   }
 
-  get EditSpendingCapSaveButton(): Promise<AppiumElement> {
+  get EditSpendingCapSaveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON,
     );

@@ -4,44 +4,44 @@ import {
 } from '../../selectors/Onboarding/OnboardingCarousel.selectors';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class OnboardingCarouselView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.CAROUSEL_CONTAINER_ID,
     );
   }
 
-  get getStartedButton(): Promise<AppiumElement> {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
     );
   }
 
-  get titleOne(): Promise<AppiumElement> {
+  get titleOne(): EncapsulatedElementType {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_ONE);
   }
 
-  get imageOne(): Promise<AppiumElement> {
+  get imageOne(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.ONE_IMAGE_ID);
   }
 
-  get titleTwo(): Promise<AppiumElement> {
+  get titleTwo(): EncapsulatedElementType {
     return Matchers.getElementByText(OnboardingCarouselSelectorText.TITLE_TWO);
   }
 
-  get imageTwo(): Promise<AppiumElement> {
+  get imageTwo(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingCarouselSelectorIDs.TWO_IMAGE_ID);
   }
 
-  get titleThree(): Promise<AppiumElement> {
+  get titleThree(): EncapsulatedElementType {
     return Matchers.getElementByText(
       OnboardingCarouselSelectorText.TITLE_THREE,
     );
   }
 
-  get imageThree(): Promise<AppiumElement> {
+  get imageThree(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingCarouselSelectorIDs.THREE_IMAGE_ID,
     );

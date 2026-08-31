@@ -1,10 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SelectPaymentMethodSelectors } from '../../selectors/Ramps/SelectPaymentMethod.selectors';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class SelectPaymentMethodView {
-  get continueButton(): Promise<AppiumElement> {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SelectPaymentMethodSelectors.CONTINUE_BUTTON,
     );

@@ -545,7 +545,6 @@ describe('CardAuthentication Component', () => {
             screen: Routes.MONEY.ROOT,
             params: { screen: Routes.MONEY.HOME },
           },
-          { pop: true },
         );
       });
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -583,7 +582,6 @@ describe('CardAuthentication Component', () => {
             screen: Routes.MONEY.ROOT,
             params: { screen: Routes.MONEY.HOME },
           },
-          { pop: true },
         );
       });
       expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();

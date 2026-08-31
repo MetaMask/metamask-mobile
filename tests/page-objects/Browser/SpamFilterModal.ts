@@ -1,14 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SpamFilterModalSelectorText } from '../../selectors/Browser/SpamFilterModal.selectors';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class SpamFilterModal {
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(SpamFilterModalSelectorText.TITLE);
   }
 
-  get cancelButtonText(): Promise<AppiumElement> {
+  get cancelButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(SpamFilterModalSelectorText.CANCEL_BUTTON);
   }
 

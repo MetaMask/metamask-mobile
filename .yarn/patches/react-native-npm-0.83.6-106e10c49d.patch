@@ -1,20 +1,3 @@
-diff --git a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
-index ab5a973f12c7e26631bdf2a4705a43f3f458600c..e20c4bf818838ed0d62f91aa600bf27c34df5ac3 100644
---- a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
-+++ b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
-@@ -146,5 +146,9 @@ int InspectorImpl::addPage(
--  for (const auto& listenerWeak : listeners_) {
--    if (auto listener = listenerWeak.lock()) {
--      listener->unstable_onHostTargetAdded();
-+  // Legacy Hermes runtimes also register pages, but only Fusebox pages
-+  // represent React Native hosts.
-+  if (capabilities.prefersFuseboxFrontend) {
-+    for (const auto& listenerWeak : listeners_) {
-+      if (auto listener = listenerWeak.lock()) {
-+        listener->unstable_onHostTargetAdded();
-+      }
-     }
-   }
 diff --git a/scripts/cocoapods/autolinking.rb b/scripts/cocoapods/autolinking.rb
 index d8e9c7cec2f57c124cc2b2fc52b69de8940d3eb5..b297501dfc3f8d22bc87f22e86ad6e3e9d0fc5d4 100644
 --- a/scripts/cocoapods/autolinking.rb

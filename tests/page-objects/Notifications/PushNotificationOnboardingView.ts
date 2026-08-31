@@ -1,12 +1,12 @@
 import { NewUserSheetSelectorsIDs } from '../../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
-import { type AppiumElement, Gestures, Matchers } from '../../framework';
+import { EncapsulatedElementType, Gestures, Matchers } from '../../framework';
 
 class PushNotificationOnboardingView {
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(NewUserSheetSelectorsIDs.TITLE);
   }
 
-  get notNowButton(): Promise<AppiumElement> {
+  get notNowButton(): EncapsulatedElementType {
     return Matchers.getElementByID(NewUserSheetSelectorsIDs.BUTTON_NOT_NOW);
   }
 

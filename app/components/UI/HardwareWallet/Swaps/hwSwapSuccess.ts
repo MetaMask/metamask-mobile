@@ -9,13 +9,7 @@ import type { ToastRef } from '../../../../component-library/components/Toast/To
 
 export interface CompleteHwSwapSuccessParams {
   dispatch: (action: ReturnType<typeof resetHardwareWalletsSwaps>) => void;
-  navigation: {
-    navigate: (
-      route: string,
-      params?: object,
-      options?: { pop?: boolean },
-    ) => void;
-  };
+  navigation: { navigate: (route: string) => void };
   toastRef: RefObject<ToastRef | null> | undefined;
 }
 
@@ -43,5 +37,5 @@ export function completeHwSwapSuccess({
     ],
   });
   dispatch(resetHardwareWalletsSwaps());
-  navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
+  navigation.navigate(Routes.TRANSACTIONS_VIEW);
 }

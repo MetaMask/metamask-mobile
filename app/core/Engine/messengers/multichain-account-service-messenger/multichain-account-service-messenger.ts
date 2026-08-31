@@ -7,10 +7,6 @@ import {
   MultichainAccountServiceMessenger,
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent,
 } from '@metamask/multichain-account-service';
-import type {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 
 /**
@@ -58,15 +54,12 @@ export function getMultichainAccountServiceMessenger(
   return messenger;
 }
 
-type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
-
 type AllowedInitializationEvents =
-  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
-  | RemoteFeatureFlagControllerStateChangeEvent;
+  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
 
 export type MultichainAccountServiceInitMessenger = Messenger<
   'MultichainAccountServiceInit',
-  AllowedInitializationActions,
+  never,
   AllowedInitializationEvents
 >;
 
@@ -88,11 +81,8 @@ export function getMultichainAccountServiceInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['RemoteFeatureFlagController:getState'],
-    events: [
-      'MultichainAccountService:multichainAccountGroupUpdated',
-      'RemoteFeatureFlagController:stateChange',
-    ],
+    actions: [],
+    events: ['MultichainAccountService:multichainAccountGroupUpdated'],
     messenger,
   });
   return messenger;

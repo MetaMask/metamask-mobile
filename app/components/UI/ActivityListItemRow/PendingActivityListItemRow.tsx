@@ -68,10 +68,7 @@ export function PendingActivityListItemRow({
       : subtitleAccountParts;
 
   const titleAccessory = isQueued ? undefined : (
-    <View
-      style={styles.titleSpinner}
-      testID={`activity-pending-spinner-container-${testIdSuffix}`}
-    >
+    <View style={styles.titleSpinner}>
       <PendingSpinner testID={`activity-pending-spinner-${testIdSuffix}`} />
     </View>
   );

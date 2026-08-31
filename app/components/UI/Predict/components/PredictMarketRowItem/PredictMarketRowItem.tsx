@@ -7,7 +7,6 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -119,8 +118,8 @@ const PredictMarketRowItem = ({
       <View style={tw.style('flex-1 pl-4')}>
         <Text
           variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
+          style={tw.style('font-medium')}
           numberOfLines={1}
           ellipsizeMode="tail"
         >

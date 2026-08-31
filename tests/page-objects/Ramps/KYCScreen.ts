@@ -7,7 +7,7 @@ import {
   Matchers,
   PlatformDetector,
   Utilities,
-  type AppiumElement,
+  type EncapsulatedElementType,
 } from '../../framework';
 
 const EMAIL_INPUT_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.EMAIL_INPUT}' or contains(@name,'${EnterEmailSelectorsIDs.EMAIL_INPUT}') or contains(@label,'name@domain.com') or contains(@name,'name@domain.com') or contains(@value,'name@domain.com')]`;
@@ -15,29 +15,29 @@ const OTP_INPUT_IOS_XPATH = `//*[@name='${OtpCodeSelectorsIDs.OTP_CODE_INPUT}' o
 const SEND_EMAIL_IOS_XPATH = `//*[@name='${EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}' or @label='Send email' or @name='Send email']`;
 
 class KYCScreen {
-  get verifyIdentityContinueButton(): Promise<AppiumElement> {
+  get verifyIdentityContinueButton(): EncapsulatedElementType {
     return Matchers.getElementByID(VerifyIdentitySelectorsIDs.CONTINUE_BUTTON);
   }
 
-  get emailInput(): Promise<AppiumElement> {
+  get emailInput(): EncapsulatedElementType {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(EMAIL_INPUT_IOS_XPATH);
     }
     return Matchers.getElementByID(EnterEmailSelectorsIDs.EMAIL_INPUT);
   }
 
-  get sendEmailButton(): Promise<AppiumElement> {
+  get sendEmailButton(): EncapsulatedElementType {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(SEND_EMAIL_IOS_XPATH);
     }
     return Matchers.getElementByID(EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON);
   }
 
-  get otpScreen(): Promise<AppiumElement> {
+  get otpScreen(): EncapsulatedElementType {
     return Matchers.getElementByID(OtpCodeSelectorsIDs.OTP_CODE_SCREEN);
   }
 
-  get otpCodeInput(): Promise<AppiumElement> {
+  get otpCodeInput(): EncapsulatedElementType {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(OTP_INPUT_IOS_XPATH);
     }

@@ -2,15 +2,15 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { SwitchAccountModalSelectorIDs } from '../../../app/components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class SwitchAccountModal {
-  get smartAccountLink(): Promise<AppiumElement> {
+  get smartAccountLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.SMART_ACCOUNT_LINK);
   }
 
-  get smartAccountBackButton(): Promise<AppiumElement> {
+  get smartAccountBackButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SwitchAccountModalSelectorIDs.SMART_ACCOUNT_BACK_BUTTON,
     );

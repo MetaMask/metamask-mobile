@@ -5,101 +5,109 @@ import {
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import { type AppiumElement } from '../../framework';
+import {
+  waitFor,
+  type IndexableNativeElement,
+  type NativeElement,
+  type IndexableSystemElement,
+} from '../../framework/legacy-detox-shim';
+import { EncapsulatedElementType } from '../../framework';
+type DetoxElement = Promise<
+  IndexableNativeElement | NativeElement | IndexableSystemElement
+>;
 
 class ConnectedAccountsModal {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
-  get permissionsButton(): Promise<AppiumElement> {
+  get permissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get networkPicker(): Promise<AppiumElement> {
+  get networkPicker(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
     );
   }
 
-  get disconnectAllButton(): Promise<AppiumElement> {
+  get disconnectAllButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
 
-  get disconnectButton(): Promise<AppiumElement> {
+  get disconnectButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
 
-  get disconnectAllAccountsAndNetworksButton(): Promise<AppiumElement> {
+  get disconnectAllAccountsAndNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
-  get navigateToEditAccountsPermissionsButton(): Promise<AppiumElement> {
+  get navigateToEditAccountsPermissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
     );
   }
 
-  get navigateToEditNetworksPermissionsButton(): Promise<AppiumElement> {
+  get navigateToEditNetworksPermissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get connectAccountsButton(): Promise<AppiumElement> {
+  get connectAccountsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
 
-  get managePermissionsButton(): Promise<AppiumElement> {
+  get managePermissionsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
-  get permissionsSummaryTab(): Promise<AppiumElement> {
+  get permissionsSummaryTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
     );
   }
 
-  get accountsSummaryTab(): Promise<AppiumElement> {
+  get accountsSummaryTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
     );
   }
 
-  get accountListBottomSheet(): Promise<AppiumElement> {
+  get accountListBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
     );
   }
 
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
-  get selectAllNetworksButton(): Promise<AppiumElement> {
+  get selectAllNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
     );
   }
 
-  get disconnectNetworksButton(): Promise<AppiumElement> {
+  get disconnectNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  get confirmDisconnectNetworksButton(): Promise<AppiumElement> {
+  get confirmDisconnectNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
     );
@@ -197,10 +205,14 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(this.title, 'down', {
-      speed: 'fast',
-      elemDescription: 'Scroll to bottom of modal',
-    });
+    await Gestures.swipe(
+      this.title as Promise<IndexableNativeElement>,
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Scroll to bottom of modal',
+      },
+    );
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
@@ -210,15 +222,11 @@ class ConnectedAccountsModal {
   }
 
   async getNetworkName(): Promise<string> {
-    const elem = (await this
-      .navigateToEditNetworksPermissionsButton) as AppiumElement;
-    const label =
-      (await elem.getAttribute('label')) ??
-      (await elem.getAttribute('name')) ??
-      (await elem.getAttribute('content-desc')) ??
-      (await elem.textContent()) ??
-      '';
-    return label;
+    const networkNameElement = this.navigateToEditNetworksPermissionsButton;
+    const elem = await networkNameElement;
+    // Type assertion to access label property which exists on Detox elements
+    const attributes = await (elem as IndexableNativeElement).getAttributes();
+    return (attributes as { label: string }).label;
   }
 
   async getDisplayedAccountNames(): Promise<string[]> {
@@ -236,12 +244,12 @@ class ConnectedAccountsModal {
 
     for (const accountName of possibleAccountNames) {
       try {
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText(accountName),
-          { timeout: 1000 },
-        );
+        const textElement = (await Matchers.getElementByText(
+          accountName,
+        )) as Detox.NativeElement;
+        await waitFor(textElement).toBeVisible().withTimeout(1000);
         displayedAccounts.push(accountName);
-      } catch {
+      } catch (e) {
         // Account not displayed, continue
       }
     }

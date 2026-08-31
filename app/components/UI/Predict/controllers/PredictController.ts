@@ -1157,9 +1157,6 @@ export class PredictController extends BaseController<
             providerId: POLYMARKET_PROVIDER_ID,
             symbol: params.symbol,
             variant: params.variant,
-            ...(params.twapWindowSeconds !== undefined && {
-              twapWindowSeconds: params.twapWindowSeconds,
-            }),
           },
         },
         errorContext: {
@@ -1168,7 +1165,6 @@ export class PredictController extends BaseController<
           eventStartTime: params.eventStartTime,
           variant: params.variant,
           endDate: params.endDate,
-          twapWindowSeconds: params.twapWindowSeconds,
         },
         fallbackErrorCode: PREDICT_ERROR_CODES.CRYPTO_PRICE_HISTORY_FAILED,
         traceData: (history) => ({ pointCount: history.length }),

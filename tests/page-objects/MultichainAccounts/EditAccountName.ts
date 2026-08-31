@@ -1,20 +1,20 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EditAccountNameIds } from '../../../app/components/Views/MultichainAccounts/sheets/EditAccountName.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class EditAccountName {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER,
     );
   }
 
-  get accountNameInput(): Promise<AppiumElement> {
+  get accountNameInput(): EncapsulatedElementType {
     return Matchers.getElementByID(EditAccountNameIds.ACCOUNT_NAME_INPUT);
   }
 
-  get saveButton(): Promise<AppiumElement> {
+  get saveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(EditAccountNameIds.SAVE_BUTTON);
   }
 

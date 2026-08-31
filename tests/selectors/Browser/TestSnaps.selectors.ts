@@ -178,15 +178,6 @@ export function snapUIJsxCountIosXPath(count: string): string {
   return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Count, ${count}")]`;
 }
 
-/**
- * JSX Snap Increment card — same grouped iOS parent as Count, but does not
- * depend on the current count so a retry or second tap still finds it.
- */
-export function snapUIJsxIncrementCardIosXPath(): string {
-  const scrollView = SnapUIRendererSelectorIDs.scrollView;
-  return `//*[@name="${scrollView}"]//*[@accessible="true" and contains(@label,"Increment")]`;
-}
-
 export function snapUIJsxCountAndroidXPath(count: string): string {
   const scrollView = SnapUIRendererSelectorIDs.scrollView;
   return `//*[contains(@resource-id,"${scrollView}")]//*[@text="${count}" or @content-desc="${count}" or contains(@content-desc,"Count, ${count}")]`;

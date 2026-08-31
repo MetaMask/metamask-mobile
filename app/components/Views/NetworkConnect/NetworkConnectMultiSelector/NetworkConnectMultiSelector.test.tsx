@@ -11,7 +11,6 @@ import {
   selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { CaipChainId } from '@metamask/utils';
-import { getNetworkImageSource } from '../../../../util/networks';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -25,10 +24,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-}));
-
-jest.mock('../../../../util/networks', () => ({
-  getNetworkImageSource: jest.fn(() => ({ uri: 'network-image' })),
 }));
 
 const mockNetworkConfigurations = {
@@ -90,18 +85,6 @@ describe('NetworkConnectMultiSelector', () => {
         ConnectedAccountsSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON,
       )[0],
     ).toBeOnTheScreen();
-  });
-
-  it('reuses derived networks when network configurations are unchanged', () => {
-    const { rerender } = renderWithProvider(
-      <NetworkConnectMultiSelector {...defaultProps} />,
-    );
-    const initialCallCount = (getNetworkImageSource as jest.Mock).mock.calls
-      .length;
-
-    rerender(<NetworkConnectMultiSelector {...defaultProps} />);
-
-    expect(getNetworkImageSource).toHaveBeenCalledTimes(initialCallCount);
   });
 
   it('disables the select all button when loading', () => {

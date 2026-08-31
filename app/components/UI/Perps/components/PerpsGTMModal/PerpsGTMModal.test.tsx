@@ -51,16 +51,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockNavigationServiceNavigate = jest.fn();
-jest.mock('../../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      navigate: (...args: unknown[]) => mockNavigationServiceNavigate(...args),
-    },
-  },
-}));
-
 const mockTrackEvent = jest.fn();
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuild = jest.fn().mockReturnValue({});
@@ -133,11 +123,7 @@ describe('PerpsGTMModal', () => {
       action: PERPS_GTM_MODAL_DECLINE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      { screen: Routes.WALLET.HOME },
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
   });
 
   it('tracks Whats New Link Clicked with engage action when try now is pressed', async () => {
@@ -166,17 +152,9 @@ describe('PerpsGTMModal', () => {
       action: PERPS_GTM_MODAL_ENGAGE,
     });
     expect(mockTrackEvent).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      { screen: Routes.WALLET.HOME },
-      { pop: true },
-    );
-    expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
-      Routes.PERPS.TUTORIAL,
-      {
-        isFromGTMModal: true,
-      },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+      isFromGTMModal: true,
+    });
   });
 
   it('renders image', async () => {

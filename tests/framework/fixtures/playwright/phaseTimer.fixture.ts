@@ -6,10 +6,10 @@ import {
   runWithPhaseTimer,
   type PhaseTimer,
 } from '../../telemetry/PhaseTimer.ts';
-import { createAppiumLogger } from '../../appiumLogger.ts';
+import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
 
-const logger = createAppiumLogger('phaseTimer');
+const logger = createPlaywrightLogger('phaseTimer');
 
 function annotationDescription(
   annotations: { type: string; description?: string }[] | undefined,

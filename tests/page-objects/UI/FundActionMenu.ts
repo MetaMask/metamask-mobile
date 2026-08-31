@@ -1,28 +1,28 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class FundActionMenu {
-  get depositButton(): Promise<AppiumElement> {
+  get depositButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
     );
   }
 
-  get buyButton(): Promise<AppiumElement> {
+  get buyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
     );
   }
 
-  get unifiedBuyButton(): Promise<AppiumElement> {
+  get unifiedBuyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
     );
   }
 
-  get sellButton(): Promise<AppiumElement> {
+  get sellButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );

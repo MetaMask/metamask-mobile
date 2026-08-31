@@ -450,11 +450,7 @@ describe('HwQrScanner', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(getMockShowToast()).toHaveBeenCalled();
       expect(resetHardwareWalletsSwaps).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.TRANSACTIONS_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('shows mismatch message and keeps pending scan when request IDs do not match', () => {

@@ -64,7 +64,8 @@ function cacheKeyForDevice(device: EmulatorConfig): string {
 async function runAdb(args: string[], timeoutMs: number): Promise<string> {
   const raw = await execFileAsync('adb', args, {
     timeout: timeoutMs,
-    maxBuffer: 1024 * 1024 });
+    maxBuffer: 1024 * 1024,
+  });
   // Node's real `execFile` uses a promisify symbol that resolves to `{ stdout, stderr }`.
   // Plain mocks (e.g. Jest) fall back to generic promisify and may resolve a Buffer — handle both.
   let stdout: unknown = raw;

@@ -1,20 +1,20 @@
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class OnboardingView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSelectorIDs.CONTAINER_ID);
   }
 
-  get existingWalletButton(): Promise<AppiumElement> {
+  get existingWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
     );
   }
 
-  get newWalletButton(): Promise<AppiumElement> {
+  get newWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(OnboardingSelectorIDs.NEW_WALLET_BUTTON);
   }
 

@@ -21,7 +21,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('validateHexAddress', () => {
-  it('returns error if address is zero address', async () => {
+  it('returns error if address is burn address', async () => {
     expect(
       await validateHexAddress(
         '0x0000000000000000000000000000000000000000',
@@ -30,24 +30,13 @@ describe('validateHexAddress', () => {
     ).toStrictEqual({
       error: 'Invalid address',
     });
-  });
-
-  it('returns warning if address is dead address', async () => {
     expect(
       await validateHexAddress(
         '0x000000000000000000000000000000000000dead',
         '0x1',
       ),
     ).toStrictEqual({
-      warning: 'Invalid address',
-    });
-    expect(
-      await validateHexAddress(
-        '0x000000000000000000000000000000000000dEaD',
-        '0x1',
-      ),
-    ).toStrictEqual({
-      warning: 'Invalid address',
+      error: 'Invalid address',
     });
   });
   it('does not return error for valid evm address', async () => {

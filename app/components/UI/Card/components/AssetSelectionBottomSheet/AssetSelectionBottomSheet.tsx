@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
-import { type ScrollViewProps } from 'react-native';
+import { ActivityIndicator, type ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -13,8 +13,6 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
-  IconSize,
-  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -43,7 +41,6 @@ import { useCardHomeData } from '../../hooks/useCardHomeData';
 import AssetSelectionRow, {
   type AssetSelectionRowItem,
 } from './AssetSelectionRow';
-import { AssetSelectionBottomSheetTestIds } from './AssetSelectionBottomSheet.testIds';
 
 export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -324,10 +321,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const renderBottomSheetContent = useCallback(() => {
     if (!cardHomeData?.delegationSettings) {
       return (
-        <Box twClassName="flex-1 items-center justify-center py-8">
-          <Spinner
-            testID={AssetSelectionBottomSheetTestIds.LOADING_SPINNER}
-            spinnerIconProps={{ size: IconSize.Xl }}
+        <Box twClassName="items-center justify-center py-8">
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.primary.default}
           />
         </Box>
       );
@@ -335,7 +332,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <Box twClassName="flex-1 items-center justify-center py-8">
+        <Box twClassName="items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
@@ -361,6 +358,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   }, [
     cardHomeData?.delegationSettings,
     supportedTokensWithBalances,
+    theme,
     renderItem,
     keyExtractor,
   ]);

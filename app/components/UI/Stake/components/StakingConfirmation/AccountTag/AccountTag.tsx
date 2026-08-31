@@ -1,14 +1,13 @@
 import React from 'react';
-import {
-  AvatarAccount,
-  AvatarAccountSize,
-  Tag,
+import TagBase, {
+  TagShape,
   TagSeverity,
-  Text,
-  TextColor,
-} from '@metamask/design-system-react-native';
-import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
-import { getAvatarAccountVariant } from '../../../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+} from '../../../../../../component-library/base-components/TagBase';
+import Avatar, {
+  AvatarVariant,
+  AvatarSize,
+  AvatarAccountType,
+} from '../../../../../../component-library/components/Avatars/Avatar';
 import { AccountTagProps } from './AccountTag.types';
 
 const AccountTag = ({
@@ -16,20 +15,20 @@ const AccountTag = ({
   accountName,
   avatarAccountType = AvatarAccountType.Maskicon,
 }: AccountTagProps) => (
-  <Tag
-    twClassName="rounded-full px-2 py-0.5"
+  <TagBase
     startAccessory={
-      <AvatarAccount
-        twClassName="rounded bg-default"
-        size={AvatarAccountSize.Xs}
-        address={accountAddress}
-        variant={getAvatarAccountVariant(avatarAccountType)}
+      <Avatar
+        variant={AvatarVariant.Account}
+        size={AvatarSize.Xs}
+        accountAddress={accountAddress}
+        type={avatarAccountType}
       />
     }
+    shape={TagShape.Pill}
     severity={TagSeverity.Info}
   >
-    <Text color={TextColor.InfoDefault}>{accountName ?? accountAddress}</Text>
-  </Tag>
+    {accountName ?? accountAddress}
+  </TagBase>
 );
 
 export default AccountTag;

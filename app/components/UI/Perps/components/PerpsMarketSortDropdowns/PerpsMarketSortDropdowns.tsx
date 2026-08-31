@@ -23,7 +23,6 @@ import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
 const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
   selectedOptionId,
   onSortPress,
-  sortDirection = MARKET_SORTING_CONFIG.DefaultDirection,
   testID = 'perps-market-sort-dropdowns',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -46,12 +45,9 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         hideEndArrow
         endAccessory={
           <Icon
-            name={
-              sortDirection === 'asc' ? IconName.Arrow2Up : IconName.Arrow2Down
-            }
+            name={IconName.SwapVertical}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
-            testID={`${testID}-sort-direction`}
           />
         }
       />

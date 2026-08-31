@@ -14,9 +14,7 @@ import {
   endTrace,
   trace,
   annotateTrace,
-  annotateTraceByRequest,
   getTraceContext,
-  setTraceMeasurement,
   ONBOARDING_MACHINE_TIME_ATTRIBUTE,
   TraceName,
   TraceOperation,
@@ -496,221 +494,6 @@ describe('Trace', () => {
     });
   });
 
-  describe('targeted trace metadata', () => {
-    it('targets the default trace when the request omits an id', () => {
-      updateCachedConsent(true);
-      const spanMock = {
-        end: jest.fn(),
-        setAttribute: jest.fn(),
-      } as unknown as Span;
-      startSpanManualMock.mockImplementationOnce((_, fn) =>
-        fn(spanMock, () => undefined),
-      );
-      trace({ name: NAME_MOCK });
-
-      setTraceMeasurement({ name: NAME_MOCK }, 'ready_ms', 10, 'millisecond');
-      annotateTraceByRequest({ name: NAME_MOCK }, { lifecycle: 'warm' });
-
-      expect(setMeasurement).toHaveBeenCalledWith(
-        'ready_ms',
-        10,
-        'millisecond',
-        spanMock,
-      );
-      expect(spanMock.setAttribute).toHaveBeenCalledWith('lifecycle', 'warm');
-      endTrace({ name: NAME_MOCK });
-    });
-
-    it('isolates measurements and attributes across overlapping trace ids', () => {
-      updateCachedConsent(true);
-      const firstSpan = {
-        end: jest.fn(),
-        setAttribute: jest.fn(),
-      } as unknown as Span;
-      const secondSpan = {
-        end: jest.fn(),
-        setAttribute: jest.fn(),
-      } as unknown as Span;
-      startSpanManualMock
-        .mockImplementationOnce((_, fn) => fn(firstSpan, () => undefined))
-        .mockImplementationOnce((_, fn) => fn(secondSpan, () => undefined));
-      trace({ name: NAME_MOCK, id: 'first' });
-      trace({ name: NAME_MOCK, id: 'second' });
-
-      setTraceMeasurement(
-        { name: NAME_MOCK, id: 'first' },
-        'ready_ms',
-        20,
-        'millisecond',
-      );
-      annotateTraceByRequest(
-        { name: NAME_MOCK, id: 'second' },
-        { lifecycle: 'cold_no_cache' },
-      );
-
-      expect(setMeasurement).toHaveBeenCalledWith(
-        'ready_ms',
-        20,
-        'millisecond',
-        firstSpan,
-      );
-      expect(secondSpan.setAttribute).toHaveBeenCalledWith(
-        'lifecycle',
-        'cold_no_cache',
-      );
-      expect(firstSpan.setAttribute).not.toHaveBeenCalled();
-      endTrace({ name: NAME_MOCK, id: 'first' });
-      endTrace({ name: NAME_MOCK, id: 'second' });
-    });
-
-    it('does not write metadata when no trace matches the request', () => {
-      updateCachedConsent(true);
-      const spanMock = {
-        end: jest.fn(),
-        setAttribute: jest.fn(),
-      } as unknown as Span;
-      startSpanManualMock.mockImplementationOnce((_, fn) =>
-        fn(spanMock, () => undefined),
-      );
-      trace({ name: NAME_MOCK, id: ID_MOCK });
-      jest.mocked(setMeasurement).mockClear();
-
-      setTraceMeasurement(
-        { name: NAME_MOCK, id: 'missing' },
-        'ready_ms',
-        30,
-        'millisecond',
-      );
-      annotateTraceByRequest(
-        { name: NAME_MOCK, id: 'missing' },
-        { lifecycle: 'warm' },
-      );
-
-      expect(setMeasurement).not.toHaveBeenCalled();
-      expect(spanMock.setAttribute).not.toHaveBeenCalled();
-      endTrace({ name: NAME_MOCK, id: ID_MOCK });
-    });
-
-    it('writes a measurement to the matching pending span', () => {
-      updateCachedConsent(true);
-
-      const spanEndMock = jest.fn();
-      const spanMock = { end: spanEndMock } as unknown as Span;
-
-      startSpanManualMock.mockImplementationOnce((_, fn) =>
-        fn(spanMock, () => {
-          // Intentionally empty
-        }),
-      );
-
-      trace({ name: NAME_MOCK, id: ID_MOCK });
-
-      setTraceMeasurement(
-        { name: NAME_MOCK, id: ID_MOCK },
-        'ready_ms',
-        123,
-        'millisecond',
-      );
-
-      expect(setMeasurement).toHaveBeenCalledWith(
-        'ready_ms',
-        123,
-        'millisecond',
-        spanMock,
-      );
-      endTrace({ name: NAME_MOCK, id: ID_MOCK });
-    });
-
-    it('replays buffered measurements and attributes when consent becomes available', async () => {
-      trace({ name: NAME_MOCK, id: ID_MOCK });
-      setTraceMeasurement(
-        { name: NAME_MOCK, id: ID_MOCK },
-        'ready_ms',
-        123,
-        'millisecond',
-      );
-      annotateTraceByRequest(
-        { name: NAME_MOCK, id: ID_MOCK },
-        { lifecycle: 'cold_no_cache' },
-      );
-
-      updateCachedConsent(true);
-      await flushBufferedTraces();
-
-      expect(setMeasurement).toHaveBeenCalledWith(
-        'ready_ms',
-        123,
-        'millisecond',
-        expect.anything(),
-      );
-      expect(startSpanManualMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          attributes: expect.objectContaining({
-            lifecycle: 'cold_no_cache',
-          }),
-        }),
-        expect.any(Function),
-      );
-      endTrace({ name: NAME_MOCK, id: ID_MOCK });
-    });
-
-    it('ignores metadata added after a buffered trace ends', async () => {
-      trace({ name: NAME_MOCK, id: ID_MOCK });
-      endTrace({ name: NAME_MOCK, id: ID_MOCK });
-
-      setTraceMeasurement(
-        { name: NAME_MOCK, id: ID_MOCK },
-        'ready_ms',
-        123,
-        'millisecond',
-      );
-      annotateTraceByRequest(
-        { name: NAME_MOCK, id: ID_MOCK },
-        { lifecycle: 'late' },
-      );
-      updateCachedConsent(true);
-      await flushBufferedTraces();
-
-      expect(setMeasurement).not.toHaveBeenCalled();
-      expect(startSpanManualMock).toHaveBeenCalledWith(
-        expect.not.objectContaining({
-          attributes: expect.objectContaining({ lifecycle: 'late' }),
-        }),
-        expect.any(Function),
-      );
-    });
-
-    it('preserves buffered onboarding account type inheritance', async () => {
-      trace({
-        name: TraceName.OnboardingJourneyOverall,
-        op: TraceOperation.OnboardingUserJourney,
-      });
-      annotateTraceByRequest(
-        { name: TraceName.OnboardingJourneyOverall },
-        { account_type: 'imported_google' },
-      );
-      trace({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-      });
-      endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      updateCachedConsent(true);
-      await flushBufferedTraces();
-
-      expect(startSpanManualMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.OnboardingPasswordSetupAttempt,
-          attributes: expect.objectContaining({
-            account_type: 'imported_google',
-          }),
-        }),
-        expect.any(Function),
-      );
-    });
-  });
-
   describe('endTrace', () => {
     it('ends Sentry span matching name and specified ID', () => {
       updateCachedConsent(true);
@@ -1078,13 +861,12 @@ describe('Trace', () => {
         data: { success: true },
       });
       trace({
-        name: TraceName.OnboardingFetchSrps,
+        name: TraceName.OnboardingPasswordLoginAttempt,
         startTime: 4_000,
       });
       endTrace({
-        name: TraceName.OnboardingFetchSrps,
+        name: TraceName.OnboardingPasswordLoginAttempt,
         timestamp: 4_500,
-        data: { success: true },
       });
       endScreenTtc('choose_password', 5_000, 5_150);
       endTrace({ name: TraceName.OnboardingJourneyOverall });
@@ -1234,58 +1016,6 @@ describe('Trace', () => {
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
       expectMachineTime(journey, 1_500);
-    });
-
-    it('counts only the latest successful duration for a retried social login span', () => {
-      const journey = createSpanMock();
-      queueSpans([
-        journey,
-        createSpanMock(),
-        createSpanMock(),
-        createSpanMock(),
-        createSpanMock(),
-      ]);
-
-      trace({ name: TraceName.OnboardingJourneyOverall, startTime: 0 });
-      trace({
-        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-        startTime: 1_000,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-        timestamp: 1_505,
-        data: { success: true },
-      });
-      trace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        startTime: 1_600,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        timestamp: 8_241,
-        data: { success: true },
-      });
-      trace({
-        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-        startTime: 10_000,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthBYOAServerGetAuthTokens,
-        timestamp: 10_535,
-        data: { success: true },
-      });
-      trace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        startTime: 10_600,
-      });
-      endTrace({
-        name: TraceName.OnboardingOAuthSeedlessAuthenticate,
-        timestamp: 12_702,
-        data: { success: true },
-      });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-      expectMachineTime(journey, 535 + 2_102);
     });
 
     it('rounds machine time to whole milliseconds', () => {

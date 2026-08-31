@@ -1,6 +1,10 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
-import { AppiumAssertions, AppiumGestures } from '../../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../../framework';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import LoginView from '../../../page-objects/wallet/LoginView';
 import WalletView from '../../../page-objects/wallet/WalletView';
@@ -33,8 +37,8 @@ perfTest.describe(
         testInfo,
       ) => {
         await loginToAppPlaywright();
-        await AppiumAssertions.expectElementToBeVisible(
-          WalletView.accountIcon,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(WalletView.accountIcon),
           {
             description:
               'Wallet account icon should be visible before warm start',
@@ -47,13 +51,16 @@ perfTest.describe(
           currentDeviceDetails.platform,
         );
 
-        await AppiumGestures.backgroundApp(35);
-        await AppiumGestures.activateApp(currentDeviceDetails);
+        await PlaywrightGestures.backgroundApp(35);
+        await PlaywrightGestures.activateApp(currentDeviceDetails);
 
         await timer1.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(LoginView.container, {
-            description: 'Login title should be visible',
-          });
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(LoginView.container),
+            {
+              description: 'Login title should be visible',
+            },
+          );
         });
 
         performanceTracker.addTimers(timer1);

@@ -1,7 +1,6 @@
 import type {
   PredictEntityId,
   PredictFeedId,
-  PredictMarketHistoryRange,
   PredictVenueId,
 } from '../../types';
 import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
@@ -9,8 +8,6 @@ import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event/one' as PredictEntityId;
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
-const marketId = 'market/one' as PredictEntityId;
-const range: PredictMarketHistoryRange = 'LIVE';
 
 const createResponse = ({
   status = 200,
@@ -76,29 +73,6 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/events/event%2Fone',
       expect.any(Object),
-    );
-  });
-
-  it('requests encoded Market history with the exact range query', async () => {
-    fetchMock.mockResolvedValue(createResponse());
-
-    await client.fetchMarketHistory(venueId, marketId, range);
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      'https://predict.example/api/v1/venues/kalshi/markets/market%2Fone/history?range=LIVE',
-      expect.any(Object),
-    );
-  });
-
-  it('forwards an AbortSignal for Market history', async () => {
-    fetchMock.mockResolvedValue(createResponse());
-    const signal = new AbortController().signal;
-
-    await client.fetchMarketHistory(venueId, marketId, range, { signal });
-
-    expect(fetchMock).toHaveBeenCalledWith(
-      expect.any(String),
-      expect.objectContaining({ signal }),
     );
   });
 

@@ -1,35 +1,35 @@
 import { MetaMetricsOptInSelectorsIDs } from '../../../app/components/UI/OptinMetrics/MetaMetricsOptIn.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class MetaMetricsOptIn {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
     );
   }
 
-  get screenTitle(): Promise<AppiumElement> {
+  get screenTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
     );
   }
 
-  get iAgreeButton(): Promise<AppiumElement> {
+  get iAgreeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
     );
   }
 
-  get metricsCheckbox(): Promise<AppiumElement> {
+  get metricsCheckbox(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
     );
   }
 
-  get marketingCheckbox(): Promise<AppiumElement> {
+  get marketingCheckbox(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX,
     );

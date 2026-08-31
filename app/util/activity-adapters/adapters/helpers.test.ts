@@ -3,7 +3,17 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { getLocalActivityFees, getLocalTransactionStatus } from './helpers';
+import {
+  getLocalActivityFees,
+  getLocalGasTokenFee,
+  getLocalTransactionFees,
+  getLocalTransactionStatus,
+  getNetworkFeeAmount,
+  isTransactionGasFeeSponsored,
+  parseValueTransfers,
+  type ValueTransfer,
+} from './helpers';
+import { GAS_FEE_SPONSORED } from '../fees';
 
 type LocalTransactionStatusInput = Parameters<
   typeof getLocalTransactionStatus
@@ -142,6 +152,381 @@ describe('getLocalTransactionStatus', () => {
   });
 });
 
+describe('getNetworkFeeAmount', () => {
+  it('multiplies gas used by gas price (hex inputs)', () => {
+    // 21000 * 1 gwei
+    expect(getNetworkFeeAmount('0x5208', '0x3b9aca00')).toBe('21000000000000');
+  });
+
+  it('returns undefined when gas used or price is missing', () => {
+    expect(getNetworkFeeAmount(undefined, '0x3b9aca00')).toBeUndefined();
+    expect(getNetworkFeeAmount('0x5208', undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for non-numeric input', () => {
+    expect(getNetworkFeeAmount('not-a-number', '0x1')).toBeUndefined();
+  });
+});
+
+describe('isTransactionGasFeeSponsored', () => {
+  it('returns true for a confirmed gas-sponsored transaction', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when the transaction is not marked as sponsored', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: false,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for hardware wallets', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+        isHardwareWalletAccount: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for rejected transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.rejected,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for dropped transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.dropped,
+          type: TransactionType.simpleSend,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for failed transactions with no gas used', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.failed,
+          type: TransactionType.simpleSend,
+          txReceipt: {},
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns true for failed transactions that used gas', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.failed,
+          type: TransactionType.simpleSend,
+          txReceipt: { gasUsed: '0x5208' },
+        } as TransactionMeta,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for revoke delegation transactions', () => {
+    expect(
+      isTransactionGasFeeSponsored({
+        transaction: {
+          ...baseTransactionMeta,
+          isGasFeeSponsored: true,
+          status: TransactionStatus.confirmed,
+          type: TransactionType.revokeDelegation,
+        } as TransactionMeta,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('getLocalTransactionFees', () => {
+  const nativeAsset = {
+    decimals: 18,
+    symbol: 'ETH',
+    assetId: 'eip155:1/slip44:60',
+  };
+
+  it('builds a base network fee from the receipt (gasUsed * effectiveGasPrice)', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      {
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      },
+    ]);
+  });
+
+  it('returns a sponsored fee marker for gas-sponsored transactions', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      { type: GAS_FEE_SPONSORED },
+    ]);
+  });
+
+  it('returns the base fee for hardware wallet transactions even when marked as sponsored', () => {
+    const group = {
+      isHardwareWalletAccount: true,
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      expect.objectContaining({ type: 'base', symbol: 'ETH' }),
+    ]);
+  });
+
+  it('uses the initial transaction sponsorship flag when the primary transaction is not sponsored', () => {
+    const group = {
+      initialTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: true,
+        status: TransactionStatus.submitted,
+        type: TransactionType.simpleSend,
+        txParams: {},
+      },
+      primaryTransaction: {
+        chainId: '0x1',
+        isGasFeeSponsored: false,
+        status: TransactionStatus.confirmed,
+        type: TransactionType.simpleSend,
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      { type: GAS_FEE_SPONSORED },
+    ]);
+  });
+
+  it('falls back to txParams.gasPrice while pending (no receipt)', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: {},
+        txParams: { gasPrice: '0x3b9aca00', gas: '0x5208' },
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    // No gasUsed in receipt -> no fee (mirrors extension, which keys off gasUsed)
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
+  });
+
+  it('returns undefined when there is no gas data', () => {
+    const group = {
+      primaryTransaction: { chainId: '0x1', txReceipt: {}, txParams: {} },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
+  });
+});
+
+describe('getLocalGasTokenFee', () => {
+  const tokenAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+  it('builds a gasToken fee from selectedGasFeeToken + gasFeeTokens', () => {
+    const fee = getLocalGasTokenFee({
+      chainId: '0xe708',
+      selectedGasFeeToken: tokenAddress,
+      gasFeeTokens: [
+        {
+          tokenAddress,
+          amount: '0xde0b6b3a7640000',
+          decimals: 18,
+          symbol: 'mUSD',
+          balance: '0x0',
+          gas: '0x0',
+          maxFeePerGas: '0x0',
+          maxPriorityFeePerGas: '0x0',
+          rateWei: '0x0',
+          recipient: '0x1',
+        },
+      ],
+      txParams: {},
+    } as unknown as Parameters<typeof getLocalGasTokenFee>[0]);
+
+    expect(fee).toEqual(
+      expect.objectContaining({
+        type: 'gasToken',
+        amount: '1000000000000000000',
+        decimals: 18,
+        symbol: 'mUSD',
+        assetId: expect.stringContaining('erc20:'),
+      }),
+    );
+  });
+
+  it('returns undefined when no gas fee token is selected', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the selected gas fee token amount is not a valid BigInt', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: 'not-a-number',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the selected gas fee token has no amount', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the native sentinel is selected as the gas fee token', () => {
+    const nativeSentinel = '0x0000000000000000000000000000000000000000';
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        selectedGasFeeToken: nativeSentinel,
+        gasFeeTokens: [
+          {
+            tokenAddress: nativeSentinel,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'ETH',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the transaction failed and gas was never paid', () => {
+    expect(
+      getLocalGasTokenFee({
+        chainId: '0x1',
+        status: TransactionStatus.failed,
+        selectedGasFeeToken: tokenAddress,
+        gasFeeTokens: [
+          {
+            tokenAddress,
+            amount: '0x64',
+            decimals: 18,
+            symbol: 'mUSD',
+            balance: '0x0',
+            gas: '0x0',
+            maxFeePerGas: '0x0',
+            maxPriorityFeePerGas: '0x0',
+            rateWei: '0x0',
+            recipient: '0x1',
+          },
+        ],
+        txParams: {},
+      } as unknown as Parameters<typeof getLocalGasTokenFee>[0]),
+    ).toBeUndefined();
+  });
+});
+
 describe('getLocalActivityFees', () => {
   const nativeAsset = {
     decimals: 18,
@@ -224,5 +609,57 @@ describe('getLocalActivityFees', () => {
     expect(getLocalActivityFees(group, nativeAsset, 'ETH')).toEqual([
       expect.objectContaining({ type: 'base', symbol: 'ETH' }),
     ]);
+  });
+});
+
+describe('parseValueTransfers', () => {
+  const subjectAddress = '0xSubject';
+  const other = '0xOther';
+  const transfers = [
+    { from: subjectAddress, to: other, symbol: 'USDC', transferType: 'erc20' },
+    { from: other, to: subjectAddress, symbol: 'DAI', transferType: 'erc20' },
+    { from: subjectAddress, to: other, symbol: 'NFTA', transferType: 'erc721' },
+    {
+      from: other,
+      to: subjectAddress,
+      symbol: 'NFTB',
+      transferType: 'erc1155',
+    },
+    { from: subjectAddress, to: other, symbol: 'ETH', transferType: 'normal' },
+    {
+      from: other,
+      to: subjectAddress,
+      symbol: 'ETH',
+      transferType: 'internal',
+    },
+  ] as unknown as ValueTransfer[];
+
+  it('resolves the subject sent/received fungible, native, and NFT legs', () => {
+    const result = parseValueTransfers(transfers, subjectAddress);
+
+    expect(result.sentTransfer?.symbol).toBe('USDC');
+    expect(result.receivedTransfer?.symbol).toBe('DAI');
+    expect(result.sentNftTransfer?.symbol).toBe('NFTA');
+    expect(result.receivedNftTransfer?.symbol).toBe('NFTB');
+    expect(result.sentNativeTransfer?.transferType).toBe('normal');
+    expect(result.receivedNativeTransfer?.transferType).toBe('internal');
+  });
+
+  it('matches the subject address case-insensitively', () => {
+    const result = parseValueTransfers(transfers, subjectAddress.toLowerCase());
+
+    expect(result.sentTransfer?.symbol).toBe('USDC');
+    expect(result.receivedNftTransfer?.symbol).toBe('NFTB');
+  });
+
+  it('returns all-undefined legs for missing value transfers', () => {
+    expect(parseValueTransfers(undefined, subjectAddress)).toStrictEqual({
+      sentTransfer: undefined,
+      receivedTransfer: undefined,
+      sentNativeTransfer: undefined,
+      receivedNativeTransfer: undefined,
+      sentNftTransfer: undefined,
+      receivedNftTransfer: undefined,
+    });
   });
 });

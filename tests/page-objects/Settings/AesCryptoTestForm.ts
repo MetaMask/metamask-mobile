@@ -8,117 +8,116 @@ import {
 } from '../../../app/components/Views/AesCryptoTestForm/AesCrypto.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Utilities from '../../framework/Utilities';
-import { type AppiumElement, type ScrollContainer } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class AesCryptoTestForm {
-  get scrollViewIdentifier(): ScrollContainer {
-    return Matchers.scrollContainer(aesCryptoFormScrollIdentifier);
+  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
+    return Matchers.getIdentifier(aesCryptoFormScrollIdentifier);
   }
 
   // Get account address
-  get accountAddress(): Promise<AppiumElement> {
+  get accountAddress(): EncapsulatedElementType {
     return Matchers.getElementByID(accountAddress);
   }
 
   // Get response text
-  get responseText(): Promise<AppiumElement> {
+  get responseText(): EncapsulatedElementType {
     return Matchers.getElementByID(responseText);
   }
 
   // Generate salt getters
-  get generateSaltBytesCountInput(): Promise<AppiumElement> {
+  get generateSaltBytesCountInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.saltBytesCountInput);
   }
-  get generateSaltResponse(): Promise<AppiumElement> {
+  get generateSaltResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.saltResponse);
   }
 
-  get generateSaltButton(): Promise<AppiumElement> {
+  get generateSaltButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.generateSaltButton);
   }
 
   // Generate encryption key from password getters
-  get generateEncryptionKeyPasswordInput(): Promise<AppiumElement> {
+  get generateEncryptionKeyPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.passwordInput);
   }
-  get generateEncryptionKeySaltInput(): Promise<AppiumElement> {
+  get generateEncryptionKeySaltInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.saltInputForEncryptionKey,
     );
   }
-  get generateEncryptionKeyResponse(): Promise<AppiumElement> {
+  get generateEncryptionKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.generateEncryptionKeyResponse,
     );
   }
-  get generateEncryptionKeyButton(): Promise<AppiumElement> {
+  get generateEncryptionKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormButtons.generateEncryptionKeyButton,
     );
   }
 
   // Encrypt getters
-  get encryptDataInput(): Promise<AppiumElement> {
+  get encryptDataInput(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormInputs.dataInputForEncryption);
   }
-  get encryptPasswordInput(): Promise<AppiumElement> {
+  get encryptPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForEncryption,
     );
   }
-  get encryptResponse(): Promise<AppiumElement> {
+  get encryptResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.encryptionResponse);
   }
-  get encryptButton(): Promise<AppiumElement> {
+  get encryptButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptButton);
   }
 
   // Decrypt getters
-  get decryptPasswordInput(): Promise<AppiumElement> {
+  get decryptPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.passwordInputForDecryption,
     );
   }
-  get decryptResponse(): Promise<AppiumElement> {
+  get decryptResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormResponses.decryptionResponse);
   }
-  get decryptButton(): Promise<AppiumElement> {
+  get decryptButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptButton);
   }
 
   // Encrypt with key getters
-  get encryptWithKeyEncryptionKeyInput(): Promise<AppiumElement> {
+  get encryptWithKeyEncryptionKeyInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyDataInput(): Promise<AppiumElement> {
+  get encryptWithKeyDataInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.dataInputForEncryptionWithKey,
     );
   }
-  get encryptWithKeyResponse(): Promise<AppiumElement> {
+  get encryptWithKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.encryptionWithKeyResponse,
     );
   }
-  get encryptWithKeyButton(): Promise<AppiumElement> {
+  get encryptWithKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.encryptWithKeyButton);
   }
 
   // Decrypt with key getters
-  get decryptWithKeyEncryptionKeyInput(): Promise<AppiumElement> {
+  get decryptWithKeyEncryptionKeyInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormInputs.encryptionKeyInputForDecryptionWithKey,
     );
   }
-  get decryptWithKeyResponse(): Promise<AppiumElement> {
+  get decryptWithKeyResponse(): EncapsulatedElementType {
     return Matchers.getElementByID(
       aesCryptoFormResponses.decryptionWithKeyResponse,
     );
   }
-  get decryptWithKeyButton(): Promise<AppiumElement> {
+  get decryptWithKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(aesCryptoFormButtons.decryptWithKeyButton);
   }
 
@@ -186,7 +185,11 @@ class AesCryptoTestForm {
       elemDescription: 'Generate Salt Button',
     });
 
-    return Utilities.getElementText(this.generateSaltResponse);
+    const responseFieldAtts = await (
+      (await this.generateSaltResponse) as Detox.IndexableNativeElement
+    ).getAttributes();
+
+    return (responseFieldAtts as { label: string }).label;
   }
 
   async generateEncryptionKey(password: string, salt: string): Promise<string> {
@@ -207,7 +210,11 @@ class AesCryptoTestForm {
       elemDescription: 'Generate Encryption Key Response',
     });
 
-    return Utilities.getElementText(this.generateEncryptionKeyResponse);
+    const responseFieldAtts = await (
+      (await this.generateEncryptionKeyResponse) as Detox.IndexableNativeElement
+    ).getAttributes();
+
+    return (responseFieldAtts as { label: string }).label;
   }
 
   async encrypt(data: string, encryptionKey: string): Promise<void> {

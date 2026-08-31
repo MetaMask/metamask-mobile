@@ -4,7 +4,7 @@ import Engine from '../../../../core/Engine';
 jest.mock('../../../../core/Engine', () => ({
   context: {
     RampsController: {
-      getProviders: jest.fn().mockResolvedValue({ providers: [], sorted: [] }),
+      getProviders: jest.fn().mockResolvedValue({ providers: [] }),
     },
   },
 }));
@@ -34,13 +34,9 @@ describe('rampsProvidersOptions', () => {
 
   it('queryFn calls getProviders with regionCode', async () => {
     const mockProviders = [{ id: 'provider-1', name: 'Provider 1' }];
-    const mockResponse = {
-      providers: mockProviders,
-      sorted: [{ sortBy: '1', ids: ['provider-1'] }],
-    };
     (
       Engine.context.RampsController.getProviders as jest.Mock
-    ).mockResolvedValue(mockResponse);
+    ).mockResolvedValue({ providers: mockProviders });
 
     const opts = rampsProvidersOptions({ regionCode: 'us-tx' });
     if (!opts.queryFn) {
@@ -51,6 +47,6 @@ describe('rampsProvidersOptions', () => {
     expect(Engine.context.RampsController.getProviders).toHaveBeenCalledWith(
       'us-tx',
     );
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual(mockProviders);
   });
 });

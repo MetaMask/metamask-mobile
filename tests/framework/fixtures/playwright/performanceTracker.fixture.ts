@@ -13,9 +13,9 @@ import {
 import { getTeamInfoFromTags } from '../../utils/teams';
 import { publishPerformanceScenarioToSentry } from '../../../reporters/providers/sentry/PerformanceSentryPublisher';
 import type { TestLevelFixtures, WorkerLevelFixtures } from './types.ts';
-import { createAppiumLogger } from '../../appiumLogger.ts';
+import { createPlaywrightLogger } from '../../playwrightLogger.ts';
 
-const logger = createAppiumLogger('performanceTracker');
+const logger = createPlaywrightLogger('performanceTracker');
 
 function getSessionIdFromAnnotations(
   annotations?: { type: string; description?: string }[],

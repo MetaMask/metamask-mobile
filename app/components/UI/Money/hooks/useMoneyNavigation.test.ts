@@ -10,10 +10,6 @@ import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../select
 import { MoneyPostOnboardingRedirectType } from '../types/navigation';
 
 const mockNavigate = jest.fn();
-const analyticsContext = {
-  id: 'balance-breakdown-navigation',
-  attribution: 'homescreen_balance_breakdown' as const,
-};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -70,13 +66,15 @@ describe('useMoneyNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING);
     });
 
-    it('forwards analytics context through Money onboarding', () => {
+    it('forwards the entry point through Money onboarding', () => {
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
+      act(() =>
+        result.current.navigateToMoneyHome('homescreen_balance_breakdown'),
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
-        analyticsContext,
+        entryPoint: 'homescreen_balance_breakdown',
       });
     });
 
@@ -91,36 +89,30 @@ describe('useMoneyNavigation', () => {
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
 
-    it('forwards analytics context to Money home', () => {
+    it('forwards the entry point to Money home', () => {
       setupSelectorMocks({
         hasSeenOnboarding: true,
         isOnboardingEnabled: true,
       });
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: {
-            screen: Routes.MONEY.HOME,
-            params: { analyticsContext },
-          },
-        },
-        { pop: true },
+      act(() =>
+        result.current.navigateToMoneyHome('homescreen_balance_breakdown'),
       );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: {
+          screen: Routes.MONEY.HOME,
+          params: { entryPoint: 'homescreen_balance_breakdown' },
+        },
+      });
     });
 
     it('navigates to Money home when onboarding flag is disabled even if onboarding not seen', () => {
@@ -134,14 +126,10 @@ describe('useMoneyNavigation', () => {
       act(() => result.current.navigateToMoneyHome());
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
   });
 });

@@ -88,7 +88,7 @@ const createStyles = (colors, shadows) =>
       top: 4,
     },
     tooltipText: {
-      ...StyleSheet.absoluteFill,
+      ...StyleSheet.absoluteFillObject,
       textAlign: 'center',
       ...fontStyles.normal,
       color: colors.overlay.inverse,

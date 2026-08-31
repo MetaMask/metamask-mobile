@@ -3,7 +3,7 @@ import Assertions from '../../../../framework/Assertions';
 import Gestures from '../../../../framework/Gestures';
 import Matchers from '../../../../framework/Matchers';
 import { PlatformDetector } from '../../../../framework/PlatformLocator';
-import AppiumContextHelpers from '../../../../framework/AppiumContextHelpers';
+import PlaywrightContextHelpers from '../../../../framework/PlaywrightContextHelpers';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execFileSync } from 'child_process';
 
@@ -83,7 +83,7 @@ class CameraWebsite {
     }
 
     // No prompt — page may have resolved immediately; require a status line.
-    await AppiumContextHelpers.switchToNativeContext();
+    await PlaywrightContextHelpers.switchToNativeContext();
     await Assertions.expectElementToBeVisible(
       Matchers.getElementByAndroidUIAutomator('.textContains("Camera access")'),
       {

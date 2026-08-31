@@ -3,9 +3,10 @@ import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import AppiumGestures from '../../../framework/AppiumGestures';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import LoginView from '../../../page-objects/wallet/LoginView';
-import AppiumAssertions from '../../../framework/AppiumAssertions';
+import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
+import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
 import {
   loginToAppPlaywright,
   onboardingFlowImportSRPPlaywright,
@@ -21,10 +22,12 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
-      await AppiumGestures.terminateApp(currentDeviceDetails);
-      await AppiumGestures.activateApp(currentDeviceDetails);
+      await PlaywrightGestures.terminateApp(currentDeviceDetails);
+      await PlaywrightGestures.activateApp(currentDeviceDetails);
 
-      await AppiumAssertions.expectElementToBeVisible(LoginView.loginButton);
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(LoginView.loginButton),
+      );
 
       await loginToAppPlaywright({
         scenarioType: 'onboarding',
@@ -39,7 +42,9 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         currentDeviceDetails.platform,
       );
       await timer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot);
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(WalletView.headerRoot),
+        );
       });
 
       performanceTracker.addTimer(timer);

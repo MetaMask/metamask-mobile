@@ -22,7 +22,6 @@ import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
-  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconColor,
@@ -207,20 +206,6 @@ interface TokenInputAreaProps {
    * rather than the "$0.00" such a token would otherwise be priced at.
    */
   hideFiatValueWhenUnpriced?: boolean;
-  /**
-   * When true, the amount input, loading skeleton, fiat row, and subtitle
-   * are omitted. Used by Recurring dest to show a static label instead of
-   * the quoted dest amount. Limit and Market must leave this unset.
-   */
-  hideAmount?: boolean;
-  /**
-   * Label rendered in place of the amount when `hideAmount` is true.
-   */
-  amountReplacementLabel?: string;
-  /**
-   * Test ID for the `amountReplacementLabel` text.
-   */
-  amountReplacementLabelTestID?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -257,9 +242,6 @@ export const TokenInputArea = forwardRef<
       enabledChainIds,
       excludeRwaTokens,
       hideFiatValueWhenUnpriced = false,
-      hideAmount = false,
-      amountReplacementLabel,
-      amountReplacementLabelTestID,
     },
     ref,
   ) => {
@@ -433,19 +415,8 @@ export const TokenInputArea = forwardRef<
       <Box style={style}>
         <Box style={styles.content} gap={2}>
           <Box style={styles.row}>
-            <Box
-              style={styles.amountContainer}
-              onLayout={hideAmount ? undefined : onContainerLayout}
-            >
-              {hideAmount ? (
-                <Text
-                  variant={TextVariant.BodySMMedium}
-                  color={TextColor.Alternative}
-                  testID={amountReplacementLabelTestID}
-                >
-                  {amountReplacementLabel}
-                </Text>
-              ) : isLoading ? (
+            <Box style={styles.amountContainer} onLayout={onContainerLayout}>
+              {isLoading ? (
                 <Skeleton width="50%" height="80%" style={styles.input} />
               ) : (
                 <Box style={styles.amountInputWrapper}>
@@ -517,75 +488,73 @@ export const TokenInputArea = forwardRef<
               </Button>
             )}
           </Box>
-          {hideAmount ? null : (
-            <Box style={styles.row}>
-              {isLoading ? (
-                <Skeleton width={80} height={24} />
-              ) : (
-                <>
-                  <Box style={styles.currencyContainer}>
-                    <TouchableOpacity
-                      style={styles.secondaryValueContainer}
-                      onPress={onAmountTypeTogglePress}
-                      disabled={!onAmountTypeTogglePress}
-                      testID={
-                        onAmountTypeTogglePress
-                          ? amountTypeToggleTestID
-                          : undefined
-                      }
-                    >
-                      {shouldShowSecondaryAmount ? (
-                        <Text color={TextColor.Alternative}>
-                          {secondaryAmountDisplayValue}
-                        </Text>
-                      ) : null}
-                      {onAmountTypeTogglePress ? (
-                        <Icon
-                          name={IconName.SwapVertical}
-                          size={IconSize.Sm}
-                          color={IconColor.Alternative}
-                        />
-                      ) : null}
-                    </TouchableOpacity>
-                  </Box>
-                  <Box
-                    flexDirection={
-                      tokenType === TokenInputAreaType.Source &&
-                      onMaxPress &&
-                      shouldShowMaxButton
-                        ? FlexDirection.Row
-                        : FlexDirection.Column
+          <Box style={styles.row}>
+            {isLoading ? (
+              <Skeleton width={80} height={24} />
+            ) : (
+              <>
+                <Box style={styles.currencyContainer}>
+                  <TouchableOpacity
+                    style={styles.secondaryValueContainer}
+                    onPress={onAmountTypeTogglePress}
+                    disabled={!onAmountTypeTogglePress}
+                    testID={
+                      onAmountTypeTogglePress
+                        ? amountTypeToggleTestID
+                        : undefined
                     }
-                    gap={4}
-                    style={styles.hidden}
                   >
-                    <Text
-                      color={
-                        isInsufficientBalance &&
-                        tokenType === TokenInputAreaType.Source
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
-                    {tokenType === TokenInputAreaType.Source &&
-                      tokenBalance &&
-                      onMaxPress &&
-                      shouldShowMaxButton && (
-                        <OldButton
-                          variant={OldButtonVariants.Link}
-                          label={strings('bridge.max')}
-                          onPress={onMaxPress}
-                          disabled={!subtitle}
-                          testID="token-input-area-max-button"
-                        />
-                      )}
-                  </Box>
-                </>
-              )}
-            </Box>
-          )}
+                    {shouldShowSecondaryAmount ? (
+                      <Text color={TextColor.Alternative}>
+                        {secondaryAmountDisplayValue}
+                      </Text>
+                    ) : null}
+                    {onAmountTypeTogglePress ? (
+                      <Icon
+                        name={IconName.SwapVertical}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    ) : null}
+                  </TouchableOpacity>
+                </Box>
+                <Box
+                  flexDirection={
+                    tokenType === TokenInputAreaType.Source &&
+                    onMaxPress &&
+                    shouldShowMaxButton
+                      ? FlexDirection.Row
+                      : FlexDirection.Column
+                  }
+                  gap={4}
+                  style={styles.hidden}
+                >
+                  <Text
+                    color={
+                      isInsufficientBalance &&
+                      tokenType === TokenInputAreaType.Source
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {subtitle}
+                  </Text>
+                  {tokenType === TokenInputAreaType.Source &&
+                    tokenBalance &&
+                    onMaxPress &&
+                    shouldShowMaxButton && (
+                      <OldButton
+                        variant={OldButtonVariants.Link}
+                        label={strings('bridge.max')}
+                        onPress={onMaxPress}
+                        disabled={!subtitle}
+                        testID="token-input-area-max-button"
+                      />
+                    )}
+                </Box>
+              </>
+            )}
+          </Box>
         </Box>
       </Box>
     );

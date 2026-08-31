@@ -1,17 +1,17 @@
 import { ManualBackUpStepsSelectorsIDs } from '../../../app/components/Views/ManualBackupStep1/ManualBackUpSteps.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ProtectYourWalletView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER,
     );
   }
 
-  get remindMeLaterButton(): Promise<AppiumElement> {
+  get remindMeLaterButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
     );

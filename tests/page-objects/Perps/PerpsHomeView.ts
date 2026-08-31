@@ -6,24 +6,24 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import enContent from '../../../locales/languages/en.json';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class PerpsHomeView {
-  get exploreCrypto(): Promise<AppiumElement> {
+  get exploreCrypto(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.perps.home.crypto);
   }
 
-  get backHome(): Promise<AppiumElement> {
+  get backHome(): EncapsulatedElementType {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON);
   }
 
-  get addFundsButton(): Promise<AppiumElement> {
+  get addFundsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
     );
   }
 
-  get withdrawButton(): Promise<AppiumElement> {
+  get withdrawButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
     );

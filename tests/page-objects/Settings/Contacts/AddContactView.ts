@@ -4,44 +4,44 @@ import {
   AddContactViewSelectorsText,
 } from '../../../../app/components/Views/Settings/Contacts/AddContactView.testIds';
 import Gestures from '../../../framework/Gestures';
-import { type AppiumElement, PlatformDetector } from '../../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../../framework';
 
 class AddContactView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.CONTAINER);
   }
 
-  get addButton(): Promise<AppiumElement> {
+  get addButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.ADD_BUTTON);
   }
 
-  get editButton(): Promise<AppiumElement> {
+  get editButton(): EncapsulatedElementType {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddContactViewSelectorsIDs.EDIT_BUTTON)
       : Matchers.getElementByLabel(AddContactViewSelectorsText.EDIT_BUTTON);
   }
 
-  get editContact(): Promise<AppiumElement> {
+  get editContact(): EncapsulatedElementType {
     return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
   }
 
-  get deleteButton(): Promise<AppiumElement> {
+  get deleteButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.DELETE_BUTTON);
   }
 
-  get nameInput(): Promise<AppiumElement> {
+  get nameInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.NAME_INPUT);
   }
 
-  get memoLabel(): Promise<AppiumElement> {
+  get memoLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(AddContactViewSelectorsText.MEMO);
   }
 
-  get memoInput(): Promise<AppiumElement> {
+  get memoInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.MEMO_INPUT);
   }
 
-  get addressInput(): Promise<AppiumElement> {
+  get addressInput(): EncapsulatedElementType {
     return Matchers.getElementByID(AddContactViewSelectorsIDs.ADDRESS_INPUT);
   }
 

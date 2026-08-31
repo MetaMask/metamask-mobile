@@ -289,7 +289,6 @@ const CardAuthentication = () => {
             NavigationService.navigation?.navigate(
               postAuthRedirect.screen,
               postAuthRedirect.params,
-              { pop: true },
             );
           } else {
             navigation.dispatch(

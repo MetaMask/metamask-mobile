@@ -1,17 +1,16 @@
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
 
 import { EnableDeviceNotificationsAlertSelectorText } from '../../selectors/Onboarding/EnableDeviceNotificationsAlert.selectors';
 
 class EnableDeviceNotificationsAlert {
-  get stepOneContainer(): Promise<AppiumElement> {
+  get stepOneContainer(): DetoxElement {
     return Matchers.getSystemElementByText(
       EnableDeviceNotificationsAlertSelectorText.CONTAINER,
     );
   }
 
-  get getEnableDeviceNotificationsButton(): Promise<AppiumElement> {
+  get getEnableDeviceNotificationsButton(): DetoxElement {
     return Matchers.getSystemElementByText(
       EnableDeviceNotificationsAlertSelectorText.YES_BUTTON,
     );

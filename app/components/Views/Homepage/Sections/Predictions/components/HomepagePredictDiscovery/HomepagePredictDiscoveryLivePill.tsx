@@ -6,11 +6,11 @@ import {
   BoxBackgroundColor,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../../locales/i18n';
 
 interface HomepagePredictDiscoveryLivePillProps {
@@ -29,6 +29,7 @@ const formatLivePillValue = (value: string): string =>
 const HomepagePredictDiscoveryLivePill = ({
   value,
 }: HomepagePredictDiscoveryLivePillProps) => {
+  const tw = useTailwind();
   const displayValue = value ? formatLivePillValue(value) : undefined;
 
   return (
@@ -49,19 +50,16 @@ const HomepagePredictDiscoveryLivePill = ({
       </Box>
       <Text
         variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
         color={TextColor.TextDefault}
-        twClassName="ml-2"
+        style={tw.style('ml-2 font-medium')}
       >
         {strings('predict.homepage_discovery.btc_live')}
       </Text>
       {displayValue ? (
         <Text
           variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
           color={TextColor.SuccessDefault}
-          twClassName="ml-2"
-          style={styles.countdown}
+          style={[tw.style('ml-2 font-medium'), styles.countdown]}
         >
           {displayValue}
         </Text>

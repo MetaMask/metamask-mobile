@@ -13,7 +13,6 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
-import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -178,132 +177,10 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('SubscriptionController');
-    expect(engine.context).toHaveProperty('SubscriptionService');
     expect(engine.context).toHaveProperty('ShieldController');
     expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
-  });
-
-  it('exposes v8 subscription methods after the controller upgrade', () => {
-    const engine = Engine.init(TEST_ANALYTICS_ID, {});
-
-    expect(
-      engine.context.SubscriptionController.startSubscriptionWithCard,
-    ).toEqual(expect.any(Function));
-    expect(
-      engine.context.SubscriptionController.submitSubscriptionCryptoApproval,
-    ).toEqual(expect.any(Function));
-    expect(
-      engine.context.SubscriptionController.cacheLastSelectedPaymentMethod,
-    ).toEqual(expect.any(Function));
-    expect(
-      engine.context.SubscriptionController.startSubscriptionWithCrypto,
-    ).toEqual(expect.any(Function));
-    expect(engine.context.SubscriptionController.stopAllPolling).toEqual(
-      expect.any(Function),
-    );
-    expect(
-      'startShieldSubscriptionWithCard' in
-        engine.context.SubscriptionController,
-    ).toBe(false);
-  });
-
-  it('hydrates representative v7 subscription state without a migration', () => {
-    const v7SubscriptionControllerState = {
-      subscriptions: [
-        {
-          id: 'sub-shield',
-          products: [
-            {
-              name: 'shield',
-              currency: 'usd',
-              unitAmount: 800,
-              unitDecimals: 2,
-            },
-          ],
-          currentPeriodStart: '2026-01-01T00:00:00.000Z',
-          currentPeriodEnd: '2026-02-01T00:00:00.000Z',
-          status: 'active',
-          interval: 'month',
-          paymentMethod: {
-            type: 'card',
-            card: {
-              brand: 'visa',
-              displayBrand: 'visa',
-              last4: '4242',
-            },
-          },
-          cancelType: 'allowed_at_period_end',
-          isEligibleForSupport: true,
-        },
-      ],
-      trialedProducts: ['shield'],
-      lastSelectedPaymentMethod: {
-        shield: {
-          type: 'crypto',
-          plan: 'month',
-          paymentTokenSymbol: 'USDC',
-        },
-      },
-      pricing: {
-        products: [
-          {
-            name: 'shield',
-            prices: [
-              {
-                interval: 'month',
-                unitAmount: 800,
-                unitDecimals: 2,
-                currency: 'usd',
-                trialPeriodDays: 14,
-                minBillingCycles: 12,
-                minBillingCyclesForBalance: 1,
-              },
-            ],
-          },
-        ],
-        paymentMethods: [
-          { type: 'card' },
-          {
-            type: 'crypto',
-            chains: [
-              {
-                chainId: '0x1',
-                paymentAddress: '0x2222222222222222222222222222222222222222',
-                tokens: [
-                  {
-                    symbol: 'USDC',
-                    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-                    decimals: 6,
-                    conversionRate: { usd: '1.0' },
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    } as SubscriptionControllerState;
-
-    const engine = Engine.init(TEST_ANALYTICS_ID, {
-      SubscriptionController: v7SubscriptionControllerState,
-    });
-
-    expect(engine.context.SubscriptionController.state.subscriptions).toEqual(
-      v7SubscriptionControllerState.subscriptions,
-    );
-    expect(engine.context.SubscriptionController.state.trialedProducts).toEqual(
-      ['shield'],
-    );
-    expect(
-      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
-        ?.shield,
-    ).toEqual(v7SubscriptionControllerState.lastSelectedPaymentMethod?.shield);
-    expect(
-      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
-        ?.money_account_plus,
-    ).toBeUndefined();
   });
 
   it('hydrates address poisoning known recipients from persisted address book state', () => {
@@ -1268,24 +1145,6 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalled();
-    });
-
-    it('stops subscription polling before clearing subscription state', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const stopAllPollingSpy = jest
-        .spyOn(engine.context.SubscriptionController, 'stopAllPolling')
-        .mockImplementation(() => undefined);
-      const clearStateSpy = jest
-        .spyOn(engine.context.SubscriptionController, 'clearState')
-        .mockImplementation(() => undefined);
-
-      await engine.resetState();
-
-      expect(stopAllPollingSpy).toHaveBeenCalled();
-      expect(clearStateSpy).toHaveBeenCalled();
-      expect(stopAllPollingSpy.mock.invocationCallOrder[0]).toBeLessThan(
-        clearStateSpy.mock.invocationCallOrder[0],
-      );
     });
 
     it('calls ShieldController.clearState', async () => {

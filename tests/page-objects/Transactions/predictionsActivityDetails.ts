@@ -1,75 +1,29 @@
 import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
-import { type AppiumElement } from '../../framework';
-import { PlatformDetector } from '../../framework/PlatformLocator';
-import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
+import { EncapsulatedElementType } from '../../framework';
 
 class PredictActivityDetails {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.CONTAINER,
     );
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  get amountDisplay(): Promise<AppiumElement> {
+  get amountDisplay(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
     );
   }
 
-  amountElement(amount: string): Promise<AppiumElement> {
-    if (!PlatformDetector.isIOSAppium()) {
-      return this.amountDisplay;
-    }
-
-    const container = PredictActivityDetailsSelectorsIDs.CONTAINER;
-    const id = PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY;
-    const escaped = amount.replace(/"/g, '\\"');
-    return Matchers.getElementByNativeXPath(
-      [
-        `//*[@name="${container}"]//*[@name="${id}" and (contains(@label,"${escaped}") or contains(@value,"${escaped}"))]`,
-        `//*[@name="${container}"]//*[@accessible="true" and contains(@label,"${escaped}")]`,
-        `//*[@name="${container}"]//*[contains(@value,"${escaped}")]`,
-      ].join(' | '),
-    );
-  }
-
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton);
-  }
-
-  async expectAmountDisplayed(amount: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.container, {
-      description: 'Predict activity details',
-    });
-
-    const timeout = resolveE2EWaitTimeoutMs(15_000);
-    const description = `Activity details amount ${amount}`;
-
-    if (PlatformDetector.isIOSAppium()) {
-      await Assertions.expectElementToExist(this.amountElement(amount), {
-        timeout,
-        description,
-      });
-      return;
-    }
-
-    await Assertions.expectElementToBeVisible(this.amountDisplay, {
-      timeout,
-      description,
-    });
-    await Assertions.expectElementToHaveText(this.amountDisplay, amount, {
-      timeout,
-      description,
-    });
   }
 }
 

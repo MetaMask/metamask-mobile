@@ -72,10 +72,6 @@ describeForPlatforms('BridgeView', () => {
     Date.now = () => new Date().getTime();
   });
 
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('renders input areas and hides confirm button without tokens or amount', () => {
     const { getByTestId, queryByTestId } = renderBridgeView({
       overrides: {
@@ -561,7 +557,7 @@ describeForPlatforms('BridgeView', () => {
       bridgeControllerState.quotes = [quoteWithTrade];
     }
 
-    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
+    const { getByTestId, getByText } = renderComponentViewScreen(
       BridgeView as unknown as React.ComponentType,
       { name: Routes.BRIDGE.BRIDGE_VIEW },
       { state },
@@ -573,9 +569,6 @@ describeForPlatforms('BridgeView', () => {
       ).toBe('$1.00');
     });
     expect(getByText('1 USDC')).toBeOnTheScreen();
-    expect(
-      queryByText(strings('bridge.recurring.you_get')),
-    ).not.toBeOnTheScreen();
   });
 
   it('resets source cursor to the end when input is focused again', async () => {
@@ -706,8 +699,10 @@ describeForPlatforms('BridgeView', () => {
           expect.anything(),
         );
       },
-      { timeout: 5000 },
+      { timeout: 1000 },
     );
+
+    updateQuoteSpy.mockRestore();
   });
 
   it('uses token input without resetting persisted fiat mode when price data is unavailable', async () => {

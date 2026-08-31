@@ -1,22 +1,22 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { WalletDetailsIds } from '../../../app/components/Views/MultichainAccounts/WalletDetails/WalletDetails.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class WalletDetails {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletDetailsIds.WALLET_DETAILS_CONTAINER);
   }
 
-  get createAccountLink(): Promise<AppiumElement> {
+  get createAccountLink(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletDetailsIds.ADD_ACCOUNT_BUTTON);
   }
 
-  get srpButton(): Promise<AppiumElement> {
+  get srpButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletDetailsIds.REVEAL_SRP_BUTTON);
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletDetailsIds.BACK_BUTTON);
   }
 

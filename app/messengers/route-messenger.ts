@@ -57,7 +57,7 @@ export function getRouteMessengerNamespace(
  *
  * This is used when defining routes (that is, each route gets its own
  * messenger). Delegation of actions and events is handled separately by the
- * caller (typically via `RouteMessengerProvider`).
+ * caller (typically via `RouteWithMessenger`).
  *
  * @param args - Arguments for this function.
  * @param args.path - The path of the route. This is used for debugging purposes

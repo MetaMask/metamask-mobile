@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { Text } from 'react-native';
 import {
   AccountsList,
   type AccountProps,
@@ -77,7 +76,6 @@ const ACCOUNT_3_TEST_ID = {
 type RenderAccountsListOverrides = Partial<{
   accountProps: AccountProps;
   notificationAccountListProps: NotificationAccountListProps;
-  ListHeaderComponent: React.ReactElement;
 }>;
 
 interface RenderAccountsListMocks {
@@ -238,7 +236,6 @@ describe('AccountList', () => {
           overrides.notificationAccountListProps ??
           mocks.notificationAccountListProps
         }
-        ListHeaderComponent={overrides.ListHeaderComponent}
       />,
       { state: initialRootState },
     );
@@ -376,18 +373,16 @@ describe('AccountList', () => {
     });
   });
 
-  it('renders the list header when there are no notification wallet groups', () => {
+  it('renders nothing when there are no notification wallet groups', () => {
     const mocks = arrangeMocks();
 
-    const { getByText, queryByTestId } = renderAccountsList(mocks, {
+    const { queryByTestId } = renderAccountsList(mocks, {
       accountProps: {
         accountAvatarType: AvatarAccountType.JazzIcon,
         accountWalletGroups: [],
       },
-      ListHeaderComponent: <Text>Wallet activity settings</Text>,
     });
 
-    expect(getByText('Wallet activity settings')).toBeOnTheScreen();
     expect(queryByTestId(ACCOUNT_1_TEST_ID.item)).not.toBeOnTheScreen();
   });
 

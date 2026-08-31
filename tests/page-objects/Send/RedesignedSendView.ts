@@ -4,7 +4,7 @@ import { RedesignedSendViewSelectorsIDs } from '../../../app/components/Views/co
 import {
   Utilities,
   Assertions,
-  type AppiumElement,
+  EncapsulatedElementType,
   getDriver,
 } from '../../framework';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
@@ -13,73 +13,73 @@ import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class SendView {
-  get ethTokenAssetButton(): Promise<AppiumElement> {
+  get ethTokenAssetButton(): EncapsulatedElementType {
     return Matchers.getElementByID(getAssetTestId('ETH'), 0);
   }
 
-  get erc20TokenButton(): Promise<AppiumElement> {
+  get erc20TokenButton(): EncapsulatedElementType {
     return Matchers.getElementByID(getAssetTestId('USDC'), 0);
   }
 
-  get amountScreen(): Promise<AppiumElement> {
+  get amountScreen(): EncapsulatedElementType {
     return Matchers.getElementByID(RedesignedSendViewSelectorsIDs.SEND_AMOUNT);
   }
 
-  get zeroButton(): Promise<AppiumElement> {
+  get zeroButton(): EncapsulatedElementType {
     return Matchers.getElementByID('keypad-key-0');
   }
 
-  get amountFiveButton(): Promise<AppiumElement> {
+  get amountFiveButton(): EncapsulatedElementType {
     return Matchers.getElementByText('5');
   }
 
-  get fiftyPercentButton(): Promise<AppiumElement> {
+  get fiftyPercentButton(): EncapsulatedElementType {
     return Matchers.getElementByID('percentage-button-50');
   }
 
-  get maxButton(): Promise<AppiumElement> {
+  get maxButton(): EncapsulatedElementType {
     return Matchers.getElementByID('percentage-button-100');
   }
 
-  get continueButton(): Promise<AppiumElement> {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Continue');
   }
 
-  get recipientAddressInput(): Promise<AppiumElement> {
+  get recipientAddressInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.RECIPIENT_ADDRESS_INPUT,
     );
   }
 
-  get reviewButton(): Promise<AppiumElement> {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RedesignedSendViewSelectorsIDs.REVIEW_BUTTON,
     );
   }
 
-  get amountInputField(): Promise<AppiumElement> {
+  get amountInputField(): EncapsulatedElementType {
     return Matchers.getElementByID('txn-amount-input');
   }
 
-  get nextButton(): Promise<AppiumElement> {
+  get nextButton(): EncapsulatedElementType {
     return Matchers.getElementByID('txn-amount-next-button');
   }
 
-  get currencySwitch(): Promise<AppiumElement> {
+  get currencySwitch(): EncapsulatedElementType {
     return Matchers.getElementByID('amount-screen-currency-switch');
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
-  get insufficientBalanceToCoverFeesError(): Promise<AppiumElement> {
+  get insufficientBalanceToCoverFeesError(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_BALANCE_TO_COVER_FEES_ERROR,
     );
   }
 
-  get insufficientFundsError(): Promise<AppiumElement> {
+  get insufficientFundsError(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SendActionViewSelectorsIDs.INSUFFICIENT_FUNDS_ERROR,
     );

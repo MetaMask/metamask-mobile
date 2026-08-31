@@ -1,5 +1,5 @@
 import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
-import AppiumContextHelpers from '../../../framework/AppiumContextHelpers';
+import PlaywrightContextHelpers from '../../../framework/PlaywrightContextHelpers';
 
 class RedirectWebsite {
   /**
@@ -26,7 +26,7 @@ class RedirectWebsite {
       );
     }
 
-    await AppiumContextHelpers.switchToNativeContext();
+    await PlaywrightContextHelpers.switchToNativeContext();
   }
 }
 

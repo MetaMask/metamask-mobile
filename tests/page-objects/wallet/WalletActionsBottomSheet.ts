@@ -2,52 +2,52 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Vi
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class WalletActionsBottomSheet {
-  get sendButton(): Promise<AppiumElement> {
+  get sendButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
     );
   }
 
-  get receiveButton(): Promise<AppiumElement> {
+  get receiveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON,
     );
   }
 
-  get swapButton(): Promise<AppiumElement> {
+  get swapButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
   }
 
-  get bridgeButton(): Promise<AppiumElement> {
+  get bridgeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON,
     );
   }
 
-  get buyButton(): Promise<AppiumElement> {
+  get buyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
     );
   }
 
-  get sellButton(): Promise<AppiumElement> {
+  get sellButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );
   }
 
-  get perpsButton(): Promise<AppiumElement> {
+  get perpsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON,
     );
   }
 
-  get predictButton(): Promise<AppiumElement> {
+  get predictButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON,
     );

@@ -7,9 +7,9 @@ import {
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
-import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers.js';
-import AppiumUtilities from '../../framework/AppiumUtilities.js';
+import PlaywrightUtilities from '../../framework/PlaywrightUtilities.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
@@ -61,7 +61,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
         async () => {
           const DAPP_URL = getDappUrlForBrowser(currentDeviceDetails.platform);
 
-          await AppiumContextHelpers.withNativeAction(async () => {
+          await PlaywrightContextHelpers.withNativeAction(async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
             await launchMobileBrowser({ safelyOnboardChrome: true });
             await navigateToDapp(DAPP_URL);
@@ -71,7 +71,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
           // session creation. Drive the dapp via CDP; capture metamask:// from the
           // SDK session payload and open it with package-scoped mobile: deepLink
           // so we land on the connect sheet (not wallet home via bare app focus).
-          AppiumUtilities.collapseStatusBar();
+          PlaywrightUtilities.collapseStatusBar();
           // Playground ≥0.8 defaults to Localhost (eip155:1337) on http://localhost.
           // Opt into Ethereum Mainnet so the post-connect scope card assertion matches.
           await ChromeCdpHelpers.ensureScopeCheckboxes(DAPP_URL, [
@@ -83,7 +83,7 @@ appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
             MMConnectDappTestIds.CONNECT_BUTTON,
           );
 
-          await AppiumContextHelpers.withNativeAction(async () => {
+          await PlaywrightContextHelpers.withNativeAction(async () => {
             // Auto-lock often appears immediately after deeplink/chooser — unlock
             // before (and while) waiting for the connect sheet.
             await unlockIfLockScreenVisible();

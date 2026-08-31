@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIndicator,
@@ -25,18 +25,18 @@ import {
   ButtonIcon,
   ButtonIconSize,
   HeaderStandard,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
-  toast,
-  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../../component-library/components/Toast';
+import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
 import {
@@ -80,6 +80,7 @@ const ManagePriceAlertsView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
   const queryClient = useQueryClient();
+  const { toastRef } = useContext(ToastContext);
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
@@ -129,11 +130,12 @@ const ManagePriceAlertsView: React.FC = () => {
     }
     hasResolvedInitialFetch.current = true;
     if (isError) {
-      toast({
-        title: strings('price_alerts.fetch_error'),
-        severity: ToastSeverity.Danger,
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Danger,
+        iconColor: colors.error.default,
+        labelOptions: [{ label: strings('price_alerts.fetch_error') }],
         hasNoTimeout: false,
-        showCloseButton: false,
       });
       navigation.goBack();
     } else if (alerts.length === 0) {
@@ -155,6 +157,8 @@ const ManagePriceAlertsView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
+    toastRef,
+    colors,
   ]);
 
   const handleBack = useCallback(() => {
@@ -220,21 +224,23 @@ const ManagePriceAlertsView: React.FC = () => {
 
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
-        toast({
-          title: strings('price_alerts.delete_success'),
-          startAccessory: <Icon name={IconName.Trash} size={IconSize.Lg} />,
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Trash,
+          iconColor: colors.text.default,
+          labelOptions: [{ label: strings('price_alerts.delete_success') }],
           hasNoTimeout: false,
-          showCloseButton: false,
         });
         if (next.length === 0) {
           navigation.goBack();
         }
       } catch {
-        toast({
-          title: strings('price_alerts.delete_error'),
-          severity: ToastSeverity.Danger,
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          iconColor: colors.error.default,
+          labelOptions: [{ label: strings('price_alerts.delete_error') }],
           hasNoTimeout: false,
-          showCloseButton: false,
         });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
@@ -251,6 +257,8 @@ const ManagePriceAlertsView: React.FC = () => {
       navigation,
       assetId,
       queryClient,
+      toastRef,
+      colors,
       displayTicker,
       trackEvent,
       createEventBuilder,
@@ -297,11 +305,12 @@ const ManagePriceAlertsView: React.FC = () => {
             .build(),
         );
       } catch {
-        toast({
-          title: strings('price_alerts.toggle_error'),
-          severity: ToastSeverity.Danger,
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Danger,
+          iconColor: colors.error.default,
+          labelOptions: [{ label: strings('price_alerts.toggle_error') }],
           hasNoTimeout: false,
-          showCloseButton: false,
         });
         queryClient.setQueryData(
           queryKey,
@@ -314,6 +323,8 @@ const ManagePriceAlertsView: React.FC = () => {
     [
       assetId,
       queryClient,
+      toastRef,
+      colors,
       displayTicker,
       trackEvent,
       createEventBuilder,

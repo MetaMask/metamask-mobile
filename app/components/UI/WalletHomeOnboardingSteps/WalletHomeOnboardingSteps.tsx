@@ -7,14 +7,16 @@ import React, {
   useState,
 } from 'react';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
-import { Animated, Dimensions, Easing, Image, View } from 'react-native';
 import {
-  Alignment,
-  Fit,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+  ActivityIndicator,
+  Animated,
+  Dimensions,
+  Easing,
+  Image,
+  Platform,
+  View,
+} from 'react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -45,6 +47,7 @@ import onboardChecklistV07Animation from '../../../animations/onboard_checklist_
 import { hasTestOverrides } from '../../../util/test/utils';
 import {
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD,
+  WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
   WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
@@ -83,7 +86,7 @@ const SLIDE_DISTANCE = Dimensions.get('window').width;
 export interface WalletHomeOnboardingStepsProps {
   testID?: string;
   /**
-   * When true, show the first-step shell with an empty hero and disabled primary until
+   * When true, show the first-step shell with a loading hero and disabled primary until
    * aggregated balance / empty-state is resolved (in-flow users reopening the app).
    */
   isAwaitingBalance?: boolean;
@@ -128,13 +131,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 }) => {
   const tw = useTailwind();
   const isFocused = useIsFocused();
-  const { riveFile: checklistRiveFile } = useRiveFile(
-    onboardChecklistV07Animation,
-  );
-  // `riveRef.current` only becomes populated once the mounted view is ready to
-  // receive inputs; re-registers automatically when the keyed view remounts.
-  const { riveRef: checklistRiveRef, setHybridRef: setChecklistHybridRef } =
-    useRive();
+  const checklistRiveRef = useRef<RiveRef>(null);
   const prevSuspendRiveForCurtainRef = useRef(false);
   const [checklistFadeOpacity] = useState(() => new Animated.Value(1));
   const dispatch = useDispatch();
@@ -275,7 +272,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       checklistRiveRef.current?.play();
     }
     prevSuspendRiveForCurtainRef.current = suspendRiveForCurtain;
-  }, [suspendRiveForCurtain, checklistRiveRef]);
+  }, [suspendRiveForCurtain]);
 
   /**
    * Decode every hero PNG while step 1 is visible so step 2/3 transitions don't briefly keep
@@ -343,13 +340,18 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
         return;
       }
       try {
-        // onboard_checklist_v07.riv does not expose the Main input on every artboard.
-        // Unlike the old runtime (Android JNI abort), Nitro surfaces a missing input
-        // as a catchable JS error, and it cannot play a named linear animation as a
-        // fallback — so always fire the trigger and let the catch below absorb a miss.
-        // TODO(#33825): Re-export v07 with Main on every artboard.
-        rive.triggerInput(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER);
-        rive.play();
+        // onboard_checklist_v07.riv does not expose the Main input. On Android,
+        // firing a missing Rive input aborts in JNI before this JS catch can run.
+        // TODO(#33825): Remove this guard after v07 is re-exported with Main on every artboard.
+        if (Platform.OS === 'android') {
+          rive.play(WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_ANIMATION);
+        } else {
+          rive.fireState(
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_MAIN_TRIGGER,
+          );
+          rive.play();
+        }
       } catch (error) {
         Logger.error(
           error as Error,
@@ -362,7 +364,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn, checklistRiveRef]);
+  }, [isAwaitingBalance, skipIntroAfterDeferredNavReturn]);
 
   const currentStep = visibleSteps[visualStepIndexForProgress];
 
@@ -490,7 +492,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       const rive = checklistRiveRef.current;
       if (rive) {
         try {
-          rive.triggerInput(
+          rive.fireState(
+            WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE,
             WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_OUTRO_TRIGGER,
           );
         } catch (error) {
@@ -537,7 +540,6 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     slideX,
     slideY,
     checklistFadeOpacity,
-    checklistRiveRef,
   ]);
 
   useLayoutEffect(() => {
@@ -758,18 +760,26 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
           justifyContent={BoxJustifyContent.Center}
           twClassName="relative z-10 flex-1 w-full min-h-0 self-stretch"
         >
-          {!isAwaitingBalance && !hasTestOverrides && checklistRiveFile ? (
-            <RiveView
+          {isAwaitingBalance ? (
+            <ActivityIndicator
+              size="large"
+              accessibilityLabel={strings(
+                'wallet.home_onboarding_steps.balance_loading_a11y',
+              )}
+              testID={`${testID}-hero-awaiting-balance`}
+            />
+          ) : !hasTestOverrides ? (
+            <Rive
               key={`wallet-home-checklist-rive-${currentStep.kind}`}
-              hybridRef={setChecklistHybridRef}
-              file={checklistRiveFile}
+              ref={checklistRiveRef}
+              source={onboardChecklistV07Animation}
               artboardName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_ARTBOARD[currentStep.kind]
               }
               style={WALLET_HOME_ONBOARDING_HERO_MEDIA_LAYOUT_STYLE}
               fit={Fit.Contain}
               alignment={Alignment.Center}
-              autoPlay={!skipIntroAfterDeferredNavReturn}
+              autoplay={!skipIntroAfterDeferredNavReturn}
               stateMachineName={
                 WALLET_HOME_ONBOARDING_CHECKLIST_RIVE_STATE_MACHINE
               }

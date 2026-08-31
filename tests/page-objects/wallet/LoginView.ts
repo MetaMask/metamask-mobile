@@ -2,15 +2,15 @@ import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginVie
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class LoginView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.CONTAINER);
   }
 
-  get passwordInput(): Promise<AppiumElement> {
+  get passwordInput(): EncapsulatedElementType {
     // Android: match the inner EditText via content-desc (UiAutomator).
     // iOS: testID resolves via Matchers.getElementByID.
     if (PlatformDetector.isAndroid()) {
@@ -21,19 +21,19 @@ class LoginView {
     return Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT);
   }
 
-  get forgotPasswordButton(): Promise<AppiumElement> {
+  get forgotPasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.RESET_WALLET);
   }
 
-  get rememberMeSwitch(): Promise<AppiumElement> {
+  get rememberMeSwitch(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.REMEMBER_ME_SWITCH);
   }
 
-  get loginButton(): Promise<AppiumElement> {
+  get loginButton(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.LOGIN_BUTTON_ID);
   }
 
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(LoginViewSelectors.TITLE_ID);
   }
 

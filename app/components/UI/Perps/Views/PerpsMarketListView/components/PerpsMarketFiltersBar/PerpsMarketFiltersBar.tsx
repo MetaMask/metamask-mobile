@@ -36,7 +36,6 @@ import {
 const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
   selectedOptionId,
   onSortPress,
-  sortDirection,
   marketTypeFilter,
   onCategorySelect,
   marketCount,
@@ -63,8 +62,8 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
         />
       )}
 
-      {/* Row 2: Market count (left) + Sort dropdown (right) */}
-      {showSortRow && (
+      {/* Row 2: Market count (left) + Sort dropdown (right) — hidden when watchlist filter is active */}
+      {showSortRow && !isWatchlistSelected && (
         <View style={styles.sortRow}>
           <Text
             variant={TextVariant.BodySm}
@@ -78,7 +77,6 @@ const PerpsMarketFiltersBar: React.FC<PerpsMarketFiltersBarProps> = ({
           <PerpsMarketSortDropdowns
             selectedOptionId={selectedOptionId}
             onSortPress={onSortPress}
-            sortDirection={sortDirection}
             testID={testID ? `${testID}-sort` : undefined}
           />
         </View>

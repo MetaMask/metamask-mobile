@@ -28,11 +28,6 @@ on:
         required: false
         type: string
         default: '["ALL"]'
-      changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection'
-        required: false
-        type: string
-        default: ''
   workflow_dispatch:
     inputs:
       build_type:
@@ -55,17 +50,10 @@ on:
         required: false
         type: string
         default: '["ALL"]'
-      changed_spec_files:
-        description: 'Space-separated changed E2E specs for PR flakiness detection'
-        required: false
-        type: string
-        default: ''
 
 permissions:
   contents: read
   checks: write
-  actions: read
-  pull-requests: read
 
 jobs:
   appium-accounts-android-smoke:
@@ -90,7 +78,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-perps-android-smoke:
@@ -115,7 +102,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-predictions-android-smoke:
@@ -140,7 +126,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-seedless-onboarding-android-smoke:
@@ -165,7 +150,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-snaps-android-smoke:
@@ -191,7 +175,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-network-abstractions-android-smoke:
@@ -215,7 +198,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-wallet-platform-android-smoke:
@@ -240,7 +222,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-swap-android-smoke:
@@ -265,7 +246,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-stake-android-smoke:
@@ -290,7 +270,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   # appium-mmconnect-android-smoke:
@@ -340,7 +319,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-browser-android-smoke:
@@ -365,7 +343,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-confirmations-android-smoke:
@@ -390,7 +367,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-multichain-api-android-smoke:
@@ -402,7 +378,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -410,12 +386,11 @@ jobs:
       platform: android
       test_suite_tag: SmokeMultiChainAPI
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-network-expansion-android-smoke:
@@ -440,5 +415,4 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
-      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit

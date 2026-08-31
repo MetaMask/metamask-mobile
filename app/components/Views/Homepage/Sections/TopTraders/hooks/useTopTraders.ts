@@ -21,7 +21,6 @@ export interface UseTopTradersResult {
   traders: TopTrader[];
   isLoading: boolean;
   isFetching: boolean;
-  hasFetched: boolean;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (
@@ -73,7 +72,7 @@ export const useTopTraders = (
   // AppState → focusManager, and react-data-query uses staleTime: 0, so a
   // foreground/reconnect can otherwise run queryFn before React commits
   // enabled:false after background auto-lock. Unlock flips enabled true and fetches.
-  const { data, isLoading, isFetching, isFetched, error, refetch } =
+  const { data, isLoading, isFetching, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
       enabled: (options?.enabled ?? true) && isUnlocked,
@@ -154,12 +153,11 @@ export const useTopTraders = (
       traders,
       isLoading,
       isFetching,
-      hasFetched: isFetched,
       error: formatSocialQueryErrorMessage(error),
       refresh,
       toggleFollow,
     }),
-    [traders, isLoading, isFetching, isFetched, error, refresh, toggleFollow],
+    [traders, isLoading, isFetching, error, refresh, toggleFollow],
   );
 };
 

@@ -3,16 +3,16 @@ import enContent from '../../../locales/languages/en.json';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities, sleep } from '../../framework';
 import ChromeCdpHelpers from '../../framework/ChromeCdpHelpers';
-import { createAppiumLogger } from '../../framework/appiumLogger';
+import { createPlaywrightLogger } from '../../framework/playwrightLogger';
 
-const logger = createAppiumLogger('TestDApp');
+const logger = createPlaywrightLogger('TestDApp');
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -26,14 +26,14 @@ interface ContractNavigationParams {
 
 const testDappPageUrl = (): string => getDappUrl(0);
 
-const getTestDappWebElementById = (innerID: string): Promise<AppiumElement> =>
+const getTestDappWebElementById = (innerID: string): WebElement =>
   Matchers.getElementByWebID(
     BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     innerID,
     testDappPageUrl(),
   );
 
-const getTestDappWebElementByXPath = (xpath: string): Promise<AppiumElement> =>
+const getTestDappWebElementByXPath = (xpath: string): WebElement =>
   Matchers.getElementByXPath(
     BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
     xpath,
@@ -41,200 +41,199 @@ const getTestDappWebElementByXPath = (xpath: string): Promise<AppiumElement> =>
   );
 
 class TestDApp {
-  get confirmButtonText(): Promise<AppiumElement> {
+  get confirmButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }
 
-  get approveButtonText(): Promise<AppiumElement> {
+  get approveButtonText(): EncapsulatedElementType {
     return Matchers.getElementByText(APPROVE_BUTTON_TEXT);
   }
 
-  get DappConnectButton(): Promise<AppiumElement> {
+  get DappConnectButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.CONNECT_BUTTON);
   }
 
-  get connectedAccounts(): Promise<AppiumElement> {
+  get connectedAccounts(): WebElement {
     return getTestDappWebElementByXPath(
       `//*[contains(text(),"${DAPP_ACCOUNTS_TEXT}")]`,
     );
   }
 
-  get ApproveERC20TokensButton(): Promise<AppiumElement> {
+  get ApproveERC20TokensButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.APPROVE_ERC_20_TOKENS_BUTTON_ID,
     );
   }
 
-  get ApproveERC721TokenButton(): Promise<AppiumElement> {
+  get ApproveERC721TokenButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.APPROVE_ERC_721_TOKEN_BUTTON_ID,
     );
   }
 
-  get invalidSignature(): Promise<AppiumElement> {
+  get invalidSignature(): WebElement {
     return getTestDappWebElementById('signInvalidType');
   }
 
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get erc20TransferTokensButton(): Promise<AppiumElement> {
+  get erc20TransferTokensButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ERC_20_SEND_TOKENS_TRANSFER_TOKENS_BUTTON_ID,
     );
   }
 
-  get increaseAllowanceButton(): Promise<AppiumElement> {
+  get increaseAllowanceButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.INCREASE_ALLOWANCE_BUTTON_ID,
     );
   }
 
-  get personalSignButton(): Promise<AppiumElement> {
+  get personalSignButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.PERSONAL_SIGN);
   }
 
-  get signTypedDataButton(): Promise<AppiumElement> {
+  get signTypedDataButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA);
   }
 
-  get signTypedDataV3Button(): Promise<AppiumElement> {
+  get signTypedDataV3Button(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V3);
   }
 
-  get signTypedDataV4Button(): Promise<AppiumElement> {
+  get signTypedDataV4Button(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.SIGN_TYPE_DATA_V4);
   }
 
-  get ethereumSignButton(): Promise<AppiumElement> {
+  get ethereumSignButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.ETHEREUM_SIGN);
   }
 
-  get permitSignButton(): Promise<AppiumElement> {
+  get permitSignButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.PERMIT_SIGN);
   }
 
-  get siweBadDomainButton(): Promise<AppiumElement> {
+  get siweBadDomainButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ETHEREUM_SIGN_BAD_DOMAIN,
     );
   }
 
   // This taps on the transfer tokens button under the "SEND TOKENS section"
-  get nftTransferFromTokensButton(): Promise<AppiumElement> {
+  get nftTransferFromTokensButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.NFT_TRANSFER_FROM_BUTTON_ID,
     );
   }
 
-  get nftSetApprovalForAllButton(): Promise<AppiumElement> {
+  get nftSetApprovalForAllButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_NFT_BUTTON_ID,
     );
   }
 
-  get addTokensToWalletButton(): Promise<AppiumElement> {
+  get addTokensToWalletButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ADD_TOKENS_TO_WALLET_BUTTON,
     );
   }
 
-  get erc1155SetApprovalForAllButton(): Promise<AppiumElement> {
+  get erc1155SetApprovalForAllButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.SET_APPROVAL_FOR_ALL_ERC1155_BUTTON_ID,
     );
   }
 
-  get sendFailingTransactionButton(): Promise<AppiumElement> {
+  get sendFailingTransactionButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.SEND_FAILING_TRANSACTION_BUTTON_ID,
     );
   }
 
-  get erc1155BatchTransferButton(): Promise<AppiumElement> {
+  get erc1155BatchTransferButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.BATCH_TRANSFER_ERC1155_BUTTON_ID,
     );
   }
 
-  get switchChainFromTestDappButton(): Promise<AppiumElement> {
+  get switchChainFromTestDappButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.SWITCH_ETHEREUM_CHAIN,
     );
   }
 
-  get testDappFoxLogo(): Promise<AppiumElement> {
+  get testDappFoxLogo(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.TEST_DAPP_FOX_LOGO,
     );
   }
 
-  get testDappPageTitle(): Promise<AppiumElement> {
+  get testDappPageTitle(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.TEST_DAPP_HEADING_TITLE,
     );
   }
 
-  get erc721MintButton(): Promise<AppiumElement> {
+  get erc721MintButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ERC_721_MINT_BUTTON_ID,
     );
   }
 
-  get sendEIP1559Button(): Promise<AppiumElement> {
+  get sendEIP1559Button(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.SEND_EIP_1559_BUTTON_ID,
     );
   }
 
-  get deployContractButton(): Promise<AppiumElement> {
+  get deployContractButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.DEPLOY_CONTRACT_BUTTON_ID,
     );
   }
 
-  get sendCallsButton(): Promise<AppiumElement> {
+  get sendCallsButton(): WebElement {
     return getTestDappWebElementById(TestDappSelectorsWebIDs.SEND_CALLS_BUTTON);
   }
 
-  get revokeAccountPermission(): Promise<AppiumElement> {
+  get revokeAccountPermission(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.REVOKE_ACCOUNTS_PERMISSIONS,
     );
   }
 
-  get connectButtonText(): Promise<AppiumElement> {
+  get connectButtonText(): WebElement {
     return Matchers.getElementByText(CONNECT_BUTTON_TEXT);
   }
 
-  get erc721RevokeApprovalButton(): Promise<AppiumElement> {
+  get erc721RevokeApprovalButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ERC_721_REVOKE_APPROVAL_BUTTON_ID,
     );
   }
 
-  get erc1155RevokeApprovalButton(): Promise<AppiumElement> {
+  get erc1155RevokeApprovalButton(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.ERC_1155_REVOKE_APPROVAL_BUTTON_ID,
     );
   }
 
-  get openNetworkPicker(): Promise<AppiumElement> {
+  get openNetworkPicker(): WebElement {
     return getTestDappWebElementById(
       TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
     );
   }
 
-  get networkModalContent(): Promise<AppiumElement> {
+  get networkModalContent(): WebElement {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       '.network-modal-content',
-      testDappPageUrl(),
     );
   }
 
   getNetworkItemByName(
     networkName: string,
     { exactMatch = false }: { exactMatch?: boolean } = {},
-  ): Promise<AppiumElement> {
+  ): WebElement {
     const textPredicate = exactMatch
       ? `text()="${networkName}"`
       : `contains(text(), "${networkName}")`;
@@ -243,11 +242,10 @@ class TestDApp {
     );
   }
 
-  get networkModalBody(): Promise<AppiumElement> {
+  get networkModalBody(): WebElement {
     return Matchers.getElementByCSS(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       '.network-modal-body',
-      testDappPageUrl(),
     );
   }
 
@@ -263,7 +261,7 @@ class TestDApp {
     );
   }
 
-  async getNetworkCellByLabel(networkLabel: string): Promise<AppiumElement> {
+  async getNetworkCellByLabel(networkLabel: string): Promise<DetoxElement> {
     // Try different indices to find the network with the matching label
     for (let index = 0; index < 10; index++) {
       try {
@@ -290,7 +288,9 @@ class TestDApp {
   async isConnectedToTestDapp(): Promise<boolean> {
     return Utilities.executeWithRetry(
       async () => {
-        const text = await Utilities.getElementText(this.connectedAccounts);
+        const connectedAccounts = (await this
+          .connectedAccounts) as IndexableWebElement;
+        const text = await connectedAccounts.getText();
         const accountsText = text.replace(DAPP_ACCOUNTS_TEXT, '').trim();
         if (accountsText.length > 0) {
           return true;
@@ -563,7 +563,8 @@ class TestDApp {
             : Boolean(window.ethereum),
           chainId: chainEl ? (chainEl.textContent || null) : null,
           accountsText: accountsEl ? (accountsEl.textContent || null) : null,
-          selectedAddress: window.ethereum?.selectedAddress ?? null };
+          selectedAddress: window.ethereum?.selectedAddress ?? null,
+        };
       })()`,
     );
 
@@ -620,7 +621,7 @@ class TestDApp {
   }
 
   async tapButton(
-    elementId: Promise<AppiumElement>,
+    elementId: WebElement,
     options: TapOptions = {},
   ): Promise<void> {
     await Gestures.scrollToWebViewPort(elementId);

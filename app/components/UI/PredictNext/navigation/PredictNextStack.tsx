@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PredictHome } from '../views/PredictHome/PredictHome';
-import { PredictEventScreen } from '../views/PredictEvent/PredictEventScreen';
+import { PredictEventDetail } from '../views/PredictEventDetail/PredictEventDetail';
 import { PredictFeedScreen } from '../views/PredictFeedScreen/PredictFeedScreen';
 import type { PredictNextHomeParams, PredictNextStackParamList } from './types';
 import { PredictNextRoutes } from './routes';
@@ -24,8 +24,8 @@ const PredictNextStack = ({ initialParams }: PredictNextStackProps) => (
     />
     <Stack.Screen name={PredictNextRoutes.FEED} component={PredictFeedScreen} />
     <Stack.Screen
-      name={PredictNextRoutes.EVENT}
-      component={PredictEventScreen}
+      name={PredictNextRoutes.EVENT_DETAIL}
+      component={PredictEventDetail}
     />
   </Stack.Navigator>
 );

@@ -4,7 +4,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
-import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -23,7 +22,6 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
-import { selectMultichainAssetsRates } from '../../../selectors/multichain';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -163,10 +161,6 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   selectTokenMarketData: jest.fn(
     (state) => state.engine.backgroundState.TokenRatesController.marketData,
   ),
-}));
-
-jest.mock('../../../selectors/multichain', () => ({
-  selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
@@ -468,7 +462,6 @@ beforeEach(() => {
   jest.mocked(selectContractExchangeRatesByChainId).mockReturnValue({
     [LINEA_MUSD_ADDRESS]: { price: 0.0004 },
   } as unknown as ReturnType<typeof selectContractExchangeRatesByChainId>);
-  jest.mocked(selectMultichainAssetsRates).mockReturnValue({});
 });
 
 // ---------------------------------------------------------------------------
@@ -1908,31 +1901,6 @@ describe('ActivityListItemRow — network badge', () => {
 });
 
 describe('ActivityListItemRow — amount display', () => {
-  it('renders fiat for a non-EVM token using its multichain asset rate', () => {
-    const solanaChainId = SolScope.Mainnet;
-    const usdcAssetId = `${solanaChainId}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`;
-    jest.mocked(selectMultichainAssetsRates).mockReturnValue({
-      [usdcAssetId]: { rate: '1', conversionTime: 0 },
-    } as ReturnType<typeof selectMultichainAssetsRates>);
-
-    const item = makeItem({
-      status: 'success',
-      chainId: solanaChainId,
-      token: {
-        amount: '524800',
-        decimals: 6,
-        symbol: 'USDC',
-        assetId: usdcAssetId,
-        direction: 'out',
-      },
-    });
-
-    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
-
-    expect(getByText('-0.5248 USDC')).toBeOnTheScreen();
-    expect(getByText('-$0.52')).toBeOnTheScreen();
-  });
-
   it('formats raw token base units and renders fiat when rates are available', () => {
     const item = makeItem({
       status: 'success',
@@ -2420,58 +2388,6 @@ describe('ActivityListItemRow — pending rows', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'To: 0x1234...',
     );
-  });
-
-  it('keeps the pending spinner inside the title column when an amount is present', () => {
-    const item: ActivityListItem = {
-      type: 'unstake',
-      chainId: 'eip155:1',
-      status: 'pending',
-      timestamp: 1_787_646_540_000,
-      hash: '0xactivitypendingunstakelayout',
-      isEarliestNonce: true,
-      data: {
-        token: {
-          direction: 'in',
-          symbol: 'ETH',
-          decimals: 18,
-          amount: '790100000000000',
-        },
-      },
-    };
-    const { getByTestId } = render(
-      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
-    );
-
-    const title = getByTestId(`activity-title-${item.hash}`);
-    const spinnerContainer = getByTestId(
-      `activity-pending-spinner-container-${item.hash}`,
-    );
-    const amount = getByTestId(`activity-primary-amount-${item.hash}`);
-    const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
-
-    expect(title).toHaveTextContent('Unstaking Ethereum');
-    expect(amount).toHaveTextContent('+0.0007901 ETH');
-    expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
-      flexShrink: 1,
-      minWidth: 0,
-    });
-    expect(
-      ReactNativeStyleSheet.flatten(title.parent?.props.style),
-    ).toMatchObject({
-      flexShrink: 1,
-      minWidth: 0,
-    });
-    expect(
-      ReactNativeStyleSheet.flatten(spinnerContainer.props.style),
-    ).toMatchObject({
-      flexShrink: 0,
-    });
-    expect(
-      ReactNativeStyleSheet.flatten(amountColumn.props.style),
-    ).toMatchObject({
-      flexShrink: 0,
-    });
   });
 
   it('renders queued rows with an hourglass prefix and no title spinner', () => {

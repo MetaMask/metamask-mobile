@@ -1,17 +1,17 @@
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../app/components/UI/SkipAccountSecurityModal/SkipAccountSecurityModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class SkipAccountSecurityModal {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SkipAccountSecurityModalSelectorsIDs.CONTAINER,
     );
   }
 
-  get iUnderstandCheckbox(): Promise<AppiumElement> {
+  get iUnderstandCheckbox(): EncapsulatedElementType {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID,
@@ -22,13 +22,13 @@ class SkipAccountSecurityModal {
     );
   }
 
-  get skipButton(): Promise<AppiumElement> {
+  get skipButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON,
     );
   }
 
-  get cancelButton(): Promise<AppiumElement> {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON,
     );

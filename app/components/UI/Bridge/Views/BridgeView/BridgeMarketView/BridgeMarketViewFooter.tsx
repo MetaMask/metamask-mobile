@@ -18,7 +18,7 @@ import {
   DiscountType,
   MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { SwapsMarketOrderConfirmButton } from '../../../components/SwapsMarketOrderConfirmButton/index.tsx';
+import { SwapsConfirmButton } from '../../../components/SwapsConfirmButton/index.tsx';
 import { useStyles } from '../../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeMarketView.styles.ts';
 import {
@@ -68,7 +68,7 @@ export const BridgeMarketViewFooter = ({
   if (needsNewQuote) {
     return (
       <Box style={footerContainerStyle}>
-        <SwapsMarketOrderConfirmButton
+        <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}
@@ -88,7 +88,7 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
-        <SwapsMarketOrderConfirmButton
+        <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
           transactionActiveAbTests={transactionActiveAbTests}

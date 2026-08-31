@@ -14,7 +14,6 @@ import { isTestEnvironment } from '../../util/test/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronWalletSnap from '@metamask/tron-wallet-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
-import StellarWalletSnap from '@metamask/stellar-wallet-snap/dist/preinstalled-snap.json';
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   ENSResolverSnap as unknown as PreinstalledSnap,
@@ -33,7 +32,6 @@ const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   TronWalletSnap as unknown as PreinstalledSnap,
   ///: END:ONLY_INCLUDE_IF
-  StellarWalletSnap as unknown as PreinstalledSnap,
 ]);
 
 export default PREINSTALLED_SNAPS;

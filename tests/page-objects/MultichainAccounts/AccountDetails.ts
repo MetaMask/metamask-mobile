@@ -2,55 +2,55 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AccountDetailsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails.testIds';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
-import { type AppiumElement, getDriver } from '../../framework';
+import { EncapsulatedElementType, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class AccountDetails {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER);
   }
 
-  get shareAddress(): Promise<AppiumElement> {
+  get shareAddress(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_ADDRESS_LINK);
   }
 
-  get editAccountName(): Promise<AppiumElement> {
+  get editAccountName(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.ACCOUNT_NAME_LINK);
   }
 
-  get editWalletName(): Promise<AppiumElement> {
+  get editWalletName(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.WALLET_NAME_LINK);
   }
 
-  get networksLink(): Promise<AppiumElement> {
+  get networksLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.NETWORKS_LINK);
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.BACK_BUTTON);
   }
 
-  get deleteAccountLink(): Promise<AppiumElement> {
+  get deleteAccountLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.REMOVE_ACCOUNT_BUTTON);
   }
 
-  get accountSrpLink(): Promise<AppiumElement> {
+  get accountSrpLink(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountDetailsIds.SECRET_RECOVERY_PHRASE_LINK,
     );
   }
 
-  get exportPrivateKeyButton(): Promise<AppiumElement> {
+  get exportPrivateKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get privateKeysLink(): Promise<AppiumElement> {
+  get privateKeysLink(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountDetailsIds.PRIVATE_KEYS_LINK);
   }
 
-  get exportSrpButton(): Promise<AppiumElement> {
+  get exportSrpButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 

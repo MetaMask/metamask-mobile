@@ -190,12 +190,6 @@ const ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN = new RegExp(
   `^(?:kill_over_under_game|${ROUND_OVER_UNDER_GAME_SOURCE})$`,
   'u',
 );
-const ADDITIONAL_LINE_MARKET_TYPES: ReadonlySet<string> = new Set([
-  'team_totals_home',
-  'team_totals_away',
-  'rushing_yards',
-  'receiving_yards',
-]);
 
 export const isEsportsRoundHandicapMarketType = (type?: string): boolean =>
   type !== undefined &&
@@ -219,7 +213,6 @@ export const isLineMarketType = (type?: string): boolean => {
     isSpreadLikeMarketType(normalizedType) ||
     normalizedType === 'totals' ||
     normalizedType.endsWith('_totals') ||
-    ADDITIONAL_LINE_MARKET_TYPES.has(normalizedType) ||
     ESPORTS_OVER_UNDER_MARKET_TYPE_PATTERN.test(normalizedType) ||
     normalizedType === 'map_participant_win_total'
   );

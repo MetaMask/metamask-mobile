@@ -19,8 +19,6 @@ export interface UsePredictNextMeasurementOptions {
 
 /**
  * Starts a PredictNext screen span on mount and ends it when `conditions` are all true.
- * If the screen unmounts first, the open span ends with `success: false, reason: unmounted`.
- * Start/end and unmount cleanup are split so `shouldEnd` updates do not fire unmount cleanup.
  */
 export const usePredictNextMeasurement = ({
   traceName,
@@ -31,8 +29,6 @@ export const usePredictNextMeasurement = ({
   const hasCompleted = useRef(false);
   const traceStarted = useRef(false);
   const traceId = useRef(uuidv4());
-  const traceNameRef = useRef(traceName);
-  traceNameRef.current = traceName;
   const debugContextRef = useRef(debugContext);
   debugContextRef.current = debugContext;
 
@@ -62,20 +58,4 @@ export const usePredictNextMeasurement = ({
       hasCompleted.current = true;
     }
   }, [op, shouldEnd, traceName]);
-
-  useEffect(
-    () => () => {
-      if (!traceStarted.current) {
-        return;
-      }
-
-      endTrace({
-        name: traceNameRef.current,
-        id: traceId.current,
-        data: { success: false, reason: 'unmounted' },
-      });
-      traceStarted.current = false;
-    },
-    [],
-  );
 };

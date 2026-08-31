@@ -46,7 +46,7 @@ tests/
 │   │   └── helpers.ts               # File-based failure tracking across workers
 │   ├── TimerStore.ts               # Low-level timer management
 │   ├── TimerHelper.ts              # Timer helper with thresholds support
-│   ├── AppiumContextHelpers.ts  # Native ↔ web context switching (dapp tests)
+│   ├── PlaywrightContextHelpers.ts  # Native ↔ web context switching (dapp tests)
 │   └── utils/
 │       ├── TestConstants.js         # Test constants and credentials
 │       └── Utils.js                 # General utilities
@@ -141,7 +141,7 @@ Workflow layout:
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
 - `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
 
-For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
+For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard Detox E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 
 `build_variant` (`e2e`, `exp`, or `rc`) selects which native app profile CI builds and uploads to BrowserStack. It is distinct from `E2E_PERFORMANCE_BUILD_VARIANT` (see [Test Configuration](#test-configuration) below), which selects the remote feature-flag environment (`rc | exp | test`) used inside the test run itself.
 
@@ -343,16 +343,18 @@ const timer = new TimerHelper(
 // Using measure() — action BEFORE measure, assertion INSIDE measure
 await SomeScreen.tapButton(); // action (not timed)
 await timer.measure(async () => {
-  await AppiumAssertions.expectElementToBeVisible(NextScreen.container);
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(NextScreen.container),
+  );
 });
 
 // Manual start/stop for cross-context flows (dapp tests)
-await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
 await DappScreen.tapConnect(); // action
 timer.start(); // start AFTER the action
-await AppiumContextHelpers.switchToNativeContext();
+await PlaywrightContextHelpers.switchToNativeContext();
 await DappConnectionModal.tapConfirm();
-await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
 await DappScreen.assertConnected(); // assertion
 timer.stop(); // stop AFTER assertion
 ```
@@ -392,7 +394,9 @@ perfTest(
 
     await SomeScreen.tapButton(); // action
     await timer.measure(async () => {
-      await AppiumAssertions.expectElementToBeVisible(NextScreen.container);
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(NextScreen.container),
+      );
     });
 
     // Add timer to tracker — metrics are auto-attached after the test by the fixture
@@ -477,7 +481,7 @@ Quality Gates FAILED for "My Test":
 Tests use static page object classes from `tests/page-objects/`. No device assignment is needed — just import and call:
 
 ```typescript
-import { AppiumAssertions } from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import LoginView from '../../page-objects/wallet/LoginView';
 
@@ -486,7 +490,9 @@ perfTest(
   async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
     // No device assignment needed — page objects use the global driver
     await WalletView.tapOnToken('USDC');
-    await AppiumAssertions.expectElementToBeVisible(WalletView.accountIcon);
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.accountIcon),
+    );
   },
 );
 ```
@@ -540,13 +546,13 @@ await selectAccountByDevice(currentDeviceDetails.deviceName);
 ### Context switching for dapp tests
 
 ```typescript
-import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
 // Switch to native MetaMask context
-await AppiumContextHelpers.switchToNativeContext();
+await PlaywrightContextHelpers.switchToNativeContext();
 
 // Switch to a specific web/dapp context
-await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
+await PlaywrightContextHelpers.switchToWebViewContext(DAPP_URL);
 ```
 
 ## Environment Variables
@@ -598,7 +604,7 @@ E2E_PERFORMANCE_BUILD_VARIANT=rc
 # performance-test-runner for the flags API. See "CI Triggers".
 #
 # Android BrowserStack dual builds (main-e2e-bs-*) follow the same fingerprint
-# procedure as main-e2e Android (build-android-e2e.yml), via find-reusable-build in
+# procedure as Detox E2E (build-android-e2e.yml), via find-reusable-build in
 # build-android-upload-to-browserstack.yml:
 #   - miss → fresh dual Gradle builds
 #   - hit + test-only (main_branch_only/reuse_main_builds) → re-upload APKs as-is
@@ -726,28 +732,6 @@ This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
 
-### Weekly app profiling report (Cursor Automation)
-
-For a weekly rollup of BrowserStack app-profiling averages across merged PRs
-that ran performance tests:
-
-```bash
-node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
-```
-
-Outputs:
-
-| File | Description |
-| ---- | ----------- |
-| `report.json` | Scenario averages, peak-sample recording URLs, failing PRs, data-driven leads |
-| `slack.md` | Slack-ready markdown (leads include BrowserStack recording links for peaks) |
-| `ai-briefing.md` | Briefing for an AI pass (investigation insights + peak recordings) |
-
-Recommended automation: schedule the prompt in
-[`.cursor/automations/weekly-app-profiling-report.md`](../../.cursor/automations/weekly-app-profiling-report.md).
-That run collects metrics, adds a final **AI insights to investigate** section
-based on merged PR themes/hotspots, and DMs the report on Slack.
-
 ### HTML Dashboard Features
 
 The aggregated HTML report (`performance-report.html`) includes:
@@ -785,15 +769,15 @@ The aggregated HTML report (`performance-report.html`) includes:
    // ✅ Good — action outside, assertion inside
    await WalletView.tapButton();
    await timer.measure(async () => {
-     await AppiumAssertions.expectElementToBeVisible(
-       NextScreen.container,
+     await PlaywrightAssertions.expectElementToBeVisible(
+       asPlaywrightElement(NextScreen.container),
      );
    });
 
    // ❌ Bad — action inside measure pollutes the timing
    await timer.measure(async () => {
      await WalletView.tapButton();
-     await AppiumAssertions.expectElementToBeVisible(...);
+     await PlaywrightAssertions.expectElementToBeVisible(...);
    });
    ```
 
@@ -822,7 +806,7 @@ The aggregated HTML report (`performance-report.html`) includes:
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { AppiumAssertions } from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
@@ -848,8 +832,8 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
       // 3. Measure the action
       await WalletView.tapOnToken('USDC'); // action (not timed)
       await timer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          TokenOverview.container,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TokenOverview.container),
         );
       });
 

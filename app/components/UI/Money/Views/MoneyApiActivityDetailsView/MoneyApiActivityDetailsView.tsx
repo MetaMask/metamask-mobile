@@ -59,7 +59,6 @@ import type { MoneyTransactionDisplayInfo } from '../../hooks/useMoneyTransactio
 const MONEY_ACCOUNT_HERO_TOKEN = {
   symbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
   iconSource: MoneyIcon,
-  isMoneyAccount: true,
 } as const;
 
 const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {

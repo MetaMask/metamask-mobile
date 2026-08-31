@@ -1,28 +1,58 @@
-import { useState, useCallback } from 'react';
-import { addScreenshotListener } from 'expo-screen-capture';
+import { useState, useCallback, useMemo } from 'react';
+import { NativeModules, NativeEventEmitter } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Device from '../../util/device';
 
 const useScreenshotDeterrent = (warning: () => void) => {
   const [enabled, setEnabled] = useState<boolean>(false);
 
+  const screenshotDetect = NativeModules.ScreenshotDetect;
+  const detectorEventEmitter = useMemo(
+    () => new NativeEventEmitter(screenshotDetect),
+    [screenshotDetect],
+  );
+
+  const commonAddScreenshotListener = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (listener: () => void): any => {
+      const eventSubscription = detectorEventEmitter.addListener(
+        'UIApplicationUserDidTakeScreenshotNotification',
+        () => listener(),
+      );
+
+      return eventSubscription.remove;
+    },
+    [detectorEventEmitter],
+  );
+
+  const addScreenshotListener = useCallback(
+    // TODO: Replace "any" with type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (listener: () => void): any => {
+      const unsubscribe = commonAddScreenshotListener(listener);
+      return unsubscribe;
+    },
+    [commonAddScreenshotListener],
+  );
+
   useFocusEffect(
     useCallback(() => {
-      // Android blocks the capture outright, so there is nothing to warn
-      // about. Staying off Android also avoids the media-read permission that
-      // screenshot detection needs there before Android 14.
       if (Device.isAndroid()) {
-        return undefined;
+        return;
       }
 
-      const subscription = addScreenshotListener(() => {
+      const userDidScreenshot = () => {
         if (enabled) {
           warning();
         }
-      });
+      };
 
-      return () => subscription.remove();
-    }, [enabled, warning]),
+      const unsubscribe = addScreenshotListener(userDidScreenshot);
+      return () => {
+        unsubscribe();
+      };
+    }, [addScreenshotListener, enabled, warning]),
   );
 
   return [setEnabled];

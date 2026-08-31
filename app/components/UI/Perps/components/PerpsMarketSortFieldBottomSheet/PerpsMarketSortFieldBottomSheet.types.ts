@@ -21,11 +21,11 @@ export interface PerpsMarketSortFieldBottomSheetProps {
    */
   selectedOptionId: SortOptionId;
   /**
-   * Current sort direction (shown on the selected option; toggled in draft)
+   * Current sort direction (used for price change toggle and default for other options)
    */
   sortDirection: SortDirection;
   /**
-   * Callback when Apply commits the draft sort (or Reset then Apply restores default)
+   * Callback when an option is selected
    * @param optionId - The ID of the selected option
    * @param field - The sort field
    * @param direction - The sort direction

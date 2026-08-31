@@ -24,9 +24,9 @@ import { createActiveABTestAssignment } from '../../../../../util/analytics/acti
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
-const mockNavigateToPerpsHome = jest.fn();
+const mockHandleViewAllPerps = jest.fn();
 const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
-  navigateToPerpsHome: mockNavigateToPerpsHome,
+  handleViewAllPerps: mockHandleViewAllPerps,
 }));
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn(() => ({ name: 'Home Viewed' }));
@@ -556,31 +556,18 @@ describe('HomepageBalanceBreakdown', () => {
     fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')));
 
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith(
-      expect.objectContaining({
-        attribution: 'homescreen_balance_breakdown',
-        id: expect.any(String),
-      }),
+      'homescreen_balance_breakdown',
     );
     expect(mockNavigate).toHaveBeenNthCalledWith(
       1,
       Routes.WALLET.TOKENS_FULL_VIEW,
-      {
-        analyticsContext: expect.objectContaining({
-          attribution: 'homescreen_balance_breakdown',
-          id: expect.any(String),
-        }),
-      },
+      { source: 'homescreen_balance_breakdown' },
     );
     expect(mockUsePerpsNavigationHandlers).toHaveBeenCalledWith({
+      source: 'homescreen_balance_breakdown',
       transactionActiveAbTests,
     });
-    expect(mockNavigateToPerpsHome).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToPerpsHome).toHaveBeenCalledWith(
-      expect.objectContaining({
-        attribution: 'homescreen_balance_breakdown',
-        id: expect.any(String),
-      }),
-    );
+    expect(mockHandleViewAllPerps).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.PREDICT.ROOT, {
       screen: Routes.PREDICT.MARKET_LIST,
       params: {
@@ -591,12 +578,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigate).toHaveBeenNthCalledWith(
       3,
       Routes.WALLET.DEFI_FULL_VIEW,
-      {
-        analyticsContext: expect.objectContaining({
-          attribution: 'homescreen_balance_breakdown',
-          id: expect.any(String),
-        }),
-      },
+      { source: 'homescreen_balance_breakdown' },
     );
     expect(mockCreateEventBuilder).toHaveBeenCalledTimes(5);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

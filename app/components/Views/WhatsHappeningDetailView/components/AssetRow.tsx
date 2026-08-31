@@ -13,8 +13,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
-import { WhatsHappeningSelectorsIDs } from '../../../UI/WhatsHappening/WhatsHappening.testIds';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 import RelatedAssetAvatar from './RelatedAssetAvatar';
 
@@ -31,8 +29,6 @@ interface AssetRowProps {
   onAction?: () => void;
   /** When provided, renders price + 24h change below the asset name. */
   secondaryLine?: AssetRowSecondaryLine;
-  /** Two-line layout with a price-line skeleton until the first quote. */
-  isPriceLoading?: boolean;
 }
 
 /**
@@ -45,19 +41,11 @@ const AssetRow: React.FC<AssetRowProps> = ({
   accessibilityLabel,
   onAction,
   secondaryLine,
-  isPriceLoading = false,
 }) => {
   const image = useMemo(() => getRelatedAssetImageSource(asset), [asset]);
   const title = asset.name || asset.symbol;
 
-  const description = isPriceLoading ? (
-    <Skeleton
-      height={16}
-      width={96}
-      twClassName="rounded"
-      testID={WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON}
-    />
-  ) : secondaryLine ? (
+  const description = secondaryLine ? (
     <Box flexDirection={BoxFlexDirection.Row} alignItems={BoxAlignItems.Center}>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {secondaryLine.priceText}
@@ -90,9 +78,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
   return (
     <ListItem
       variant={
-        secondaryLine || isPriceLoading
-          ? ListItemVariant.TwoLines
-          : ListItemVariant.OneLine
+        secondaryLine ? ListItemVariant.TwoLines : ListItemVariant.OneLine
       }
       avatar={<RelatedAssetAvatar name={title} image={image} />}
       title={title}

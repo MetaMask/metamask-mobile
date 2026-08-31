@@ -1,6 +1,10 @@
 import { test } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import { AppiumAssertions, AppiumGestures } from '../../framework';
+import {
+  asPlaywrightElement,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import {
   closePredictModal,
@@ -72,8 +76,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
       await OnboardingView.tapCreateNewWalletButton();
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          OnboardingSheet.googleLoginButton,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(OnboardingSheet.googleLoginButton),
           {
             description: 'Google login button should be visible',
           },
@@ -117,7 +121,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       if (isNewUser) {
         await CreatePasswordView.enterPassword(password);
         await CreatePasswordView.reEnterPassword(password);
-        await AppiumGestures.hideKeyboard();
+        await PlaywrightGestures.hideKeyboard();
         try {
           await CreatePasswordView.ensureMarketingOptInChecked();
         } catch (error) {
@@ -126,8 +130,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await CreatePasswordView.tapCreatePasswordButton();
         //await measureCreatePasswordToOnboardingSuccess(timer4);
         await timer4.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            OnboardingSuccessView.doneButton,
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(OnboardingSuccessView.doneButton),
           );
         });
 
@@ -135,8 +139,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await dismissPushNotificationExistingUserSheet();
         await closePredictModal();
         await timer5.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            WalletView.accountIcon, // Workaround until iOS nested component gets fixed
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(WalletView.accountIcon), // Workaround until iOS nested component gets fixed
             {
               description: 'Wallet main screen should be visible',
             },
@@ -158,8 +162,8 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         await LoginView.tapLoginButton();
 
         await timer4.measure(async () => {
-          await AppiumAssertions.expectElementToBeVisible(
-            WalletView.container,
+          await PlaywrightAssertions.expectElementToBeVisible(
+            asPlaywrightElement(WalletView.container),
             {
               description: 'Wallet main screen should be visible',
             },

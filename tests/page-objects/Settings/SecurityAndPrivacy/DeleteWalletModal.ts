@@ -4,24 +4,24 @@ import {
 } from '../../../../app/components/UI/DeleteWalletModal/DeleteWalletModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { type AppiumElement } from '../../../framework';
+import { EncapsulatedElementType } from '../../../framework';
 
 class DeleteWalletModal {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.CONTAINER);
   }
 
-  get understandButton(): Promise<AppiumElement> {
+  get understandButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       DeleteWalletModalSelectorsText.UNDERSTAND_BUTTON,
     );
   }
 
-  get deleteWalletButton(): Promise<AppiumElement> {
+  get deleteWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByText(DeleteWalletModalSelectorsText.DELETE_MY);
   }
 
-  get deleteInput(): Promise<AppiumElement> {
+  get deleteInput(): EncapsulatedElementType {
     return Matchers.getElementByID(DeleteWalletModalSelectorsIDs.INPUT);
   }
 

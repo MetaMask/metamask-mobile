@@ -1,13 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, Platform, View } from 'react-native';
-import {
-  Alignment,
-  Fit,
-  RiveErrorType,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+import Rive, { Alignment, Fit, RiveRef } from 'rive-react-native';
 import { useSafeAreaInsets, EdgeInsets } from 'react-native-safe-area-context';
 import Logger from '../../../util/Logger';
 import Device from '../../../util/device';
@@ -82,46 +75,49 @@ const FoxAnimation = ({
   hasFooter: boolean;
   trigger?: 'Loader' | 'Start';
 }) => {
+  const foxRef = useRef<RiveRef>(null);
   const insets = useSafeAreaInsets();
   const styles = createStyles(hasFooter, insets);
 
-  const { riveFile } = useRiveFile(FoxAnimationRive);
-  const { riveViewRef, setHybridRef } = useRive();
+  const [isPlaying, setIsPlaying] = useState(false);
   const { riveHandlers } = useRivePerformance({
     animationId: OnboardingRiveAnimationIds.FOX_APPEAR,
   });
 
-  useEffect(() => {
-    if (!riveViewRef) return;
-    riveHandlers.onPlay();
-    if (!trigger) return;
-    try {
-      riveViewRef.triggerInput(trigger);
-    } catch (error) {
-      Logger.error(error as Error, 'Error triggering Fox Rive animation');
+  const showFoxAnimation = useCallback(async () => {
+    if (foxRef.current && trigger) {
+      try {
+        foxRef.current?.fireState('FoxRaiseUp', trigger);
+      } catch (error) {
+        Logger.error(error as Error, 'Error triggering Fox Rive animation');
+      }
     }
-  }, [riveViewRef, riveHandlers, trigger]);
+  }, [foxRef, trigger]);
+
+  useEffect(() => {
+    if (isPlaying) {
+      showFoxAnimation();
+    }
+  }, [showFoxAnimation, isPlaying]);
 
   return (
     <View style={[styles.foxAnimationWrapper]}>
-      {riveFile && (
-        <RiveView
-          hybridRef={setHybridRef}
-          style={styles.foxAnimation}
-          file={riveFile}
-          autoPlay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-          stateMachineName="FoxRaiseUp"
-          testID="fox-animation"
-          onError={(riveError) => {
-            riveHandlers.onError({
-              message: riveError.message,
-              type: RiveErrorType[riveError.type],
-            });
-          }}
-        />
-      )}
+      <Rive
+        ref={foxRef}
+        style={styles.foxAnimation}
+        source={FoxAnimationRive}
+        fit={Fit.Contain}
+        alignment={Alignment.Center}
+        stateMachineName="FoxRaiseUp"
+        testID="fox-animation"
+        onPlay={() => {
+          riveHandlers.onPlay();
+          setIsPlaying(true);
+        }}
+        onError={(riveError) => {
+          riveHandlers.onError(riveError);
+        }}
+      />
     </View>
   );
 };

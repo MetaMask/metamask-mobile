@@ -41,7 +41,7 @@ const WhatsHappeningAIGeneratedLabel: React.FC<
       color={IconColor.IconAlternative}
     />
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-      {strings('market_insights.card_footer_disclaimer')}
+      {strings('whats_happening.ai_generated')}
     </Text>
     <ButtonIcon
       iconName={IconName.Info}

@@ -1,16 +1,15 @@
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { type AppiumElement } from '../../framework';
-import { PlatformDetector } from '../../framework/PlatformLocator';
+import { EncapsulatedElementType } from '../../framework';
 
 class AddFavoritesView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONTAINER);
   }
 
-  get addBookmarkButton(): Promise<AppiumElement> {
-    return PlatformDetector.isIOS()
+  get addBookmarkButton(): EncapsulatedElementType {
+    return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }

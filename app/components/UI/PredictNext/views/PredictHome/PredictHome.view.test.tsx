@@ -4,7 +4,7 @@ import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
 import { PredictHomeTestIds } from './PredictHome.testIds';
-import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import type { PredictFeedId } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
@@ -284,20 +284,7 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
-  it('returns to Home after opening the immutable Event from a card', async () => {
-    messengerCall.mockImplementation(
-      (action: string, _venueId: string, id: string) => {
-        if (action === 'PredictMarketDataService:getEvent') {
-          return Promise.resolve(nflEvents.find((event) => event.id === id));
-        }
-        return Promise.resolve({
-          venueId: 'kalshi',
-          id,
-          title: 'Games',
-          events: id === 'sports-football-nfl-games' ? nflEvents : ncaaEvents,
-        });
-      },
-    );
+  it('opens immutable Event detail from a card', async () => {
     const view = renderPredictNext();
 
     fireEvent.press(
@@ -307,21 +294,14 @@ describe('PredictHome', () => {
     );
 
     expect(
-      await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
+      await view.findByTestId(PredictEventDetailTestIds.VIEW),
     ).toBeOnTheScreen();
-    expect(
-      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
-    ).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledWith(
+    expect(view.getByText('Packers vs Steelers')).toBeOnTheScreen();
+    expect(messengerCall).not.toHaveBeenCalledWith(
       'PredictMarketDataService:getEvent',
-      'kalshi',
-      'nfl-1',
-      undefined,
+      expect.anything(),
+      expect.anything(),
     );
-
-    fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
-
-    expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
   it('does not navigate when a disabled Outcome is pressed', async () => {
@@ -336,7 +316,7 @@ describe('PredictHome', () => {
 
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictEventScreenTestIds.VIEW),
+      view.queryByTestId(PredictEventDetailTestIds.VIEW),
     ).not.toBeOnTheScreen();
   });
 

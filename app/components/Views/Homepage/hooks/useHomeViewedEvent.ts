@@ -13,7 +13,6 @@ export const HomeSectionNames = {
   NFTS: 'nfts',
   TOP_TRADERS: 'top_traders',
   WATCHLIST: 'watchlist',
-  EARN: 'earn',
 } as const;
 
 export type HomeSectionName =

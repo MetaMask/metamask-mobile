@@ -134,15 +134,15 @@ appiumTest.describe(SmokePredictions('Predictions'), () => {
           });
 
           await PredictMarketList.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapOnPredictionsTab();
           await Assertions.expectTextDisplayed('Cashed out');
           await ActivitiesView.tapPredictPosition(positionDetails.name);
-          await PredictActivityDetails.expectAmountDisplayed(
-            positionDetails.cashOutValue,
+          await Assertions.expectElementToBeVisible(
+            PredictActivityDetails.container,
           );
+          await Assertions.expectTextDisplayed(positionDetails.cashOutValue);
         },
       );
     },

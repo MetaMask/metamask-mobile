@@ -1,6 +1,8 @@
 import { Gestures, Matchers, PlatformDetector } from '../framework';
 import { CHROME_PACKAGE } from '../framework/Constants';
-import AppiumUtilities, { withTimeout } from '../framework/AppiumUtilities';
+import PlaywrightUtilities, {
+  withTimeout,
+} from '../framework/PlaywrightUtilities';
 import ChromeBrowserView from '../page-objects/Native/ChromeBrowserView';
 
 /** Max time to wait for a Chrome modal dismissal (find + tap). Prevents long hangs. */
@@ -145,10 +147,10 @@ export const launchMobileBrowser = async ({
   }
 
   // Clear before disable-fre so the next cold start picks up chrome-command-line.
-  AppiumUtilities.clearChromeData();
-  AppiumUtilities.setupChromeDisableFre();
-  AppiumUtilities.grantChromeNotificationPermission();
-  AppiumUtilities.forceStopChrome();
+  PlaywrightUtilities.clearChromeData();
+  PlaywrightUtilities.setupChromeDisableFre();
+  PlaywrightUtilities.grantChromeNotificationPermission();
+  PlaywrightUtilities.forceStopChrome();
 
   await Gestures.activateApp(undefined, CHROME_PACKAGE);
   if (safelyOnboardChrome) {
@@ -178,11 +180,11 @@ export const switchToMobileBrowser = async () => {
  * @returns A promise that resolves when the navigation is complete
  */
 export const navigateToDappAndroid = async (url: string) => {
-  AppiumUtilities.collapseStatusBar();
+  PlaywrightUtilities.collapseStatusBar();
 
   // Prefer VIEW intent — omnibox IDs/text are unreliable on fresh google_apis Chrome.
   try {
-    AppiumUtilities.openUrlInChrome(url);
+    PlaywrightUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     try {
       await dismissChromeAdPrivacyIfPresent();
@@ -237,7 +239,7 @@ export const navigateToDappAndroid = async (url: string) => {
 
   // Recover from the tab switcher (CDP downstream verifies the load).
   if (!(await chromeUrlBarShowsTarget(url))) {
-    AppiumUtilities.openUrlInChrome(url);
+    PlaywrightUtilities.openUrlInChrome(url);
     await new Promise((r) => setTimeout(r, CHROME_VIEW_INTENT_SETTLE_MS));
     try {
       await dismissChromeAdPrivacyIfPresent();

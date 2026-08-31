@@ -4,7 +4,6 @@ import { act, render, screen } from '@testing-library/react-native';
 import {
   NavigationContainer,
   createNavigationContainerRef,
-  type NavigationContainerRefWithCurrent,
 } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -55,7 +54,7 @@ const renderNavigation = (TrackedTab: React.ComponentType) => {
 };
 
 const navigateTo = async (
-  navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
+  navigationRef: ReturnType<typeof createNavigationContainerRef>,
   name: string,
 ) => {
   await act(async () => {

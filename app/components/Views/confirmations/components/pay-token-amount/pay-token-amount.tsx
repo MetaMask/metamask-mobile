@@ -9,6 +9,10 @@ import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayIsMaxAmount,
+} from '../../hooks/pay/useTransactionPayData';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import {
   TransactionType,
@@ -30,6 +34,8 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
   const targetTokenAddress = getTokenAddress(transaction);
+  const isMaxAmount = useTransactionPayIsMaxAmount();
+  const isQuotesLoading = useIsTransactionPayLoading();
   const isWithdraw = isTransactionPayWithdraw(transaction);
 
   const fiatRequests = useMemo(
@@ -97,7 +103,7 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
     );
   }
 
-  if (!formattedAmount) {
+  if (!formattedAmount || (isMaxAmount && isQuotesLoading)) {
     return <PayTokenAmountSkeleton />;
   }
 

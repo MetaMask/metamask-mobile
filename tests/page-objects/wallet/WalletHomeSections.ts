@@ -11,75 +11,75 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 import WalletHomeScroll from './WalletHomeScroll';
 
 export class WalletHomeSections {
-  get defiTab(): Promise<AppiumElement> {
+  get defiTab(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_TAB);
   }
 
-  get defiNetworkFilter(): Promise<AppiumElement> {
+  get defiNetworkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
     );
   }
 
-  get defiTabContainer(): Promise<AppiumElement> {
+  get defiTabContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER,
     );
   }
 
-  get claimButton(): Promise<AppiumElement> {
+  get claimButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictPositionsHeaderSelectorsIDs.CLAIM_BUTTON,
     );
   }
 
-  get predictClaimConfirmButton(): Promise<AppiumElement> {
+  get predictClaimConfirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictClaimConfirmationSelectorsIDs.CLAIM_CONFIRM_BUTTON,
     );
   }
 
-  get availableBalanceLabel(): Promise<AppiumElement> {
+  get availableBalanceLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.AVAILABLE_BALANCE);
   }
 
-  get defiPositionsNew(): Promise<AppiumElement> {
+  get defiPositionsNew(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.DEFI_SECTION);
   }
 
-  get perpsSectionHeader(): Promise<AppiumElement> {
+  get perpsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps'),
     );
   }
 
-  get predictionsSectionHeader(): Promise<AppiumElement> {
+  get predictionsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions'),
     );
   }
 
-  get getMoneySection(): Promise<AppiumElement> {
+  get getMoneySection(): EncapsulatedElementType {
     // Partial ID match for package-qualified Android resource IDs.
     return Matchers.getElementByID(/homepage-section-title-cash/);
   }
 
-  get tokensSectionHeader(): Promise<AppiumElement> {
+  get tokensSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.TOKENS_SECTION);
   }
 
-  get tokensSection(): Promise<AppiumElement> {
+  get tokensSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens'),
     );
   }
 
-  get nftsSectionHeader(): Promise<AppiumElement> {
+  get nftsSectionHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_SECTION);
   }
 

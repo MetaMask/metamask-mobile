@@ -1,4 +1,4 @@
-import { IconName, TextColor } from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import {
   CardTransactionStatus,
   CardTransactionType,
@@ -8,8 +8,6 @@ import {
   cardTransactionDisplayInfo,
   formatCardTransactionDate,
   formatCardTransactionStatus,
-  getCardTransactionHeroCopy,
-  getCardTransactionStatusColor,
   getCardTransactionTypeLabel,
 } from './cardTransactionDisplayInfo';
 
@@ -19,11 +17,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../util/intl', () => ({
-  getIntlDateTimeFormatter: (
-    _locale: string,
-    options?: Intl.DateTimeFormatOptions,
-  ) => ({
-    format: () => (options?.year ? '15 Jan 2025' : '15 Jan'),
+  getIntlDateTimeFormatter: () => ({
+    format: () => '15 Jan',
   }),
   getIntlNumberFormatter: (
     _locale: string,
@@ -91,14 +86,6 @@ describe('cardTransactionDisplayInfo', () => {
 
       expect(result).toBe('15 Jan');
     });
-
-    it('includes the year for timestamps outside the current year', () => {
-      const result = formatCardTransactionDate(
-        new Date('2025-04-30T08:00:00.000Z').getTime(),
-      );
-
-      expect(result).toBe('15 Jan 2025');
-    });
   });
 
   describe('cardTransactionDisplayInfo', () => {
@@ -126,7 +113,7 @@ describe('cardTransactionDisplayInfo', () => {
       expect(display.isIncoming).toBe(false);
     });
 
-    it('shows merchant original amount as primary when currency differs from billing', () => {
+    it('shows merchant original amount when currency differs from billing', () => {
       const display = cardTransactionDisplayInfo(
         createTransaction({
           billingAmount: { value: '11.95', currency: 'USD' },
@@ -134,8 +121,8 @@ describe('cardTransactionDisplayInfo', () => {
         }),
       );
 
-      expect(display.primaryAmount).toBe('-R$61.35');
-      expect(display.fiatAmount).toBe('-$11.95');
+      expect(display.primaryAmount).toBe('-$11.95');
+      expect(display.fiatAmount).toBe('-R$61.35');
     });
 
     it('omits secondary amount when original currency matches billing', () => {
@@ -246,76 +233,6 @@ describe('cardTransactionDisplayInfo', () => {
       expect(formatCardTransactionStatus(CardTransactionStatus.Completed)).toBe(
         'card.transactions.completed',
       );
-    });
-  });
-
-  describe('getCardTransactionHeroCopy', () => {
-    it('maps purchase and refund types to their hero copy keys', () => {
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({ type: CardTransactionType.Purchase }),
-        ),
-      ).toBe('money.api_activity_details.you_spent');
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({
-            type: CardTransactionType.Refund,
-            isDebit: false,
-          }),
-        ),
-      ).toBe('money.api_activity_details.you_were_refunded');
-    });
-
-    it('maps deposit and withdrawal types to card-specific hero copy', () => {
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({
-            type: CardTransactionType.Deposit,
-            isDebit: false,
-          }),
-        ),
-      ).toBe('card.transactions.you_deposited');
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({ type: CardTransactionType.Withdrawal }),
-        ),
-      ).toBe('card.transactions.you_withdrew');
-    });
-
-    it('falls back to debit/credit copy for transfer and adjustment', () => {
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({
-            type: CardTransactionType.Transfer,
-            isDebit: true,
-          }),
-        ),
-      ).toBe('money.api_activity_details.you_spent');
-      expect(
-        getCardTransactionHeroCopy(
-          createTransaction({
-            type: CardTransactionType.Adjustment,
-            isDebit: false,
-          }),
-        ),
-      ).toBe('card.transactions.you_received');
-    });
-  });
-
-  describe('getCardTransactionStatusColor', () => {
-    it('maps each status to a non-success color where appropriate', () => {
-      expect(
-        getCardTransactionStatusColor(CardTransactionStatus.Completed),
-      ).toBe(TextColor.SuccessDefault);
-      expect(getCardTransactionStatusColor(CardTransactionStatus.Pending)).toBe(
-        TextColor.WarningDefault,
-      );
-      expect(getCardTransactionStatusColor(CardTransactionStatus.Failed)).toBe(
-        TextColor.ErrorDefault,
-      );
-      expect(
-        getCardTransactionStatusColor(CardTransactionStatus.Reversed),
-      ).toBe(TextColor.TextAlternative);
     });
   });
 });

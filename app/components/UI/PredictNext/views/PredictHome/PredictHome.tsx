@@ -83,10 +83,10 @@ export const PredictHome = () => {
   );
   const openEvent = useCallback(
     (event: PredictEvent) =>
-      navigation.navigate(PredictNextRoutes.EVENT, {
+      navigation.navigate(PredictNextRoutes.EVENT_DETAIL, {
         venueId: event.venueId,
         eventId: event.id,
-        titleSnapshot: event.title,
+        title: event.title,
       }),
     [navigation],
   );

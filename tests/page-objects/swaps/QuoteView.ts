@@ -4,7 +4,7 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
-  type AppiumElement,
+  type EncapsulatedElementType,
 } from '../../framework';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
@@ -24,37 +24,37 @@ const TIMEOUT = {
 } as const;
 
 class QuoteView {
-  get selectAmountLabel(): Promise<AppiumElement> {
+  get selectAmountLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_AMOUNT);
   }
 
-  get confirmBridge(): Promise<AppiumElement> {
+  get confirmBridge(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get confirmSwap(): Promise<AppiumElement> {
+  get confirmSwap(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
   }
 
-  get sourceTokenArea(): Promise<AppiumElement> {
+  get sourceTokenArea(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
   }
 
-  get amountInput(): Promise<AppiumElement> {
+  get amountInput(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
   }
 
-  get destinationTokenArea(): Promise<AppiumElement> {
+  get destinationTokenArea(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
   }
 
-  get destinationTokenInput(): Promise<AppiumElement> {
+  get destinationTokenInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
     );
   }
 
-  get searchToken(): Promise<AppiumElement> {
+  get searchToken(): EncapsulatedElementType {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
@@ -63,34 +63,34 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
   }
 
-  get seeAllButton(): Promise<AppiumElement> {
+  get seeAllButton(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.SELECT_ALL);
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
   }
 
-  get moreNetworksButton(): Promise<AppiumElement> {
+  get moreNetworksButton(): EncapsulatedElementType {
     return Matchers.getElementByID('network-pills-more-button');
   }
 
-  get networkFeeLabel(): Promise<AppiumElement> {
+  get networkFeeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.NETWORK_FEE);
   }
 
-  get bridgeViewScroll(): Promise<AppiumElement> {
+  get bridgeViewScroll(): EncapsulatedElementType {
     return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
   }
 
   /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
-  get feeDisclaimerLabel(): Promise<AppiumElement> {
+  get feeDisclaimerLabel(): EncapsulatedElementType {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON,
     );
   }
 
-  get keypadDeleteButton(): Promise<AppiumElement> {
+  get keypadDeleteButton(): EncapsulatedElementType {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
         `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
@@ -99,15 +99,15 @@ class QuoteView {
     return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
   }
 
-  get maxLink(): Promise<AppiumElement> {
+  get maxLink(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.MAX);
   }
 
-  get includedLabel(): Promise<AppiumElement> {
+  get includedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.INCLUDED);
   }
 
-  get rateLabel(): Promise<AppiumElement> {
+  get rateLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
@@ -116,7 +116,7 @@ class QuoteView {
     return getAssetTestId(`${chainId}-${symbol}`);
   }
 
-  getTokenElement(chainId: string, symbol: string): Promise<AppiumElement> {
+  getTokenElement(chainId: string, symbol: string): EncapsulatedElementType {
     const testId = this.getTokenElementId(chainId, symbol);
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(testId);
@@ -175,7 +175,7 @@ class QuoteView {
           tokenElement = this.getTokenElement(chainId, symbol);
           // Gestures.scrollToElement uses Detox direction semantics and inverts
           // for Appium scrollIntoView. Pass 'down' so Appium receives 'up'
-          // (matches prior AppiumGestures.scrollIntoView direction: 'up').
+          // (matches prior PlaywrightGestures.scrollIntoView direction: 'up').
           await Gestures.scrollToElement(
             tokenElement,
             Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
@@ -418,7 +418,7 @@ class QuoteView {
    * Gets the slippage display text element (e.g., "2.5%")
    * @param value - The slippage value to match (e.g., "2.5" for 2.5%)
    */
-  slippageDisplayText(value: string): Promise<AppiumElement> {
+  slippageDisplayText(value: string): EncapsulatedElementType {
     return Matchers.getElementByText(`${value}%`);
   }
 

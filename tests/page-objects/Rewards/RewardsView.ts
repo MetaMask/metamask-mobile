@@ -1,6 +1,6 @@
 import { REWARDS_VIEW_SELECTORS } from '../../../app/components/UI/Rewards/Views/RewardsView.constants';
 import Matchers from '../../framework/Matchers';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import type { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 /** Root container for Rewards onboarding (`OnboardingMainStep`). */
 export const REWARDS_ONBOARDING_STEP_CONTAINER = 'onboarding-step-container';
@@ -13,15 +13,15 @@ export const REWARDS_ONBOARDING_STEP_CONTAINER = 'onboarding-step-container';
  * performance gates should treat either of these as "content ready".
  */
 class RewardsView {
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.TITLE);
   }
 
-  get safeArea(): Promise<AppiumElement> {
+  get safeArea(): EncapsulatedElementType {
     return Matchers.getElementByID(REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW);
   }
 
-  get onboardingStepContainer(): Promise<AppiumElement> {
+  get onboardingStepContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(REWARDS_ONBOARDING_STEP_CONTAINER);
   }
 }

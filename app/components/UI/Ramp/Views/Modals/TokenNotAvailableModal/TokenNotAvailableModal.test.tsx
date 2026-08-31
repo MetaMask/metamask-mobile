@@ -146,11 +146,9 @@ describe('TokenNotAvailableModal', () => {
     fireEvent.press(getByText('Change token'));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.RAMP.TOKEN_SELECTION,
-      { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+    });
   });
 
   it('navigates to provider picker when Change provider is pressed', () => {
@@ -182,11 +180,9 @@ describe('TokenNotAvailableModal', () => {
 
     capturedOnClose?.(false);
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.RAMP.TOKEN_SELECTION,
-      { screen: Routes.RAMP.TOKEN_SELECTION_ROOT },
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION, {
+      screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+    });
   });
 
   it('does not navigate on dismiss when there is a pending action', () => {
@@ -271,11 +267,7 @@ describe('TokenNotAvailableModal', () => {
       fireEvent.press(getByText('Change token'));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.WALLET.TOKENS_FULL_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
     });
 
     it('calls goBack once when modal is dismissed without a pending action', () => {
@@ -302,11 +294,7 @@ describe('TokenNotAvailableModal', () => {
       fireEvent.press(getByText('Change token'));
 
       expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        { screen: Routes.WALLET.HOME },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
     it('navigates to Home when modal is dismissed without a pending action', () => {
@@ -314,11 +302,7 @@ describe('TokenNotAvailableModal', () => {
 
       capturedOnClose?.(false);
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.HOME_TABS,
-        { screen: Routes.WALLET.HOME },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
   });
 });

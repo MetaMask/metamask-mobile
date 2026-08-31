@@ -443,10 +443,6 @@ jest.mock('../../app/core/Engine', () => {
           orderId: 'component-view-close',
         }),
         cancelOrder: jest.fn().mockResolvedValue({ success: true }),
-        editOrder: jest.fn().mockResolvedValue({
-          success: true,
-          orderId: 'component-view-edit-order',
-        }),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {
@@ -462,14 +458,13 @@ jest.mock('../../app/core/Engine', () => {
           },
           {
             symbol: 'BTC',
-            name: 'BTC',
+            name: 'Bitcoin',
             maxLeverage: '50x',
             price: '$50,000',
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
             openInterest: '$500K',
-            szDecimals: 5,
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -512,8 +507,6 @@ jest.mock('../../app/core/Engine', () => {
         savePendingTradeConfiguration: jest.fn(),
         clearPendingTradeConfiguration: jest.fn(),
         setSelectedPaymentToken: jest.fn(),
-        setPerpsMode: jest.fn(),
-        setProLayoutPreferences: jest.fn(),
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),

@@ -1404,10 +1404,7 @@ describeForPlatforms(
         ActivityDetailsSelectorsIDs.TOTAL_ROW,
       );
       // 2 SOL * multichain rate 4 → $8.00 (formatCurrencyWithMinThreshold)
-      // The row renders before the rate resolves, so poll for the converted value.
-      await waitFor(() =>
-        expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen(),
-      );
+      expect(within(totalRow).getByText('$8.00')).toBeOnTheScreen();
 
       expect(
         await findByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
@@ -1484,12 +1481,9 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
     });
     expect(within(getByTestId(FEE_ROW)).getByText('SOL')).toBeOnTheScreen();
     // 1 SOL × multichain rate 4; Solana base fees stay token-denominated.
-    // The row renders before the rate resolves, so poll for the converted value.
-    await waitFor(() =>
-      expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
-        exact: false,
-      }),
-    );
+    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
+      exact: false,
+    });
 
     expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
       strings('activity_details.view_on_block_explorer'),

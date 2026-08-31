@@ -2,21 +2,21 @@ import { RampsOrderDetailsSelectorsIDs } from '../../../app/components/UI/Ramp/V
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class OrderDetailsView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.CONTAINER);
   }
 
-  get closeButton(): Promise<AppiumElement> {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON);
   }
 
-  get tokenAmount(): Promise<AppiumElement> {
+  get tokenAmount(): EncapsulatedElementType {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT);
   }
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(RampsOrderDetailsSelectorsIDs.BACK_BUTTON);
   }
 

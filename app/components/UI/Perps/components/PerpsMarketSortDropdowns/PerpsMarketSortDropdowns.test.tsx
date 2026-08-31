@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketSortDropdowns from './PerpsMarketSortDropdowns';
 import { type SortOptionId } from '@metamask/perps-controller';
-import { IconName } from '@metamask/design-system-react-native';
 
 // Mock dependencies
 jest.mock('../../../../../component-library/hooks', () => ({
@@ -125,49 +124,6 @@ describe('PerpsMarketSortDropdowns', () => {
       );
 
       expect(screen.getByText('Funding rate')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Sort Direction Icon', () => {
-    it('shows a down arrow when sortDirection is desc', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          sortDirection="desc"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
-      ).toHaveProp('name', IconName.Arrow2Down);
-    });
-
-    it('shows an up arrow when sortDirection is asc', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-          sortDirection="asc"
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
-      ).toHaveProp('name', IconName.Arrow2Up);
-    });
-
-    it('shows a down arrow when sortDirection is omitted', () => {
-      render(
-        <PerpsMarketSortDropdowns
-          selectedOptionId="volume"
-          onSortPress={mockOnSortPress}
-        />,
-      );
-
-      expect(
-        screen.getByTestId('perps-market-sort-dropdowns-sort-direction'),
-      ).toHaveProp('name', IconName.Arrow2Down);
     });
   });
 

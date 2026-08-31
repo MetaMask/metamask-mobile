@@ -1,13 +1,7 @@
-import type {
-  PredictEntityId,
-  PredictFeedId,
-  PredictMarketHistoryRange,
-  PredictVenueId,
-} from '../types';
+import type { PredictEntityId, PredictFeedId, PredictVenueId } from '../types';
 import {
   MARKET_DATA_EVENT_STALE_TIME,
   MARKET_DATA_FEED_STALE_TIME,
-  MARKET_DATA_MARKET_HISTORY_STALE_TIME,
   MARKET_DATA_VENUE_STATUS_STALE_TIME,
   marketDataQueries,
 } from './marketDataQueries';
@@ -15,8 +9,6 @@ import {
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event-1' as PredictEntityId;
 const feedId = 'sports-football-nfl-games' as PredictFeedId;
-const marketId = 'market-1' as PredictEntityId;
-const range: PredictMarketHistoryRange = '1D';
 
 describe('market data query descriptors', () => {
   it('qualifies venue status queries by venue', () => {
@@ -43,7 +35,7 @@ describe('market data query descriptors', () => {
     });
   });
 
-  it('qualifies immutable Event queries by Venue and Event', () => {
+  it('qualifies event detail queries by venue and event', () => {
     const descriptor = marketDataQueries.getEvent(venueId, eventId);
 
     expect(descriptor.queryKey).toEqual([
@@ -56,25 +48,5 @@ describe('market data query descriptors', () => {
       venueId,
     ]);
     expect(descriptor.staleTime).toBe(MARKET_DATA_EVENT_STALE_TIME);
-  });
-
-  it('qualifies Market history by Venue, Market, and range', () => {
-    const descriptor = marketDataQueries.getMarketHistory(
-      venueId,
-      marketId,
-      range,
-    );
-
-    expect(descriptor).toEqual({
-      queryKey: [
-        'PredictMarketDataService:getMarketHistory',
-        venueId,
-        marketId,
-        range,
-      ],
-      family: ['PredictMarketDataService:getMarketHistory', venueId, marketId],
-      staleTime: MARKET_DATA_MARKET_HISTORY_STALE_TIME,
-      scope: 'venue',
-    });
   });
 });

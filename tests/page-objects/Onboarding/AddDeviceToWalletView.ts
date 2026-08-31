@@ -2,14 +2,14 @@ import { AddDeviceToWalletTestIds } from '../../../app/components/Views/AddDevic
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class AddDeviceToWalletView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddDeviceToWalletTestIds.SCREEN);
   }
 
-  get scanQrCodeButton(): Promise<AppiumElement> {
+  get scanQrCodeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
     );

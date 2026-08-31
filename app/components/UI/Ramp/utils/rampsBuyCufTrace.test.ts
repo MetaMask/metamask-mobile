@@ -10,8 +10,6 @@ import {
   endRampsBuyCufTrace,
   startRampsBuyCufChildTrace,
   endOpenRampsBuyCufChildrenByName,
-  startRampsBuyQuoteFetchTrace,
-  endRampsBuyQuoteFetchTrace,
   getRampsBuyCufParentContext,
   hasActiveRampsBuyCufTrace,
   surfaceFromBuyFlowOrigin,
@@ -41,7 +39,6 @@ describe('rampsBuyCufTrace', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     resetRampsBuyCufTraceForTests();
-    mockTrace.mockReturnValue({ mocked: 'parent-span' });
     mockGetTraceContext.mockReturnValue({ mocked: 'parent-span' });
   });
 
@@ -108,59 +105,6 @@ describe('rampsBuyCufTrace', () => {
     expect(
       startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
     ).not.toEqual(first);
-  });
-
-  it('keeps single-flight when the parent start was consent-buffered', () => {
-    mockTrace.mockReturnValue(undefined);
-    mockGetTraceContext.mockReturnValue(undefined);
-
-    const first = startRampsBuyCufTrace({
-      surface: RAMPS_BUY_CUF_SURFACE.FUND_MENU,
-    });
-
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
-    expect(getRampsBuyCufParentContext()).toBeUndefined();
-    expect(
-      startRampsBuyCufTrace({ surface: RAMPS_BUY_CUF_SURFACE.DEEP_LINK }),
-    ).toEqual(first);
-    expect(mockTrace).toHaveBeenCalledTimes(1);
-  });
-
-  it('ends a consent-buffered parent without clearing it as stale first', () => {
-    mockTrace.mockReturnValue(undefined);
-    mockGetTraceContext.mockReturnValue(undefined);
-
-    const opId = startRampsBuyCufTrace();
-    endRampsBuyCufTrace({ data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true } });
-
-    expect(mockEndTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyToOrderDetails,
-        id: opId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      }),
-    );
-    expect(hasActiveRampsBuyCufTrace()).toBe(false);
-  });
-
-  it('starts standalone quote fetches while the parent is consent-buffered', () => {
-    mockTrace.mockReturnValue(undefined);
-    mockGetTraceContext.mockReturnValue(undefined);
-    startRampsBuyCufTrace();
-    mockTrace.mockClear();
-    mockTrace.mockReturnValue(undefined);
-
-    const opId = startRampsBuyQuoteFetchTrace();
-
-    expect(mockTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: TraceName.RampBuyQuoteFetch,
-        id: opId,
-        parentContext: undefined,
-        forceTransaction: true,
-      }),
-    );
-    expect(hasActiveRampsBuyCufTrace()).toBe(true);
   });
 
   it('ignores end when the id does not match the open parent', () => {
@@ -269,100 +213,5 @@ describe('rampsBuyCufTrace', () => {
         },
       }),
     );
-  });
-
-  describe('Buy Quote Fetch CUF (TRAM-3780)', () => {
-    it('starts a standalone quote span when no E2E parent is active', () => {
-      const opId = startRampsBuyQuoteFetchTrace();
-
-      expect(opId).toContain(TraceName.RampBuyQuoteFetch);
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.RampBuyQuoteFetch,
-          id: opId,
-          op: TraceOperation.RampOperation,
-          parentContext: undefined,
-          forceTransaction: true,
-          tags: expect.objectContaining({
-            [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
-          }),
-          data: expect.objectContaining({
-            [RAMPS_BUY_CUF_TAG.FEATURE]: RAMPS_BUY_CUF_FEATURE,
-            [RAMPS_BUY_CUF_TAG.RAMP_TYPE]: 'UNIFIED_BUY_2',
-          }),
-        }),
-      );
-    });
-
-    it('nests under the active Buy E2E parent when one is open', () => {
-      startRampsBuyCufTrace();
-      mockTrace.mockClear();
-
-      const opId = startRampsBuyQuoteFetchTrace();
-
-      expect(mockTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.RampBuyQuoteFetch,
-          id: opId,
-          parentContext: { mocked: 'parent-span' },
-          forceTransaction: false,
-        }),
-      );
-    });
-
-    it('supersedes a prior open quote fetch', () => {
-      const first = startRampsBuyQuoteFetchTrace();
-      const second = startRampsBuyQuoteFetchTrace();
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.RampBuyQuoteFetch,
-          id: first,
-          data: {
-            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.SUPERSEDED,
-          },
-        }),
-      );
-      expect(second).not.toEqual(first);
-    });
-
-    it('ends a successful quote fetch by op id', () => {
-      const successId = startRampsBuyQuoteFetchTrace();
-      endRampsBuyQuoteFetchTrace({
-        id: successId,
-        data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-      });
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.RampBuyQuoteFetch,
-          id: successId,
-          data: { [RAMPS_BUY_CUF_TAG.SUCCESS]: true },
-        }),
-      );
-    });
-
-    it('ends a failed quote fetch by op id', () => {
-      const errorId = startRampsBuyQuoteFetchTrace();
-      endRampsBuyQuoteFetchTrace({
-        id: errorId,
-        data: {
-          [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-          [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-        },
-      });
-
-      expect(mockEndTrace).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: TraceName.RampBuyQuoteFetch,
-          id: errorId,
-          data: {
-            [RAMPS_BUY_CUF_TAG.SUCCESS]: false,
-            [RAMPS_BUY_CUF_TAG.REASON]: RAMPS_BUY_CUF_END_REASON.ERROR,
-          },
-        }),
-      );
-    });
   });
 });

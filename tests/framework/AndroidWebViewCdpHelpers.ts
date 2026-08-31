@@ -2,10 +2,10 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver } from './AppiumUtilities';
-import { createAppiumLogger } from './appiumLogger.ts';
+import { getDriver } from './PlaywrightUtilities';
+import { createPlaywrightLogger } from './playwrightLogger.ts';
 
-const logger = createAppiumLogger('AndroidWebViewCdp');
+const logger = createPlaywrightLogger('AndroidWebViewCdp');
 
 /** Host port for `adb forward` to MetaMask `@webview_devtools_remote_<pid>`. */
 const WEBVIEW_CDP_FORWARD_PORT = 9223;

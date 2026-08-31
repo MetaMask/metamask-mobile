@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Linking } from 'react-native';
+import { View, Linking, InteractionManager } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import PreventScreenshot, {
-  CAPTURE_KEYS,
-} from '../../../core/PreventScreenshot';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import useScreenshotDeterrent from '../../hooks/useScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
@@ -12,73 +10,22 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 
-// A protected screen unmounts as soon as the route leaves the navigation state,
-// but react-native-screens keeps painting it for the duration of the pop
-// animation. Releasing FLAG_SECURE straight away would expose those frames to
-// screen recorders, so the release is held until the transition has finished.
-const CAPTURE_RELEASE_DELAY_MS = 500;
-
-let activeScreenCaptureBlocks = 0;
-let pendingCaptureRelease: ReturnType<typeof setTimeout> | undefined;
-
-// PreventScreenshot.forbid/allow are themselves no-ops on iOS (see
-// PreventScreenshot.js for why); on Android a rejection only means the
-// activity was missing, which the next call recovers from, so it is
-// swallowed rather than left unobserved.
-const runCaptureCall = (call: () => unknown) => {
-  Promise.resolve(call()).catch(() => undefined);
-};
-
-const acquireScreenCaptureBlock = () => {
-  if (pendingCaptureRelease) {
-    clearTimeout(pendingCaptureRelease);
-    pendingCaptureRelease = undefined;
-  }
-
-  activeScreenCaptureBlocks += 1;
-  // Setting the window flag is idempotent, so every protected screen re-applies
-  // it rather than only the first. That restores protection when an earlier
-  // call failed or Android rebuilt the window, without tracking native state on
-  // this side, where it could drift out of sync and silently skip the call.
-  runCaptureCall(() =>
-    PreventScreenshot.forbid(CAPTURE_KEYS.credentialScreens),
-  );
-};
-
-const releaseScreenCaptureBlock = () => {
-  activeScreenCaptureBlocks = Math.max(0, activeScreenCaptureBlocks - 1);
-  if (activeScreenCaptureBlocks > 0) {
-    return;
-  }
-
-  pendingCaptureRelease = setTimeout(() => {
-    pendingCaptureRelease = undefined;
-    if (activeScreenCaptureBlocks === 0) {
-      runCaptureCall(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.credentialScreens),
-      );
-    }
-  }, CAPTURE_RELEASE_DELAY_MS);
-};
-
-const useScreenCaptureBlock = (enabled: boolean) => {
-  useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-
-    acquireScreenCaptureBlock();
-
-    return releaseScreenCaptureBlock;
-  }, [enabled]);
-};
-
 const ScreenshotDeterrentWithoutNavigation = ({
   enabled,
 }: {
   enabled: boolean;
 }) => {
-  useScreenCaptureBlock(enabled);
+  useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [enabled]);
 
   return <View />;
 };
@@ -86,11 +33,9 @@ const ScreenshotDeterrentWithoutNavigation = ({
 const ScreenshotDeterrentWithNavigation = ({
   enabled,
   isSRP,
-  warnOnScreenshot,
 }: {
   enabled: boolean;
   isSRP: boolean;
-  warnOnScreenshot: boolean;
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [alertPresent, setAlertPresent] = useState<boolean>(false);
@@ -139,44 +84,33 @@ const ScreenshotDeterrentWithNavigation = ({
 
   const [enableScreenshotWarning] = useScreenshotDeterrent(showScreenshotAlert);
 
-  useScreenCaptureBlock(enabled);
-
   useEffect(() => {
-    enableScreenshotWarning(warnOnScreenshot && !alertPresent);
-  }, [alertPresent, enableScreenshotWarning, warnOnScreenshot]);
+    enableScreenshotWarning(enabled && !alertPresent);
+    InteractionManager.runAfterInteractions(() => {
+      PreventScreenshot.forbid();
+    });
+
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        PreventScreenshot.allow();
+      });
+    };
+  }, [alertPresent, enableScreenshotWarning, enabled]);
 
   return <View />;
 };
-
-interface ScreenshotDeterrentProps {
-  enabled: boolean;
-  isSRP: boolean;
-  hasNavigation?: boolean;
-  /**
-   * Whether a screenshot raises the iOS safety alert. Defaults to `enabled`.
-   * Set separately when a screen must block Android capture before it holds
-   * anything worth warning about, such as the password prompt preceding a
-   * reveal.
-   *
-   * Has no effect when `hasNavigation` is `false`: the alert is presented as a
-   * modal route, so it cannot be shown without navigation and that variant
-   * never raises one.
-   */
-  warnOnScreenshot?: boolean;
-}
 
 const ScreenshotDeterrent = ({
   enabled,
   isSRP,
   hasNavigation = true,
-  warnOnScreenshot = enabled,
-}: ScreenshotDeterrentProps) =>
+}: {
+  enabled: boolean;
+  isSRP: boolean;
+  hasNavigation?: boolean;
+}) =>
   hasNavigation ? (
-    <ScreenshotDeterrentWithNavigation
-      enabled={enabled}
-      isSRP={isSRP}
-      warnOnScreenshot={warnOnScreenshot}
-    />
+    <ScreenshotDeterrentWithNavigation enabled={enabled} isSRP={isSRP} />
   ) : (
     <ScreenshotDeterrentWithoutNavigation enabled={enabled} />
   );

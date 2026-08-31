@@ -21,8 +21,6 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
-  'AccountTreeController:initialized',
-  'AccountTreeController:uninitialized',
   'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
@@ -121,32 +119,6 @@ describe('getAssetsControllerMessenger', () => {
           'NetworkEnablementController:stateChange',
           'ClientController:stateChange',
         ]),
-      }),
-    );
-  });
-
-  it('delegates AccountTreeController initialized event (core#9892)', () => {
-    const rootMessenger = getRootMessenger();
-    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
-
-    getAssetsControllerMessenger(rootMessenger);
-
-    expect(delegateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        events: expect.arrayContaining(['AccountTreeController:initialized']),
-      }),
-    );
-  });
-
-  it('delegates AccountTreeController uninitialized event (core#9892)', () => {
-    const rootMessenger = getRootMessenger();
-    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
-
-    getAssetsControllerMessenger(rootMessenger);
-
-    expect(delegateSpy).toHaveBeenCalledWith(
-      expect.objectContaining({
-        events: expect.arrayContaining(['AccountTreeController:uninitialized']),
       }),
     );
   });

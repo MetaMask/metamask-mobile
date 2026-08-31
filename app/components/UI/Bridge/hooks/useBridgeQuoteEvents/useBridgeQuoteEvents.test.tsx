@@ -8,7 +8,7 @@ import {
   selectBridgeQuotes,
   selectControllerFields,
 } from '../../../../../core/redux/slices/bridge';
-import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -23,15 +23,12 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../../utils/swapQuoteFetchTrace', () => ({
-  swapQuoteFetchTrace: {
-    finish: jest.fn(),
-  },
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
 }));
 
-const mockFinishQuoteTrace = swapQuoteFetchTrace.finish as jest.MockedFunction<
-  typeof swapQuoteFetchTrace.finish
->;
+const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useBridgeQuoteEvents', () => {
   const expectedQuotesReceivedProperties = {
@@ -122,7 +119,10 @@ describe('useBridgeQuoteEvents', () => {
       { state: testState },
     );
 
-    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
     expect(
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
     ).not.toHaveBeenCalled();
@@ -181,7 +181,10 @@ describe('useBridgeQuoteEvents', () => {
         ...expectedQuotesReceivedProperties,
         warnings,
       });
-      expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.SwapQuoteFetch,
+        timestamp: expect.any(Number),
+      });
     },
   );
 
@@ -210,7 +213,10 @@ describe('useBridgeQuoteEvents', () => {
       { state: testState },
     );
 
-    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('no_quotes');
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+    });
   });
 
   it('ends the quote trace when quote fetching fails', () => {
@@ -238,6 +244,10 @@ describe('useBridgeQuoteEvents', () => {
       { state: testState },
     );
 
-    expect(mockFinishQuoteTrace).toHaveBeenCalledWith('error');
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.SwapQuoteFetch,
+      timestamp: expect.any(Number),
+      data: { success: false },
+    });
   });
 });

@@ -5,39 +5,39 @@ import Utilities from '../../framework/Utilities';
 import EditAccountNameView from './EditAccountNameView';
 import MultichainAccountDetails from '../MultichainAccounts/AccountDetails';
 import MultichainEditAccountName from '../MultichainAccounts/EditAccountName';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 class AccountActionsBottomSheet {
-  get editAccount(): Promise<AppiumElement> {
+  get editAccount(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT,
     );
   }
 
-  get showPrivateKey(): Promise<AppiumElement> {
+  get showPrivateKey(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY,
     );
   }
 
-  get switchToSmartAccount(): Promise<AppiumElement> {
+  get switchToSmartAccount(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SWITCH_TO_SMART_ACCOUNT,
     );
   }
 
-  get showSrp(): Promise<AppiumElement> {
+  get showSrp(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
     );
   }
 
-  get multichainEditName(): Promise<AppiumElement> {
+  get multichainEditName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_EDIT_NAME,
     );
   }
 
-  get multichainAccountDetails(): Promise<AppiumElement> {
+  get multichainAccountDetails(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountActionsBottomSheetSelectorsIDs.MULTICHAIN_ACCOUNT_DETAILS,
     );

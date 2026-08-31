@@ -4,35 +4,34 @@ import {
 } from '../../../../app/components/Views/Settings/SecuritySettings/SecurityPrivacyView.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { type AppiumElement, type ScrollContainer } from '../../../framework';
-import { PlatformDetector } from '../../../framework/PlatformLocator';
+import { EncapsulatedElementType } from '../../../framework';
 
 class SecurityAndPrivacy {
-  get changePasswordButton(): Promise<AppiumElement> {
+  get changePasswordButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_BUTTON,
     );
   }
 
-  get revealSecretRecoveryPhraseButton(): Promise<AppiumElement> {
+  get revealSecretRecoveryPhraseButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REVEAL_SEED_BUTTON,
     );
   }
-  get clearPrivacyDataButton(): Promise<AppiumElement> {
+  get clearPrivacyDataButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CLEAR_PRIVACY_DATA_BUTTON,
     );
   }
 
-  get securityAndPrivacyHeading(): Promise<AppiumElement> {
+  get securityAndPrivacyHeading(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SECURITY_AND_PRIVACY_HEADING,
     );
   }
 
-  get deleteWalletButton(): Promise<AppiumElement> {
-    return PlatformDetector.isIOS()
+  get deleteWalletButton(): EncapsulatedElementType {
+    return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(
           SecurityPrivacyViewSelectorsIDs.DELETE_WALLET_BUTTON,
         )
@@ -41,71 +40,71 @@ class SecurityAndPrivacy {
         );
   }
 
-  get metaMetricsToggle(): Promise<AppiumElement> {
+  get metaMetricsToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
     );
   }
-  get scrollViewIdentifier(): ScrollContainer {
-    return Matchers.scrollContainer(
+  get scrollViewIdentifier(): Promise<DetoxMatcher> {
+    return Matchers.getIdentifier(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
 
-  get autoLockSection(): Promise<AppiumElement> {
+  get autoLockSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.AUTO_LOCK_SECTION,
     );
   }
 
-  get autoLockDefault30Seconds(): Promise<AppiumElement> {
+  get autoLockDefault30Seconds(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.AUTO_LOCK_30_SECONDS,
     );
   }
 
-  get rememberMeToggle(): Promise<AppiumElement> {
+  get rememberMeToggle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.REMEMBER_ME_TOGGLE,
     );
   }
 
-  get changePasswordSection(): Promise<AppiumElement> {
+  get changePasswordSection(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER,
     );
   }
 
-  get securitySettingsScroll(): Promise<AppiumElement> {
+  get securitySettingsScroll(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SecurityPrivacyViewSelectorsIDs.SECURITY_SETTINGS_SCROLL,
     );
   }
-  get showPrivateKey(): Promise<AppiumElement> {
+  get showPrivateKey(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get showPrivateKeyButton(): Promise<AppiumElement> {
+  get showPrivateKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.SHOW_PRIVATE_KEY,
     );
   }
 
-  get backUpNow(): Promise<AppiumElement> {
+  get backUpNow(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.BACK_UP_NOW,
     );
   }
 
-  get privacyHeader(): Promise<AppiumElement> {
+  get privacyHeader(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.PRIVACY_HEADING,
     );
   }
 
-  get clearBrowserCookiesButton(): Promise<AppiumElement> {
+  get clearBrowserCookiesButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SecurityPrivacyViewSelectorsText.CLEAR_BROWSER_COOKIES,
     );

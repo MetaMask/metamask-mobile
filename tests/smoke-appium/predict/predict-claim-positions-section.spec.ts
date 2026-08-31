@@ -53,17 +53,22 @@ appiumTest.describe(SmokePredictions('Claim winnings:'), () => {
 
           await verifyResolvedPositionsRemoved();
 
-          // Claim confirm `goBack` can leave a Predict stack on top after RN v7.
-          // Reach wallet home before Activity so details open on a clean stack.
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapOnPredictionsTab();
 
           for (const position of POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE) {
             await ActivitiesView.tapPredictPosition(position.title);
+            await Assertions.expectElementToBeVisible(
+              PredictActivityDetails.container,
+              {
+                description: `Activity details should be visible for "${position.title}"`,
+              },
+            );
             const expectedBalance = `$${position.usdcSize.toFixed(2)}`;
-            await PredictActivityDetails.expectAmountDisplayed(expectedBalance);
+            await Assertions.expectTextDisplayed(expectedBalance, {
+              description: `Balance should be displayed as "${expectedBalance}" for "${position.title}"`,
+            });
             await PredictActivityDetails.tapBackButton();
           }
 

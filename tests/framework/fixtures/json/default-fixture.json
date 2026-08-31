@@ -960,6 +960,8 @@
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
       "multichainAccountsIntroModalSeen": true,
+      "musdConversionAssetDetailCtasSeen": {},
+      "musdConversionEducationSeen": false,
       "onboardingStepperProgress": {},
       "passwordSet": true,
       "protectWalletModalVisible": false,

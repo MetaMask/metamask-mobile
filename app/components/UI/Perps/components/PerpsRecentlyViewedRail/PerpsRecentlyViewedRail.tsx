@@ -1,9 +1,9 @@
-import React, { memo, useCallback, useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import {
-  Box,
-  BoxFlexDirection,
+  FontWeight,
   SectionHeader,
+  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -12,13 +12,14 @@ import {
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { formatPercentChange } from '../../../Trending/utils/formatPercentChange';
-import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
+import { PerpsLeverage } from '../PerpsLeverage';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
+import styleSheet from './PerpsRecentlyViewedRail.styles';
 
 /** `source_section` value for market-details navigation and analytics originating from this rail. */
 export const RECENTLY_VIEWED_SOURCE_SECTION = 'recently_viewed';
@@ -38,37 +39,65 @@ export interface PerpsRecentlyViewedRailProps {
 
 /** Mirrors the core `PERPS_CONSTANTS.RecentlyViewedMarketsLimit`; belt-and-suspenders cap. */
 const MAX_TILES = 10;
-const LOGO_SIZE = 24;
 
-const PerpsRecentlyViewedPill: React.FC<{
+const PerpsRecentlyViewedTile: React.FC<{
   market: PerpsMarketData;
   index: number;
   onPress: (market: PerpsMarketData, index: number) => void;
 }> = ({ market, index, onPress }) => {
+  const { styles } = useStyles(styleSheet, {});
+
   const handlePress = useCallback(() => {
     onPress(market, index);
   }, [onPress, market, index]);
 
-  const { changeLabel, changeTextColor } = useMemo(
-    () => formatPercentChange(market.change24hPercent),
-    [market.change24hPercent],
-  );
+  const isPositiveChange = !market.change24h.startsWith('-');
+  const changeColor = isPositiveChange
+    ? TextColor.SuccessDefault
+    : TextColor.ErrorDefault;
+  const displaySymbol = getPerpsDisplaySymbol(market.symbol);
 
   return (
-    <ExplorePill
+    <TouchableOpacity
       onPress={handlePress}
+      activeOpacity={0.7}
+      style={styles.tile}
       testID={`perps-recently-viewed-tile-${market.symbol}`}
-      leading={
-        <PerpsTokenLogo
-          symbol={market.symbol}
-          size={LOGO_SIZE}
-          recyclingKey={market.symbol}
-        />
-      }
-      title={getPerpsDisplaySymbol(market.symbol)}
-      changeLabel={changeLabel}
-      changeTextColor={changeTextColor}
-    />
+      accessibilityRole="button"
+      accessibilityLabel={`${displaySymbol} recently viewed market`}
+    >
+      <PerpsTokenLogo symbol={market.symbol} size={32} />
+
+      <View style={styles.symbolRow}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+        >
+          {displaySymbol}
+        </Text>
+        <PerpsLeverage maxLeverage={market.maxLeverage} />
+      </View>
+
+      <View style={styles.priceRow}>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextDefault}
+          style={styles.priceLabel}
+          numberOfLines={1}
+        >
+          {market.price}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={changeColor}
+          numberOfLines={1}
+        >
+          {market.change24hPercent}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -81,6 +110,7 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   markets,
   onMarketPress,
 }) => {
+  const { styles } = useStyles(styleSheet, {});
   const { track } = usePerpsEventTracking();
 
   const handlePress = useCallback(
@@ -102,7 +132,7 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
   const visibleMarkets = markets.slice(0, MAX_TILES);
 
   return (
-    <Box testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL} twClassName="pb-1">
+    <View style={styles.rail} testID={PerpsRecentlyViewedRailSelectorsIDs.RAIL}>
       <SectionHeader
         title={strings('perps.recently_viewed')}
         twClassName="pt-1"
@@ -115,24 +145,19 @@ const PerpsRecentlyViewedRail: React.FC<PerpsRecentlyViewedRailProps> = ({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
         testID={PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          gap={3}
-          twClassName="px-4 pb-1"
-        >
-          {visibleMarkets.map((market, index) => (
-            <PerpsRecentlyViewedPill
-              key={market.symbol}
-              market={market}
-              index={index}
-              onPress={handlePress}
-            />
-          ))}
-        </Box>
+        {visibleMarkets.map((market, index) => (
+          <PerpsRecentlyViewedTile
+            key={market.symbol}
+            market={market}
+            index={index}
+            onPress={handlePress}
+          />
+        ))}
       </ScrollView>
-    </Box>
+    </View>
   );
 };
 

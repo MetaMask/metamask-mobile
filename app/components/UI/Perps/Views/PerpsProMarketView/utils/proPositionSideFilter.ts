@@ -5,6 +5,7 @@ import {
   type ProOrdersSideFilter,
   type ProPositionsSideFilter,
 } from '@metamask/perps-controller';
+import { getOrderPositionDirection } from '../../../utils/orderUtils';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
 
@@ -34,20 +35,12 @@ export const PRO_POSITION_SIDE_FILTER_OPTIONS: {
   },
 ];
 
-/**
- * Shared shape of the positions and orders side filters. The two domains export
- * independent contracts (`ProPositionSideFilter` / `ProOrderSideFilter`) that
- * happen to be value-equal today; the shared internals below are typed against
- * this local union so neither domain borrows the other's contract.
- */
-type ProSideFilter = ProPositionSideFilter | ProOrderSideFilter;
-
 const getPositionSide = (position: Position): 'long' | 'short' =>
   parseFloat(position.size) >= 0 ? 'long' : 'short';
 
 const filterProItemsBySide = <T>(
   items: T[],
-  sideFilter: ProSideFilter,
+  sideFilter: ProPositionSideFilter,
   getSide: (item: T) => 'long' | 'short',
 ): T[] => {
   if (sideFilter === 'all') {
@@ -65,19 +58,15 @@ export const filterProPositionsBySide = (
   sideFilter: ProPositionSideFilter,
 ): Position[] => filterProItemsBySide(positions, sideFilter, getPositionSide);
 
-const getOrderSide = (order: Order): 'long' | 'short' =>
-  order.side === 'buy' ? 'long' : 'short';
-
 /**
- * Filters orders by their own side: a buy is a long order, a sell is a short
- * order. Closing orders are not inverted here — a "Close long" order is a sell,
- * so it belongs to the short side of this filter even though its label names the
- * long position it reduces. Returns the original array when filter is `all`.
+ * Filters orders by the position direction they create or reduce.
+ * Returns the original array when filter is `all`.
  */
 export const filterProOrdersBySide = (
   orders: Order[],
-  sideFilter: ProOrderSideFilter,
-): Order[] => filterProItemsBySide(orders, sideFilter, getOrderSide);
+  sideFilter: ProPositionSideFilter,
+): Order[] =>
+  filterProItemsBySide(orders, sideFilter, getOrderPositionDirection);
 
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
@@ -104,7 +93,7 @@ const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
 } as const;
 
 export const getProSideFilterEmptyDescriptionKey = (
-  sideFilter: ProSideFilter,
+  sideFilter: ProPositionSideFilter,
   entity: keyof typeof SIDE_FILTER_EMPTY_DESCRIPTION_KEYS,
 ): string | undefined => {
   if (sideFilter === 'all') {
@@ -120,6 +109,6 @@ export const getProPositionSideFilterEmptyDescriptionKey = (
   getProSideFilterEmptyDescriptionKey(sideFilter, 'positions');
 
 export const getProOrderSideFilterEmptyDescriptionKey = (
-  sideFilter: ProOrderSideFilter,
+  sideFilter: ProPositionSideFilter,
 ): string | undefined =>
   getProSideFilterEmptyDescriptionKey(sideFilter, 'orders');

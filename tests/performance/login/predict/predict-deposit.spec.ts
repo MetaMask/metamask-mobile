@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import { AppiumAssertions } from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
@@ -41,8 +41,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          PredictMarketList.container,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(PredictMarketList.container),
         );
       });
 
@@ -55,8 +55,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
 
       await PredictMarketList.tapAddFundsButton();
       await timer2.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          TransactionPayConfirmation.keyboardContainer,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TransactionPayConfirmation.keyboardContainer),
         );
       });
 
@@ -71,8 +71,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
 
       await TransactionPayConfirmation.tapKeyboardContinueButton();
       await timer4.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          TransactionPayConfirmation.transactionFee,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(TransactionPayConfirmation.transactionFee),
         );
       });
 

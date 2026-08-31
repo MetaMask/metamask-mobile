@@ -1,7 +1,7 @@
 import { OnboardingInterestQuestionnaireTestIds } from '../../../app/components/Views/OnboardingInterestQuestionnaire/OnboardingInterestQuestionnaire.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 type InterestOptionId =
   | 'buy_and_sell_crypto'
@@ -12,25 +12,25 @@ type InterestOptionId =
   | 'connect_apps_sites';
 
 class OnboardingInterestQuestionnaireView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingInterestQuestionnaireTestIds.SCREEN,
     );
   }
 
-  get continueButton(): Promise<AppiumElement> {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
     );
   }
 
-  get skipButton(): Promise<AppiumElement> {
+  get skipButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
     );
   }
 
-  getOptionById(id: InterestOptionId): Promise<AppiumElement> {
+  getOptionById(id: InterestOptionId): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${id}`,
     );

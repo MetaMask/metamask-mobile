@@ -2,14 +2,14 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import { type AppiumElement, type ScrollContainer } from '../../framework';
+import { EncapsulatedElementType, type ScrollContainer } from '../../framework';
 
 class SnapSettingsView {
-  get enabledToggle(): Promise<AppiumElement> {
+  get enabledToggle(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-details-switch');
   }
 
-  get removeButton(): Promise<AppiumElement> {
+  get removeButton(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-settings-remove-button');
   }
 
@@ -17,11 +17,11 @@ class SnapSettingsView {
     return Matchers.scrollContainer('snap-settings-scrollview');
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID('snap-settings-back-button');
   }
 
-  get listBackButton(): Promise<AppiumElement> {
+  get listBackButton(): EncapsulatedElementType {
     return Matchers.getElementByID('snaps-settings-list-back-button');
   }
 

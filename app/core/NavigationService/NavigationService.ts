@@ -115,16 +115,6 @@ class NavigationService {
   }
 
   /**
-   * Returns the focused route when navigation is ready.
-   *
-   * Unlike the navigation getter, analytics callers can safely use this during
-   * app startup without logging or throwing when the container is not mounted.
-   */
-  static getCurrentRoute() {
-    return this.#navigation?.getCurrentRoute();
-  }
-
-  /**
    * Resets the navigation reference. Only for testing purposes.
    * @internal
    */

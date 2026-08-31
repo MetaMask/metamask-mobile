@@ -6,8 +6,20 @@ jest.mock('./useInsufficientPayTokenBalanceAlert', () => ({
   useInsufficientPayTokenBalanceAlert: jest.fn(() => [{ id: 'alert-3' }]),
 }));
 
+jest.mock('./useInsufficientPredictBalanceAlert', () => ({
+  useInsufficientPredictBalanceAlert: () => [{ id: 'alert-4' }],
+}));
+
+jest.mock('./useInsufficientPerpsBalanceAlert', () => ({
+  useInsufficientPerpsBalanceAlert: () => [{ id: 'alert-5' }],
+}));
+
 jest.mock('./useAccountNoFundsAlert', () => ({
   useAccountNoFundsAlert: () => [{ id: 'alert-6' }],
+}));
+
+jest.mock('./useInsufficientMoneyAccountBalanceAlert', () => ({
+  useInsufficientMoneyAccountBalanceAlert: () => [{ id: 'alert-7' }],
 }));
 
 jest.mock('./useFiatBuyLimitAlert', () => ({
@@ -35,10 +47,15 @@ describe('usePendingAmountAlerts', () => {
   });
 
   it('returns alerts', () => {
-    const { result } = renderHook(() => usePendingAmountAlerts({}));
+    const { result } = renderHook(() =>
+      usePendingAmountAlerts({ pendingTokenAmount: '0.01' }),
+    );
 
     expect(result.current).toStrictEqual([
       { id: 'alert-3' },
+      { id: 'alert-4' },
+      { id: 'alert-5' },
+      { id: 'alert-7' },
       { id: 'alert-8' },
       { id: 'alert-9' },
       { id: 'alert-6' },
@@ -48,6 +65,7 @@ describe('usePendingAmountAlerts', () => {
   it('passes pendingFiatAmount as pendingAmountUsd when available', () => {
     renderHook(() =>
       usePendingAmountAlerts({
+        pendingTokenAmount: '100',
         pendingFiatAmount: '0.34',
       }),
     );
@@ -58,7 +76,7 @@ describe('usePendingAmountAlerts', () => {
   });
 
   it('falls back to zero when pendingFiatAmount is undefined', () => {
-    renderHook(() => usePendingAmountAlerts({}));
+    renderHook(() => usePendingAmountAlerts({ pendingTokenAmount: '0.01' }));
 
     expect(useInsufficientPayTokenBalanceAlertMock).toHaveBeenCalledWith({
       pendingAmountUsd: '0',

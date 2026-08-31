@@ -5,15 +5,15 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
 import NetworkManager from './NetworkManager';
-import { type AppiumElement, PlatformDetector } from '../../framework';
+import { EncapsulatedElementType, PlatformDetector } from '../../framework';
 import Assertions from '../../framework/Assertions';
 
 class TokensView {
-  get networkFilter(): Promise<AppiumElement> {
+  get networkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  earnCtaForToken(tokenSymbol: string): Promise<AppiumElement> {
+  earnCtaForToken(tokenSymbol: string): EncapsulatedElementType {
     const assetTestId = getAssetTestId(tokenSymbol);
     const xpath = PlatformDetector.isIOS()
       ? `//*[@name='${assetTestId}']/descendant::*[@name='${SECONDARY_BALANCE_BUTTON_TEST_ID}']`

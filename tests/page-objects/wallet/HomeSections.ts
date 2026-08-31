@@ -2,7 +2,7 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type AppiumElement,
+  EncapsulatedElementType,
   PlatformDetector,
 } from '../../framework';
 import {
@@ -18,18 +18,18 @@ class TokensFullView {
   /**
    * Back button in the tokens full view header
    */
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.BACK_BUTTON);
   }
 
   /**
    * Network filter button in the tokens full view control bar
    */
-  get networkFilterButton(): Promise<AppiumElement> {
+  get networkFilterButton(): EncapsulatedElementType {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
-  get stakedEthereumAssetRow(): Promise<AppiumElement> {
+  get stakedEthereumAssetRow(): EncapsulatedElementType {
     const assetId = WalletAssetSelectorsIDs.STAKED_ETHEREUM;
     const stakedLabel = WalletViewSelectorsText.STAKED_ETHEREUM;
     const amountText = WalletAssetSelectorsText.STAKED_ETHEREUM_AMOUNT;

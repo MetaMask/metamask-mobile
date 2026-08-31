@@ -65,26 +65,6 @@ describe('cryptoPriceHistory queries', () => {
         '2026-04-26T18:30:00.000Z',
       ]);
     });
-
-    it('includes the TWAP window in the detail key when provided', () => {
-      expect(
-        predictCryptoPriceHistoryKeys.detail(
-          'BTC',
-          '2026-08-19T17:00:00.000Z',
-          'fiveminute',
-          '2026-08-19T17:05:00.000Z',
-          60,
-        ),
-      ).toEqual([
-        'predict',
-        'cryptoPriceHistory',
-        'BTC',
-        '2026-08-19T17:00:00.000Z',
-        'fiveminute',
-        '2026-08-19T17:05:00.000Z',
-        60,
-      ]);
-    });
   });
 
   describe('predictCryptoPriceHistoryOptions', () => {
@@ -121,22 +101,6 @@ describe('cryptoPriceHistory queries', () => {
       await expect(invokeQueryFn()).resolves.toEqual([
         { time: 1777227900, value: 78190.99 },
       ]);
-    });
-
-    it('forwards the TWAP window to the controller', async () => {
-      const params = {
-        ...defaultParams,
-        twapWindowSeconds: 60 as const,
-      };
-      (
-        Engine.context.PredictController.getCryptoPriceHistory as jest.Mock
-      ).mockResolvedValueOnce([]);
-
-      await invokeQueryFn(params);
-
-      expect(
-        Engine.context.PredictController.getCryptoPriceHistory,
-      ).toHaveBeenCalledWith(params);
     });
   });
 });

@@ -228,7 +228,37 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
 const summaryRowClassName = 'h-5 px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
-const SLIPPAGE_EDIT_HIT_SLOP = 12;
+
+interface SlippageValueProps {
+  value: string;
+  onPress?: () => void;
+}
+
+const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
+  <Pressable
+    accessibilityRole="button"
+    accessibilityState={{ disabled: !onPress }}
+    disabled={!onPress}
+    onPress={onPress}
+    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
+  >
+    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
+      <Text
+        variant={TextVariant.BodyXs}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {value}
+      </Text>
+      <Icon
+        name={IconName.Edit}
+        size={IconSize.Sm}
+        color={IconColor.IconDefault}
+      />
+    </Box>
+  </Pressable>
+);
 
 const OrderSummary = ({
   margin,
@@ -262,19 +292,7 @@ const OrderSummary = ({
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={slippage}
-        valueEndButtonIconProps={{
-          ...buttonIcon(
-            IconName.Edit,
-            ids.SUMMARY_SLIPPAGE_BUTTON,
-            onSlippagePress,
-          ),
-          accessibilityRole: 'button',
-          accessibilityLabel: strings('perps.slippage.config_title'),
-          // ButtonIconSize.Xs renders a 20pt box; 12pt of slop on each side
-          // brings the tap target back to the 44pt minimum.
-          hitSlop: SLIPPAGE_EDIT_HIT_SLOP,
-        }}
+        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
@@ -579,10 +597,7 @@ const PerpsProOrderForm = ({
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
           />
-          <Box
-            testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
-          >
+          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
             <Checkbox
               label={strings('perps.order.reduce_only')}
               labelProps={{

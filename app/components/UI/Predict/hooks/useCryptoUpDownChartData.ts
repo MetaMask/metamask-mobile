@@ -407,9 +407,8 @@ export const useCryptoUpDownChartData = (
       eventStartTime: historyStartDate ?? '',
       variant,
       endDate: historyEndDate,
-      ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
     }),
-    enabled: enabled && !!symbol && !!historyStartDate,
+    enabled: enabled && !twapWindowSeconds && !!symbol && !!historyStartDate,
     keepPreviousData: true,
     staleTime: shouldStreamLive ? 1000 : Infinity,
     refetchOnMount: shouldStreamLive || !liveUpdatesEnabled ? 'always' : false,
@@ -432,9 +431,10 @@ export const useCryptoUpDownChartData = (
         : false,
   });
 
-  const historicalData = !hasPriceSourceChanged
-    ? (historicalQuery.data ?? EMPTY_DATA)
-    : EMPTY_DATA;
+  const historicalData =
+    twapWindowSeconds === undefined && !hasPriceSourceChanged
+      ? (historicalQuery.data ?? EMPTY_DATA)
+      : EMPTY_DATA;
   const hasUsableHistoricalData = preserveHistoricalDataAcrossMarket
     ? historicalData.length >= 2
     : historicalData.length > 0;

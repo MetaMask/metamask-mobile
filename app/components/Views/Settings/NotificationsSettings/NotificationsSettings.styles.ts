@@ -18,15 +18,6 @@ const styleSheet = (params: { theme: Theme }) =>
     contentContainer: {
       flexGrow: 1,
     },
-    walletActivityList: {
-      flex: 1,
-      backgroundColor: params.theme.colors.background.default,
-    },
-    walletActivityListContent: {
-      flexGrow: 1,
-      paddingHorizontal: 16,
-      paddingBottom: 48,
-    },
     line: {
       borderTopWidth: 1,
       borderTopColor: params.theme.colors.border.muted,

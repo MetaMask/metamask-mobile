@@ -4,9 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -58,11 +55,7 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-const ACTION_BUTTON_CLASS_NAME = 'flex-1';
-const ACTION_BUTTON_TEXT_PROPS = {
-  variant: TextVariant.BodySm,
-  fontWeight: FontWeight.Medium,
-};
+const ACTION_BUTTON_CLASS_NAME = 'flex-1 border-muted bg-background-default';
 
 interface KeyValueItemProps {
   label: string;
@@ -327,7 +320,7 @@ const PerpsProPositionCard = ({
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
-                testID={PerpsProMarketViewSelectorsIDs.POSITION_PNL_TEXT}
+                testID="pnl-text"
               >
                 {formatPnl(pnlNum)}
               </SensitiveText>
@@ -349,31 +342,19 @@ const PerpsProPositionCard = ({
           </Box>
         </Pressable>
 
-        {/* Summary: key figures in two columns so translated labels can wrap */}
+        {/* Summary: key figures in three columns */}
         <Box twClassName="px-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box twClassName="flex-1 min-w-0 gap-3">
+            <Box twClassName="flex-1 gap-6">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.entry_price')}
                 value={entryPriceDisplay}
                 isHidden={privacyMode}
               />
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.mark_price')}
-                value={markPriceDisplay}
-                isHidden={privacyMode}
-              />
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.liq_price')}
-                value={liqPriceDisplay}
-                isHidden={privacyMode}
-              />
-            </Box>
-            <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
@@ -393,10 +374,11 @@ const PerpsProPositionCard = ({
                 )}
                 showEditIcon={canEditMargin}
               />
+            </Box>
+            <Box twClassName="min-w-[128px] gap-6">
               <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.funding')}
-                value={fundingDisplay}
-                valueColor={fundingColor}
+                label={strings('perps.pro_positions_panel.card.mark_price')}
+                value={markPriceDisplay}
                 isHidden={privacyMode}
               />
               <KeyValueItem
@@ -416,6 +398,19 @@ const PerpsProPositionCard = ({
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>
+            <Box twClassName="gap-6">
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.liq_price')}
+                value={liqPriceDisplay}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.funding')}
+                value={fundingDisplay}
+                valueColor={fundingColor}
+                isHidden={privacyMode}
+              />
+            </Box>
           </Box>
         </Box>
 
@@ -428,7 +423,6 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Close}
             twClassName={ACTION_BUTTON_CLASS_NAME}
             onPress={() => onClose?.(position)}
@@ -439,7 +433,6 @@ const PerpsProPositionCard = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Refresh}
             twClassName={ACTION_BUTTON_CLASS_NAME}
             onPress={() => onReverse?.(position)}
@@ -447,16 +440,16 @@ const PerpsProPositionCard = ({
           >
             {strings('perps.pro_positions_panel.card.reverse')}
           </Button>
-          <ButtonIcon
-            iconName={IconName.Share}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            iconProps={{ size: IconSize.Md }}
-            twClassName="rounded-md"
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            startIconName={IconName.Share}
+            twClassName={ACTION_BUTTON_CLASS_NAME}
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
-            accessibilityLabel={strings('perps.pro_positions_panel.card.share')}
-          />
+          >
+            {strings('perps.pro_positions_panel.card.share')}
+          </Button>
         </Box>
       </Box>
     </Pressable>

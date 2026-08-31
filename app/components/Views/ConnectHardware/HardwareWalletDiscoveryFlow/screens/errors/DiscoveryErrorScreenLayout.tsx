@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,13 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  Alignment,
-  Fit,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+import Rive, { Alignment, Fit, type RiveRef } from 'rive-react-native';
 import HardwareWalletRive from '../../../../../../animations/hardware_wallet.riv';
 import Logger from '../../../../../../util/Logger';
 import type { DiscoveryErrorScreenLayoutProps } from './DiscoveryErrorScreen.types';
@@ -40,21 +34,20 @@ const DiscoveryErrorScreenLayout = ({
   testID,
 }: DiscoveryErrorScreenLayoutProps) => {
   const tw = useTailwind();
+  const riveRef = useRef<RiveRef>(null);
   const useStaticImage = Boolean(imageSource);
-  const { riveFile } = useRiveFile(HardwareWalletRive);
-  const { riveViewRef, setHybridRef } = useRive();
 
-  useEffect(() => {
-    if (!riveViewRef || !stateTrigger || !stateMachineName) {
+  const handleRivePlay = useCallback(() => {
+    if (!stateTrigger || !stateMachineName) {
       return;
     }
 
     try {
-      riveViewRef.triggerInput(stateTrigger);
+      riveRef.current?.fireState(stateMachineName, stateTrigger);
     } catch (error) {
       Logger.error(error as Error, 'Error triggering error Rive animation');
     }
-  }, [riveViewRef, stateMachineName, stateTrigger]);
+  }, [stateMachineName, stateTrigger]);
 
   return (
     <SafeAreaView
@@ -75,19 +68,18 @@ const DiscoveryErrorScreenLayout = ({
                 testID={testID ?? 'discovery-error-image'}
               />
             ) : (
-              riveFile && (
-                <RiveView
-                  hybridRef={setHybridRef}
-                  style={styles.fill}
-                  file={riveFile}
-                  autoPlay
-                  fit={Fit.Contain}
-                  alignment={Alignment.Center}
-                  artboardName={artboardName}
-                  stateMachineName={stateMachineName}
-                  testID={testID ?? 'discovery-error-animation'}
-                />
-              )
+              <Rive
+                ref={riveRef}
+                style={styles.fill}
+                source={HardwareWalletRive}
+                autoplay
+                fit={Fit.Contain}
+                alignment={Alignment.Center}
+                artboardName={artboardName}
+                stateMachineName={stateMachineName}
+                onPlay={handleRivePlay}
+                testID={testID ?? 'discovery-error-animation'}
+              />
             )}
           </View>
         </Box>

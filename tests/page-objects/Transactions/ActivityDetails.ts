@@ -1,14 +1,14 @@
 import { ActivityDetailsSelectorsIDs } from '../../../app/components/Views/ActivityDetails/ActivityDetails.testIds';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class ActivityDetails {
-  get screen(): Promise<AppiumElement> {
+  get screen(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivityDetailsSelectorsIDs.SCREEN);
   }
 
-  get statusPill(): Promise<AppiumElement> {
+  get statusPill(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivityDetailsSelectorsIDs.STATUS_PILL);
   }
 

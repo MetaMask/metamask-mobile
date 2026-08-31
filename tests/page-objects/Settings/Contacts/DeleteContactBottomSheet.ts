@@ -1,18 +1,17 @@
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { DeleteContactBottomSheetSelectorsText } from '../../../selectors/Settings/Contacts/DeleteContactBottomSheet.selectors';
-import { type AppiumElement } from '../../../framework';
-import { PlatformDetector } from '../../../framework/PlatformLocator';
+import { EncapsulatedElementType } from '../../../framework';
 
 class DeleteContactBottomSheet {
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(
       DeleteContactBottomSheetSelectorsText.MODAL_TITLE,
     );
   }
 
-  get deleteButton(): Promise<AppiumElement> {
-    return PlatformDetector.isIOS()
+  get deleteButton(): EncapsulatedElementType {
+    return device.getPlatform() === 'ios'
       ? Matchers.getElementByText(
           DeleteContactBottomSheetSelectorsText.DELETE_BUTTON,
           1,

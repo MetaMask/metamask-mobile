@@ -5,11 +5,13 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
-  toast,
-  ToastSeverity,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import ToastService from '../../../../../core/ToastService/ToastService';
+import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
+import { IconName as LegacyIconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { selectTokenWatchlistEnabled } from '../../selectors/featureFlags';
 import { useTokenWatchlist } from '../hooks/useTokenWatchlist';
@@ -38,6 +40,7 @@ const WatchlistStarButton = ({
   hasBalance,
   source,
 }: WatchlistStarButtonProps) => {
+  const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const { isWatched, toggle } = useTokenWatchlist(assetId);
@@ -46,13 +49,18 @@ const WatchlistStarButton = ({
     const wasWatched = isWatched;
     toggle();
 
-    toast({
-      title: wasWatched
-        ? strings('token_watchlist.removed_from_watchlist')
-        : strings('token_watchlist.added_to_watchlist'),
-      severity: ToastSeverity.Success,
+    ToastService.showToast({
+      variant: ToastVariants.Icon,
+      iconName: LegacyIconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      labelOptions: [
+        {
+          label: wasWatched
+            ? strings('token_watchlist.removed_from_watchlist')
+            : strings('token_watchlist.added_to_watchlist'),
+        },
+      ],
       hasNoTimeout: false,
-      showCloseButton: false,
     });
 
     const eventName = wasWatched
@@ -78,6 +86,7 @@ const WatchlistStarButton = ({
     assetId,
     assetType,
     hasBalance,
+    theme.colors.success.default,
   ]);
 
   if (!isWatchlistEnabled || !assetId) {

@@ -492,56 +492,6 @@ describe('PerpsPositionCard', () => {
     });
   });
 
-  describe('Liquidation Distance Display', () => {
-    it('renders the distance to liquidation with two decimal digits', () => {
-      // Arrange - liquidation at 1800 is exactly 10% below a 2000 current price
-      // Act
-      render(<PerpsPositionCard position={mockPosition} currentPrice={2000} />);
-
-      // Assert
-      expect(
-        screen.getByTestId(
-          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-        ),
-      ).toHaveTextContent('10.00%');
-    });
-
-    it('keeps sub-one-percent distances visible instead of collapsing them to zero', () => {
-      // Arrange - 0.4% away; whole-number rounding would render this as 0%
-      const positionNearLiquidation = {
-        ...mockPosition,
-        liquidationPrice: '1992.00',
-      };
-
-      // Act
-      render(
-        <PerpsPositionCard
-          position={positionNearLiquidation}
-          currentPrice={2000}
-        />,
-      );
-
-      // Assert
-      expect(
-        screen.getByTestId(
-          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-        ),
-      ).toHaveTextContent('0.40%');
-    });
-
-    it('omits the distance when no current price is available', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
-
-      // Assert
-      expect(
-        screen.queryByTestId(
-          PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-        ),
-      ).toBeNull();
-    });
-  });
-
   describe('Cumulative Funding Display', () => {
     it('shows white color and $0.00 when cumulative funding is exactly zero', () => {
       const positionWithZeroFunding = {

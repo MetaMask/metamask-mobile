@@ -5,15 +5,15 @@ import { formatEther } from 'ethers/lib/utils';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../../../locales/i18n';
-import {
-  Button,
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
   ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  Text,
-  TextColor,
+} from '../../../../../../../component-library/components/Buttons/Button';
+import Text, {
   TextVariant,
-} from '@metamask/design-system-react-native';
+  TextColor,
+} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './FooterButtonGroup.styles';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
@@ -226,40 +226,34 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   return (
     <View style={styles.footerContainer}>
       <Button
+        label={
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+            {strings('stake.cancel')}
+          </Text>
+        }
         testID="cancel-button"
         style={styles.button}
-        variant={ButtonVariant.Secondary}
-        isFullWidth
+        variant={ButtonVariants.Secondary}
+        width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         onPress={handleCancelPress}
-        isDisabled={didSubmitTransaction}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.PrimaryDefault}
-        >
-          {strings('stake.cancel')}
-        </Text>
-      </Button>
+        disabled={didSubmitTransaction}
+      />
       <Button
+        label={
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Inverse}>
+            {strings('stake.continue')}
+          </Text>
+        }
         testID="continue-button"
         style={styles.button}
-        variant={ButtonVariant.Primary}
-        isFullWidth
+        variant={ButtonVariants.Primary}
+        width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
         onPress={handleConfirmation}
-        isDisabled={didSubmitTransaction}
-        isLoading={didSubmitTransaction}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.PrimaryInverse}
-        >
-          {strings('stake.continue')}
-        </Text>
-      </Button>
+        disabled={didSubmitTransaction}
+        loading={didSubmitTransaction}
+      />
     </View>
   );
 };

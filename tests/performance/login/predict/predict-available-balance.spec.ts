@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
-import { AppiumAssertions } from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
@@ -42,8 +42,8 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
 
       await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          PredictMarketList.container,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(PredictMarketList.container),
           { timeout: 60000 },
         );
       });

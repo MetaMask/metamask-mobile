@@ -1,10 +1,10 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { GetStartedSelectors } from '../../selectors/Ramps/GetStarted.selectors';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class SellGetStartedView {
-  get getStartedButton(): Promise<AppiumElement> {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByText(GetStartedSelectors.GET_STARTED);
   }
 

@@ -2,7 +2,8 @@ import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ScreenView from '../../../../../Base/ScreenView';
+import { useStyles } from '../../../../../../component-library/hooks';
 import {
   selectBridgeBalanceRefreshKey,
   selectSourceToken,
@@ -24,12 +25,11 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
+import { createStyles } from '../orderViewShell.styles';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
 import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
-import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
-import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 
 interface BridgeRecurringBuyViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -38,7 +38,7 @@ interface BridgeRecurringBuyViewContentProps {
 const BridgeRecurringBuyViewContent = ({
   latestSourceBalance,
 }: BridgeRecurringBuyViewContentProps) => {
-  const tw = useTailwind();
+  const { styles } = useStyles(createStyles);
   const inputRef = useRef<TokenInputAreaRef>(null);
 
   const {
@@ -55,7 +55,6 @@ const BridgeRecurringBuyViewContent = ({
     isQuoteSponsored,
     sourceAmountInput,
     sourceToken,
-    sourceAmount,
   } = useRecurringBuySwapInputs({ latestSourceBalance });
 
   const {
@@ -64,6 +63,7 @@ const BridgeRecurringBuyViewContent = ({
     focusEvery,
     focusRepeat,
     handleChange: handleKeypadChange,
+    isAmountFocused,
     keypadProps,
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
@@ -74,17 +74,18 @@ const BridgeRecurringBuyViewContent = ({
   }, [closeKeypad]);
 
   return (
-    <Box twClassName="flex-1 bg-default">
+    <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
       <Box
-        twClassName="flex-1 min-h-0"
+        style={styles.content}
         testID={BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={dismissInputAndKeypad}
       >
         <ScrollView
           testID={BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL}
-          style={tw.style('flex-1 min-h-0')}
-          contentContainerStyle={tw.style('grow-0')}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
-          onScrollBeginDrag={dismissInputAndKeypad}
         >
           <SwapsInputs
             inputRef={inputRef}
@@ -111,24 +112,18 @@ const BridgeRecurringBuyViewContent = ({
             sourceAmountTypeToggleTestID={
               BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
             }
-            hideDestAmount
-            destAmountReplacementLabelTestID={
-              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
-            }
           />
 
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners
-              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-              onAdjustSourceAmount={handleSourcePresetAmountSelect}
-            >
-              <HardwareWalletUnsupportedBanner />
-              <QuoteErrorBanner />
-              <TokenWarningBanner />
-              <InsufficientNativeReserveBanner />
-              <MissingQuoteAndAssetsPriceDataBanner />
-            </SwapsBanners>
-          </Box>
+          <SwapsBanners
+            latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+            onAdjustSourceAmount={handleSourcePresetAmountSelect}
+          >
+            <HardwareWalletUnsupportedBanner />
+            <QuoteErrorBanner />
+            <TokenWarningBanner />
+            <InsufficientNativeReserveBanner />
+            <MissingQuoteAndAssetsPriceDataBanner />
+          </SwapsBanners>
 
           <RecurringScheduleFields
             onEveryPress={focusEvery}
@@ -136,29 +131,19 @@ const BridgeRecurringBuyViewContent = ({
             onDismissKeypad={dismissInputAndKeypad}
           />
 
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <OrdersTabs
-              enabledChainIds={enabledChainIds}
-              openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
-              history={RECURRING_MOCK_HISTORY_TAB}
-            />
-          </Box>
+          <OrdersTabs
+            enabledChainIds={enabledChainIds}
+            openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
+            history={RECURRING_MOCK_HISTORY_TAB}
+          />
         </ScrollView>
-
-        <BridgeRecurringBuyFooterView />
 
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
           {...keypadProps}
         >
-          {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsRecurringBuyConfirmButton
-              onPress={() => 'test'}
-              label="test"
-              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-            />
-          ) : (
+          {isAmountFocused ? (
             <GaslessQuickPickOptions
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
@@ -166,10 +151,10 @@ const BridgeRecurringBuyViewContent = ({
               isQuoteSponsored={isQuoteSponsored}
               onAmountSelect={handleSourcePresetAmountSelect}
             />
-          )}
+          ) : null}
         </SwapsKeypad>
       </Box>
-    </Box>
+    </ScreenView>
   );
 };
 

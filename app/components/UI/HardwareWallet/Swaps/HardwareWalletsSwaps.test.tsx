@@ -5,9 +5,9 @@ import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  __mockRiveTriggerInput,
-  __resetRiveMocks,
-} from '../../../../__mocks__/rive-app-react-native';
+  __clearLastMockedMethods,
+  __getLastMockedMethods,
+} from '../../../../__mocks__/rive-react-native';
 import {
   HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
@@ -41,8 +41,8 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: () => mockIsFocused,
 }));
 
-jest.mock('@rive-app/react-native', () =>
-  jest.requireActual('../../../../__mocks__/rive-app-react-native'),
+jest.mock('rive-react-native', () =>
+  jest.requireActual('../../../../__mocks__/rive-react-native'),
 );
 
 jest.mock(
@@ -410,7 +410,7 @@ function renderSendScreen(state: Partial<HardwareWalletsSwapsState>) {
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __resetRiveMocks();
+    __clearLastMockedMethods();
     mockHardwareWalletState.walletType = null;
     mockHardwareWalletState.pendingScanRequest = null;
     mockIsFocused = true;
@@ -602,7 +602,8 @@ describe('HardwareWalletsSwaps', () => {
       (progressState) => {
         renderScreen(progressState);
 
-        expect(__mockRiveTriggerInput).toHaveBeenCalledWith(
+        expect(__getLastMockedMethods()?.fireState).toHaveBeenCalledWith(
+          'wallet_states',
           progressState.expectedTrigger,
         );
       },
@@ -686,11 +687,7 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BRIDGE.BRIDGE_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
     });
   });
 
@@ -702,11 +699,7 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.DONE_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.TRANSACTIONS_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it('resets hardware wallet swaps state', () => {
@@ -725,11 +718,7 @@ describe('HardwareWalletsSwaps', () => {
       fireEvent.press(UNSAFE_getByProps({ iconName: IconName.Close }));
 
       expect(mockCancelCurrentBatch).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.TRANSACTIONS_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Idle);
     });
   });
@@ -886,11 +875,7 @@ describe('HardwareWalletsSwaps', () => {
 
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
       // No mount-local settlement metadata: preserve toast + Activity.
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.TRANSACTIONS_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     });
 
     it.each([
@@ -962,11 +947,7 @@ describe('HardwareWalletsSwaps', () => {
         | undefined;
       act(() => transitionEnd?.({ data: { closing: false } }));
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.BRIDGE.BRIDGE_VIEW,
-        undefined,
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
         params: expect.objectContaining({
@@ -1125,11 +1106,9 @@ describe('HardwareWalletsSwaps', () => {
         getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SEND.DEFAULT,
-        { screen: Routes.SEND.AMOUNT },
-        { pop: true },
-      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.AMOUNT,
+      });
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
     });
 

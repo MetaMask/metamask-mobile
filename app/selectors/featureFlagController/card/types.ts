@@ -60,7 +60,6 @@ export interface ImmersveProgramConfig {
   /** Separate Immersve secure host used for set-PIN (and similar) calls. */
   secureApiBaseUrl?: string;
   appUrl?: string;
-  reportTransactionUrl?: string;
 }
 
 // -- Generic per-provider shapes --

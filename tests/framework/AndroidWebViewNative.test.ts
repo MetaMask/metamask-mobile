@@ -11,18 +11,18 @@ import AndroidWebViewCdpHelpers, {
 } from './AndroidWebViewCdpHelpers';
 import Gestures from './Gestures';
 import Matchers from './Matchers';
-import AppiumContextHelpers from './AppiumContextHelpers';
-import AppiumGestures from './AppiumGestures';
-import { getDriver } from './AppiumUtilities';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
+import PlaywrightGestures from './PlaywrightGestures';
+import { getDriver } from './PlaywrightUtilities';
 
-jest.mock('./AppiumContextHelpers', () => ({
+jest.mock('./PlaywrightContextHelpers', () => ({
   __esModule: true,
   default: {
     switchToNativeContext: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
-jest.mock('./AppiumUtilities', () => ({
+jest.mock('./PlaywrightUtilities', () => ({
   getDriver: jest.fn(),
   boxedStep:
     () =>
@@ -34,7 +34,7 @@ jest.mock('./AppiumUtilities', () => ({
       descriptor,
 }));
 
-jest.mock('./AppiumElement', () => ({
+jest.mock('./PlaywrightAdapter', () => ({
   wrapElement: (elem: unknown) => ({
     unwrap: () => elem,
     isEnabled: async () => true,
@@ -57,7 +57,7 @@ jest.mock('./AndroidWebViewCdpHelpers', () => ({
   },
 }));
 
-jest.mock('./AppiumGestures', () => ({
+jest.mock('./PlaywrightGestures', () => ({
   __esModule: true,
   default: {
     waitAndTap: jest.fn().mockResolvedValue(undefined),
@@ -94,8 +94,8 @@ jest.mock('./Utilities', () => {
   };
 });
 
-jest.mock('./appiumLogger', () => ({
-  createAppiumLogger: () => ({
+jest.mock('./playwrightLogger', () => ({
+  createPlaywrightLogger: () => ({
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
@@ -149,7 +149,7 @@ describe('scrollAndroidWebIdIntoView', () => {
       pageUrl: 'https://metamask.github.io/snaps/test-snaps/3.5.2/',
     });
 
-    expect(AppiumContextHelpers.switchToNativeContext).toHaveBeenCalled();
+    expect(PlaywrightContextHelpers.switchToNativeContext).toHaveBeenCalled();
     expect(
       AndroidWebViewCdpHelpers.scrollElementByIdIntoView,
     ).toHaveBeenCalledWith('connectbip32', {
@@ -223,7 +223,7 @@ describe('tapAndroidWebId CDP path', () => {
       'connectbip32',
       { pageUrl },
     );
-    expect(AppiumGestures.waitAndTap).not.toHaveBeenCalled();
+    expect(PlaywrightGestures.waitAndTap).not.toHaveBeenCalled();
   });
 
   it('falls back to native tap when CDP returns false', async () => {
@@ -235,7 +235,7 @@ describe('tapAndroidWebId CDP path', () => {
     await tapAndroidWebId('connectbip32', { pageUrl });
 
     expect(AndroidWebViewCdpHelpers.tapElementById).toHaveBeenCalled();
-    expect(AppiumGestures.waitAndTap).toHaveBeenCalled();
+    expect(PlaywrightGestures.waitAndTap).toHaveBeenCalled();
   });
 
   it('skips CDP tap when pageUrl omitted', async () => {
@@ -280,7 +280,7 @@ describe('fillAndroidWebId CDP path', () => {
       { pageUrl },
     );
     expect(getDriver().keys).not.toHaveBeenCalled();
-    expect(AppiumGestures.hideKeyboard).toHaveBeenCalled();
+    expect(PlaywrightGestures.hideKeyboard).toHaveBeenCalled();
   });
 
   it('falls back to native keys when CDP returns false', async () => {
@@ -422,7 +422,7 @@ describe('blurAndroidWebView', () => {
     expect(AndroidWebViewCdpHelpers.blurActiveElement).toHaveBeenCalledWith(
       pageUrl,
     );
-    expect(AppiumGestures.hideKeyboard).toHaveBeenCalled();
+    expect(PlaywrightGestures.hideKeyboard).toHaveBeenCalled();
   });
 
   it('skips CDP when kill switch disabled but still hideKeyboard', async () => {
@@ -431,6 +431,6 @@ describe('blurAndroidWebView', () => {
     await blurAndroidWebView(pageUrl);
 
     expect(AndroidWebViewCdpHelpers.blurActiveElement).not.toHaveBeenCalled();
-    expect(AppiumGestures.hideKeyboard).toHaveBeenCalled();
+    expect(PlaywrightGestures.hideKeyboard).toHaveBeenCalled();
   });
 });

@@ -6,7 +6,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import type { WhatsHappeningItem } from '../../../UI/WhatsHappening/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import { WhatsHappeningSelectorsIDs } from '../../../UI/WhatsHappening/WhatsHappening.testIds';
 import type { PerpsPriceEntry } from '../hooks/useWhatsHappeningAssetPrices';
 
 const mockNavigate = jest.fn();
@@ -233,12 +232,9 @@ describe('PerpsRow', () => {
     );
     expect(screen.getByText('$172.50')).toBeOnTheScreen();
     expect(screen.getByText('+3.45%')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON),
-    ).toBeNull();
   });
 
-  it('shows a price skeleton when no finite price is available', () => {
+  it('shows no price text when no price entry is available', () => {
     renderWithProvider(
       <PerpsRow
         asset={perpsOnlyAsset}
@@ -248,10 +244,6 @@ describe('PerpsRow', () => {
         perpsPriceBySymbol={emptyPriceMap}
       />,
     );
-
-    expect(
-      screen.getByTestId(WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON),
-    ).toBeOnTheScreen();
-    expect(screen.queryByText('—')).toBeNull();
+    expect(screen.queryByText('$')).toBeNull();
   });
 });

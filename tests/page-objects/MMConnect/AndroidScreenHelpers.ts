@@ -3,9 +3,9 @@ import {
   Gestures,
   Matchers,
   sleep,
-  type AppiumElement,
+  type EncapsulatedElementType,
 } from '../../framework';
-import AppiumUtilities from '../../framework/AppiumUtilities';
+import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import { unlockIfLockScreenVisible } from '../../flows/wallet.flow';
 
@@ -39,11 +39,11 @@ class AndroidScreenHelpers {
    * the sheet — unlock when the password screen is visible, then keep waiting.
    */
   async tapOpenDeeplinkWithMetaMask(): Promise<void> {
-    AppiumUtilities.collapseStatusBar();
+    PlaywrightUtilities.collapseStatusBar();
 
     const deadline = Date.now() + CHOOSER_TIMEOUT_MS;
     while (Date.now() < deadline) {
-      AppiumUtilities.collapseStatusBar();
+      PlaywrightUtilities.collapseStatusBar();
 
       await unlockIfLockScreenVisible();
 
@@ -55,7 +55,7 @@ class AndroidScreenHelpers {
       }
 
       for (const xpath of CHOOSER_METAMASK_XPATHS) {
-        let option: Promise<AppiumElement>;
+        let option: EncapsulatedElementType;
         try {
           option = Matchers.getElementByNativeXPath(xpath);
           const resolved = await option;

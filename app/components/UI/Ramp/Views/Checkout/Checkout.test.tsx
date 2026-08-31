@@ -243,22 +243,6 @@ jest.mock('@metamask/react-native-webview', () => {
   };
 });
 
-const mockGetRampCallbackBaseUrl = getRampCallbackBaseUrl as jest.Mock;
-const mockShouldStartLoadWithRequest = jest.requireMock(
-  '../../../../../util/browser',
-).shouldStartLoadWithRequest as jest.Mock;
-const mockUseRampSDK = jest.requireMock('../../Aggregator/sdk')
-  .useRampSDK as jest.Mock;
-const mockUuidV4 = jest.requireMock('uuid').v4 as jest.Mock;
-const mockUseDispatch = jest.requireMock('react-redux')
-  .useDispatch as jest.Mock;
-const mockProtectWalletModalVisible = jest.requireMock(
-  '../../../../../actions/user',
-).protectWalletModalVisible as jest.Mock;
-const mockCreateNavigationDetails = jest.requireMock(
-  '../../../../../util/navigation/navUtils',
-).createNavigationDetails as jest.Mock;
-
 const mockUseParams = jest.requireMock(
   '../../../../../util/navigation/navUtils',
 ).useParams as jest.Mock;
@@ -291,25 +275,6 @@ describe('Checkout', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.resetAllMocks();
-    (Date.now as unknown as jest.Mock).mockReturnValue(123);
-    capturedOnNavigationStateChange = undefined;
-    mockGetRampCallbackBaseUrl.mockReturnValue(
-      'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
-    );
-    mockShouldStartLoadWithRequest.mockReturnValue(true);
-    mockUseRampSDK.mockReturnValue(null);
-    mockUuidV4.mockReturnValue('mock-uuid-xyz');
-    mockUseDispatch.mockReturnValue(mockDispatch);
-    mockProtectWalletModalVisible.mockReturnValue({
-      type: 'PROTECT_WALLET_MODAL_VISIBLE',
-    });
-    mockCreateNavigationDetails.mockImplementation(
-      (_root: string, screen: string) => ({
-        name: screen,
-        params: {},
-      }),
-    );
     mockUseParams.mockReturnValue({
       url: 'https://provider.example.com/checkout',
       providerName: 'Test Provider',
@@ -332,7 +297,6 @@ describe('Checkout', () => {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock
     const nav = require('@react-navigation/native');
     nav.useNavigation.mockReturnValue(mockNavigation);
-    mockNavigation.isFocused.mockReturnValue(true);
     mockNavigation.getParent.mockReset();
     mockHeadlessEntrySetOptions.mockReset();
     mockNavigation.getParent.mockImplementation(() => ({
@@ -515,22 +479,6 @@ describe('Checkout', () => {
           walletAddress: '0xabcdef1234567890',
           chainId: 'eip155:1',
         });
-      });
-    });
-
-    it('does not register when network/chainId is missing', async () => {
-      mockUseParams.mockReturnValue({
-        url: 'https://provider.example.com/checkout',
-        providerName: 'MoonPay',
-        providerCode: 'moonpay',
-        walletAddress: '0xabcdef1234567890',
-        orderId: 'mp-order-99',
-      });
-
-      renderWithProvider(<Checkout />, {}, true, false);
-
-      await waitFor(() => {
-        expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
       });
     });
   });

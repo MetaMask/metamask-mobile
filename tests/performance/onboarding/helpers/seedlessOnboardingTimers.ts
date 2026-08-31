@@ -1,5 +1,5 @@
 import TimerHelper from '../../../framework/TimerHelper';
-import { AppiumAssertions } from '../../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../../framework';
 import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView';
 
@@ -18,8 +18,8 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   });
 
 const expectSuccessDoneVisible = async (): Promise<void> => {
-  await AppiumAssertions.expectElementToBeVisible(
-    OnboardingSuccessView.doneButton,
+  await PlaywrightAssertions.expectElementToBeVisible(
+    asPlaywrightElement(OnboardingSuccessView.doneButton),
     {
       description: 'Onboarding success done button should be visible',
     },
@@ -39,8 +39,8 @@ export async function measureCreatePasswordToOnboardingSuccess(
 
   await timer.measure(async () => {
     const next = await waitForFirstSuccessful([
-      AppiumAssertions.expectElementToBeVisible(
-        OnboardingInterestQuestionnaireView.skipButton,
+      PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(OnboardingInterestQuestionnaireView.skipButton),
         {
           description: 'Interest questionnaire Skip should be visible',
         },

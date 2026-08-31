@@ -7,7 +7,7 @@ import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountR
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import {
   Assertions,
@@ -16,57 +16,53 @@ import {
   Utilities,
   sleep,
 } from '../../framework';
-import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
-import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-
-/** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
-const HOMEPAGE_URL =
-  'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
 
 class Browser {
-  get reloadButton(): Promise<AppiumElement> {
+  get reloadButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.RELOAD_BUTTON);
   }
 
-  get bookmarkButton(): Promise<AppiumElement> {
+  get bookmarkButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BOOKMARK_BUTTON);
   }
 
-  get newTabButton(): Promise<AppiumElement> {
+  get newTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NEW_TAB_BUTTON);
   }
 
-  get closeBrowserButton(): Promise<AppiumElement> {
+  get closeBrowserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BrowserViewSelectorsIDs.BROWSER_CLOSE_BUTTON,
     );
   }
 
   // Legacy getters for backward compatibility with existing tests
-  get homeButton(): Promise<AppiumElement> {
+  get homeButton(): EncapsulatedElementType {
     // Home button removed, but kept for backward compatibility
     // Tests using this should be updated
     return this.newTabButton;
   }
 
-  get browserScreenID(): Promise<AppiumElement> {
+  get browserScreenID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
   }
 
-  get androidBrowserWebViewID(): Promise<AppiumElement> {
+  get androidBrowserWebViewID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
   }
 
-  get addressBar(): Promise<AppiumElement> {
+  get addressBar(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.URL_INPUT);
   }
 
-  get urlInputBoxID(): Promise<AppiumElement> {
+  get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
@@ -74,14 +70,14 @@ class Browser {
    * Visible URL label when the bar is unfocused. Tapping it runs
    * `onPressUrlText` → `inputRef.focus()` so the TextInput appears.
    */
-  get urlBarDisplayText(): Promise<AppiumElement> {
+  get urlBarDisplayText(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_DISPLAY_TEXT);
   }
 
   /**
    * Editable URL field after the bar is focused (Android needs the inner EditText).
    */
-  get urlBarTextInput(): Promise<AppiumElement> {
+  get urlBarTextInput(): EncapsulatedElementType {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         new RegExp(BrowserURLBarSelectorsIDs.URL_INPUT),
@@ -90,87 +86,83 @@ class Browser {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
   }
 
-  get clearURLButton(): Promise<AppiumElement> {
+  get clearURLButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_CLEAR_ICON);
   }
 
-  get cancelUrlInputButton(): Promise<AppiumElement> {
+  get cancelUrlInputButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BrowserURLBarSelectorsIDs.CANCEL_BUTTON_ON_BROWSER_ID,
     );
   }
 
-  get backToSafetyButton(): Promise<AppiumElement> {
+  get backToSafetyButton(): EncapsulatedElementType {
     return Matchers.getElementByText(
       BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
     );
   }
 
-  get returnHomeButton(): Promise<AppiumElement> {
+  get returnHomeButton(): EncapsulatedElementType {
     return Matchers.getElementByText(BrowserViewSelectorsText.RETURN_HOME);
   }
 
-  get addFavouritesButton(): Promise<AppiumElement> {
+  get addFavouritesButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get homePageFavouritesTab(): Promise<AppiumElement> {
+  get homePageFavouritesTab(): WebElement {
     return Matchers.getElementByXPath(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       BrowserViewSelectorsXPaths.FAVORITE_TAB,
-      HOMEPAGE_URL,
     );
   }
 
-  get testDappURLInFavouritesTab(): Promise<AppiumElement> {
+  get testDappURLInFavouritesTab(): WebElement {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           BrowserViewSelectorsXPaths.TEST_DAPP_LINK,
-          HOMEPAGE_URL,
         )
       : Matchers.getElementByXPath(
           BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
           BrowserViewSelectorsXPaths.TEST_DAPP_TEXT,
-          HOMEPAGE_URL,
         );
   }
 
-  get multiTabButton(): Promise<AppiumElement> {
+  get multiTabButton(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
-  get DefaultAvatarImageForLocalHost(): Promise<AppiumElement> {
+  get DefaultAvatarImageForLocalHost(): EncapsulatedElementType {
     return Matchers.getElementByLabel('L');
   }
 
-  get networkAvatarOrAccountButton(): Promise<AppiumElement> {
+  get networkAvatarOrAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(AccountOverviewSelectorsIDs.ACCOUNT_BUTTON);
   }
 
-  get addBookmarkButton(): Promise<AppiumElement> {
+  get addBookmarkButton(): EncapsulatedElementType {
     return PlatformDetector.isIOS()
       ? Matchers.getElementByID(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON)
       : Matchers.getElementByLabel(AddBookmarkViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get tabsNumber(): Promise<AppiumElement> {
+  get tabsNumber(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.TABS_NUMBER);
   }
 
-  get closeAllTabsButton(): Promise<AppiumElement> {
+  get closeAllTabsButton(): EncapsulatedElementType {
     return Matchers.getElementByID('tabs_close_all');
   }
 
-  get noTabsMessage(): Promise<AppiumElement> {
+  get noTabsMessage(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.NO_TABS_MESSAGE);
   }
 
-  async getFavoritesURL(url: string): Promise<AppiumElement> {
+  async getFavoritesURL(url: string): Promise<SystemElement> {
     return Matchers.getElementByHref(
       BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
       url,
-      HOMEPAGE_URL,
     );
   }
 
@@ -510,7 +502,7 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
-    await AppiumContextHelpers.switchToNativeContext();
+    await PlaywrightContextHelpers.switchToNativeContext();
     await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
       description: description ?? `URL input box text is not "${text}"`,
     });
@@ -521,7 +513,7 @@ class Browser {
    * Display text is origin + pathname + query, so callers typically pass an origin.
    */
   async expectUrlToContain(text: string, description?: string): Promise<void> {
-    await AppiumContextHelpers.switchToNativeContext();
+    await PlaywrightContextHelpers.switchToNativeContext();
     // Display text is opacity:0 while the editor is focused; dismiss so we
     // read the committed URL, not leftover inputValue.
     if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {

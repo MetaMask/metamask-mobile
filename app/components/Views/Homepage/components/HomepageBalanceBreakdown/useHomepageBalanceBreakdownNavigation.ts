@@ -9,10 +9,6 @@ import type { SliceKey } from '../../BalanceBreakdown/types';
 import { useHomepageScrollContext } from '../../context/HomepageScrollContext';
 import { HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT } from '../../abTestConfig';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import {
-  createNavigationAnalyticsContext,
-  NavigationAnalyticsAttribution,
-} from '../../../../../util/analytics/navigationAnalyticsAttribution';
 
 const BALANCE_BREAKDOWN_SECTION_NAMES: Record<SliceKey, string> = {
   money: 'money',
@@ -32,16 +28,14 @@ export function useHomepageBalanceBreakdownNavigation({
   const navigation = useNavigation();
   const { entryPoint, appSessionId, visitId } = useHomepageScrollContext();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { navigateToPerpsHome } = usePerpsNavigationHandlers({
+  const { handleViewAllPerps } = usePerpsNavigationHandlers({
+    source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
     transactionActiveAbTests,
   });
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const openSlice = useCallback(
     (key: SliceKey, position: number) => {
-      const analyticsContext = createNavigationAnalyticsContext(
-        NavigationAnalyticsAttribution.HomepageBalanceBreakdown,
-      );
       trackEvent(
         createEventBuilder(MetaMetricsEvents.HOME_VIEWED)
           .addProperties({
@@ -58,15 +52,15 @@ export function useHomepageBalanceBreakdownNavigation({
 
       switch (key) {
         case 'money':
-          navigateToMoneyHome(analyticsContext);
+          navigateToMoneyHome(HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT);
           break;
         case 'tokens':
           navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {
-            analyticsContext,
+            source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
           });
           break;
         case 'perps':
-          navigateToPerpsHome(analyticsContext);
+          handleViewAllPerps();
           break;
         case 'predict':
           navigation.navigate(Routes.PREDICT.ROOT, {
@@ -81,7 +75,7 @@ export function useHomepageBalanceBreakdownNavigation({
           break;
         case 'defi':
           navigation.navigate(Routes.WALLET.DEFI_FULL_VIEW, {
-            analyticsContext,
+            source: HOMEPAGE_BALANCE_BREAKDOWN_ENTRY_POINT,
           });
           break;
       }
@@ -90,7 +84,7 @@ export function useHomepageBalanceBreakdownNavigation({
       createEventBuilder,
       entryPoint,
       appSessionId,
-      navigateToPerpsHome,
+      handleViewAllPerps,
       navigateToMoneyHome,
       navigation,
       trackEvent,

@@ -1,10 +1,10 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import {
+  asPlaywrightElement,
   createLogger,
-  AppiumAssertions,
-  AppiumGestures,
+  PlaywrightAssertions,
+  PlaywrightGestures,
   sleep,
-  type AppiumElement,
 } from '../../framework';
 import {
   withImplicitWait,
@@ -12,7 +12,7 @@ import {
   recordInfrastructureCommand,
   recordFailedPollCommand,
   addOverheadSleep,
-} from '../../framework/AppiumUtilities';
+} from '../../framework/PlaywrightUtilities';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import TimerHelper, {
   type PlatformThreshold,
@@ -81,7 +81,7 @@ const DESTINATION_POLL_TIMEOUT_MS = 30_000;
 const OPTIONAL_DESTINATION_PROBE_TIMEOUT_MS = 1_000;
 
 const isCandidateVisible = async (
-  getElement: () => Promise<AppiumElement>,
+  getElement: () => ReturnType<typeof asPlaywrightElement>,
 ): Promise<boolean> => {
   try {
     const el = await getElement();
@@ -98,21 +98,23 @@ const waitForPostOnboardingDestination = async (
   // over the tab bar (which often remains mounted behind sheets).
   const candidates: {
     destination: PostOnboardingDestination;
-    getElement: () => Promise<AppiumElement>;
+    getElement: () => ReturnType<typeof asPlaywrightElement>;
   }[] = [
     {
       destination: 'interest-questionnaire',
-      getElement: () => OnboardingInterestQuestionnaireView.skipButton,
+      getElement: () =>
+        asPlaywrightElement(OnboardingInterestQuestionnaireView.skipButton),
     },
     {
       destination: 'push-notification',
-      getElement: () => PushNotificationOnboardingView.title,
+      getElement: () =>
+        asPlaywrightElement(PushNotificationOnboardingView.title),
     },
     {
       // Tab-bar Wallet button (matches import-wallet.spec.ts): usable home,
       // not just wallet shell mount.
       destination: 'wallet',
-      getElement: () => TabBarComponent.tabBarWalletButton,
+      getElement: () => asPlaywrightElement(TabBarComponent.tabBarWalletButton),
     },
   ];
 
@@ -128,11 +130,11 @@ const waitForPostOnboardingDestination = async (
     throw new Error('No post-onboarding destinations remain to wait for');
   }
 
-  // Single remaining element: use AppiumAssertions for proper overhead
+  // Single remaining element: use PlaywrightAssertions for proper overhead
   // tracking instead of the multi-candidate polling loop.
   if (remaining.length === 1) {
     const only = remaining[0];
-    await AppiumAssertions.expectElementToBeVisible(only.getElement(), {
+    await PlaywrightAssertions.expectElementToBeVisible(only.getElement(), {
       description: `${POST_ONBOARDING_DESTINATION_LABELS[only.destination]} should be visible`,
     });
     return only.destination;
@@ -233,9 +235,9 @@ const waitForPostOnboardingDestination = async (
     throw new Error('No post-onboarding destination became visible');
   }
 
-  // Final confirmation via AppiumAssertions provides probe RTT calibration
+  // Final confirmation via PlaywrightAssertions provides probe RTT calibration
   // used to cap all preceding recordFailedPollCommand entries.
-  await AppiumAssertions.expectElementToBeVisible(
+  await PlaywrightAssertions.expectElementToBeVisible(
     resolvedCandidate.getElement(),
     {
       description: `${POST_ONBOARDING_DESTINATION_LABELS[resolvedCandidate.destination]} should be visible`,
@@ -323,8 +325,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await AppiumAssertions.expectElementToBeVisible(
-        OnboardingView.newWalletButton,
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(OnboardingView.newWalletButton),
         {
           timeout: 60_000,
           description: 'Fresh-install onboarding screen should be ready',
@@ -333,8 +335,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
       await OnboardingView.tapCreateNewWalletButton();
       await onboardingSheetTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          OnboardingSheet.importSeedButton,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(OnboardingSheet.importSeedButton),
         );
       });
 
@@ -352,13 +354,13 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       const password = getPasswordForScenario('onboarding') ?? '';
       await CreatePasswordView.enterPassword(password);
       await CreatePasswordView.reEnterPassword(password);
-      await AppiumGestures.hideKeyboard();
+      await PlaywrightGestures.hideKeyboard();
       await CreatePasswordView.tapIUnderstandCheckBox();
 
       await CreatePasswordView.tapCreatePasswordButton();
       await walletCreationTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          ProtectYourWalletView.remindMeLaterButton,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(ProtectYourWalletView.remindMeLaterButton),
           {
             timeout: 30_000,
             description: 'Wallet backup screen should be visible',
@@ -368,8 +370,8 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
       await ProtectYourWalletView.tapRemindMeLater();
       await backupSkipTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          MetaMetricsOptInView.screenTitle,
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(MetaMetricsOptInView.screenTitle),
           {
             timeout: 30_000,
             description: 'MetaMetrics screen should be visible',

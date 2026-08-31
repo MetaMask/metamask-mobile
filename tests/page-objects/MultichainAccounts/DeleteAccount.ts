@@ -1,16 +1,16 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { MultichainDeleteAccountSelectors } from '../../../app/components/Views/MultichainAccounts/sheets/DeleteAccount/DeleteAccount.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class DeleteAccount {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_CONTAINER,
     );
   }
 
-  get deleteAccountButton(): Promise<AppiumElement> {
+  get deleteAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON,
     );

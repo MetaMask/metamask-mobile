@@ -39,7 +39,6 @@ import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
-import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
@@ -138,7 +137,6 @@ const PerpsProPositionsPanel = ({
     handleEditOrderPrice,
     handleEditOrderSize,
     handleCloseAllPress,
-    handleCancelAllPress,
     cancelingOrderId,
     editingOrderId,
     isOrderCancelable,
@@ -223,9 +221,6 @@ const PerpsProPositionsPanel = ({
     () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
     [ordersSideFilter, visibleOrders],
   );
-
-  const areOrdersFiltered =
-    isTickerOnly || ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER;
 
   const sortedVisiblePositions = useMemo(
     () =>
@@ -355,10 +350,6 @@ const PerpsProPositionsPanel = ({
     if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
-          <PerpsProOrdersSummary
-            orderCount={sideFilteredOrders.length}
-            onCancelAll={handleCancelAllPress}
-          />
           {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
@@ -485,12 +476,7 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(
-        sideFilteredPositions,
-        isPositionsFiltered,
-        sideFilteredOrders,
-        areOrdersFiltered,
-      )}
+      {renderActionSheets(sideFilteredPositions, isPositionsFiltered)}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}

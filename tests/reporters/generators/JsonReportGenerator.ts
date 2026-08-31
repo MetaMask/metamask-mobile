@@ -104,7 +104,6 @@ export class JsonReportGenerator {
         testName: metric.testName,
         projectName: metric.projectName ?? null,
         sessionId: metric.sessionId ?? null,
-        videoURL: metric.videoURL ?? null,
         device: metric.device,
         timestamp: metric.timestamp ?? new Date().toISOString(),
         profilingSummary: metric.profilingSummary ?? null,

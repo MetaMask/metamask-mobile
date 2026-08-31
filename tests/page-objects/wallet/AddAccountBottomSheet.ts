@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 const SHEET_READY_TIMEOUT_MS = 30_000;
 
@@ -11,17 +11,17 @@ const AddAccountBottomSheetSelectorsIDs = {
 };
 
 class AddAccountBottomSheet {
-  get importAccountButton(): Promise<AppiumElement> {
+  get importAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID('add-wallet-back-button');
   }
 
-  get importSrpButton(): Promise<AppiumElement> {
+  get importSrpButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
     );

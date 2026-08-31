@@ -1,6 +1,6 @@
 import BigNumber from 'bignumber.js';
 import type { PredictDecimal } from '../../../types';
-import { parsePredictDecimal } from '../../shared/formatting';
+import { parsePredictDecimal } from './parsePredictDecimal';
 
 const trimTrailingZeros = (value: string): string =>
   value.replace(/\.?0+$/, '');

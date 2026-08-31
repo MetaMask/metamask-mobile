@@ -12,16 +12,14 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
-  forwardRef,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
@@ -84,6 +82,12 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    loader: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 };
@@ -160,25 +164,6 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   );
 };
 
-interface ShareTokenBottomSheetControllerRef {
-  open: () => void;
-}
-
-const ShareTokenBottomSheetController = forwardRef<
-  ShareTokenBottomSheetControllerRef,
-  Omit<React.ComponentProps<typeof ShareTokenBottomSheet>, 'onClose'>
->((props, ref) => {
-  const [isVisible, setIsVisible] = useState(false);
-
-  useImperativeHandle(ref, () => ({ open: () => setIsVisible(true) }), []);
-
-  return isVisible ? (
-    <ShareTokenBottomSheet {...props} onClose={() => setIsVisible(false)} />
-  ) : null;
-});
-
-ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
-
 /**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
@@ -210,7 +195,7 @@ const TokenDetails: React.FC<{
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
+  const [isShareSheetVisible, setIsShareSheetVisible] = useState(false);
   const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
@@ -268,7 +253,7 @@ const TokenDetails: React.FC<{
         .build(),
     );
 
-    shareSheetRef.current?.open();
+    setIsShareSheetVisible(true);
   }, [
     shareUrl,
     createEventBuilder,
@@ -566,6 +551,11 @@ const TokenDetails: React.FC<{
     </>
   );
 
+  const renderLoader = () => (
+    <View style={styles.loader}>
+      <ActivityIndicator style={styles.loader} size="small" />
+    </View>
+  );
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
@@ -584,7 +574,9 @@ const TokenDetails: React.FC<{
         onCopyAddress={handleCopyAddress}
       />
 
-      {txIsNonEvmAsset ? (
+      {txLoading ? (
+        renderLoader()
+      ) : txIsNonEvmAsset ? (
         <MultichainTransactionsView
           header={renderHeader()}
           transactions={transactions}
@@ -616,31 +608,31 @@ const TokenDetails: React.FC<{
           location={TransactionDetailLocation.AssetDetails}
         />
       )}
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
-        networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyEarnCta={moneyEarnCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
-        onSwapPress={onCtaClicked}
-        onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-      />
-
+      {!txLoading && (
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyEarnCta={moneyEarnCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          useAmbientColor={useAmbientColor}
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+        />
+      )}
       {isInsightsDisclaimerVisible && (
         <MarketInsightsDisclaimerBottomSheet
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {shareUrl && (
-        <ShareTokenBottomSheetController
-          ref={shareSheetRef}
+      {isShareSheetVisible && shareUrl && (
+        <ShareTokenBottomSheet
           shareUrl={shareUrl}
           token={token}
           currentPrice={currentPrice}
@@ -649,6 +641,7 @@ const TokenDetails: React.FC<{
           currentCurrency={currentCurrency}
           securityData={securityData}
           networkName={networkName}
+          onClose={() => setIsShareSheetVisible(false)}
         />
       )}
       {quickBuySheet}

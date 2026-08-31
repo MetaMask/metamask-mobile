@@ -25,19 +25,13 @@ jest.mock('../../../selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(),
 }));
 
-const mockToast = jest.fn();
-jest.mock('@metamask/design-system-react-native', () => {
-  const actualDesignSystem = jest.requireActual(
-    '@metamask/design-system-react-native',
-  );
-
-  return {
-    ...actualDesignSystem,
-    toast: Object.assign((...args: unknown[]) => mockToast(...args), {
-      dismiss: jest.fn(),
-    }),
-  };
-});
+const mockShowToast = jest.fn();
+jest.mock('../../../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
+}));
 
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn().mockReturnValue({ event: 'mock' });
@@ -53,7 +47,6 @@ jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-import { ToastSeverity } from '@metamask/design-system-react-native';
 import WatchlistStarButton from '../WatchlistStarButton';
 
 describe('WatchlistStarButton', () => {
@@ -130,15 +123,7 @@ describe('WatchlistStarButton', () => {
     fireEvent.press(getByTestId('watchlist-star-button'));
 
     expect(mockToggle).toHaveBeenCalledTimes(1);
-    expect(mockToast).toHaveBeenCalledTimes(1);
-    expect(mockToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: expect.any(String),
-        severity: ToastSeverity.Success,
-        hasNoTimeout: false,
-        showCloseButton: false,
-      }),
-    );
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WATCHLIST_TOKEN_ADDED,
     );
@@ -173,14 +158,6 @@ describe('WatchlistStarButton', () => {
     fireEvent.press(getByTestId('watchlist-star-button'));
 
     expect(mockToggle).toHaveBeenCalledTimes(1);
-    expect(mockToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: expect.any(String),
-        severity: ToastSeverity.Success,
-        hasNoTimeout: false,
-        showCloseButton: false,
-      }),
-    );
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.WATCHLIST_TOKEN_REMOVED,
     );

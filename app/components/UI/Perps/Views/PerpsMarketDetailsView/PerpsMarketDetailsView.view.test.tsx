@@ -832,24 +832,13 @@ describe('PerpsMarketDetailsView', () => {
       });
     };
 
-    // The entry card replaces a skeleton only after the AiDigestController fetch
-    // resolves, so it needs the same explicit timeout AssetOverviewContent's CV
-    // test uses for this card. The 1s default is not enough on a loaded CV shard.
-    const findInsightsEntryCard = () =>
-      screen.findByTestId(
-        MarketInsightsSelectorsIDs.ENTRY_CARD,
-        {},
-        { timeout: 15000 },
-      );
-
-    const openInsightsFromEntryCard = async () => {
-      fireEvent.press(await findInsightsEntryCard());
-    };
-
     it('opens market insights from Perps and hides Long/Short when position is open', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      await openInsightsFromEntryCard();
+      const entryCard = await screen.findByTestId(
+        MarketInsightsSelectorsIDs.ENTRY_CARD,
+      );
+      fireEvent.press(entryCard);
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.VIEW_CONTAINER),
@@ -877,7 +866,9 @@ describe('PerpsMarketDetailsView', () => {
     it('shows Long/Short in market insights when there is no position', async () => {
       renderPerpsInsightsJourney({ hasPosition: false });
 
-      await openInsightsFromEntryCard();
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
 
       expect(
         await screen.findByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON),
@@ -893,30 +884,19 @@ describe('PerpsMarketDetailsView', () => {
         insightsFlagEnabled: false,
       });
 
-      // Assert the absence only once the view is mounted and no skeleton is
-      // pending, otherwise the expectation passes before insights could render.
-      expect(
-        await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-      await waitFor(
-        () => {
-          expect(
-            screen.queryByTestId(
-              MarketInsightsSelectorsIDs.ENTRY_CARD_SKELETON,
-            ),
-          ).toBeNull();
-        },
-        { timeout: 15000 },
-      );
-      expect(
-        screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
-      ).toBeNull();
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+        ).not.toBeOnTheScreen();
+      });
     });
 
     it('shows sources bottom sheet when tapping a trend item from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      await openInsightsFromEntryCard();
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
 
       const trendItem = await screen.findByTestId(
         `${MarketInsightsSelectorsIDs.TREND_ITEM}-0`,
@@ -933,7 +913,9 @@ describe('PerpsMarketDetailsView', () => {
       try {
         renderPerpsInsightsJourney({ hasPosition: true });
 
-        await openInsightsFromEntryCard();
+        fireEvent.press(
+          await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+        );
         const thumbsUp = await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON,
         );
@@ -959,7 +941,9 @@ describe('PerpsMarketDetailsView', () => {
     it('shows feedback bottom sheet on thumbs down from Perps insights', async () => {
       renderPerpsInsightsJourney({ hasPosition: true });
 
-      await openInsightsFromEntryCard();
+      fireEvent.press(
+        await screen.findByTestId(MarketInsightsSelectorsIDs.ENTRY_CARD),
+      );
       fireEvent.press(
         await screen.findByTestId(
           MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON,

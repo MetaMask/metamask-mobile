@@ -33,6 +33,15 @@ jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
   );
 });
 
+jest.mock('../PerpsLeverage', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    PerpsLeverage: ({ maxLeverage }: { maxLeverage: string }) => (
+      <Text>{maxLeverage}</Text>
+    ),
+  };
+});
+
 const createMarket = (
   symbol: string,
   overrides: Partial<PerpsMarketData> = {},
@@ -67,7 +76,7 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeNull();
   });
 
-  it('renders the header and a pill for each recently viewed market', () => {
+  it('renders the header and a tile for each recently viewed market', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[createMarket('BTC'), createMarket('ETH')]}
@@ -90,12 +99,15 @@ describe('PerpsRecentlyViewedRail', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders each market logo, symbol and percent change', () => {
+  it('renders each market logo, symbol, leverage, price and change', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[
           createMarket('BTC', {
-            change24hPercent: '+2.50%',
+            maxLeverage: '40x',
+            price: '$50,000.00',
+            change24h: '+2.5%',
+            change24hPercent: '+2.5%',
           }),
         ]}
         onMarketPress={mockOnMarketPress}
@@ -104,10 +116,12 @@ describe('PerpsRecentlyViewedRail', () => {
 
     expect(screen.getByTestId('token-logo-BTC')).toBeOnTheScreen();
     expect(screen.getByText('BTC')).toBeOnTheScreen();
-    expect(screen.getByText('+2.50%')).toBeOnTheScreen();
+    expect(screen.getByText('40x')).toBeOnTheScreen();
+    expect(screen.getByText('$50,000.00')).toBeOnTheScreen();
+    expect(screen.getByText('+2.5%')).toBeOnTheScreen();
   });
 
-  it('strips the dex prefix from the displayed symbol', () => {
+  it('strips the dex prefix from the displayed symbol and accessibility label', () => {
     render(
       <PerpsRecentlyViewedRail
         markets={[createMarket('xyz:TSLA')]}
@@ -117,6 +131,9 @@ describe('PerpsRecentlyViewedRail', () => {
 
     expect(screen.getByText('TSLA')).toBeOnTheScreen();
     expect(screen.queryByText('xyz:TSLA')).toBeNull();
+    expect(
+      screen.getByLabelText('TSLA recently viewed market'),
+    ).toBeOnTheScreen();
   });
 
   it('preserves the newest-first order passed in via props', () => {
@@ -132,7 +149,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(tiles[1].props.testID).toBe('perps-recently-viewed-tile-BTC');
   });
 
-  it('caps rendered pills at 10', () => {
+  it('caps rendered tiles at 10', () => {
     const markets = Array.from({ length: 15 }, (_, i) =>
       createMarket(`MKT${i}`),
     );
@@ -148,7 +165,7 @@ describe('PerpsRecentlyViewedRail', () => {
     expect(tiles).toHaveLength(10);
   });
 
-  it('tracks pill tap with market symbol and 1-based position, then invokes onMarketPress', () => {
+  it('tracks tile tap with market symbol and 1-based position, then invokes onMarketPress', () => {
     const target = createMarket('ETH');
 
     render(

@@ -44,7 +44,6 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 
 /**
  * PerpsPositionCard Component
@@ -280,13 +279,9 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       </SensitiveText>
       {liquidationDistance !== null && !privacyMode && (
         <>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE}
-          >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {' '}
-            {liquidationDistance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%
+            {Math.round(liquidationDistance)}%
           </Text>
           <Icon
             name={isLong ? IconName.TrendDown : IconName.TrendUp}

@@ -5,10 +5,10 @@ import {
   PlatformDetector,
   Utilities,
   sleep,
-  type AppiumElement,
+  type EncapsulatedElementType,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
-import { withImplicitWait } from '../../framework/AppiumUtilities';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities';
 import {
   PredictBalanceSelectorsIDs,
   PredictBalanceSelectorsText,
@@ -39,53 +39,53 @@ const IOS_MARKET_LIST_INDICATOR_IDS = [
 const MARKET_LIST_POLL_INTERVAL_MS = 250;
 
 class PredictMarketList {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictMarketListSelectorsIDs.CONTAINER);
   }
 
-  get errorContainer(): Promise<AppiumElement> {
+  get errorContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictMarketListSelectorsIDs.EMPTY_STATE);
   }
 
-  get categoryTabs(): Promise<AppiumElement> {
+  get categoryTabs(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictFeedSelectorsIDs.TABS);
   }
 
-  get backButton(): Promise<AppiumElement> {
+  get backButton(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictMarketListSelectorsIDs.BACK_BUTTON);
   }
 
-  get addFundsButton(): Promise<AppiumElement> {
+  get addFundsButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Add funds');
   }
 
-  get balanceCard(): Promise<AppiumElement> {
+  get balanceCard(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
   }
 
-  get availableBalanceLabel(): Promise<AppiumElement> {
+  get availableBalanceLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(
       PredictBalanceSelectorsText.AVAILABLE_BALANCE,
     );
   }
 
-  get trendingSkeleton(): Promise<AppiumElement> {
+  get trendingSkeleton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       getPredictFeedSelector.skeletonLoading('trending', 1),
     );
   }
 
-  get firstTrendingMarketCard(): Promise<AppiumElement> {
+  get firstTrendingMarketCard(): EncapsulatedElementType {
     return Matchers.getElementByID(
       getPredictMarketListSelector.marketCardByCategory('trending', 1),
     );
   }
 
-  get firstYesButton(): Promise<AppiumElement> {
+  get firstYesButton(): EncapsulatedElementType {
     return Matchers.getElementByText('Yes');
   }
 
-  get getIsraelXHezbollahCeasefireButton(): Promise<AppiumElement> {
+  get getIsraelXHezbollahCeasefireButton(): EncapsulatedElementType {
     return Matchers.getElementByNativeXPath(
       '//*[contains(@content-desc, "Israel x Hezbollah ceasefire by")]',
     );
@@ -94,7 +94,7 @@ class PredictMarketList {
   getMarketCard(
     category: CategoryTab,
     cardIndex: number,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     const marketCardId = getPredictMarketListSelector.marketCardByCategory(
       category,
       cardIndex,
@@ -103,12 +103,12 @@ class PredictMarketList {
     return Matchers.getElementByID(marketCardId);
   }
 
-  getPositionItem(positionId: string): Promise<AppiumElement> {
+  getPositionItem(positionId: string): EncapsulatedElementType {
     const selector = `position-${positionId}`;
     return Matchers.getElementByID(selector);
   }
 
-  getCategoryTab(category: CategoryTab): Promise<AppiumElement> {
+  getCategoryTab(category: CategoryTab): EncapsulatedElementType {
     const label = CATEGORY_LABELS[category];
     return Matchers.getElementByText(label);
   }
@@ -120,7 +120,7 @@ class PredictMarketList {
    * @param options.direction - Scroll the tab bar toward this edge to reveal the target (`right` = tabs further right, e.g. Sports; `left` = tabs further left).
    */
   private async scrollAndTapCategoryTab(
-    tab: Promise<AppiumElement>,
+    tab: EncapsulatedElementType,
     description: string,
     options: {
       direction?: CategoryTabScrollDirection;
@@ -179,7 +179,7 @@ class PredictMarketList {
     category: CategoryTab,
     cardIndex: number,
     outcome: 'Yes' | 'No',
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     const parentId = getPredictMarketListSelector.marketCardByCategory(
       category,
       cardIndex,

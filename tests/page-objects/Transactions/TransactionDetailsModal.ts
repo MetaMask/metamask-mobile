@@ -5,38 +5,38 @@ import {
 } from '../../../app/components/Views/confirmations/components/activity/TransactionDetailsModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { Assertions, logger, type AppiumElement } from '../../framework';
+import { Assertions, logger, EncapsulatedElementType } from '../../framework';
 
 class TransactionDetailsModal {
-  get closeIcon(): Promise<AppiumElement> {
+  get closeIcon(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TransactionDetailsModalSelectorsIDs.CLOSE_ICON,
     );
   }
 
-  get networkFee(): Promise<AppiumElement> {
+  get networkFee(): EncapsulatedElementType {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.NETWORK_FEE);
   }
 
-  get paidWithSymbol(): Promise<AppiumElement> {
+  get paidWithSymbol(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.PAID_WITH_SYMBOL,
     );
   }
 
-  get status(): Promise<AppiumElement> {
+  get status(): EncapsulatedElementType {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.STATUS);
   }
 
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(TransactionDetailsModalSelectorsIDs.TITLE);
   }
 
-  get total(): Promise<AppiumElement> {
+  get total(): EncapsulatedElementType {
     return Matchers.getElementByID(TransactionDetailsSelectorIDs.TOTAL);
   }
 
-  get transactionFee(): Promise<AppiumElement> {
+  get transactionFee(): EncapsulatedElementType {
     return Matchers.getElementByID(
       TransactionDetailsSelectorIDs.TRANSACTION_FEE,
     );
@@ -76,10 +76,6 @@ class TransactionDetailsModal {
     await Assertions.expectElementToHaveText(this.status, status, {
       description: 'Status should be correct',
     });
-  }
-
-  async verifyConfirmedStatus(): Promise<void> {
-    await this.verifyStatus('Confirmed');
   }
 
   async verifyTotal(total: string): Promise<void> {

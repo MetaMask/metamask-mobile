@@ -23,6 +23,14 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
   })),
 }));
 
+const mockNavigateToActivity = jest.fn();
+
+jest.mock('../../hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: jest.fn(() => ({
+    navigateToActivity: mockNavigateToActivity,
+  })),
+}));
+
 let mockPerpsAccount: {
   totalBalance: string;
   spendableBalance: string;
@@ -136,12 +144,16 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render the history button', () => {
-    const { queryByTestId } = renderSheet();
+  it('closes the sheet and navigates to activity when the history button is pressed', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({ onClose });
 
-    expect(
-      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON),
-    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToActivity).toHaveBeenCalledTimes(1);
   });
 
   it('closes the sheet and invokes handleWithdraw when the withdraw button is pressed', () => {

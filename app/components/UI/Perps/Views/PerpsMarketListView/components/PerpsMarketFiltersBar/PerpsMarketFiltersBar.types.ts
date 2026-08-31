@@ -1,5 +1,4 @@
 import {
-  type SortDirection,
   type SortOptionId,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
@@ -17,11 +16,6 @@ export interface PerpsMarketFiltersBarProps {
    * Callback when sort dropdown is pressed
    */
   onSortPress: () => void;
-
-  /**
-   * Active sort direction, forwarded to the sort dropdown accessory.
-   */
-  sortDirection?: SortDirection;
 
   /**
    * Selected market type filter
@@ -63,6 +57,7 @@ export interface PerpsMarketFiltersBarProps {
 
   /**
    * Whether to render row 2 (market count + sort dropdown). Defaults to `true`.
+   * Still hidden when `isWatchlistSelected` is `true`, regardless of this prop.
    */
   showSortRow?: boolean;
 

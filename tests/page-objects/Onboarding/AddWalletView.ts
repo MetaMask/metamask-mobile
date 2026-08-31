@@ -2,14 +2,14 @@ import { AddWalletTestIds } from '../../../app/components/Views/AddWallet/AddWal
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class AddWalletView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(AddWalletTestIds.SCREEN);
   }
 
-  get linkMetaMaskExtensionButton(): Promise<AppiumElement> {
+  get linkMetaMaskExtensionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
     );

@@ -26,9 +26,6 @@ const I18N_PREFIX = 'predict.sports_market_types';
 const DYNAMIC_SPORTS_MARKET_TYPE_PREFIXES = [
   'soccer_player_goals-',
   'soccer_team_totals-',
-  'team_totals-',
-  'team_totals_home-',
-  'team_totals_away-',
 ] as const;
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;

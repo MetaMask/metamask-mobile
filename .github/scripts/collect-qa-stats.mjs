@@ -105,10 +105,9 @@ let _artifactList = null;
  * by a `push` (merge-queue merge) or `schedule` event.
  *
  * These two event types always upload artifacts to standard GitHub storage.
- * `workflow_dispatch` runs with runner_provider=namespace upload most artifacts
- * to Namespace storage, which is invisible to the standard GitHub artifacts API.
- * Playwright JSON reports are dual-uploaded to GitHub so e2e / e2e_test_times
- * collectors keep working (see run-appium-e2e-workflow.yml).
+ * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
+ * own storage instead, which is invisible to the standard GitHub artifacts API
+ * and would cause all artifact-based metrics to silently drop from the output.
  * `workflow_call` runs are PR shadow runs — also not useful here.
  *
  * The GitHub API only supports a single `event` filter per request, so both
@@ -987,13 +986,7 @@ async function collectE2ETestTimes() {
     .filter(({ dims }) => dims);
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
-  if (e2eArtifacts.length === 0) {
-    console.warn(
-      '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
-        'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
-    );
-    return {};
-  }
+  if (e2eArtifacts.length === 0) return {};
 
   const acc = {};
   for (const { artifact, dims } of e2eArtifacts) {
@@ -1125,13 +1118,6 @@ async function main() {
   const outputPath = './qa-stats.json';
   await writeFile(outputPath, JSON.stringify(stats, null, 2), 'utf8');
   console.log(`✅ QA stats written to ${outputPath}:`, stats);
-
-  if (!stats.e2e_test_times || Object.keys(stats.e2e_test_times).length === 0) {
-    console.warn(
-      '⚠️  qa-stats.json has no e2e_test_times — check that Appium Playwright JSON reports ' +
-        'were uploaded to GitHub Artifacts on the selected main CI run',
-    );
-  }
 }
 
 if (isExecutedDirectly()) {

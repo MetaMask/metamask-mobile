@@ -2,6 +2,10 @@ import React from 'react';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
+import {
+  useIsTransactionPayLoading,
+  useTransactionPayIsMaxAmount,
+} from '../../../hooks/pay/useTransactionPayData';
 import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -11,9 +15,16 @@ const mockFormatAmountWithLocaleSeparators = jest.mocked(
   formatAmountWithLocaleSeparators,
 );
 
+const mockUseTransactionPayIsMaxAmount = jest.mocked(
+  useTransactionPayIsMaxAmount,
+);
+const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
+
 describe('CustomAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
+    mockUseIsTransactionPayLoading.mockReturnValue(false);
     mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
   });
 
@@ -63,13 +74,49 @@ describe('CustomAmount', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
   });
 
-  it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
-    const { getByText, queryByTestId } = renderWithProvider(
+  it('renders skeleton when max amount and quotes are loading', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
+    mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" />,
+    );
+
+    expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+  });
+
+  it('renders amount when max amount but quotes are not loading', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
+    mockUseIsTransactionPayLoading.mockReturnValue(false);
+
+    const { getByText } = renderWithProvider(
       <CustomAmount amountFiat="123.45" />,
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
+  });
+
+  it('renders amount when max amount and quotes are loading if preserveAmountOnMaxQuoteLoad', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
+    mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+    const { getByText, queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" preserveAmountOnMaxQuoteLoad />,
+    );
+
+    expect(getByText('123.45')).toBeOnTheScreen();
     expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+  });
+
+  it('renders amount when quotes are loading but not max amount', () => {
+    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
+    mockUseIsTransactionPayLoading.mockReturnValue(true);
+
+    const { getByText } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" />,
+    );
+
+    expect(getByText('123.45')).toBeOnTheScreen();
   });
 
   it('renders blinking cursor when showCursor is true', () => {

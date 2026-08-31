@@ -2,22 +2,22 @@ import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../app/componen
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class ExperienceEnhancerBottomSheet {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );
   }
 
-  get noThanksButton(): Promise<AppiumElement> {
+  get noThanksButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get iAgreeButton(): Promise<AppiumElement> {
+  get iAgreeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON,
     );

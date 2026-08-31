@@ -12,12 +12,6 @@ import { act, waitFor } from '@testing-library/react-native';
 import { Hex, type CaipAssetId, type CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { cloneDeep } from 'lodash';
-import {
-  endTrace,
-  trace,
-  TraceName,
-  TraceOperation,
-} from '../../../../../util/trace';
 
 // Mock dependencies
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -34,15 +28,6 @@ jest.mock('ethers', () => {
     })),
   };
 });
-
-jest.mock('../../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-}));
-
-const mockTrace = trace as jest.MockedFunction<typeof trace>;
-const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
 
 describe('useLatestBalance', () => {
   const mockProvider = {
@@ -76,24 +61,6 @@ describe('useLatestBalance', () => {
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
       });
-    });
-
-    const traceId = mockTrace.mock.calls[0][0].id;
-    expect(mockTrace).toHaveBeenCalledWith({
-      name: TraceName.BridgeBalancesUpdated,
-      op: TraceOperation.BridgeDataFetch,
-      id: expect.any(String),
-      data: {
-        srcChainId: '0x1',
-        isNative: true,
-      },
-      startTime: expect.any(Number),
-    });
-    expect(mockEndTrace).toHaveBeenCalledWith({
-      name: TraceName.BridgeBalancesUpdated,
-      id: traceId,
-      timestamp: expect.any(Number),
-      data: { result: 'success' },
     });
   });
 

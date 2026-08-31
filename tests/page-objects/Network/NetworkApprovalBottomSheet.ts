@@ -1,27 +1,27 @@
 import { NetworkApprovalBottomSheetSelectorsIDs } from '../../../app/components/UI/NetworkModal/NetworkApprovalBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class NetworkApprovalBottomSheet {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CONTAINER,
     );
   }
 
-  get approvedButton(): Promise<AppiumElement> {
+  get approvedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
     );
   }
-  get cancelButton(): Promise<AppiumElement> {
+  get cancelButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.CANCEL_BUTTON,
     );
   }
 
-  get displayName(): Promise<AppiumElement> {
+  get displayName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkApprovalBottomSheetSelectorsIDs.DISPLAY_NAME,
     );

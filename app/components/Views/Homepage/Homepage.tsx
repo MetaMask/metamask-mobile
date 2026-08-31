@@ -33,8 +33,6 @@ import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager
 import BalanceBreakdownSection, {
   type BalanceBreakdownSectionProps,
 } from './Sections/BalanceBreakdown';
-import EarnSection from './Sections/EarnSection';
-import { selectEarnHomeSectionEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -50,7 +48,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
   ({ balanceBreakdownSectionProps }, ref) => {
     const tokensSectionRef = useRef<SectionRefreshHandle>(null);
     const perpsSectionRef = useRef<SectionRefreshHandle>(null);
-    const earnSectionRef = useRef<SectionRefreshHandle>(null);
     const predictionsSectionRef = useRef<SectionRefreshHandle>(null);
     const topTradersSectionRef = useRef<SectionRefreshHandle>(null);
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
@@ -64,7 +61,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-    const isEarnSectionEnabled = useSelector(selectEarnHomeSectionEnabledFlag);
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -101,7 +97,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         [
           { name: HomeSectionNames.TOKENS, enabled: true },
           { name: HomeSectionNames.PERPS, enabled: isPerpsEnabled },
-          { name: HomeSectionNames.EARN, enabled: isEarnSectionEnabled },
           { name: HomeSectionNames.PREDICT, enabled: isPredictEnabled },
           { name: HomeSectionNames.WATCHLIST, enabled: isWatchlistEnabled },
           {
@@ -113,7 +108,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         ].filter((section) => section.enabled),
       [
         isPerpsEnabled,
-        isEarnSectionEnabled,
         isPredictEnabled,
         isDeFiEnabled,
         isTopTradersEnabled,
@@ -135,7 +129,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
         perpsSectionRef.current?.refresh(),
-        earnSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
         topTradersSectionRef.current?.refresh(),
@@ -166,13 +159,6 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               <HomepagePerpsHomeSlot
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
-                totalSectionsLoaded={totalSectionsLoaded}
-              />
-            )}
-            {isEarnSectionEnabled && (
-              <EarnSection
-                ref={earnSectionRef}
-                sectionIndex={getSectionIndex(HomeSectionNames.EARN)}
                 totalSectionsLoaded={totalSectionsLoaded}
               />
             )}

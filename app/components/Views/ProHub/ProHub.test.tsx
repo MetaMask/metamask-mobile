@@ -2,8 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
-import { BENEFITS, BenefitRowTestIds } from '../shared/pro';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -32,16 +30,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 const renderProHub = () => render(<ProHub />);
 
-/**
- * Escapes all regex special characters so a plain string can be used
- * as a partial-match pattern inside toHaveTextContent().
- */
-const toRegex = (s: string) =>
-  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-
-// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
-// Engine state, so focused unit tests remain the coverage layer.
-
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
 describe('ProHub', () => {
@@ -54,104 +42,52 @@ describe('ProHub', () => {
   // ── Rendering ──────────────────────────────────────────────────────────────
 
   describe('Rendering', () => {
-    it('renders the pro hub container', () => {
+    it('renders the container', () => {
       const { getByTestId } = renderProHub();
 
-      const container = getByTestId(ProHubTestIds.CONTAINER);
-
-      expect(container).toBeOnTheScreen();
+      expect(getByTestId(ProHubTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
     it('renders the title from i18n', () => {
       const { getByTestId } = renderProHub();
 
-      const title = getByTestId(ProHubTestIds.TITLE);
-
-      expect(title).toHaveTextContent(strings('pro_hub.title'));
-    });
-
-    it('renders the header bar', () => {
-      const { getByTestId } = renderProHub();
-
-      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
-
-      expect(header).toBeOnTheScreen();
-    });
-
-    it('renders the back button in the header', () => {
-      const { getByTestId } = renderProHub();
-
-      const backButton = getByTestId(ProHubTestIds.BACK_BUTTON);
-
-      expect(backButton).toBeOnTheScreen();
-    });
-
-    it('renders the manage plans icon button', () => {
-      const { getByTestId } = renderProHub();
-
-      const managePlansButton = getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON);
-
-      expect(managePlansButton).toBeOnTheScreen();
-    });
-
-    it('renders earned and saved stat cards with mock amounts', () => {
-      const { getByTestId } = renderProHub();
-
-      const earnedCard = getByTestId(ProHubTestIds.EARNED_CARD);
-      const savedCard = getByTestId(ProHubTestIds.SAVED_CARD);
-
-      expect(earnedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.earned));
-      expect(savedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.saved));
-    });
-
-    it('renders the physical card placeholder, title, and description', () => {
-      const { getByTestId } = renderProHub();
-
-      const placeholder = getByTestId(ProHubTestIds.CARD_PLACEHOLDER);
-      const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
-      const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
-
-      expect(placeholder).toBeOnTheScreen();
-      expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
-      expect(description).toHaveTextContent(
-        strings('pro_hub.physical_card.description'),
+      expect(getByTestId(ProHubTestIds.TITLE)).toHaveTextContent(
+        strings('pro_hub.title'),
       );
     });
 
-    it('renders the get card button with the i18n label', () => {
+    it('renders the subtitle from i18n', () => {
       const { getByTestId } = renderProHub();
 
-      const getCardButton = getByTestId(ProHubTestIds.GET_CARD_BUTTON);
-
-      expect(getCardButton).toHaveTextContent(
-        strings('pro_hub.physical_card.cta'),
+      expect(getByTestId(ProHubTestIds.SUBTITLE)).toHaveTextContent(
+        strings('pro_hub.subtitle'),
       );
     });
 
-    it('renders all benefit rows with correct titles', () => {
+    it('renders the header', () => {
       const { getByTestId } = renderProHub();
 
-      BENEFITS.forEach((benefit) => {
-        const row = getByTestId(BenefitRowTestIds.ROW(benefit.id));
-
-        expect(row).toBeOnTheScreen();
-        expect(row).toHaveTextContent(toRegex(strings(benefit.title)));
-      });
+      expect(getByTestId(ProHubTestIds.HEADER_ROOT)).toBeOnTheScreen();
     });
 
-    it('renders next payment amount, date, and manage plan button', () => {
+    it('renders the back button', () => {
       const { getByTestId } = renderProHub();
 
-      const nextPaymentText = getByTestId(ProHubTestIds.NEXT_PAYMENT_TEXT);
-      const manageButton = getByTestId(ProHubTestIds.MANAGE_BUTTON);
+      expect(getByTestId(ProHubTestIds.BACK_BUTTON)).toBeOnTheScreen();
+    });
 
-      expect(nextPaymentText).toHaveTextContent(
-        strings('pro_hub.next_payment', {
-          amount: MOCK_NEXT_PAYMENT.amount,
-          date: MOCK_NEXT_PAYMENT.date,
-        }),
+    it('renders the manage plans button', () => {
+      const { getByTestId } = renderProHub();
+
+      expect(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON)).toBeOnTheScreen();
+    });
+
+    it('renders the manage subscription button with correct label', () => {
+      const { getByTestId } = renderProHub();
+
+      expect(getByTestId(ProHubTestIds.MANAGE_BUTTON)).toHaveTextContent(
+        strings('pro_hub.manage'),
       );
-      expect(manageButton).toHaveTextContent(strings('pro_hub.manage_plan'));
     });
   });
 
@@ -166,7 +102,7 @@ describe('ProHub', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call navigation.goBack on initial render', () => {
+    it('does not call navigation.goBack before the button is pressed', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
@@ -176,7 +112,7 @@ describe('ProHub', () => {
   // ── Navigation ───────────────────────────────────────────────────────────
 
   describe('navigation', () => {
-    it('navigates to Membership when manage plan is pressed', () => {
+    it('navigates to Membership when manage subscription button is pressed', () => {
       const { getByTestId } = renderProHub();
 
       fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
@@ -192,49 +128,7 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
     });
 
-    it('navigates to Card when get card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.GET_CARD_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('navigates to Earned when the earned card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
-    });
-
-    it('does not navigate when the physical card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
-        nativeEvent: { locationX: 40, locationY: 40 },
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when the saved card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when a benefit row is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(BenefitRowTestIds.ROW(BENEFITS[0].id)));
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate on initial render', () => {
+    it('does not navigate before any button is pressed', () => {
       renderProHub();
 
       expect(mockNavigate).not.toHaveBeenCalled();

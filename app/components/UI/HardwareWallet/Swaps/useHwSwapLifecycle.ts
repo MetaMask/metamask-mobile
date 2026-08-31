@@ -247,7 +247,7 @@ export function useHwSwapLifecycle({
     dispatch(incrementBridgeBalanceRefreshKey());
     dispatch(resetHardwareWalletsSwaps());
     // Keep BridgeView beneath the modal, not the reset HW progress screen.
-    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW, undefined, { pop: true });
+    navigation.navigate(Routes.BRIDGE.BRIDGE_VIEW);
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
       params: {
@@ -375,11 +375,9 @@ export function useHwSwapLifecycle({
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
     } else if (target.params) {
-      navigateWithDetails(navigation, [target.route as string, target.params], {
-        pop: true,
-      });
+      navigateWithDetails(navigation, [target.route as string, target.params]);
     } else {
-      navigateWithDetails(navigation, [target.route as string], { pop: true });
+      navigateWithDetails(navigation, [target.route as string]);
     }
   }, [navigation, strategy.cancelTarget]);
 
@@ -455,7 +453,7 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
+    navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }, [dispatch, navigation, clearCachedSubmission]);
 
   return {

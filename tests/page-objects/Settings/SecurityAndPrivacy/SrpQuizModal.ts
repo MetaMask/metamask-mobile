@@ -8,7 +8,7 @@ import {
 } from '../../../../app/components/Views/Quiz/SRPQuiz/SrpQuizModal.testIds';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { type AppiumElement } from '../../../framework';
+import { EncapsulatedElementType } from '../../../framework';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
 import type { TapOptions } from '../../../framework/types';
 
@@ -23,21 +23,21 @@ const iosAppiumTapOptions = (elemDescription: string): TapOptions => {
 };
 
 class SrpQuizModal {
-  get getStartedContainer(): Promise<AppiumElement> {
+  get getStartedContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.CONTAINER);
   }
 
-  get getStartedScreenDismiss(): Promise<AppiumElement> {
+  get getStartedScreenDismiss(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.DISMISS);
   }
 
-  get modalIntroduction(): Promise<AppiumElement> {
+  get modalIntroduction(): EncapsulatedElementType {
     return Matchers.getElementByText(
       SrpQuizGetStartedSelectorsText.INTRODUCTION,
     );
   }
 
-  get getStartedButton(): Promise<AppiumElement> {
+  get getStartedButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SrpQuizGetStartedSelectorsIDs.BUTTON);
   }
 
@@ -93,7 +93,9 @@ class SrpQuizModal {
     return Matchers.getElementByID(ids.WRONG_ANSWER_TRY_AGAIN_BUTTON);
   }
 
-  getQuestionRightAnswerButton(questionNumber: number): Promise<AppiumElement> {
+  getQuestionRightAnswerButton(
+    questionNumber: number,
+  ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_ANSWER);
   }
@@ -110,7 +112,7 @@ class SrpQuizModal {
 
   getQuestionRightContinueButton(
     questionNumber: number,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     const { ids } = this.getQuestionSelectors(questionNumber);
     return Matchers.getElementByID(ids.RIGHT_CONTINUE);
   }

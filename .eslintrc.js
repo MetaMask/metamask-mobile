@@ -264,6 +264,10 @@ module.exports = {
             message: 'Sequence expressions are not allowed',
           },
           {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
+          },
+          {
             selector: "Identifier[name='FrameworkDetector']",
             message:
               'Do not use FrameworkDetector in POs/flows. Use Gestures/Assertions/Matchers.',
@@ -284,6 +288,10 @@ module.exports = {
           {
             selector: 'SequenceExpression',
             message: 'Sequence expressions are not allowed',
+          },
+          {
+            selector: "Identifier[name='UnifiedGestures']",
+            message: 'Use Gestures instead of UnifiedGestures.',
           },
           {
             selector: "Identifier[name='FrameworkDetector']",

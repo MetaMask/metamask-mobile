@@ -3,16 +3,17 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import enContent from '../../../locales/languages/en.json';
-import type { AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { ImportFromSeedSelectorsIDs } from '../../../app/components/Views/ImportFromSecretRecoveryPhrase/ImportFromSeed.testIds';
+import type { PlaywrightElement } from '../../framework';
 
 class CreatePasswordView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  get newPasswordInput(): Promise<AppiumElement> {
+  get newPasswordInput(): EncapsulatedElementType {
     // Android: match the inner EditText via content-desc (UiAutomator).
     // iOS: catch-all XPath (testID may land on a wrapper).
     if (PlatformDetector.isAndroid()) {
@@ -25,7 +26,7 @@ class CreatePasswordView {
     );
   }
 
-  get passwordVisibilityIcon(): Promise<AppiumElement> {
+  get passwordVisibilityIcon(): EncapsulatedElementType {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         ImportFromSeedSelectorsIDs.NEW_PASSWORD_VISIBILITY_ID,
@@ -38,13 +39,13 @@ class CreatePasswordView {
     );
   }
 
-  get confirmPasswordVisibilityIcon(): Promise<AppiumElement> {
+  get confirmPasswordVisibilityIcon(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_VISIBILITY_ID,
     );
   }
 
-  get confirmPasswordInput(): Promise<AppiumElement> {
+  get confirmPasswordInput(): EncapsulatedElementType {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByAndroidUIAutomator(
         `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
@@ -57,7 +58,7 @@ class CreatePasswordView {
     );
   }
 
-  get newWalletConfirmPasswordInput(): Promise<AppiumElement> {
+  get newWalletConfirmPasswordInput(): EncapsulatedElementType {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -70,23 +71,23 @@ class CreatePasswordView {
     );
   }
 
-  get iUnderstandCheckbox(): Promise<AppiumElement> {
+  get iUnderstandCheckbox(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get iUnderstandCheckboxNewWallet(): Promise<AppiumElement> {
+  get iUnderstandCheckboxNewWallet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get submitButton(): Promise<AppiumElement> {
+  get submitButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
-  get passwordError(): Promise<AppiumElement> {
+  get passwordError(): EncapsulatedElementType {
     return Matchers.getElementByText(enContent.import_from_seed.password_error);
   }
 
@@ -179,7 +180,7 @@ class CreatePasswordView {
   }
 
   private async readMarketingCheckboxChecked(
-    checkbox: AppiumElement,
+    checkbox: PlaywrightElement,
   ): Promise<boolean | undefined> {
     // Fetch attributes independently. Android UiAutomator2 does not support
     // `aria-checked` (only `checked` / `value`); requesting it floods WARN/ERROR
@@ -208,7 +209,7 @@ class CreatePasswordView {
   async ensureMarketingOptInChecked(): Promise<void> {
     const checkbox = (await Promise.resolve(
       this.iUnderstandCheckbox,
-    )) as AppiumElement;
+    )) as PlaywrightElement;
     const isChecked = await this.readMarketingCheckboxChecked(checkbox);
 
     if (isChecked === false) {

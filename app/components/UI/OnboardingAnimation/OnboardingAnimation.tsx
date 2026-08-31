@@ -1,13 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
-import {
-  Alignment,
-  Fit,
-  RiveErrorType,
-  RiveView,
-  useRive,
-  useRiveFile,
-} from '@rive-app/react-native';
+import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
 
 import MetaMaskWordmarkAnimation from '../../../animations/metamask_wordmark_animation_build-up.riv';
 import { hasTestOverrides } from '../../../util/test/utils';
@@ -72,8 +71,7 @@ const OnboardingAnimation = ({
   // Must be referentially stable; it feeds the animation callbacks' dependencies.
   onInteractiveContentReady?: () => void;
 }) => {
-  const { riveFile } = useRiveFile(MetaMaskWordmarkAnimation);
-  const { riveViewRef, setHybridRef } = useRive();
+  const logoRef = useRef<RiveRef>(null);
   const logoPosition = useMemo(() => new Animated.Value(0), []);
   const buttonsOpacity = useMemo(
     () => new Animated.Value(hasTestOverrides ? 1 : 0),
@@ -83,6 +81,7 @@ const OnboardingAnimation = ({
   const { themeAppearance } = useAppThemeFromContext();
   const styles = createStyles();
 
+  const [isPlaying, setIsPlaying] = useState(hasTestOverrides);
   const hasReportedInteractiveContent = useRef(false);
   const { riveHandlers } = useRivePerformance({
     animationId: OnboardingRiveAnimationIds.ONBOARDING_WORDMARK,
@@ -129,10 +128,10 @@ const OnboardingAnimation = ({
     }
 
     try {
-      if (riveViewRef) {
+      if (logoRef.current) {
         const isDarkMode = themeAppearance === 'dark';
-        riveViewRef.setBooleanInputValue('Dark', isDarkMode);
-        riveViewRef.triggerInput('Start');
+        logoRef.current.setInputState('WordmarkBuildUp', 'Dark', isDarkMode);
+        logoRef.current.fireState('WordmarkBuildUp', 'Start');
         setTimeout(() => {
           moveLogoUp();
         }, 1000);
@@ -147,25 +146,18 @@ const OnboardingAnimation = ({
   }, [
     themeAppearance,
     moveLogoUp,
-    riveViewRef,
+    logoRef,
     setStartFoxAnimation,
     logoPosition,
     buttonsOpacity,
     reportInteractiveContentReady,
   ]);
 
-  // Report the performance "play" milestone once the view is ready.
   useEffect(() => {
-    if (riveViewRef) {
-      riveHandlers.onPlay();
-    }
-  }, [riveViewRef, riveHandlers]);
-
-  useEffect(() => {
-    if (startOnboardingAnimation && (riveViewRef || hasTestOverrides)) {
+    if (startOnboardingAnimation && isPlaying) {
       startRiveAnimation();
     }
-  }, [startRiveAnimation, startOnboardingAnimation, riveViewRef]);
+  }, [startRiveAnimation, startOnboardingAnimation, isPlaying]);
 
   return (
     <>
@@ -179,21 +171,21 @@ const OnboardingAnimation = ({
           ]}
           pointerEvents="none"
         >
-          {!hasTestOverrides && riveFile && (
-            <RiveView
-              hybridRef={setHybridRef}
+          {!hasTestOverrides && (
+            <Rive
+              ref={logoRef}
               style={styles.image}
-              file={riveFile}
-              autoPlay
+              source={MetaMaskWordmarkAnimation}
               fit={Fit.Contain}
               alignment={Alignment.Center}
               stateMachineName="WordmarkBuildUp"
               testID="metamask-wordmark-animation"
+              onPlay={() => {
+                riveHandlers.onPlay();
+                setIsPlaying(true);
+              }}
               onError={(riveError) => {
-                riveHandlers.onError({
-                  message: riveError.message,
-                  type: RiveErrorType[riveError.type],
-                });
+                riveHandlers.onError(riveError);
               }}
             />
           )}

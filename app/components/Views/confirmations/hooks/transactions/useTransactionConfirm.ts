@@ -177,27 +177,19 @@ export function useTransactionConfirm() {
         return;
       } else if (type === TransactionType.perpsDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
         } else {
           navigateToPerpsHome();
         }
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
+          navigation.navigate(Routes.HOME_TABS, {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          });
         } else {
           navigation.goBack();
         }
@@ -208,14 +200,10 @@ export function useTransactionConfirm() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
-        navigation.navigate(
-          Routes.HOME_TABS,
-          {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          },
-          { pop: true },
-        );
+        navigation.navigate(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
       } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)

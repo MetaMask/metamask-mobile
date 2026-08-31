@@ -214,7 +214,7 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ steps.namespace-apk-cache.outputs.cache-hit != 'true' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -442,7 +442,7 @@ jobs:
       # seconds of harvest window out of ~4.5 minutes.
       - name: Re-check for a reusable build published since the first lookup
         id: find-reusable-build-late
-        if: ${{ steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false && steps.gate.outputs.needs-native-build == 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -893,11 +893,9 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
-      # Always mirrored to the GitHub store, including on Namespace: cross-run
-      # reuse discovery lists artifacts through the GitHub API, which cannot see
-      # the Namespace store. See "Runner provider switch" in .github/CONTRIBUTING.md.
-      - name: Upload Android APK (GitHub store)
+      - name: Upload Android APK (current)
         id: upload-apk
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' || inputs.include_arm64 == true }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
@@ -926,8 +924,9 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      - name: Upload Android build metadata (GitHub store)
+      - name: Upload Android build metadata (current)
         id: upload-metadata
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -936,8 +935,9 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      - name: Upload Android Test APK (GitHub store)
+      - name: Upload Android Test APK (current)
         id: upload-test-apk
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk

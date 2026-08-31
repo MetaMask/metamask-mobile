@@ -2,40 +2,40 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ExportCredentialsIds } from '../../../app/components/Views/MultichainAccounts/AccountDetails/ExportCredentials.testIds';
 import { RevealSeedViewSelectorsIDs } from '../../../app/components/Views/RevealPrivateCredential/RevealSeedView.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class ExportCredentials {
-  get srpInfoContainer(): Promise<AppiumElement> {
+  get srpInfoContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.CONTAINER);
   }
 
-  get revealContainer(): Promise<AppiumElement> {
+  get revealContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_CONTAINER_ID,
     );
   }
 
-  get exportPrivateKeyButton(): Promise<AppiumElement> {
+  get exportPrivateKeyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExportCredentialsIds.EXPORT_PRIVATE_KEY_BUTTON,
     );
   }
 
-  get exportSrpButton(): Promise<AppiumElement> {
+  get exportSrpButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.EXPORT_SRP_BUTTON);
   }
 
-  get passwordInput(): Promise<AppiumElement> {
+  get passwordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
   }
 
-  get nextButton(): Promise<AppiumElement> {
+  get nextButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.NEXT_BUTTON);
   }
 
-  get learnMoreButton(): Promise<AppiumElement> {
+  get learnMoreButton(): EncapsulatedElementType {
     return Matchers.getElementByID(ExportCredentialsIds.LEARN_MORE_BUTTON);
   }
 

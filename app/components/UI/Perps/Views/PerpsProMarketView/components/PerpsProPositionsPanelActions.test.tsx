@@ -143,25 +143,6 @@ jest.mock(
 );
 
 jest.mock(
-  '../../../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return function PerpsCancelAllOrdersView(props: {
-      orders?: { orderId: string }[];
-      isFiltered?: boolean;
-    }) {
-      return (
-        <View
-          testID="perps-cancel-all-orders-view"
-          orderIds={(props.orders ?? []).map((order) => order.orderId)}
-          isFiltered={props.isFiltered}
-        />
-      );
-    };
-  },
-);
-
-jest.mock(
   '../../../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet',
   () => {
     const { View } = jest.requireActual('react-native');
@@ -286,21 +267,17 @@ const order: Order = {
 
 const ActionHarness = ({
   onReady,
-  renderSheetArgs,
 }: {
   onReady: (
     actions: ReturnType<typeof usePerpsProPositionsPanelActions>,
   ) => void;
-  renderSheetArgs?: Parameters<
-    ReturnType<typeof usePerpsProPositionsPanelActions>['renderActionSheets']
-  >;
 }) => {
   const actions = usePerpsProPositionsPanelActions();
   React.useEffect(() => {
     onReady(actions);
   }, [actions, onReady]);
 
-  return <>{actions.renderActionSheets(...(renderSheetArgs ?? []))}</>;
+  return <>{actions.renderActionSheets()}</>;
 };
 
 describe('usePerpsProPositionsPanelActions', () => {
@@ -614,38 +591,6 @@ describe('usePerpsProPositionsPanelActions', () => {
     });
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
-
-  it('renders cancel-all sheet scoped to the passed orders when handler is invoked', async () => {
-    let actions:
-      | ReturnType<typeof usePerpsProPositionsPanelActions>
-      | undefined;
-    const filteredOrders: Order[] = [
-      { ...order, orderId: 'eth-1', symbol: 'ETH' },
-    ];
-
-    render(
-      <ActionHarness
-        onReady={(readyActions) => {
-          actions = readyActions;
-        }}
-        renderSheetArgs={[undefined, undefined, filteredOrders, true]}
-      />,
-    );
-
-    await act(async () => {
-      actions?.handleCancelAllPress();
-    });
-
-    expect(mockGate).toHaveBeenCalled();
-    await waitFor(() => {
-      expect(
-        screen.getByTestId('perps-cancel-all-orders-view'),
-      ).toBeOnTheScreen();
-    });
-    const sheet = screen.getByTestId('perps-cancel-all-orders-view');
-    expect(sheet.props.orderIds).toEqual(['eth-1']);
-    expect(sheet.props.isFiltered).toBe(true);
-  });
 });
 
 describe('PerpsProPositionsPanel action callbacks', () => {
@@ -816,6 +761,18 @@ describe('PerpsProPositionsPanel action callbacks', () => {
     );
 
     expect(onCancel).toHaveBeenCalledWith(order);
+  });
+
+  it('invokes edit price callback from order card edit button', () => {
+    const onEditPrice = jest.fn();
+
+    render(<PerpsProOrderCard order={order} onEditPrice={onEditPrice} />);
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_EDIT),
+    );
+
+    expect(onEditPrice).toHaveBeenCalledWith(order);
   });
 
   it('invokes edit price callback from order card price control', () => {

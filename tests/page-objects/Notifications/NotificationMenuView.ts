@@ -99,7 +99,7 @@ class NotificationMenuView {
       async () => {
         await this.scrollToNotificationItem(id, {
           direction: options?.direction ?? 'down',
-          // ~3 scrolls per attempt (Gestures.scrollToElement: timeout/5000, capped 3–12)
+          // ~3 scrolls per attempt (GestureStrategy: timeout/5000, capped 3–12)
           timeout: 10_000,
         });
       },
@@ -117,7 +117,7 @@ class NotificationMenuView {
   ): Promise<void> {
     // Bound the Appium scroll budget so a missing item fails fast with a clear
     // error instead of looping until the suite timeout (CI: ~3 minutes).
-    // 40s → ~8 scrolls (Gestures.scrollToElement caps timeout/5000 between 3 and 12).
+    // 40s → ~8 scrolls (GestureStrategy caps timeout/5000 between 3 and 12).
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,

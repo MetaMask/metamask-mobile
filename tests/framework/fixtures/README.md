@@ -2,7 +2,7 @@
 
 ## Playwright performance fixtures
 
-Performance tests use Playwright `test.extend` fixtures under [`playwright/`](./playwright/README.md) (import `{ test }` from `framework/fixtures/playwright`). `FixtureBuilder` / `withFixtures` (documented below) are shared with Appium smoke.
+Performance tests use Playwright `test.extend` fixtures under [`playwright/`](./playwright/README.md) (import `{ test }` from `framework/fixtures/playwright`). `FixtureBuilder` / `withFixtures` (documented below) are shared across Detox and Playwright.
 
 ## Overview
 

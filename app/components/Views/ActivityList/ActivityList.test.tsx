@@ -1,7 +1,6 @@
 import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import {
-  act,
   fireEvent,
   render,
   screen,
@@ -556,10 +555,6 @@ let mockPerpsSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
-let mockDeferPerpsSourceReport = false;
-let mockPerpsSourceOnChange:
-  | ((state: typeof mockPerpsSourceState) => void)
-  | undefined;
 
 jest.mock('./hooks/PerpsActivitySource', () => {
   const ReactActual = jest.requireActual('react');
@@ -575,11 +570,8 @@ jest.mock('./hooks/PerpsActivitySource', () => {
     }: {
       onChange: (state: unknown) => void;
     }) => {
-      mockPerpsSourceOnChange = onChange;
       ReactActual.useEffect(() => {
-        if (!mockDeferPerpsSourceReport) {
-          onChange(mockPerpsSourceState);
-        }
+        onChange(mockPerpsSourceState);
       }, [onChange]);
       return ReactActual.createElement(View, {
         testID: 'perps-source-mounted',
@@ -603,10 +595,6 @@ let mockPredictSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
-let mockDeferPredictSourceReport = false;
-let mockPredictSourceOnChange:
-  | ((state: typeof mockPredictSourceState) => void)
-  | undefined;
 
 jest.mock('./hooks/PredictActivitySource', () => {
   const ReactActual = jest.requireActual('react');
@@ -622,11 +610,8 @@ jest.mock('./hooks/PredictActivitySource', () => {
     }: {
       onChange: (state: unknown) => void;
     }) => {
-      mockPredictSourceOnChange = onChange;
       ReactActual.useEffect(() => {
-        if (!mockDeferPredictSourceReport) {
-          onChange(mockPredictSourceState);
-        }
+        onChange(mockPredictSourceState);
       }, [onChange]);
       return ReactActual.createElement(View, {
         testID: 'predict-source-mounted',
@@ -728,10 +713,6 @@ describe('ActivityList', () => {
     selectorValues.predictEnabled = false;
     mockPerpsSourceState = { items: [], isLoading: false, error: null };
     mockPredictSourceState = { items: [], isLoading: false, error: null };
-    mockDeferPerpsSourceReport = false;
-    mockDeferPredictSourceReport = false;
-    mockPerpsSourceOnChange = undefined;
-    mockPredictSourceOnChange = undefined;
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
@@ -1799,97 +1780,6 @@ describe('ActivityList', () => {
     expect(
       screen.queryByTestId(ActivityListSelectorsIDs.LOAD_MORE_INDICATOR),
     ).toBeNull();
-  });
-
-  it('keeps All loading until every enabled domain source reports', () => {
-    selectorValues.perpsEnabled = true;
-    selectorValues.predictEnabled = true;
-    mockDeferPerpsSourceReport = true;
-    mockDeferPredictSourceReport = true;
-    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
-
-    expect(
-      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
-
-    act(() => mockPerpsSourceOnChange?.(mockPerpsSourceState));
-
-    expect(
-      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
-
-    act(() => mockPredictSourceOnChange?.(mockPredictSourceState));
-
-    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('does not auto-scroll when All settles after initial domain reports', async () => {
-    selectorValues.perpsEnabled = true;
-    selectorValues.predictEnabled = true;
-    mockDeferPerpsSourceReport = true;
-    mockDeferPredictSourceReport = true;
-    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
-
-    act(() => {
-      mockPerpsSourceOnChange?.(mockPerpsSourceState);
-      mockPredictSourceOnChange?.(mockPredictSourceState);
-    });
-    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
-
-    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
-  });
-
-  it('keeps partial local activity hidden while the initial EVM query loads', () => {
-    (useTransactionsQuery as jest.Mock).mockReturnValue({
-      data: { pages: [{ data: [] }] },
-      fetchNextPage: mockFetchNextPage,
-      hasNextPage: false,
-      isFetchingNextPage: false,
-      isInitialLoading: true,
-      refetch: mockRefetch,
-    });
-
-    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
-
-    expect(
-      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-    expect(screen.queryByTestId('row-0xlocal')).not.toBeOnTheScreen();
-  });
-
-  it('does not auto-scroll when initial API activity replaces partial local activity', async () => {
-    (useTransactionsQuery as jest.Mock).mockReturnValue({
-      data: { pages: [{ data: [] }] },
-      fetchNextPage: mockFetchNextPage,
-      hasNextPage: false,
-      isFetchingNextPage: false,
-      isInitialLoading: true,
-      refetch: mockRefetch,
-    });
-    const { rerender } = render(
-      <ActivityList typeFilter={ActivityTypeFilter.Transactions} />,
-    );
-    (useTransactionsQuery as jest.Mock).mockReturnValue({
-      data: { pages: [{ data: [confirmedItem] }] },
-      fetchNextPage: mockFetchNextPage,
-      hasNextPage: false,
-      isFetchingNextPage: false,
-      isInitialLoading: false,
-      refetch: mockRefetch,
-    });
-    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
-
-    rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
-    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
-
-    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
-    expect(mockScrollToOffset).not.toHaveBeenCalled();
   });
 
   it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {

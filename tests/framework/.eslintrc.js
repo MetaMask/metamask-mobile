@@ -4,6 +4,11 @@
 const dualFrameworkRestrictedImportOptions = {
   patterns: [
     {
+      group: ['**/UnifiedGestures', '**/UnifiedGestures.ts'],
+      message:
+        'Use Gestures from tests/framework (canonical). UnifiedGestures is legacy dual-runner API.',
+    },
+    {
       group: [
         '**/FrameworkDetector',
         '**/FrameworkDetector.ts',
@@ -14,31 +19,62 @@ const dualFrameworkRestrictedImportOptions = {
     },
     {
       group: [
-        '**/AppiumMatchers',
-        '**/AppiumMatchers.ts',
-        '**/AppiumGestures',
-        '**/AppiumGestures.ts',
-        '**/AppiumAssertions',
-        '**/AppiumAssertions.ts',
-        '**/AppiumWebMatchers',
-        '**/AppiumWebMatchers.ts',
+        '**/EncapsulatedElement',
+        '**/EncapsulatedElement.ts',
+        '**/EncapsulatedElement.js',
+      ],
+      importNames: [
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
       ],
       message:
-        'Do not import AppiumMatchers/AppiumGestures/AppiumAssertions backends in POs/specs. Use Gestures/Assertions/Matchers.',
+        'Do not use encapsulated()/asPlaywrightElement/asDetoxElement. Prefer Matchers + Gestures/Assertions.',
     },
     {
-      // Only bare `from '.../framework'` / index re-exports
+      group: [
+        '**/encapsulatedAction',
+        '**/encapsulatedAction.ts',
+        '**/encapsulatedAction.js',
+      ],
+      message:
+        'Do not import encapsulatedAction. Prefer Gestures/Assertions from tests/framework.',
+    },
+    {
+      group: [
+        '**/PlaywrightMatchers',
+        '**/PlaywrightMatchers.ts',
+        '**/PlaywrightGestures',
+        '**/PlaywrightGestures.ts',
+        '**/PlaywrightAssertions',
+        '**/PlaywrightAssertions.ts',
+        '**/PlaywrightWebMatchers',
+        '**/PlaywrightWebMatchers.ts',
+        '**/PlaywrightAdapter',
+        '**/PlaywrightAdapter.ts',
+      ],
+      message:
+        'Do not import Playwright* dual-framework APIs in POs/specs. Use Gestures/Assertions/Matchers.',
+    },
+    {
+      // Only bare `from '.../framework'` / index re-exports (not framework/EncapsulatedElement etc.)
       group: [
         '**/framework/index',
         '**/framework/index.ts',
         '**/framework/index.js',
       ],
       importNames: [
+        'UnifiedGestures',
         'FrameworkDetector',
-        'AppiumMatchers',
-        'AppiumGestures',
-        'AppiumAssertions',
-        'AppiumWebMatchers',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
       ],
       message:
         'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',
@@ -53,11 +89,16 @@ const dualFrameworkRestrictedImportOptions = {
         '../../../../../framework',
       ],
       importNames: [
+        'UnifiedGestures',
         'FrameworkDetector',
-        'AppiumMatchers',
-        'AppiumGestures',
-        'AppiumAssertions',
-        'AppiumWebMatchers',
+        'encapsulated',
+        'encapsulatedAction',
+        'asDetoxElement',
+        'asPlaywrightElement',
+        'PlaywrightMatchers',
+        'PlaywrightGestures',
+        'PlaywrightAssertions',
+        'PlaywrightWebMatchers',
       ],
       message:
         'Do not import dual-framework legacy APIs from tests/framework. Use Gestures/Assertions/Matchers.',

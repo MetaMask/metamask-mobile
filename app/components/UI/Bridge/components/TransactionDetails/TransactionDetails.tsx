@@ -40,7 +40,6 @@ import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken, BridgeViewMode } from '../../types';
-import { startSwapBridgePageLoadTrace } from '../../utils/swapBridgePageLoadTrace';
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
@@ -492,18 +491,18 @@ export const BridgeTransactionDetails = (
 
     const handleBridgeAgain = () => {
       dispatch(setSourceAmount(undefined));
-      const params = startSwapBridgePageLoadTrace({
-        sourcePage: 'BridgeTransactionDetails',
-        bridgeViewMode: isBridge ? BridgeViewMode.Bridge : BridgeViewMode.Swap,
-        sourceToken,
-        destToken: destinationToken,
-        location: MetaMetricsSwapsEventSource.MainView,
-        scrollToTopOnNav: true,
-      });
-
       navigation.navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
+        params: {
+          sourcePage: 'BridgeTransactionDetails',
+          bridgeViewMode: isBridge
+            ? BridgeViewMode.Bridge
+            : BridgeViewMode.Swap,
+          sourceToken,
+          destToken: destinationToken,
+          location: MetaMetricsSwapsEventSource.MainView,
+          scrollToTopOnNav: true,
+        },
       });
     };
 

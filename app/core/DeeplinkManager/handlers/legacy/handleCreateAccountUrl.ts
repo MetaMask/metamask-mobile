@@ -3,10 +3,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
 import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/multichain';
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
+import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
-import { startSwapBridgePageLoadTrace } from '../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
 import NavigationService from '../../../NavigationService';
 
 export function handleCreateAccountUrl({ path }: { path: string }) {
@@ -37,12 +37,12 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
     const sourceToken = getNativeSourceToken(chainId);
 
     // this will make the bridge view open with the correct source token
-    const params = startSwapBridgePageLoadTrace({
+    const params: BridgeRouteParams = {
       sourceToken,
       sourcePage: 'deeplink',
       bridgeViewMode: BridgeViewMode.Unified,
       location: MetaMetricsSwapsEventSource.MainView,
-    });
+    };
 
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,

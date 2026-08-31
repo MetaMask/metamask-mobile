@@ -3,87 +3,94 @@ import {
   GasFeeTokenSelectorIDs,
 } from '../../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import Matchers from '../../../framework/Matchers';
-import { type AppiumElement, Utilities } from '../../../framework';
+import { EncapsulatedElementType } from '../../../framework';
 
 class RowComponents {
-  get AccountNetwork(): Promise<AppiumElement> {
+  get AccountNetwork(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
   }
 
-  get AdvancedDetails(): Promise<AppiumElement> {
+  get AdvancedDetails(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.ADVANCED_DETAILS,
     );
   }
 
-  get FromTo(): Promise<AppiumElement> {
+  get FromTo(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.FROM_TO);
   }
 
-  get GasFeesDetails(): Promise<AppiumElement> {
+  get GasFeesDetails(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEES_DETAILS,
     );
   }
 
-  get Message(): Promise<AppiumElement> {
+  get Message(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
   }
 
-  get OriginInfo(): Promise<AppiumElement> {
+  get OriginInfo(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
   }
 
-  get SimulationDetails(): Promise<AppiumElement> {
+  get SimulationDetails(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIMULATION_DETAILS,
     );
   }
 
-  get SiweSigningAccountInfo(): Promise<AppiumElement> {
+  get SiweSigningAccountInfo(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
     );
   }
 
-  get TokenHero(): Promise<AppiumElement> {
+  get TokenHero(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
 
-  get ApproveRow(): Promise<AppiumElement> {
+  get ApproveRow(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
   }
 
-  get NetworkAndOrigin(): Promise<AppiumElement> {
+  get NetworkAndOrigin(): EncapsulatedElementType {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.NETWORK);
   }
 
-  get NetworkFeePaidByMetaMask(): Promise<AppiumElement> {
+  get NetworkFeePaidByMetaMask(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.PAID_BY_METAMASK,
     );
   }
 
-  get NetworkFeeGasFeeTokenPill(): Promise<AppiumElement> {
+  get NetworkFeeGasFeeTokenPill(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEE_TOKEN_PILL,
     );
   }
 
-  get NetworkFeeGasFeeTokenSymbol(): Promise<AppiumElement> {
+  get NetworkFeeGasFeeTokenSymbol(): EncapsulatedElementType {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_SYMBOL,
     );
   }
 
-  get NetworkFeeGasFeeTokenArrow(): Promise<AppiumElement> {
+  get NetworkFeeGasFeeTokenArrow(): EncapsulatedElementType {
     return Matchers.getElementByID(
       GasFeeTokenSelectorIDs.SELECTED_GAS_FEE_TOKEN_ARROW,
     );
   }
 
   async getNetworkFeeGasFeeTokenSymbolText(): Promise<string> {
-    return Utilities.getElementText(this.NetworkFeeGasFeeTokenSymbol);
+    const symbolElement = (await this
+      .NetworkFeeGasFeeTokenSymbol) as IndexableNativeElement;
+    const symbolElementAttributes = await symbolElement.getAttributes();
+    return (
+      (symbolElementAttributes as { text?: string; label?: string })?.text ??
+      (symbolElementAttributes as { text?: string; label?: string })?.label ??
+      ''
+    );
   }
 }
 

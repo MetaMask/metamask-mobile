@@ -1,10 +1,8 @@
-import { BenefitRowTestIds } from '../../../shared/pro';
-
 export const BenefitsTestIds = {
   CONTAINER: 'benefits-container',
   TITLE: 'benefits-title',
   PRICE_LINE: 'benefits-price-line',
-  BENEFIT_ROW: BenefitRowTestIds.ROW,
+  BENEFIT_ROW: (id: string) => `benefits-benefit-row-${id}`,
   PLAN_CARD: (planId: string) => `benefits-plan-card-${planId}`,
   CTA_BUTTON: 'benefits-cta-button',
   BENEFIT_DETAILS_CONTAINER: 'benefits-details-container',

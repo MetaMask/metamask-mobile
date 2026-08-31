@@ -10,7 +10,6 @@ import type { MoneyUnlinkCardSheetRouteParams } from '../components/MoneyUnlinkC
 import type { ChooseYourCardParams } from '../Views/ChooseYourCard/ChooseYourCard';
 import type { ReviewOrderParams } from '../Views/ReviewOrder/ReviewOrder';
 import type { OrderCompletedParams } from '../Views/OrderCompleted/OrderCompleted';
-import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingToken, CardUserPhase } from '../types';
 
 /**
@@ -48,15 +47,6 @@ export type CardScreensStackParamList = {
   OrderCompleted: OrderCompletedParams | undefined;
   CardCashback: undefined;
   CardCreditRedeem: undefined;
-  CardTransactionHistory: undefined;
-  CardTransactionDetails: {
-    transactionId: string;
-    transaction?: CardTransaction;
-  };
-  CardReportTransaction: {
-    transactionId: string;
-    transaction?: CardTransaction;
-  };
   CardSetPin: { cardId: string };
   CardConfirmPin: { cardId: string };
   CardAuthentication:

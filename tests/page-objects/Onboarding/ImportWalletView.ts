@@ -4,25 +4,25 @@ import enContent from '../../../locales/languages/en.json';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ImportWalletView {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.CONTAINER_ID);
   }
 
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByID(ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID);
   }
 
-  get newPasswordInput(): Promise<AppiumElement> {
+  get newPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): Promise<AppiumElement> {
+  get confirmPasswordInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
@@ -44,7 +44,7 @@ class ImportWalletView {
     return `//*[@label="${index + 1}."]`;
   }
 
-  seedPhraseInput(index: number, onboarding = true): Promise<AppiumElement> {
+  seedPhraseInput(index: number, onboarding = true): EncapsulatedElementType {
     // Onboarding ImportFromSecretRecoveryPhrase uses phrase-input-id;
     // post-onboarding ImportNewSecretRecoveryPhrase uses seed-phrase-input.
     const androidSeedPhraseInputPrefix = onboarding
@@ -64,7 +64,7 @@ class ImportWalletView {
     );
   }
 
-  get continueButton(): Promise<AppiumElement> {
+  get continueButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID,
     );
@@ -179,7 +179,7 @@ class ImportWalletView {
     });
   }
 
-  get importFromExtensionLink(): Promise<AppiumElement> {
+  get importFromExtensionLink(): EncapsulatedElementType {
     // Nested RN Text testIDs are not exposed as Android resourceId / iOS
     // accessibility id. Exact text matches the tappable inner link (contains
     // matching hits the parent sentence and does not fire onPress).

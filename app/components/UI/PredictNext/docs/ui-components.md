@@ -1,6 +1,6 @@
 # PredictNext UI component architecture
 
-PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event Screens, Market groups, and charts. Keep simple leaf components simple.
+PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event detail, Market groups, and charts. Keep simple leaf components simple.
 
 ## Rules
 
@@ -22,13 +22,13 @@ Create explicit product compositions instead, such as `EventCardStandard` and `E
 A compound API is appropriate when a reusable structure has independently useful parts or sibling parts share state. For example:
 
 ```tsx
-<EventScreen.Root>
-  <EventScreen.Header />
-  <EventScreen.Content>
+<EventDetail.Root>
+  <EventDetail.Header />
+  <EventDetail.Content>
     <MarketList />
-    <EventScreen.About />
-  </EventScreen.Content>
-</EventScreen.Root>
+    <EventDetail.About />
+  </EventDetail.Content>
+</EventDetail.Root>
 ```
 
 When sibling parts need shared state, expose the smallest typed provider contract needed by current callers. Separate it into `state`, `actions`, and presentation metadata where that distinction is useful. The provider owns the state mechanism; presentational parts consume the interface rather than importing product hooks or services.

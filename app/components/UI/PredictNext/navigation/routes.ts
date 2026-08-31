@@ -1,5 +1,5 @@
 export const PredictNextRoutes = {
   HOME: 'PredictNextHome',
   FEED: 'PredictNextFeed',
-  EVENT: 'PredictNextEvent',
+  EVENT_DETAIL: 'PredictNextEventDetail',
 } as const;

@@ -52,20 +52,17 @@ jest.mock('../../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
-// Mock SwapsMarketOrderConfirmButton to isolate footer-specific behaviour from its own
+// Mock SwapsConfirmButton to isolate footer-specific behaviour from its own
 // dependencies (Engine, useNavigation, useSubmitBridgeTx, …).
-jest.mock(
-  '../../../components/SwapsMarketOrderConfirmButton/index.tsx',
-  () => ({
-    SwapsMarketOrderConfirmButton: ({ testID }: { testID?: string }) => {
-      const MockReact = jest.requireActual('react');
-      const { View } = jest.requireActual('react-native');
-      return MockReact.createElement(View, {
-        testID: testID ?? 'bridge-confirm-button',
-      });
-    },
-  }),
-);
+jest.mock('../../../components/SwapsConfirmButton/index.tsx', () => ({
+  SwapsConfirmButton: ({ testID }: { testID?: string }) => {
+    const MockReact = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return MockReact.createElement(View, {
+      testID: testID ?? 'bridge-confirm-button',
+    });
+  },
+}));
 
 jest.mock(
   '../../../../Rewards/components/RewardsVipBadge/RewardsVipBadge',

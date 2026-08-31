@@ -15,6 +15,16 @@ export enum CustomTransactionTypeLabel {
   TrustlineDisapprove = 'trustline-disapprove',
 }
 
+export function hasTrustlineTypeLabel(
+  details: Transaction['details'],
+): boolean {
+  // A flag to indicate if the transaction is a trustline type.
+  return [
+    String(CustomTransactionTypeLabel.TrustlineApprove),
+    String(CustomTransactionTypeLabel.TrustlineDisapprove),
+  ].includes(details?.typeLabel ?? '');
+}
+
 function withOptionalSymbol(label: string, symbol?: string): string {
   return symbol ? `${label} ${symbol}` : label;
 }

@@ -20,6 +20,7 @@ export interface DeviceMatrix {
 
 // Gestures
 
+import { LanguageAndLocale } from './legacy-detox-shim';
 import { DappVariants } from './Constants.ts';
 import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
@@ -32,10 +33,6 @@ import CommandQueueServer from './fixtures/CommandQueueServer.ts';
 import { CurrentDeviceDetails } from './fixtures/playwright';
 import type { PlatformDeviceCommandHandler } from './services/device-commands/types';
 
-export interface LanguageAndLocale {
-  language?: string;
-  locale?: string;
-}
 /*
  * WDIO PLAYWRIGHT TESTS
  */
@@ -125,7 +122,7 @@ export interface GestureOptions {
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
   waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
-  /** Appium: stricter enabled polling before tap (AppiumGestures.waitUntilInteractive) */
+  /** Appium: stricter enabled polling before tap (PlaywrightGestures.waitUntilInteractive) */
   waitForInteractive?: boolean;
 }
 
@@ -152,8 +149,11 @@ export interface MatcherOptions {
   index?: number;
 }
 
-/** Scroll container for Gestures.scrollToElement — Appium testID string. */
-export type ScrollContainer = string;
+/** Detox scroll-container matcher; undefined when omitted on Appium. */
+export type ScrollViewMatcher = Promise<Detox.NativeMatcher | undefined>;
+
+/** Scroll container for scrollToElement — testID string or Detox matcher promise. */
+export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * The options for the scroll gesture.

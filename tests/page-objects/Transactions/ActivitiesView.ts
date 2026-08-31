@@ -14,38 +14,38 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class ActivitiesView {
-  get typeFilterChip(): Promise<AppiumElement> {
+  get typeFilterChip(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
   }
 
-  typeFilterOption(option: string): Promise<AppiumElement> {
+  typeFilterOption(option: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
     );
   }
 
-  get perpsFilterChip(): Promise<AppiumElement> {
+  get perpsFilterChip(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
     );
   }
 
-  get perpsFilterSheet(): Promise<AppiumElement> {
+  get perpsFilterSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
     );
   }
 
-  get typeFilterSheet(): Promise<AppiumElement> {
+  get typeFilterSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
     );
   }
 
-  perpsFilterOption(option: string): Promise<AppiumElement> {
+  perpsFilterOption(option: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
     );
@@ -132,17 +132,17 @@ class ActivitiesView {
     await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
   }
 
-  get title(): Promise<AppiumElement> {
+  get title(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
 
-  get networkFilterChip(): Promise<AppiumElement> {
+  get networkFilterChip(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
     );
   }
 
-  get redesignedScreen(): Promise<AppiumElement> {
+  get redesignedScreen(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
@@ -173,82 +173,82 @@ class ActivitiesView {
     );
   }
 
-  get predictionsTab(): Promise<AppiumElement> {
+  get predictionsTab(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICTIONS_TAB,
     );
   }
 
-  get transferTab(): Promise<AppiumElement> {
+  get transferTab(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
   }
 
-  get tabsBar(): Promise<AppiumElement> {
+  get tabsBar(): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
     );
   }
 
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
   }
 
-  get confirmedLabel(): Promise<AppiumElement> {
+  get confirmedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
   }
 
-  get stakeDepositedLabel(): Promise<AppiumElement> {
+  get stakeDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): Promise<AppiumElement> {
+  get stakeMoreDepositedLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): Promise<AppiumElement> {
+  get unstakeLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): Promise<AppiumElement> {
+  get stackingClaimLabel(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): Promise<AppiumElement> {
+  get approveActivity(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get lendingDepositActivity(): Promise<AppiumElement> {
+  get lendingDepositActivity(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_DEPOSIT,
     );
   }
 
-  get lendingWithdrawalActivity(): Promise<AppiumElement> {
+  get lendingWithdrawalActivity(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
     );
   }
 
-  get predictDeposit(): Promise<AppiumElement> {
+  get predictDeposit(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): Promise<AppiumElement> {
+  get predictWithdraw(): EncapsulatedElementType {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionStatus(row: number): Promise<AppiumElement> {
+  transactionStatus(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
 
-  transactionItem(row: number): Promise<AppiumElement> {
+  transactionItem(row: number): EncapsulatedElementType {
     return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
@@ -271,17 +271,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): Promise<AppiumElement> {
+  swapApprovalActivityTitle(): EncapsulatedElementType {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): Promise<AppiumElement> {
+  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -375,7 +375,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -384,7 +384,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -426,6 +426,18 @@ class ActivitiesView {
         timeout: 10000,
         description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
       },
+    );
+  }
+
+  /**
+   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
+   * Delegates to verifyActivityItemWithStatus.
+   */
+  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
+    await this.verifyActivityItemWithStatus(
+      ActivitiesViewSelectorsText.MUSD_CONVERSION,
+      ActivitiesViewSelectorsText.CONFIRM_TEXT,
+      rowIndex,
     );
   }
 

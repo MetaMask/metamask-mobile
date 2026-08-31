@@ -52,10 +52,6 @@ _Avoid_: Feed, Competition screen, backend Feed hierarchy
 A grouping of one or more related binary Markets from exactly one Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An Event may have one Category and one Series.
 _Avoid_: Market, PredictMarket, composite Venue Events
 
-**Event Screen**:
-A product navigation surface that presents one immutable Event identified by its Venue and Event identities.
-_Avoid_: Event Detail, Event Details Screen
-
 **Market**:
 A single binary question within an Event, resolved as Yes or No, such as "Lakers to win Game 7".
 _Avoid_: Outcome, PredictOutcome, condition
@@ -246,7 +242,6 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
 - A Feed Screen contains one or more ordered tabs, and each tab identifies exactly one Feed.
 - Each Event maps to exactly one Venue Event and contains one or more Markets; Predict never combines Markets from multiple Venue Events into one Event.
-- An Event Screen presents exactly one immutable Event and never rotates to another Event from the same Series.
 - Each Event may have one primary Category and one Series.
 - A Category is product-owned and is distinct from Venue tags and future Topics.
 - A Series groups related Events; Predict does not fabricate a singleton Series for an Event without a meaningful Series.

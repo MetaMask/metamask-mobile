@@ -5,7 +5,7 @@ import {
   Assertions,
   PlatformDetector,
   Utilities,
-  type AppiumElement,
+  EncapsulatedElementType,
   sleep,
 } from '../../framework';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
@@ -18,43 +18,43 @@ import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 import TrendingView from '../Trending/TrendingView';
 
 class TabBarComponent {
-  get tabBarExploreButton(): Promise<AppiumElement> {
+  get tabBarExploreButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.EXPLORE);
   }
 
-  get tabBarBrowserButton(): Promise<AppiumElement> {
+  get tabBarBrowserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.BROWSER);
   }
 
-  get tabBarWalletButton(): Promise<AppiumElement> {
+  get tabBarWalletButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
-  get tabBarActionButton(): Promise<AppiumElement> {
+  get tabBarActionButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIONS);
   }
 
-  get tabBarTradeButton(): Promise<AppiumElement> {
+  get tabBarTradeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.TRADE);
   }
 
-  get tabBarSettingButton(): Promise<AppiumElement> {
+  get tabBarSettingButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.SETTING);
   }
 
-  get tabBarActivityButton(): Promise<AppiumElement> {
+  get tabBarActivityButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.ACTIVITY);
   }
 
-  get tabBarRewardsButton(): Promise<AppiumElement> {
+  get tabBarRewardsButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.REWARDS);
   }
 
-  get tabBarMoneyButton(): Promise<AppiumElement> {
+  get tabBarMoneyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.MONEY);
   }
 
-  get homeButton(): Promise<AppiumElement> {
+  get homeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 

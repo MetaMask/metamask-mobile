@@ -1,8 +1,11 @@
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
-import type { AppiumElement } from './AppiumElement.ts';
-import AppiumAssertions from './AppiumAssertions.ts';
-import AppiumGestures from './AppiumGestures.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
+import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
@@ -57,9 +60,9 @@ export default class Utilities {
    * Check if element is enabled (non-retry version)
    */
   static async checkElementEnabled(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
   ): Promise<void> {
-    const el = await elem;
+    const el = await asPlaywrightElement(elem);
     if (!(await el.isEnabled())) {
       throw new Error(
         [
@@ -77,9 +80,9 @@ export default class Utilities {
   }
 
   static async checkElementDisabled(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
   ): Promise<void> {
-    const el = await elem;
+    const el = await asPlaywrightElement(elem);
     if (!(await el.isEnabled())) {
       return;
     }
@@ -95,7 +98,7 @@ export default class Utilities {
    * Wait for element to be enabled with retry mechanism
    */
   static async waitForElementToBeEnabled(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
@@ -110,7 +113,7 @@ export default class Utilities {
    * Wait for element to be disabled with retry mechanism
    */
   static async waitForElementToBeDisabled(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
@@ -124,9 +127,9 @@ export default class Utilities {
   /**
    * Read text content from an element.
    */
-  static async getElementText(elem: Promise<AppiumElement>): Promise<string> {
-    const appiumElement = await elem;
-    return appiumElement.textContent();
+  static async getElementText(elem: EncapsulatedElementType): Promise<string> {
+    const playwrightElement = await asPlaywrightElement(elem);
+    return playwrightElement.textContent();
   }
 
   /**
@@ -134,31 +137,36 @@ export default class Utilities {
    * Android-specific check for element obscuration
    */
   static async checkElementNotObscured(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
   ): Promise<void> {
     try {
-      const el = await elem;
-      const raw = el.unwrap();
-      const location = await raw.getLocation();
-      const size = await raw.getSize();
+      const el = (await elem) as Detox.IndexableNativeElement;
+      const attributes = await el.getAttributes();
 
-      if (
-        typeof location.x !== 'number' ||
-        typeof location.y !== 'number' ||
-        typeof size.width !== 'number' ||
-        typeof size.height !== 'number'
-      ) {
+      // Check if element has proper frame/bounds
+      if (!('frame' in attributes) || !attributes.frame) {
         throw new Error(
           '🚫 Element does not have valid frame bounds - may be obscured',
         );
       }
 
-      const centerX = location.x + size.width / 2;
-      const centerY = location.y + size.height / 2;
+      // Additional Android-specific checks could be added here
+      // For now, we rely on the basic frame check and visibility
+      try {
+        // Try to get element center point to ensure it's accessible
+        const centerX = attributes.frame.x + attributes.frame.width / 2;
+        const centerY = attributes.frame.y + attributes.frame.height / 2;
 
-      if (centerX <= 0 || centerY <= 0) {
+        if (centerX <= 0 || centerY <= 0) {
+          throw new Error(
+            '🚫 Element center point is not accessible - may be obscured',
+          );
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         throw new Error(
-          '🚫 Element center point is not accessible - may be obscured',
+          `🚫 Element appears to be obscured or not tappable: ${errorMessage}`,
         );
       }
     } catch (error) {
@@ -182,7 +190,7 @@ export default class Utilities {
    * Check if element is stable (non-retry version)
    */
   static async checkElementStable(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 2000, interval = 200, stableCount = 3 } = options;
@@ -191,12 +199,16 @@ export default class Utilities {
     const fallBackTimeout = 2000;
     const start = Date.now();
 
-    const getPosition = async () => {
+    const getPosition = async (el: Detox.IndexableNativeElement) => {
       try {
-        const el = await elem;
-        const location = await el.unwrap().getLocation();
-        if (typeof location.x === 'number' && typeof location.y === 'number') {
-          return { x: location.x, y: location.y };
+        const attributes = await el.getAttributes();
+        if (
+          'frame' in attributes &&
+          attributes.frame &&
+          typeof attributes.frame.x === 'number' &&
+          typeof attributes.frame.y === 'number'
+        ) {
+          return { x: attributes.frame.x, y: attributes.frame.y };
         }
         return null;
       } catch {
@@ -205,14 +217,15 @@ export default class Utilities {
     };
 
     while (Date.now() - start < timeout) {
-      const position = await getPosition();
+      const el = (await elem) as Detox.IndexableNativeElement;
+      const position = await getPosition(el);
 
       if (!position) {
         await new Promise((resolve) =>
           // eslint-disable-next-line no-restricted-syntax
           setTimeout(resolve, fallBackTimeout),
         );
-        return;
+        return; // Return early if position is not available
       }
 
       if (
@@ -238,7 +251,7 @@ export default class Utilities {
    * Waits for an element to become stable (not moving) by checking its position multiple times.
    */
   static async waitForElementToStopMoving(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     options: StabilityOptions = {},
   ): Promise<void> {
     const { timeout = 5000 } = options;
@@ -252,14 +265,14 @@ export default class Utilities {
    * Check element ready state (non-retry version)
    */
   static async checkElementReadyState(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     options: {
       timeout?: number;
       checkStability?: boolean;
       checkVisibility?: boolean;
       checkEnabled?: boolean;
     } = {},
-  ): Promise<AppiumElement> {
+  ): DetoxElement {
     const {
       timeout,
       checkStability = false,
@@ -267,6 +280,7 @@ export default class Utilities {
       checkEnabled = true,
     } = options;
 
+    const el = (await elem) as Detox.IndexableNativeElement;
     /**
      * IMPORTANT: Default timeout behavior
      *
@@ -282,11 +296,11 @@ export default class Utilities {
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
-    const playwrightElem = elem;
+    const playwrightElem = asPlaywrightElement(elem);
 
     if (checkVisibility) {
       const visibilityTimeout = timeout || 100;
-      await AppiumAssertions.expectElementToBeVisible(playwrightElem, {
+      await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
         timeout: visibilityTimeout,
       });
     }
@@ -301,27 +315,27 @@ export default class Utilities {
     if (checkStability) {
       const stabilityTimeout = timeout || 2000;
       const stabilityCheckInterval = timeout ? timeout / 10 : 200;
-      await AppiumGestures.waitForElementStable(await playwrightElem, {
+      await PlaywrightGestures.waitForElementStable(await playwrightElem, {
         timeout: stabilityTimeout,
         interval: stabilityCheckInterval,
       });
     }
 
-    return playwrightElem;
+    return el;
   }
 
   /**
    * Wait for element to be in a ready state (visible, enabled, stable)
    */
   static async waitForReadyState(
-    elem: Promise<AppiumElement>,
+    elem: EncapsulatedElementType,
     options: {
       timeout?: number;
       checkStability?: boolean;
       skipVisibilityCheck?: boolean;
       elemDescription?: string;
     } = {},
-  ): Promise<AppiumElement> {
+  ): DetoxElement {
     const { timeout = TEST_CONFIG_DEFAULTS.timeout, elemDescription } = options;
 
     return this.executeWithRetry(
@@ -338,10 +352,13 @@ export default class Utilities {
    * Wait for element to be visible and throw on failure
    */
   static async waitForElementToBeVisible(
-    elem: Promise<AppiumElement>,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    await AppiumAssertions.expectElementToBeVisible(elem, { timeout });
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(elem as EncapsulatedElementType),
+      { timeout },
+    );
     return;
   }
 
@@ -349,10 +366,13 @@ export default class Utilities {
    * Wait for element to be not visible and throw on failure
    */
   static async waitForElementToDisappear(
-    elem: Promise<AppiumElement>,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
-    await AppiumAssertions.expectElementToNotBeVisible(elem, { timeout });
+    await PlaywrightAssertions.expectElementToNotBeVisible(
+      asPlaywrightElement(elem as EncapsulatedElementType),
+      { timeout },
+    );
     return;
   }
 
@@ -361,7 +381,7 @@ export default class Utilities {
    * Returns true if element is visible, false if not visible or doesn't exist
    */
   static async isElementVisible(
-    elem: Promise<AppiumElement>,
+    elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<boolean> {
     try {
@@ -373,7 +393,7 @@ export default class Utilities {
   }
 
   /**
-   * Check if an element is a Playwright/WebdriverIO web element facade.
+   * Check if an element is a WebElement
    */
   static isWebElement(el: unknown): boolean {
     if (!el || typeof el !== 'object') {
@@ -383,9 +403,12 @@ export default class Utilities {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const webEl = el as any;
     return !!(
-      typeof webEl?.scrollToView === 'function' ||
-      typeof webEl?.fill === 'function' ||
-      typeof webEl?.unwrap === 'function'
+      webEl?.webViewElement ||
+      typeof webEl?.runScript === 'function' ||
+      (webEl?.constructor?.name &&
+        (webEl.constructor.name.includes('IndexableWebElement') ||
+          webEl.constructor.name.includes('SecuredWebElementFacade') ||
+          webEl.constructor.name.includes('WebElement')))
     );
   }
 

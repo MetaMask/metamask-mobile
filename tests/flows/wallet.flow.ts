@@ -37,7 +37,9 @@ import {
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
-import AppiumUtilities, { getDriver } from '../framework/AppiumUtilities';
+import PlaywrightUtilities, {
+  getDriver,
+} from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
@@ -218,7 +220,7 @@ const getLocalhostUrl = () => {
 
   let port: number;
 
-  if (PlatformDetector.isAndroid()) {
+  if (device.getPlatform() === 'android') {
     // Android: Must use fallback port (adb reverse maps fallback→actual)
     // Example: adb reverse tcp:8545 tcp:45466 means device connects to 8545, reaches host's 45466
     port = anvilPort
@@ -257,7 +259,7 @@ export const addLocalhostNetwork = async (): Promise<void> => {
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
-  if (PlatformDetector.isIOS()) {
+  if (device.getPlatform() === 'ios') {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
@@ -748,7 +750,7 @@ export const loginToAppPlaywright = async (
   const dismissPostLoginModals = async (): Promise<void> => {
     startPhase('modal_dismissal');
     try {
-      await AppiumUtilities.wait(500);
+      await PlaywrightUtilities.wait(500);
       await dismissPushNotificationExistingUserSheet();
       await dismissExperienceEnhancerModal();
     } finally {
@@ -803,7 +805,7 @@ const MM_CONNECT_LOCK_GONE_TIMEOUT_MS = 10_000;
 async function dismissUnlockBlockers(): Promise<void> {
   // Play services heads-up on google_apis CI emulators covers Unlock and
   // makes the control non-interactive until the banner is dismissed.
-  AppiumUtilities.dismissAndroidHeadsUpNotifications();
+  PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
   await dismissAndroidSystemOverlaysPlaywright();
 }
 
@@ -954,7 +956,7 @@ export const loginAndOpenAccountList = async (
 export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
-  const deviceAccountMapping = AppiumUtilities.buildDeviceAccountMapping();
+  const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
   const accountName = deviceAccountMapping[deviceName];
 
   if (!(deviceName in deviceAccountMapping)) {

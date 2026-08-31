@@ -173,6 +173,10 @@ describe('QRSigningTransactionModal', () => {
       });
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   it('renders when pendingScanRequest exists', () => {
     const initialState = createInitialState();
 

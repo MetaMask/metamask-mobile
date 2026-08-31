@@ -2,19 +2,19 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type AppiumElement,
+  type EncapsulatedElementType,
 } from '../../framework';
 import { OnboardingSelectorIDs } from '../../../app/components/Views/Onboarding/Onboarding.testIds';
 import { AccountStatusSelectorIDs } from '../../../app/components/Views/AccountStatus/AccountStatus.testIds';
 
 class SocialLoginView {
-  get iosNewUserTitle(): Promise<AppiumElement> {
+  get iosNewUserTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_TITLE,
     );
   }
 
-  get iosNewUserButton(): Promise<AppiumElement> {
+  get iosNewUserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON,
     );
@@ -33,13 +33,13 @@ class SocialLoginView {
     });
   }
 
-  get iosExistingUserTitle(): Promise<AppiumElement> {
+  get iosExistingUserTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
     );
   }
 
-  get iosExistingUserButton(): Promise<AppiumElement> {
+  get iosExistingUserButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
     );
@@ -58,25 +58,25 @@ class SocialLoginView {
     });
   }
 
-  get accountFoundContainer(): Promise<AppiumElement> {
+  get accountFoundContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_CONTAINER,
     );
   }
 
-  get accountFoundTitle(): Promise<AppiumElement> {
+  get accountFoundTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_TITLE,
     );
   }
 
-  get accountFoundLoginButton(): Promise<AppiumElement> {
+  get accountFoundLoginButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON,
     );
   }
 
-  get accountFoundDifferentMethodButton(): Promise<AppiumElement> {
+  get accountFoundDifferentMethodButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_FOUND_DIFFERENT_METHOD_BUTTON,
     );
@@ -99,19 +99,19 @@ class SocialLoginView {
     await this.tapLoginButton();
   }
 
-  get accountNotFoundContainer(): Promise<AppiumElement> {
+  get accountNotFoundContainer(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CONTAINER,
     );
   }
 
-  get accountNotFoundTitle(): Promise<AppiumElement> {
+  get accountNotFoundTitle(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_TITLE,
     );
   }
 
-  get accountNotFoundCreateButton(): Promise<AppiumElement> {
+  get accountNotFoundCreateButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AccountStatusSelectorIDs.ACCOUNT_NOT_FOUND_CREATE_BUTTON,
     );
@@ -130,7 +130,7 @@ class SocialLoginView {
     });
   }
 
-  get updateModalContinueButton(): Promise<AppiumElement> {
+  get updateModalContinueButton(): EncapsulatedElementType {
     return Matchers.getElementByID('Continue');
   }
 

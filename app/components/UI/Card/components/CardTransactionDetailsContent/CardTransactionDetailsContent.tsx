@@ -7,11 +7,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   HeaderStandard,
   IconName,
   Text,
-  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -23,7 +21,6 @@ import { TransactionDetailDivider } from '../../../../Views/confirmations/compon
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
 import CopyButton from '../../../../Views/confirmations/components/UI/copy-button/copy-button';
 import { strings } from '../../../../../../locales/i18n';
-import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import type { CardTransactionHeroToken } from '../../utils/getCardTransactionHeroToken';
 
 export interface CardTransactionDetailsContentProps {
@@ -77,30 +74,18 @@ const CardTransactionDetailsContent = ({
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
       />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-8')}
-      >
+      <ScrollView contentContainerStyle={tw.style('pb-8')}>
         <Box twClassName="px-4">
           <Box twClassName="gap-3">
             <Box twClassName="gap-1">
               <Text color={TextColor.TextAlternative}>{heroCopy}</Text>
               <Box twClassName="flex-row items-center gap-3">
-                {heroToken.isMoneyAccount ? (
-                  <MoneyBalanceIcon
-                    width={32}
-                    height={32}
-                    name="money-balance"
-                    testID={heroIconTestID}
-                  />
-                ) : (
-                  <AvatarToken
-                    name={heroToken.symbol}
-                    src={heroToken.iconSource as ImageOrSvgSrc}
-                    size={AvatarTokenSize.Md}
-                    testID={heroIconTestID}
-                  />
-                )}
+                <AvatarToken
+                  name={heroToken.symbol}
+                  src={heroToken.iconSource as ImageOrSvgSrc}
+                  size={AvatarTokenSize.Md}
+                  testID={heroIconTestID}
+                />
                 <Text variant={TextVariant.DisplayMd} color={amountColor}>
                   {primaryAmount}
                 </Text>
@@ -163,16 +148,11 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {declineReason ? (
-              <Box twClassName="gap-1">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('card.transactions.decline_reason')}
-                </Text>
+              <TransactionDetailsRow
+                label={strings('card.transactions.decline_reason')}
+              >
                 <Text color={TextColor.TextAlternative}>{declineReason}</Text>
-              </Box>
+              </TransactionDetailsRow>
             ) : null}
 
             {footer}
@@ -193,13 +173,16 @@ const CardTransactionDetailsContent = ({
             ) : null}
 
             {onReportPress ? (
-              <Box twClassName="w-full items-center pt-2">
-                <TextButton
+              <Box twClassName="w-full pt-2">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
                   onPress={onReportPress}
+                  isFullWidth
                   testID="card-transaction-details-report-button"
                 >
                   {strings('card.transactions.report_cta')}
-                </TextButton>
+                </Button>
               </Box>
             ) : null}
           </Box>

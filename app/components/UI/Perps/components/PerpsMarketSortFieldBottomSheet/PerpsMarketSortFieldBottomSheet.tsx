@@ -1,17 +1,9 @@
-import React, {
-  useRef,
-  useEffect,
-  useCallback,
-  useState,
-  useMemo,
-} from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
   BottomSheetHeader,
   BottomSheetRef,
   Box,
-  ButtonsAlignment,
   Icon,
   IconColor,
   IconName,
@@ -30,18 +22,15 @@ import {
   type SortDirection,
 } from '@metamask/perps-controller';
 
-const DEFAULT_SORT_OPTION =
-  MARKET_SORTING_CONFIG.SortOptions.find(
-    (option) => option.id === MARKET_SORTING_CONFIG.DefaultSortOptionId,
-  ) ?? MARKET_SORTING_CONFIG.SortOptions[0];
-
 /**
  * PerpsMarketSortFieldBottomSheet Component
  *
- * Bottom sheet for selecting a single market sort field (not a binary filter).
- * Changes stay in draft until Apply; Reset restores the default sort.
+ * Bottom sheet for selecting market sort options.
  *
- * Tapping the selected option toggles high-to-low / low-to-high in the draft.
+ * Features:
+ * - Flat list of sort options
+ * - Direction toggle when tapping the same option (high-to-low / low-to-high)
+ * - Selecting an option closes the sheet and applies the sort immediately
  *
  * @example
  * ```tsx
@@ -65,100 +54,48 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   testID,
 }) => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const [draftOptionId, setDraftOptionId] =
-    useState<SortOptionId>(selectedOptionId);
-  const [draftDirection, setDraftDirection] =
-    useState<SortDirection>(sortDirection);
-
-  const resetDraft = useCallback(() => {
-    setDraftOptionId(selectedOptionId);
-    setDraftDirection(sortDirection);
-  }, [selectedOptionId, sortDirection]);
 
   useEffect(() => {
     if (isVisible) {
-      resetDraft();
       bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible, resetDraft]);
+  }, [isVisible]);
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(onClose);
   }, [onClose]);
 
-  const applyAndClose = useCallback(
-    (optionId: SortOptionId, direction: SortDirection) => {
+  const handleOptionPress = useCallback(
+    (optionId: SortOptionId) => {
       const option = MARKET_SORTING_CONFIG.SortOptions.find(
         (opt) => opt.id === optionId,
       );
-      if (!option) {
-        return;
-      }
+      if (!option) return;
+
+      const nextDirection: SortDirection =
+        selectedOptionId === optionId
+          ? sortDirection === 'asc'
+            ? 'desc'
+            : 'asc'
+          : 'desc';
 
       bottomSheetRef.current?.onCloseBottomSheet(() => {
-        onOptionSelect(option.id, option.field, direction);
+        onOptionSelect(option.id, option.field, nextDirection);
         onClose();
       });
     },
-    [onClose, onOptionSelect],
-  );
-
-  const handleOptionPress = useCallback(
-    (optionId: SortOptionId) => {
-      if (draftOptionId === optionId) {
-        setDraftDirection((currentDirection) =>
-          currentDirection === 'asc' ? 'desc' : 'asc',
-        );
-        return;
-      }
-
-      setDraftOptionId(optionId);
-      setDraftDirection('desc');
-    },
-    [draftOptionId],
-  );
-
-  const handleApply = useCallback(() => {
-    applyAndClose(draftOptionId, draftDirection);
-  }, [applyAndClose, draftDirection, draftOptionId]);
-
-  const handleReset = useCallback(() => {
-    setDraftOptionId(DEFAULT_SORT_OPTION.id);
-    setDraftDirection(MARKET_SORTING_CONFIG.DefaultDirection);
-  }, []);
-
-  const primaryButtonProps = useMemo(
-    () => ({
-      children: strings('perps.sort.apply'),
-      onPress: handleApply,
-      testID: testID ? `${testID}-apply` : undefined,
-    }),
-    [handleApply, testID],
-  );
-
-  const secondaryButtonProps = useMemo(
-    () => ({
-      children: strings('perps.sort.reset'),
-      onPress: handleReset,
-      testID: testID ? `${testID}-reset` : undefined,
-    }),
-    [handleReset, testID],
+    [selectedOptionId, sortDirection, onOptionSelect, onClose],
   );
 
   if (!isVisible) return null;
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: testID ? `${testID}-close` : undefined,
-        }}
-      >
+      <BottomSheetHeader onClose={handleClose}>
         {strings('perps.sort.sort_by')}
       </BottomSheetHeader>
       {MARKET_SORTING_CONFIG.SortOptions.map((option) => {
-        const isSelected = draftOptionId === option.id;
+        const isSelected = selectedOptionId === option.id;
         return (
           <ListItemSelect
             key={option.id}
@@ -167,8 +104,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
             isSelected={isSelected}
             showSelectedIcon={false}
             onPress={() => handleOptionPress(option.id)}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: isSelected }}
             endAccessory={
               isSelected ? (
                 <Box twClassName="flex-row items-center gap-2">
@@ -177,13 +112,13 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
                     color={TextColor.TextAlternative}
                     testID={testID ? `${testID}-direction-text` : undefined}
                   >
-                    {draftDirection === 'asc'
+                    {sortDirection === 'asc'
                       ? strings('perps.sort.low_to_high')
                       : strings('perps.sort.high_to_low')}
                   </Text>
                   <Icon
                     name={
-                      draftDirection === 'asc'
+                      sortDirection === 'asc'
                         ? IconName.Arrow2Up
                         : IconName.Arrow2Down
                     }
@@ -200,12 +135,6 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
           />
         );
       })}
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        primaryButtonProps={primaryButtonProps}
-        secondaryButtonProps={secondaryButtonProps}
-        twClassName="pt-4"
-      />
     </BottomSheet>
   );
 };

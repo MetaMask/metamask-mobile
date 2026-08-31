@@ -59,7 +59,7 @@ jobs:
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+        'namespace-profile-metamask-ci-linux' || 'ubuntu-latest'
       }}
     steps:
       - name: Display TestFlight upload summary

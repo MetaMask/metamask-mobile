@@ -46,6 +46,7 @@ export const setupPerpsSmokeMocks = async (mockServer: Mockttp) => {
 /** Detox smoke entry: login and disable sync for streaming Perps UI. */
 export const beginPerpsSmokeTest = async () => {
   await loginToApp();
+  await device.disableSynchronization();
 };
 
 /** Appium smoke entry (Playwright + Appium runner). */

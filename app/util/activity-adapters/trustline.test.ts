@@ -1,11 +1,40 @@
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
-import { resolveAssetActivationActivityTitle } from './trustline';
+import {
+  CustomTransactionTypeLabel,
+  hasTrustlineTypeLabel,
+  resolveAssetActivationActivityTitle,
+} from './trustline';
 
 jest.mock('../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
 describe('trustline activity helpers', () => {
+  it('detects trustline approve typeLabel', () => {
+    expect(
+      hasTrustlineTypeLabel({
+        typeLabel: CustomTransactionTypeLabel.TrustlineApprove,
+      }),
+    ).toBe(true);
+  });
+
+  it('detects trustline disapprove typeLabel', () => {
+    expect(
+      hasTrustlineTypeLabel({
+        typeLabel: CustomTransactionTypeLabel.TrustlineDisapprove,
+      }),
+    ).toBe(true);
+  });
+
+  it('does not treat missing typeLabel as trustline', () => {
+    expect(hasTrustlineTypeLabel(undefined)).toBe(false);
+    expect(hasTrustlineTypeLabel({})).toBe(false);
+  });
+
+  it('does not treat unrelated typeLabel as trustline', () => {
+    expect(hasTrustlineTypeLabel({ typeLabel: 'other-label' })).toBe(false);
+  });
+
   it('resolves confirmed activate title with token symbol', () => {
     expect(
       resolveAssetActivationActivityTitle(

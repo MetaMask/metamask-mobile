@@ -26,6 +26,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
 import {
   formatPercentage,
   formatPerpsBalance,
@@ -40,8 +41,8 @@ import ModalSafeAreaProvider from '../../../../../component-library/components-t
  * Perps account balance bottom sheet.
  *
  * Shows total balance, available balance, and unrealized P&L, with quick
- * access to Withdraw / Add funds. Opened from the wallet icon in the Pro
- * market header without leaving the market screen.
+ * access to Withdraw / Add funds and Perps activity history. Opened from the
+ * wallet icon in the Pro market header without leaving the market screen.
  */
 const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   isVisible,
@@ -51,6 +52,7 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const privacyMode = useSelector(selectPrivacyMode);
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+  const { navigateToActivity } = usePerpsNavigation();
 
   const {
     handleAddFunds,
@@ -79,9 +81,15 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  const handleHistoryPress = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(() => {
+      navigateToActivity();
+    });
+  }, [navigateToActivity]);
+
   // Withdraw always navigates away (to the withdraw screen or into a
-  // confirmation flow), so close the sheet first instead of leaving it
-  // mounted underneath the next screen.
+  // confirmation flow), so close the sheet first — same as History above —
+  // instead of leaving it mounted underneath the next screen.
   const handleWithdrawPress = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       handleWithdraw();
@@ -181,7 +189,19 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
               bottomLabelWrapperProps={{ twClassName: 'w-full' }}
             />
 
-            <Box alignItems={BoxAlignItems.Center}>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                iconName={IconName.Activity}
+                onPress={handleHistoryPress}
+                accessibilityLabel={strings(
+                  'perps.balance_bottom_sheet.history_button',
+                )}
+                testID={PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON}
+              />
               <ButtonIcon
                 size={ButtonIconSize.Md}
                 iconName={IconName.Close}

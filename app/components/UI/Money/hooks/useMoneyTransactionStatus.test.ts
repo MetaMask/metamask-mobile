@@ -801,7 +801,7 @@ describe('useMoneyTransactionStatus', () => {
           nestedTransactions: [
             {
               type: TransactionType.tokenMethodTransfer,
-              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(50_000_000)),
+              data: encodeTransferData(RECIPIENT_ADDRESS),
             },
           ],
         } as unknown as Partial<TransactionMeta>),
@@ -815,32 +815,6 @@ describe('useMoneyTransactionStatus', () => {
         expect.anything(),
         expect.stringMatching(/^0x1111/i),
       );
-    });
-
-    it('confirmed → success amount is the transfer amount, not the teller share amount', () => {
-      const { confirmedHandler } = renderAndGetHandlers();
-
-      confirmedHandler(
-        buildTxMeta({
-          type: TransactionType.moneyAccountWithdraw,
-          status: TransactionStatus.confirmed,
-          txParams: {
-            from: '0x0',
-            // Share amount for $2.00 at a vault rate of ~1.005 — decoding this
-            // param is the bug that showed "$1.99" for a $2.00 send.
-            data: encodeWithdrawData(BigInt(1_990_050)),
-          },
-          nestedTransactions: [
-            {
-              type: TransactionType.tokenMethodTransfer,
-              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(2_000_000)),
-            },
-          ],
-        } as unknown as Partial<TransactionMeta>),
-      );
-
-      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
-      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBe('$2.00');
     });
 
     it('falls back to a shortened address when the recipient is not an internal account', () => {
@@ -1002,7 +976,7 @@ describe('useMoneyTransactionStatus', () => {
       );
     });
 
-    it('falls back to "your account" with no amount when the nested transfer tx is absent', () => {
+    it('falls back to "your account" when the nested transfer tx is absent', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -1020,7 +994,6 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
         'your account',
       );
-      expect(withdrawSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
     });
 
     it('failed → withdraw failed toast', () => {
@@ -1582,13 +1555,7 @@ describe('useMoneyTransactionStatus', () => {
             from: '0x0',
             data: encodeWithdrawData(BigInt(50_000_000)),
           },
-          nestedTransactions: [
-            {
-              type: TransactionType.tokenMethodTransfer,
-              data: encodeTransferData(RECIPIENT_ADDRESS, BigInt(50_000_000)),
-            },
-          ],
-        } as unknown as Partial<TransactionMeta>),
+        }),
       );
 
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
@@ -1815,7 +1782,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositSuccessFn.mock.calls[0][0].amountFiat).toContain('7.77');
     });
 
-    it('decodes amount from the nested transfer tx data on withdraw confirmation', () => {
+    it('decodes amount from nested withdraw tx data on confirmation', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -1824,14 +1791,7 @@ describe('useMoneyTransactionStatus', () => {
           nestedTransactions: [
             {
               type: TransactionType.moneyAccountWithdraw,
-              data: encodeWithdrawData(BigInt(33_100_000)) as `0x${string}`,
-            },
-            {
-              type: TransactionType.tokenMethodTransfer,
-              data: encodeTransferData(
-                RECIPIENT_ADDRESS,
-                BigInt(33_330_000),
-              ) as `0x${string}`,
+              data: encodeWithdrawData(BigInt(33_330_000)) as `0x${string}`,
             },
           ],
         }),

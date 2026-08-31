@@ -24,6 +24,20 @@ export interface MarketRateLookupToken {
   chainId: Hex;
 }
 
+export function calculateFiatFromMarketRates(
+  amount: string | undefined,
+  token: MarketRateLookupToken | undefined,
+  marketRates: Record<number, Record<string, number>>,
+) {
+  if (amount === undefined || !token) {
+    return undefined;
+  }
+
+  const parsed = Number.parseFloat(amount);
+  const rate = marketRates[Number.parseInt(token.chainId, 16)]?.[token.address];
+  return rate === undefined ? undefined : parsed * rate;
+}
+
 export function getDisplaySignPrefix(
   direction: TokenAmount['direction'],
   { showPlus }: { showPlus: boolean },
@@ -88,7 +102,7 @@ export function applyDisplaySign(
   return formattedDisplay;
 }
 
-function getTokenAddressForMarketRates(
+export function getTokenAddressForMarketRates(
   assetId: CaipAssetType | undefined,
 ): string | undefined {
   if (!assetId) {

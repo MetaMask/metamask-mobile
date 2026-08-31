@@ -45,11 +45,7 @@ describe('completeHwSwapSuccess', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetHardwareWalletsSwaps',
     });
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.TRANSACTIONS_VIEW,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('still resets and navigates when toast ref is unavailable', () => {
@@ -61,10 +57,6 @@ describe('completeHwSwapSuccess', () => {
 
     expect(mockShowToast).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.TRANSACTIONS_VIEW,
-      undefined,
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 });

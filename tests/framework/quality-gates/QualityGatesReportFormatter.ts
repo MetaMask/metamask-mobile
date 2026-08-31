@@ -186,7 +186,7 @@ class QualityGatesReportFormatter {
     }
 
     rows.push('---,---,---,---,---');
-    rows.push('QUALITY GATES VALIDATION, , ');
+    rows.push('QUALITY GATES VALIDATION,,,,');
     rows.push(
       `Status,${result.passed ? 'PASSED' : 'FAILED'},Steps Passed,${result.summary.passedSteps}/${result.summary.totalSteps},`,
     );

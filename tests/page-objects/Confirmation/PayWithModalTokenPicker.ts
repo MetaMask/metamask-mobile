@@ -3,7 +3,7 @@ import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import {
   Gestures,
   Matchers,
-  type AppiumElement,
+  type EncapsulatedElementType,
   type ScrollContainer,
 } from '../../framework';
 
@@ -21,14 +21,14 @@ class PayWithModalTokenPicker {
     );
   }
 
-  getAssetRow(symbol: string, index = 0): Promise<AppiumElement> {
+  getAssetRow(symbol: string, index = 0): EncapsulatedElementType {
     return Matchers.getElementByID(getAssetTestId(symbol), index);
   }
 
   getAssetRowOnNetwork(
     symbol: string,
     chainId: string,
-  ): Promise<AppiumElement> {
+  ): EncapsulatedElementType {
     return Matchers.getElementByID(getAssetTestId(`${chainId}-${symbol}`));
   }
 

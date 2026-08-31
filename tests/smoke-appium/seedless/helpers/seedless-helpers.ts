@@ -8,7 +8,7 @@ import { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
-} from '../../../framework/AppiumUtilities.js';
+} from '../../../framework/PlaywrightUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';

@@ -24,7 +24,6 @@ import { ToastContext } from '../../../component-library/components/Toast';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 

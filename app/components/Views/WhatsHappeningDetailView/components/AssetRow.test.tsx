@@ -3,7 +3,6 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import type { RelatedAsset } from '@metamask/ai-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { WhatsHappeningSelectorsIDs } from '../../../UI/WhatsHappening/WhatsHappening.testIds';
 import AssetRow from './AssetRow';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 
@@ -150,44 +149,6 @@ describe('AssetRow', () => {
       />,
     );
     expect(screen.queryByText('$')).toBeNull();
-  });
-
-  it('renders a price skeleton when isPriceLoading is true', () => {
-    renderWithProvider(
-      <AssetRow
-        asset={btcAsset}
-        actionLabel="Trade"
-        accessibilityLabel="Trade BTC"
-        onAction={onAction}
-        isPriceLoading
-      />,
-    );
-
-    expect(
-      screen.getByTestId(WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the price line instead of the skeleton when secondaryLine is provided', () => {
-    renderWithProvider(
-      <AssetRow
-        asset={btcAsset}
-        actionLabel="Trade"
-        accessibilityLabel="Trade BTC"
-        onAction={onAction}
-        isPriceLoading={false}
-        secondaryLine={{
-          priceText: '$95,000.00',
-          changeText: '+2.50%',
-          changeColor: TextColor.SuccessDefault,
-        }}
-      />,
-    );
-
-    expect(screen.getByText('$95,000.00')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(WhatsHappeningSelectorsIDs.ASSET_PRICE_SKELETON),
-    ).toBeNull();
   });
 
   describe('image routing via RelatedAssetAvatar', () => {

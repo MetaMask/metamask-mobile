@@ -1,10 +1,11 @@
 import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
 import type { WebDriverConfig } from '../../types.ts';
-import { createAppiumLogger } from '../../appiumLogger.ts';
+import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import UnifiedGestures from '../../UnifiedGestures.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
 
-const logger = createAppiumLogger('deviceProvider');
+const logger = createPlaywrightLogger('deviceProvider');
 
 /**
  * Worker-scoped provider + mutable session holder.
@@ -66,6 +67,7 @@ export const workerDeviceProviderFixture: Fixtures<
 
       try {
         delete globalThis.driver;
+        UnifiedGestures.resetStrategy();
       } catch (error) {
         logger.error(
           'Failed to clear global driver on worker teardown:',

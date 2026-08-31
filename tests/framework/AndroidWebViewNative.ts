@@ -5,14 +5,14 @@ import AndroidWebViewCdpHelpers, {
 } from './AndroidWebViewCdpHelpers';
 import Gestures from './Gestures';
 import Matchers from './Matchers';
-import { wrapElement, type AppiumElement } from './AppiumElement';
-import AppiumContextHelpers from './AppiumContextHelpers';
-import { getDriver } from './AppiumUtilities';
-import AppiumGestures from './AppiumGestures';
+import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter';
+import PlaywrightContextHelpers from './PlaywrightContextHelpers';
+import { getDriver } from './PlaywrightUtilities';
+import PlaywrightGestures from './PlaywrightGestures';
 import Utilities, { sleep } from './Utilities';
-import { createAppiumLogger } from './appiumLogger';
+import { createPlaywrightLogger } from './playwrightLogger';
 
-const logger = createAppiumLogger('AndroidWebViewNative');
+const logger = createPlaywrightLogger('AndroidWebViewNative');
 
 const SCROLL_ATTEMPTS = 24;
 const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 30_000;
@@ -41,7 +41,9 @@ function escapeUiAutomatorString(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-async function findNativeWebIdElement(webId: string): Promise<AppiumElement> {
+async function findNativeWebIdElement(
+  webId: string,
+): Promise<PlaywrightElement> {
   const escapedWebId = escapeUiAutomatorString(webId);
   return wrapElement(
     getDriver().$(`android=new UiSelector().resourceId("${escapedWebId}")`),
@@ -51,7 +53,7 @@ async function findNativeWebIdElement(webId: string): Promise<AppiumElement> {
 async function tryFindNativeWebIdElement(
   webId: string,
   timeout = 500,
-): Promise<AppiumElement | null> {
+): Promise<PlaywrightElement | null> {
   try {
     const elem = await findNativeWebIdElement(webId);
     await elem.unwrap().waitForExist({ timeout });
@@ -94,7 +96,7 @@ function buildUiScrollableSelectors(
 async function scrollNativeWebIdIntoViewViaUiScrollable(
   webId: string,
   scrollLabels: Record<string, string> = {},
-): Promise<AppiumElement | null> {
+): Promise<PlaywrightElement | null> {
   for (const selector of buildUiScrollableSelectors(webId, scrollLabels)) {
     try {
       const elem = wrapElement(getDriver().$(`android=${selector}`));
@@ -113,7 +115,7 @@ async function scrollNativeWebIdIntoViewViaUiScrollable(
   return null;
 }
 
-async function getBrowserWebViewContainer(): Promise<AppiumElement> {
+async function getBrowserWebViewContainer(): Promise<PlaywrightElement> {
   const browserWebViewId = BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
   const webView = wrapElement(
     getDriver().$(`android=new UiSelector().resourceId("${browserWebViewId}")`),
@@ -157,7 +159,7 @@ async function scrollBrowserWebViewUp(): Promise<void> {
 
 async function scrollNativeWebIdIntoViewViaScrollGesture(
   webId: string,
-): Promise<AppiumElement> {
+): Promise<PlaywrightElement> {
   for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
     const elem = await tryFindNativeWebIdElement(webId);
     if (elem) {
@@ -180,8 +182,8 @@ async function scrollNativeWebIdIntoViewViaScrollGesture(
 export async function scrollAndroidWebIdIntoView(
   webId: string,
   options: AndroidWebViewScrollOptions = {},
-): Promise<AppiumElement> {
-  await AppiumContextHelpers.switchToNativeContext();
+): Promise<PlaywrightElement> {
+  await PlaywrightContextHelpers.switchToNativeContext();
 
   // Generous in-place wait: nodes often appear in the current viewport, and a
   // UiScrollable sweep from the top is far costlier than waiting a few seconds.
@@ -251,7 +253,7 @@ export async function tapAndroidWebId(
   }
 
   // Re-find until enabled so we don't hold a stale disabled node across React re-renders.
-  let elem!: AppiumElement;
+  let elem!: PlaywrightElement;
   await Utilities.waitUntil(
     async () => {
       elem = await scrollAndroidWebIdIntoView(webId, options);
@@ -260,7 +262,7 @@ export async function tapAndroidWebId(
     { timeout: options.timeout ?? 30_000, interval: 250 },
   );
 
-  await AppiumGestures.waitAndTap(elem);
+  await PlaywrightGestures.waitAndTap(elem);
 }
 
 /** Type into focused field one character at a time, clearing leftover text first. */
@@ -291,7 +293,7 @@ export async function fillAndroidWebId(
       { pageUrl: options.pageUrl },
     );
     if (cdpFilled) {
-      await AppiumGestures.hideKeyboard().catch(() => undefined);
+      await PlaywrightGestures.hideKeyboard().catch(() => undefined);
       return;
     }
   }
@@ -305,7 +307,7 @@ export async function fillAndroidWebId(
   });
   const residualText = await elem.getText().catch(() => '');
   await typeAndroidKeysSequentially(value, residualText);
-  await AppiumGestures.hideKeyboard().catch(() => undefined);
+  await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
 
 export async function readAndroidWebIdText(
@@ -356,5 +358,5 @@ export async function blurAndroidWebView(pageUrl: string): Promise<void> {
   if (pageUrl && isAndroidWebViewCdpEnabled()) {
     await AndroidWebViewCdpHelpers.blurActiveElement(pageUrl);
   }
-  await AppiumGestures.hideKeyboard().catch(() => undefined);
+  await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }

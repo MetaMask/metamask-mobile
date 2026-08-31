@@ -451,7 +451,7 @@ describe('WhatsHappeningDetailView', () => {
     expect(screen.queryByTestId('mock-sources-bottom-sheet')).toBeNull();
   });
 
-  it('renders the AI generated row below the carousel', () => {
+  it('renders the AI Generated row below the carousel', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
       isLoading: false,
@@ -459,13 +459,13 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    expect(screen.getByText('AI generated')).toBeOnTheScreen();
+    expect(screen.getByText('AI Generated')).toBeOnTheScreen();
     expect(
       screen.getByTestId('whats-happening-ai-disclaimer-button'),
     ).toBeOnTheScreen();
   });
 
-  it('does not render the AI generated row when items are empty', () => {
+  it('does not render the AI Generated row when items are empty', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [],
       isLoading: false,
@@ -473,7 +473,7 @@ describe('WhatsHappeningDetailView', () => {
       refresh: mockRefresh,
     });
     renderWithProvider(<WhatsHappeningDetailView />);
-    expect(screen.queryByText('AI generated')).toBeNull();
+    expect(screen.queryByText('AI Generated')).toBeNull();
     expect(
       screen.queryByTestId('whats-happening-ai-disclaimer-button'),
     ).toBeNull();

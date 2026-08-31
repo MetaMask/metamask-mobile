@@ -1,5 +1,4 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { NavigationAnalyticsRouteParams } from '../../../../util/analytics/navigationAnalyticsAttribution';
 import type {
   AssetLoaderParams,
   AssetViewParams,
@@ -173,7 +172,7 @@ export type ImportPrivateKeyStackParamList = {
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type MoneyTabStackParamList = {
-  MoneyHome: NavigationAnalyticsRouteParams | undefined;
+  MoneyHome: { entryPoint?: string } | undefined;
   MoneyActivity: undefined;
   MoneyHowItWorks: undefined;
 };

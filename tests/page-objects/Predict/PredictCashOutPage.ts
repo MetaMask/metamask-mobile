@@ -1,11 +1,11 @@
-import { Matchers, Gestures, type AppiumElement } from '../../framework';
+import { Matchers, Gestures, EncapsulatedElementType } from '../../framework';
 import { PredictCashOutSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictCashOutPage {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(PredictCashOutSelectorsIDs.CONTAINER);
   }
-  get cashOutButton(): Promise<AppiumElement> {
+  get cashOutButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON,
     );

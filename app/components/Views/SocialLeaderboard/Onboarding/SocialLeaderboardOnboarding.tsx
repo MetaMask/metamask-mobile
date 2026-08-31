@@ -13,21 +13,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
-import {
+import Rive, {
+  AutoBind,
   Fit,
-  RiveErrorType,
-  RiveView,
+  FilesHandledMapping,
+  RNRiveError,
+  RNRiveErrorType,
   useRive,
   useRiveBoolean,
-  useRiveFile,
   useRiveNumber,
   useRiveString,
   useRiveTrigger,
-  useViewModelInstance,
-  type RiveError,
-  type RiveFile,
-  type ViewModelInstance,
-} from '@rive-app/react-native';
+} from 'rive-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 import {
@@ -96,10 +93,9 @@ const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding
 
 const ONBOARDING_SOURCE = 'nux';
 
-// Safety net for revealing the artboard if the view-ready signal never arrives
-// (`useRive` reports readiness via `riveViewRef`, which stays unset if
-// `awaitViewReady` times out), so the artboard can't be left permanently faded
-// out over the gradient.
+// Safety net for revealing the artboard if the Rive `onPlay` first-paint signal
+// never arrives (e.g. a runtime that doesn't emit it), so the artboard can't be
+// left permanently faded out over the gradient.
 const RIVE_REVEAL_FALLBACK_MS = 1500;
 
 /**
@@ -109,44 +105,17 @@ const RIVE_REVEAL_FALLBACK_MS = 1500;
  * the onboarding, or one bad avatar URL / renamed binding would skip the whole
  * flow.
  */
-const FATAL_RIVE_ERROR_TYPES: ReadonlySet<RiveErrorType> = new Set([
-  RiveErrorType.FileNotFound,
-  RiveErrorType.MalformedFile,
-  RiveErrorType.IncorrectArtboardName,
-  RiveErrorType.IncorrectStateMachineName,
+const FATAL_RIVE_ERROR_TYPES: ReadonlySet<RNRiveErrorType> = new Set([
+  RNRiveErrorType.FileNotFound,
+  RNRiveErrorType.MalformedFile,
+  RNRiveErrorType.UnsupportedRuntimeVersion,
+  RNRiveErrorType.IncorrectRiveFileUrl,
+  RNRiveErrorType.IncorrectArtboardName,
+  RNRiveErrorType.IncorrectStateMachineName,
 ]);
 
-/**
- * Referenced-asset mapping accepted by `useRiveFile` (the package does not
- * re-export the `ReferencedAssets` type from its root).
- */
-type RiveReferencedAssets = NonNullable<
-  Parameters<typeof useRiveFile>[1]
->['referencedAssets'];
-
-/**
- * Loads the .riv with the frozen referenced-asset mapping. Extracted into a
- * render-null child so `useRiveFile`'s FIRST render already has the mapping:
- * the Nitro runtime installs its asset loader only at file-load time (and the
- * hook snapshots the mapping in a ref on first render), so a file loaded
- * before the mapping settles can never bind the avatars/token logos —
- * `updateReferencedAssets` on an already-loaded file is a silent no-op. The
- * legacy runtime bound assets at native view mount, which the mount gate below
- * already covered; Nitro moves that binding to file load, so the load itself
- * must wait. Mounted only once `referencedAssets` is non-null.
- */
-const OnboardingRiveFileLoader: React.FC<{
-  referencedAssets: NonNullable<RiveReferencedAssets>;
-  onFile: (file: RiveFile | null) => void;
-}> = ({ referencedAssets, onFile }) => {
-  const { riveFile } = useRiveFile(SocialLeaderboardNuxAnimation, {
-    referencedAssets,
-  });
-  useEffect(() => {
-    onFile(riveFile ?? null);
-  }, [riveFile, onFile]);
-  return null;
-};
+/** Rive runtime handle returned by `useRive` (null until the runtime is ready). */
+type RiveInstance = ReturnType<typeof useRive>[1];
 
 interface StepButtons {
   primaryButton: string;
@@ -163,24 +132,24 @@ interface StepButtons {
  * button labels are pushed here.
  */
 const RiveStepButtonsBinding: React.FC<{
-  instance: ViewModelInstance | null | undefined;
+  riveRef: RiveInstance;
   slot: number;
   buttons: StepButtons;
-}> = ({ instance, slot, buttons }) => {
-  const { setValue: setPrimary } = useRiveString(
+}> = ({ riveRef, slot, buttons }) => {
+  const [, setPrimary] = useRiveString(
+    riveRef,
     riveStepTextBinding(slot, 'primaryButton'),
-    instance,
   );
-  const { setValue: setSecondary } = useRiveString(
+  const [, setSecondary] = useRiveString(
+    riveRef,
     riveStepTextBinding(slot, 'secondaryButton'),
-    instance,
   );
 
   useEffect(() => {
-    if (!instance) return;
+    if (!riveRef) return;
     setPrimary(buttons.primaryButton);
     setSecondary(buttons.secondaryButton);
-  }, [instance, buttons, setPrimary, setSecondary]);
+  }, [riveRef, buttons, setPrimary, setSecondary]);
 
   return null;
 };
@@ -190,25 +159,22 @@ const RiveStepButtonsBinding: React.FC<{
  * into the Rive artboard. Avatars are handled separately via `referencedAssets`.
  */
 const RiveTraderCardBinding: React.FC<{
-  instance: ViewModelInstance | null | undefined;
+  riveRef: RiveInstance;
   rank: number;
   name?: string;
   profitAmount?: string;
-}> = ({ instance, rank, name, profitAmount }) => {
-  const { setValue: setName } = useRiveString(
-    riveTraderBinding(rank, 'name'),
-    instance,
-  );
-  const { setValue: setProfitAmount } = useRiveString(
+}> = ({ riveRef, rank, name, profitAmount }) => {
+  const [, setName] = useRiveString(riveRef, riveTraderBinding(rank, 'name'));
+  const [, setProfitAmount] = useRiveString(
+    riveRef,
     riveTraderBinding(rank, 'profitAmount'),
-    instance,
   );
 
   useEffect(() => {
-    if (!instance || !name) return;
+    if (!riveRef || !name) return;
     setName(name);
     setProfitAmount(profitAmount ?? '');
-  }, [instance, name, profitAmount, setName, setProfitAmount]);
+  }, [riveRef, name, profitAmount, setName, setProfitAmount]);
 
   return null;
 };
@@ -276,7 +242,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     [traders],
   );
 
-  const { riveViewRef, setHybridRef } = useRive();
+  const [ref, riveRef] = useRive();
 
   // Current step (index into SLIDE_BY_STEP_INDEX): 0 Trade, 1 Follow, 2 Notify
   // (post-follow), 3 Notify ("3.1" / maybe-later variant). Driven by the Rive
@@ -312,6 +278,19 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       });
     },
     [track],
+  );
+
+  const [, setTransitionSpeed] = useRiveNumber(
+    riveRef,
+    RIVE_NUMBER_BINDINGS.TRANSITION_SPEED,
+  );
+  const [, setAllowNotificationsBoolean] = useRiveBoolean(
+    riveRef,
+    RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS,
+  );
+  const [, setIsReady] = useRiveBoolean(
+    riveRef,
+    RIVE_BOOLEAN_BINDINGS.IS_READY,
   );
 
   // Localized title + description rendered by RN per step (v4 no longer bakes
@@ -416,19 +395,19 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   // Dynamic avatars streamed into the Rive card slots. Real profile images use
   // the live HTTPS URL; missing/placeholder avatars fall back to the bundled
-  // per-slot placeholder (the runtime can only consume image URLs/bundled
-  // files, not the address-derived Maskicon used elsewhere).
+  // per-slot placeholder (the legacy runtime can only consume image
+  // URLs/bundled files, not the address-derived Maskicon used elsewhere).
   //
-  // CRITICAL: referenced assets bind at the file level (`useRiveFile`
-  // options), and changing the mapping re-resolves every asset on the live
-  // file (`updateReferencedAssets`). If we let it swap from placeholders to
-  // live URLs when the leaderboard loads — or churn as `traders` is rebuilt on
-  // follow/refetch — assets get re-fetched mid-flight while the state machine
-  // is animating. So `referencedAssets` is computed ONCE from the first
-  // settled trader data and then frozen for the artboard's lifetime, and the
-  // artboard is only mounted after it is ready.
+  // CRITICAL: the native runtime calls `reloadView()` (full artboard + state
+  // machine teardown/recreate) every time the `referencedAssets` prop identity
+  // changes. If we let it swap from placeholders to live URLs when the
+  // leaderboard loads — or churn as `traders` is rebuilt on follow/refetch — the
+  // Rive view reloads mid-flight while our data-binding writes hit a
+  // half-initialized view, which crashes the app. So `referencedAssets` is
+  // computed ONCE from the first settled trader data and then frozen for the
+  // artboard's lifetime, and the artboard is only mounted after it is ready.
   const [referencedAssets, setReferencedAssets] =
-    useState<RiveReferencedAssets | null>(null);
+    useState<FilesHandledMapping | null>(null);
 
   // Read inside the timeout/settle effect below via a ref so it always sees the
   // latest fetch result without re-arming the timeout on every re-render (the
@@ -436,10 +415,14 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const topTradersRef = useRef(topTraders);
   topTradersRef.current = topTraders;
 
-  // Safety net so we never wait on `referencedAssets` forever if the trader
-  // data isn't ready at mount. After a forced mount the text bindings still
-  // pick up real data (not frozen); only avatars stay on the placeholder,
-  // since swapping them would re-resolve assets mid-animation (see above).
+  // Pure safety net: `Wallet` only navigates here once this query's data is in
+  // cache, so the artboard normally mounts with live data on the first effect
+  // run. This guards the rare case the data isn't ready at mount (e.g. cache
+  // evicted between prefetch and navigation) so we don't wait on
+  // `referencedAssets` forever. If the fetch settles after this forced mount,
+  // the name/PnL text bindings above still pick up the real data (they're not
+  // frozen) — only the avatars stay on the placeholder for that session, since
+  // swapping them would trigger the `reloadView()` crash.
   const [forceMountAssets, setForceMountAssets] = useState(false);
   useEffect(() => {
     const timer = setTimeout(
@@ -453,7 +436,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     if (referencedAssets || (isLoadingTraders && !forceMountAssets)) {
       return;
     }
-    const mapping: NonNullable<RiveReferencedAssets> = {};
+    const mapping: FilesHandledMapping = {};
     // Static token logos on the Notify-step buy cards (nova/blast/punch). These
     // never change, so they're folded into the same frozen mapping.
     Object.entries(RIVE_TOKEN_ASSET_SOURCES).forEach(([assetKey, source]) => {
@@ -468,40 +451,18 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setReferencedAssets(mapping);
   }, [referencedAssets, isLoadingTraders, forceMountAssets]);
 
-  // File is loaded by `OnboardingRiveFileLoader` (rendered below) only after
-  // the asset mapping is frozen — see the comment on that component.
-  const [riveFile, setRiveFile] = useState<RiveFile | null>(null);
-
-  // The view-model instance replaces the legacy `AutoBind(true)` mode: it is
-  // created off the file (async) for this artboard and explicitly bound to the
-  // view via `dataBind`, so the property/trigger hooks and the view share the
-  // same instance.
-  const { instance } = useViewModelInstance(riveFile, {
-    artboardName: RIVE_ARTBOARD_NAME,
-    async: true,
-  });
-
-  const { setValue: setTransitionSpeed } = useRiveNumber(
-    RIVE_NUMBER_BINDINGS.TRANSITION_SPEED,
-    instance,
-  );
-  const { setValue: setAllowNotificationsBoolean } = useRiveBoolean(
-    RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS,
-    instance,
-  );
-  const { setValue: setIsReady } = useRiveBoolean(
-    RIVE_BOOLEAN_BINDINGS.IS_READY,
-    instance,
-  );
+  // `AutoBind(true)` builds a fresh object each call; memoize it so the Rive
+  // `dataBinding` prop keeps a stable identity and isn't reconfigured per render.
+  const dataBinding = useMemo(() => AutoBind(true), []);
 
   // The native Rive surface paints an opaque frame during its first-paint warmup
   // that would briefly cover the branded gradient with black. So we mount the
-  // artboard invisible over the gradient and only fade it in once the view
-  // reports ready (`riveViewRef`), leaving the gradient visible during warmup.
-  // The RN title/description overlay is faded in on the SAME signal so the copy
+  // artboard invisible over the gradient and only fade it in once it actually
+  // starts playing (`onPlay`), leaving the gradient visible during warmup. The
+  // RN title/description overlay is faded in on the SAME signal so the copy
   // appears together with the animation instead of sitting on the bare gradient
   // during warmup. A fallback timer reveals both regardless, so a missing
-  // ready signal can never leave the artboard/copy permanently hidden.
+  // `onPlay` can never leave the artboard/copy permanently hidden.
   const riveOpacity = useRef(new Animated.Value(0)).current;
   const textOverlayOpacity = useRef(new Animated.Value(0)).current;
   const hasRevealedRiveRef = useRef(false);
@@ -532,21 +493,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     return () => clearTimeout(timer);
   }, [referencedAssets, revealRive]);
 
-  // Reveal once the view reports ready — the Nitro equivalent of the legacy
-  // `onPlay` first-paint signal.
+  // Push static config once the Rive runtime is ready, and signal readiness.
   useEffect(() => {
-    if (riveViewRef) {
-      revealRive();
-    }
-  }, [riveViewRef, revealRive]);
-
-  // Push static config once the view-model instance is ready, and signal
-  // readiness.
-  useEffect(() => {
-    if (!instance) return;
+    if (!riveRef) return;
     setTransitionSpeed(RIVE_TRANSITION_SPEED);
     setIsReady(true);
-  }, [instance, setTransitionSpeed, setIsReady]);
+  }, [riveRef, setTransitionSpeed, setIsReady]);
 
   // Toggle the Notify step's button layout. `allowNotificationsBoolean` follows
   // notification state on ANY Notify step (post-follow step 3 and the
@@ -554,12 +506,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // notifications" + "Got it") while a prompt is still needed; `false` renders a
   // single "Got it" once notifications are enabled.
   useEffect(() => {
-    if (!instance) return;
+    if (!riveRef) return;
     const showAllowNotifications =
       shouldPromptNotifications && stepIndex >= NOTIFY_STEP_INDEX;
     setAllowNotificationsBoolean(showAllowNotifications);
   }, [
-    instance,
+    riveRef,
     shouldPromptNotifications,
     stepIndex,
     setAllowNotificationsBoolean,
@@ -772,23 +724,25 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   // Rive owns navigation; RN observes the triggers to track the current step and
   // run each button's side effect. Completion is gated on the Notify step above.
-  useRiveTrigger(RIVE_TRIGGERS.CLOSE, instance, { onTrigger: handleClose });
-  useRiveTrigger(RIVE_TRIGGERS.NEXT, instance, { onTrigger: handleNext });
-  useRiveTrigger(RIVE_TRIGGERS.BACK, instance, { onTrigger: handleBack });
-  useRiveTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS, instance, {
-    onTrigger: handleFollowTopTraders,
-  });
-  useRiveTrigger(RIVE_TRIGGERS.MAYBE_LATER, instance, {
-    onTrigger: handleMaybeLater,
-  });
-  useRiveTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS, instance, {
-    onTrigger: handleAllowNotifications,
-  });
-  useRiveTrigger(RIVE_TRIGGERS.GOT_IT, instance, { onTrigger: handleGotIt });
-  useRiveTrigger(RIVE_TRIGGERS.GOT_IT_2, instance, { onTrigger: handleGotIt });
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.CLOSE, handleClose);
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.NEXT, handleNext);
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.BACK, handleBack);
+  useRiveTrigger(
+    riveRef,
+    RIVE_TRIGGERS.FOLLOW_TOP_TRADERS,
+    handleFollowTopTraders,
+  );
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.MAYBE_LATER, handleMaybeLater);
+  useRiveTrigger(
+    riveRef,
+    RIVE_TRIGGERS.ALLOW_NOTIFICATIONS,
+    handleAllowNotifications,
+  );
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT, handleGotIt);
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT_2, handleGotIt);
 
   const handleError = useCallback(
-    (riveError: RiveError) => {
+    (riveError: RNRiveError) => {
       const description = `SocialLeaderboardOnboarding: Rive error: ${riveError.message} - ${riveError.type}`;
 
       // Non-fatal (missing binding/text run, unused or failed referenced asset):
@@ -875,7 +829,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       {stepButtons.map(({ slot, buttons }) => (
         <RiveStepButtonsBinding
           key={slot}
-          instance={instance}
+          riveRef={riveRef}
           slot={slot}
           buttons={buttons}
         />
@@ -883,36 +837,31 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       {traderCards.map((card) => (
         <RiveTraderCardBinding
           key={card.rank}
-          instance={instance}
+          riveRef={riveRef}
           rank={card.rank}
           name={card.name}
           profitAmount={card.profitAmount}
         />
       ))}
-      {/* Mount only once `referencedAssets` is resolved and frozen (so the
-          mapping never changes afterwards) and the file + view-model instance
-          are ready. Wrapped in a fade layer that starts invisible over the
-          gradient and reveals on the view-ready signal so the warmup black
-          frame never shows. */}
+      {/* Mount only once `referencedAssets` is resolved and frozen, so the prop
+          never changes afterwards (a change triggers a native `reloadView()`).
+          Wrapped in a fade layer that starts invisible over the gradient and
+          reveals on first paint (`onPlay`) so the warmup black frame never
+          shows. */}
       {referencedAssets && (
-        <OnboardingRiveFileLoader
-          referencedAssets={referencedAssets}
-          onFile={setRiveFile}
-        />
-      )}
-      {referencedAssets && riveFile && instance && (
         <Animated.View
           style={[StyleSheet.absoluteFill, { opacity: riveOpacity }]}
         >
-          <RiveView
-            hybridRef={setHybridRef}
-            file={riveFile}
+          <Rive
+            ref={ref}
+            source={SocialLeaderboardNuxAnimation}
             artboardName={RIVE_ARTBOARD_NAME}
             stateMachineName={RIVE_STATE_MACHINE_NAME}
-            dataBind={instance}
-            autoPlay
+            dataBinding={dataBinding}
+            referencedAssets={referencedAssets}
             fit={Fit.Layout}
             layoutScaleFactor={PixelRatio.get()}
+            onPlay={revealRive}
             onError={handleError}
             style={StyleSheet.absoluteFill}
             testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}

@@ -28,10 +28,15 @@ export {
   isRampFiatOrder,
   isRampRampsOrder,
 } from './adapters/ramp-order-guards';
-export { mobileActivityAdapterEnvironment } from './adapters/environment';
+export {
+  mobileActivityAdapterEnvironment,
+  type ActivityAdapterEnvironment,
+} from './adapters/environment';
 export type { TransactionGroup } from './adapters/transaction-group';
 export { GAS_FEE_SPONSORED } from './fees';
+export { getLabelKeys } from './label-keys';
 export {
+  calculateFiatFromMarketRates,
   getHumanReadableTokenAmount,
   getDisplaySignPrefix,
   applyDisplaySign,
@@ -39,6 +44,7 @@ export {
 } from './fiat';
 export { formatTokenDisplayAmount } from './token-display';
 export {
+  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
@@ -46,7 +52,10 @@ export {
   getGroupedActivityListItemKey,
   groupActivityListItems,
   isFailedOrCancelledTransfer,
+  isGasTokenFeeWithAmount,
+  isSpendingCapWithAmount,
   preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
 } from './activity-list-helpers';

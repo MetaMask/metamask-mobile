@@ -2,7 +2,7 @@ import {
   Assertions,
   Gestures,
   Matchers,
-  type AppiumElement,
+  EncapsulatedElementType,
 } from '../../framework';
 import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
 import { BridgeTrendingTokensSectionTestIds } from '../../../app/components/UI/Bridge/components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
@@ -18,55 +18,55 @@ const SwapTrendingTokensViewTestIds = {
 } as const;
 
 class SwapTrendingTokensView {
-  public get section(): Promise<AppiumElement> {
+  public get section(): EncapsulatedElementType {
     return Matchers.getElementByID(BridgeTrendingTokensSectionTestIds.SECTION);
   }
 
-  public get priceFilter(): Promise<AppiumElement> {
+  public get priceFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.PRICE_FILTER,
     );
   }
 
-  public get networkFilter(): Promise<AppiumElement> {
+  public get networkFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.NETWORK_FILTER,
     );
   }
 
-  public get timeFilter(): Promise<AppiumElement> {
+  public get timeFilter(): EncapsulatedElementType {
     return Matchers.getElementByID(
       BridgeTrendingTokensSectionTestIds.TIME_FILTER,
     );
   }
 
-  public get priceBottomSheet(): Promise<AppiumElement> {
+  public get priceBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.PRICE_BOTTOM_SHEET,
     );
   }
 
-  public get networkBottomSheet(): Promise<AppiumElement> {
+  public get networkBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.NETWORK_BOTTOM_SHEET,
     );
   }
 
-  public get timeBottomSheet(): Promise<AppiumElement> {
+  public get timeBottomSheet(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_BOTTOM_SHEET,
     );
   }
 
-  public get innerList(): Promise<AppiumElement> {
+  public get innerList(): EncapsulatedElementType {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.INNER_LIST);
   }
 
-  public get closeButton(): Promise<AppiumElement> {
+  public get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SwapTrendingTokensViewTestIds.CLOSE_BUTTON);
   }
 
-  public get timeSelectSixHours(): Promise<AppiumElement> {
+  public get timeSelectSixHours(): EncapsulatedElementType {
     return Matchers.getElementByID(
       SwapTrendingTokensViewTestIds.TIME_SELECT_6H,
     );
@@ -111,7 +111,7 @@ class SwapTrendingTokensView {
     });
   }
 
-  tokenRow(assetId: string): Promise<AppiumElement> {
+  tokenRow(assetId: string): EncapsulatedElementType {
     return Matchers.getElementByID(
       `${SwapTrendingTokensViewTestIds.TOKEN_ROW_PREFIX}${assetId}`,
     );

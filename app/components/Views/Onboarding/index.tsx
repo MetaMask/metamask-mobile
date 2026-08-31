@@ -42,9 +42,7 @@ import {
 } from '../../../actions/legalNotices';
 import { selectGoogleLoginIosUnsupportedBlockingEnabled } from '../../../selectors/featureFlagController/googleLoginIosUnsupportedBlocking';
 import { selectTelegramLoginEnabled } from '../../../selectors/featureFlagController/seedlessTelegramLogin';
-import PreventScreenshot, {
-  CAPTURE_KEYS,
-} from '../../../core/PreventScreenshot';
+import PreventScreenshot from '../../../core/PreventScreenshot';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
@@ -1108,8 +1106,7 @@ const Onboarding = () => {
               'Failed to start OAuth lifecycle tracking',
             );
           });
-          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
-            status: 'started',
+          track(MetaMetricsEvents.SOCIAL_LOGIN_STARTED, {
             auth_connection: provider,
             is_rehydration: (!createWallet).toString(),
           });
@@ -1407,7 +1404,7 @@ const Onboarding = () => {
 
     InteractionManager.runAfterInteractions(() => {
       checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
+      PreventScreenshot.forbid();
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1450,9 +1447,7 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
-      );
+      InteractionManager.runAfterInteractions(PreventScreenshot.allow);
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
@@ -1461,8 +1456,7 @@ const Onboarding = () => {
     detectOAuthProcessRestart()
       .then(({ detected, authConnection, analyticsProperties }) => {
         if (detected && authConnection && analyticsProperties) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
-            status: 'abandoned',
+          track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
             auth_connection: authConnection,
             ...analyticsProperties,
           });
@@ -1486,8 +1480,7 @@ const Onboarding = () => {
         const startedBackgroundPeriod = recordOAuthBackgrounded();
         const authConnection = getOAuthLifecycleAuthConnection();
         if (startedBackgroundPeriod && authConnection) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
-            status: 'backgrounded',
+          track(MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED, {
             auth_connection: authConnection,
             is_rehydration: String(socialLoginIsRehydrationRef.current),
             ...getOAuthBackgroundAnalyticsProperties(),
@@ -1511,8 +1504,7 @@ const Onboarding = () => {
         recordOAuthResumed();
         const authConnection = getOAuthLifecycleAuthConnection();
         if (authConnection) {
-          track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
-            status: 'resumed',
+          track(MetaMetricsEvents.SOCIAL_LOGIN_RESUMED, {
             auth_connection: authConnection,
             is_rehydration: String(socialLoginIsRehydrationRef.current),
             ...getOAuthBackgroundAnalyticsProperties(),
@@ -1533,8 +1525,7 @@ const Onboarding = () => {
               resume_outcome: OAUTH_RESUME_OUTCOME.ABANDONED,
             };
             if (authConnectionForAbandon) {
-              track(MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED, {
-                status: 'abandoned',
+              track(MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED, {
                 auth_connection: authConnectionForAbandon,
                 is_rehydration: String(socialLoginIsRehydrationRef.current),
                 ...backgroundProperties,

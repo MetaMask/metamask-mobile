@@ -13,7 +13,6 @@ export interface BrowserParams {
   fromWhatsHappening?: boolean;
   fromMarketInsights?: boolean;
   fromMoney?: boolean;
-  fromEarnStrategySelection?: boolean;
   linkType?: string;
   url?: string;
 }

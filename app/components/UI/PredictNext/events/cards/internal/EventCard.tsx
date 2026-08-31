@@ -25,12 +25,10 @@ import type {
   PredictMarket,
   PredictOutcome,
 } from '../../../types';
-import {
-  formatAskPrice,
-  formatVolume,
-  getAskPricePercent,
-} from '../../shared/formatting';
+import { formatAskPrice } from './formatAskPrice';
 import { formatMultiplier } from './formatMultiplier';
+import { formatVolume } from './formatVolume';
+import { getAskPricePercent } from './getAskPricePercent';
 
 export const EVENT_CARD_VISIBLE_MARKET_COUNT = 3;
 

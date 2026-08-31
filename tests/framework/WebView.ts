@@ -11,11 +11,11 @@ import {
 } from './AndroidWebViewNative.ts';
 import Gestures from './Gestures.ts';
 import Matchers from './Matchers.ts';
-import { type AppiumElement } from './AppiumElement.ts';
-import AppiumGestures from './AppiumGestures.ts';
-import AppiumWebMatchers from './AppiumWebMatchers.ts';
+import { type PlaywrightElement } from './PlaywrightAdapter.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
-import { getDriver } from './AppiumUtilities.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
 
 export type WebViewByIdOptions = AndroidWebViewScrollOptions & {
   /** Required for Appium Chromedriver / iOS WebView context lookups. */
@@ -42,7 +42,7 @@ export default class WebView {
     pageUrl: string,
     action: () => Promise<void>,
   ): Promise<void> {
-    await AppiumWebMatchers.withWebViewAction(pageUrl, action);
+    await PlaywrightWebMatchers.withWebViewAction(pageUrl, action);
   }
 
   /**
@@ -171,18 +171,18 @@ export default class WebView {
         }
       });
     });
-    await AppiumGestures.hideKeyboard().catch(() => undefined);
+    await PlaywrightGestures.hideKeyboard().catch(() => undefined);
   }
 
   static async scrollIntoView(
     webId: string,
     options: WebViewByIdOptions = {},
-  ): Promise<AppiumElement> {
+  ): Promise<PlaywrightElement | WebElement> {
     if (PlatformDetector.isAndroidAppium()) {
       return scrollAndroidWebIdIntoView(webId, options);
     }
 
-    let webElement: AppiumElement | undefined;
+    let webElement: PlaywrightElement | WebElement | undefined;
     await this.withContext(options.pageUrl, async () => {
       const resolved = await this.getElementById(webId, options);
       await Gestures.scrollToWebViewPort(resolved);
@@ -197,7 +197,7 @@ export default class WebView {
   private static async getElementById(
     webId: string,
     options: WebViewByIdOptions,
-  ): Promise<AppiumElement> {
+  ): Promise<PlaywrightElement | WebElement> {
     const webviewId =
       options.webviewId ?? BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
 

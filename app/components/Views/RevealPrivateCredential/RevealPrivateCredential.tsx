@@ -406,10 +406,9 @@ const RevealPrivateCredential = ({
       />
       {renderContent()}
       <ScreenshotDeterrent
-        enabled
+        enabled={unlocked}
         isSRP
         hasNavigation={hasNavigation}
-        warnOnScreenshot={unlocked}
       />
     </Box>
   );

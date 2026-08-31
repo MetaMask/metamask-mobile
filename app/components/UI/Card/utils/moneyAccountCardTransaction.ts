@@ -61,16 +61,11 @@ export function getCardDeclineReasonLabel(
   tx?: CardTransaction,
 ): string | undefined {
   const message = tx?.declineReason?.message;
-  if (message) {
-    if (parseDeclineAttempt(message)) {
-      return strings('card.transactions.decline_reasons.insufficient_funds');
-    }
-    return message;
-  }
-  // Immersve only provides a machine code (e.g. "cvv-invalid"); humanize it.
-  const code = tx?.declineReason?.code?.replace(/[-_]+/g, ' ').trim();
-  if (!code) {
+  if (!message) {
     return undefined;
   }
-  return code.charAt(0).toUpperCase() + code.slice(1);
+  if (parseDeclineAttempt(message)) {
+    return strings('card.transactions.decline_reasons.insufficient_funds');
+  }
+  return message;
 }

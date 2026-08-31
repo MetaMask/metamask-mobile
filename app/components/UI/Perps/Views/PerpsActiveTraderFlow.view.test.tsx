@@ -396,11 +396,7 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CANCEL_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(
-        strings('perps.cancel_all_modal.description', {
-          count: multipleOrders.length,
-        }),
-      ),
+      screen.getByText(strings('perps.cancel_all_modal.description')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.keep_orders')),

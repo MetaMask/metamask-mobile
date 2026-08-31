@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import NetworkModals from '../../../../../UI/NetworkModal';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -78,11 +78,15 @@ const CustomNetwork = ({
     selectAdditionalNetworksBlacklistFeatureFlag,
   );
 
-  const filteredPopularList = useMemo(() => {
-    const supportedNetworkList = getFilteredPopularNetworks(
-      blacklistedChainIds,
-      customNetworksList ?? PopularList,
-    ).map((networkConfiguration: Network) => {
+  // Apply blacklist filter to the network list
+  const baseNetworkList = customNetworksList ?? PopularList;
+  const filteredNetworkList = getFilteredPopularNetworks(
+    blacklistedChainIds,
+    baseNetworkList,
+  );
+
+  const supportedNetworkList = filteredNetworkList.map(
+    (networkConfiguration: Network) => {
       const isAdded = Object.values(networkConfigurations).some(
         (
           savedNetwork: NetworkConfiguration | MultichainNetworkConfiguration,
@@ -104,22 +108,16 @@ const CustomNetwork = ({
         ...networkConfiguration,
         isAdded,
       };
-    });
-
-    return showAddedNetworks
-      ? supportedNetworkList
-      : supportedNetworkList.filter((network) => !network.isAdded);
-  }, [
-    blacklistedChainIds,
-    customNetworksList,
-    networkConfigurations,
-    showAddedNetworks,
-  ]);
+    },
+  );
 
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
   const networkSettingsStyles = createStyles();
   const customNetworkStyles = createCustomNetworkStyles({ colors });
+  const filteredPopularList = showAddedNetworks
+    ? supportedNetworkList
+    : supportedNetworkList.filter((n) => !n.isAdded);
 
   const handleNetworkPress = useCallback(
     async (networkConfiguration: Network & { isAdded: boolean }) => {
@@ -165,9 +163,9 @@ const CustomNetwork = ({
           allowNetworkSwitch={allowNetworkSwitch}
         />
       )}
-      {filteredPopularList.map((networkConfiguration) => (
+      {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
-          key={networkConfiguration.chainId}
+          key={index}
           style={networkSettingsStyles.popularNetwork}
           onPress={() => handleNetworkPress(networkConfiguration)}
         >

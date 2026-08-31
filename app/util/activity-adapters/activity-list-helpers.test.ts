@@ -1,13 +1,17 @@
 import type { ActivityListItem, TokenAmount } from './types';
 import { GAS_FEE_SPONSORED } from './fees';
 import {
+  activityMatchesAssetId,
   enrichTokenFromApi,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isGasTokenFeeWithAmount,
+  isSpendingCapWithAmount,
   preferLocalOrApiActivityItem,
+  shouldPreferLocalActivityItem,
   shouldShowPlusSign,
 } from './activity-list-helpers';
 
@@ -53,7 +57,107 @@ describe('activity list helpers', () => {
     expect(shouldShowPlusSign('receive')).toBe(true);
   });
 
-  describe('preferLocalOrApiActivityItem', () => {
+  describe('isSpendingCapWithAmount', () => {
+    it('is true for a spending-cap item with an explicit amount', () => {
+      const item = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { amount: '100000', direction: 'out' } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(true);
+    });
+
+    it('is true for an unlimited spending-cap approval', () => {
+      const item = makeItem({
+        type: 'increaseSpendingCap',
+        data: { token: { direction: 'out', isUnlimitedApproval: true } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(true);
+    });
+
+    it('is false for a spending-cap item without a cap amount', () => {
+      const item = makeItem({
+        type: 'approveSpendingCap',
+        data: { token: { direction: 'out' } },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+
+    it('is false for a spending-cap item with no token', () => {
+      const item = makeItem({ type: 'revokeSpendingCap', data: {} });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+
+    it('is false for a non-spending-cap kind even with an amount', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: { amount: '100000', direction: 'out' },
+        },
+      });
+      expect(isSpendingCapWithAmount(item)).toBe(false);
+    });
+  });
+
+  describe('isGasTokenFeeWithAmount', () => {
+    it('is true when fees include a gasToken fee with an amount', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            {
+              type: 'gasToken',
+              amount: '100',
+              decimals: 6,
+              symbol: 'USDC',
+            },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(true);
+    });
+
+    it('is false when fees only include a native base fee', () => {
+      const item = makeItem({
+        type: 'send',
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          fees: [
+            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
+          ],
+        },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
+    });
+
+    it('is false when there are no fees', () => {
+      const item = makeItem({
+        type: 'send',
+        data: { from: '0xfrom', to: '0xto' },
+      });
+      expect(isGasTokenFeeWithAmount(item)).toBe(false);
+    });
+
+    it('is false when gasToken amount is zero (decimal or hex)', () => {
+      for (const amount of ['0', '0x0']) {
+        const item = makeItem({
+          type: 'send',
+          data: {
+            from: '0xfrom',
+            to: '0xto',
+            fees: [{ type: 'gasToken', amount, decimals: 6, symbol: 'USDC' }],
+          },
+        });
+        expect(isGasTokenFeeWithAmount(item)).toBe(false);
+      }
+    });
+  });
+
+  describe('shouldPreferLocalActivityItem / preferLocalOrApiActivityItem', () => {
     it('prefers matching-type local when only it has a gas-token fee', () => {
       const local = makeItem({
         type: 'send',
@@ -75,6 +179,7 @@ describe('activity list helpers', () => {
           ],
         },
       });
+      expect(shouldPreferLocalActivityItem(local, api)).toBe(true);
       expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
     });
 
@@ -99,6 +204,7 @@ describe('activity list helpers', () => {
           ],
         },
       });
+      expect(shouldPreferLocalActivityItem(local, api)).toBe(false);
       expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
     });
 
@@ -134,86 +240,34 @@ describe('activity list helpers', () => {
         },
       });
     });
+  });
 
-    it('keeps the local item when there is no API counterpart', () => {
-      const local = makeItem({ type: 'send' });
-      expect(preferLocalOrApiActivityItem(local, undefined)).toBe(local);
-    });
-
-    it('prefers a local spending cap carrying a cap amount', () => {
-      const local = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { amount: '100000', direction: 'out' } },
-      });
-      const api = makeItem({
-        type: 'approveSpendingCap',
-        data: { token: { direction: 'out' } },
-      });
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
-    });
-
-    it('prefers a local unlimited approval over an API copy with no cap amount', () => {
-      const local = makeItem({
-        type: 'increaseSpendingCap',
-        data: { token: { direction: 'out', isUnlimitedApproval: true } },
-      });
-      const api = makeItem({
-        type: 'increaseSpendingCap',
-        data: { token: { direction: 'out' } },
-      });
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(local);
-    });
-
-    it('keeps the API item when neither copy has a cap amount', () => {
-      const local = makeItem({ type: 'revokeSpendingCap', data: {} });
-      const api = makeItem({
-        type: 'revokeSpendingCap',
-        data: { token: { direction: 'out' } },
-      });
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
-    });
-
-    it('keeps the API item when the local gas-token fee has no usable amount', () => {
-      for (const amount of ['0', '0x0', '', 'not-a-number', undefined]) {
-        const local = makeItem({
-          type: 'send',
-          data: {
-            from: '0xfrom',
-            to: '0xto',
-            fees: [{ type: 'gasToken', amount, decimals: 6, symbol: 'USDT' }],
-          },
-        });
-        const api = makeItem({
-          type: 'send',
-          data: {
-            from: '0xfrom',
-            to: '0xto',
-            fees: [
-              { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
-            ],
-          },
-        });
-        expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
-      }
-    });
-
-    it('keeps the API item when the local copy carries no fees at all', () => {
-      const local = makeItem({
-        type: 'send',
-        data: { from: '0xfrom', to: '0xto' },
-      });
-      const api = makeItem({
-        type: 'send',
-        data: {
-          from: '0xfrom',
-          to: '0xto',
-          fees: [
-            { type: 'base', amount: '21000', decimals: 18, symbol: 'ETH' },
-          ],
+  it('matches token, source token, and destination token asset ids case-insensitively', () => {
+    const item = makeItem({
+      hash: '0xhash',
+      data: {
+        sourceToken: {
+          assetId: 'eip155:1/erc20:0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
+          direction: 'out',
+          symbol: 'USDC',
         },
-      });
-      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
+        destinationToken: {
+          assetId: 'eip155:1/slip44:60',
+          direction: 'in',
+          symbol: 'ETH',
+        },
+      },
+      type: 'swap',
     });
+
+    expect(
+      activityMatchesAssetId(
+        item,
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      ),
+    ).toBe(true);
+    expect(activityMatchesAssetId(item, 'eip155:1/slip44:60')).toBe(true);
+    expect(activityMatchesAssetId(item, 'eip155:137/slip44:60')).toBe(false);
   });
 
   it('groups pending items before date-grouped historical items', () => {

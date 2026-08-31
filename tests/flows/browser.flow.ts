@@ -9,7 +9,7 @@ import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/B
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import AppiumContextHelpers from '../framework/AppiumContextHelpers';
+import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
 import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 import { getDappUrl } from '../framework/fixtures/FixtureUtils';
@@ -87,7 +87,7 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
       throw new Error('Test Snaps load is only supported on Android/iOS');
     } catch (error) {
       if (attempt < MAX_RETRIES) {
-        await AppiumContextHelpers.switchToNativeContext().catch(
+        await PlaywrightContextHelpers.switchToNativeContext().catch(
           () => undefined,
         );
         await BrowserView.navigateToURL(TEST_SNAPS_URL);

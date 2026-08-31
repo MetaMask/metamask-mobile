@@ -25,18 +25,6 @@ export const selectMoneyAccountWithdrawEnabledFlag = createSelector(
   },
 );
 
-export const MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY =
-  'moneyMovementBrazilNeobank' as const;
-
-export const selectMoneyMovementBrazilNeobankEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): boolean => {
-    const remoteFlag =
-      remoteFeatureFlags?.[MONEY_MOVEMENT_BRAZIL_NEOBANK_FLAG_KEY];
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 export const MONEY_ENABLE_ONBOARDING_STEPPER_ANIMATION_FLAG_KEY =
   'moneyEnableOnboardingStepperAnimation' as const;
 

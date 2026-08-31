@@ -253,27 +253,19 @@ describe('handleMoney', () => {
 
     handleMoney();
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('navigates to MONEY.HOME when user has already seen onboarding', () => {
     handleMoney();
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.HOME_TABS,
-      {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      },
-      { pop: true },
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('logs error and navigates to WALLET.HOME when selector throws', () => {

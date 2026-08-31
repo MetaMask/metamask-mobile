@@ -44,7 +44,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       disabled,
       accessibilityLabel,
       accessibilityHint,
-      style,
     }: {
       children: React.ReactNode;
       testID?: string;
@@ -52,7 +51,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       disabled?: boolean;
       accessibilityLabel?: string;
       accessibilityHint?: string;
-      style?: Record<string, unknown>;
     }) => (
       <TouchableOpacity
         testID={testID}
@@ -60,7 +58,6 @@ jest.mock('@metamask/design-system-react-native', () => {
         disabled={disabled}
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
-        style={style}
       >
         <Text>{children}</Text>
       </TouchableOpacity>
@@ -362,21 +359,7 @@ describe('PerpsModeToggle', () => {
     expect(getAllByText('Pro').length).toBeGreaterThan(0);
   });
 
-  it.each([
-    [PerpsMode.Pro, PerpsModeToggleSelectorsIDs.PRO_SEGMENT],
-    [PerpsMode.Lite, PerpsModeToggleSelectorsIDs.LITE_SEGMENT],
-  ])(
-    'pins a minimum width in %s so the label swap cannot resize the pill',
-    (mode, segmentTestID) => {
-      const { getByTestId } = render(
-        <PerpsModeToggle mode={mode} onChange={jest.fn()} variant="active" />,
-      );
-
-      expect(getByTestId(segmentTestID)).toHaveStyle({ minWidth: 56 });
-    },
-  );
-
-  it('changes mode on press without waiting for the active-pill animation', async () => {
+  it('finishes the active-pill animation before changing mode', async () => {
     jest.useFakeTimers();
     const onChange = jest.fn();
     const { getByTestId } = render(
@@ -388,20 +371,13 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
-    await act(async () => {
-      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
-    });
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
-
+    expect(onChange).not.toHaveBeenCalled();
     expect(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT)).toBeDisabled();
     await act(async () => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
-    expect(
-      getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT),
-    ).not.toBeDisabled();
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenCalledWith(PerpsMode.Lite);
@@ -418,7 +394,7 @@ describe('PerpsModeToggle', () => {
     );
   });
 
-  it('plays TabChange as soon as an active-pill switch is applied', async () => {
+  it('plays TabChange after an active-pill switch is applied', async () => {
     jest.useFakeTimers();
     const onChange = jest.fn();
     const { getByTestId } = render(
@@ -430,20 +406,19 @@ describe('PerpsModeToggle', () => {
       />,
     );
 
+    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+
     await act(async () => {
-      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+      await Promise.resolve();
     });
 
     expect(onChange).toHaveBeenCalledTimes(1);
     expect(playImpact).toHaveBeenCalledTimes(1);
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
-
-    // Drain the shimmer timer so it cannot leak into later tests.
-    await act(async () => {
-      jest.advanceTimersByTime(GLOW_TOTAL_MS);
-    });
-
-    expect(playImpact).toHaveBeenCalledTimes(1);
   });
 
   it('keeps active-pill haptics silent when the mode switch is not applied', async () => {

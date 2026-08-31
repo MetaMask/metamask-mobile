@@ -1,7 +1,6 @@
 import { USDC_MAINNET } from '../../constants/musd-mainnet.ts';
 
 const NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
-const MUSD_MONAD_ADDRESS = '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 
 /**
  * Static descriptor for a token on a specific chain. `usdValue` is the price of
@@ -28,7 +27,6 @@ export interface TokenHolding extends PredefinedToken {
 const ETHEREUM_CHAIN_ID = '0x1';
 const POLYGON_CHAIN_ID = '0x89';
 const ARBITRUM_CHAIN_ID = '0xa4b1';
-const MONAD_CHAIN_ID = '0x8f';
 
 export const PREDEFINED_TOKENS = {
   ETHEREUM: {
@@ -93,24 +91,6 @@ export const PREDEFINED_TOKENS = {
       usdValue: 1,
     },
   },
-  MONAD: {
-    MON: {
-      symbol: 'MON',
-      address: NATIVE_ADDRESS,
-      decimals: 18,
-      chainId: MONAD_CHAIN_ID,
-      isNative: true,
-      usdValue: 1,
-    },
-    MUSD: {
-      symbol: 'mUSD',
-      address: MUSD_MONAD_ADDRESS,
-      decimals: 6,
-      chainId: MONAD_CHAIN_ID,
-      isNative: false,
-      usdValue: 1,
-    },
-  },
 } as const satisfies Record<string, Record<string, PredefinedToken>>;
 
 /**
@@ -131,7 +111,6 @@ export function chainIdForRpcUrl(url: string): string | null {
   const lower = url.toLowerCase();
   if (lower.includes('polygon')) return POLYGON_CHAIN_ID;
   if (lower.includes('arbitrum')) return ARBITRUM_CHAIN_ID;
-  if (lower.includes('monad')) return MONAD_CHAIN_ID;
   if (lower.includes('mainnet') || lower.includes('ethereum')) {
     return ETHEREUM_CHAIN_ID;
   }

@@ -83,14 +83,14 @@ describe('PerpsProSizeInput', () => {
     expect(mockInputFocus).toHaveBeenCalledTimes(1);
   });
 
-  it('does not focus the input when the denomination toggle is pressed', () => {
+  it('refocuses the input after the denomination toggle is pressed', () => {
     const onToggleDenomination = jest.fn();
     renderInput({ onToggleDenomination });
 
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
 
     expect(onToggleDenomination).toHaveBeenCalledTimes(1);
-    expect(mockInputFocus).not.toHaveBeenCalled();
+    expect(mockInputFocus).toHaveBeenCalledTimes(1);
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
 

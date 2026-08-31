@@ -127,12 +127,6 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: () => 'USD',
 }));
 
-let mockIsMasterNotificationsEnabled = true;
-jest.mock('../../../../selectors/notifications', () => ({
-  ...jest.requireActual('../../../../selectors/notifications'),
-  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
-}));
-
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -415,7 +409,6 @@ describe('TraderProfileView', () => {
     };
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
-    mockIsMasterNotificationsEnabled = true;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
@@ -560,25 +553,6 @@ describe('TraderProfileView', () => {
     );
     expect(mockToggleFollow).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
-  });
-
-  it('navigates to the feature notifications gate when following with the master toggle off', async () => {
-    mockIsMasterNotificationsEnabled = false;
-
-    renderWithProvider(<TraderProfileView />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
-      );
-    });
-
-    expect(mockToggleFollow).not.toHaveBeenCalled();
-    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
-      params: { feature: 'socialAI', autoDismiss: true },
-    });
   });
 
   it('follows immediately without a haptic when a channel is already enabled', async () => {

@@ -1119,24 +1119,6 @@ describe('PerpsAdjustMarginView', () => {
       expect(screen.getByText('liquidation_distance')).toBeOnTheScreen();
     });
 
-    it('renders the liquidation distance with two decimal digits', () => {
-      // Arrange - default mock supplies a 5% distance against a non-zero liquidation price
-      mockRouteParams = {
-        position: mockPosition,
-        mode: 'add',
-      };
-
-      // Act
-      render(<PerpsAdjustMarginView />);
-
-      // Assert - matches the position card, which also renders two decimals
-      expect(
-        screen.getByTestId(
-          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
-        ),
-      ).toHaveTextContent('5.00%');
-    });
-
     it('shows fallback display when liquidation price is zero', () => {
       mockRouteParams = {
         position: mockPosition,

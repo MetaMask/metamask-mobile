@@ -811,11 +811,6 @@ describe('CustomAmountInfo', () => {
         deferred.resolve();
         await deferred.promise;
       });
-      view.rerender(
-        createCustomAmountInfo({
-          transactionType: TransactionType.moneyAccountDeposit,
-        }),
-      );
 
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
       expect(view.queryByTestId('bridge-fee-row')).not.toBeOnTheScreen();
@@ -987,7 +982,7 @@ describe('CustomAmountInfo', () => {
       expect(view.getByTestId('bridge-fee-row')).toBeOnTheScreen();
     });
 
-    it('unblocks review rows when quote loading starts before the amount update settles', async () => {
+    it('keeps preparation active while the amount update is pending', async () => {
       const { deferred } = arrangePendingPreparation();
       const view = render({
         transactionType: TransactionType.moneyAccountDeposit,
@@ -1008,7 +1003,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('auto');
+      ).toBe('none');
 
       await act(async () => {
         deferred.resolve();
@@ -1070,7 +1065,7 @@ describe('CustomAmountInfo', () => {
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
-    it('unblocks non-Money review rows once quote loading starts', async () => {
+    it('keeps the universal loading review until Redux observes controller loading', async () => {
       const deferred = createDeferredPromise();
       const nonMoneyTransactionId = 'non-money-transaction';
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -1109,7 +1104,7 @@ describe('CustomAmountInfo', () => {
       expect(
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
-      ).toBe('auto');
+      ).toBe('none');
 
       // A fresh, non-empty quote settles the override into the populated review.
       useIsTransactionPayLoadingMock.mockReturnValue(false);

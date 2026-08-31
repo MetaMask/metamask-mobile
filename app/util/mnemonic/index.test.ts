@@ -4,7 +4,6 @@ import {
   uint8ArrayToMnemonic,
   convertEnglishWordlistIndicesToCodepoints,
   convertMnemonicToWordlistIndices,
-  pickUniqueMissingWordSlots,
 } from '.';
 
 const mockSRPArrayOne = [
@@ -42,78 +41,6 @@ describe('mnemonic::shuffle', () => {
     expect(mockSRPArrayOne.join('')).not.toEqual(
       shuffle(mockSRPArrayOne).join(''),
     );
-  });
-
-  it('shuffles number arrays without mutating the input', () => {
-    const input = [0, 1, 2, 3];
-    const result = shuffle(input);
-    expect(input).toEqual([0, 1, 2, 3]);
-    expect(result).toHaveLength(4);
-    expect([...result].sort()).toEqual([0, 1, 2, 3]);
-  });
-});
-
-describe('mnemonic::pickUniqueMissingWordSlots', () => {
-  it('returns unique words for a phrase that contains duplicates', () => {
-    // Valid BIP-39 pattern: same word can appear more than once.
-    const wordsWithDuplicate = [
-      'apple',
-      'banana',
-      'apple',
-      'cherry',
-      'date',
-      'elder',
-      'fig',
-      'grape',
-      'honey',
-      'iris',
-      'jade',
-      'kiwi',
-    ];
-
-    for (let i = 0; i < 30; i++) {
-      const slots = pickUniqueMissingWordSlots(wordsWithDuplicate);
-      const removed = slots.map((index) => wordsWithDuplicate[index]);
-      expect(slots).toHaveLength(3);
-      expect(new Set(removed).size).toBe(3);
-      slots.forEach((index) => {
-        expect(index).toBeGreaterThanOrEqual(0);
-        expect(index).toBeLessThan(wordsWithDuplicate.length);
-      });
-    }
-  });
-
-  it('falls back when repeated random row/column picks keep selecting the same word', () => {
-    // With Math.random always 0, Fisher–Yates always yields rows [1,2,3] and
-    // column 1 → indexes 4, 7, and 10. Set those to the same word so attempts collide.
-    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0);
-    const wordsWithCollisionPath = [
-      'w0',
-      'w1',
-      'w2',
-      'w3',
-      'same',
-      'w5',
-      'w6',
-      'same',
-      'w8',
-      'w9',
-      'same',
-      'w11',
-    ];
-
-    try {
-      const slots = pickUniqueMissingWordSlots(wordsWithCollisionPath);
-      const removed = slots.map((index) => wordsWithCollisionPath[index]);
-      expect(slots).toHaveLength(3);
-      expect(new Set(removed).size).toBe(3);
-    } finally {
-      randomSpy.mockRestore();
-    }
-  });
-
-  it('returns an empty array for empty input', () => {
-    expect(pickUniqueMissingWordSlots([])).toEqual([]);
   });
 });
 

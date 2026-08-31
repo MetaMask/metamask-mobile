@@ -272,19 +272,6 @@ describe('NavigationService', () => {
       expect(route).toEqual({ name: 'Home', key: 'home-key' });
     });
 
-    it('safely returns the focused route for shared services', () => {
-      NavigationService.navigation = mockNavigation;
-
-      expect(NavigationService.getCurrentRoute()).toEqual({
-        name: 'Home',
-        key: 'home-key',
-      });
-    });
-
-    it('returns undefined when shared services read before navigation is ready', () => {
-      expect(NavigationService.getCurrentRoute()).toBeUndefined();
-    });
-
     it('getRootState returns the root navigation state', () => {
       NavigationService.navigation = mockNavigation;
 

@@ -85,7 +85,6 @@ const makeQueryResult = (
     data: undefined,
     isLoading: false,
     isFetching: false,
-    isFetched: false,
     error: null,
     refetch: mockRefetch,
     ...overrides,
@@ -242,12 +241,6 @@ describe('useTopTraders', () => {
       mockUseQuery.mockReturnValue(makeQueryResult({ isLoading: true }));
       const { result } = renderHook(() => useTopTraders());
       expect(result.current.isLoading).toBe(true);
-    });
-
-    it('exposes whether the query has fetched', () => {
-      mockUseQuery.mockReturnValue(makeQueryResult({ isFetched: true }));
-      const { result } = renderHook(() => useTopTraders());
-      expect(result.current.hasFetched).toBe(true);
     });
 
     it('returns the error message for an Error object', () => {

@@ -83,10 +83,7 @@ jest.mock('./useRampsCountries', () => ({
   }),
   default: () => ({ countries: mockCountries, isLoading: false, error: null }),
 }));
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: jest.fn(),
-}));
+jest.mock('@react-navigation/native');
 jest.mock('../Aggregator/routes/utils');
 jest.mock('../Views/TokenSelection/TokenSelection', () => {
   const actual = jest.requireActual('../Views/TokenSelection/TokenSelection');

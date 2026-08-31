@@ -169,8 +169,9 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
+        # Match Android: skip cross-run GitHub artifact reuse on Namespace until backend parity is proven.
         # BITRISE-SHADOW: skip GitHub artifact reuse; Bitrise uses actions/cache app fingerprint cache (INFRA-3591).
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -488,7 +489,7 @@ jobs:
       # appeared while we were busy anyway.
       - name: Re-check for a reusable build published since the first lookup
         id: find-reusable-build-late
-        if: ${{ inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && inputs.runner_provider != 'bitrise' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && steps.gate.outputs.needs-native-build == 'true' }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -897,11 +898,9 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      # Always mirrored to the GitHub store, including on Namespace: cross-run
-      # reuse discovery lists artifacts through the GitHub API, which cannot see
-      # the Namespace store. See "Runner provider switch" in .github/CONTRIBUTING.md.
-      - name: Upload iOS APP Artifact (Simulator) (GitHub store)
+      - name: Upload iOS APP Artifact (Simulator) (current)
         id: upload-app
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
@@ -921,8 +920,9 @@ jobs:
           if-no-files-found: error
         continue-on-error: true
 
-      - name: Upload iOS build metadata (GitHub store)
+      - name: Upload iOS build metadata (current)
         id: upload-metadata
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
@@ -966,8 +966,8 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} github=${{ steps.upload-app.outcome }}"
-          echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} github=${{ steps.upload-metadata.outcome }}"
+          echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} current=${{ steps.upload-app.outcome }}"
+          echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} current=${{ steps.upload-metadata.outcome }}"
           echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
 
         env:

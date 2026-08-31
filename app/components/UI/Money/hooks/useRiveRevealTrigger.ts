@@ -1,11 +1,11 @@
-import { useEffect, useRef } from 'react';
-import type { RiveViewRef, ViewModelInstance } from '@rive-app/react-native';
+import { RefObject, useCallback, useEffect, useRef } from 'react';
+import type { RiveRef } from 'rive-react-native';
+
+/** How long to wait for Rive's `onPlay` before firing the reveal anyway. */
+export const RIVE_REVEAL_FALLBACK_DELAY_MS = 400;
 
 interface UseRiveRevealTriggerOptions {
-  /** Bound view model instance; nullish while the file or binding loads. */
-  instance: ViewModelInstance | null | undefined;
-  /** Native view methods; set only after the view resolves awaitViewReady. */
-  riveViewRef: RiveViewRef | null | undefined;
+  riveRef: RefObject<RiveRef | null>;
   /** ViewModel trigger that starts the reveal. */
   triggerName: string;
   /** Whether the reveal should run at all; false while the view is unmounted. */
@@ -20,59 +20,85 @@ interface UseRiveRevealTriggerOptions {
 /**
  * Fires a data-bound reveal trigger once the native view can receive it.
  *
- * The reveal only advances once the view model instance is bound to the
- * running state machine — firing before the native view is ready would be
- * silently dropped. Unlike the legacy runtime, Nitro exposes both readiness
- * signals directly: `instance` is non-null once data binding has resolved,
- * and `riveViewRef` is non-null once the native view has loaded. Gating on
- * both replaces the legacy `onPlay`-plus-fallback-timer contract; a late
- * signal retries the effect instead of dropping the trigger.
+ * The trigger only lands once the view has loaded the file, and `onPlay` is
+ * that signal — firing from an effect alone races the load, and the runtime
+ * drops such a dispatch silently instead of reporting it. `onPlay` is not
+ * guaranteed to arrive either: when the state machine settles without starting
+ * playback it never fires, so a fallback timer attempts the reveal anyway.
  *
- * The reveal fires once per mounted view: the latch resets when the artboard
- * changes (which remounts the native view) or when `enabled` toggles.
+ * Because that early attempt cannot be confirmed, it does not consume the
+ * reveal: `onPlay` may still dispatch once afterwards. Only a dispatch made on
+ * the load signal is final, so a slow file load costs at most a repeated
+ * trigger rather than an entrance that never plays.
+ *
+ * Returns the `onPlay` handler to pass to `<Rive>`.
  */
 export function useRiveRevealTrigger({
-  instance,
-  riveViewRef,
+  riveRef,
   triggerName,
   enabled,
   artboardName,
   delayMs = 0,
   log,
-}: UseRiveRevealTriggerOptions): void {
-  const hasFiredReveal = useRef(false);
+}: UseRiveRevealTriggerOptions): () => void {
+  const hasRevealedOnLoad = useRef(false);
+  const hasRevealedEarly = useRef(false);
+  const timeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // The native view is replaced when the artboard changes or when it is
   // remounted after being disabled, and the fresh view has not been revealed.
   useEffect(() => {
-    hasFiredReveal.current = false;
+    hasRevealedOnLoad.current = false;
+    hasRevealedEarly.current = false;
   }, [artboardName, enabled]);
 
-  useEffect(() => {
-    if (!enabled || !instance || !riveViewRef || hasFiredReveal.current) {
-      return undefined;
-    }
+  const fireReveal = useCallback(
+    (isLoaded: boolean) => {
+      if (hasRevealedOnLoad.current) return;
+      if (!isLoaded && hasRevealedEarly.current) return;
+      if (isLoaded) {
+        hasRevealedOnLoad.current = true;
+      } else {
+        hasRevealedEarly.current = true;
+      }
 
-    const dispatchTrigger = () => {
-      hasFiredReveal.current = true;
-      const trigger = instance.triggerProperty(triggerName);
-      if (!trigger) {
-        log('reveal skipped: trigger property not found');
+      const dispatchTrigger = () => {
+        const rive = riveRef.current;
+        // viewTag() is null while the native view is detached; dispatching then
+        // throws "found null reactTag".
+        if (!rive || rive.viewTag() === null) {
+          log('reveal skipped: native view detached');
+          return;
+        }
+        rive.trigger(triggerName);
+      };
+
+      if (delayMs > 0) {
+        clearTimeout(timeout.current);
+        timeout.current = setTimeout(dispatchTrigger, delayMs);
         return;
       }
-      trigger.trigger();
-      // A settled state machine won't be advancing when the trigger lands;
-      // playIfNeeded is the runtime's low-overhead way to wake it.
-      riveViewRef.playIfNeeded();
-    };
+      dispatchTrigger();
+    },
+    [riveRef, triggerName, delayMs, log],
+  );
 
-    // The latch is set inside dispatchTrigger, so unmounting during the delay
-    // cancels the timer without consuming the reveal.
-    if (delayMs > 0) {
-      const timeout = setTimeout(dispatchTrigger, delayMs);
-      return () => clearTimeout(timeout);
-    }
-    dispatchTrigger();
-    return undefined;
-  }, [enabled, instance, riveViewRef, triggerName, delayMs, log]);
+  useEffect(() => () => clearTimeout(timeout.current), []);
+
+  // The trigger only lands once the file is loaded, and a dispatch made before
+  // that is silently dropped by the runtime rather than reported. So the
+  // fallback's attempt does not close the door: `onPlay` — the actual load
+  // signal — is still allowed to dispatch once afterwards.
+  useEffect(() => {
+    if (!enabled) return undefined;
+    const fallback = setTimeout(
+      () => fireReveal(false),
+      RIVE_REVEAL_FALLBACK_DELAY_MS,
+    );
+    return () => clearTimeout(fallback);
+  }, [enabled, fireReveal]);
+
+  return useCallback(() => {
+    if (enabled) fireReveal(true);
+  }, [enabled, fireReveal]);
 }

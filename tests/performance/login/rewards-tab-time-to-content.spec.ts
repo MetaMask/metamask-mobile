@@ -1,7 +1,7 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
-import { AppiumAssertions } from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import RewardsView from '../../page-objects/Rewards/RewardsView';
@@ -60,15 +60,18 @@ perfTest.describe(
 
         await rewardsContentTimer.measure(async () => {
           await waitForFirstSuccessful([
-            AppiumAssertions.expectElementToBeVisible(
-              RewardsView.onboardingStepContainer,
+            PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(RewardsView.onboardingStepContainer),
               {
                 description: 'Rewards onboarding step should be visible',
               },
             ).then(() => 'onboarding' as const),
-            AppiumAssertions.expectElementToBeVisible(RewardsView.title, {
-              description: 'Rewards dashboard title should be visible',
-            }).then(() => 'dashboard' as const),
+            PlaywrightAssertions.expectElementToBeVisible(
+              asPlaywrightElement(RewardsView.title),
+              {
+                description: 'Rewards dashboard title should be visible',
+              },
+            ).then(() => 'dashboard' as const),
           ]);
         });
 

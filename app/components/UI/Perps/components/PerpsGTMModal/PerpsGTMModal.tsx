@@ -1,5 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import NavigationService from '../../../../../core/NavigationService';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 import React, { useState } from 'react';
@@ -89,7 +88,7 @@ const PerpsGTMModal = () => {
         .build(),
     );
 
-    navigate(Routes.HOME_TABS, { screen: Routes.WALLET.HOME }, { pop: true });
+    navigate(Routes.WALLET.HOME);
   };
 
   const tryPerpsNow = async () => {
@@ -106,8 +105,7 @@ const PerpsGTMModal = () => {
     await StorageWrapper.setItem(PERPS_GTM_MODAL_SHOWN, 'true', {
       emitEvent: false,
     });
-    navigate(Routes.HOME_TABS, { screen: Routes.WALLET.HOME }, { pop: true });
-    NavigationService.navigation.navigate(Routes.PERPS.TUTORIAL, {
+    navigate(Routes.PERPS.TUTORIAL, {
       isFromGTMModal: true,
     });
   };

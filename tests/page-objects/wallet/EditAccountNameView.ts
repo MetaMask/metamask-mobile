@@ -1,15 +1,15 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { EditAccountNameSelectorIDs } from '../../../app/components/Views/EditAccountName/EditAccountName.testIds';
-import { type AppiumElement } from '../../framework';
+import { EncapsulatedElementType } from '../../framework';
 
 class EditAccountNameView {
-  get saveButton(): Promise<AppiumElement> {
+  get saveButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EditAccountNameSelectorIDs.EDIT_ACCOUNT_NAME_SAVE,
     );
   }
-  get accountNameInput(): Promise<AppiumElement> {
+  get accountNameInput(): EncapsulatedElementType {
     return Matchers.getElementByID(
       EditAccountNameSelectorIDs.ACCOUNT_NAME_INPUT,
     );

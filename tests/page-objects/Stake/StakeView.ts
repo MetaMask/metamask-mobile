@@ -4,24 +4,24 @@ import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import {
   Assertions,
-  type AppiumElement,
+  EncapsulatedElementType,
   PlatformDetector,
 } from '../../framework';
 
 class StakeView {
-  get stakeContainer(): Promise<AppiumElement> {
+  get stakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.STAKE_CONTAINER);
   }
 
-  get unstakeContainer(): Promise<AppiumElement> {
+  get unstakeContainer(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.UNSTAKE_CONTAINER);
   }
 
-  get reviewButton(): Promise<AppiumElement> {
+  get reviewButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.REVIEW_BUTTON);
   }
 
-  get confirmButton(): Promise<AppiumElement> {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByText(StakeViewSelectors.CONFIRM);
   }
 

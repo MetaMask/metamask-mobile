@@ -19,14 +19,6 @@ export const FEATURE_NOTIFICATIONS_GATE_COPY = {
     previewTimestampKey:
       'notifications.feature_gate.price_alerts.preview.timestamp',
   },
-  socialAI: {
-    titleKey: 'notifications.feature_gate.social_ai.title',
-    descriptionKey: 'notifications.feature_gate.social_ai.description',
-    previewTitleKey: 'notifications.feature_gate.social_ai.preview.title',
-    previewMessageKey: 'notifications.feature_gate.social_ai.preview.message',
-    previewTimestampKey:
-      'notifications.feature_gate.social_ai.preview.timestamp',
-  },
 } as const satisfies Partial<
   Record<NotificationPreferenceSection, FeatureNotificationsGateCopy>
 >;

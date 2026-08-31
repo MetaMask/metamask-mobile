@@ -71,26 +71,23 @@ export interface PreferredProviderResult {
   autoSelected: boolean;
 }
 
-function normalizeProviderId(providerId?: string): string | undefined {
-  return providerId?.replace(/^\/providers\//i, '').toLowerCase();
-}
-
 /**
  * Determines the preferred provider based on user's completed order history.
  *
  * Fallback order:
  * 1. Provider from most recent completed order (autoSelected: false)
- * 2. Backend-ranked default provider (autoSelected: true)
+ * 2. Transak (autoSelected: false)
+ * 3. null — no preselection; wait for the user to pick a token, then
+ * choose the first provider that supports it.
  *
  * @param completedOrders - Completed orders from any source (legacy + controller)
  * @param availableProviders - Available providers from RampsController
- * @param backendDefaultProviderId - Default provider ID from backend ranking
- * @returns The preferred provider with its selection source, or null if no providers are available.
+ * @returns The preferred provider with its selection source, or null if no
+ * providers are available or no signal exists to pick one.
  */
 export function determinePreferredProvider(
   completedOrders: CompletedOrderInfo[],
   availableProviders: Provider[],
-  backendDefaultProviderId?: string,
 ): PreferredProviderResult | null {
   if (availableProviders.length === 0) {
     return null;
@@ -101,28 +98,26 @@ export function determinePreferredProvider(
       (a, b) => b.completedAt - a.completedAt,
     );
 
-    const foundProvider = availableProviders.find((provider) => {
-      const completedProviderId = mostRecent.providerId.toLowerCase();
-      return (
-        provider.id?.toLowerCase() === completedProviderId ||
-        provider.name?.toLowerCase() === completedProviderId ||
-        (completedProviderId === 'transak' &&
-          (provider.id?.toLowerCase().includes('transak') ||
-            provider.name?.toLowerCase().includes('transak')))
-      );
-    });
+    const foundProvider = availableProviders.find(
+      (provider) =>
+        provider.id?.toLowerCase() === mostRecent.providerId.toLowerCase() ||
+        provider.name?.toLowerCase() === mostRecent.providerId.toLowerCase(),
+    );
 
     if (foundProvider) {
       return { provider: foundProvider, autoSelected: false };
     }
   }
 
-  const backendDefaultProvider =
-    availableProviders.find(
-      (provider) =>
-        normalizeProviderId(provider.id) ===
-        normalizeProviderId(backendDefaultProviderId),
-    ) ?? availableProviders[0];
+  const transakProvider = availableProviders.find(
+    (provider) =>
+      provider.id?.toLowerCase().includes('transak') ||
+      provider.name?.toLowerCase().includes('transak'),
+  );
 
-  return { provider: backendDefaultProvider, autoSelected: true };
+  if (transakProvider) {
+    return { provider: transakProvider, autoSelected: false };
+  }
+
+  return null;
 }

@@ -4,26 +4,26 @@ import {
 } from '../../../app/components/UI/NetworkInfo/NetworkEducationModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import type { AppiumElement } from '../../framework/AppiumElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 
 class NetworkEducationModal {
-  get container(): Promise<AppiumElement> {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(NetworkEducationModalSelectorsIDs.CONTAINER);
   }
 
-  get closeButton(): Promise<AppiumElement> {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkEducationModalSelectorsIDs.CLOSE_BUTTON,
     );
   }
 
-  get addToken(): Promise<AppiumElement> {
+  get addToken(): EncapsulatedElementType {
     return Matchers.getElementByText(
       NetworkEducationModalSelectorsText.ADD_TOKEN,
     );
   }
 
-  get networkName(): Promise<AppiumElement> {
+  get networkName(): EncapsulatedElementType {
     return Matchers.getElementByID(
       NetworkEducationModalSelectorsIDs.NETWORK_NAME,
     );

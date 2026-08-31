@@ -456,7 +456,7 @@ yarn jest app/features/SampleFeature --testMatch="**/*.test.ts?(x)"
 
 ### End-to-End Testing
 
-Comprehensive E2E tests written in TypeScript demonstrating best practices for Appium smoke testing.
+Comprehensive E2E tests written in TypeScript demonstrating best practices for Detox testing.
 
 > [!NOTE]
 > These e2e tests are for local development only and are not included in CI pipelines since this is a sample feature.
@@ -523,7 +523,7 @@ See [`app/features/SampleFeature/e2e/README.md`](./e2e/README.md) for:
 
 - Page Object Model for maintainable tests
 - Text-based selectors for resilient element targeting
-- Proper async handling with Assertions wait helpers
+- Proper async handling with Detox waitFor utilities
 - Integration with main app E2E page objects
 - TypeScript for type-safe test code
 

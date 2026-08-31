@@ -194,29 +194,13 @@ describe('determinePreferredProvider', () => {
       });
     });
 
-    it('falls back to the backend-ranked provider if the historical provider is unavailable', () => {
+    it('falls back to Transak with autoSelected false if provider from order is not in available providers', () => {
       const completedOrders = [
         { providerId: 'non-existent-provider', completedAt: 1000 },
       ];
       const providers = [mockProvider1, mockProvider2, mockTransakProvider];
 
       const result = determinePreferredProvider(completedOrders, providers);
-
-      expect(result).toEqual({
-        provider: mockProvider1,
-        autoSelected: true,
-      });
-    });
-
-    it('keeps the most recent completed provider when backend ranking prefers a different one', () => {
-      const completedOrders = [{ providerId: 'transak', completedAt: 1000 }];
-      const providers = [mockProvider1, mockTransakProvider];
-
-      const result = determinePreferredProvider(
-        completedOrders,
-        providers,
-        mockProvider1.id,
-      );
 
       expect(result).toEqual({
         provider: mockTransakProvider,
@@ -226,65 +210,23 @@ describe('determinePreferredProvider', () => {
   });
 
   describe('when user has no orders', () => {
-    it('returns the backend-ranked provider with autoSelected true', () => {
+    it('returns Transak provider with autoSelected false', () => {
       const providers = [mockProvider1, mockProvider2, mockTransakProvider];
-
-      const result = determinePreferredProvider(
-        [],
-        providers,
-        mockProvider2.id,
-      );
-
-      expect(result).toEqual({
-        provider: mockProvider2,
-        autoSelected: true,
-      });
-    });
-
-    it('matches backend ranking IDs with a legacy provider prefix', () => {
-      const providers = [mockProvider1, mockProvider2];
-
-      const result = determinePreferredProvider(
-        [],
-        providers,
-        `/providers/${mockProvider2.id}`,
-      );
-
-      expect(result).toEqual({
-        provider: mockProvider2,
-        autoSelected: true,
-      });
-    });
-
-    it('falls back to the first provider when ranking metadata is unavailable', () => {
-      const providers = [mockProvider1, mockProvider2];
 
       const result = determinePreferredProvider([], providers);
 
       expect(result).toEqual({
-        provider: mockProvider1,
-        autoSelected: true,
+        provider: mockTransakProvider,
+        autoSelected: false,
       });
     });
 
-    it('selects the backend-ranked provider when Transak Native is last', () => {
-      const transakNative: Provider = {
-        ...mockTransakProvider,
-        id: '/providers/transak-native-staging',
-        name: 'Transak Native',
-      };
-      const providers = [mockProvider1, mockProvider2, transakNative];
+    it('returns null if Transak is not available (no preselection without signal)', () => {
+      const providers = [mockProvider1, mockProvider2];
 
-      const result = determinePreferredProvider(
-        [],
-        providers,
-        mockProvider1.id,
-      );
+      const result = determinePreferredProvider([], providers);
 
-      expect(result).toEqual({
-        provider: mockProvider1,
-        autoSelected: true,
-      });
+      expect(result).toBeNull();
     });
   });
 

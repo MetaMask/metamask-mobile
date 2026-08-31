@@ -6,10 +6,10 @@ export interface PredictNextHomeParams {
   entryPoint?: PredictEntryPoint;
 }
 
-export interface PredictNextEventParams {
+export interface PredictNextEventDetailParams {
   venueId: PredictVenueId;
   eventId: PredictEntityId;
-  titleSnapshot: string;
+  title: string;
 }
 
 export interface PredictNextFeedParams {
@@ -23,5 +23,5 @@ export interface PredictNextFeedParams {
 export type PredictNextStackParamList = {
   PredictNextHome: PredictNextHomeParams | undefined;
   PredictNextFeed: PredictNextFeedParams;
-  PredictNextEvent: PredictNextEventParams;
+  PredictNextEventDetail: PredictNextEventDetailParams;
 };
