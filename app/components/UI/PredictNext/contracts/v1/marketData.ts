@@ -1,7 +1,7 @@
 import {
   array,
+  coerce,
   enums,
-  integer,
   literal,
   mask,
   number,
@@ -11,6 +11,9 @@ import {
   string,
   tuple,
   type Struct,
+  type as structType,
+  unknown,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -148,39 +151,72 @@ const outcomeSchema = object({
   gameSelection: optional(gameSelection),
 });
 
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+const nonEmptyGroupString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
+
+const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    keys.filter((key) => key in record).map((key) => [key, record[key]]),
+  );
+};
+
+const marketSelectorGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('marketSelector'),
+    marketType: nonEmptyGroupString('PredictMarketType'),
+    option: PredictMarketOptionSchema,
+    displayOrder: optional(
+      refine(
+        number(),
+        'PredictMarketDisplayOrder',
+        (value) => Number.isInteger(value) && value >= 0,
+      ),
+    ),
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, [
+      'key',
+      'groupType',
+      'marketType',
+      'option',
+      'displayOrder',
+    ]),
+);
+
+const unsupportedMarketGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.trim().length > 0 && value !== 'marketSelector',
+    ),
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType']),
+);
+
+export const PredictMarketGroupSchema = union([
+  marketSelectorGroupSchema,
+  unsupportedMarketGroupSchema,
+]);
+
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
   'BinaryOutcomes',
   (outcomes) => new Set(outcomes.map((outcome) => outcome.side)).size === 2,
-);
-
-const nonEmptyTrimmed = refine(
-  string(),
-  'NonEmptyTrimmed',
-  (value) => value.trim().length > 0,
-);
-
-const marketGroupSchema = refine(
-  object({
-    key: nonEmptyTrimmed,
-    groupType: nonEmptyTrimmed,
-    marketType: optional(nonEmptyTrimmed),
-    option: optional(
-      object({
-        type: literal('number'),
-        value: refine(number(), 'FiniteNumber', (value) =>
-          Number.isFinite(value),
-        ),
-      }),
-    ),
-    displayOrder: optional(
-      refine(integer(), 'NonNegativeInt', (value) => value >= 0),
-    ),
-  }),
-  'PredictMarketGroup',
-  (group) =>
-    group.groupType !== 'marketSelector' ||
-    (group.marketType !== undefined && group.option !== undefined),
 );
 
 const marketSchema = object({
@@ -189,7 +225,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
-  group: optional(marketGroupSchema),
+  group: optional(PredictMarketGroupSchema),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
