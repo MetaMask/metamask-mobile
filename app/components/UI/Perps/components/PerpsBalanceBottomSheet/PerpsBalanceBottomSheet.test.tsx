@@ -136,12 +136,13 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('does not render the history button', () => {
-    const { queryByTestId } = renderSheet();
+  it('does not render an activity history button', () => {
+    const { queryByLabelText, queryByTestId } = renderSheet();
 
     expect(
-      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON),
+      queryByTestId('perps-balance-bottom-sheet-history-button'),
     ).not.toBeOnTheScreen();
+    expect(queryByLabelText('View activity')).toBeNull();
   });
 
   it('closes the sheet and invokes handleWithdraw when the withdraw button is pressed', () => {

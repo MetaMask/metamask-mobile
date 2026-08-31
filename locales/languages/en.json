@@ -2822,7 +2822,6 @@
     },
     "balance_bottom_sheet": {
       "close_button": "Close",
-      "history_button": "View activity",
       "available": "Available"
     }
   },

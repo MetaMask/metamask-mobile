@@ -18,10 +18,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsMode } from '@metamask/perps-controller';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Image } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import foxLogo from '../../../../../images/branding/fox.png';
+import { useTheme } from '../../../../../util/theme';
+import { AppThemeKey } from '../../../../../util/theme/models';
+import { getPerpsProChooserIconColors } from '../../constants/perpsModeColors';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 export interface PerpsModeSelectionBottomSheetProps {
@@ -48,6 +51,17 @@ const ModeCard = ({
   onPress,
 }: ModeCardProps) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
+  const { candlestick: proCandlestickColor, tile: proIconTileColor } =
+    getPerpsProChooserIconColors(themeAppearance === AppThemeKey.dark);
+  const proIconTileStyle = useMemo(
+    () => ({ backgroundColor: proIconTileColor }),
+    [proIconTileColor],
+  );
+  const proIconStyle = useMemo(
+    () => ({ color: proCandlestickColor }),
+    [proCandlestickColor],
+  );
   const isLite = mode === PerpsMode.Lite;
   const optionTestID = isLite
     ? PerpsModeSelectionBottomSheetSelectorsIDs.LITE_OPTION
@@ -60,16 +74,20 @@ const ModeCard = ({
       accessibilityHint={description}
       accessibilityState={{ selected: isSelected }}
       testID={optionTestID}
+      // `h-auto` + `self-stretch` let the taller card set the row height and
+      // the shorter card grow with it. `min-w-0` lets flex children shrink so
+      // descriptions wrap instead of overflowing the 2-column row. `justify-start`
+      // keeps copy top-aligned when a card is stretched to match its neighbor.
       twClassName={(pressed) =>
-        `h-[186px] flex-1 items-stretch rounded-xl border p-4 ${
+        `h-auto min-w-0 flex-1 self-stretch items-stretch justify-start rounded-xl border p-4 ${
           isSelected ? 'border-default' : 'border-transparent'
-        } ${pressed ? 'bg-pressed' : 'bg-muted'}`
+        } ${pressed ? 'bg-pressed' : 'bg-section'}`
       }
       contentWrapperProps={{
-        twClassName: 'h-full w-full items-stretch',
+        twClassName: 'min-w-0 w-full flex-1 items-stretch justify-start',
       }}
     >
-      <Box twClassName="h-full w-full">
+      <Box twClassName="min-w-0 w-full">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
@@ -79,8 +97,14 @@ const ModeCard = ({
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
             twClassName={`size-14 rounded-full ${
-              isLite ? 'bg-error-muted' : 'bg-warning-muted'
+              isLite ? 'bg-error-muted' : ''
             }`}
+            style={isLite ? undefined : proIconTileStyle}
+            testID={
+              isLite
+                ? undefined
+                : PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON_TILE
+            }
           >
             {isLite ? (
               <Image
@@ -91,33 +115,48 @@ const ModeCard = ({
               />
             ) : (
               <Icon
-                name={IconName.Candlestick}
+                name={IconName.CandlestickFilled}
                 size={IconSize.Xl}
-                color={IconColor.WarningDefault}
+                // Gold is outside IconColor, so override `currentColor` (and
+                // the Svg `fill`) instead of using WarningDefault.
+                fill={proCandlestickColor}
+                style={proIconStyle}
                 testID={PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON}
               />
             )}
           </Box>
           {isSelected ? (
-            <Icon
-              name={IconName.Confirmation}
-              size={IconSize.Md}
-              color={IconColor.IconDefault}
+            // The design system has no filled confirmation glyph, so the solid
+            // check badge is composed from a filled circle and an inverse check.
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="size-5 rounded-full bg-icon-default"
               testID={
                 PerpsModeSelectionBottomSheetSelectorsIDs.SELECTED_INDICATOR
               }
-            />
+            >
+              <Icon
+                name={IconName.CheckBold}
+                size={IconSize.Xs}
+                color={IconColor.IconInverse}
+              />
+            </Box>
           ) : null}
         </Box>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
-          twClassName="mt-4"
+          twClassName="mt-4 w-full"
         >
           {title}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="w-full"
+        >
           {description}
         </Text>
       </Box>
@@ -160,6 +199,7 @@ const PerpsModeSelectionBottomSheet = ({
       </BottomSheetHeader>
       <Box
         flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Stretch}
         gap={3}
         paddingHorizontal={4}
         paddingTop={3}
