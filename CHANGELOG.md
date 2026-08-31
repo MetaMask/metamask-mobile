@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.9.1]
 
+### Fixed
+
+- Fixed Tron swap activity not completing and showing incorrect transaction status in the post-trade flow (#35345)
+- Fixed swap quotes being ranked by price impact instead of total cost including network fees (#35437)
+
 ## [8.9.0]
 
 ### Added
