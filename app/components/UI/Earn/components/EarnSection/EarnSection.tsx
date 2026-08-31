@@ -63,6 +63,7 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import { EarnSectionTestIds } from './EarnSection.testIds';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -77,7 +78,7 @@ export interface EarnSectionProps {
   enabled?: boolean;
 }
 
-const renderEarnAssetIcon = (token: TokenI) => {
+const renderEarnAssetIcon = (token: TokenI, index: number) => {
   const networkImageSource = token.chainId
     ? getNetworkImageSource({ chainId: token.chainId })
     : undefined;
@@ -93,13 +94,16 @@ const renderEarnAssetIcon = (token: TokenI) => {
         />
       }
     >
-      <AssetLogo asset={token} />
+      <AssetLogo
+        asset={token}
+        testID={EarnSectionTestIds.ASSET_AVATAR(index)}
+      />
     </BadgeWrapper>
   );
 };
 
-const renderAssetCardSkeleton = (key: string) => (
-  <EarnSectionCard key={key} testID={key}>
+const renderAssetCardSkeleton = (key: string, index: number) => (
+  <EarnSectionCard key={key} testID={EarnSectionTestIds.ASSET_SKELETON(index)}>
     <Skeleton height={40} width={40} twClassName="rounded-full" />
     <Box twClassName="gap-2">
       <Skeleton height={16} width={64} />
@@ -354,11 +358,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           return (
             <EarnSectionAssetCard
               key={slot.key}
-              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
+              icon={renderEarnAssetIcon(earnAssetToToken(asset), index)}
               tag={
                 hasSubsidizedFee ? (
                   <EarnNoFeeTag
-                    testID={`earn-section-asset-${index}-no-fee-tag`}
+                    testID={EarnSectionTestIds.ASSET_NO_FEE_TAG(index)}
                   />
                 ) : undefined
               }
@@ -370,7 +374,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   : (metadata.name ?? metadata.ticker ?? metadata.symbol)
               }
               tertiaryText={rateText}
-              testID={`earn-section-asset-${index}-card`}
+              testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />
           );
@@ -380,7 +384,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
 
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box testID="earn-section">
+        <Box testID={EarnSectionTestIds.ROOT}>
           {showDividers && <SectionDivider />}
           <SectionHeader
             title={strings('homepage.sections.earn')}
@@ -397,9 +401,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               actionButtonProps={{
                 isDisabled: isRetrying,
                 isLoading: isRetrying,
-                testID: 'earn-section-error-retry-button',
+                testID: EarnSectionTestIds.ERROR_RETRY_BUTTON,
               }}
-              testID="earn-section-error"
+              testID={EarnSectionTestIds.ERROR}
               twClassName="mx-4 mt-3"
             />
           )}
@@ -419,7 +423,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                   />
                 }
                 tag={
-                  moneyAccountBalanceRaw === '0' ? <EarnNewTag /> : undefined
+                  moneyAccountBalanceRaw === '0' ? (
+                    <EarnNewTag
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_NEW_TAG}
+                    />
+                  ) : undefined
                 }
                 primaryText={strings('earn_module.money_account')}
                 secondaryText={
@@ -427,7 +435,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     <Skeleton
                       height={20}
                       width={85}
-                      testID="earn-section-money-account-balance-skeleton"
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_BALANCE_SKELETON}
                     />
                   ) : (
                     moneyAccountCardSecondaryText
@@ -438,7 +446,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     <Skeleton
                       height={20}
                       width={70}
-                      testID="earn-section-money-account-apy-skeleton"
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_APY_SKELETON}
                     />
                   ) : moneyApyPercent === undefined ? (
                     strings('earn_module.rate_unavailable')
@@ -448,12 +456,14 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     })
                   )
                 }
-                testID="earn-section-money-account-card"
+                testID={EarnSectionTestIds.MONEY_ACCOUNT_CARD}
                 onPress={handleMoneyAccountCardPress}
               />
             )}
             {isLoading
-              ? assetSlots.map(({ key }) => renderAssetCardSkeleton(key))
+              ? assetSlots.map(({ key }, index) =>
+                  renderAssetCardSkeleton(key, index),
+                )
               : renderedAssetCards}
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard

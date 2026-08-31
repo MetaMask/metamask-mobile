@@ -5,6 +5,7 @@ export const TrendingViewSelectorsIDs = {
   EXPLORE_DAPPS_SCROLL_VIEW: 'explore-dapps-scroll-view',
   EXPLORE_HEADER_ROOT: 'explore-header-root',
   EXPLORE_SAFE_AREA: 'explore-safe-area',
+  EXPLORE_EARN_SECTION: 'explore-section-earn',
   SECTION_HEADER_VIEW_ALL_TOKENS: 'section-header-view-all-tokens',
   TRENDING_TOKENS_HEADER: 'trending-tokens-header',
   EXPLORE_VIEW_SEARCH_BUTTON: 'explore-view-search-button',

@@ -145,6 +145,12 @@ jest.mock('../../app/core/Engine', () => {
       AssetsController: {
         setSelectedCurrency: jest.fn(),
       },
+      EarnController: {
+        refreshLendingMarkets: jest.fn().mockResolvedValue(undefined),
+        refreshPooledStakingVaultApyAverages: jest
+          .fn()
+          .mockResolvedValue(undefined),
+      },
       TokenRatesController: {
         startPolling() {
           return undefined;

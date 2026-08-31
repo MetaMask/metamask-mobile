@@ -1,6 +1,4 @@
 import React, { createRef } from 'react';
-import type { Asset } from '@metamask/assets-controllers';
-import { EthAccountType } from '@metamask/keyring-api';
 import {
   act,
   fireEvent,
@@ -9,15 +7,8 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation, useIsFocused } from '@react-navigation/native';
-import {
-  Icon,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
@@ -26,9 +17,6 @@ import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEv
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
-import type { EarnAssetId } from '../../types/earnAssets';
-import type { EarnSectionRankedAsset } from '../../utils/earnSection';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
 import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
 import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
 import Logger from '../../../../../util/Logger';
@@ -54,9 +42,6 @@ jest.mock(
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
-const mockUseIsFocused = useIsFocused as jest.MockedFunction<
-  typeof useIsFocused
->;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
 const mockUseMoneyAccountBalance =
@@ -73,83 +58,13 @@ const mockUseSectionPerformance = useSectionPerformance as jest.MockedFunction<
 >;
 const mockLoggerError = jest.mocked(Logger.error);
 
-const assetId =
-  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
-type HeldEarnSectionAsset = Extract<EarnSectionRankedAsset, { kind: 'held' }>;
-
-const assetSlot: {
-  kind: 'asset';
-  key: string;
-  asset: HeldEarnSectionAsset;
-} = {
-  kind: 'asset',
-  key: assetId,
-  asset: {
-    kind: 'held',
-    assetId,
-    asset: {
-      accountType: EthAccountType.Eoa,
-      accountId: 'account-id',
-      assetId: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      chainId: '0x1',
-      decimals: 6,
-      image: 'usdc.png',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      balance: '10',
-      rawBalance: '0x989680',
-      fiat: { balance: 10, currency: 'USD', conversionRate: 1 },
-      isNative: false,
-    } as Asset,
-    experiences: [
-      {
-        id: 'lending:1:aave:usdc',
-        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        role: 'underlying',
-        rate: {
-          type: 'APY',
-          percentage: 4.2,
-          status: 'ready',
-        },
-        isFeeSubsidized: false,
-      },
-    ],
-    highestRatePercent: 4.2,
-    highestRateExperience: {
-      id: 'lending:1:aave:usdc',
-      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
-      role: 'underlying',
-      rate: {
-        type: 'APY',
-        percentage: 4.2,
-        status: 'ready',
-      },
-      isFeeSubsidized: false,
-    },
-    rateStatus: 'ready',
-  },
-};
-const zeroBalanceAssetSlot: typeof assetSlot = {
-  ...assetSlot,
-  asset: {
-    ...assetSlot.asset,
-    asset: {
-      ...assetSlot.asset.asset,
-      balance: '0',
-      rawBalance: '0x0',
-      fiat: { balance: 0, currency: 'USD', conversionRate: 1 },
-    } as Asset,
-  },
-};
 const navigate = jest.fn();
 const mockRefetchBalance = jest.fn();
-let mockMoneyAccountVisible = false;
 
 const createSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
 ): ReturnType<typeof useEarnSectionAssets> => ({
-  assetSlots: [assetSlot],
+  assetSlots: [],
   hasMoreAssets: false,
   moneyApyPercent: 6.2,
   moneyRateStatus: 'ready',
@@ -166,15 +81,6 @@ const mockSectionResult = (
   mockUseEarnSectionAssets.mockReturnValue(createSectionResult(overrides));
 };
 
-const getSuccessArrowIcons = () =>
-  screen
-    .UNSAFE_queryAllByType(Icon)
-    .filter(
-      ({ props }) =>
-        props.name === IconName.ArrowRight &&
-        props.color === IconColor.SuccessDefault,
-    );
-
 const renderEarnSection = (
   props: Partial<React.ComponentProps<typeof EarnSection>> = {},
 ) =>
@@ -189,12 +95,8 @@ describe('EarnSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetEarnSectionRefreshForTests();
-    mockUseIsFocused.mockReturnValue(true);
-    mockMoneyAccountVisible = false;
     mockUseSelector.mockImplementation((selector) =>
-      selector === selectIsMoneyAccountVisible
-        ? mockMoneyAccountVisible
-        : undefined,
+      selector === selectIsMoneyAccountVisible ? false : undefined,
     );
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -219,14 +121,6 @@ describe('EarnSection', () => {
     mockSectionResult();
   });
 
-  it('renders the Earn section title', () => {
-    renderEarnSection();
-
-    expect(
-      screen.getByText(strings('homepage.sections.earn')),
-    ).toBeOnTheScreen();
-  });
-
   it('disables Homepage telemetry for shared Explore rendering', () => {
     renderEarnSection();
 
@@ -241,308 +135,6 @@ describe('EarnSection', () => {
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: false }),
     );
-  });
-
-  it('passes required section metadata to Homepage telemetry', () => {
-    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
-
-    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionIndex: 2,
-        totalSectionsLoaded: 5,
-        fireImmediateWhenNoView: true,
-      }),
-    );
-    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
-    );
-  });
-
-  it('disables Homepage telemetry while Home is unfocused', () => {
-    mockUseIsFocused.mockReturnValue(false);
-
-    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
-
-    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionRef: null,
-        fireImmediateWhenNoView: false,
-      }),
-    );
-    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
-  });
-
-  it('renders funded lending assets with Get APY copy', () => {
-    renderEarnSection();
-
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
-    expect(
-      screen.getByText(
-        strings('earn_module.get_rate_apy', {
-          percentage: '4.2',
-        }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders APR copy for funded staking assets', () => {
-    mockSectionResult({
-      assetSlots: [
-        {
-          ...assetSlot,
-          asset: {
-            ...assetSlot.asset,
-            highestRateExperience: {
-              id: 'pooled:eip155:1/slip44:60',
-              type: EARN_EXPERIENCES.POOLED_STAKING,
-              role: 'underlying',
-              rate: {
-                type: 'APR',
-                percentage: 4.2,
-                status: 'ready',
-              },
-              isFeeSubsidized: false,
-            },
-          },
-        },
-      ],
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByText(
-        strings('earn_module.get_rate_apr', {
-          percentage: '4.2',
-        }),
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders No fee when a Money deposit experience is subsidized', () => {
-    mockSectionResult({
-      assetSlots: [
-        {
-          ...assetSlot,
-          asset: {
-            ...assetSlot.asset,
-            experiences: [
-              ...assetSlot.asset.experiences,
-              {
-                id: 'money:usdc',
-                type: 'MONEY_ACCOUNT_DEPOSIT',
-                role: 'funding',
-                rate: {
-                  type: 'APY',
-                  percentage: 3.5,
-                  status: 'ready',
-                },
-                isFeeSubsidized: true,
-              },
-            ],
-          },
-        },
-      ],
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId('earn-section-asset-0-no-fee-tag'),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides No fee when asset experiences are not subsidized', () => {
-    renderEarnSection();
-
-    expect(
-      screen.queryByTestId('earn-section-asset-0-no-fee-tag'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders New on the Money card with a zero balance', () => {
-    mockMoneyAccountVisible = true;
-    mockSectionResult({ assetSlots: [] });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId('earn-section-money-account-card'),
-    ).toBeOnTheScreen();
-    expect(screen.getByText(strings('earn_module.new_tag'))).toBeOnTheScreen();
-  });
-
-  it('hides New on the Money card with a nonzero balance', () => {
-    mockMoneyAccountVisible = true;
-    mockUseMoneyAccountBalance.mockReturnValue({
-      totalFiatFormatted: '$10.00',
-      totalFiatRaw: '10',
-    } as ReturnType<typeof useMoneyAccountBalance>);
-    mockSectionResult({ assetSlots: [] });
-
-    renderEarnSection();
-
-    expect(
-      screen.queryByText(strings('earn_module.new_tag')),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('hides New on the Money card when balance is unavailable', () => {
-    mockMoneyAccountVisible = true;
-    mockUseMoneyAccountBalance.mockReturnValue({
-      totalFiatFormatted: undefined,
-      totalFiatRaw: undefined,
-    } as ReturnType<typeof useMoneyAccountBalance>);
-    mockSectionResult({ assetSlots: [] });
-
-    renderEarnSection();
-
-    expect(
-      screen.queryByText(strings('earn_module.new_tag')),
-    ).not.toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('earn_module.balance_unavailable')),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders a skeleton while the Money balance is loading', () => {
-    mockMoneyAccountVisible = true;
-    mockUseMoneyAccountBalance.mockReturnValue({
-      totalFiatFormatted: undefined,
-      totalFiatRaw: undefined,
-      isBalanceLoading: true,
-    } as ReturnType<typeof useMoneyAccountBalance>);
-    mockSectionResult({ assetSlots: [] });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId('earn-section-money-account-balance-skeleton'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('earn_module.balance_unavailable')),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders a skeleton while the Money APY is loading', () => {
-    mockMoneyAccountVisible = true;
-    mockSectionResult({
-      assetSlots: [],
-      moneyApyPercent: undefined,
-      moneyRateStatus: 'loading',
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId('earn-section-money-account-apy-skeleton'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('earn_module.rate_unavailable')),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders unavailable APY copy after loading settles without a rate', () => {
-    mockMoneyAccountVisible = true;
-    mockSectionResult({
-      assetSlots: [],
-      moneyApyPercent: undefined,
-      moneyRateStatus: 'unavailable',
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByText(strings('earn_module.rate_unavailable')),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('earn-section-money-account-apy-skeleton'),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('uses the asset name for zero-balance tiles', () => {
-    mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
-
-    renderEarnSection();
-
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
-    expect(
-      screen.getByText(zeroBalanceAssetSlot.asset.asset.name),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('earn_module.get_started')),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('removes green arrows from Money and asset tiles', () => {
-    mockMoneyAccountVisible = true;
-
-    renderEarnSection();
-
-    expect(getSuccessArrowIcons()).toHaveLength(0);
-  });
-
-  it('navigates with the selected CAIP-19 asset ID', () => {
-    renderEarnSection();
-
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
-
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
-  });
-
-  it('navigates zero-balance assets to Asset Overview', () => {
-    mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
-
-    render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
-
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
-
-    expect(navigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        address: zeroBalanceAssetSlot.asset.asset.assetId,
-        chainId: zeroBalanceAssetSlot.asset.asset.chainId,
-        symbol: zeroBalanceAssetSlot.asset.asset.symbol,
-        name: zeroBalanceAssetSlot.asset.asset.name,
-        decimals: zeroBalanceAssetSlot.asset.asset.decimals,
-        image: zeroBalanceAssetSlot.asset.asset.image,
-        balance: '0',
-        isNative: zeroBalanceAssetSlot.asset.asset.isNative,
-        isETH: false,
-        source: TokenDetailsSource.HomeSection,
-      }),
-    );
-    expect(navigate).not.toHaveBeenCalledWith(
-      Routes.EARN.ROOT,
-      expect.anything(),
-    );
-  });
-
-  it('navigates funded assets to Earn strategy selection', () => {
-    renderEarnSection();
-
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
-
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
-  });
-
-  it('displays a retryable error without hiding healthy asset cards', () => {
-    mockSectionResult({
-      hasError: true,
-    });
-
-    renderEarnSection();
-
-    expect(screen.getByTestId('earn-section-error')).toBeOnTheScreen();
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
   });
 
   it('does not refresh for the initial Explore trigger', () => {
@@ -717,16 +309,5 @@ describe('EarnSection', () => {
       resolveRefresh?.();
       await refreshPromise;
     });
-  });
-
-  it('renders skeleton slots while catalogue data loads', () => {
-    mockSectionResult({ isLoading: true });
-
-    renderEarnSection();
-
-    expect(screen.getByTestId(assetId)).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('earn-section-asset-0-card'),
-    ).not.toBeOnTheScreen();
   });
 });
