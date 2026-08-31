@@ -20,8 +20,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { getEventGame } from '../../events/game';
+import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
 import {
+  MarketFooterCard,
   MarketList,
   MarketStandardCard,
   SpreadMarketGroupCard,
@@ -44,7 +45,6 @@ import {
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
-import { resolveGameHistoryMarkets } from './internal/resolveGameHistoryMarkets';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const styles = StyleSheet.create({
@@ -63,9 +63,11 @@ type RulesTarget =
 
 const EventScreenLayout = ({
   children,
+  footer,
   onBack,
 }: {
   children: React.ReactNode;
+  footer?: React.ReactNode;
   onBack: () => void;
 }) => {
   const tw = useTailwind();
@@ -83,6 +85,7 @@ const EventScreenLayout = ({
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
+      {footer}
     </Box>
   );
 };
@@ -99,9 +102,31 @@ export const PredictEventScreen = () => {
   const [selectedMarketIds, setSelectedMarketIds] = useState<
     Record<string, PredictMarket['id']>
   >({});
+  const winnerQuotes = useMemo(
+    () => (query.data ? findWinnerMarketQuotes(query.data) : undefined),
+    [query.data],
+  );
+  const winnerMarketIds = useMemo(
+    () =>
+      new Set(
+        winnerQuotes
+          ? [
+              winnerQuotes.away.market.id,
+              winnerQuotes.home.market.id,
+              ...(winnerQuotes.draw ? [winnerQuotes.draw.market.id] : []),
+            ]
+          : [],
+      ),
+    [winnerQuotes],
+  );
   const marketProjection = useMemo(
-    () => createMarketGroupProjection(query.data?.markets ?? []),
-    [query.data?.markets],
+    () =>
+      createMarketGroupProjection(
+        (query.data?.markets ?? []).filter(
+          (market) => !winnerMarketIds.has(market.id),
+        ),
+      ),
+    [query.data?.markets, winnerMarketIds],
   );
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
@@ -168,6 +193,11 @@ export const PredictEventScreen = () => {
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
+  const handleWinnerSelect = useCallback((marketId: string) => {
+    setSelectedMarketId((current) =>
+      current === marketId ? undefined : marketId,
+    );
+  }, []);
 
   if (query.data) {
     const event = query.data;
@@ -185,19 +215,36 @@ export const PredictEventScreen = () => {
         ? event.markets.find((market) => market.id === rulesTarget.marketId)
         : undefined;
     const game = getEventGame(event);
-    const gameHistoryMarkets = resolveGameHistoryMarkets(event);
 
     const renderMarketHistory = () => {
-      if (
-        game &&
-        gameHistoryMarkets !== undefined &&
-        selectedMarketId === undefined
-      ) {
+      if (selectedMarketId) {
+        const selectedMarket = event.markets.find(
+          (market) => market.id === selectedMarketId,
+        );
+        if (selectedMarket) {
+          return (
+            <PredictMarketHistory
+              venueId={event.venueId}
+              market={selectedMarket}
+            />
+          );
+        }
+      }
+
+      if (game && winnerQuotes) {
         return (
           <PredictGameMarketHistory
             venueId={event.venueId}
-            home={{ ...gameHistoryMarkets.home, team: game.homeTeam }}
-            away={{ ...gameHistoryMarkets.away, team: game.awayTeam }}
+            home={{
+              market: winnerQuotes.home.market,
+              outcome: winnerQuotes.home.outcome,
+              team: game.homeTeam,
+            }}
+            away={{
+              market: winnerQuotes.away.market,
+              outcome: winnerQuotes.away.outcome,
+              team: game.awayTeam,
+            }}
           />
         );
       }
@@ -251,7 +298,21 @@ export const PredictEventScreen = () => {
 
     return (
       <>
-        <EventScreenLayout onBack={handleBack}>
+        <EventScreenLayout
+          onBack={handleBack}
+          footer={
+            game && winnerQuotes ? (
+              <MarketFooterCard
+                game={game}
+                awayQuote={winnerQuotes.away}
+                homeQuote={winnerQuotes.home}
+                drawQuote={winnerQuotes.draw}
+                selectedMarketId={selectedMarketId}
+                onSelectMarket={handleWinnerSelect}
+              />
+            ) : undefined
+          }
+        >
           {game ? (
             <GameEventHeader
               event={event}
@@ -263,7 +324,7 @@ export const PredictEventScreen = () => {
               onRulesPress={eventRules ? handleEventRulesPress : undefined}
             />
           )}
-          {event.markets.length > 1 && !(game && gameHistoryMarkets) ? (
+          {event.markets.length > 1 && !winnerQuotes ? (
             <FilterButtonGroup
               value={historyMarket?.id ?? ''}
               onChange={handleMarketSelect}
@@ -288,15 +349,17 @@ export const PredictEventScreen = () => {
             </FilterButtonGroup>
           ) : null}
           {renderMarketHistory()}
-          <Box
-            testID={PredictEventScreenTestIds.PREDICT_SECTION}
-            twClassName="mt-8 gap-[14px]"
-          >
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('wallet.predict')}
-            </Text>
-            <MarketList>{marketProjection.map(renderMarket)}</MarketList>
-          </Box>
+          {marketProjection.length > 0 ? (
+            <Box
+              testID={PredictEventScreenTestIds.PREDICT_SECTION}
+              twClassName="mt-8 gap-[14px]"
+            >
+              <Text variant={TextVariant.HeadingMd}>
+                {strings('wallet.predict')}
+              </Text>
+              <MarketList>{marketProjection.map(renderMarket)}</MarketList>
+            </Box>
+          ) : null}
         </EventScreenLayout>
         <RulesBottomSheet
           isVisible={rulesTarget !== null}
