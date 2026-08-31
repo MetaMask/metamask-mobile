@@ -60,11 +60,16 @@ const jsonReportPath = process.env.PLAYWRIGHT_JSON_OUTPUT_FILE?.trim();
 // as part of Appium smoke tag suites.
 const includeApiSpecs = process.env.APPIUM_RUN_API_SPECS === '1';
 
-const appiumRetries = process.env.APPIUM_RETRIES_OVERRIDE
-  ? parseInt(process.env.APPIUM_RETRIES_OVERRIDE, 10)
-  : process.env.CI === 'true'
-    ? 1
-    : 0;
+const isCI = process.env.CI === 'true';
+const appiumRetriesOverride = process.env.APPIUM_RETRIES_OVERRIDE?.trim() ?? '';
+const parsedAppiumRetriesOverride = Number.parseInt(appiumRetriesOverride, 10);
+
+const appiumRetries =
+  appiumRetriesOverride !== '' && !Number.isNaN(parsedAppiumRetriesOverride)
+    ? parsedAppiumRetriesOverride
+    : isCI
+      ? 1
+      : 0;
 
 export default defineConfig({
   testDir: './smoke-appium',

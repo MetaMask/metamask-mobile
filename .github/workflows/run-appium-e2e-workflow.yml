@@ -70,7 +70,7 @@ on:
         description: 'Override for Appium test retries (0 disables retries)'
         required: false
         type: number
-        # No default - only set if explicitly passed
+        # No default - only set if explicitly passed (it will fallback to whatever is defined in the Playwright config)
 
 permissions:
   contents: read

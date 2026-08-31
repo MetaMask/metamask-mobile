@@ -314,7 +314,7 @@ jobs:
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
-          APPIUM_RETRIES_OVERRIDE: ${{ inputs.appium_retries_override }}
+          APPIUM_RETRIES_OVERRIDE: 0
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
           ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
