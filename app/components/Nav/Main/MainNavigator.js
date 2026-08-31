@@ -57,7 +57,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import ActivityView from '../../Views/ActivityView';
+import ActivityScreen from '../../Views/ActivityScreen';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
@@ -296,7 +296,7 @@ const TransactionsHome = () => {
     >
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
-        component={ActivityView}
+        component={ActivityScreen}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
