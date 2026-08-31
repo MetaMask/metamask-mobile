@@ -510,7 +510,9 @@ describe('EngineService', () => {
 
     (
       engineService as unknown as {
-        setupEnginePersistence: (initialState?: Record<string, unknown>) => void;
+        setupEnginePersistence: (
+          initialState?: Record<string, unknown>,
+        ) => void;
       }
     ).setupEnginePersistence = () => {
       throw new Error('persist setup boom');
