@@ -14,6 +14,7 @@ export type LimitOrderPriceAdjustAction =
   | { type: 'applyPreset'; limitPrice?: string }
   | { type: 'seedFromMarket'; limitPrice: string }
   | { type: 'enterCustom' }
+  | { type: 'exitCustom' }
   | { type: 'setCustomValue'; value: string | undefined }
   | {
       type: 'toggleFiatMode';
@@ -67,6 +68,12 @@ export const limitOrderPriceAdjustReducer = (
       return {
         ...state,
         isCustomActive: true,
+      };
+    case 'exitCustom':
+      return {
+        ...state,
+        isCustomActive: false,
+        customValue: undefined,
       };
     case 'setCustomValue':
       return {
