@@ -1614,6 +1614,18 @@ function detectResolution(data) {
     }
     return best;
 }
+/**
+ * Reverse of {@link INTERVAL_MS_TO_TV}: TradingView resolution code → bar
+ * interval in milliseconds. Unknown resolutions return undefined.
+ */
+function resolutionToIntervalMs(resolution) {
+    for (const [ms, tv] of Object.entries(INTERVAL_MS_TO_TV)) {
+        if (tv === resolution) {
+            return Number(ms);
+        }
+    }
+    return undefined;
+}
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
 // SET_OHLCV_DATA and REALTIME_UPDATE inbound handlers.
@@ -2703,17 +2715,54 @@ function __resetCrosshairForTests() {
 
 
 
+
 const DEBOUNCE_MS = 450;
 const PAN_SKIP_AFTER_ZOOM_MS = 500;
+const MIN_VISIBLE_CANDLES = 10;
+const MAX_VISIBLE_CANDLES = 250;
 const debounce = {
     zoomTimer: null,
     panTimer: null,
     zoomLastFiredAt: 0,
 };
+let attachedChart = null;
+/**
+ * Visible candle count from TradingView's unix-second visible range and the
+ * current resolution. Returns undefined when the range or resolution is unusable.
+ */
+function computeVisibleCandleCount(chart) {
+    try {
+        const range = chart.getVisibleRange?.();
+        if (!range ||
+            !Number.isFinite(range.from) ||
+            !Number.isFinite(range.to) ||
+            range.to <= range.from) {
+            return undefined;
+        }
+        const intervalMs = resolutionToIntervalMs(getCurrentResolution());
+        if (!intervalMs) {
+            return undefined;
+        }
+        const count = Math.round(((range.to - range.from) * 1000) / intervalMs);
+        if (!Number.isFinite(count) || count <= 0) {
+            return undefined;
+        }
+        return Math.min(MAX_VISIBLE_CANDLES, Math.max(MIN_VISIBLE_CANDLES, count));
+    }
+    catch {
+        return undefined;
+    }
+}
 function fireZoom() {
     if (!getWidget() || !isChartReady())
         return;
-    postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
+    const candleCount = attachedChart
+        ? computeVisibleCandleCount(attachedChart)
+        : undefined;
+    postToRN('CHART_INTERACTED', {
+        interaction_type: 'zoom',
+        ...(candleCount !== undefined ? { candleCount } : {}),
+    });
     debounce.zoomLastFiredAt = Date.now();
 }
 function firePan() {
@@ -2747,6 +2796,7 @@ function schedulePan() {
  * debounced CHART_INTERACTED emitters. Safe to call once per chart-ready.
  */
 function attachVisibleRangeListeners(chart) {
+    attachedChart = chart;
     try {
         chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
     }
@@ -2767,6 +2817,7 @@ function attachVisibleRangeListeners(chart) {
 }
 /** Test-only: reset the debounce state between cases. */
 function __resetVisibleRangeForTests() {
+    attachedChart = null;
     if (debounce.zoomTimer)
         clearTimeout(debounce.zoomTimer);
     if (debounce.panTimer)

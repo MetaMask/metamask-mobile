@@ -108,6 +108,13 @@ export function setPerpsChartPreferredCandlePeriod(preferredCandlePeriod) {
   };
 }
 
+export function setPerpsMarketListPreferences(preferences) {
+  return {
+    type: 'SET_PERPS_MARKET_LIST_PREFERENCES',
+    preferences,
+  };
+}
+
 export function setShowAccountOnLeaderboard(showAccountOnLeaderboard) {
   return {
     type: 'SET_SHOW_ACCOUNT_ON_LEADERBOARD',

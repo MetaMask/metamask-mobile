@@ -300,6 +300,7 @@ export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
 
 export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
+  candleCount?: number;
 }
 
 export interface IndicatorAddedPayload {

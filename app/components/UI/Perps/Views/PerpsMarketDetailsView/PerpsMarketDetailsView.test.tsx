@@ -41,6 +41,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+const mockTradingViewZoomToLatestCandle = jest.fn();
 const mockTradingViewRender = jest.fn();
 let mockMarketContextKey = 'testnet|hyperliquid|1';
 let mockMarketContextReady = true;
@@ -93,7 +94,7 @@ jest.mock('../../components/TradingViewChart', () => {
       mockTradingViewRender(props);
       ReactActual.useImperativeHandle(ref, () => ({
         resetToDefault: mockTradingViewResetToDefault,
-        zoomToLatestCandle: jest.fn(),
+        zoomToLatestCandle: mockTradingViewZoomToLatestCandle,
       }));
 
       return <View {...props} />;
@@ -333,6 +334,13 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 jest.mock('../../selectors/perpsController', () => ({
   selectPerpsEligibility: jest.fn(),
   createSelectIsWatchlistMarket: jest.fn(() => jest.fn(() => false)),
+}));
+
+jest.mock('../../hooks/usePerpsVisibleCandleCount', () => ({
+  usePerpsVisibleCandleCount: () => ({
+    visibleCandleCount: 30,
+    onVisibleCandleCountChange: jest.fn(),
+  }),
 }));
 
 // Mock react-redux
@@ -2129,7 +2137,7 @@ describe('PerpsMarketDetailsView', () => {
       // so no manual refresh is needed - data updates automatically
     });
 
-    it('resets the TradingView chart when RefreshControl is pulled and advanced charts are disabled', async () => {
+    it('snaps the TradingView chart to the latest candles when RefreshControl is pulled and advanced charts are disabled', async () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -2147,7 +2155,8 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
-      expect(mockTradingViewResetToDefault).toHaveBeenCalled();
+      expect(mockTradingViewZoomToLatestCandle).toHaveBeenCalledWith(30);
+      expect(mockTradingViewResetToDefault).not.toHaveBeenCalled();
     });
 
     it('remounts the advanced chart when RefreshControl is pulled and advanced charts are enabled', async () => {

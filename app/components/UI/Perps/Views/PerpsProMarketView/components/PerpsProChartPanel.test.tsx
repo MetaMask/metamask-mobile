@@ -122,6 +122,13 @@ jest.mock('../../../hooks/usePerpsProChartExpanded', () => ({
   usePerpsProChartExpanded: () => mockUsePerpsProChartExpanded(),
 }));
 
+jest.mock('../../../hooks/usePerpsVisibleCandleCount', () => ({
+  usePerpsVisibleCandleCount: () => ({
+    visibleCandleCount: 30,
+    onVisibleCandleCountChange: jest.fn(),
+  }),
+}));
+
 jest.mock('../../../hooks/stream/usePerpsLiveCandles', () => ({
   usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
 }));

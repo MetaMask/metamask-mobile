@@ -49,6 +49,21 @@ export const PERPS_CHART_CONFIG = {
 } as const;
 
 /**
+ * Clamps a chart viewport candle count to {@link PERPS_CHART_CONFIG.CANDLE_COUNT}
+ * bounds. Non-finite values fall back to the default.
+ */
+export function clampVisibleCandleCount(count: number): number {
+  if (!Number.isFinite(count)) {
+    return PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
+  }
+
+  return Math.min(
+    PERPS_CHART_CONFIG.CANDLE_COUNT.MAX,
+    Math.max(PERPS_CHART_CONFIG.CANDLE_COUNT.MIN, Math.round(count)),
+  );
+}
+
+/**
  * Available time intervals for candlestick chart
  */
 export const CHART_INTERVALS = [

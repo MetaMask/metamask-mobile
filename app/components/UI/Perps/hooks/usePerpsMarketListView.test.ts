@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { usePerpsMarketListView } from './usePerpsMarketListView';
 import { usePerpsMarkets } from './usePerpsMarkets';
@@ -13,11 +13,13 @@ import {
   type SortDirection,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import { setPerpsMarketListPreferences } from '../../../../actions/settings';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
+import { selectPerpsMarketListPreferences } from '../selectors/marketListPreferences';
 
 // Mock sortMarkets utility
 jest.mock('@metamask/perps-controller', () => ({
@@ -31,7 +33,13 @@ const mockSortMarkets = sortMarkets as jest.MockedFunction<typeof sortMarkets>;
 jest.mock('./usePerpsMarkets');
 jest.mock('./usePerpsSearch');
 jest.mock('./usePerpsSorting');
-jest.mock('react-redux');
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
+}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
@@ -62,11 +70,19 @@ const mockSelectorState = (overrides: {
   watchlist?: string[];
   recentlyViewed?: string[];
   sortPreference?: { optionId: string; direction: string };
+  marketListPreference?: {
+    marketTypeFilter: MarketTypeFilter;
+    showFavoritesOnly: boolean;
+  };
 }) => {
   const {
     watchlist = [],
     recentlyViewed = [],
     sortPreference = { optionId: 'volume', direction: 'desc' },
+    marketListPreference = {
+      marketTypeFilter: 'all' as MarketTypeFilter,
+      showFavoritesOnly: false,
+    },
   } = overrides;
 
   mockUseSelector.mockImplementation((selector) => {
@@ -74,6 +90,9 @@ const mockSelectorState = (overrides: {
     if (selector === selectPerpsRecentlyViewedMarkets) return recentlyViewed;
     if (selector === selectPerpsMarketFilterPreferences) {
       return sortPreference;
+    }
+    if (selector === selectPerpsMarketListPreferences) {
+      return marketListPreference;
     }
     return undefined;
   });
@@ -1201,6 +1220,36 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
         'stock',
+      );
+    });
+
+    it('restores the last persisted market category when no filter param is provided', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'commodity',
+      );
+    });
+
+    it('persists a selected market category', () => {
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      act(() => {
+        result.current.marketTypeFilterState.setMarketTypeFilter('crypto');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'crypto',
+          showFavoritesOnly: false,
+        }),
       );
     });
   });

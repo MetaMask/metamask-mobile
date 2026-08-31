@@ -112,6 +112,21 @@ describe('PerpsAdvancedChart', () => {
     mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
   });
 
+  it('forwards Advanced Chart zoom candle counts', () => {
+    const onVisibleCandleCountChange = jest.fn();
+
+    renderChart({ onVisibleCandleCountChange });
+
+    act(() => {
+      latestAdvancedChartProps().onChartInteracted?.({
+        interaction_type: 'zoom',
+        candleCount: 80,
+      });
+    });
+
+    expect(onVisibleCandleCountChange).toHaveBeenCalledWith(80);
+  });
+
   it('passes the visible current-price token to AdvancedChart', () => {
     const volumeColors = getPerpsVolumeColors(mockTheme.colors);
 

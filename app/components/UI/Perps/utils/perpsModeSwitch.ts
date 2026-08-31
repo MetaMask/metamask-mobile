@@ -8,7 +8,10 @@ import {
 } from '@react-navigation/native';
 import type { RootState } from '../../../../reducers';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsLastViewedMarketSymbol,
+  selectPerpsMode,
+} from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import type { PerpsStackParamList } from '../types/navigation';
 
@@ -24,9 +27,14 @@ export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
  * the remaining fields from the live markets stream, so a symbol-only payload
  * is sufficient to open `MARKET_DETAILS`.
  */
-export const buildDefaultProMarket = (): PerpsMarketData =>
+export const buildDefaultProMarket = (
+  symbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+): PerpsMarketData =>
   ({
-    symbol: PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    symbol:
+      typeof symbol === 'string' && symbol.length > 0
+        ? symbol
+        : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
   }) as unknown as PerpsMarketData;
 
 /**
@@ -65,19 +73,26 @@ export interface PerpsHomeNavigationTarget {
  * has not re-rendered yet.
  *
  * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
- * every entry point instead lands on the default Pro market, so the user
- * only ever moves between a market page and the market list. Centralizing
- * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
- * grid/pill, deeplinks, etc.) consistent.
+ * every entry point instead lands on the last viewed market (falling back
+ * to BTC), so the user only ever moves between a market page and the market
+ * list. Centralizing this here keeps every entry point (Trade sheet, Wallet
+ * actions, Homepage grid/pill, deeplinks, etc.) consistent.
+ *
+ * `extraParams.market` still wins when a caller already knows the destination
+ * (deeplinks with `symbol=`, Lite↔Pro from an open market screen).
  */
 export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
+  lastViewedMarketSymbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
 ): PerpsHomeNavigationTarget => {
   if (isProModeActive) {
     return {
       screen: Routes.PERPS.MARKET_DETAILS,
-      params: { market: buildDefaultProMarket(), ...extraParams },
+      params: {
+        market: buildDefaultProMarket(lastViewedMarketSymbol),
+        ...extraParams,
+      },
     };
   }
 
@@ -96,7 +111,11 @@ export const getPerpsHomeNavigationTarget = (
   state: RootState,
   extraParams: Record<string, unknown> = {},
 ): PerpsHomeNavigationTarget =>
-  resolvePerpsHomeNavigationTarget(isPerpsProModeActive(state), extraParams);
+  resolvePerpsHomeNavigationTarget(
+    isPerpsProModeActive(state),
+    extraParams,
+    selectPerpsLastViewedMarketSymbol(state),
+  );
 
 /**
  * React hook returning a function that resolves the "go to Perps home"
@@ -106,11 +125,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
   extraParams?: Record<string, unknown>,
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>
-      resolvePerpsHomeNavigationTarget(isProModeActive, extraParams),
-    [isProModeActive],
+      resolvePerpsHomeNavigationTarget(
+        isProModeActive,
+        extraParams,
+        typeof lastViewedMarketSymbol === 'string'
+          ? lastViewedMarketSymbol
+          : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+      ),
+    [isProModeActive, lastViewedMarketSymbol],
   );
 };
 

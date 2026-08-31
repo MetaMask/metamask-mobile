@@ -17,6 +17,11 @@ const initialState = {
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
   },
+  // Perps market list category / watchlist filter (TAT-3706 / TAT-3736)
+  perpsMarketListPreferences: {
+    marketTypeFilter: 'all',
+    showFavoritesOnly: false,
+  },
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -89,6 +94,22 @@ const settingsReducer = (state = initialState, action) => {
           preferredCandlePeriod: action.preferredCandlePeriod,
         },
       };
+    case 'SET_PERPS_MARKET_LIST_PREFERENCES': {
+      const next = action.preferences ?? {};
+      return {
+        ...state,
+        perpsMarketListPreferences: {
+          marketTypeFilter:
+            typeof next.marketTypeFilter === 'string'
+              ? next.marketTypeFilter
+              : (state.perpsMarketListPreferences?.marketTypeFilter ?? 'all'),
+          showFavoritesOnly:
+            typeof next.showFavoritesOnly === 'boolean'
+              ? next.showFavoritesOnly
+              : (state.perpsMarketListPreferences?.showFavoritesOnly ?? false),
+        },
+      };
+    }
     default:
       return state;
   }

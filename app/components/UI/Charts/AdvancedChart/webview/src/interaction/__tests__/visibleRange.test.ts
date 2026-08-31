@@ -8,6 +8,7 @@ import {
 import {
   __resetStateForTests,
   setChartReady,
+  setCurrentResolution,
   setWidget,
 } from '../../core/state';
 import type { TVActiveChart, TVChartingLibraryWidget } from '../../core/types';
@@ -47,6 +48,7 @@ const makeChart = (): {
       },
       unsubscribe: () => undefined,
     }),
+    getVisibleRange: () => ({ from: 1_700_000_000, to: 1_700_027_000 }),
   } as unknown as TVActiveChart;
   return {
     chart,
@@ -63,6 +65,7 @@ describe('attachVisibleRangeListeners', () => {
       .ReactNativeWebView;
     setWidget({} as unknown as TVChartingLibraryWidget);
     setChartReady(true);
+    setCurrentResolution('15');
     jest.useFakeTimers();
   });
 
@@ -82,6 +85,7 @@ describe('attachVisibleRangeListeners', () => {
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
     const last = bridge.postMessage.mock.calls[0][0];
     expect(last).toContain('"interaction_type":"zoom"');
+    expect(last).toContain('"candleCount":30');
   });
 
   it('debounces pan and emits CHART_INTERACTED with type=pan', () => {

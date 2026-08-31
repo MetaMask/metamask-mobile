@@ -14,6 +14,7 @@ import type {
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
+  type ChartInteractedPayload,
   type CrosshairData,
   type PositionLines,
   type PositionLineColors,
@@ -52,6 +53,8 @@ export interface PerpsAdvancedChartProps {
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
+  /** Fires when the user pinch-zooms; used to persist visible candle count. */
+  onVisibleCandleCountChange?: (count: number) => void;
   /** Fires when the initial chart or its Lightweight fallback has resolved. */
   onResolved?: (seriesKey: string, state: 'content' | 'empty') => void;
   /** Fires after this chart's exact consumer accepts a fresh delivery. */
@@ -222,6 +225,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onSkeletonHidden,
   onResolved,
   onFreshDelivery,
+  onVisibleCandleCountChange,
   surface = 'market_detail',
   fallbackCandleData,
   fallbackDeliveryRevision = 0,
@@ -563,6 +567,18 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     [symbol, interval, surface, onError],
   );
 
+  const handleChartInteracted = useCallback(
+    (payload: ChartInteractedPayload) => {
+      if (
+        payload.interaction_type === 'zoom' &&
+        typeof payload.candleCount === 'number'
+      ) {
+        onVisibleCandleCountChange?.(payload.candleCount);
+      }
+    },
+    [onVisibleCandleCountChange],
+  );
+
   useEffect(() => {
     if (
       hasFailed &&
@@ -607,6 +623,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         onOhlcDataChange={onCrosshairDataChange}
         showOverlay={false}
         coloredVolume
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
       />
     );
   }
@@ -633,6 +650,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
       onChartLayoutSettled={handleChartLayoutSettled}
+      onChartInteracted={handleChartInteracted}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}

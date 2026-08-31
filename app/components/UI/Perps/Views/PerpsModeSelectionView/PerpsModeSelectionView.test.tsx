@@ -68,6 +68,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../selectors/perpsController', () => ({
   selectIsFirstTimePerpsUser: () => mockIsFirstTimePerpsUser,
+  selectPerpsLastViewedMarketSymbol: () => 'BTC',
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({

@@ -54,3 +54,16 @@ export function detectResolution(data: { time: number }[]): TVResolution {
   }
   return best;
 }
+
+/**
+ * Reverse of {@link INTERVAL_MS_TO_TV}: TradingView resolution code → bar
+ * interval in milliseconds. Unknown resolutions return undefined.
+ */
+export function resolutionToIntervalMs(resolution: string): number | undefined {
+  for (const [ms, tv] of Object.entries(INTERVAL_MS_TO_TV)) {
+    if (tv === resolution) {
+      return Number(ms);
+    }
+  }
+  return undefined;
+}

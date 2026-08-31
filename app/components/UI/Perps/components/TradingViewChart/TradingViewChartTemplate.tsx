@@ -397,6 +397,7 @@ export const createTradingViewChartTemplate = (
 
         // Edge detection variables for historical data loading
         window.lastHistoryFetchTime = 0;
+        window.lastReportedVisibleCandleCount = null;
         window.HISTORY_FETCH_COOLDOWN = 2000; // 2 seconds cooldown between fetches
         window.EDGE_THRESHOLD = 5; // Consider "at edge" if within 5 candles from start
         // Set up edge detection for loading more historical data
@@ -410,6 +411,24 @@ export const createTradingViewChartTemplate = (
                 window.chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
                     if (!range || !window.allCandleData || window.allCandleData.length === 0) {
                         return;
+                    }
+
+                    var span = range.to - range.from;
+                    var candleCount = Math.round(span - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES);
+                    if (candleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
+                        candleCount = window.ZOOM_LIMITS.MIN_CANDLES;
+                    }
+                    if (candleCount > window.ZOOM_LIMITS.MAX_CANDLES) {
+                        candleCount = window.ZOOM_LIMITS.MAX_CANDLES;
+                    }
+                    if (window.lastReportedVisibleCandleCount !== candleCount) {
+                        window.lastReportedVisibleCandleCount = candleCount;
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+                                candleCount: candleCount
+                            }));
+                        }
                     }
 
                     // Check if we're near the left edge (oldest data)

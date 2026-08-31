@@ -13,11 +13,14 @@
 
 import { postToRN, reportErrorToRN } from '../core/bridge';
 import { notifyDataLifecycle } from '../core/dataLifecycle';
-import { getWidget, isChartReady } from '../core/state';
+import { resolutionToIntervalMs } from '../core/resolution';
+import { getCurrentResolution, getWidget, isChartReady } from '../core/state';
 import type { TVActiveChart } from '../core/types';
 
 const DEBOUNCE_MS = 450;
 const PAN_SKIP_AFTER_ZOOM_MS = 500;
+const MIN_VISIBLE_CANDLES = 10;
+const MAX_VISIBLE_CANDLES = 250;
 
 interface DebounceState {
   zoomTimer: ReturnType<typeof setTimeout> | null;
@@ -31,9 +34,48 @@ const debounce: DebounceState = {
   zoomLastFiredAt: 0,
 };
 
+let attachedChart: TVActiveChart | null = null;
+
+/**
+ * Visible candle count from TradingView's unix-second visible range and the
+ * current resolution. Returns undefined when the range or resolution is unusable.
+ */
+export function computeVisibleCandleCount(
+  chart: TVActiveChart,
+): number | undefined {
+  try {
+    const range = chart.getVisibleRange?.();
+    if (
+      !range ||
+      !Number.isFinite(range.from) ||
+      !Number.isFinite(range.to) ||
+      range.to <= range.from
+    ) {
+      return undefined;
+    }
+    const intervalMs = resolutionToIntervalMs(getCurrentResolution());
+    if (!intervalMs) {
+      return undefined;
+    }
+    const count = Math.round(((range.to - range.from) * 1000) / intervalMs);
+    if (!Number.isFinite(count) || count <= 0) {
+      return undefined;
+    }
+    return Math.min(MAX_VISIBLE_CANDLES, Math.max(MIN_VISIBLE_CANDLES, count));
+  } catch {
+    return undefined;
+  }
+}
+
 function fireZoom(): void {
   if (!getWidget() || !isChartReady()) return;
-  postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
+  const candleCount = attachedChart
+    ? computeVisibleCandleCount(attachedChart)
+    : undefined;
+  postToRN('CHART_INTERACTED', {
+    interaction_type: 'zoom',
+    ...(candleCount !== undefined ? { candleCount } : {}),
+  });
   debounce.zoomLastFiredAt = Date.now();
 }
 
@@ -67,6 +109,7 @@ function schedulePan(): void {
  * debounced CHART_INTERACTED emitters. Safe to call once per chart-ready.
  */
 export function attachVisibleRangeListeners(chart: TVActiveChart): void {
+  attachedChart = chart;
   try {
     chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
   } catch (error) {
@@ -86,6 +129,7 @@ export function attachVisibleRangeListeners(chart: TVActiveChart): void {
 
 /** Test-only: reset the debounce state between cases. */
 export function __resetVisibleRangeForTests(): void {
+  attachedChart = null;
   if (debounce.zoomTimer) clearTimeout(debounce.zoomTimer);
   if (debounce.panTimer) clearTimeout(debounce.panTimer);
   debounce.zoomTimer = null;

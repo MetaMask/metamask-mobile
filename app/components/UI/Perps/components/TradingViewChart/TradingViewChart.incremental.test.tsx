@@ -632,4 +632,32 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(mockPostMessage).toHaveBeenCalledTimes(1);
     expect(lastMessageType()).toBe('SET_CANDLESTICK_DATA');
   });
+
+  it('forwards VISIBLE_CANDLE_COUNT_CHANGED from the WebView', () => {
+    const onVisibleCandleCountChange = jest.fn();
+    const testID = 'visible-candle-count';
+    const { getByTestId } = render(
+      <TradingViewChart
+        candleData={twoCandles}
+        symbol="BTC"
+        testID={testID}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
+      />,
+    );
+
+    const webViewEl = getByTestId(`${testID}-webview`);
+    const onMessage = webViewEl.props.onMessage as (e: unknown) => void;
+    act(() => {
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+            candleCount: 80,
+          }),
+        },
+      });
+    });
+
+    expect(onVisibleCandleCountChange).toHaveBeenCalledWith(80);
+  });
 });

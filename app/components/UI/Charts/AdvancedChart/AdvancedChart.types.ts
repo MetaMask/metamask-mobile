@@ -396,6 +396,8 @@ export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
 
 export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
+  /** Visible candle count, present on zoom events when the WebView can compute it. */
+  candleCount?: number;
 }
 
 export interface TradeMarkerPressedPayload {
@@ -511,10 +513,12 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         obj.interaction_type === 'pan' ||
         obj.interaction_type === 'tooltip'
       ) {
+        const candleCount = getOptionalNumber(obj, 'candleCount');
         return {
           type,
           payload: {
             interaction_type: obj.interaction_type,
+            ...(candleCount !== undefined ? { candleCount } : {}),
           },
         };
       }
