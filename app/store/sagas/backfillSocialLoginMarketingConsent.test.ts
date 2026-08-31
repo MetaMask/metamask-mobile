@@ -58,15 +58,17 @@ describe('backfillSocialLoginMarketingConsent', () => {
   const mockedGetMarketingOptInStatus = jest.mocked(
     OAuthService.getMarketingOptInStatus,
   );
-  const mockedGetAccessToken = jest.mocked(
-    Engine.context.SeedlessOnboardingController.getAccessToken,
-  );
   const mockedLoggerError = jest.mocked(Logger.error);
+
+  const getMockedGetAccessToken = () =>
+    jest.mocked(Engine.context.SeedlessOnboardingController.getAccessToken);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetMarketingOptInStatus.mockResolvedValue({ is_opt_in: false });
-    mockedGetAccessToken.mockResolvedValue('mock-access-token');
+    if (Engine.context.SeedlessOnboardingController?.getAccessToken) {
+      getMockedGetAccessToken().mockResolvedValue('mock-access-token');
+    }
   });
 
   it('does nothing when no pending backfill marker exists', async () => {
@@ -190,7 +192,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
   });
 
   it('keeps the marker when OAuth access token is unavailable', async () => {
-    mockedGetAccessToken.mockResolvedValueOnce(undefined);
+    getMockedGetAccessToken().mockResolvedValueOnce(undefined);
 
     const state = {
       ...initialRootState,
@@ -216,6 +218,40 @@ describe('backfillSocialLoginMarketingConsent', () => {
     expect(mockedTrackEvent).not.toHaveBeenCalled();
   });
 
+  it('keeps the marker when SeedlessOnboardingController is missing', async () => {
+    const originalController = Engine.context.SeedlessOnboardingController;
+    // Simulate Engine.context without SeedlessOnboardingController.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (Engine.context as any).SeedlessOnboardingController = undefined;
+
+    const state = {
+      ...initialRootState,
+      security: {
+        ...initialRootState.security,
+        dataCollectionForMarketing: false,
+      },
+      onboarding: {
+        ...initialRootState.onboarding,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    };
+
+    try {
+      await expectSaga(backfillSocialLoginMarketingConsentSaga)
+        .withState(state)
+        .dispatch(loginAction)
+        .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
+        .run();
+
+      expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(mockedLoggerError).not.toHaveBeenCalled();
+      expect(mockedIdentify).not.toHaveBeenCalled();
+      expect(mockedTrackEvent).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.SeedlessOnboardingController = originalController;
+    }
+  });
+
   it('keeps the marker when getMarketingOptInStatus rejects with no access token', async () => {
     mockedGetMarketingOptInStatus.mockRejectedValueOnce(
       new Error('No access token found. User must be authenticated.'),
@@ -239,6 +275,9 @@ describe('backfillSocialLoginMarketingConsent', () => {
       .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
+    // Pre-check passed (token present); API was called and failed with the
+    // known no-access-token message — catch path preserves the marker.
+    expect(mockedGetMarketingOptInStatus).toHaveBeenCalledTimes(1);
     expect(mockedLoggerError).not.toHaveBeenCalled();
     expect(mockedIdentify).not.toHaveBeenCalled();
     expect(mockedTrackEvent).not.toHaveBeenCalled();

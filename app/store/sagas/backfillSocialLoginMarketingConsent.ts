@@ -15,6 +15,13 @@ import Engine from '../../core/Engine';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 
+/**
+ * Message thrown by OAuthService.getValidAccessToken() when
+ * SeedlessOnboardingController.getAccessToken() returns nothing.
+ * OAuthService throws a plain Error (no error code/class), so the catch path
+ * must match this message string — keep in sync with
+ * app/core/OAuthService/OAuthService.ts.
+ */
 const OAUTH_ACCESS_TOKEN_UNAVAILABLE_MESSAGE =
   'No access token found. User must be authenticated.';
 
@@ -36,11 +43,20 @@ export function* backfillSocialLoginMarketingConsentSaga() {
 
   try {
     if (marketingConsent !== true) {
+      const controller = Engine?.context?.SeedlessOnboardingController;
+      if (!controller || typeof controller.getAccessToken !== 'function') {
+        // No controller/token available at unlock — preserve marker so we can retry later.
+        return;
+      }
+
       const accessToken: string | undefined = yield call([
-        Engine.context.SeedlessOnboardingController,
-        Engine.context.SeedlessOnboardingController.getAccessToken,
+        controller,
+        controller.getAccessToken,
       ]);
 
+      // If no OAuth access token is available (expected during unlock), return
+      // silently and preserve the pending backfill marker so the backfill can
+      // retry on a subsequent login — this avoids reporting expected Sentry noise.
       if (!accessToken) {
         return;
       }
@@ -76,6 +92,10 @@ export function* backfillSocialLoginMarketingConsentSaga() {
   } catch (error) {
     const err = ensureError(error);
 
+    // Safety net for races where the pre-check saw a token but
+    // getMarketingOptInStatus still threw OAuthService's plain Error.
+    // String match is required because OAuthService does not expose a typed
+    // error code for this case (see getValidAccessToken).
     if (containsErrorMessage(err, OAUTH_ACCESS_TOKEN_UNAVAILABLE_MESSAGE)) {
       return;
     }
