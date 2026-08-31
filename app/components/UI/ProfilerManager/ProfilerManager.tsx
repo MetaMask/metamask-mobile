@@ -106,8 +106,7 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
 
     try {
       const path =
-        Platform.OS === 'android' &&
-        process.env.METAMASK_ENVIRONMENT === 'e2e'
+        Platform.OS === 'android' && process.env.METAMASK_ENVIRONMENT === 'e2e'
           ? await dumpProfiling()
           : await stopProfiling(Platform.OS === 'android');
       // Nested ifs (rather than a single `&&` expression) avoid a "value block
