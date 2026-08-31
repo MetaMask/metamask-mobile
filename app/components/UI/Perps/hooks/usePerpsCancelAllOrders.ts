@@ -114,14 +114,6 @@ export const usePerpsCancelAllOrders = (
         }
       }
 
-      if (result.successCount === 0 && result.failureCount === 0) {
-        DevLogger.log(
-          '[PR-35475] BUG_MARKER: cancelAll matched no cancelable orders; sheet listed ' +
-            orders.length +
-            ' order(s) but nothing was cancelled and no feedback was shown',
-        );
-      }
-
       // If complete failure, throw error to trigger catch block
       if (result.successCount === 0 && result.failureCount > 0) {
         throw new Error(
