@@ -33,8 +33,9 @@ There is deliberately no fallback blocking gate (e.g. on release branches). The 
 [`.github/audit-owners.yml`](../../.github/audit-owners.yml) is the single source of truth for who is paged:
 
 - `owner.github` — assigned as reviewer/assignee on every fix PR and tracking issue.
-- `owner.slack_id` / `manager.slack_id` — Slack **member IDs** (not display names), mentioned in the escalation Slack message.
-- `slack_channel` — a Slack **channel ID** (not a channel name).
+- `owner.slack_id` — Slack **member ID** (not display name), mentioned in the escalation Slack message.
+- `manager.slack_id` — optional second Slack mention. Comment out the whole `manager:` block to notify only the owner.
+- `slack_channel` — ideally a Slack **channel ID** (not a channel name), so posting is unaffected by a channel rename.
 - `sla_days` — business days before an open advisory PR/issue is considered stale (see below).
 
 To rotate the owner or manager, edit that file directly and open a normal PR — no workflow or secret changes needed.

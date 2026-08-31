@@ -2,8 +2,9 @@
  * Dependency Audit Escalation Slack Notification
  *
  * Posts a Slack message when the daily dependency-audit-escalation workflow
- * finds new production advisories, tagging the audit owner and their manager
- * (see .github/audit-owners.yml and docs/readme/dependency-audit.md).
+ * finds new production advisories, tagging the audit owner and, if
+ * configured, their manager (see .github/audit-owners.yml and
+ * docs/readme/dependency-audit.md).
  *
  * Required env: SLACK_BOT_TOKEN, AUDIT_RESULT_PATH
  * Optional env: OWNERS_YML_PATH (default .github/audit-owners.yml),
@@ -18,13 +19,13 @@ const DEFAULT_OWNERS_PATH = '.github/audit-owners.yml';
 
 /**
  * @param {string} path
- * @returns {{slack_channel: string, owner: {github: string, slack_id: string}, manager: {slack_id: string}, sla_days: number}}
+ * @returns {{slack_channel: string, owner: {github: string, slack_id: string}, manager?: {slack_id: string}, sla_days: number}}
  */
 function loadOwners(path) {
   const raw = fs.readFileSync(path, 'utf8');
   const parsed = yaml.load(raw);
-  if (!parsed?.slack_channel || !parsed?.owner?.slack_id || !parsed?.manager?.slack_id) {
-    throw new Error(`${path} is missing slack_channel, owner.slack_id, or manager.slack_id`);
+  if (!parsed?.slack_channel || !parsed?.owner?.slack_id) {
+    throw new Error(`${path} is missing slack_channel or owner.slack_id`);
   }
   return parsed;
 }
@@ -49,6 +50,9 @@ function advisoryLine(entry) {
  * @returns {{blocks: object[], text: string}}
  */
 function buildSlackMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
+  const mentions = [`<@${ownerSlackId}>`];
+  if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
+
   const total = fixed.length + manual.length;
   const headerText = total === 1
     ? '🔒 Dependency audit: 1 new advisory found'
@@ -96,7 +100,7 @@ function buildSlackMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlackI
       elements: [
         {
           type: 'mrkdwn',
-          text: `cc <@${ownerSlackId}> <@${managerSlackId}> — see docs/readme/dependency-audit.md for the escalation process and SLA.`,
+          text: `cc ${mentions.join(' ')} — see docs/readme/dependency-audit.md for the escalation process and SLA.`,
         },
       ],
     },
@@ -168,7 +172,7 @@ async function main() {
     issueUrl: process.env.ISSUE_URL || '',
     runUrl: process.env.RUN_URL || '',
     ownerSlackId: owners.owner.slack_id,
-    managerSlackId: owners.manager.slack_id,
+    managerSlackId: owners.manager?.slack_id,
   });
 
   if (isDryRun) {

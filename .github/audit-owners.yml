@@ -9,18 +9,24 @@
 # in `chat.postMessage`. Find a member ID via their Slack profile > "Copy
 # member ID".
 #
-# `slack_channel` must be a Slack *channel ID* (e.g. "C0XXXXXXXXX"), not a
+# `slack_channel` should be a Slack *channel ID* (e.g. "C0XXXXXXXXX"), not a
 # channel name, so the bot posts reliably even if the channel is renamed.
+# TODO: replace with the "npm-audit" channel's ID (channel details > "Copy
+# channel ID") — a name works with chat.postMessage but is fragile if renamed.
 
-slack_channel: 'C0XXXXXXXXX'
+slack_channel: 'npm-audit'
 
 owner:
   # GitHub handle: assigned as the PR/issue author's reviewer and assignee.
-  github: 'REPLACE_WITH_OWNER_GH_HANDLE'
+  github: 'tommasini'
+  # TODO: fill in the owner's Slack member ID so the escalation Slack
+  # message actually notifies them (see comment above).
   slack_id: 'U0XXXXXXXXX'
 
-manager:
-  slack_id: 'U0YYYYYYYYY'
+# Manager escalation is disabled for now — uncomment and fill in a
+# manager.slack_id to re-enable the second @-mention in the Slack message.
+# manager:
+#   slack_id: 'U0YYYYYYYYY'
 
 # Business days allowed before the escalation workflow re-pings Slack on an
 # still-open advisory PR/issue. See docs/readme/dependency-audit.md.
