@@ -215,6 +215,7 @@ describe('useBridgeQuoteEvents', () => {
           isSubmitDisabled: false,
           isPriceImpactWarningVisible: false,
           hasInsufficientNativeReserveError: false,
+          hasDestAssetRequireActivate: false,
         }),
       { state: testState },
     );
