@@ -1,3 +1,24 @@
+diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
+index 5a5e1385c9ef4d9939e34fcfc80de11a4184b8a2..e3a59c8f8a5c9304b6f6463bead20206293d052b 100644
+--- a/ReactAndroid/hermes-engine/build.gradle.kts
++++ b/ReactAndroid/hermes-engine/build.gradle.kts
+@@ -280,12 +280,15 @@ android {
+             "-DJSI_DIR=${jsiDir}",
+             "-DHERMES_BUILD_SHARED_JSI=True",
+             "-DHERMES_RELEASE_VERSION=for RN ${version}",
+-            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True",
+             // We intentionally build Hermes with Intl support only. This is to simplify
+             // the build setup and to avoid overcomplicating the build-type matrix.
+             "-DHERMES_ENABLE_INTL=True",
+         )
+ 
++        if (System.getenv("METAMASK_ENVIRONMENT") != "e2e") {
++          arguments("-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True")
++        }
++
+         if (hermesV1Enabled) {
+           arguments("-DHERMESVM_HEAP_HV_MODE=HEAP_HV_PREFER32")
+         }
 diff --git a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
 index 6bd061f26b9a260fd88ce1672b6f0bfbbb369fca..77015a6b7577f4e837469021c8c16f784aaf4f58 100644
 --- a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
