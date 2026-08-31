@@ -468,7 +468,7 @@ describe('MoreTokenActionsMenu', () => {
       expect(onReceive).toHaveBeenCalled();
     });
 
-    it('navigates to Webview when View on block explorer is pressed and InAppBrowser is not available', async () => {
+    it('leaves Token Details then navigates to Webview when InAppBrowser is unavailable', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(false);
       updateRouteParams({
         hasPerpsMarket: false,
@@ -485,6 +485,7 @@ describe('MoreTokenActionsMenu', () => {
 
       await Promise.resolve();
 
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
       expect(mockNavigate).toHaveBeenCalledWith('Webview', {
         screen: 'SimpleWebview',
         params: {
@@ -502,7 +503,7 @@ describe('MoreTokenActionsMenu', () => {
       );
     });
 
-    it('opens InAppBrowser when View on block explorer is pressed and InAppBrowser is available', async () => {
+    it('leaves Token Details then opens InAppBrowser when available', async () => {
       mockInAppBrowserIsAvailable.mockResolvedValue(true);
       mockInAppBrowserOpen.mockResolvedValue(undefined);
       updateRouteParams({
@@ -520,6 +521,7 @@ describe('MoreTokenActionsMenu', () => {
 
       await Promise.resolve();
 
+      expect(mockNavigate).toHaveBeenCalledWith('WalletView');
       expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
         'https://etherscan.io/token/0x123',
       );
