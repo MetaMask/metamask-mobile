@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>HE vs BrowserStack vs Sauce Cloud · flakiness & timing</title>
+<style>
+:root{
+  --bg:#0b1220; --panel:#121a2b; --ink:#e8eefc; --muted:#93a0b8; --line:#243149;
+  --green:#34d399; --red:#fb7185; --amber:#fbbf24; --blue:#60a5fa;
+  --teal:#2dd4bf; --gold:#f6c945; --purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink);
+  background:
+    radial-gradient(1000px 480px at 8% -8%, #5b21b655, transparent),
+    radial-gradient(900px 420px at 92% 0%, #0f766e33, transparent),
+    var(--bg);
+  font:14px/1.45 Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.wrap{max-width:1400px;margin:0 auto;padding:28px 18px 72px}
+.hero{
+  background:linear-gradient(135deg,#0f172a 0%,#312e81 45%,#0f766e 100%);
+  border:1px solid #ffffff22; border-radius:22px; padding:26px; color:#fff; margin-bottom:16px;
+}
+.eyebrow{color:#c4b5fd;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+h1{margin:8px 0 10px;font-size:clamp(26px,4vw,40px);line-height:1.05}
+h2{margin:0 0 12px;font-size:18px}
+p{margin:0;color:#ddd6fe}
+.banner{margin-top:14px;background:#1e1b4bcc;border:1px solid #a78bfa66;color:#e9d5ff;border-radius:12px;padding:12px 14px;font-size:13px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.links a{color:#fff;border:1px solid #ffffff44;border-radius:999px;padding:6px 11px;text-decoration:none;font-size:12px}
+.section{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;margin-top:14px}
+.muted{color:var(--muted)}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media(max-width:980px){.grid3{grid-template-columns:1fr}}
+.card{
+  background:linear-gradient(180deg,#0e1626,#121a2b); border:1px solid var(--line);
+  border-radius:16px; padding:16px; border-top:3px solid var(--c,#a78bfa); position:relative;
+}
+.card.winner{border-color:#34d39988; box-shadow:0 0 0 1px #34d39944}
+.card .tag{
+  position:absolute; top:12px; right:12px; font-size:10px; font-weight:800;
+  border:1px solid var(--line); border-radius:999px; padding:3px 8px; background:#0b1220; color:var(--gold);
+}
+.card h3{margin:0 0 4px;font-size:15px}
+.meta{color:var(--muted);font-size:12px;margin-bottom:12px}
+.metric{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric div{background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:10px}
+.metric label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.metric strong{display:block;margin-top:4px;font-size:22px;font-variant-numeric:tabular-nums}
+.metric .sub{font-size:11px;color:var(--muted);margin-top:2px}
+.bar-row{display:grid;grid-template-columns:120px 1fr 64px;gap:8px;align-items:center;margin:8px 0;font-size:12px}
+.track{height:12px;background:#0b1220;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.fill{height:100%;border-radius:999px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:1100px}
+th,td{border-bottom:1px solid var(--line);padding:8px 6px;font-size:12px;vertical-align:middle}
+th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em;background:#0e1626;position:sticky;top:0;z-index:2}
+td:first-child,th:first-child{position:sticky;left:0;background:#121a2b;z-index:1;min-width:170px;font-weight:600}
+.win{color:var(--green);font-weight:800}
+.lose{color:var(--red);font-weight:800}
+.flake{color:var(--amber);font-weight:700}
+.pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;border:1px solid var(--line)}
+.pill.ok{background:#064e3b66;color:var(--green)}
+.pill.bad{background:#7f1d1d66;color:var(--red)}
+.pill.warn{background:#78350f66;color:var(--amber)}
+.pill.neutral{background:#0e1626;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#0e1626}
+.foot{color:var(--muted);font-size:12px;margin-top:16px}
+ul{margin:8px 0 0;padding-left:18px;color:#d6d3d1}
+li{margin:7px 0}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+@media(max-width:800px){.kpi-row{grid-template-columns:1fr}}
+.kpi{background:#0e1626aa;border:1px solid var(--line);border-radius:12px;padding:12px}
+.kpi label{display:block;color:#c4b5fd;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.kpi strong{display:block;margin-top:4px;font-size:20px}
+a{color:#93c5fd}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="hero">
+    <div class="eyebrow">MetaMask Mobile · Performance E2E</div>
+    <h1>TestMu HE vs BrowserStack vs Sauce Cloud</h1>
+    <p>
+      Flakiness, session-create failures, and mean scenario timings across sampled runs on
+      <code>MMQA-TestMu-PoC-HyperExecute</code>.
+    </p>
+    <div class="banner">
+      <strong>Definitions:</strong>
+      Flakiness = % of scenarios that both passed and failed (QG or session) across runs for that vendor.
+      Session-fail % = executions with no-session / ~≥290s wall and no metrics.
+      Scenario time = average of <em>passed</em> timings only.
+    </div>
+    <div class="kpi-row" id="hero-kpis"></div>
+    <nav class="links">
+      <a href="./final-vendor-compare-run-e.html">Final Run E compare</a>
+      <a href="./aug26-four-run-vendor-compare.html">Aug 26 compare</a>
+      <a href="./vendor-scoreboard.html">Weekly scoreboard</a>
+    </nav>
+  </header>
+
+  <section class="section">
+    <h2>Vendor cards</h2>
+    <div class="grid3" id="vendor-cards"></div>
+  </section>
+
+  <section class="section">
+    <h2>Flakiness % · lower is better</h2>
+    <div id="flake-bars"></div>
+  </section>
+
+  <section class="section">
+    <h2>Session-create failure % · lower is better</h2>
+    <div id="sf-bars"></div>
+  </section>
+
+  <section class="section">
+    <h2>Mean passed scenario time · lower is better</h2>
+    <div id="time-bars"></div>
+    <p class="muted" style="margin-top:10px;font-size:12px" id="time-summary"></p>
+  </section>
+
+  <section class="section">
+    <h2>Scenario timing · winner &amp; loser</h2>
+    <div class="legend">
+      <span class="chip"><span class="win">Winner</span> = lowest avg pass time</span>
+      <span class="chip"><span class="lose">Loser</span> = highest avg pass time</span>
+      <span class="chip"><span class="flake">Flaky</span> = pass + fail across runs</span>
+      <span class="chip">N/A = no passed timing in sample</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th>TestMu HE</th>
+            <th>BrowserStack</th>
+            <th>Sauce Cloud</th>
+            <th>Winner</th>
+            <th>Loser</th>
+            <th>Flaky vendors</th>
+          </tr>
+        </thead>
+        <tbody id="scenario-body"></tbody>
+      </table>
+    </div>
+    <p class="muted" style="margin-top:10px;font-size:12px" id="win-lose-summary"></p>
+  </section>
+
+  <section class="section">
+    <h2>Analysis</h2>
+    <ul id="analysis"></ul>
+  </section>
+
+  <p class="foot" id="foot"></p>
+</main>
+<script>
+const DATA = {"rowOrder": ["Cold Start → Onboarding", "Fresh SRP wallet creation", "Import SRP onboarding +50", "Money Home · empty", "Account creation", "Money Home · funded", "Perps open/close", "Seedless Apple", "Seedless Google", "Seedless Telegram", "Aggregated Balance", "Cross-chain ETH→SOL", "Asset View", "Cold Start → Login", "Swap ETH→LINK", "Import SRP +50", "Warm Start → Wallet", "Perps add funds", "Warm Start → Login", "Predict Avail. Balance", "Predict Market Details", "Predict Deposit", "Rewards tab"], "vendors": {"testmu_he": {"name": "TestMu HyperExecute", "color": "#a78bfa", "nRuns": 4, "totalExec": 92, "pass": 72, "sf": 0, "qg": 4, "nm": 16, "passPct": 78.3, "sfPct": 0.0, "qgPct": 4.3, "nmPct": 17.4, "flakyScenarios": 2, "flakyPct": 8.7, "avgPassTime": 3.954, "medianPassTime": 3.299, "runList": [{"id": "32373754440", "label": "HE-1", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32373754440", "pass": 18, "sf": 0, "phase": 36.1}, {"id": "32366480495", "label": "HE-2", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32366480495", "pass": 18, "sf": 0, "phase": 30.7}, {"id": "32265974787", "label": "HE-3", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32265974787", "pass": 18, "sf": 0, "phase": 33.9}, {"id": "32248728966", "label": "HE-4", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32248728966", "pass": 18, "sf": 0, "phase": 34.3}], "scenarios": {"Cold Start → Onboarding": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 2.159, "minPassTime": 1.699, "maxPassTime": 2.643, "flaky": false, "nRuns": 4}, "Fresh SRP wallet creation": {"outcomes": ["F", "P", "F", "F"], "passCount": 1, "failCount": 3, "sfCount": 0, "nmCount": 0, "passRate": 25.0, "sfRate": 0.0, "avgPassTime": 9.837, "minPassTime": 9.837, "maxPassTime": 9.837, "flaky": true, "nRuns": 4}, "Import SRP onboarding +50": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 4.462, "minPassTime": 3.805, "maxPassTime": 5.904, "flaky": false, "nRuns": 4}, "Money Home · empty": {"outcomes": ["N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 4, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 4}, "Account creation": {"outcomes": ["P", "F", "P", "P"], "passCount": 3, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 75.0, "sfRate": 0.0, "avgPassTime": 1.926, "minPassTime": 1.362, "maxPassTime": 2.826, "flaky": true, "nRuns": 4}, "Money Home · funded": {"outcomes": ["N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 4, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 4}, "Perps open/close": {"outcomes": ["N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 4, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 4}, "Seedless Apple": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 6.173, "minPassTime": 5.343, "maxPassTime": 8.368, "flaky": false, "nRuns": 4}, "Seedless Google": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.554, "minPassTime": 3.169, "maxPassTime": 4.292, "flaky": false, "nRuns": 4}, "Seedless Telegram": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 4.65, "minPassTime": 3.113, "maxPassTime": 6.526, "flaky": false, "nRuns": 4}, "Aggregated Balance": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 8.907, "minPassTime": 8.527, "maxPassTime": 9.463, "flaky": false, "nRuns": 4}, "Cross-chain ETH→SOL": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 6.09, "minPassTime": 5.726, "maxPassTime": 6.906, "flaky": false, "nRuns": 4}, "Asset View": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.54, "minPassTime": 2.55, "maxPassTime": 4.273, "flaky": false, "nRuns": 4}, "Cold Start → Login": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.112, "minPassTime": 0.349, "maxPassTime": 2.787, "flaky": false, "nRuns": 4}, "Swap ETH→LINK": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.79, "minPassTime": 1.627, "maxPassTime": 1.914, "flaky": false, "nRuns": 4}, "Import SRP +50": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.103, "minPassTime": 2.222, "maxPassTime": 3.739, "flaky": false, "nRuns": 4}, "Warm Start → Wallet": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.535, "minPassTime": 0.926, "maxPassTime": 3.115, "flaky": false, "nRuns": 4}, "Perps add funds": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 7.823, "minPassTime": 6.915, "maxPassTime": 9.095, "flaky": false, "nRuns": 4}, "Warm Start → Login": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 0.585, "minPassTime": 0.424, "maxPassTime": 0.977, "flaky": false, "nRuns": 4}, "Predict Avail. Balance": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.144, "minPassTime": 0.789, "maxPassTime": 1.431, "flaky": false, "nRuns": 4}, "Predict Market Details": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 2.816, "minPassTime": 2.082, "maxPassTime": 3.904, "flaky": false, "nRuns": 4}, "Predict Deposit": {"outcomes": ["P", "P", "P", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 7.816, "minPassTime": 6.171, "maxPassTime": 9.312, "flaky": false, "nRuns": 4}, "Rewards tab": {"outcomes": ["N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 4, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 4}}}, "browserstack": {"name": "BrowserStack", "color": "#60a5fa", "nRuns": 5, "totalExec": 115, "pass": 91, "sf": 4, "qg": 5, "nm": 15, "passPct": 79.1, "sfPct": 3.5, "qgPct": 4.3, "nmPct": 13.0, "flakyScenarios": 6, "flakyPct": 26.1, "avgPassTime": 4.599, "medianPassTime": 3.524, "runList": [{"id": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "pass": 19, "sf": 0, "phase": 51.0}, {"id": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "pass": 18, "sf": 2, "phase": 63.6}, {"id": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "pass": 20, "sf": 1, "phase": 54.8}, {"id": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "pass": 18, "sf": 1, "phase": 68.5}, {"id": "33371373870", "label": "Run E", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/33371373870", "pass": 16, "sf": 0, "phase": 32.9}], "scenarios": {"Cold Start → Onboarding": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.11, "minPassTime": 2.685, "maxPassTime": 3.39, "flaky": false, "nRuns": 5}, "Fresh SRP wallet creation": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 6.947, "minPassTime": 5.743, "maxPassTime": 8.258, "flaky": false, "nRuns": 5}, "Import SRP onboarding +50": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 5.009, "minPassTime": 4.468, "maxPassTime": 5.77, "flaky": false, "nRuns": 5}, "Money Home · empty": {"outcomes": ["N", "SF", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 1, "nmCount": 4, "passRate": 0.0, "sfRate": 20.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Account creation": {"outcomes": ["P", "P", "P", "P", "N"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 1, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 2.056, "minPassTime": 1.399, "maxPassTime": 3.528, "flaky": false, "nRuns": 5}, "Money Home · funded": {"outcomes": ["N", "SF", "SF", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 2, "nmCount": 3, "passRate": 0.0, "sfRate": 40.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Perps open/close": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 13.392, "minPassTime": 10.503, "maxPassTime": 16.802, "flaky": false, "nRuns": 5}, "Seedless Apple": {"outcomes": ["F", "P", "P", "P", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 4.14, "minPassTime": 2.247, "maxPassTime": 5.825, "flaky": true, "nRuns": 5}, "Seedless Google": {"outcomes": ["P", "P", "P", "SF", "P"], "passCount": 4, "failCount": 0, "sfCount": 1, "nmCount": 0, "passRate": 80.0, "sfRate": 20.0, "avgPassTime": 3.141, "minPassTime": 2.312, "maxPassTime": 3.541, "flaky": true, "nRuns": 5}, "Seedless Telegram": {"outcomes": ["P", "P", "P", "N", "P"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 1, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 5.156, "minPassTime": 3.367, "maxPassTime": 7.589, "flaky": false, "nRuns": 5}, "Aggregated Balance": {"outcomes": ["P", "P", "P", "P", "F"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 8.376, "minPassTime": 8.257, "maxPassTime": 8.58, "flaky": true, "nRuns": 5}, "Cross-chain ETH→SOL": {"outcomes": ["P", "F", "P", "P", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 5.085, "minPassTime": 4.889, "maxPassTime": 5.379, "flaky": true, "nRuns": 5}, "Asset View": {"outcomes": ["P", "P", "P", "P", "N"], "passCount": 4, "failCount": 0, "sfCount": 0, "nmCount": 1, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 3.062, "minPassTime": 2.648, "maxPassTime": 3.524, "flaky": false, "nRuns": 5}, "Cold Start → Login": {"outcomes": ["P", "F", "P", "P", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 3.154, "minPassTime": 0.0, "maxPassTime": 4.525, "flaky": true, "nRuns": 5}, "Swap ETH→LINK": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.711, "minPassTime": 0.0, "maxPassTime": 3.206, "flaky": false, "nRuns": 5}, "Import SRP +50": {"outcomes": ["P", "P", "P", "P", "F"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 2.84, "minPassTime": 2.411, "maxPassTime": 3.294, "flaky": true, "nRuns": 5}, "Warm Start → Wallet": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.042, "minPassTime": 0.0, "maxPassTime": 1.49, "flaky": false, "nRuns": 5}, "Perps add funds": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 7.877, "minPassTime": 6.47, "maxPassTime": 8.787, "flaky": false, "nRuns": 5}, "Warm Start → Login": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.027, "minPassTime": 0.355, "maxPassTime": 1.933, "flaky": false, "nRuns": 5}, "Predict Avail. Balance": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.147, "minPassTime": 0.803, "maxPassTime": 2.057, "flaky": false, "nRuns": 5}, "Predict Market Details": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.148, "minPassTime": 2.135, "maxPassTime": 3.849, "flaky": false, "nRuns": 5}, "Predict Deposit": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 10.428, "minPassTime": 8.584, "maxPassTime": 11.584, "flaky": false, "nRuns": 5}, "Rewards tab": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}}}, "sauce_cloud": {"name": "Sauce Labs Cloud", "color": "#2dd4bf", "nRuns": 5, "totalExec": 115, "pass": 84, "sf": 0, "qg": 6, "nm": 25, "passPct": 73.0, "sfPct": 0.0, "qgPct": 5.2, "nmPct": 21.7, "flakyScenarios": 5, "flakyPct": 21.7, "avgPassTime": 3.793, "medianPassTime": 3.647, "runList": [{"id": "32948794353", "label": "Run A", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948794353", "pass": 17, "sf": 0, "phase": 28.0}, {"id": "32948816890", "label": "Run B", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948816890", "pass": 17, "sf": 0, "phase": 30.9}, {"id": "32948838611", "label": "Run C", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948838611", "pass": 17, "sf": 0, "phase": 31.1}, {"id": "32948862510", "label": "Run D", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/32948862510", "pass": 15, "sf": 0, "phase": 30.4}, {"id": "33371373870", "label": "Run E", "url": "https://github.com/MetaMask/metamask-mobile/actions/runs/33371373870", "pass": 18, "sf": 0, "phase": 28.6}], "scenarios": {"Cold Start → Onboarding": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.316, "minPassTime": 0.542, "maxPassTime": 2.677, "flaky": false, "nRuns": 5}, "Fresh SRP wallet creation": {"outcomes": ["P", "P", "P", "F", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 8.817, "minPassTime": 7.839, "maxPassTime": 10.22, "flaky": true, "nRuns": 5}, "Import SRP onboarding +50": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 4.021, "minPassTime": 3.918, "maxPassTime": 4.297, "flaky": false, "nRuns": 5}, "Money Home · empty": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Account creation": {"outcomes": ["P", "P", "P", "F", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 1.778, "minPassTime": 1.463, "maxPassTime": 2.041, "flaky": true, "nRuns": 5}, "Money Home · funded": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Perps open/close": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Seedless Apple": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 4.893, "minPassTime": 4.501, "maxPassTime": 5.055, "flaky": false, "nRuns": 5}, "Seedless Google": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.282, "minPassTime": 3.045, "maxPassTime": 3.52, "flaky": false, "nRuns": 5}, "Seedless Telegram": {"outcomes": ["F", "P", "P", "P", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 4.101, "minPassTime": 2.971, "maxPassTime": 5.632, "flaky": true, "nRuns": 5}, "Aggregated Balance": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 8.974, "minPassTime": 8.708, "maxPassTime": 9.163, "flaky": false, "nRuns": 5}, "Cross-chain ETH→SOL": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 4.715, "minPassTime": 4.076, "maxPassTime": 5.569, "flaky": false, "nRuns": 5}, "Asset View": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 2.841, "minPassTime": 2.157, "maxPassTime": 4.46, "flaky": false, "nRuns": 5}, "Cold Start → Login": {"outcomes": ["P", "P", "F", "P", "P"], "passCount": 4, "failCount": 1, "sfCount": 0, "nmCount": 0, "passRate": 80.0, "sfRate": 0.0, "avgPassTime": 4.595, "minPassTime": 4.095, "maxPassTime": 5.391, "flaky": true, "nRuns": 5}, "Swap ETH→LINK": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 2.455, "minPassTime": 1.655, "maxPassTime": 3.06, "flaky": false, "nRuns": 5}, "Import SRP +50": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.607, "minPassTime": 2.594, "maxPassTime": 4.665, "flaky": false, "nRuns": 5}, "Warm Start → Wallet": {"outcomes": ["P", "F", "P", "F", "P"], "passCount": 3, "failCount": 2, "sfCount": 0, "nmCount": 0, "passRate": 60.0, "sfRate": 0.0, "avgPassTime": 1.06, "minPassTime": 0.841, "maxPassTime": 1.185, "flaky": true, "nRuns": 5}, "Perps add funds": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 5.401, "minPassTime": 5.054, "maxPassTime": 5.826, "flaky": false, "nRuns": 5}, "Warm Start → Login": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.189, "minPassTime": 0.421, "maxPassTime": 2.443, "flaky": false, "nRuns": 5}, "Predict Avail. Balance": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 1.55, "minPassTime": 0.931, "maxPassTime": 3.194, "flaky": false, "nRuns": 5}, "Predict Market Details": {"outcomes": ["P", "P", "P", "P", "P"], "passCount": 5, "failCount": 0, "sfCount": 0, "nmCount": 0, "passRate": 100.0, "sfRate": 0.0, "avgPassTime": 3.403, "minPassTime": 2.414, "maxPassTime": 4.195, "flaky": false, "nRuns": 5}, "Predict Deposit": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}, "Rewards tab": {"outcomes": ["N", "N", "N", "N", "N"], "passCount": 0, "failCount": 0, "sfCount": 0, "nmCount": 5, "passRate": 0.0, "sfRate": 0.0, "avgPassTime": null, "minPassTime": null, "maxPassTime": null, "flaky": false, "nRuns": 5}}}}, "scenarioWinners": {"Cold Start → Onboarding": {"winner": "sauce_cloud", "winnerTime": 1.316, "loser": "browserstack", "loserTime": 3.11, "all": [{"vk": "sauce_cloud", "t": 1.316}, {"vk": "testmu_he", "t": 2.159}, {"vk": "browserstack", "t": 3.11}]}, "Fresh SRP wallet creation": {"winner": "browserstack", "winnerTime": 6.947, "loser": "testmu_he", "loserTime": 9.837, "all": [{"vk": "browserstack", "t": 6.947}, {"vk": "sauce_cloud", "t": 8.817}, {"vk": "testmu_he", "t": 9.837}]}, "Import SRP onboarding +50": {"winner": "sauce_cloud", "winnerTime": 4.021, "loser": "browserstack", "loserTime": 5.009, "all": [{"vk": "sauce_cloud", "t": 4.021}, {"vk": "testmu_he", "t": 4.462}, {"vk": "browserstack", "t": 5.009}]}, "Money Home · empty": null, "Account creation": {"winner": "sauce_cloud", "winnerTime": 1.778, "loser": "browserstack", "loserTime": 2.056, "all": [{"vk": "sauce_cloud", "t": 1.778}, {"vk": "testmu_he", "t": 1.926}, {"vk": "browserstack", "t": 2.056}]}, "Money Home · funded": null, "Perps open/close": {"winner": "browserstack", "winnerTime": 13.392, "loser": "browserstack", "loserTime": 13.392, "all": [{"vk": "browserstack", "t": 13.392}]}, "Seedless Apple": {"winner": "browserstack", "winnerTime": 4.14, "loser": "testmu_he", "loserTime": 6.173, "all": [{"vk": "browserstack", "t": 4.14}, {"vk": "sauce_cloud", "t": 4.893}, {"vk": "testmu_he", "t": 6.173}]}, "Seedless Google": {"winner": "browserstack", "winnerTime": 3.141, "loser": "testmu_he", "loserTime": 3.554, "all": [{"vk": "browserstack", "t": 3.141}, {"vk": "sauce_cloud", "t": 3.282}, {"vk": "testmu_he", "t": 3.554}]}, "Seedless Telegram": {"winner": "sauce_cloud", "winnerTime": 4.101, "loser": "browserstack", "loserTime": 5.156, "all": [{"vk": "sauce_cloud", "t": 4.101}, {"vk": "testmu_he", "t": 4.65}, {"vk": "browserstack", "t": 5.156}]}, "Aggregated Balance": {"winner": "browserstack", "winnerTime": 8.376, "loser": "sauce_cloud", "loserTime": 8.974, "all": [{"vk": "browserstack", "t": 8.376}, {"vk": "testmu_he", "t": 8.907}, {"vk": "sauce_cloud", "t": 8.974}]}, "Cross-chain ETH→SOL": {"winner": "sauce_cloud", "winnerTime": 4.715, "loser": "testmu_he", "loserTime": 6.09, "all": [{"vk": "sauce_cloud", "t": 4.715}, {"vk": "browserstack", "t": 5.085}, {"vk": "testmu_he", "t": 6.09}]}, "Asset View": {"winner": "sauce_cloud", "winnerTime": 2.841, "loser": "testmu_he", "loserTime": 3.54, "all": [{"vk": "sauce_cloud", "t": 2.841}, {"vk": "browserstack", "t": 3.062}, {"vk": "testmu_he", "t": 3.54}]}, "Cold Start → Login": {"winner": "testmu_he", "winnerTime": 1.112, "loser": "sauce_cloud", "loserTime": 4.595, "all": [{"vk": "testmu_he", "t": 1.112}, {"vk": "browserstack", "t": 3.154}, {"vk": "sauce_cloud", "t": 4.595}]}, "Swap ETH→LINK": {"winner": "browserstack", "winnerTime": 1.711, "loser": "sauce_cloud", "loserTime": 2.455, "all": [{"vk": "browserstack", "t": 1.711}, {"vk": "testmu_he", "t": 1.79}, {"vk": "sauce_cloud", "t": 2.455}]}, "Import SRP +50": {"winner": "browserstack", "winnerTime": 2.84, "loser": "sauce_cloud", "loserTime": 3.607, "all": [{"vk": "browserstack", "t": 2.84}, {"vk": "testmu_he", "t": 3.103}, {"vk": "sauce_cloud", "t": 3.607}]}, "Warm Start → Wallet": {"winner": "browserstack", "winnerTime": 1.042, "loser": "testmu_he", "loserTime": 1.535, "all": [{"vk": "browserstack", "t": 1.042}, {"vk": "sauce_cloud", "t": 1.06}, {"vk": "testmu_he", "t": 1.535}]}, "Perps add funds": {"winner": "sauce_cloud", "winnerTime": 5.401, "loser": "browserstack", "loserTime": 7.877, "all": [{"vk": "sauce_cloud", "t": 5.401}, {"vk": "testmu_he", "t": 7.823}, {"vk": "browserstack", "t": 7.877}]}, "Warm Start → Login": {"winner": "testmu_he", "winnerTime": 0.585, "loser": "sauce_cloud", "loserTime": 1.189, "all": [{"vk": "testmu_he", "t": 0.585}, {"vk": "browserstack", "t": 1.027}, {"vk": "sauce_cloud", "t": 1.189}]}, "Predict Avail. Balance": {"winner": "testmu_he", "winnerTime": 1.144, "loser": "sauce_cloud", "loserTime": 1.55, "all": [{"vk": "testmu_he", "t": 1.144}, {"vk": "browserstack", "t": 1.147}, {"vk": "sauce_cloud", "t": 1.55}]}, "Predict Market Details": {"winner": "testmu_he", "winnerTime": 2.816, "loser": "sauce_cloud", "loserTime": 3.403, "all": [{"vk": "testmu_he", "t": 2.816}, {"vk": "browserstack", "t": 3.148}, {"vk": "sauce_cloud", "t": 3.403}]}, "Predict Deposit": {"winner": "testmu_he", "winnerTime": 7.816, "loser": "browserstack", "loserTime": 10.428, "all": [{"vk": "testmu_he", "t": 7.816}, {"vk": "browserstack", "t": 10.428}]}, "Rewards tab": null}, "winCounts": {"testmu_he": 5, "browserstack": 8, "sauce_cloud": 7}, "loseCounts": {"testmu_he": 6, "browserstack": 6, "sauce_cloud": 7}, "definitions": {"flakiness": "% of scenarios that passed in at least one run and failed (QG or session) in another run for the same vendor.", "sessionFail": "% of scenario executions classified as session-create / no-session (~≥290s wall, no metrics).", "avgScenarioTime": "Mean of passed timings only (<290s). Winner = lowest avg; loser = highest avg among vendors with data."}, "notes": ["TestMu HE: 4 historical runs (Aug 19–20, Pixel 8 Pro/14).", "BrowserStack & Sauce Cloud: Aug 26 Runs A–D + Aug 31 Run E (Pixel 7 Pro/13).", "Device/OS differ for HE vs BS/Cloud — treat timing as directional."], "generatedAt": "2026-08-31T09:22:53Z", "branch": "MMQA-TestMu-PoC-HyperExecute", "order": ["testmu_he", "browserstack", "sauce_cloud"], "overallTiming": {"winner": "sauce_cloud", "winnerAvg": 3.793, "loser": "browserstack", "loserAvg": 4.599}};
+
+function render(){
+  const order = DATA.order;
+  const V = DATA.vendors;
+  const leastFlaky = [...order].sort((a,b)=>V[a].flakyPct-V[b].flakyPct)[0];
+  const leastSF = [...order].sort((a,b)=>V[a].sfPct-V[b].sfPct)[0];
+  const fastest = DATA.overallTiming.winner;
+  const slowest = DATA.overallTiming.loser;
+
+  document.getElementById('hero-kpis').innerHTML = `
+    <div class="kpi"><label>Least flaky</label><strong style="color:${V[leastFlaky].color}">${V[leastFlaky].name} · ${V[leastFlaky].flakyPct}%</strong></div>
+    <div class="kpi"><label>Fewest session fails</label><strong style="color:${V[leastSF].color}">${V[leastSF].name} · ${V[leastSF].sfPct}%</strong></div>
+    <div class="kpi"><label>Fastest avg scenario</label><strong style="color:${V[fastest].color}">${V[fastest].name} · ${DATA.overallTiming.winnerAvg}s</strong></div>`;
+
+  document.getElementById('vendor-cards').innerHTML = order.map(vk=>{
+    const v=V[vk];
+    const isWin = vk===fastest && vk===leastFlaky;
+    return `<article class="card ${vk===leastFlaky?'winner':''}" style="--c:${v.color}">
+      ${vk===leastFlaky?'<div class="tag">least flaky</div>':''}
+      <h3><span class="dot" style="background:${v.color}"></span>${v.name}</h3>
+      <div class="meta">${v.nRuns} runs · ${v.totalExec} scenario executions</div>
+      <div class="metric">
+        <div><label>Flakiness</label><strong>${v.flakyPct}%</strong><div class="sub">${v.flakyScenarios}/23 scenarios</div></div>
+        <div><label>Session fail</label><strong>${v.sfPct}%</strong><div class="sub">${v.sf}/${v.totalExec} execs</div></div>
+        <div><label>Avg pass time</label><strong>${v.avgPassTime ?? '—'}s</strong><div class="sub">median ${v.medianPassTime ?? '—'}s</div></div>
+        <div><label>Pass rate</label><strong>${v.passPct}%</strong><div class="sub">QG fail ${v.qgPct}% · N/A ${v.nmPct}%</div></div>
+      </div>
+    </article>`;
+  }).join('');
+
+  function bars(key, labelFmt){
+    const max = Math.max(...order.map(vk=>V[vk][key]));
+    return order.map(vk=>{
+      const v=V[vk]; const val=v[key];
+      const pct = max===0 ? 0 : (val/max)*100;
+      return `<div class="bar-row"><div><span class="dot" style="background:${v.color}"></span>${v.name.replace('TestMu HyperExecute','TestMu HE').replace('Sauce Labs Cloud','Sauce Cloud')}</div>
+        <div class="track"><div class="fill" style="width:${pct}%;background:${v.color}"></div></div>
+        <div><strong>${labelFmt(val,v)}</strong></div></div>`;
+    }).join('');
+  }
+  document.getElementById('flake-bars').innerHTML = bars('flakyPct', (x)=>x+'%');
+  document.getElementById('sf-bars').innerHTML = bars('sfPct', (x)=>x+'%');
+  document.getElementById('time-bars').innerHTML = bars('avgPassTime', (x)=>x+'s');
+  document.getElementById('time-summary').innerHTML =
+    `<strong class="win">Winner:</strong> ${V[fastest].name} (${DATA.overallTiming.winnerAvg}s avg) ·
+     <strong class="lose">Loser:</strong> ${V[slowest].name} (${DATA.overallTiming.loserAvg}s avg)`;
+
+  // scenario table
+  const tbody = document.getElementById('scenario-body');
+  tbody.innerHTML = '';
+  DATA.rowOrder.forEach(name=>{
+    const w = DATA.scenarioWinners[name];
+    const cells = order.map(vk=>{
+      const s = V[vk].scenarios[name];
+      const t = s.avgPassTime == null ? 'N/A' : s.avgPassTime.toFixed(2)+'s';
+      const cls = w && w.winner===vk && s.avgPassTime!=null ? 'win' : (w && w.loser===vk && s.avgPassTime!=null && w.winner!==w.loser ? 'lose' : '');
+      const flake = s.flaky ? ' <span class="pill warn">flaky</span>' : '';
+      const detail = `P${s.passCount}/SF${s.sfCount}/F${s.failCount}/N${s.nmCount}`;
+      return `<td><span class="${cls}">${t}</span>${flake}<div class="muted" style="font-size:10px">${detail}</div></td>`;
+    }).join('');
+    let winner='—', loser='—';
+    if(w && w.all && w.all.length){
+      winner = `<span class="win">${V[w.winner].name.replace('TestMu HyperExecute','HE').replace('Sauce Labs Cloud','Cloud').replace('BrowserStack','BS')}</span> (${w.winnerTime.toFixed(2)}s)`;
+      if(w.all.length>1 && w.winner!==w.loser){
+        loser = `<span class="lose">${V[w.loser].name.replace('TestMu HyperExecute','HE').replace('Sauce Labs Cloud','Cloud').replace('BrowserStack','BS')}</span> (${w.loserTime.toFixed(2)}s)`;
+      } else loser = '—';
+    }
+    const flakyVendors = order.filter(vk=>V[vk].scenarios[name].flaky)
+      .map(vk=>V[vk].name.replace('TestMu HyperExecute','HE').replace('Sauce Labs Cloud','Cloud').replace('BrowserStack','BS'));
+    const flakeCell = flakyVendors.length ? `<span class="flake">${flakyVendors.join(', ')}</span>` : '<span class="muted">none</span>';
+    tbody.insertAdjacentHTML('beforeend', `<tr><td>${name}</td>${cells}<td>${winner}</td><td>${loser}</td><td>${flakeCell}</td></tr>`);
+  });
+
+  document.getElementById('win-lose-summary').textContent =
+    `Scenario wins (fastest avg): HE ${DATA.winCounts.testmu_he} · BS ${DATA.winCounts.browserstack} · Cloud ${DATA.winCounts.sauce_cloud}. ` +
+    `Scenario losses (slowest avg): HE ${DATA.loseCounts.testmu_he} · BS ${DATA.loseCounts.browserstack} · Cloud ${DATA.loseCounts.sauce_cloud}.`;
+
+  document.getElementById('analysis').innerHTML = `
+    <li><strong>Flakiness:</strong> TestMu HE is clearly best at <strong>${V.testmu_he.flakyPct}%</strong> (${V.testmu_he.flakyScenarios}/23). BrowserStack ${V.browserstack.flakyPct}% · Sauce Cloud ${V.sauce_cloud.flakyPct}%.</li>
+    <li><strong>Session-create fails:</strong> HE and Sauce Cloud both <strong>0.0%</strong> in this sample. BrowserStack has <strong>${V.browserstack.sfPct}%</strong> (${V.browserstack.sf} execs).</li>
+    <li><strong>Mean scenario time (passed only):</strong> winner <strong>${V[fastest].name}</strong> at ${DATA.overallTiming.winnerAvg}s · loser <strong>${V[slowest].name}</strong> at ${DATA.overallTiming.loserAvg}s.</li>
+    <li><strong>Per-scenario wins:</strong> BrowserStack takes the most individual scenario crowns (${DATA.winCounts.browserstack}), but Cloud wins on overall mean because it is consistently quick when it passes.</li>
+    <li><strong>Caveat:</strong> HE sample is Pixel 8 Pro/14 (Aug 19–20); BS/Cloud are Pixel 7 Pro/13 (Aug 26 + 31). Directional, not identical lab conditions.</li>
+  `;
+
+  document.getElementById('foot').textContent =
+    DATA.notes.join(' · ') + ' · Generated ' + DATA.generatedAt;
+}
+render();
+</script>
+</body>
+</html>
