@@ -29,10 +29,20 @@ jest.mock('../../../../../util/haptics');
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
+  dataSymbol?: string | null;
   isLoading: boolean;
   error: null;
   connectionStatus: string;
   reconnect: () => void;
+}
+
+interface MockUsePerpsMarketsResult {
+  markets: { symbol: string; maxLeverage: string }[];
+  isLoading: boolean;
+  error: null;
+  hasResolvedInitialData?: boolean;
+  refresh: jest.Mock;
+  isRefreshing: boolean;
 }
 
 interface MockRouteParams {
@@ -113,6 +123,14 @@ const mockHandleMarketListPress = jest.fn();
 const mockHandleFavoritePress = jest.fn();
 const mockHandlePerpsModeChange = jest.fn();
 const mockHeaderPerpsMode = PerpsMode.Pro;
+let mockMarketContextReady = true;
+let mockConnectionInitialized = true;
+const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
+  generationTrigger: 'initial',
+  isActive: true,
+  isLiveDeliveryFresh: true,
+  liveResetKey: 'detail-session',
+}));
 
 const mockPerpsProChartPanel = jest.fn(
   ({
@@ -279,6 +297,21 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    identityKey: 'testnet|hyperliquid|1',
+    isReady: mockMarketContextReady,
+    isUserReady: mockConnectionInitialized,
+    isConnectionInitialized: mockConnectionInitialized,
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarketDetailSession'),
+  usePerpsMarketDetailSession: (params: unknown) =>
+    mockUsePerpsMarketDetailSession(params),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -347,7 +380,13 @@ const mockUsePerpsLiveOrderBook = jest.fn(
   }),
 );
 jest.mock('../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
+  usePerpsLiveOrderBook: (params: { symbol: string }) => {
+    const result = mockUsePerpsLiveOrderBook(params);
+    return {
+      ...result,
+      dataSymbol: result.dataSymbol ?? params.symbol,
+    };
+  },
 }));
 
 const buildLiveBook = (bidPrice: string): OrderBookData => ({
@@ -410,7 +449,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
 // PerpsStreamProvider in the tree, and overridable per-test via
 // `mockUsePerpsMarketsImpl` for the enrichment test below.
 const mockUsePerpsMarketsImpl = jest.fn(
-  (_options?: UsePerpsMarketsOptions) => ({
+  (_options?: UsePerpsMarketsOptions): MockUsePerpsMarketsResult => ({
     markets: [] as { symbol: string; maxLeverage: string }[],
     isLoading: false,
     error: null,
@@ -482,12 +521,14 @@ const renderView = () =>
 describe('PerpsProMarketView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockConnectionInitialized = true;
     mockOrderFormType = 'market';
     mockSzDecimals = undefined;
     mockOrderBookPosition = 'left';
     mockIsOrderBookExpanded = true;
     mockSetOrderBookExpanded.mockClear();
     jest.mocked(playSelection).mockClear();
+    mockMarketContextReady = true;
     mockRouteParams = {
       market: {
         symbol: 'BTC',
@@ -521,6 +562,33 @@ describe('PerpsProMarketView', () => {
       orders: [],
       isInitialLoading: false,
     });
+  });
+
+  it('keeps account readiness loading while market context reconnects', () => {
+    mockMarketContextReady = false;
+
+    renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ account: 'loading' }),
+      }),
+    );
+  });
+
+  it('keeps account-owned readiness loading during an account reconnect', () => {
+    mockConnectionInitialized = false;
+
+    renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({
+          account: 'loading',
+          positions_orders: 'loading',
+        }),
+      }),
+    );
   });
 
   it('configures an empty fallback amount for the Pro order form', () => {
@@ -870,6 +938,42 @@ describe('PerpsProMarketView', () => {
     const { getByText } = renderView();
 
     expect(getByText('40x')).toBeOnTheScreen();
+  });
+
+  it('keeps market readiness loading until the current stream resolves', () => {
+    mockRouteParams = { market: { symbol: 'BTC', name: 'Bitcoin' } };
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      hasResolvedInitialData: false,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const view = renderView();
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ market: 'loading' }),
+      }),
+    );
+
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      hasResolvedInitialData: true,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProMarketView />);
+
+    expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        sections: expect.objectContaining({ market: 'empty' }),
+      }),
+    );
   });
 
   it('does not re-fetch markets when route data already has a formatted maxLeverage', () => {

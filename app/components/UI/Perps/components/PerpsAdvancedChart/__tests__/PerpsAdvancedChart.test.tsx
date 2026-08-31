@@ -1,6 +1,10 @@
 import type React from 'react';
 import { act, render } from '@testing-library/react-native';
-import { CandlePeriod, TimeDuration } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type CandleData,
+} from '@metamask/perps-controller';
 import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
@@ -75,6 +79,9 @@ const mockAdapterResult = {
   visibleFromMs: undefined,
   visibleToMs: undefined,
   isLoading: false,
+  hasCurrentSeriesData: true,
+  deliveryRevision: 0,
+  hasFreshCurrentSeriesDelivery: false,
   handleFetchOlderBarsRequest: jest.fn(),
 };
 
@@ -154,10 +161,10 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
-  it('keeps the AdvancedChart WebView instance stable across interval changes', () => {
+  it('resets the AdvancedChart WebView when the interval changes', () => {
     const { rerender } = renderChart();
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|1h|perps');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|1h');
 
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
@@ -175,7 +182,7 @@ describe('PerpsAdvancedChart', () => {
       />,
     );
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|4h|perps');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
   });
 
@@ -196,6 +203,50 @@ describe('PerpsAdvancedChart', () => {
     renderChart({ onLatestPriceChange });
 
     expect(onLatestPriceChange).toHaveBeenCalledWith(42050);
+  });
+
+  it('forwards only active Advanced Chart fresh deliveries', () => {
+    const onFreshDelivery = jest.fn();
+    const { rerender } = renderChart({ onFreshDelivery });
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      latestAdvancedChartProps().onError?.('chart failed');
+    });
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      deliveryRevision: 2,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
   });
 
   it('uses the native price line for latest close instead of a custom position shape', () => {
@@ -343,7 +394,8 @@ describe('PerpsAdvancedChart', () => {
 
   it('ends the visibility trace when the skeleton hides', () => {
     const onSkeletonHidden = jest.fn();
-    renderChart({ onSkeletonHidden });
+    const onResolved = jest.fn();
+    renderChart({ onResolved, onSkeletonHidden });
 
     act(() => {
       advancedChartProps().onSkeletonHidden?.();
@@ -372,6 +424,106 @@ describe('PerpsAdvancedChart', () => {
       }),
     );
     expect(onSkeletonHidden).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+  });
+
+  it('resolves the chart as content when the skeleton hides with bars', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvData: [
+        {
+          time: 1,
+          open: 1,
+          high: 2,
+          low: 0.5,
+          close: 1.5,
+          volume: 10,
+        },
+      ],
+    });
+    renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onSkeletonHidden?.();
+    });
+
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
+  });
+
+  it('resolves content when data arrives after the layout settles', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: true,
+      hasCurrentSeriesData: false,
+    });
+    const { rerender } = renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).not.toHaveBeenCalled();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvData: [
+        { time: 1, open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 },
+      ],
+      isLoading: false,
+      hasCurrentSeriesData: true,
+      deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
+  });
+
+  it('resolves empty when the first delivery arrives after the layout settles', () => {
+    const onResolved = jest.fn();
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: true,
+      hasCurrentSeriesData: false,
+    });
+    const { rerender } = renderChart({ onResolved });
+
+    act(() => {
+      advancedChartProps().onChartLayoutSettled?.();
+    });
+    expect(onResolved).not.toHaveBeenCalled();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      isLoading: false,
+      hasCurrentSeriesData: true,
+      deliveryRevision: 1,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
   });
 
   it('supersedes the active trace and starts an interval trace when only the interval changes', () => {
@@ -552,6 +704,144 @@ describe('PerpsAdvancedChart', () => {
         coloredVolume: true,
       }),
     );
+  });
+
+  it('does not resolve fallback candles from the prior symbol', () => {
+    const onResolved = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [
+        {
+          time: 1,
+          open: '1',
+          high: '2',
+          low: '0.5',
+          close: '1.5',
+          volume: '10',
+        },
+      ],
+    };
+    const { rerender } = renderChart({ fallbackCandleData, onResolved });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'content');
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="ETH"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={fallbackCandleData}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not resolve fallback candles from the prior interval', () => {
+    const onResolved = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    renderChart({
+      interval: CandlePeriod.FourHours,
+      fallbackCandleData,
+      onResolved,
+    });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onResolved).not.toHaveBeenCalled();
+  });
+
+  it('reports an empty resolved fallback for the current symbol', () => {
+    const onResolved = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    const { rerender } = renderChart({ fallbackCandleData, onResolved });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onResolved).toHaveBeenCalledWith('BTC|1h', 'empty');
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={{ ...fallbackCandleData, candles: [] }}
+        onResolved={onResolved}
+      />,
+    );
+
+    expect(onResolved).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not borrow Advanced freshness for the Lightweight fallback', () => {
+    const onFreshDelivery = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      hasFreshCurrentSeriesDelivery: true,
+    });
+    renderChart({ fallbackCandleData, onFreshDelivery });
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onFreshDelivery).not.toHaveBeenCalled();
+  });
+
+  it('forwards the exact Lightweight fallback delivery', () => {
+    const onFreshDelivery = jest.fn();
+    const fallbackCandleData: CandleData = {
+      symbol: 'BTC',
+      interval: CandlePeriod.OneHour,
+      candles: [],
+    };
+    const { rerender } = renderChart({
+      fallbackCandleData,
+      fallbackDeliveryRevision: 0,
+      onFreshDelivery,
+    });
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={fallbackCandleData}
+        fallbackDeliveryRevision={1}
+        onFreshDelivery={onFreshDelivery}
+      />,
+    );
+
+    act(() => {
+      advancedChartProps().onError?.('chart failed');
+    });
+
+    expect(onFreshDelivery).toHaveBeenCalledTimes(1);
   });
 });
 
