@@ -541,8 +541,8 @@
     "perpsBalances": {},
     "proLayoutPreferences": {
       "chartExpanded": true,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
