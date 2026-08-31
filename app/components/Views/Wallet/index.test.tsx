@@ -13,6 +13,14 @@ jest.mock('react-native-device-info', () => ({
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () => ({
   __esModule: true,

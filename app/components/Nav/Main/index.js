@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
   ActivityIndicator,
@@ -50,9 +44,10 @@ import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+  AvatarNetwork,
+  AvatarNetworkSize,
+  toast,
+} from '@metamask/design-system-react-native';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import {
   selectChainId,
@@ -206,7 +201,6 @@ const Main = (props) => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
-  const { toastRef } = useContext(ToastContext);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -259,7 +253,6 @@ const Main = (props) => {
     providerConfig,
     networkName,
     networkImage,
-    toastRef,
     chainId,
     isEvmSelected,
     hasNetworkChanged,
@@ -304,28 +297,25 @@ const Main = (props) => {
         hasDeletedNetwork: Boolean(deletedNetwork),
       });
       if (shouldShowToast) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: `${
-                (deletedNetwork?.name || newNetwork?.name) ??
-                strings('asset_details.network')
-              } `,
-              isBold: true,
-            },
-            {
-              label: deletedNetwork
-                ? strings('toast.network_removed')
-                : strings('toast.network_added'),
-            },
-          ],
-          networkImageSource: networkImage,
+        toast({
+          title: `${
+            (deletedNetwork?.name || newNetwork?.name) ??
+            strings('asset_details.network')
+          } ${
+            deletedNetwork
+              ? strings('toast.network_removed')
+              : strings('toast.network_added')
+          }`,
+          startAccessory: networkImage ? (
+            <AvatarNetwork src={networkImage} size={AvatarNetworkSize.Md} />
+          ) : undefined,
+          hasNoTimeout: false,
+          showCloseButton: false,
         });
       }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkImage, toastRef]);
+  }, [networkConfigurations, networkImage]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
