@@ -98,7 +98,11 @@ jobs:
 
       # Namespace-only: without the shared cache volume the snapshot cannot
       # reach shard jobs, so priming would be pure waste on other providers.
+      # continue-on-error: priming is an optimization — a failed prime must not
+      # fail this job (and with it the whole caller workflow) when shards can
+      # cold-boot. The re-check below still reports the snapshot as invalid.
       - name: Prime Android golden snapshot
+        continue-on-error: true
         if: >-
           ${{
             inputs.runner_provider == 'namespace' &&

@@ -53,9 +53,12 @@ interface AdbDevice {
   state: string;
 }
 
-function execAsync(cmd: string): Promise<{ stdout: string; stderr: string }> {
+function execAsync(
+  cmd: string,
+  options?: { timeoutMs?: number },
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    exec(cmd, (error, stdout, stderr) => {
+    exec(cmd, { timeout: options?.timeoutMs }, (error, stdout, stderr) => {
       if (error) {
         reject(Object.assign(error, { stdout, stderr }));
       } else {
@@ -137,6 +140,17 @@ async function spawnEmulatorAndAwaitSerial(options: {
       return serial;
     }
     await sleep(ANDROID_BOOT_POLL_INTERVAL_MS);
+  }
+
+  // Timeout: kill the detached emulator process group so a hung qemu (which
+  // never registered in adb and is invisible to `emu kill`) does not survive
+  // into a cold-boot fallback and OOM the runner alongside the retry.
+  if (emulatorProcess.pid !== undefined) {
+    try {
+      process.kill(-emulatorProcess.pid, 'SIGKILL');
+    } catch {
+      // Already exited between the last poll and now.
+    }
   }
   return undefined;
 }
@@ -754,11 +768,17 @@ async function stabilizeAndroidEmulatorAfterBoot(
 
 async function waitForEmulatorBoot(
   serial: string,
-  options?: { postBoot?: 'full' | 'light' },
+  options?: { postBoot?: 'full' | 'light'; bootTimeoutMs?: number },
 ): Promise<void> {
-  await execAsync(`adb -s ${serial} wait-for-device`);
+  const bootTimeoutMs = options?.bootTimeoutMs ?? resolveAndroidBootTimeoutMs();
 
-  const bootTimeoutMs = resolveAndroidBootTimeoutMs();
+  // Bound the blocking adb wait so a stuck boot falls back instead of hanging.
+  await execAsync(`adb -s ${serial} wait-for-device`, {
+    timeoutMs: bootTimeoutMs,
+  }).catch(() => {
+    /* the bounded poll loop below delivers the verdict */
+  });
+
   const deadline = Date.now() + bootTimeoutMs;
   let booted = false;
 
@@ -1062,7 +1082,12 @@ async function tryBootFromGoldenSnapshot(
   }
 
   try {
-    await waitForEmulatorBoot(serial, { postBoot: 'light' });
+    await waitForEmulatorBoot(serial, {
+      postBoot: 'light',
+      // Fail fast on a stuck resume so auto mode falls back to cold boot
+      // instead of burning the full cold-boot timeout on a dead snapshot.
+      bootTimeoutMs: timeoutMs,
+    });
     logger.info(
       `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`,
     );
