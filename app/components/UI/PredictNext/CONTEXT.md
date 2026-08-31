@@ -49,12 +49,20 @@ A product navigation surface that presents one or more related Feeds. Each selec
 _Avoid_: Feed, Competition screen, backend Feed hierarchy
 
 **Event**:
-A grouping of one or more related binary Markets from exactly one Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An Event may have one Category and one Series.
-_Avoid_: Market, PredictMarket, composite Venue Events
+A grouping of one or more related binary Markets with one parent Venue Event, such as "2026 NBA Finals" or "Will ETH hit $5k?". An immutable Game detail read may append validated Markets from authoritative sibling Venue Events while retaining the requested Event as its parent. An Event may have one Category and one Series.
+_Avoid_: Market, PredictMarket, synthetic parent Event, client-side Event join
+
+**Event Screen**:
+A product navigation surface that presents one immutable Event identified by its Venue and Event identities.
+_Avoid_: Event Detail, Event Details Screen
 
 **Market**:
 A single binary question within an Event, resolved as Yes or No, such as "Lakers to win Game 7".
 _Avoid_: Outcome, PredictOutcome, condition
+
+**Market Group**:
+Optional backend-owned metadata on a Market that tells the Event Screen how related Markets can be presented together. The backend supplies the key, group type, Market type, option, and display order. Mobile never derives these values from display text or identifiers.
+_Avoid_: Client-created group, parsed line, local display order
 
 **Outcome**:
 One side of a binary Market, representing a tradeable position, usually labeled Yes or No but sometimes using a custom label. An Outcome may have a Game Selection when it authoritatively represents the home Team, away Team, or draw.
@@ -241,13 +249,15 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Account Readiness is distinct from Balance and Venue Status; a Predict User can be ready with zero Balance, or funded while a Venue is unavailable.
 - A Feed contains zero or more Events and owns their membership, ordering, and pagination semantics.
 - A Feed Screen contains one or more ordered tabs, and each tab identifies exactly one Feed.
-- Each Event maps to exactly one Venue Event and contains one or more Markets; Predict never combines Markets from multiple Venue Events into one Event.
+- Each Event has one parent Venue Event and contains one or more Markets. A Game detail response may append validated Markets from authoritative sibling Venue Events without changing the parent identity.
+- An Event Screen presents exactly one immutable Event and never rotates to another Event from the same Series.
 - Each Event may have one primary Category and one Series.
 - A Category is product-owned and is distinct from Venue tags and future Topics.
 - A Series groups related Events; Predict does not fabricate a singleton Series for an Event without a meaningful Series.
 - A Collection Series may have multiple simultaneous or upcoming Events.
 - A Rolling Series selects one current Event at a time without changing that Event's identity.
 - Each Market contains exactly two Outcomes, typically Yes and No.
+- Each Market may have one Market Group. The backend owns this metadata, and mobile does not derive it.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
 - An Immediate Order does not remain open; a Resting Order may later be cancelled or amended when the Venue supports those capabilities.
@@ -268,7 +278,7 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - A Game has one home Team and one away Team in the initial canonical model.
 - Game status and Market Lifecycle are independent and must not be derived from one another.
 - An Outcome may have one Game Selection of home, away, or draw; its Yes or No side remains unchanged.
-- Sports Events preserve Venue Event boundaries; related Venue Events are never flattened into Markets under a synthetic parent Event.
+- Sports Event composition preserves the requested parent identity and source boundaries. Only a Game detail read may append validated sibling Markets; Predict never creates a synthetic parent Event.
 
 ## Flagged Ambiguities
 

@@ -115,6 +115,7 @@ import {
   type ResolvedFirstPredictOnUsLaunch,
 } from '../../UI/Rewards/utils/resolveFirstPredictOnUs';
 import { markFirstPredictionOnUsOfferViewed } from '../../../reducers/rewards';
+import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 
 interface KeyringState {
   type: string;
@@ -208,6 +209,7 @@ const ChoosePassword = () => {
     contentReady: true,
     isEmpty: false,
     isLoading: isSocialLoginUser && !isGeolocationResolved,
+    fullyDisplayed: !isSocialLoginUser || isGeolocationResolved,
   });
 
   useNavigationPerformance({
@@ -1126,6 +1128,7 @@ const ChoosePassword = () => {
             </Box>
           </KeyboardAwareScrollView>
         )}
+        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
       </SafeAreaView>
     );
   };

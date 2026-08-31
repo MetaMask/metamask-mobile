@@ -73,6 +73,24 @@ describe('checkHardRules', () => {
     expect(result?.reasoning).toContain('e2e-relevant-workflow-change');
   });
 
+  it.each([
+    '.github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs',
+    '.github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs',
+    '.github/actions/smart-e2e-selection/e2e-smart-selection.mjs',
+    '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs',
+    '.github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs',
+    '.github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.cjs',
+  ])('runs all E2E tags when %s changes', (changedFile) => {
+    const result = checkHardRules([changedFile], context);
+
+    expect(result).not.toBeNull();
+    expect(result?.selectedTags).toEqual(
+      SELECT_TAGS_CONFIG.map((config) => config.tag),
+    );
+    expect(result?.confidence).toBe(100);
+    expect(result?.reasoning).toContain('e2e-relevant-workflow-change');
+  });
+
   it('selects SmokeAccounts when only an accounts smoke spec changes', () => {
     const changedFiles = [
       'tests/smoke-appium/accounts/create-wallet-account.spec.ts',

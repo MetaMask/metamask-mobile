@@ -57,7 +57,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import ActivityView from '../../Views/ActivityView';
+import ActivityScreen from '../../Views/ActivityScreen';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
@@ -81,6 +81,8 @@ import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
+import GetPixKey from '../../UI/Ramp/Views/VirtualBankAccount/GetPixKey';
+import VbaVerifyIdentity from '../../UI/Ramp/Views/VirtualBankAccount/VerifyIdentity';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
@@ -189,14 +191,14 @@ import ManagePriceAlertsView from '../../UI/Assets/PriceAlerts/Views/ManagePrice
 import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
-import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import { ALLOWED_CAPABILITIES as WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/Wallet/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const WalletWithMessenger = withMessenger(Wallet, {
+const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
 });
 
@@ -294,7 +296,7 @@ const TransactionsHome = () => {
     >
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
-        component={ActivityView}
+        component={ActivityScreen}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -423,7 +425,7 @@ const ExploreHome = () => {
 };
 
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
-const SnapSettingsWithMessenger = withMessenger(SnapSettings, {
+const SnapSettingsWithMessenger = withRouteMessenger(SnapSettings, {
   capabilities: SNAPS_SETTINGS_ROUTE_ALLOWED_CAPABILITIES,
 });
 
@@ -1215,6 +1217,17 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
+      {/* Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak. */}
+      <NativeStack.Screen
+        name={Routes.RAMP.GET_PIX_KEY}
+        component={GetPixKey}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.RAMP.VBA_VERIFY_IDENTITY}
+        component={VbaVerifyIdentity}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
