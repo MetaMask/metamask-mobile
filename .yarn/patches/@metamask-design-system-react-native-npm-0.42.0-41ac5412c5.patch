@@ -214,3 +214,133 @@ index 80e8a16649d90c513bb76b45817aa8af631cf4c3..be8db97d09f4a172e5eb945be476fb2f
                  }
              });
          }
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.cjs b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+index 9c7f66c3142a535b861d55277597b1cf8517ab45..64e03817a642aee9f639fbb741a7e70e7f8c27dd 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.cjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+@@ -28,23 +28,43 @@ const design_system_shared_1 = require("@metamask/design-system-shared");
+ const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
++// Below this, a measurement is treated as noise rather than a real resize.
++const STABLE_SIZE_THRESHOLD_PX = 1;
++// Tracks a measured element's rounded width/height via `onLayout`.
++//
++// `BadgeWrapper` positions an element based on its own measured size, so
++// applying that position can shift the next measurement by a sub-pixel
++// amount, which can flip-flop forever without this guard. Rounding alone
++// isn't enough to prevent that: two raw values close enough together to be
++// noise can still round to different integers if they straddle a `.5`
++// boundary. Instead this only accepts a new size once it has moved a full
++// pixel away from the last accepted raw measurement (starting from
++// -Infinity, so the first real measurement is always accepted), which
++// absorbs sub-pixel noise regardless of where it falls, while still
++// reacting to genuine size changes.
++const useStableMeasuredSize = () => {
++    const [width, setWidth] = (0, react_1.useState)(0);
++    const [height, setHeight] = (0, react_1.useState)(0);
++    const lastAcceptedRawRef = (0, react_1.useRef)({ width: -Infinity, height: -Infinity });
++    const onLayout = (0, react_1.useCallback)((event) => {
++        const { width: rawWidth, height: rawHeight } = event.nativeEvent.layout;
++        const lastAccepted = lastAcceptedRawRef.current;
++        const hasMoved = Math.abs(rawWidth - lastAccepted.width) >= STABLE_SIZE_THRESHOLD_PX ||
++            Math.abs(rawHeight - lastAccepted.height) >= STABLE_SIZE_THRESHOLD_PX;
++        if (!hasMoved) {
++            return;
++        }
++        lastAcceptedRawRef.current = { width: rawWidth, height: rawHeight };
++        setWidth(Math.round(rawWidth));
++        setHeight(Math.round(rawHeight));
++    }, []);
++    return [width, height, onLayout];
++};
+ const BadgeWrapper = ({ children, childrenContainerProps, badge, badgeContainerProps, position = design_system_shared_1.BadgeWrapperPosition.BottomRight, positionAnchorShape = design_system_shared_1.BadgeWrapperPositionAnchorShape.Circular, positionXOffset = 0, positionYOffset = 0, customPosition, twClassName, style, ...props }) => {
+     const tw = (0, design_system_twrnc_preset_1.useTailwind)();
+-    const [anchorWidth, setAnchorWidth] = (0, react_1.useState)(0);
+-    const [anchorHeight, setAnchorHeight] = (0, react_1.useState)(0);
+-    const [badgeWidth, setbadgeWidth] = (0, react_1.useState)(0);
+-    const [badgeHeight, setbadgeHeight] = (0, react_1.useState)(0);
+-    // Fetching the dimensions of the anchor and bagde element to properly position the badge
+-    const getAnchorSize = (0, react_1.useCallback)((event) => {
+-        const { width, height } = event.nativeEvent.layout;
+-        setAnchorWidth(width);
+-        setAnchorHeight(height);
+-    }, []);
+-    const getBadgeSize = (0, react_1.useCallback)((event) => {
+-        const { width, height } = event.nativeEvent.layout;
+-        setbadgeWidth(width);
+-        setbadgeHeight(height);
+-    }, []);
++    // Fetching the dimensions of the anchor and badge element to properly position the badge
++    const [anchorWidth, anchorHeight, getAnchorSize] = useStableMeasuredSize();
++    const [badgeWidth, badgeHeight, getBadgeSize] = useStableMeasuredSize();
+     const finalPositions = (0, react_1.useMemo)(() => {
+         if (customPosition) {
+             return customPosition;
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.mjs b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+index dc2fdd5182f5333c58b655cd178a6cd44aee7402..b2a576270bef42a5a971573b596420b858313590 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.mjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+@@ -6,26 +6,46 @@ function $importDefault(module) {
+ }
+ import { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask/design-system-shared";
+ import { useTailwind } from "@metamask/design-system-twrnc-preset";
+-import $React, { useCallback, useState, useMemo } from "react";
++import $React, { useCallback, useState, useMemo, useRef } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
++// Below this, a measurement is treated as noise rather than a real resize.
++const STABLE_SIZE_THRESHOLD_PX = 1;
++// Tracks a measured element's rounded width/height via `onLayout`.
++//
++// `BadgeWrapper` positions an element based on its own measured size, so
++// applying that position can shift the next measurement by a sub-pixel
++// amount, which can flip-flop forever without this guard. Rounding alone
++// isn't enough to prevent that: two raw values close enough together to be
++// noise can still round to different integers if they straddle a `.5`
++// boundary. Instead this only accepts a new size once it has moved a full
++// pixel away from the last accepted raw measurement (starting from
++// -Infinity, so the first real measurement is always accepted), which
++// absorbs sub-pixel noise regardless of where it falls, while still
++// reacting to genuine size changes.
++const useStableMeasuredSize = () => {
++    const [width, setWidth] = useState(0);
++    const [height, setHeight] = useState(0);
++    const lastAcceptedRawRef = useRef({ width: -Infinity, height: -Infinity });
++    const onLayout = useCallback((event) => {
++        const { width: rawWidth, height: rawHeight } = event.nativeEvent.layout;
++        const lastAccepted = lastAcceptedRawRef.current;
++        const hasMoved = Math.abs(rawWidth - lastAccepted.width) >= STABLE_SIZE_THRESHOLD_PX ||
++            Math.abs(rawHeight - lastAccepted.height) >= STABLE_SIZE_THRESHOLD_PX;
++        if (!hasMoved) {
++            return;
++        }
++        lastAcceptedRawRef.current = { width: rawWidth, height: rawHeight };
++        setWidth(Math.round(rawWidth));
++        setHeight(Math.round(rawHeight));
++    }, []);
++    return [width, height, onLayout];
++};
+ export const BadgeWrapper = ({ children, childrenContainerProps, badge, badgeContainerProps, position = BadgeWrapperPosition.BottomRight, positionAnchorShape = BadgeWrapperPositionAnchorShape.Circular, positionXOffset = 0, positionYOffset = 0, customPosition, twClassName, style, ...props }) => {
+     const tw = useTailwind();
+-    const [anchorWidth, setAnchorWidth] = useState(0);
+-    const [anchorHeight, setAnchorHeight] = useState(0);
+-    const [badgeWidth, setbadgeWidth] = useState(0);
+-    const [badgeHeight, setbadgeHeight] = useState(0);
+-    // Fetching the dimensions of the anchor and bagde element to properly position the badge
+-    const getAnchorSize = useCallback((event) => {
+-        const { width, height } = event.nativeEvent.layout;
+-        setAnchorWidth(width);
+-        setAnchorHeight(height);
+-    }, []);
+-    const getBadgeSize = useCallback((event) => {
+-        const { width, height } = event.nativeEvent.layout;
+-        setbadgeWidth(width);
+-        setbadgeHeight(height);
+-    }, []);
++    // Fetching the dimensions of the anchor and badge element to properly position the badge
++    const [anchorWidth, anchorHeight, getAnchorSize] = useStableMeasuredSize();
++    const [badgeWidth, badgeHeight, getBadgeSize] = useStableMeasuredSize();
+     const finalPositions = useMemo(() => {
+         if (customPosition) {
+             return customPosition;

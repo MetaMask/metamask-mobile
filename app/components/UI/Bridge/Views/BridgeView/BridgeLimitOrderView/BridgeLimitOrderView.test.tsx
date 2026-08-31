@@ -10,6 +10,7 @@ import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
+import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { LimitOrderExecutionType } from '../../../constants/limitOrders';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -63,6 +64,10 @@ jest.mock('../../../hooks/useSwapsLimitOrderPriceAdjust', () => ({
 
 jest.mock('../../../hooks/useSwapsLimitOrderKeypad', () => ({
   useSwapsLimitOrderKeypad: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useHasMissingQuoteAndAssetsPriceData', () => ({
+  useHasMissingQuoteAndAssetsPriceData: jest.fn(() => false),
 }));
 
 jest.mock('../../../components/SwapsKeypad', () => {
@@ -303,6 +308,7 @@ describe('BridgeLimitOrderView', () => {
     jest
       .mocked(useSwapsLimitOrderKeypad)
       .mockImplementation(() => buildKeypadMock());
+    jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(false);
   });
 
   it('renders the limit order container and source token input', () => {
@@ -349,6 +355,23 @@ describe('BridgeLimitOrderView', () => {
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
     ).toBeOnTheScreen();
     expect(queryByText('25%')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBeFalsy();
+  });
+
+  it('disables the keypad confirm button when quote price data is unavailable', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useHasMissingQuoteAndAssetsPriceData).mockReturnValue(true);
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
   });
 
   it('commits the custom percent and closes the keypad when dismiss runs while custom percent is focused', () => {

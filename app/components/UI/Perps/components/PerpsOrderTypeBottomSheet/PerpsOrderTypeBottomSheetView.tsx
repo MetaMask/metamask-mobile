@@ -25,6 +25,8 @@ import LimitIconDark from '../../../../../images/perps/order-types/limit.svg';
 import LimitIconLight from '../../../../../images/perps/order-types/limit-light.svg';
 import MarketIconDark from '../../../../../images/perps/order-types/market.svg';
 import MarketIconLight from '../../../../../images/perps/order-types/market-light.svg';
+import ScaleIconDark from '../../../../../images/perps/order-types/scale.svg';
+import ScaleIconLight from '../../../../../images/perps/order-types/scale-light.svg';
 import StopLimitIconDark from '../../../../../images/perps/order-types/stop-limit.svg';
 import StopLimitIconLight from '../../../../../images/perps/order-types/stop-limit-light.svg';
 import StopMarketIconDark from '../../../../../images/perps/order-types/stop-market.svg';
@@ -70,6 +72,15 @@ const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
   },
 ];
+
+const SCALE_ORDER_TYPE: OrderTypeOption = {
+  type: 'scale',
+  titleKey: 'perps.order.type.scale.title',
+  descriptionKey: 'perps.order.type.scale.description',
+  LightIcon: ScaleIconLight,
+  DarkIcon: ScaleIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+};
 
 const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
   type: TriggerOrderType;
@@ -127,9 +138,12 @@ interface OrderTypeCategory {
 }
 
 const ORDER_TYPE_OPTIONS = new Map<OrderType, OrderTypeOption>(
-  [...BASIC_ORDER_TYPES, ...TRIGGERED_ORDER_TYPES, TWAP_ORDER_TYPE].map(
-    (option): [OrderType, OrderTypeOption] => [option.type, option],
-  ),
+  [
+    ...BASIC_ORDER_TYPES,
+    ...TRIGGERED_ORDER_TYPES,
+    TWAP_ORDER_TYPE,
+    SCALE_ORDER_TYPE,
+  ].map((option): [OrderType, OrderTypeOption] => [option.type, option]),
 );
 
 const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
@@ -153,9 +167,7 @@ const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
   {
     key: 'advanced',
     labelKey: 'perps.order.type.advanced',
-    // Canonical shared order for implemented advanced strategies. Scale and
-    // Chase remain filtered out until their own gated option metadata lands.
-    orderTypes: ['twap', 'scale', 'chase'],
+    orderTypes: ['twap', 'scale'],
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
   },
 ];
@@ -193,7 +205,7 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   onSelect: (orderType: OrderType) => void;
   currentOrderType?: OrderType;
   title?: string;
-  showSelectedIcon?: boolean;
+  showOrderTypeIcons?: boolean;
   /** Ordered types available in the Pro picker. Omit for the Basic-only sheet. */
   availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -205,14 +217,14 @@ const PerpsOrderTypeBottomSheetView = ({
   onSelect,
   currentOrderType,
   title = strings('perps.order.type.title'),
-  showSelectedIcon = false,
+  showOrderTypeIcons = false,
   availableOrderTypes,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
-  const shouldShowSelectedIcon =
-    showSelectedIcon || availableOrderTypes !== undefined;
+  const shouldShowOrderTypeIcon =
+    showOrderTypeIcons || availableOrderTypes !== undefined;
   const availableOrderTypeSet = useMemo(
     () =>
       new Set<OrderType>(
@@ -293,7 +305,7 @@ const PerpsOrderTypeBottomSheetView = ({
       descriptionProps={DESCRIPTION_PROPS}
       accessoryGap={2}
       startAccessory={
-        shouldShowSelectedIcon ? (
+        shouldShowOrderTypeIcon ? (
           <OrderTypeStartAccessory
             LightIcon={orderType.LightIcon}
             DarkIcon={orderType.DarkIcon}
@@ -303,12 +315,10 @@ const PerpsOrderTypeBottomSheetView = ({
         ) : undefined
       }
       isSelected={currentOrderType === orderType.type}
-      showSelectedIcon={shouldShowSelectedIcon}
-      // The Pro design uses a checkmark without a selected-row fill. Shared
-      // sheets without checkmarks retain ListItemSelect's selected background.
-      twClassName={shouldShowSelectedIcon ? 'bg-transparent' : undefined}
+      showSelectedIcon={false}
       onPress={() => handleSelect(orderType.type)}
       testID={orderType.testID}
+      twClassName="min-h-[78px] py-4"
     />
   );
 
