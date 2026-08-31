@@ -96,10 +96,16 @@ class NotificationMenuView {
    * wallet row that mounts above the current offset.
    */
   async scrollListTowardTop(): Promise<void> {
-    await Gestures.swipe(this.scrollViewIdentifier, 'down', {
-      speed: 'fast',
-      elemDescription: 'Notification list scroll toward top',
-    });
+    await Gestures.swipe(
+      Matchers.getElementByID(
+        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+      ),
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Notification list scroll toward top',
+      },
+    );
   }
 
   async waitForNotificationItem(
