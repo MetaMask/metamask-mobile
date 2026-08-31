@@ -53,6 +53,11 @@ on:
         required: false
         type: string
         default: ''
+      platform:
+        description: 'Platform to run (android, ios, or both)'
+        required: false
+        type: string
+        default: both
       pr_number:
         description: 'Pull request number for posting results as a PR comment (workflow_call only)'
         required: false
@@ -275,6 +280,7 @@ jobs:
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
+      inputs.platform != 'ios' &&
       !inputs.browserstack_app_url_android_onboarding &&
       !inputs.browserstack_app_url_android_imported_wallet
     with:
@@ -297,6 +303,7 @@ jobs:
       always() &&
       !cancelled() &&
       needs.prepare.outputs.run_tests == 'true'
+      && inputs.platform != 'android'
     with:
       browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
       browserstack_app_url_ios_imported_wallet: ${{ inputs.browserstack_app_url_ios_imported_wallet }}
@@ -316,6 +323,7 @@ jobs:
     if: >-
       always() && !failure() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
+      inputs.platform != 'ios' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
         needs.trigger-android-dual-versions.result == 'success'
@@ -347,6 +355,7 @@ jobs:
     if: >-
       always() && !failure() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
+      inputs.platform != 'android' &&
       (
         inputs.browserstack_app_url_ios_onboarding != '' ||
         needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != ''
@@ -375,6 +384,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
+      inputs.platform != 'ios' &&
       (
         needs.trigger-android-dual-versions.result == 'skipped' ||
         needs.trigger-android-dual-versions.result == 'success'
@@ -405,6 +415,7 @@ jobs:
     if: >-
       always() && !cancelled() &&
       needs.prepare.outputs.run_tests == 'true' &&
+      inputs.platform != 'android' &&
       (
         inputs.browserstack_app_url_ios_imported_wallet != '' ||
         needs.trigger-ios-dual-versions.outputs.with-srp-browserstack-url != ''

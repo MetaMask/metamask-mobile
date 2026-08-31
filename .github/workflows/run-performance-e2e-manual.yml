@@ -16,6 +16,15 @@ on:
           - exp
           - rc
         default: e2e
+      platform:
+        description: 'Platform to run'
+        required: false
+        type: choice
+        options:
+          - android
+          - ios
+          - both
+        default: android
       sentry_target:
         description: 'Sentry target for performance events (test or real)'
         required: false
@@ -94,6 +103,7 @@ jobs:
       branch_name: ${{ github.ref_name }}
       source_ref: ${{ github.ref_name }}
       build_variant: ${{ inputs.build_variant }}
+      platform: ${{ inputs.platform }}
       sentry_target: ${{ inputs.sentry_target }}
       browserstack_app_url_android_onboarding: ${{ inputs.browserstack_app_url_android_onboarding }}
       browserstack_app_url_ios_onboarding: ${{ inputs.browserstack_app_url_ios_onboarding }}
