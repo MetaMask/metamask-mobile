@@ -32,6 +32,8 @@ jest.mock('../../../../core/HardwareWallet/helpers', () => ({
     mockGetDeviceIdForAddress(...args),
 }));
 
+const mockBatchTransactionCounts: Record<string, number> = {};
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -42,6 +44,9 @@ jest.mock('../../../../core/Engine', () => ({
     context: {
       TransactionController: {
         state: {
+          get batchTransactionCounts() {
+            return mockBatchTransactionCounts;
+          },
           get transactions() {
             return mockTransactions;
           },
@@ -67,6 +72,9 @@ describe('useLedgerConfirm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTransactions.splice(0);
+    Object.keys(mockBatchTransactionCounts).forEach((key) => {
+      delete mockBatchTransactionCounts[key];
+    });
     mockEnsureDeviceReady.mockResolvedValue(true);
   });
 
@@ -117,16 +125,20 @@ describe('useLedgerConfirm', () => {
     expect(executeApproval).not.toHaveBeenCalled();
   });
 
-  it('completes signing after every required transaction is signed', async () => {
+  it('completes signing after every required batch transaction is signed', async () => {
     const transactionId = 'parent-transaction';
+    const batchId = '0xbatch';
     const firstTransaction = {
       id: 'first-transaction',
+      batchId,
       status: TransactionStatus.unapproved,
     } as TransactionMeta;
     const secondTransaction = {
       id: 'second-transaction',
+      batchId,
       status: TransactionStatus.unapproved,
     } as TransactionMeta;
+    mockBatchTransactionCounts[batchId] = 2;
     mockTransactions.push(
       {
         id: transactionId,
@@ -174,7 +186,6 @@ describe('useLedgerConfirm', () => {
         ...defaultOptions,
         isTransactionReq: true,
         onSigningComplete,
-        requiredTransactionCount: 2,
         transactionId,
       }),
     );

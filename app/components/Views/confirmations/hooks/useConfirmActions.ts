@@ -6,7 +6,6 @@ import {
   hasTransactionType,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
@@ -24,72 +23,6 @@ import { useTransactionPayingAccount } from './transactions/useTransactionPaying
 import { useIsConfirmationFromQrAccount } from '../../../../core/HardwareWallet/hooks/useIsConfirmationFromQrAccount';
 import { useLedgerConfirm } from './useLedgerConfirm';
 import { useQrConfirm } from '../../../../core/HardwareWallet/hooks/useQrConfirm';
-import { useTransactionPayQuotes } from './pay/useTransactionPayData';
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function getRequiredTransactionCount(
-  quotes: ReturnType<typeof useTransactionPayQuotes>,
-): number | undefined {
-  if (!quotes?.length) {
-    return undefined;
-  }
-
-  let transactionCount = 0;
-
-  for (const quote of quotes) {
-    if (
-      quote.strategy !== TransactionPayStrategy.Relay ||
-      !isRecord(quote.request) ||
-      quote.request.isPostQuote ||
-      quote.request.paymentOverride
-    ) {
-      return undefined;
-    }
-
-    const original = quote.original;
-    if (!isRecord(original) || !Array.isArray(original.steps)) {
-      return undefined;
-    }
-
-    const metamask = isRecord(original.metamask)
-      ? original.metamask
-      : undefined;
-    if (metamask?.isExecute === true) {
-      return undefined;
-    }
-
-    const steps: unknown[] = original.steps;
-    const quoteTransactionCount = steps.reduce((count, step) => {
-      if (
-        !isRecord(step) ||
-        step.kind !== 'transaction' ||
-        !Array.isArray(step.items)
-      ) {
-        return count;
-      }
-
-      const items: unknown[] = step.items;
-      return (
-        count +
-        items.filter(
-          (item) =>
-            isRecord(item) && isRecord(item.data) && item.data.to !== undefined,
-        ).length
-      );
-    }, 0);
-
-    if (!quoteTransactionCount) {
-      return undefined;
-    }
-
-    transactionCount += quoteTransactionCount;
-  }
-
-  return transactionCount || undefined;
-}
 
 export const useConfirmActions = () => {
   const {
@@ -118,13 +51,12 @@ export const useConfirmActions = () => {
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
   const isQrAccount = useIsConfirmationFromQrAccount();
   const payingAccount = useTransactionPayingAccount();
-  const transactionPayQuotes = useTransactionPayQuotes();
-  const requiredTransactionCount =
+  const batchSigningTransactionId =
     transactionMetadata &&
     hasTransactionType(transactionMetadata, [
       TransactionType.moneyAccountDeposit,
     ])
-      ? getRequiredTransactionCount(transactionPayQuotes)
+      ? transactionMetadata.id
       : undefined;
 
   const onReject = useCallback(
@@ -188,8 +120,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
-      requiredTransactionCount,
-      transactionId: transactionMetadata?.id,
+      transactionId: batchSigningTransactionId,
     }),
     [
       approvalRequest?.requestData?.from,
@@ -199,8 +130,7 @@ export const useConfirmActions = () => {
       onTransactionConfirm,
       executeApproval,
       isTransactionReq,
-      requiredTransactionCount,
-      transactionMetadata,
+      batchSigningTransactionId,
     ],
   );
 

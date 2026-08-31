@@ -21,8 +21,75 @@ interface UseLedgerConfirmOptions {
   onSigningComplete?: () => void;
   executeApproval: () => Promise<void>;
   isTransactionReq: boolean;
-  requiredTransactionCount?: number;
+  /** Parent transaction whose `requiredTransactionIds` are batch funding legs. */
   transactionId?: string;
+}
+
+type TransactionControllerBatchState = {
+  batchTransactionCounts?: Record<string, number>;
+  transactions: TransactionMeta[];
+};
+
+function getTransactionControllerState(): TransactionControllerBatchState {
+  return Engine.context.TransactionController
+    .state as TransactionControllerBatchState;
+}
+
+/**
+ * Active batch size for the parent tx's required funding legs, from
+ * TransactionController.batchTransactionCounts (set during addTransactionBatch).
+ */
+function getRequiredBatchTransactionCount(
+  transactionId: string,
+): number | undefined {
+  const { batchTransactionCounts, transactions } =
+    getTransactionControllerState();
+
+  if (!batchTransactionCounts) {
+    return undefined;
+  }
+
+  const requiredTransactionIds =
+    transactions.find((transaction) => transaction.id === transactionId)
+      ?.requiredTransactionIds ?? [];
+
+  for (const requiredTransactionId of requiredTransactionIds) {
+    const batchId = transactions.find(
+      (transaction) => transaction.id === requiredTransactionId,
+    )?.batchId;
+
+    if (batchId !== undefined && batchTransactionCounts[batchId] !== undefined) {
+      return batchTransactionCounts[batchId];
+    }
+  }
+
+  return undefined;
+}
+
+function haveRequiredTransactionsReachedStatus(
+  transactionId: string,
+  requiredTransactionCount: number,
+): boolean {
+  const { transactions } = getTransactionControllerState();
+  const requiredTransactionIds =
+    transactions.find((transaction) => transaction.id === transactionId)
+      ?.requiredTransactionIds ?? [];
+
+  if (requiredTransactionIds.length < requiredTransactionCount) {
+    return false;
+  }
+
+  return requiredTransactionIds.every((requiredTransactionId) => {
+    const status = transactions.find(
+      (transaction) => transaction.id === requiredTransactionId,
+    )?.status;
+
+    return (
+      status === TransactionStatus.signed ||
+      status === TransactionStatus.submitted ||
+      status === TransactionStatus.confirmed
+    );
+  });
 }
 
 /**
@@ -37,7 +104,6 @@ export function useLedgerConfirm({
   onSigningComplete,
   executeApproval,
   isTransactionReq,
-  requiredTransactionCount,
   transactionId,
 }: UseLedgerConfirmOptions) {
   const {
@@ -66,10 +132,7 @@ export function useLedgerConfirm({
 
     setPendingOperationAddress(fromAddress);
     const shouldCompleteAfterSigning = Boolean(
-      isTransactionReq &&
-        onSigningComplete &&
-        requiredTransactionCount &&
-        transactionId,
+      isTransactionReq && onSigningComplete && transactionId,
     );
     let stopWatchingSignedTransactions = () => undefined;
     let hasHiddenAwaitingConfirmation = false;
@@ -104,19 +167,14 @@ export function useLedgerConfirm({
         rejectOnce();
       });
 
-      if (
-        shouldCompleteAfterSigning &&
-        requiredTransactionCount &&
-        transactionId
-      ) {
+      if (shouldCompleteAfterSigning && transactionId) {
         const signedHandler = Engine.controllerMessenger.subscribeOnceIf(
           'TransactionController:transactionStatusUpdated',
           () => {
             completeSigningOnce();
           },
           ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-            const transactions =
-              Engine.context.TransactionController.state.transactions;
+            const { transactions } = getTransactionControllerState();
             const requiredTransactionIds =
               transactions.find(
                 (transaction) => transaction.id === transactionId,
@@ -126,21 +184,17 @@ export function useLedgerConfirm({
               return false;
             }
 
-            if (requiredTransactionIds.length < requiredTransactionCount) {
+            const requiredTransactionCount =
+              getRequiredBatchTransactionCount(transactionId);
+
+            if (!requiredTransactionCount) {
               return false;
             }
 
-            return requiredTransactionIds.every((requiredTransactionId) => {
-              const status = transactions.find(
-                (transaction) => transaction.id === requiredTransactionId,
-              )?.status;
-
-              return (
-                status === TransactionStatus.signed ||
-                status === TransactionStatus.submitted ||
-                status === TransactionStatus.confirmed
-              );
-            });
+            return haveRequiredTransactionsReachedStatus(
+              transactionId,
+              requiredTransactionCount,
+            );
           },
         );
 
@@ -192,7 +246,6 @@ export function useLedgerConfirm({
     showHardwareWalletError,
     setPendingOperationAddress,
     fromAddress,
-    requiredTransactionCount,
     transactionId,
   ]);
 
