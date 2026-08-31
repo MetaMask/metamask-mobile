@@ -60,17 +60,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
   },
 }));
 
-let mockTransactionsRedesignEnabled = false;
 let mockDepositMeta: { chainId: string } | undefined;
-
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsTransactionsRedesignEnabled: jest.fn(
-      () => mockTransactionsRedesignEnabled,
-    ),
-  }),
-);
 
 jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
@@ -103,7 +93,6 @@ describe('usePerpsToasts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockTransactionsRedesignEnabled = false;
     mockDepositMeta = undefined;
     mockShowToast = jest.fn();
     mockCloseToast = jest.fn();
@@ -219,7 +208,6 @@ describe('usePerpsToasts', () => {
       });
 
       it('tracks to the redesigned details screen when the redesign is enabled', () => {
-        mockTransactionsRedesignEnabled = true;
         mockDepositMeta = { chainId: '0xa4b1' };
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -242,8 +230,8 @@ describe('usePerpsToasts', () => {
         );
       });
 
-      it('tracks to the legacy details screen when the redesign is disabled', () => {
-        mockDepositMeta = { chainId: '0xa4b1' };
+      it('tracks to the legacy details screen when the deposit metadata has no chainId', () => {
+        mockDepositMeta = undefined;
         const { result } = renderHook(() => usePerpsToasts());
         const config =
           result.current.PerpsToastOptions.accountManagement.deposit.inProgress(
@@ -1461,6 +1449,21 @@ describe('usePerpsToasts', () => {
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to add market to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns remove error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.removeError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to remove market from watchlist', isBold: true },
         ]);
       });
 
