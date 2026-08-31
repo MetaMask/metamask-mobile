@@ -62,7 +62,7 @@ export const AssetActivateCard = ({
   }, [activateAsset, navigation]);
 
   return (
-    <Box testID={AssetActivateCardTestIds.CONTAINER} twClassName="px-4 mt-3">
+    <Box testID={AssetActivateCardTestIds.CONTAINER} twClassName="px-4 mt-3 mb-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
