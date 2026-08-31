@@ -4,7 +4,11 @@ import { getBundleId, getVersion } from 'react-native-device-info';
 import ShakeDetector from './ShakeDetector';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import {
+  dumpProfiling,
+  startProfiling,
+  stopProfiling,
+} from 'react-native-release-profiler';
 import RNFS from 'react-native-fs';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -101,7 +105,11 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     }
 
     try {
-      const path = await stopProfiling(Platform.OS === 'android');
+      const path =
+        Platform.OS === 'android' &&
+        process.env.METAMASK_ENVIRONMENT === 'e2e'
+          ? await dumpProfiling()
+          : await stopProfiling(Platform.OS === 'android');
       // Nested ifs (rather than a single `&&` expression) avoid a "value block
       // inside try/catch", which the React Compiler cannot yet optimize.
       if (typeof path === 'string') {

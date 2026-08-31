@@ -321,8 +321,7 @@ android {
         }
         release {
             manifestPlaceholders.isDebug = false
-            // E2E release APKs need run-as access so Appium can extract
-            // Hermes profiles from the app-private cache.
+            // E2E profiles are extracted from the app-private cache with adb.
             debuggable System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
@@ -423,10 +422,7 @@ project.afterEvaluate {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    def reactAndroidArtifact = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
-        ? "com.facebook.react:ReactAndroid"
-        : "com.facebook.react:react-android"
-    implementation(reactAndroidArtifact)
+    implementation("com.facebook.react:react-android")
     implementation 'org.apache.commons:commons-compress:1.22'
     // Minimal androidTest deps so assemble*AndroidTest still produces the CI
     // androidTest APK artifact. Detox instrumentation was removed (MMQA-2230);
@@ -437,8 +433,5 @@ dependencies {
 
     // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
     // JSC was removed from core, so we always link Hermes.
-    def hermesAndroidArtifact = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
-        ? "com.facebook.react:hermes-engine"
-        : "com.facebook.react:hermes-android"
-    implementation(hermesAndroidArtifact)
+    implementation("com.facebook.react:hermes-android")
 }

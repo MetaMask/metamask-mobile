@@ -1,47 +1,8 @@
-diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
-index 5a5e1385c9ef4d9939e34fcfc80de11a4184b8a2..4b1d8fdc31ea037985d546339f96efdd73df90c9 100644
---- a/ReactAndroid/hermes-engine/build.gradle.kts
-+++ b/ReactAndroid/hermes-engine/build.gradle.kts
-@@ -280,12 +280,17 @@ android {
-             "-DJSI_DIR=${jsiDir}",
-             "-DHERMES_BUILD_SHARED_JSI=True",
-             "-DHERMES_RELEASE_VERSION=for RN ${version}",
--            "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True",
-             // We intentionally build Hermes with Intl support only. This is to simplify
-             // the build setup and to avoid overcomplicating the build-type matrix.
-             "-DHERMES_ENABLE_INTL=True",
-         )
- 
-+        if (System.getenv("METAMASK_ENVIRONMENT") == "e2e") {
-+          arguments("-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=False")
-+        } else {
-+          arguments("-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True")
-+        }
-+
-         if (hermesV1Enabled) {
-           arguments("-DHERMESVM_HEAP_HV_MODE=HEAP_HV_PREFER32")
-         }
-diff --git a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
-index 6bd061f26b9a260fd88ce1672b6f0bfbbb369fca..77015a6b7577f4e837469021c8c16f784aaf4f58 100644
---- a/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
-+++ b/ReactAndroid/src/main/jni/react/hermes/instrumentation/HermesSamplingProfiler.cpp
-@@ -34,7 +34,7 @@ void HermesSamplingProfiler::dumpSampledTraceToFile(
- void HermesSamplingProfiler::registerNatives() {
-   javaClassLocal()->registerNatives({
-       makeNativeMethod("enable", HermesSamplingProfiler::enable),
--      makeNativeMethod("disable", HermesSamplingProfiler::enable),
-+      makeNativeMethod("disable", HermesSamplingProfiler::disable),
-       makeNativeMethod(
-           "dumpSampledTraceToFile",
-           HermesSamplingProfiler::dumpSampledTraceToFile),
 diff --git a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
 index ab5a973f12c7e26631bdf2a4705a43f3f458600c..e20c4bf818838ed0d62f91aa600bf27c34df5ac3 100644
 --- a/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
 +++ b/ReactCommon/jsinspector-modern/InspectorInterfaces.cpp
-@@ -143,9 +143,13 @@ int InspectorImpl::addPage(
-       pageId,
-       Page{pageId, description, vm, std::move(connectFunc), capabilities});
- 
+@@ -146,5 +146,9 @@ int InspectorImpl::addPage(
 -  for (const auto& listenerWeak : listeners_) {
 -    if (auto listener = listenerWeak.lock()) {
 -      listener->unstable_onHostTargetAdded();
@@ -54,7 +15,6 @@ index ab5a973f12c7e26631bdf2a4705a43f3f458600c..e20c4bf818838ed0d62f91aa600bf27c
 +      }
      }
    }
- 
 diff --git a/scripts/cocoapods/autolinking.rb b/scripts/cocoapods/autolinking.rb
 index d8e9c7cec2f57c124cc2b2fc52b69de8940d3eb5..b297501dfc3f8d22bc87f22e86ad6e3e9d0fc5d4 100644
 --- a/scripts/cocoapods/autolinking.rb
@@ -93,17 +53,24 @@ index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604
        }
      end
  
-diff --git a/settings.gradle.kts b/settings.gradle.kts
-index 62527f0149f29f86e99aa90d39b28d3ff7364602..84d022e2bf5714bb8f81cab2a707d8b872ea1b79 100644
---- a/settings.gradle.kts
-+++ b/settings.gradle.kts
-@@ -45,7 +45,8 @@ project(":packages:react-native").projectDir = file("/tmp")
- // and apply relevant properties to the :react-native project.
- buildscript {
-   val properties = java.util.Properties()
--  val propertiesToInherit = listOf("hermesV1Enabled", "react.hermesV1Enabled")
-+  val propertiesToInherit =
-+      listOf("hermesV1Enabled", "react.hermesV1Enabled", "reactNativeArchitectures")
- 
-   // We cannot assume that the node_modules are next to the android project, for example
-   // in monorepos, they might get hoisted.
+diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f03139973 100644
+--- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
++++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+@@ -29,6 +29,16 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+   {
+     return true;
+   }
++  bool fuseboxFrameRecordingEnabled() override
++  {
++#if defined(DEBUG) && defined(__APPLE__)
++    // React Native DevTools uses this flag to emit native frame events only
++    // while an explicit CDP Tracing session is active.
++    return true;
++#else
++    return false;
++#endif
++  }
+   bool useShadowNodeStateOnClone() override
+   {
+     return true;

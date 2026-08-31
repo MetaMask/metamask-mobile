@@ -568,7 +568,7 @@
     "react-native-quick-crypto": "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "4.2.1",
-    "react-native-release-profiler": "^0.4.4",
+    "react-native-release-profiler": "patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch",
     "react-native-render-html": "^6.3.4",
     "react-native-reorderable-list": "^0.18.1",
     "react-native-safe-area-context": "~5.8.0",

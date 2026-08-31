@@ -36227,7 +36227,7 @@ __metadata:
     react-native-quick-crypto: "patch:react-native-quick-crypto@npm%3A0.7.15#~/.yarn/patches/react-native-quick-crypto-npm-0.7.15-85c4f4892e.patch"
     react-native-randombytes: "npm:^3.5.3"
     react-native-reanimated: "npm:4.2.1"
-    react-native-release-profiler: "npm:^0.4.4"
+    react-native-release-profiler: "patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch"
     react-native-render-html: "npm:^6.3.4"
     react-native-reorderable-list: "npm:^0.18.1"
     react-native-safe-area-context: "npm:~5.8.0"
@@ -40892,7 +40892,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-release-profiler@npm:^0.4.4":
+"react-native-release-profiler@npm:0.4.4":
   version: 0.4.4
   resolution: "react-native-release-profiler@npm:0.4.4"
   dependencies:
@@ -40905,6 +40905,22 @@ __metadata:
   bin:
     react-native-release-profiler: lib/commonjs/cli.js
   checksum: 10/41dfbef7268aaeee8b081204441f8d9b5c5103e79bf3161663c1f8f7e7ea064024947e93d27a1220b679049df7038c447dab85ce080cd14f975a0b188ffb7c79
+  languageName: node
+  linkType: hard
+
+"react-native-release-profiler@patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch":
+  version: 0.4.4
+  resolution: "react-native-release-profiler@patch:react-native-release-profiler@npm%3A0.4.4#~/.yarn/patches/react-native-release-profiler-npm-0.4.4-895b27537a.patch::version=0.4.4&hash=b72fe1"
+  dependencies:
+    "@margelo/hermes-profile-transformer": "npm:^0.0.10"
+    commander: "npm:^11.1.0"
+  peerDependencies:
+    "@react-native-community/cli-tools": "*"
+    react: "*"
+    react-native: "*"
+  bin:
+    react-native-release-profiler: lib/commonjs/cli.js
+  checksum: 10/713380a873ac28706950dcd3c385dbb284e5d822f131d2a26c2ccf8a40009e197345b65c85e05d686ee939e600e1946c4c3087dde4fadda8f892bfdcf65e7aff
   languageName: node
   linkType: hard
 
@@ -41322,7 +41338,7 @@ __metadata:
 
 "react-native@patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch":
   version: 0.83.6
-  resolution: "react-native@patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch::version=0.83.6&hash=3c7461"
+  resolution: "react-native@patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch::version=0.83.6&hash=67873c"
   dependencies:
     "@jest/create-cache-key-function": "npm:^29.7.0"
     "@react-native/assets-registry": "npm:0.83.6"
@@ -41367,7 +41383,7 @@ __metadata:
       optional: true
   bin:
     react-native: cli.js
-  checksum: 10/0e0f55bb993e94db88630fb68c20386a6d1d512783c8693c57d8a65b9493c796e17d3770593d6260d1cdf84048192f8085a299bf1409f3c70d62c95aeec7b7fb
+  checksum: 10/9c3ee9ec646d2108e512c0c1aa637967aff6e70a33e9c0faf7596d8525e95827ac0d867cb3ffa101a3cee6baad0d786002fed2804a24d34b5673fe1632f39f13
   languageName: node
   linkType: hard
 
