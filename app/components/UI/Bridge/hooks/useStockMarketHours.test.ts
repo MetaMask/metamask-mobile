@@ -2,7 +2,9 @@ import { act } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   STOCK_MARKET_STATUS_POLL_MS,
+  __getStockMarketHoursNowMsForTest,
   __resetStockMarketHoursClockForTest,
+  __subscribeStockMarketHoursClockForTest,
   useStockMarketHours,
 } from './useStockMarketHours';
 import type { BridgeToken } from '../types';
@@ -98,6 +100,33 @@ describe('useStockMarketHours', () => {
     expect(result.current.isStockMarketClosed).toBe(true);
 
     unmount();
+  });
+
+  it('notifies when restarting an idle clock after refreshing nowMs', () => {
+    jest.useFakeTimers();
+    const idleAtMs = new Date('2024-01-01T18:00:00.000Z').getTime();
+    const restartAtMs = new Date('2024-01-01T20:30:00.000Z').getTime();
+    jest.setSystemTime(idleAtMs);
+
+    const firstListener = jest.fn();
+    const unsubscribe = __subscribeStockMarketHoursClockForTest(firstListener);
+    expect(__getStockMarketHoursNowMsForTest()).toBe(idleAtMs);
+
+    // Last subscriber leaves: interval clears, nowMs stays frozen.
+    unsubscribe();
+    expect(__getStockMarketHoursNowMsForTest()).toBe(idleAtMs);
+
+    jest.setSystemTime(restartAtMs);
+    const restartListener = jest.fn();
+    const unsubscribeRestart =
+      __subscribeStockMarketHoursClockForTest(restartListener);
+
+    // Direct store contract: idle restart must refresh and notify. Hook-level
+    // remounts can be masked by React's useSyncExternalStore tear check.
+    expect(restartListener).toHaveBeenCalledTimes(1);
+    expect(__getStockMarketHoursNowMsForTest()).toBe(restartAtMs);
+
+    unsubscribeRestart();
   });
 
   it('keeps a remounted caller on the same clock as still-mounted callers', () => {

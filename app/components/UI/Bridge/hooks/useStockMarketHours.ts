@@ -33,6 +33,10 @@ export const __resetStockMarketHoursClockForTest = () => {
   stockMarketHoursClock.nowMs = Date.now();
 };
 
+/** Test-only: observe the pinned clock time without mounting the hook. */
+export const __getStockMarketHoursNowMsForTest = () =>
+  stockMarketHoursClock.nowMs;
+
 const emitStockMarketHoursTick = () => {
   stockMarketHoursClock.nowMs = Date.now();
   stockMarketHoursClock.listeners.forEach((listener) => listener());
@@ -42,11 +46,15 @@ const subscribeStockMarketHoursClock = (listener: () => void) => {
   stockMarketHoursClock.listeners.add(listener);
 
   if (stockMarketHoursClock.intervalId === undefined) {
-    stockMarketHoursClock.nowMs = Date.now();
     stockMarketHoursClock.intervalId = setInterval(
       emitStockMarketHoursTick,
       STOCK_MARKET_STATUS_POLL_MS,
     );
+    // Mutating nowMs during subscribe without notifying leaves
+    // useSyncExternalStore on the frozen idle snapshot until the next tick
+    // (or an unrelated re-render). React may also tear-check, but the store
+    // contract still requires a listener call after this mutation.
+    emitStockMarketHoursTick();
   }
 
   return () => {
@@ -61,6 +69,13 @@ const subscribeStockMarketHoursClock = (listener: () => void) => {
     }
   };
 };
+
+/**
+ * Test-only: subscribe to the shared clock so tests can assert the
+ * idle-restart notification contract without React's tear-check masking it.
+ */
+export const __subscribeStockMarketHoursClockForTest =
+  subscribeStockMarketHoursClock;
 
 const getStockMarketHoursNowMs = () => stockMarketHoursClock.nowMs;
 
