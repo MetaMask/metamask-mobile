@@ -3534,6 +3534,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -4115,6 +4116,11 @@
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
+  },
+  "account_hub": {
+    "info": "Info",
+    "scan": "Scan",
+    "activity": "Activity"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",

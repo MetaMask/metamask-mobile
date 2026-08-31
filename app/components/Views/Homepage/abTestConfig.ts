@@ -374,8 +374,7 @@ export enum HeaderNavBarVariant {
 export type HeaderNavBarLayout = 'a' | 'b';
 
 interface HeaderNavBarVariantConfig {
-  useRefreshedHeaderAndNavBar: boolean;
-  /** Which design take on the refreshed surfaces to render; `null` in control. */
+  isCompactHeaderEnabled: boolean;
   layout: HeaderNavBarLayout | null;
 }
 
@@ -384,15 +383,15 @@ export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariantConfig
 > = {
   [HeaderNavBarVariant.Control]: {
-    useRefreshedHeaderAndNavBar: false,
+    isCompactHeaderEnabled: false,
     layout: null,
   },
   [HeaderNavBarVariant.TreatmentA]: {
-    useRefreshedHeaderAndNavBar: true,
+    isCompactHeaderEnabled: true,
     layout: 'a',
   },
   [HeaderNavBarVariant.TreatmentB]: {
-    useRefreshedHeaderAndNavBar: true,
+    isCompactHeaderEnabled: true,
     layout: 'b',
   },
 };
