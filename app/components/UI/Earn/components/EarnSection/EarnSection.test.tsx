@@ -6,6 +6,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
   waitFor,
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
@@ -22,7 +23,9 @@ import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance'
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
-import useHomeViewedEvent from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
@@ -30,7 +33,9 @@ import type { EarnAssetId } from '../../types/earnAssets';
 import type { EarnSectionRankedAsset } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
+import { EarnSectionTestIds } from './EarnSection.testIds';
 import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
+import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import Logger from '../../../../../util/Logger';
 
 jest.mock('@react-navigation/native');
@@ -145,6 +150,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
 const navigate = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
+let mockPrivacyMode = false;
 
 const createSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
@@ -191,10 +197,11 @@ describe('EarnSection', () => {
     resetEarnSectionRefreshForTests();
     mockUseIsFocused.mockReturnValue(true);
     mockMoneyAccountVisible = false;
+    mockPrivacyMode = false;
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
         ? mockMoneyAccountVisible
-        : undefined,
+        : mockPrivacyMode,
     );
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -225,6 +232,25 @@ describe('EarnSection', () => {
     expect(
       screen.getByText(strings('homepage.sections.earn')),
     ).toBeOnTheScreen();
+  });
+
+  it('navigates both Earn section view-all actions to the market list', () => {
+    mockSectionResult({ hasMoreAssets: true });
+
+    renderEarnSection();
+
+    fireEvent.press(
+      screen.getByTestId(homepageSectionTitleTestId(HomeSectionNames.EARN)),
+    );
+    fireEvent.press(screen.getByTestId(EarnSectionTestIds.VIEW_MORE_CARD));
+
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(navigate).toHaveBeenNthCalledWith(1, Routes.EARN.ROOT, {
+      screen: Routes.EARN.SEARCH_LIST,
+    });
+    expect(navigate).toHaveBeenNthCalledWith(2, Routes.EARN.ROOT, {
+      screen: Routes.EARN.SEARCH_LIST,
+    });
   });
 
   it('disables Homepage telemetry for shared Explore rendering', () => {
@@ -277,7 +303,9 @@ describe('EarnSection', () => {
   it('renders funded lending assets with Get APY copy', () => {
     renderEarnSection();
 
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(
         strings('earn_module.get_rate_apy', {
@@ -350,7 +378,7 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     expect(
-      screen.getByTestId('earn-section-asset-0-no-fee-tag'),
+      screen.getByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
     ).toBeOnTheScreen();
   });
 
@@ -358,7 +386,7 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     expect(
-      screen.queryByTestId('earn-section-asset-0-no-fee-tag'),
+      screen.queryByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
     ).not.toBeOnTheScreen();
   });
 
@@ -369,7 +397,7 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     expect(
-      screen.getByTestId('earn-section-money-account-card'),
+      screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_CARD),
     ).toBeOnTheScreen();
     expect(screen.getByText(strings('earn_module.new_tag'))).toBeOnTheScreen();
   });
@@ -387,6 +415,25 @@ describe('EarnSection', () => {
     expect(
       screen.queryByText(strings('earn_module.new_tag')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('masks the Money balance when privacy mode is enabled', () => {
+    mockMoneyAccountVisible = true;
+    mockPrivacyMode = true;
+    mockUseMoneyAccountBalance.mockReturnValue({
+      totalFiatFormatted: '$10.00',
+      totalFiatRaw: '10',
+    } as ReturnType<typeof useMoneyAccountBalance>);
+    mockSectionResult({ assetSlots: [] });
+
+    renderEarnSection();
+
+    expect(
+      within(
+        screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_CARD),
+      ).getByText('•'.repeat(9)),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('$10.00')).not.toBeOnTheScreen();
   });
 
   it('hides New on the Money card when balance is unavailable', () => {
@@ -419,7 +466,7 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     expect(
-      screen.getByTestId('earn-section-money-account-balance-skeleton'),
+      screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_BALANCE_SKELETON),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText(strings('earn_module.balance_unavailable')),
@@ -437,7 +484,7 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     expect(
-      screen.getByTestId('earn-section-money-account-apy-skeleton'),
+      screen.getByTestId(EarnSectionTestIds.MONEY_ACCOUNT_APY_SKELETON),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText(strings('earn_module.rate_unavailable')),
@@ -458,7 +505,7 @@ describe('EarnSection', () => {
       screen.getByText(strings('earn_module.rate_unavailable')),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('earn-section-money-account-apy-skeleton'),
+      screen.queryByTestId(EarnSectionTestIds.MONEY_ACCOUNT_APY_SKELETON),
     ).not.toBeOnTheScreen();
   });
 
@@ -467,13 +514,28 @@ describe('EarnSection', () => {
 
     renderEarnSection();
 
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)),
+    ).toBeOnTheScreen();
     expect(
       screen.getByText(zeroBalanceAssetSlot.asset.asset.name),
     ).toBeOnTheScreen();
     expect(
       screen.queryByText(strings('earn_module.get_started')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('masks the asset balance when privacy mode is enabled', () => {
+    mockPrivacyMode = true;
+
+    renderEarnSection();
+
+    expect(
+      within(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0))).getByText(
+        '•'.repeat(9),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('$10.00')).not.toBeOnTheScreen();
   });
 
   it('removes green arrows from Money and asset tiles', () => {
@@ -487,7 +549,7 @@ describe('EarnSection', () => {
   it('navigates with the selected CAIP-19 asset ID', () => {
     renderEarnSection();
 
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
     expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
       screen: Routes.EARN.STRATEGY_SELECTION,
@@ -500,7 +562,7 @@ describe('EarnSection', () => {
 
     render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
     expect(navigate).toHaveBeenCalledWith(
       'Asset',
@@ -526,7 +588,7 @@ describe('EarnSection', () => {
   it('navigates funded assets to Earn strategy selection', () => {
     renderEarnSection();
 
-    fireEvent.press(screen.getByTestId('earn-section-asset-0-card'));
+    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
     expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
       screen: Routes.EARN.STRATEGY_SELECTION,
@@ -541,8 +603,10 @@ describe('EarnSection', () => {
 
     renderEarnSection();
 
-    expect(screen.getByTestId('earn-section-error')).toBeOnTheScreen();
-    expect(screen.getByTestId('earn-section-asset-0-card')).toBeOnTheScreen();
+    expect(screen.getByTestId(EarnSectionTestIds.ERROR)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)),
+    ).toBeOnTheScreen();
   });
 
   it('does not refresh for the initial Explore trigger', () => {
@@ -653,7 +717,9 @@ describe('EarnSection', () => {
     renderEarnSection();
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId('earn-section-error-retry-button'));
+      fireEvent.press(
+        screen.getByTestId(EarnSectionTestIds.ERROR_RETRY_BUTTON),
+      );
     });
 
     expect(refresh).toHaveBeenCalledTimes(1);
@@ -695,7 +761,9 @@ describe('EarnSection', () => {
     });
     renderEarnSection();
 
-    const retryButton = screen.getByTestId('earn-section-error-retry-button');
+    const retryButton = screen.getByTestId(
+      EarnSectionTestIds.ERROR_RETRY_BUTTON,
+    );
     fireEvent.press(retryButton);
     fireEvent.press(retryButton);
 
@@ -726,7 +794,7 @@ describe('EarnSection', () => {
 
     expect(screen.getByTestId(assetId)).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('earn-section-asset-0-card'),
+      screen.queryByTestId(EarnSectionTestIds.ASSET_CARD(0)),
     ).not.toBeOnTheScreen();
   });
 });

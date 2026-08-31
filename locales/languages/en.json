@@ -7855,6 +7855,10 @@
     "asset_unavailable": "Asset unavailable",
     "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
     "retry": "Retry",
+    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
+    "money_fallback_description": "Add assets to your Money account to start earning",
+    "more_ways_to_earn": "More ways to earn",
+    "empty_state_description": "No earning opportunities are available right now.",
     "view_more": "View more"
   },
   "money": {
@@ -7956,8 +7960,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your",
-      "description_with_amounts_middle": "in assets and you could earn up to",
+      "description_with_amounts_prefix": "Add your",
+      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -10986,6 +10990,7 @@
       "all": "All",
       "crypto": "Crypto",
       "perps": "Perps",
+      "earn": "Earn",
       "stocks": "Stocks",
       "predictions": "Predictions",
       "sites": "Sites"
