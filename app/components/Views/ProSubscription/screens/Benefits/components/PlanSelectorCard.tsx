@@ -47,17 +47,21 @@ const PlanSelectorCard = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName={`rounded-3xl px-4 py-5 bg-background-section flex flex-row items-center justify-between ${isSelected ? 'border-2 border-border-default' : 'border-2 border-transparent'}`}
+        twClassName={`rounded-2xl p-4 bg-background-section flex flex-row items-center justify-between border ${isSelected ? 'border-border-default' : 'border-transparent'}`}
       >
         {/* Plan details */}
-        <Box twClassName="flex flex-col gap-y-2">
+        <Box twClassName="flex flex-col gap-y-1">
           {/* Label + save badge */}
           <Box twClassName="flex flex-row gap-x-2 items-center">
-            <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
               {strings(plan.label)}
             </Text>
             {plan.savingsBadge && (
-              <Tag severity={TagSeverity.Info} startIconName={IconName.Tag}>
+              <Tag
+                severity={TagSeverity.Info}
+                startIconName={IconName.Tag}
+                twClassName="self-center"
+              >
                 {strings(plan.savingsBadge)}
               </Tag>
             )}
@@ -65,7 +69,7 @@ const PlanSelectorCard = ({
 
           {/* Price row */}
           <Box twClassName="flex flex-row gap-x-1 items-center">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
               {strings(plan.price)}
             </Text>
             {plan.subPrice && (
@@ -81,7 +85,7 @@ const PlanSelectorCard = ({
 
         {/* Radio indicator */}
         <Box
-          twClassName={`w-8 h-8 shrink-0 rounded-full border-2 items-center justify-center ${isSelected ? (isDark ? 'bg-white' : 'bg-black') : 'bg-background-section'} border-border-muted`}
+          twClassName={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${isSelected ? (isDark ? 'bg-white' : 'bg-black') : 'bg-background-section border'} border-border-muted`}
         >
           {isSelected && (
             <Icon
