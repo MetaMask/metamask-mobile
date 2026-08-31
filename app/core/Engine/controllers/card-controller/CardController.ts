@@ -782,55 +782,73 @@ export class CardController extends BaseController<
     };
   }
 
-  #classifyCardHomeError(error: unknown): CardHomeDataError {
-    const statusCode =
-      error instanceof CardProviderError || error instanceof CardApiError
-        ? error.statusCode
-        : typeof (error as { statusCode?: unknown })?.statusCode === 'number'
-          ? ((error as { statusCode: number }).statusCode as number)
-          : undefined;
+  #getCardHomeErrorStatusCode(error: unknown): number | undefined {
+    if (error instanceof CardProviderError || error instanceof CardApiError) {
+      return error.statusCode;
+    }
+    const statusCode = (error as { statusCode?: unknown })?.statusCode;
+    return typeof statusCode === 'number' ? statusCode : undefined;
+  }
 
-    const code =
-      error instanceof CardProviderError
-        ? error.code
-        : error instanceof CardApiError
-          ? error.errorCode
-          : undefined;
+  #getCardHomeErrorCode(error: unknown): string | undefined {
+    if (error instanceof CardProviderError) {
+      return error.code;
+    }
+    if (error instanceof CardApiError) {
+      return error.errorCode;
+    }
+    return undefined;
+  }
 
-    let reason: CardHomeDataErrorReason = 'unknown';
+  #classifyCardHomeErrorReason(
+    error: unknown,
+    statusCode: number | undefined,
+  ): CardHomeDataErrorReason {
+    const providerCode =
+      error instanceof CardProviderError ? error.code : undefined;
+
     if (
       error instanceof CardProviderError &&
       error.message.startsWith('No active provider')
     ) {
-      reason = 'no_active_provider';
-    } else if (
+      return 'no_active_provider';
+    }
+    if (
       statusCode === 401 ||
-      (error instanceof CardProviderError &&
-        error.code === CardProviderErrorCode.InvalidCredentials)
+      providerCode === CardProviderErrorCode.InvalidCredentials
     ) {
-      reason = 'auth_expired';
-    } else if (statusCode === 429) {
-      reason = 'rate_limited';
-    } else if (
+      return 'auth_expired';
+    }
+    if (statusCode === 429) {
+      return 'rate_limited';
+    }
+    if (
       statusCode === 0 ||
       statusCode === 408 ||
-      (error instanceof CardProviderError &&
-        (error.code === CardProviderErrorCode.Network ||
-          error.code === CardProviderErrorCode.Timeout))
+      providerCode === CardProviderErrorCode.Network ||
+      providerCode === CardProviderErrorCode.Timeout
     ) {
-      reason = 'network';
-    } else if (
-      (typeof statusCode === 'number' && statusCode >= 500) ||
-      (error instanceof CardProviderError &&
-        error.code === CardProviderErrorCode.ServerError)
-    ) {
-      reason = 'server_error';
+      return 'network';
     }
+    if (
+      (statusCode !== undefined && statusCode >= 500) ||
+      providerCode === CardProviderErrorCode.ServerError
+    ) {
+      return 'server_error';
+    }
+    return 'unknown';
+  }
 
-    return this.#buildCardHomeDataError(reason, {
-      ...(code !== undefined ? { code } : {}),
-      ...(statusCode !== undefined ? { statusCode } : {}),
-    });
+  #classifyCardHomeError(error: unknown): CardHomeDataError {
+    const statusCode = this.#getCardHomeErrorStatusCode(error);
+    const code = this.#getCardHomeErrorCode(error);
+    return this.#buildCardHomeDataError(
+      this.#classifyCardHomeErrorReason(error, statusCode),
+      {
+        ...(code !== undefined ? { code } : {}),
+        ...(statusCode !== undefined ? { statusCode } : {}),
+      },
+    );
   }
 
   /**
