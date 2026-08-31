@@ -626,6 +626,7 @@ jobs:
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
+          ORG_GRADLE_PROJECT_reactNativeArchitectures: x86_64
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -697,6 +698,7 @@ jobs:
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
           E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
+          ORG_GRADLE_PROJECT_reactNativeArchitectures: x86_64
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true

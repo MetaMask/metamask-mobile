@@ -565,6 +565,9 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
+          # React Native's included source build does not inherit the consuming
+          # project's gradle.properties. Keep Hermes on the x86_64 CI ABI.
+          ORG_GRADLE_PROJECT_reactNativeArchitectures: x86_64
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
