@@ -1,15 +1,20 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import PerpsProOrderBookPanel from './PerpsProOrderBookPanel';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
+import { playSelection } from '../../../../../../util/haptics';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
+
+jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
   usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
@@ -62,6 +67,50 @@ const mockOrderBook: OrderBookData = {
   // but a pinned constant keeps the fixture deterministic across runs.
   lastUpdated: 1700000000000,
   maxTotal: '3.5',
+};
+
+/**
+ * kPEPE-shaped book (TAT-3713): a sub-cent mid whose ladder prices need all six
+ * decimals to stay distinguishable at the 1e-6 grouping step.
+ */
+const subCentOrderBook: OrderBookData = {
+  bids: [
+    {
+      price: '0.002651',
+      size: '1500000',
+      total: '1500000',
+      notional: '3976.5',
+      totalNotional: '3976.5',
+    },
+    {
+      price: '0.002650',
+      size: '2000000',
+      total: '3500000',
+      notional: '5300',
+      totalNotional: '9276.5',
+    },
+  ],
+  asks: [
+    {
+      price: '0.002653',
+      size: '1200000',
+      total: '1200000',
+      notional: '3183.6',
+      totalNotional: '3183.6',
+    },
+    {
+      price: '0.002654',
+      size: '1800000',
+      total: '3000000',
+      notional: '4777.2',
+      totalNotional: '7960.8',
+    },
+  ],
+  spread: '0.000002',
+  spreadPercentage: '0.075',
+  midPrice: '0.002652',
+  lastUpdated: 1700000000000,
+  maxTotal: '3500000',
 };
 
 describe('PerpsProOrderBookPanel', () => {
@@ -209,10 +258,12 @@ describe('PerpsProOrderBookPanel', () => {
 
     fireEvent.press(getByTestId(`${testID}-bid-row-0`));
     expect(onSelectPrice).toHaveBeenCalledWith('50000');
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${testID}-ask-row-0`));
     // Asks render farthest-to-closest, so ask-row-0 is the deepest ask (50200).
     expect(onSelectPrice).toHaveBeenLastCalledWith('50200');
+    expect(playSelection).toHaveBeenCalledTimes(2);
   });
 
   it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
@@ -242,6 +293,18 @@ describe('PerpsProOrderBookPanel', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when the settings icon opens the config sheet', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('positions collapse at the leading edge and settings at the trailing edge', () => {
@@ -502,6 +565,63 @@ describe('PerpsProOrderBookPanel', () => {
     expect(lastAggregatedCall).toMatchObject({
       symbol: 'ETH',
       nSigFigs: 4,
+    });
+  });
+
+  describe('sub-cent ladder prices (TAT-3713)', () => {
+    const renderSubCentLadder = () => {
+      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+        orderBook: subCentOrderBook,
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }));
+
+      return renderWithProvider(
+        <PerpsProOrderBookPanel symbol="kPEPE" marketPrice={0.002652} />,
+        { state: { engine: { backgroundState } } },
+      );
+    };
+
+    it('renders all six decimals of a ladder price on one line', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const priceCell = getByTestId(`${testID}-bid-row-0-price`);
+
+      expect(priceCell).toHaveTextContent('$0.002651');
+      expect(priceCell).toHaveProp('numberOfLines', 1);
+    });
+
+    it('gives the price cell the width the value cell does not need', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const priceStyle = StyleSheet.flatten(
+        getByTestId(`${testID}-bid-row-0-price`).props.style,
+      );
+      const valueStyle = StyleSheet.flatten(
+        getByTestId(`${testID}-bid-row-0-value`).props.style,
+      );
+
+      // An even split leaves each side 62px of the 132px order-book column,
+      // which cuts a nine-character price down to "$0.0026…".
+      expect(priceStyle).toMatchObject({ flexGrow: 1, flexBasis: '0%' });
+      expect(valueStyle).toMatchObject({ flexShrink: 0 });
+      expect(valueStyle.flexGrow).toBeUndefined();
+    });
+
+    it('gives the column headers the same width split as the rows', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const headerValue = getByTestId(`${testID}-column-header-value`);
+      const headerValueStyle = StyleSheet.flatten(headerValue.props.style);
+
+      // The value header is also wider than half the column.
+      expect(headerValue).toHaveTextContent(
+        `${strings('perps.order_book.total')} (USD)`,
+      );
+      expect(headerValueStyle).toMatchObject({ flexShrink: 0 });
+      expect(headerValueStyle.flexGrow).toBeUndefined();
     });
   });
 });

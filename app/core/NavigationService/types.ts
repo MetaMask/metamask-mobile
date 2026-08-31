@@ -163,7 +163,6 @@ import type {
 // Account status params
 import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
 import type { WalletCreationErrorParams } from '../../components/Views/WalletCreationError';
-import type { TraceContext } from '../../util/trace';
 
 // Add asset params
 import type { AddAssetParams } from '../../components/Views/AddAsset/AddAsset';
@@ -321,7 +320,6 @@ type SocialLoginRouteParams = AccountStatusParams & {
 /** Import SRP screen params from onboarding entry points. */
 interface ImportFromSecretRecoveryPhraseParams {
   previous_screen?: string;
-  onboardingTraceCtx?: TraceContext;
   initialStep?: number;
   qrSyncImport?: boolean;
 }
@@ -634,7 +632,6 @@ export type RootStackParamList = {
   RewardsOndoCampaignWinning: RewardsNavigationParamList['RewardsOndoCampaignWinning'];
   RewardsSeasonOneCampaignDetails: RewardsNavigationParamList['RewardsSeasonOneCampaignDetails'];
   RewardsCampaignMechanics: RewardsNavigationParamList['RewardsCampaignMechanics'];
-  RewardsMusdCalculatorView: RewardsNavigationParamList['RewardsMusdCalculatorView'];
   RewardsOndoCampaignLeaderboard: RewardsNavigationParamList['RewardsOndoCampaignLeaderboard'];
   RewardsOndoRwaAssetSelector: RewardsNavigationParamList['RewardsOndoRwaAssetSelector'];
   RewardsOndoCampaignPortfolioView: RewardsNavigationParamList['RewardsOndoCampaignPortfolioView'];
@@ -673,6 +670,9 @@ export type RootStackParamList = {
   Pna25BottomSheet: undefined;
   RewardsBottomSheetModal:
     | RewardsNavigationParamList['RewardsBottomSheetModal']
+    | undefined;
+  RewardsInfoSheetModal:
+    | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
@@ -1032,6 +1032,10 @@ export type RootStackParamList = {
     | undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
+  ProSubscription: { source?: string; initialPlan?: string } | undefined;
+  ProHub: { source?: string } | undefined;
+  ProHubMembership: undefined;
+  ProHubCancelMembership: undefined;
 
   // Notification routes
   NotificationsView: undefined;

@@ -27,12 +27,23 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import ReduxService from '../../../redux';
 import { resetCardState } from '../../../redux/slices/card';
 import { ImmersveProvider } from './providers/ImmersveProvider';
+import {
+  annotateTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { ImmersveService } from './services/ImmersveService';
 import type { ImmersveProviderConfig } from './services/immersve-config';
 
 jest.mock('./CardTokenStore');
 jest.mock('./CardOnboardingStore');
 jest.mock('../../../../util/Logger');
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: jest.fn((_request, fn) => fn(undefined)),
+  annotateTrace: jest.fn(),
+}));
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
   // Mirrors the real contract: `undefined` means "this flag has no opinion", so
   // callers fall through to their own default. Returning `false` here instead
@@ -94,6 +105,8 @@ const mockOnboardingStore = CardOnboardingStore as jest.Mocked<
   typeof CardOnboardingStore
 >;
 const mockDispatch = ReduxService.store.dispatch as jest.Mock;
+const mockTrace = jest.mocked(trace);
+const mockAnnotateTrace = jest.mocked(annotateTrace);
 
 /** Drain the event loop until `predicate` is true (or throw).
  * Uses `setImmediate` so each iteration yields a macrotask — a fixed
@@ -320,7 +333,9 @@ describe('CardController', () => {
       cardholderAccounts: [],
       providerData: {},
       cardHomeData: null,
+      cardHomeDataAddress: null,
       cardHomeDataStatus: 'idle',
+      cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
     });
   });
@@ -501,6 +516,32 @@ describe('CardController — auth methods', () => {
         location: 'international',
       });
       expect(result.done).toBe(true);
+    });
+
+    it('clears restored card home data on connect so a persisted card cannot survive it', async () => {
+      const provider = buildMockProvider();
+      provider.initiateAuth.mockResolvedValue(mockSession);
+      provider.submitCredentials.mockResolvedValue({
+        done: true,
+        tokenSet: mockTokenSet,
+      });
+      mockTokenStore.set.mockResolvedValue(true);
+      const controller = buildController(provider, {
+        cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.initiateAuth('US');
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'a@b.com',
+        password: 'pass',
+      });
+
+      expect(controller.state.isAuthenticated).toBe(true);
+      // Cleared before the post-connect refetch, so the restored card is never
+      // shown against the newly connected account.
+      expect(controller.state.cardHomeData).not.toStrictEqual(mockCardHomeData);
     });
 
     it('drops in-flight unauthenticated card home data after successful auth', async () => {
@@ -1125,6 +1166,48 @@ describe('CardController — auth methods', () => {
       await controller.validateAndRefreshSession();
 
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('syncSessionAfterExternalAuth', () => {
+    it('returns early without clearing or refetching when not authenticated', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(null);
+      const controller = buildController(provider, {
+        cardHomeData: mockCardHomeData as unknown as Record<string, null>,
+        cardHomeDataStatus: 'success',
+      });
+      const fetchSpy = jest
+        .spyOn(controller, 'fetchCardHomeData')
+        .mockResolvedValue();
+
+      await controller.syncSessionAfterExternalAuth();
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+      expect(controller.state.cardHomeDataStatus).toBe('success');
+    });
+
+    it('clears stale card home data and force-refetches when authenticated', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens.mockReturnValue('valid');
+      provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+      const { controller } = buildControllerWithMockMessenger(provider, {
+        isAuthenticated: false,
+        cardHomeData: {
+          ...mockCardHomeData,
+          delegationSettings: null,
+        } as unknown as Record<string, null>,
+        cardHomeDataStatus: 'success',
+      });
+
+      await controller.syncSessionAfterExternalAuth();
+
+      expect(controller.state.isAuthenticated).toBe(true);
+      expect(controller.state.cardHomeDataStatus).toBe('success');
+      expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+      expect(provider.getCardHomeData).toHaveBeenCalled();
     });
   });
 });
@@ -1795,6 +1878,160 @@ describe('CardController — fetchCardHomeData', () => {
     expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
   });
 
+  it('marks the session as fetched so persisted data is revalidated only once', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(false);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(true);
+  });
+
+  it('marks the session as fetched even when the request fails', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataFetchedThisSession).toBe(true);
+  });
+
+  it('holds status at success while revalidating restored data, so the card never blanks', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+      cardHomeDataAddress: '0xabc',
+    });
+
+    const pending = controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('keeps restored data visible when the revalidation fails', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+      cardHomeDataAddress: '0xabc',
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+  });
+
+  it('shows the loading state for a forced refresh even when data was restored', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let resolveFetch: (data: CardHomeData) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+      cardHomeDataAddress: '0xabc',
+    });
+
+    const pending = controller.fetchCardHomeData({ force: true });
+
+    expect(controller.state.cardHomeDataStatus).toBe('loading');
+
+    resolveFetch(mockCardHomeData);
+    await pending;
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+  });
+
+  it('recovers a status persisted as loading — a process death mid-fetch cannot strand the card', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'loading',
+    });
+
+    await controller.fetchCardHomeData();
+
+    // Must reach a terminal status; holding 'loading' steady would leave
+    // selectIsCardStateResolved false for the rest of the session.
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
+  it('promotes a forced refresh that joins an in-flight silent revalidation', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    let rejectFetch: (error: Error) => void = () => undefined;
+    provider.getCardHomeData.mockReturnValue(
+      new Promise<CardHomeData>((_resolve, reject) => {
+        rejectFetch = reject;
+      }),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+      cardHomeDataAddress: '0xabc',
+    });
+
+    const silent = controller.fetchCardHomeData();
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+
+    const forced = controller.fetchCardHomeData({ force: true });
+    expect(controller.state.cardHomeDataStatus).toBe('loading');
+
+    rejectFetch(new Error('API error'));
+    await silent;
+    await forced;
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
+  it('still reports loading then error for a first-ever fetch with no restored data', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+  });
+
   it('sets cardHomeDataStatus to error and leaves cardHomeData null on provider throw', async () => {
     const provider = buildMockProvider();
     mockTokenStore.get.mockResolvedValue(mockTokenSet);
@@ -1806,6 +2043,43 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('error');
     expect(controller.state.cardHomeData).toBeNull();
+  });
+
+  it('traces the request and marks the span successful on the happy path', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(mockTrace).toHaveBeenCalledWith(
+      {
+        name: TraceName.CardHomeDataFetch,
+        op: TraceOperation.CardDataFetch,
+        tags: { is_authenticated: false },
+      },
+      expect.any(Function),
+    );
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      success: true,
+    });
+  });
+
+  it('marks the span failed with the error name when the provider throws', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new TypeError('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
+      success: false,
+      error_name: 'TypeError',
+    });
   });
 
   it('deduplicates concurrent calls — provider fetched only once', async () => {
@@ -2593,6 +2867,7 @@ describe('CardController — getCapabilities', () => {
     supportsCredit: true,
     supportsSensitiveDetailsView: false,
     supportsTravel: true,
+    supportsMoneyAccountLinking: true,
     supportsTransactionHistory: true,
   };
 
@@ -4124,12 +4399,11 @@ describe('CardController — data pass-throughs', () => {
 
       const result = await controller.listTransactions({
         cursor: 'cursor-0',
-        searchQuery: 'uber',
       });
 
       expect(result).toStrictEqual(page);
       expect(mockList).toHaveBeenCalledWith(
-        { cursor: 'cursor-0', searchQuery: 'uber' },
+        { cursor: 'cursor-0' },
         mockTokenSet,
       );
     });
@@ -4149,6 +4423,76 @@ describe('CardController — data pass-throughs', () => {
       const { controller } = buildAuthenticatedController(provider);
 
       await expect(controller.listTransactions()).rejects.toThrow(
+        'Transaction history not supported',
+      );
+    });
+  });
+
+  describe('getCardTransaction', () => {
+    it('delegates to provider.getTransaction when available', async () => {
+      const details = {
+        id: 'tx-1',
+        providerId: 'baanx',
+        cardFirstSix: '123456',
+      };
+      const mockGetTransaction = jest.fn().mockResolvedValue(details);
+      const provider = buildMockProvider({
+        getTransaction: mockGetTransaction,
+        listTransactions: jest.fn(),
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardTransaction('tx-1');
+
+      expect(result).toStrictEqual(details);
+      expect(mockGetTransaction).toHaveBeenCalledWith('tx-1', mockTokenSet);
+      expect(provider.listTransactions).not.toHaveBeenCalled();
+    });
+
+    it('falls back to listTransactions when getTransaction is unavailable', async () => {
+      const match = { id: 'tx-2', providerId: 'baanx' };
+      const mockList = jest.fn().mockResolvedValue({
+        items: [{ id: 'tx-1' }, match],
+      });
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: mockList,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getCardTransaction('tx-2');
+
+      expect(result).toStrictEqual(match);
+      expect(mockList).toHaveBeenCalledWith({ limit: 50 }, mockTokenSet);
+    });
+
+    it('throws NotFound when the transaction is missing from the list fallback', async () => {
+      const mockList = jest.fn().mockResolvedValue({
+        items: [{ id: 'tx-other' }],
+      });
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: mockList,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCardTransaction('tx-missing')).rejects.toEqual(
+        expect.objectContaining({
+          code: CardProviderErrorCode.NotFound,
+          message: 'Transaction not found: tx-missing',
+          statusCode: 404,
+        }),
+      );
+    });
+
+    it('propagates listTransactions unsupported errors from the fallback path', async () => {
+      const provider = buildMockProvider({
+        getTransaction: undefined,
+        listTransactions: undefined,
+      });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getCardTransaction('tx-1')).rejects.toThrow(
         'Transaction history not supported',
       );
     });
