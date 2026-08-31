@@ -207,6 +207,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
+      .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
@@ -235,6 +236,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
     await expectSaga(backfillSocialLoginMarketingConsentSaga)
       .withState(state)
       .dispatch(loginAction)
+      .not.put(setPendingSocialLoginMarketingConsentBackfill(null))
       .run();
 
     expect(mockedLoggerError).not.toHaveBeenCalled();
