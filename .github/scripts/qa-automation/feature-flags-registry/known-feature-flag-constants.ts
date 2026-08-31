@@ -4,7 +4,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const REPO_ROOT = path.resolve(__dirname, '../..');
+const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const REWARDS_FILE = 'app/selectors/featureFlagController/rewards/rewardsEnabled.ts';
 const sel = (sub: string) => `app/selectors/featureFlagController/${sub}/index.ts`;
 

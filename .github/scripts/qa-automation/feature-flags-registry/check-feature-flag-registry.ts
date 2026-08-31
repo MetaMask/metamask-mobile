@@ -6,7 +6,7 @@ import * as path from 'path';
 import { context, getOctokit } from '@actions/github';
 import { buildKnownFlagConstants, resolveConstantFromSourceFile } from './known-feature-flag-constants';
 
-const REPO_ROOT = path.resolve(__dirname, '../..');
+const REPO_ROOT = path.resolve(__dirname, '../../../..');
 const REGISTRY_DIR = 'tests/feature-flags/';
 const REGISTRY_FILE = 'tests/feature-flags/feature-flag-registry.ts';
 const SCANNABLE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
@@ -579,7 +579,7 @@ function buildCommentBody(
       'Set `inProd` and `productionDefault` to match the current production values from the',
       '[client-config API](https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod).', '',
       'If you access the flag via a **constant** (e.g. `remoteFeatureFlags[MY_CONSTANT]`), also add the constant to',
-      '[`.github/scripts/known-feature-flag-constants.ts`](https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/known-feature-flag-constants.ts)',
+      '[`.github/scripts/qa-automation/feature-flags-registry/known-feature-flag-constants.ts`](https://github.com/MetaMask/metamask-mobile/blob/main/.github/scripts/qa-automation/feature-flags-registry/known-feature-flag-constants.ts)',
       'so the CI check can resolve it.', '', '</details>',
     );
   }
