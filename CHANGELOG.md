@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed bottom sheets that could mount off-screen under Reanimated 4 / Fabric by opening on mount when the initial onLayout open path is missed
 
+## [8.8.3]
+
+### Fixed
+
+- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
+
 ## [8.8.2]
 
 ### Fixed
@@ -13420,7 +13426,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.3...HEAD
+[8.8.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.8.3
 [8.8.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.1...v8.8.2
 [8.8.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...v8.8.1
 [8.8.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...v8.8.0

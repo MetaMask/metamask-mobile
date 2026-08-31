@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectDestToken,
+  selectIsSlippageUserOverride,
   selectSourceToken,
   selectSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
@@ -24,6 +25,8 @@ export const useUnifiedSwapBridgeContext = (
   const fromToken = useSelector(selectSourceToken);
   const toToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
+  const isSlippageUserOverride =
+    useSelector(selectIsSlippageUserOverride) ?? false;
 
   const evmMultiChainMarketData = useSelector(selectTokenMarketData);
   const evmMultiChainCurrencyRates = useSelector(selectCurrencyRates);
@@ -69,8 +72,16 @@ export const useUnifiedSwapBridgeContext = (
       security_warnings: getSecurityWarnings(toToken),
       warnings: [], // TODO
       usd_amount_source: usdAmountSource,
+      custom_slippage: isSlippageUserOverride,
       feature_id: featureId ?? FeatureId.UNIFIED_SWAP_BRIDGE,
     }),
-    [smartTransactionsEnabled, fromToken, toToken, usdAmountSource, featureId],
+    [
+      smartTransactionsEnabled,
+      fromToken,
+      toToken,
+      usdAmountSource,
+      isSlippageUserOverride,
+      featureId,
+    ],
   );
 };
