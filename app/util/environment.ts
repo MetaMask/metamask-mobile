@@ -26,7 +26,7 @@ export const getE2EMockOAuthEmailForQaMock = (): string | undefined => {
 };
 
 export const getDevAutoUnlockPassword = (): string | undefined => {
-  const password = process.env.DEV_AUTO_UNLOCK_PASSWORD;
+  const password = '';
 
   if (process.env.METAMASK_ENVIRONMENT !== DEV_ENVIRONMENT) {
     return undefined;

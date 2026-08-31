@@ -7,6 +7,100 @@ import {
 
 const SUBSCRIPTION_NOT_FOUND_PREFIX = 'Subscription not found for event:';
 
+/**
+ * TEMP perf-debug switches for the wallet-unlock JS-thread spike.
+ * Set a controller to false to stop its unlock listeners while leaving every other
+ * controller untouched. Remove this block before merging.
+ */
+export const PERF_DEBUG_UNLOCK_LISTENERS: Record<string, boolean> = {
+  AccountTrackerController: true, // Not a problem causer f
+  AssetsController: true, // Not a problem causer f
+  AuthenticationController: false, // Not a problem causer for now
+  BackendWebSocketService: true, // Not a problem causer f
+  CardController: true, // Not a problem causer f
+  // Second picture
+
+  ConfigRegistryController: true,
+  MoneyAccountUpgradeControllerInitialization: true,
+  MultichainAssetsRatesController: true,
+  NetworkConnectionBannerController: true,
+  NotificationServicesController: true,
+  //Third picture
+
+  PermissionControllerInit: true,
+  ProfileMetricsController: true,
+  RewardsController: true,
+  Root: true,
+  SnapAccountService: true,
+  //Fourth
+
+  SnapControllerInit: true,
+  TokenBalancesController: true,
+  TokenDetectionController: true,
+  TransactionControllerInit: true,
+  UserStorageController: true,
+  //fifth
+};
+
+const PERF_DEBUG_EVENT_TYPE = 'KeyringController:unlock';
+const PERF_DEBUG_NAMESPACE_PROBE = 'PERF_DEBUG:namespaceProbe';
+
+type UntypedPublishDelegated = (
+  this: object,
+  eventType: string,
+  ...payload: unknown[]
+) => void;
+type UntypedUnregisterActionHandler = (
+  this: object,
+  actionType: string,
+) => void;
+
+/* eslint-disable @typescript-eslint/no-deprecated -- Temporary perf debugging requires intercepting delegated events. */
+const originalPublishDelegated = Messenger.prototype
+  ._internalPublishDelegated as unknown as UntypedPublishDelegated;
+const originalUnregisterActionHandler = Messenger.prototype
+  .unregisterActionHandler as unknown as UntypedUnregisterActionHandler;
+
+const messengerNamespaces = new WeakMap<object, string>();
+
+const getMessengerNamespace = (messenger: object): string => {
+  const cachedNamespace = messengerNamespaces.get(messenger);
+  if (cachedNamespace) {
+    return cachedNamespace;
+  }
+
+  try {
+    originalUnregisterActionHandler.call(messenger, PERF_DEBUG_NAMESPACE_PROBE);
+  } catch (error) {
+    const namespace =
+      error instanceof Error
+        ? error.message.match(/prefixed by '([^']+):'/u)?.[1]
+        : undefined;
+    if (namespace) {
+      messengerNamespaces.set(messenger, namespace);
+      return namespace;
+    }
+  }
+
+  return 'Unknown';
+};
+
+(Messenger.prototype
+  ._internalPublishDelegated as unknown as UntypedPublishDelegated) =
+  function patchedPublishDelegated(eventType: string, ...payload: unknown[]) {
+    if (eventType === PERF_DEBUG_EVENT_TYPE) {
+      const namespace = getMessengerNamespace(this);
+      if (PERF_DEBUG_UNLOCK_LISTENERS[namespace] === false) {
+        // eslint-disable-next-line no-console
+        console.log(`[PERF_DEBUG] Blocked unlock listeners: ${namespace}`);
+        return;
+      }
+    }
+
+    return originalPublishDelegated.call(this, eventType, ...payload);
+  };
+/* eslint-enable @typescript-eslint/no-deprecated */
+
 export class ExtendedMessenger<
   Namespace extends string,
   Action extends ActionConstraint = never,

@@ -26,6 +26,15 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../../util/tra
 import BtcLiveRow from './BtcLiveRow';
 import ChampionshipRow, { type ChampionshipRowState } from './ChampionshipRow';
 
+/**
+ * TEMP perf-debug switch. CPU profiling showed continuous JS-thread activity
+ * from `BtcLiveRow`'s 1s countdown timer plus its RTDS crypto-price
+ * WebSocket subscription. Flip to true to skip rendering `BtcLiveRow`
+ * entirely and measure its contribution in isolation. Remove this block
+ * before merging.
+ */
+const PERF_DEBUG_SKIP_BTC_LIVE_ROW = true;
+
 export interface HomepagePredictDiscoveryProps {
   title: string;
   onViewAll: (
@@ -109,6 +118,13 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
     ],
   );
 
+  if (PERF_DEBUG_SKIP_BTC_LIVE_ROW) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[PERF_DEBUG] skipped rendering BtcLiveRow (no 1s countdown timer, no RTDS crypto-price WebSocket subscription)',
+    );
+  }
+
   const handleViewAll = useCallback(() => {
     onTreatmentCtaClick?.(PREDICT_EMPTY_STATE_CTA_NAMES.EXPLORE_FEATURED);
     onViewAll(transactionActiveAbTests);
@@ -133,7 +149,9 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
         <Box twClassName="px-4">
-          <BtcLiveRow onPress={handleBtcRow} />
+          {!PERF_DEBUG_SKIP_BTC_LIVE_ROW && (
+            <BtcLiveRow onPress={handleBtcRow} />
+          )}
           {eventSlotRows.map((state, index) => (
             <ChampionshipRow
               key={HOMEPAGE_PREDICT_EVENT_SLOTS[index].id}
