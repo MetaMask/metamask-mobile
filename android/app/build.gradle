@@ -423,7 +423,10 @@ project.afterEvaluate {
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
-    implementation("com.facebook.react:react-android")
+    def reactAndroidArtifact = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
+        ? "com.facebook.react:ReactAndroid"
+        : "com.facebook.react:react-android"
+    implementation(reactAndroidArtifact)
     implementation 'org.apache.commons:commons-compress:1.22'
     // Minimal androidTest deps so assemble*AndroidTest still produces the CI
     // androidTest APK artifact. Detox instrumentation was removed (MMQA-2230);
@@ -434,5 +437,8 @@ dependencies {
 
     // Hermes is the default (and only bundled) JS engine in React Native 0.83+.
     // JSC was removed from core, so we always link Hermes.
-    implementation("com.facebook.react:hermes-android")
+    def hermesAndroidArtifact = System.getenv("METAMASK_ENVIRONMENT") == 'e2e'
+        ? "com.facebook.react:hermes-engine"
+        : "com.facebook.react:hermes-android"
+    implementation(hermesAndroidArtifact)
 }
