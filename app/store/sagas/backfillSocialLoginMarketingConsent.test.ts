@@ -66,9 +66,7 @@ describe('backfillSocialLoginMarketingConsent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetMarketingOptInStatus.mockResolvedValue({ is_opt_in: false });
-    if (Engine.context.SeedlessOnboardingController?.getAccessToken) {
-      getMockedGetAccessToken().mockResolvedValue('mock-access-token');
-    }
+    getMockedGetAccessToken().mockResolvedValue('mock-access-token');
   });
 
   it('does nothing when no pending backfill marker exists', async () => {
