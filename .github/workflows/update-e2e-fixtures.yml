@@ -262,11 +262,7 @@ jobs:
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
 
       - name: Download Android build artifacts (fallback)
-        if: ${{ 
-          inputs.runner_provider == 'namespace' && 
-          steps.select-specs.outputs.spec_count != '0' &&
-          steps.download-android-apk-namespace.outcome != 'success' 
-        }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.select-specs.outputs.spec_count != '0' && steps.download-android-apk-namespace.outcome != 'success' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
