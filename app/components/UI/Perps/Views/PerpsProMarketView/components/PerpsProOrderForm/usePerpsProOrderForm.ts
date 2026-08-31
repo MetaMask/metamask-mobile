@@ -5,6 +5,8 @@ import {
   SCALE_ORDER_COUNT,
   TRADING_DEFAULTS,
   calculateMarginRequired,
+  computeScalePriceLadder,
+  formatHyperLiquidPrice,
   formatPositionSize,
   getTriggerExecution,
   isLimitExecutionOrderType,
@@ -15,7 +17,6 @@ import {
   type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
-import { normalizeHyperLiquidScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -915,12 +916,12 @@ export const usePerpsProOrderForm = ({
     }
 
     try {
-      const scalePrices = normalizeHyperLiquidScalePriceLadder({
+      // TODO: Replace this composition with normalizeHyperLiquidScalePriceLadder once the controller exports it.
+      const scalePrices = computeScalePriceLadder({
         minPrice,
         maxPrice,
         count: orderCount,
-        szDecimals,
-      });
+      }).map((price) => formatHyperLiquidPrice({ price, szDecimals }));
       if (new Set(scalePrices).size !== scalePrices.length) {
         return { success: false, code: 'invalid_range' };
       }

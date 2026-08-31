@@ -4,10 +4,11 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
+  computeScalePriceLadder,
+  formatHyperLiquidPrice,
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
-import { normalizeHyperLiquidScalePriceLadder } from '@metamask/perps-controller/utils/orderCalculations';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -1968,36 +1969,33 @@ describe('usePerpsProOrderForm', () => {
   describe('scale orders', () => {
     it('normalizes Scale rungs through the controller precision contract', () => {
       expect(
-        normalizeHyperLiquidScalePriceLadder({
+        computeScalePriceLadder({
           minPrice: 100,
           maxPrice: 200,
           count: 3,
-          szDecimals: 3,
-        }),
+        }).map((price) => formatHyperLiquidPrice({ price, szDecimals: 3 })),
       ).toEqual(['100', '150', '200']);
       expect(
-        normalizeHyperLiquidScalePriceLadder({
+        computeScalePriceLadder({
           minPrice: 100.123456,
           maxPrice: 100.123457,
           count: 3,
-          szDecimals: 3,
-        }),
+        }).map((price) => formatHyperLiquidPrice({ price, szDecimals: 3 })),
       ).toEqual(['100.12', '100.12', '100.12']);
     });
 
     it('applies HyperLiquid precision for each asset size grid', () => {
-      const threeDecimalPrices = normalizeHyperLiquidScalePriceLadder({
+      const ladder = computeScalePriceLadder({
         minPrice: 1.234567,
         maxPrice: 1.234568,
         count: 2,
-        szDecimals: 3,
       });
-      const fourDecimalPrices = normalizeHyperLiquidScalePriceLadder({
-        minPrice: 1.234567,
-        maxPrice: 1.234568,
-        count: 2,
-        szDecimals: 4,
-      });
+      const threeDecimalPrices = ladder.map((price) =>
+        formatHyperLiquidPrice({ price, szDecimals: 3 }),
+      );
+      const fourDecimalPrices = ladder.map((price) =>
+        formatHyperLiquidPrice({ price, szDecimals: 4 }),
+      );
 
       expect(threeDecimalPrices).toEqual(['1.235', '1.235']);
       expect(fourDecimalPrices).toEqual(['1.23', '1.23']);
