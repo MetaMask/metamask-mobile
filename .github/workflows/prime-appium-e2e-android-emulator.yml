@@ -62,6 +62,13 @@ jobs:
         uses: actions/checkout@v4
         if: ${{ inputs.runner_provider != 'namespace' }}
 
+      # nscloud-cache-action only volume-links paths that exist on the host at
+      # mount time. Without this the AVD dir is created later by setup-e2e-env
+      # as a runner-local dir, and the golden snapshot never reaches the volume.
+      - name: Create AVD host dir before cache mount
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        run: mkdir -p "$HOME/.android/avd"
+
       - name: Configure Namespace cache
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
