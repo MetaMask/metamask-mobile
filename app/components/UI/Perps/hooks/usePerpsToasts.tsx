@@ -237,11 +237,12 @@ export interface PerpsToastOptionsConfig {
     added: (symbol: string) => PerpsToastOptions;
     removed: (symbol: string) => PerpsToastOptions;
     addError: PerpsToastOptions;
+    removeError: PerpsToastOptions;
     limitReached: PerpsToastOptions;
   };
 }
 
-const getPerpsToastLabels = (
+export const getPerpsToastLabels = (
   primary: string | React.ReactNode,
   secondary?: string | React.ReactNode,
 ) => {
@@ -1242,6 +1243,12 @@ const usePerpsToasts = (): {
           ...perpsBaseToastOptions.error,
           labelOptions: getPerpsToastLabels(
             strings('perps.watchlist.add_error'),
+          ),
+        },
+        removeError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.remove_error'),
           ),
         },
         limitReached: {

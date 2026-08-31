@@ -431,6 +431,30 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for the Pro Scale order feature flag.
+ * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
+ */
+export const PERPS_MOBILE_SCALE_FLAG_KEY = 'perpsMobileScale' as const;
+
+/**
+ * Selector for Scale orders in the Perps Pro order form.
+ * Defaults to false so entry and placement can be rolled back without hiding
+ * already-resting child limit orders from either Lite or Pro order lists.
+ *
+ * @returns boolean - true if Scale order entry and placement are enabled
+ */
+export const selectPerpsMobileScaleEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_SCALE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Hyperliquid TWAP placement in the Perps Pro order form.
  * Defaults to false so strategy placement can be rolled out independently.
  *
