@@ -36,6 +36,7 @@ jest.mock(
   }),
 );
 
+beforeEach(() => jest.clearAllMocks());
 // Un-spy the notification hook modules between tests (clearAllMocks does not).
 afterEach(() => jest.restoreAllMocks());
 
@@ -238,8 +239,6 @@ describe('useNotificationAccountListProps', () => {
 
     return { mocks, hook };
   };
-
-  beforeEach(() => jest.clearAllMocks());
 
   it('returns correct loading state', async () => {
     const addresses = ['0x123', '0x456'];
@@ -507,8 +506,6 @@ describe('useWalletActivityAccountSelection', () => {
       mockUpdate,
     };
   };
-
-  beforeEach(() => jest.clearAllMocks());
 
   it('deselects all visible EVM accounts when any account is enabled', async () => {
     const mocks = arrangeMocks({

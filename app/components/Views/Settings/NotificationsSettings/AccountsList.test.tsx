@@ -86,6 +86,8 @@ interface RenderAccountsListMocks {
 }
 
 describe('AccountList', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   const arrangeSelectors = () => {
     jest
       .spyOn(AccountSelectorsModule, 'selectIconSeedAddressByAccountGroupId')
