@@ -1452,6 +1452,21 @@ describe('usePerpsToasts', () => {
         ]);
       });
 
+      it('returns remove error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.removeError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to remove market from watchlist', isBold: true },
+        ]);
+      });
+
       it('returns limit reached configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
 

@@ -2589,6 +2589,7 @@
       "added": "Added {{symbol}} to watchlist",
       "removed": "Removed {{symbol}} from watchlist",
       "add_error": "Failed to add market to watchlist",
+      "remove_error": "Failed to remove market from watchlist",
       "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
@@ -2699,6 +2700,9 @@
       "listed_by": "Listed by",
       "value_type": "Value type",
       "group_by": "Group by",
+      "layout": "Order book layout",
+      "layout_left": "Left",
+      "layout_right": "Right",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",

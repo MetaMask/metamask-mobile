@@ -1,4 +1,5 @@
 import { AnimationDuration } from '@metamask/design-tokens';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, { type ReactNode } from 'react';
 import { View } from 'react-native';
 import Animated, {
@@ -24,6 +25,12 @@ interface PerpsProMarketLayoutProps {
    * persisted per market separately from this layout.
    */
   isOrderBookCollapsed?: boolean;
+  /**
+   * Side the order-book column is pinned to, from the user's persisted
+   * preference. Only the column order changes; widths and the divider are the
+   * same either way. Required so a caller cannot silently pin a side.
+   */
+  orderBookPosition: ProLayoutPreferences['orderBookPosition'];
 }
 
 /**
@@ -35,34 +42,48 @@ const PerpsProMarketLayout = ({
   orderForm,
   orderBook,
   isOrderBookCollapsed = false,
+  orderBookPosition,
 }: PerpsProMarketLayoutProps) => {
   const { styles } = useStyles(createStyles);
+
+  // Keyed so a side swap moves each column rather than remounting both, which
+  // would drop the order book's socket and the order form's in-progress input.
+  const orderFormColumn = (
+    <Animated.View
+      key="order-form"
+      testID={PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN}
+      style={styles.orderFormColumn}
+      layout={LinearTransition.duration(AnimationDuration.Fast)}
+    >
+      {orderForm}
+    </Animated.View>
+  );
+
+  const orderBookColumn = !isOrderBookCollapsed ? (
+    <Animated.View
+      key="order-book"
+      testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN}
+      style={styles.orderBookColumn}
+      entering={FadeIn.duration(AnimationDuration.Fast)}
+      exiting={FadeOut.duration(AnimationDuration.Fast)}
+    >
+      {orderBook}
+    </Animated.View>
+  ) : null;
+
+  const columns =
+    orderBookPosition === 'left'
+      ? [orderBookColumn, orderFormColumn]
+      : [orderFormColumn, orderBookColumn];
 
   return (
     <View
       testID={PerpsProMarketViewSelectorsIDs.LAYOUT}
       style={styles.container}
     >
-      <Animated.View
-        testID={PerpsProMarketViewSelectorsIDs.LEFT_COLUMN}
-        style={styles.orderFormColumn}
-        layout={LinearTransition.duration(AnimationDuration.Fast)}
-      >
-        {orderForm}
-      </Animated.View>
-      {!isOrderBookCollapsed ? (
-        <>
-          <View style={styles.columnDivider} />
-          <Animated.View
-            testID={PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN}
-            style={styles.orderBookColumn}
-            entering={FadeIn.duration(AnimationDuration.Fast)}
-            exiting={FadeOut.duration(AnimationDuration.Fast)}
-          >
-            {orderBook}
-          </Animated.View>
-        </>
-      ) : null}
+      {columns[0]}
+      {orderBookColumn ? <View style={styles.columnDivider} /> : null}
+      {columns[1]}
     </View>
   );
 };

@@ -45,6 +45,10 @@ import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGroup
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsOrderBookPreferences } from '../../../hooks/usePerpsOrderBookPreferences';
 import {
+  usePerpsProOrderBookPosition,
+  type PerpsProOrderBookPosition,
+} from '../../../hooks/usePerpsProOrderBookPosition';
+import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -110,7 +114,9 @@ export interface PerpsProOrderBookPanelProps {
  * to a truncated price rather than a row that wraps or overflows.
  */
 const PRICE_COLUMN_CLASS = 'relative z-10 flex-1';
+const PRICE_COLUMN_CLASS_MIRRORED = 'relative z-10 flex-1 text-right';
 const VALUE_COLUMN_CLASS = 'relative z-10 shrink-0 text-right';
+const VALUE_COLUMN_CLASS_MIRRORED = 'relative z-10 shrink-0';
 
 interface OrderBookRowProps {
   level: OrderBookLevel;
@@ -122,6 +128,8 @@ interface OrderBookRowProps {
   szDecimals?: number;
   priceFormat: OrderBookPriceFormat | null;
   onSelectPrice?: (price: string) => void;
+  /** Side the order-book column is pinned to; mirrors the row when 'left'. */
+  layout: PerpsProOrderBookPosition;
   testID: string;
 }
 
@@ -135,8 +143,10 @@ const OrderBookRow = ({
   szDecimals,
   priceFormat,
   onSelectPrice,
+  layout,
   testID,
 }: OrderBookRowProps) => {
+  const isMirrored = layout === 'left';
   const depthWidth = getDepthWidth(level, maxTotal);
   const isBid = side === 'bid';
   const sideColor = isBid ? TextColor.SuccessDefault : TextColor.ErrorDefault;
@@ -156,12 +166,46 @@ const OrderBookRow = ({
 
   const priceLabel = formatOrderBookPrice(level.price, priceFormat);
 
+  const priceCell = (
+    <Text
+      key="price"
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={sideColor}
+      numberOfLines={1}
+      twClassName={
+        isMirrored ? PRICE_COLUMN_CLASS_MIRRORED : PRICE_COLUMN_CLASS
+      }
+      testID={`${testID}-price`}
+    >
+      {priceLabel}
+    </Text>
+  );
+  const valueCell = (
+    <Text
+      key="value"
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={sideColor}
+      numberOfLines={1}
+      twClassName={
+        isMirrored ? VALUE_COLUMN_CLASS_MIRRORED : VALUE_COLUMN_CLASS
+      }
+      testID={`${testID}-value`}
+    >
+      {formatColumnValue(level, currency, metric, szDecimals)}
+    </Text>
+  );
+  const cells = isMirrored ? [valueCell, priceCell] : [priceCell, valueCell];
+
   const content = (
     <>
       <Animated.View
         pointerEvents="none"
+        testID={`${testID}-depth-bar`}
         style={[
           styles.depthBar,
+          isMirrored ? styles.depthBarFromLeft : styles.depthBarFromRight,
           depthBarAnimatedStyle,
           {
             backgroundColor: depthBarColor,
@@ -169,26 +213,7 @@ const OrderBookRow = ({
           },
         ]}
       />
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        color={sideColor}
-        numberOfLines={1}
-        twClassName={PRICE_COLUMN_CLASS}
-        testID={`${testID}-price`}
-      >
-        {priceLabel}
-      </Text>
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        color={sideColor}
-        numberOfLines={1}
-        twClassName={VALUE_COLUMN_CLASS}
-        testID={`${testID}-value`}
-      >
-        {formatColumnValue(level, currency, metric, szDecimals)}
-      </Text>
+      {cells}
     </>
   );
 
@@ -442,6 +467,8 @@ const PerpsProOrderBookPanel = ({
   const rowSelectPrice = onSelectPrice ? handleSelectPrice : undefined;
 
   const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
+  const { orderBookPosition, setOrderBookPosition } =
+    usePerpsProOrderBookPosition();
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
     savedGrouping ?? null,
   );
@@ -612,6 +639,7 @@ const PerpsProOrderBookPanel = ({
       currency: OrderBookListCurrency;
       metric: OrderBookListMetric;
       grouping: number;
+      layout: PerpsProOrderBookPosition;
     }) => {
       setOrderBookPreferences({
         currency: next.currency,
@@ -619,8 +647,9 @@ const PerpsProOrderBookPanel = ({
       });
       setSelectedGrouping(next.grouping);
       saveGrouping(next.grouping);
+      setOrderBookPosition(next.layout);
     },
-    [saveGrouping, setOrderBookPreferences],
+    [saveGrouping, setOrderBookPosition, setOrderBookPreferences],
   );
 
   const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
@@ -693,6 +722,37 @@ const PerpsProOrderBookPanel = ({
       ? strings('perps.order_book.total')
       : strings('perps.order_book.size');
 
+  const isLadderMirrored = orderBookPosition === 'left';
+  const priceHeader = (
+    <Text
+      key="price"
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
+      twClassName={isLadderMirrored ? 'flex-1 text-right' : 'flex-1'}
+      testID={`${testID}-column-header-price`}
+    >
+      {strings('perps.order_book.price')}
+    </Text>
+  );
+  const valueHeader = (
+    <Text
+      key="value"
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      numberOfLines={1}
+      twClassName={isLadderMirrored ? 'shrink-0' : 'shrink-0 text-right'}
+      testID={`${testID}-column-header-value`}
+    >
+      {`${metricLabel} (${unitLabel})`}
+    </Text>
+  );
+  const columnHeaders = isLadderMirrored
+    ? [valueHeader, priceHeader]
+    : [priceHeader, valueHeader];
+
   return (
     <Box
       testID={testID}
@@ -758,28 +818,13 @@ const PerpsProOrderBookPanel = ({
         </Box>
       </Box>
 
-      {/* Column headers */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 pb-1">
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          twClassName="flex-1"
-          testID={`${testID}-column-header-price`}
-        >
-          {strings('perps.order_book.price')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          twClassName="shrink-0 text-right"
-          testID={`${testID}-column-header-value`}
-        >
-          {`${metricLabel} (${unitLabel})`}
-        </Text>
+      {/* Column headers, mirrored with the ladder rows below. */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="gap-2 pb-1"
+        testID={`${testID}-column-headers`}
+      >
+        {columnHeaders}
       </Box>
 
       {/* Ladder */}
@@ -830,6 +875,7 @@ const PerpsProOrderBookPanel = ({
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
                   onSelectPrice={rowSelectPrice}
+                  layout={orderBookPosition}
                   testID={`${testID}-ask-row-${index}`}
                 />
               ))}
@@ -877,6 +923,7 @@ const PerpsProOrderBookPanel = ({
                   szDecimals={szDecimals}
                   priceFormat={priceFormat}
                   onSelectPrice={rowSelectPrice}
+                  layout={orderBookPosition}
                   testID={`${testID}-bid-row-${index}`}
                 />
               ))}
@@ -974,6 +1021,7 @@ const PerpsProOrderBookPanel = ({
         metric={metric}
         grouping={currentGrouping}
         groupingOptions={groupingOptions}
+        layout={orderBookPosition}
         onApply={handleApplyConfig}
         onClose={() => setIsConfigOpen(false)}
         testID={`${testID}-config-sheet`}

@@ -109,6 +109,9 @@ const mockSetOrderType = jest.fn();
 const mockSetTriggerPrice = jest.fn();
 let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
   'market';
+let mockOrderBookPosition: 'left' | 'right' = 'left';
+let mockIsOrderBookExpanded = true;
+const mockSetOrderBookExpanded = jest.fn();
 const mockPerpsOrderProvider = jest.fn(
   ({ children }: { children: React.ReactNode; fallbackAmount?: string }) =>
     children,
@@ -256,6 +259,20 @@ jest.mock('../../components/PerpsCandlePeriodBottomSheet', () => ({
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: (options?: unknown) =>
     mockUsePerpsEventTracking(options),
+}));
+
+jest.mock('../../hooks/usePerpsProOrderBookExpanded', () => ({
+  usePerpsProOrderBookExpanded: () => ({
+    isOrderBookExpanded: mockIsOrderBookExpanded,
+    setOrderBookExpanded: mockSetOrderBookExpanded,
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsProOrderBookPosition', () => ({
+  usePerpsProOrderBookPosition: () => ({
+    orderBookPosition: mockOrderBookPosition,
+    setOrderBookPosition: jest.fn(),
+  }),
 }));
 
 jest.mock('../../hooks/usePerpsMarketHeaderActions', () => ({
@@ -507,6 +524,9 @@ describe('PerpsProMarketView', () => {
     mockConnectionInitialized = true;
     mockOrderFormType = 'market';
     mockSzDecimals = undefined;
+    mockOrderBookPosition = 'left';
+    mockIsOrderBookExpanded = true;
+    mockSetOrderBookExpanded.mockClear();
     jest.mocked(playSelection).mockClear();
     mockMarketContextReady = true;
     mockRouteParams = {
@@ -1046,26 +1066,77 @@ describe('PerpsProMarketView', () => {
     ).toHaveStyle({ height: 344 });
   });
 
-  it('collapses the order book so the order form fills the trading area', () => {
-    const { getByTestId, queryByTestId } = renderView();
+  it.each([
+    [
+      'left' as const,
+      [
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+        PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN,
+      ],
+    ],
+    [
+      'right' as const,
+      [
+        PerpsProMarketViewSelectorsIDs.ORDER_FORM_COLUMN,
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+      ],
+    ],
+  ])(
+    'orders the trading columns from the persisted %s order book side',
+    (orderBookPosition, expectedOrder) => {
+      mockOrderBookPosition = orderBookPosition;
+
+      const { getByTestId } = renderView();
+
+      const renderedOrder = within(
+        getByTestId(PerpsProMarketViewSelectorsIDs.LAYOUT),
+      )
+        .getAllByTestId(/-column$/)
+        .map((column) => column.props.testID);
+
+      expect(renderedOrder).toEqual(expectedOrder);
+    },
+  );
+
+  it('persists collapsing and expanding the order book', () => {
+    const { getByTestId } = renderView();
 
     fireEvent.press(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
 
+    expect(mockSetOrderBookExpanded).toHaveBeenCalledWith(false);
+
+    mockIsOrderBookExpanded = false;
+    const { getByTestId: getByTestIdCollapsed } = renderView();
+
+    fireEvent.press(
+      getByTestIdCollapsed(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+      ),
+    );
+
+    expect(mockSetOrderBookExpanded).toHaveBeenCalledWith(true);
+  });
+
+  it('hides the order book column when the persisted state is collapsed', () => {
+    mockIsOrderBookExpanded = false;
+
+    const { getByTestId, queryByTestId } = renderView();
+
     expect(
       queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(PerpsProMarketViewSelectorsIDs.RIGHT_COLUMN),
+      queryByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN),
     ).not.toBeOnTheScreen();
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_FORM_PANEL),
     ).toBeOnTheScreen();
+  });
 
-    fireEvent.press(
-      getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON),
-    );
+  it('shows the order book column when the persisted state is expanded', () => {
+    const { getByTestId } = renderView();
 
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL),
