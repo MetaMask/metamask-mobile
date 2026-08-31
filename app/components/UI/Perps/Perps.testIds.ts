@@ -1100,6 +1100,7 @@ export const PerpsModeToggleSelectorsIDs = {
 export const PerpsModeSelectionBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-mode-selection-bottom-sheet',
   TITLE: 'perps-mode-selection-bottom-sheet-title',
+  SUBTITLE: 'perps-mode-selection-bottom-sheet-subtitle',
   LITE_OPTION: 'perps-mode-selection-lite-option',
   PRO_OPTION: 'perps-mode-selection-pro-option',
   LITE_ICON: 'perps-mode-selection-lite-icon',
