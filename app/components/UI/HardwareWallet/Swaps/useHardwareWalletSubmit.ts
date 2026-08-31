@@ -213,6 +213,7 @@ export function useHardwareWalletSubmit({
         return undefined;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps - refs do not need to be included in the dependency array
     [dispatch],
   );
 
