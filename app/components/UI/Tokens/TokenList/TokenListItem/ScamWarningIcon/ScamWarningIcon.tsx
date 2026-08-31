@@ -3,13 +3,12 @@ import { TokenI } from '../../../types';
 import useIsOriginalNativeTokenSymbol from '../../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { useSelector } from 'react-redux';
 import { selectProviderConfig } from '../../../../../../selectors/networkController';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import {
+  ButtonIcon,
+  ButtonIconSize,
   IconColor,
   IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 
 interface ScamWarningIconProps {
   asset: TokenI & { chainId: string };
@@ -36,8 +35,8 @@ export const ScamWarningIcon = ({
         onPressIn={() => {
           setShowScamWarningModal(asset.chainId);
         }}
-        iconColor={IconColor.Error}
-        size={ButtonIconSizes.Lg}
+        iconProps={{ color: IconColor.ErrorDefault }}
+        size={ButtonIconSize.Lg}
       />
     );
   }
