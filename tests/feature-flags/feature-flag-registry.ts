@@ -276,6 +276,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: null,
           minimumVersion: null,
           tracesEnabled: false,
+          useUnlockCleanup: true,
           deprecatedControllers: [],
         },
         '8.3.0': {
@@ -283,6 +284,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: '1',
           minimumVersion: '8.3.0',
           tracesEnabled: false,
+          useUnlockCleanup: true,
           deprecatedControllers: [],
         },
       },
