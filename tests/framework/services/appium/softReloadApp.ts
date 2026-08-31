@@ -1,6 +1,7 @@
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import type { LaunchArgs } from '../../types.ts';
 import {
+  DEFAULT_IMPLICIT_WAIT_MS,
   isUiAutomator2SessionDeadError,
   resolveE2EFixtureBootstrapTimeoutMs,
   shouldHandleMetroDevLauncherLocally,
@@ -41,9 +42,17 @@ async function assertAndroidInstrumentationAlive(
   }
 
   try {
-    // Any element command hits the instrumentation process. Use a cheap,
-    // non-existent id so a healthy session returns quickly with no match.
-    await drv.$('id=mm-soft-reload-uia2-health-probe').isExisting();
+    // Zero the implicit wait so the guaranteed-missing probe id returns
+    // immediately on a healthy session instead of stalling for the full
+    // DEFAULT_IMPLICIT_WAIT_MS.
+    await drv.setTimeout({ implicit: 0 });
+    try {
+      // Any element command hits the instrumentation process. Use a cheap,
+      // non-existent id so a healthy session returns quickly with no match.
+      await drv.$('id=mm-soft-reload-uia2-health-probe').isExisting();
+    } finally {
+      await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+    }
   } catch (error) {
     if (isUiAutomator2SessionDeadError(error) || isDeviceHealthError(error)) {
       requestSharedSessionRecreate();

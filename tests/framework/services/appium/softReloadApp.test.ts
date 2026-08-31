@@ -7,7 +7,10 @@ import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
 import AppiumUtilities from '../../AppiumUtilities.ts';
-import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
+import {
+  DEFAULT_IMPLICIT_WAIT_MS,
+  shouldHandleMetroDevLauncherLocally,
+} from '../../Constants.ts';
 import { PlatformDetector } from '../../PlatformLocator.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
@@ -79,13 +82,15 @@ const isAndroidMock = PlatformDetector.isAndroid as jest.MockedFunction<
 >;
 
 const createDrv = (
-  overrides: Partial<{ isExisting: jest.Mock }> = {},
+  overrides: Partial<{ isExisting: jest.Mock; setTimeout: jest.Mock }> = {},
 ): WebdriverIO.Browser => {
-  const isExisting =
-    overrides.isExisting ?? jest.fn().mockResolvedValue(false);
+  const isExisting = overrides.isExisting ?? jest.fn().mockResolvedValue(false);
+  const setTimeoutMock =
+    overrides.setTimeout ?? jest.fn().mockResolvedValue(undefined);
   return {
     sessionId: 's1',
     $: jest.fn().mockReturnValue({ isExisting }),
+    setTimeout: setTimeoutMock,
   } as unknown as WebdriverIO.Browser;
 };
 
@@ -233,13 +238,65 @@ describe('softReloadAppForFixtures', () => {
     expect(consumeSharedSessionRecreate()).toBe(true);
   });
 
+  it('zeros the implicit wait for the health probe and restores it after', async () => {
+    const drv = createDrv();
+
+    await softReloadAppForFixtures({
+      currentDeviceDetails,
+      deviceCommands,
+      launchArgs: {},
+      fixtureServer,
+      drv,
+    });
+
+    const setTimeoutMock = drv.setTimeout as jest.Mock;
+    expect(setTimeoutMock).toHaveBeenCalledTimes(2);
+    expect(setTimeoutMock).toHaveBeenNthCalledWith(1, { implicit: 0 });
+    expect(setTimeoutMock).toHaveBeenNthCalledWith(2, {
+      implicit: DEFAULT_IMPLICIT_WAIT_MS,
+    });
+    const probeOrder = (drv.$ as jest.Mock).mock.invocationCallOrder[0];
+    expect(setTimeoutMock.mock.invocationCallOrder[0]).toBeLessThan(probeOrder);
+    expect(setTimeoutMock.mock.invocationCallOrder[1]).toBeGreaterThan(
+      probeOrder,
+    );
+  });
+
+  it('restores the implicit wait when the health probe throws', async () => {
+    const drv = createDrv({
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
+        ),
+    });
+
+    await expect(
+      softReloadAppForFixtures({
+        currentDeviceDetails,
+        deviceCommands,
+        launchArgs: {},
+        fixtureServer,
+        drv,
+      }),
+    ).rejects.toThrow(/instrumentation process is not running/);
+
+    expect(drv.setTimeout).toHaveBeenLastCalledWith({
+      implicit: DEFAULT_IMPLICIT_WAIT_MS,
+    });
+  });
+
   it('fails fast and requests recreate when UiAutomator2 is dead after soft reload', async () => {
     const drv = createDrv({
-      isExisting: jest.fn().mockRejectedValue(
-        new Error(
-          "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+      isExisting: jest
+        .fn()
+        .mockRejectedValue(
+          new Error(
+            "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+          ),
         ),
-      ),
     });
 
     await expect(
