@@ -126,7 +126,7 @@ describe('buildPerpsOrderParams', () => {
     });
 
     expect(params.chaseMaxDistanceBps).toBe(125);
-    expect(params.maxSlippageBps).toBe(150);
+    expect(params).not.toHaveProperty('maxSlippageBps');
     expect(params).not.toHaveProperty('price');
     expect(params).not.toHaveProperty('takeProfitPrice');
     expect(params).not.toHaveProperty('stopLossPrice');

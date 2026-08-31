@@ -1413,7 +1413,15 @@ describe('usePerpsProOrderForm', () => {
           }),
       );
       mockOrderForm.type = 'chase';
-      const form = renderProForm();
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
       act(() => {
         form.result.current.onPlaceOrderPress();
       });
@@ -1691,6 +1699,39 @@ describe('usePerpsProOrderForm', () => {
       await act(async () => resolveOrders?.([]));
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('continues Chase submit when a MAX amount updates during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        amount: '99',
+      };
+      form.rerender({});
+      await act(async () => resolveOrders?.([]));
+
+      await waitFor(() => expect(mockExecuteOrder).toHaveBeenCalledTimes(1));
     });
 
     it('uses the latest reference price for Chase USD distance', async () => {
@@ -5475,8 +5516,7 @@ describe('usePerpsProOrderForm', () => {
       ).toEqual({
         id: 'chase-max-distance',
         variant: 'banner',
-        message:
-          'Max chase distance must be greater than 0 and less than 10000 bps.',
+        message: strings('perps.order.validation.chase_max_distance_percent'),
       });
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });

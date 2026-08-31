@@ -1748,8 +1748,9 @@
         "trigger_orders_unavailable": "Triggered orders are temporarily unavailable. Select a market order.",
         "please_set_a_trigger_price": "Please set a trigger price",
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
-        "chase_limit": "Hyperliquid allows a maximum of {{count}} active Chase orders.",
-        "chase_max_distance": "Max chase distance must be greater than 0 and less than 10000 bps.",
+        "chase_limit": "You can run up to {{count}} active Chase orders at a time.",
+        "chase_max_distance_usd": "Max chase distance must be greater than $0 and less than the current price.",
+        "chase_max_distance_percent": "Max chase distance must be greater than 0% and less than 100%.",
         "chase_unavailable": "Chase placement is not available for this provider.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
@@ -1866,7 +1867,7 @@
       "chase": {
         "max_distance": "Max distance",
         "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
-        "foreground_notice": "Keep the app opened to wait for Chase order to fulfil.",
+        "foreground_notice": "Keep the app open while the Chase order is running.",
         "backgrounded_title": "Chase paused",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
         "tab": "Chase",
@@ -1885,9 +1886,7 @@
         "card": {
           "size": "Size",
           "filled_size": "Filled size",
-          "average_price": "Average price",
-          "max_distance": "Max distance",
-          "runtime": "Runtime"
+          "max_distance": "Max distance"
         },
         "status": {
           "termination_pending": "Termination pending",
@@ -2191,7 +2190,7 @@
         "chaseLimitReached": "Too many chase orders are already running",
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
-        "chaseMaxDistanceInvalid": "Max chase distance must be greater than 0 bps."
+        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range."
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",

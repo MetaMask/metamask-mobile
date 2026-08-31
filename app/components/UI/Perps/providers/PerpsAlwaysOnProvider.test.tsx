@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
+import { ChaseOrderSuspensionError } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
@@ -9,7 +10,9 @@ import {
   CHASE_ORDER_UI_CONFIG,
   PERPS_CONNECTION_SOURCE,
 } from '../constants/perpsConfig';
-import NotificationsService from '../../../../util/notifications/services/NotificationService';
+import NotificationsService, {
+  isPushPermissionGranted,
+} from '../../../../util/notifications/services/NotificationService';
 import { selectPerpsEnabledFlag } from '../index';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 
@@ -46,6 +49,7 @@ jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
     displayNotification: jest.fn(),
+    isPushPermissionGranted: jest.fn(),
   }),
 );
 
@@ -65,6 +69,33 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ChaseOrderSuspensionError: class MockChaseOrderSuspensionError extends Error {
+    suspendedOrders: unknown[];
+    failures: unknown[];
+
+    constructor({
+      suspendedOrders,
+      failures,
+    }: {
+      suspendedOrders: unknown[];
+      failures: unknown[];
+    }) {
+      super('Partial Chase suspension');
+      this.suspendedOrders = suspendedOrders;
+      this.failures = failures;
+    }
+  },
+  CHASE_ORDER_STATUS: {
+    Active: 'active',
+    TerminationPending: 'termination_pending',
+    Backgrounded: 'backgrounded',
+    MaxDistanceReached: 'max_distance_reached',
+    DurationReached: 'duration_reached',
+    RepricingLimitReached: 'repricing_limit_reached',
+    Filled: 'filled',
+    Canceled: 'canceled',
+    Failed: 'failed',
+  },
   PERPS_EVENT_PROPERTY: {
     INTERACTION_TYPE: 'interaction_type',
     ASSET: 'asset',
@@ -113,6 +144,7 @@ const mockResumeFromForeground =
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
 const mockDisplayNotification =
   NotificationsService.displayNotification as jest.Mock;
+const mockIsPushPermissionGranted = isPushPermissionGranted as jest.Mock;
 const mockStartMarketDataPreload = Engine.context.PerpsController
   .startMarketDataPreload as jest.Mock;
 const mockStopMarketDataPreload = Engine.context.PerpsController
@@ -130,6 +162,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockResumeFromForeground.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
     mockDisplayNotification.mockResolvedValue(undefined);
+    mockIsPushPermissionGranted.mockResolvedValue(true);
     mockSuspendChaseOrders.mockReset().mockResolvedValue([]);
     mockHasLiveChaseOrders = false;
     mockIsChaseOrderDiscoveryResolved = true;
@@ -559,6 +592,29 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).not.toHaveBeenCalled();
   });
 
+  it('disconnects on inactive when Chase suspension is unnecessary', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    mockIsChaseOrderDiscoveryResolved = true;
+    mockHasLiveChaseOrders = false;
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('inactive');
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).not.toHaveBeenCalled();
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('suspends Chase orders once when iOS transitions through inactive to background', async () => {
     render(
       <PerpsAlwaysOnProvider>
@@ -676,6 +732,27 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it('skips the local notification without OS permission', async () => {
+    mockIsPushPermissionGranted.mockResolvedValueOnce(false);
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'chase-no-permission', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('reports each backgrounded Chase handle only on its first transition', async () => {
     const backgroundedOrder = {
       handle: 'chase-repeated-background',
@@ -753,6 +830,39 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports successful partial suspensions before disconnecting', async () => {
+    const suspendedOrder = {
+      handle: 'chase-partial',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    };
+    mockSuspendChaseOrders.mockRejectedValueOnce(
+      new ChaseOrderSuspensionError({
+        suspendedOrders: [suspendedOrder] as never[],
+        failures: [{ providerId: 'myx', reason: new Error('MYX failed') }],
+      }),
+    );
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'ETH' }),
+    );
+    expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
   });
 
   it('calls resumeFromForeground after delay when app returns to foreground', () => {
@@ -960,7 +1070,14 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockResumeFromForeground).toHaveBeenCalledTimes(1);
   });
 
-  it('calls disconnect and removes AppState subscription on unmount', () => {
+  it('suspends Chase before disconnecting on Wallet-root unmount', async () => {
+    let resolveSuspension: ((orders: []) => void) | undefined;
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSuspension = resolve;
+        }),
+    );
     const { unmount } = render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -973,7 +1090,14 @@ describe('PerpsAlwaysOnProvider', () => {
       unmount();
     });
 
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).not.toHaveBeenCalled();
+    await act(async () => resolveSuspension?.([]));
+
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
     expect(mockSubscriptionRemove).toHaveBeenCalledTimes(1);
     expect(mockStopMarketDataPreload).toHaveBeenCalledTimes(1);
   });

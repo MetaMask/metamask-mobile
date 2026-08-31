@@ -1,5 +1,9 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { InitializationState } from '@metamask/perps-controller';
+import {
+  ChaseOrderSuspensionError,
+  InitializationState,
+  type ChaseOrder,
+} from '@metamask/perps-controller';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -13,7 +17,10 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-import { usePerpsChaseOrders } from './usePerpsChaseOrders';
+import {
+  resetPerpsChaseOrdersStoreForTests,
+  usePerpsChaseOrders,
+} from './usePerpsChaseOrders';
 
 let mockSelectedAddress = '0xaccount-a';
 let mockPerpsProvider = 'hyperliquid';
@@ -89,6 +96,7 @@ const exhaustDiscoveryRetries = async () => {
 
 describe('usePerpsChaseOrders', () => {
   beforeEach(() => {
+    resetPerpsChaseOrdersStoreForTests();
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetChaseOrders.mockResolvedValue([]);
@@ -123,6 +131,30 @@ describe('usePerpsChaseOrders', () => {
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    resetPerpsChaseOrdersStoreForTests();
+  });
+
+  it('preserves retained orders when an aggregated refresh returns no orders', async () => {
+    mockPerpsProvider = 'aggregated';
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: false }));
+    await waitFor(() => {
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
+      expect(hook.result.current.isChaseOrderDiscoveryResolved).toBe(true);
+    });
+
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(hook.result.current.isChaseOrderDiscoveryResolved).toBe(false),
+    );
+
+    const orders = hook.result.current.chaseOrders;
+    hook.unmount();
+
+    expect(orders).toEqual([activeOrder]);
   });
 
   it('shares one refresh request and polling interval across consumers', async () => {
@@ -382,6 +414,57 @@ describe('usePerpsChaseOrders', () => {
 
     expect(result.current.chaseOrders).toEqual([activeOrder]);
     unmount();
+  });
+
+  it('reconciles a partial suspension and retries failed providers', async () => {
+    const hyperliquidActive = {
+      ...activeOrder,
+      providerId: 'hyperliquid' as const,
+    };
+    const myxActive = {
+      ...activeOrder,
+      handle: 'chase-myx',
+      providerId: 'myx' as const,
+    };
+    const hyperliquidSuspended = {
+      ...hyperliquidActive,
+      status: 'backgrounded' as const,
+    };
+    const myxSuspended = {
+      ...myxActive,
+      status: 'backgrounded' as const,
+    };
+    mockGetChaseOrders.mockResolvedValueOnce([hyperliquidActive, myxActive]);
+    mockSuspendChaseOrders
+      .mockRejectedValueOnce(
+        new ChaseOrderSuspensionError({
+          suspendedOrders: [hyperliquidSuspended],
+          failures: [{ providerId: 'myx', reason: new Error('MYX failed') }],
+        }),
+      )
+      .mockResolvedValueOnce([hyperliquidSuspended, myxSuspended]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([
+        hyperliquidActive,
+        myxActive,
+      ]),
+    );
+
+    let suspendedOrders: ChaseOrder[] = [];
+    await act(async () => {
+      suspendedOrders = await hook.result.current.suspendChaseOrders();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(2);
+    expect(suspendedOrders).toEqual([hyperliquidSuspended, myxSuspended]);
+    const cachedSuspendedOrders = hook.result.current.chaseOrders;
+    hook.unmount();
+
+    expect(cachedSuspendedOrders).toEqual([
+      expect.objectContaining(hyperliquidSuspended),
+      expect.objectContaining(myxSuspended),
+    ]);
   });
 
   it('skips a queued suspension after its lifecycle becomes stale', async () => {
@@ -1080,34 +1163,8 @@ describe('usePerpsChaseOrders', () => {
       {
         ...activeOrder,
         status: 'canceled',
-        terminalObservedAt: expect.any(Number),
       },
     ]);
-    unmount();
-  });
-
-  it('preserves the first locally observed terminal timestamp', async () => {
-    jest.setSystemTime(new Date('2026-08-28T05:00:00.000Z'));
-    mockGetChaseOrders
-      .mockResolvedValueOnce([activeOrder])
-      .mockResolvedValueOnce([]);
-    const { result, unmount } = renderHook(() =>
-      usePerpsChaseOrders({ isEnabled: true }),
-    );
-    await waitFor(() =>
-      expect(result.current.chaseOrders).toEqual([activeOrder]),
-    );
-
-    act(() =>
-      result.current.recordChaseOrderStatus(activeOrder.handle, 'canceled'),
-    );
-    const terminalObservedAt = result.current.chaseOrders[0].terminalObservedAt;
-    jest.setSystemTime(new Date('2026-08-28T05:05:00.000Z'));
-    await act(async () => result.current.getChaseOrders());
-
-    expect(result.current.chaseOrders[0].terminalObservedAt).toBe(
-      terminalObservedAt,
-    );
     unmount();
   });
 
@@ -1162,7 +1219,6 @@ describe('usePerpsChaseOrders', () => {
       {
         ...activeOrder,
         status: 'canceled',
-        terminalObservedAt: expect.any(Number),
       },
     ]);
     unmount();

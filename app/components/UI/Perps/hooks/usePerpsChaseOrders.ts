@@ -6,6 +6,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
+  ChaseOrderSuspensionError,
   InitializationState,
   PERPS_CONSTANTS,
   type ChaseOrder,
@@ -29,18 +30,15 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 
-export type ChaseOrderWithClientMetadata = ChaseOrder & {
-  terminalObservedAt?: number;
-};
-
 interface ChaseOrdersSnapshot {
-  orders: ChaseOrderWithClientMetadata[];
+  orders: ChaseOrder[];
   discoveryResolvedRoute: string;
 }
 
-let cachedOrders: ChaseOrderWithClientMetadata[] = [];
+let cachedOrders: ChaseOrder[] = [];
 let cachedRoute = '';
 let selectedRoute = '';
+let selectedProviderMode = '';
 let initialRefreshRoute = '';
 let isControllerInitialized = false;
 let requestGeneration = 0;
@@ -64,7 +62,7 @@ let discoveryPausedForBackground = false;
 let refreshFailureLogged = false;
 let enabledConsumerCount = 0;
 const listeners = new Set<() => void>();
-const EMPTY_ORDERS: ChaseOrderWithClientMetadata[] = [];
+const EMPTY_ORDERS: ChaseOrder[] = [];
 let storeSnapshot: ChaseOrdersSnapshot = {
   orders: cachedOrders,
   discoveryResolvedRoute: initialRefreshRoute,
@@ -77,36 +75,30 @@ const hasLiveRetainedOrders = () =>
   cachedOrders.some((order) => CHASE_RETAINED_STATUSES.has(order.status));
 const mergeWithCachedHistory = (
   orders: ChaseOrder[],
-): ChaseOrderWithClientMetadata[] => {
-  const cachedOrdersByHandle = new Map(
-    cachedOrders.map((order) => [order.handle, order]),
-  );
+  preserveMissingRetainedOrders = false,
+): ChaseOrder[] => {
   const cachedHistoryByHandle = new Map(
     cachedOrders
       .filter((order) => CHASE_HISTORY_STATUSES.has(order.status))
       .map((order) => [order.handle, order]),
   );
-  const mergedOrders = orders.map((order): ChaseOrderWithClientMetadata => {
+  const mergedOrders = orders.map((order): ChaseOrder => {
     const cachedHistory = cachedHistoryByHandle.get(order.handle);
     if (cachedHistory && !CHASE_HISTORY_STATUSES.has(order.status)) {
       return cachedHistory;
-    }
-    const cachedOrder = cachedOrdersByHandle.get(order.handle);
-    if (
-      CHASE_HISTORY_STATUSES.has(order.status) &&
-      cachedOrder &&
-      !CHASE_HISTORY_STATUSES.has(cachedOrder.status)
-    ) {
-      return { ...order, terminalObservedAt: Date.now() };
-    }
-    if (cachedOrder?.terminalObservedAt) {
-      return { ...order, terminalObservedAt: cachedOrder.terminalObservedAt };
     }
     return order;
   });
   const liveHandles = new Set(mergedOrders.map((order) => order.handle));
   return [
     ...mergedOrders,
+    ...(preserveMissingRetainedOrders
+      ? cachedOrders.filter(
+          (order) =>
+            CHASE_RETAINED_STATUSES.has(order.status) &&
+            !liveHandles.has(order.handle),
+        )
+      : []),
     ...cachedOrders.filter(
       (order) =>
         CHASE_HISTORY_STATUSES.has(order.status) &&
@@ -197,7 +189,7 @@ function syncRefreshLifecycle() {
   }, CHASE_ORDER_UI_CONFIG.RefreshIntervalMs);
 }
 
-async function refreshChaseOrders(): Promise<ChaseOrderWithClientMetadata[]> {
+async function refreshChaseOrders(): Promise<ChaseOrder[]> {
   const route = getRouteKey();
   if (!canRefreshCurrentRoute()) return EMPTY_ORDERS;
   const generation = requestGeneration;
@@ -235,9 +227,20 @@ async function refreshChaseOrders(): Promise<ChaseOrderWithClientMetadata[]> {
       }
       refreshFailureLogged = false;
       cachedRoute = route;
-      cachedOrders = mergeWithCachedHistory(orders);
+      const isIncompleteAggregatedRead =
+        selectedProviderMode === 'aggregated' &&
+        orders.length === 0 &&
+        hasLiveRetainedOrders();
+      cachedOrders = mergeWithCachedHistory(
+        orders,
+        selectedProviderMode === 'aggregated',
+      );
       emitChange();
       syncRefreshLifecycle();
+      if (isIncompleteAggregatedRead) {
+        setDiscoveryResolvedRoute('');
+        throw new Error('Aggregated Chase discovery returned no orders');
+      }
       return cachedOrders;
     })
     .finally(() => {
@@ -365,20 +368,39 @@ const subscribe = (listener: () => void): (() => void) => {
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0) {
-      stopRefreshLifecycle();
-      resetDiscoveryState();
-      requestGeneration += 1;
-      refreshPromise = undefined;
-      cachedRoute = '';
-      cachedOrders = [];
-      selectedRoute = '';
-      isControllerInitialized = false;
-      refreshFailureLogged = false;
-      setDiscoveryResolvedRoute('');
+      resetChaseOrdersStore();
     } else {
       syncRefreshLifecycle();
     }
   };
+};
+
+function resetChaseOrdersStore() {
+  stopRefreshLifecycle();
+  resetDiscoveryState();
+  requestGeneration += 1;
+  refreshPromise = undefined;
+  mutationQueue = Promise.resolve();
+  mutationQueueEpoch += 1;
+  cachedRoute = '';
+  cachedOrders = [];
+  selectedRoute = '';
+  selectedProviderMode = '';
+  initialRefreshRoute = '';
+  isControllerInitialized = false;
+  refreshFailureLogged = false;
+  enabledConsumerCount = 0;
+  storeSnapshot = {
+    orders: cachedOrders,
+    discoveryResolvedRoute: initialRefreshRoute,
+  };
+}
+
+export const resetPerpsChaseOrdersStoreForTests = () => {
+  if (listeners.size > 0) {
+    throw new Error('Cannot reset the Chase store while consumers are mounted');
+  }
+  resetChaseOrdersStore();
 };
 
 const getSnapshot = () => storeSnapshot;
@@ -397,15 +419,57 @@ const suspendAndCacheChaseOrders = async (
     const generation = ++requestGeneration;
     refreshPromise = undefined;
     const timeout = createMutationTimeout();
-    const controllerSuspension =
+    let controllerSuspension =
       Engine.context.PerpsController.suspendChaseOrders();
     let result: ChaseOrder[];
     try {
-      result = await Promise.race([controllerSuspension, timeout.promise]);
+      try {
+        result = await Promise.race([controllerSuspension, timeout.promise]);
+      } catch (error) {
+        if (!(error instanceof ChaseOrderSuspensionError)) {
+          throw error;
+        }
+        if (
+          isCurrentLifecycle() &&
+          generation === requestGeneration &&
+          route === getRouteKey()
+        ) {
+          cachedRoute = route;
+          cachedOrders = mergeWithCachedHistory(error.suspendedOrders, true);
+          emitChange();
+        }
+        controllerSuspension =
+          Engine.context.PerpsController.suspendChaseOrders();
+        try {
+          result = await Promise.race([controllerSuspension, timeout.promise]);
+        } catch (retryError) {
+          if (retryError instanceof ChaseOrderSuspensionError) {
+            const suspendedOrdersByHandle = new Map(
+              [...error.suspendedOrders, ...retryError.suspendedOrders].map(
+                (order) => [order.handle, order],
+              ),
+            );
+            const suspendedOrders = [...suspendedOrdersByHandle.values()];
+            if (
+              isCurrentLifecycle() &&
+              generation === requestGeneration &&
+              route === getRouteKey()
+            ) {
+              cachedRoute = route;
+              cachedOrders = mergeWithCachedHistory(suspendedOrders, true);
+              emitChange();
+            }
+            throw new ChaseOrderSuspensionError({
+              suspendedOrders,
+              failures: retryError.failures,
+            });
+          }
+          throw error;
+        }
+      }
     } catch (error) {
       if (error === timeout.error) {
-        // Controller 13.1.0 exposes no cancellation or resume API. Keep the
-        // caller bound while the fail-safe suspension finishes, then reconcile
+        // Keep the caller bound while the fail-safe suspension finishes, then reconcile
         // through a fresh authoritative read. Never cache the late result.
         controllerSuspension
           .then(() => {
@@ -475,7 +539,6 @@ const recordTerminalChaseOrder = (
       ? {
           ...order,
           status,
-          terminalObservedAt: order.terminalObservedAt ?? Date.now(),
         }
       : order,
   );
@@ -529,7 +592,9 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
       startRetainedDiscovery(true);
     }
     return () => {
-      if (isEnabled) enabledConsumerCount -= 1;
+      if (isEnabled) {
+        enabledConsumerCount = Math.max(0, enabledConsumerCount - 1);
+      }
       syncRefreshLifecycle();
     };
   }, [isEnabled]);
@@ -537,6 +602,7 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
   // exactly one discovery read for the new route.
   useEffect(() => {
     selectedRoute = route;
+    selectedProviderMode = activeProvider ?? '';
     if (cachedRoute === route) {
       syncRefreshLifecycle();
       return;
@@ -548,7 +614,7 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     cachedRoute = route;
     cachedOrders = [];
     setDiscoveryResolvedRoute('');
-  }, [route]);
+  }, [activeProvider, route]);
   useEffect(() => {
     if (!connectionIdentityReady) {
       requestGeneration += 1;

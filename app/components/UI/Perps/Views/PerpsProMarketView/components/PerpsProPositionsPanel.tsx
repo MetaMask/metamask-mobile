@@ -20,6 +20,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  CHASE_ORDER_STATUS,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
@@ -75,10 +76,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import { usePerpsTrading } from '../../../hooks/usePerpsTrading';
-import {
-  type ChaseOrderWithClientMetadata,
-  usePerpsChaseOrders,
-} from '../../../hooks/usePerpsChaseOrders';
+import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../../../selectors/featureFlags';
 import {
   selectPerpsNetwork,
@@ -108,8 +106,6 @@ import {
 } from '../utils/proPositionSideFilter';
 import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
-import { compareProSortValues } from '../utils/proSortCompare';
-import { formatDurationForDisplay } from '../../../utils/time';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -120,18 +116,15 @@ const isChaseHistoryOrder = (order: ChaseOrder) =>
   CHASE_HISTORY_STATUSES.has(order.status);
 
 const CHASE_TRANSLATED_STATUSES: ReadonlySet<ChaseOrder['status']> = new Set([
-  'termination_pending',
-  'canceled',
-  'backgrounded',
-  'max_distance_reached',
-  'duration_reached',
-  'repricing_limit_reached',
-  'filled',
-  'failed',
+  ...Object.values(CHASE_ORDER_STATUS).filter(
+    (status) => status !== CHASE_ORDER_STATUS.Active,
+  ),
 ]);
 
 const getChaseStatusLabel = (status: ChaseOrder['status']) => {
-  if (status === 'active') return strings('perps.order.chase.running');
+  if (status === CHASE_ORDER_STATUS.Active) {
+    return strings('perps.order.chase.running');
+  }
   return CHASE_TRANSLATED_STATUSES.has(status)
     ? strings(`perps.order.chase.status.${status}`)
     : strings('perps.order.chase.status.unknown');
@@ -183,9 +176,8 @@ interface PerpsProPositionsPanelProps {
  *
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * Positions, Orders, and Chase tabs present the user's live and retained
- * trading state. Sort and side-filter preferences persist independently via
- * PerpsController; Chase applies the order preference while its side/ticker
- * filters stay local to the panel. `$TICKER only` is shared local UI state.
+ * trading state. Position and order preferences persist via PerpsController;
+ * Chase retains controller order while its side/ticker filters stay local.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -417,43 +409,21 @@ const PerpsProPositionsPanel = ({
     [orderSortConfig, sideFilteredOrders],
   );
 
-  const visibleChaseOrders = useMemo(() => {
-    const filteredOrders = chaseOrders.filter((order) => {
-      if (isTickerOnly && order.symbol !== symbol) {
-        return false;
-      }
-      if (chaseSideFilter === 'all') {
-        return true;
-      }
-      return chaseSideFilter === 'long'
-        ? order.side === 'buy'
-        : order.side === 'sell';
-    });
-    const getSortValue = (order: ChaseOrder) => {
-      const size = Math.abs(Number.parseFloat(order.originalSize)) || 0;
-      const price = Number.parseFloat(order.restingPrice) || 0;
-      switch (orderSortConfig.field) {
-        case 'orderValue':
-          return size * price;
-        case 'size':
-          return size;
-        case 'price':
-          return price;
-        case 'time':
-          return order.startedAt;
-        default:
-          return 0;
-      }
-    };
-    return [...filteredOrders].sort((left, right) =>
-      compareProSortValues(
-        getSortValue(left),
-        getSortValue(right),
-        orderSortConfig.direction,
-        () => left.handle.localeCompare(right.handle),
-      ),
-    );
-  }, [chaseOrders, chaseSideFilter, isTickerOnly, orderSortConfig, symbol]);
+  const visibleChaseOrders = useMemo(
+    () =>
+      chaseOrders.filter((order) => {
+        if (isTickerOnly && order.symbol !== symbol) {
+          return false;
+        }
+        if (chaseSideFilter === 'all') {
+          return true;
+        }
+        return chaseSideFilter === 'long'
+          ? order.side === 'buy'
+          : order.side === 'sell';
+      }),
+    [chaseOrders, chaseSideFilter, isTickerOnly, symbol],
+  );
   const activeChaseOrders = useMemo(
     () => visibleChaseOrders.filter((order) => !isChaseHistoryOrder(order)),
     [visibleChaseOrders],
@@ -463,24 +433,29 @@ const PerpsProPositionsPanel = ({
       visibleChaseOrders.filter(
         (order) =>
           isChaseHistoryOrder(order) &&
-          (!isFilledOnly || order.status === 'filled'),
+          (!isFilledOnly || order.status === CHASE_ORDER_STATUS.Filled),
       ),
     [isFilledOnly, visibleChaseOrders],
   );
   const displayedChaseOrders =
     chaseActivityFilter === 'active' ? activeChaseOrders : historyChaseOrders;
-  const unfilteredActivityChaseOrders = chaseOrders.filter((order) => {
-    const matchesActivity =
-      chaseActivityFilter === 'active'
-        ? !isChaseHistoryOrder(order)
-        : isChaseHistoryOrder(order) &&
-          (!isFilledOnly || order.status === 'filled');
-    return matchesActivity;
-  });
-  const tickerFilteredActivityChaseOrders =
-    unfilteredActivityChaseOrders.filter(
-      (order) => !isTickerOnly || order.symbol === symbol,
-    );
+  const unfilteredActivityChaseOrders = useMemo(
+    () =>
+      chaseOrders.filter((order) =>
+        chaseActivityFilter === 'active'
+          ? !isChaseHistoryOrder(order)
+          : isChaseHistoryOrder(order) &&
+            (!isFilledOnly || order.status === CHASE_ORDER_STATUS.Filled),
+      ),
+    [chaseActivityFilter, chaseOrders, isFilledOnly],
+  );
+  const tickerFilteredActivityChaseOrders = useMemo(
+    () =>
+      unfilteredActivityChaseOrders.filter(
+        (order) => !isTickerOnly || order.symbol === symbol,
+      ),
+    [isTickerOnly, symbol, unfilteredActivityChaseOrders],
+  );
   const isChaseSideFilterEmpty =
     chaseSideFilter !== 'all' &&
     tickerFilteredActivityChaseOrders.length > 0 &&
@@ -704,7 +679,7 @@ const PerpsProPositionsPanel = ({
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
         return;
       }
-      recordChaseOrderStatus(order.handle, 'canceled');
+      recordChaseOrderStatus(order.handle, CHASE_ORDER_STATUS.Canceled);
       try {
         await getChaseOrders();
       } catch (error) {
@@ -775,15 +750,11 @@ const PerpsProPositionsPanel = ({
     [playSelection],
   );
 
-  const renderChaseCard = (
-    order: ChaseOrderWithClientMetadata,
-    index: number,
-  ) => {
+  const renderChaseCard = (order: ChaseOrder, index: number) => {
     const displayOrderSymbol = getPerpsDisplaySymbol(order.symbol);
     const isHistoryOrder = isChaseHistoryOrder(order);
-    const isCancelable =
-      !isHistoryOrder && order.status !== 'termination_pending';
-    const isFilled = order.status === 'filled';
+    const isCancelable = !isHistoryOrder;
+    const isFilled = order.status === CHASE_ORDER_STATUS.Filled;
     const filledSize = BigNumber(order.originalSize)
       .minus(order.remainingSize)
       .abs()
@@ -796,20 +767,12 @@ const PerpsProPositionsPanel = ({
             ranges: PRICE_RANGES_UNIVERSAL,
           })
         : PERPS_CONSTANTS.FallbackPriceDisplay;
-    const runtime = order.terminalObservedAt
-      ? formatDurationForDisplay(
-          Math.max(
-            0,
-            Math.round((order.terminalObservedAt - order.startedAt) / 1000),
-          ),
-        )
-      : PERPS_CONSTANTS.FallbackDataDisplay;
     const maxDistance =
       order.maxDistanceBps === undefined
         ? PERPS_CONSTANTS.FallbackPercentageDisplay
         : `${chaseDistanceFormatter.format(order.maxDistanceBps / 100)}%`;
     const progressLabel =
-      order.status === 'active' && order.maxDistanceBps
+      order.status === CHASE_ORDER_STATUS.Active && order.maxDistanceBps
         ? `${Math.min(
             100,
             Math.round((order.distanceChasedBps / order.maxDistanceBps) * 100),
@@ -917,12 +880,8 @@ const PerpsProPositionsPanel = ({
                   />
                 </View>
                 <ChaseKeyValueItem
-                  label={strings(
-                    isHistoryOrder
-                      ? 'perps.order.chase.card.runtime'
-                      : 'perps.order.chase.card.max_distance',
-                  )}
-                  value={isHistoryOrder ? runtime : maxDistance}
+                  label={strings('perps.order.chase.card.max_distance')}
+                  value={maxDistance}
                 />
               </Box>
             </Box>
@@ -1006,6 +965,7 @@ const PerpsProPositionsPanel = ({
       >
         <Box twClassName="flex-1">
           <TabsBar
+            key={shouldShowChaseTab ? 'chase-visible' : 'chase-hidden'}
             tabs={tabs}
             activeIndex={activeIndex}
             onTabPress={setActiveIndex}

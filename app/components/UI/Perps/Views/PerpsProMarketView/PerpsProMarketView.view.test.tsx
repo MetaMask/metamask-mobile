@@ -24,6 +24,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
+import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -77,6 +78,7 @@ let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
 
 beforeEach(() => {
+  resetPerpsChaseOrdersStoreForTests();
   connectionReadySpy = jest
     .spyOn(PerpsConnectionManager, 'isSelectedUserContextReady')
     .mockReturnValue(true);
@@ -88,6 +90,7 @@ beforeEach(() => {
 afterEach(() => {
   connectionReadySpy.mockRestore();
   connectionSubscriptionSpy.mockRestore();
+  resetPerpsChaseOrdersStoreForTests();
 });
 
 const renderFundedProMarket = () =>
@@ -573,7 +576,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'shows status copy while Chase termination is pending',
+    'retries termination while Chase termination is pending',
     async () => {
       const pendingChase: ChaseOrder = {
         ...activeChase,
@@ -581,7 +584,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       };
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
       getChaseOrders.mockResolvedValue([pendingChase]);
+      cancelOrder.mockClear();
       renderFundedProMarket();
 
       fireEvent.press(
@@ -601,8 +607,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       ).toHaveTextContent(
         strings('perps.order.chase.status.termination_pending'),
       );
-      expect(
-        screen.queryByTestId(
+      fireEvent.press(
+        screen.getByTestId(
           getPerpsProChaseTerminateSelector(
             'termination_pending',
             'ETH',
@@ -610,7 +616,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
             true,
           ),
         ),
-      ).not.toBeOnTheScreen();
+      );
+
+      await waitFor(() =>
+        expect(cancelOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderId: pendingChase.handle,
+            orderType: 'chase',
+          }),
+        ),
+      );
     },
   );
 

@@ -116,6 +116,7 @@ import {
 } from '../../../../utils/triggerOrderValidation';
 import {
   CHASE_ORDER_UI_CONFIG,
+  CHASE_RETAINED_STATUSES,
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -144,7 +145,7 @@ const SCALE_SIZE_SEARCH_MAX_STEPS = Math.ceil(
 );
 const SCALE_VALIDATION_MAX_ATTEMPTS = 2;
 const occupiesChasePlacementSlot = (order: Pick<ChaseOrder, 'status'>) =>
-  order.status === 'active' || order.status === 'termination_pending';
+  CHASE_RETAINED_STATUSES.has(order.status);
 type ScaleOrderValidationCode =
   | 'prices_required'
   | 'size_required'
@@ -614,7 +615,7 @@ export const usePerpsProOrderForm = ({
   const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
     useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
-  const { chaseOrders = [], getChaseOrders } = usePerpsChaseOrders({
+  const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled,
   });
   const [chaseMaxDistance, setChaseMaxDistance] = useState('');
@@ -687,7 +688,9 @@ export const usePerpsProOrderForm = ({
   const currentSubmissionState =
     orderForm.type === 'chase'
       ? JSON.stringify({
-          orderForm,
+          type: orderForm.type,
+          asset: orderForm.asset,
+          direction: orderForm.direction,
           reduceOnly,
           chaseMaxDistance,
           chaseMaxDistanceUnit,
@@ -838,6 +841,11 @@ export const usePerpsProOrderForm = ({
       (isChaseMaxDistanceBpsResolvable &&
         (!Number.isFinite(chaseMaxDistanceBps) ||
           chaseMaxDistanceBps >= BASIS_POINTS_DIVISOR)));
+  const chaseMaxDistanceErrorMessage = strings(
+    chaseMaxDistanceUnit === 'usd'
+      ? 'perps.order.validation.chase_max_distance_usd'
+      : 'perps.order.validation.chase_max_distance_percent',
+  );
 
   const normalizedTriggerPrice = canonicalizeOrderPrice(
     triggerPrice,
@@ -2259,9 +2267,7 @@ export const usePerpsProOrderForm = ({
           latestChaseMaxDistanceBps <= 0 ||
           latestChaseMaxDistanceBps >= BASIS_POINTS_DIVISOR)
       ) {
-        reportValidationFailure(
-          strings('perps.order.validation.chase_max_distance'),
-        );
+        reportValidationFailure(chaseMaxDistanceErrorMessage);
         return;
       }
 
@@ -2669,7 +2675,7 @@ export const usePerpsProOrderForm = ({
       list.push({
         id: 'chase-max-distance',
         variant: 'banner',
-        message: strings('perps.order.validation.chase_max_distance'),
+        message: chaseMaxDistanceErrorMessage,
       });
     }
 
@@ -2694,6 +2700,7 @@ export const usePerpsProOrderForm = ({
     twapDurationErrorMessage,
     twapMinimumSizeError,
     activeChaseCount,
+    chaseMaxDistanceErrorMessage,
     isChaseMaxDistanceInvalid,
   ]);
 

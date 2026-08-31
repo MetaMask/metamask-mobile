@@ -100,7 +100,7 @@ export interface BuildPerpsOrderParamsInput {
   effectivePrice: number;
   leverage: number;
   usdAmount?: string;
-  /** Effective max slippage (bps); Chase preserves it and limit orders use the fixed default. */
+  /** Effective max slippage (bps); limit orders use the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
   chaseMaxDistanceBps?: number;
@@ -166,23 +166,19 @@ export const buildPerpsOrderParams = ({
     leverage,
     ...(usdAmount !== undefined ? { usdAmount } : {}),
     priceAtCalculation: effectivePrice,
-    ...(orderType === 'chase'
-      ? { maxSlippageBps }
-      : !isStrategyOrder
-        ? {
-            maxSlippageBps: isLimitExecutionOrderType(orderType)
-              ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-              : maxSlippageBps,
-          }
-        : {}),
+    ...(!isStrategyOrder
+      ? {
+          maxSlippageBps: isLimitExecutionOrderType(orderType)
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : maxSlippageBps,
+        }
+      : {}),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
     ...(orderType === 'chase' && chaseMaxDistanceBps !== undefined
       ? { chaseMaxDistanceBps }
       : {}),
-    ...(isLimitExecutionOrderType(orderType) &&
-    orderType !== 'chase' &&
-    limitPrice
+    ...(isLimitExecutionOrderType(orderType) && limitPrice
       ? { price: limitPrice }
       : {}),
     ...(isTriggerOrderType(orderType) && triggerPrice?.trim()

@@ -664,7 +664,6 @@ export const PerpsProOrderFormSelectorsIDs = {
     'perps-pro-order-form-scale-preview-liquidation-value',
   SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
   CHASE_FORM: 'perps-pro-chase-order-form',
-  CHASE_ADVANCED_SETTINGS: 'perps-pro-chase-advanced-settings',
   CHASE_MAX_DISTANCE_INPUT: 'perps-pro-chase-max-distance-field',
   CHASE_MAX_DISTANCE_PREFIX: 'perps-pro-chase-max-distance-prefix',
   CHASE_MAX_DISTANCE_UNIT: 'perps-pro-chase-max-distance-unit',

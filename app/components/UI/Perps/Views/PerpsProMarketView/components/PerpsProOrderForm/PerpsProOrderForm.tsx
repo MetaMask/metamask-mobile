@@ -306,7 +306,7 @@ const OrderSummary = ({
 
 interface ScaleInputConfig {
   inputTestID: string;
-  inputRef: React.RefObject<TextInput | null>;
+  inputRef: React.RefObject<PerpsProCompactInputRef | null>;
   containerRef?: React.Ref<View>;
   label: string;
   value: string;
@@ -496,10 +496,10 @@ const PerpsProOrderForm = ({
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
   const { playSelection } = useHaptics();
-  const scaleStartPriceRef = useRef<TextInput>(null);
-  const scaleEndPriceRef = useRef<TextInput>(null);
-  const scaleTotalOrdersRef = useRef<TextInput>(null);
-  const scaleSizeSkewRef = useRef<TextInput>(null);
+  const scaleStartPriceRef = useRef<PerpsProCompactInputRef>(null);
+  const scaleEndPriceRef = useRef<PerpsProCompactInputRef>(null);
+  const scaleTotalOrdersRef = useRef<PerpsProCompactInputRef>(null);
+  const scaleSizeSkewRef = useRef<PerpsProCompactInputRef>(null);
   const chaseMaxDistanceInputRef = useRef<PerpsProCompactInputRef>(null);
   const sizeInputRef = useRef<TextInput>(null);
   const isLong = direction === 'long';
@@ -507,7 +507,7 @@ const PerpsProOrderForm = ({
   const isScaleFormLocked = isScaleOrder && isPlaceOrderLoading;
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const isChase = orderType === 'chase';
-  const showsLimitPrice = isLimitExecutionOrderType(orderType) && !isChase;
+  const showsLimitPrice = isLimitExecutionOrderType(orderType);
   const isTwap = orderType === 'twap';
   const showsTpSl =
     !reduceOnly && !showsTriggerPrice && !isTwap && !isScaleOrder && !isChase;

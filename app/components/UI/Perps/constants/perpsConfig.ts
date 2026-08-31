@@ -10,6 +10,7 @@
  */
 import type { Hex } from '@metamask/utils';
 import {
+  CHASE_ORDER_STATUS,
   HYPERLIQUID_TWAP_LIMITS,
   type ChaseOrder,
 } from '@metamask/perps-controller';
@@ -153,17 +154,17 @@ export const CHASE_ORDER_UI_CONFIG = {
 
 export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
   new Set([
-    'backgrounded',
-    'canceled',
-    'duration_reached',
-    'failed',
-    'filled',
-    'max_distance_reached',
-    'repricing_limit_reached',
+    CHASE_ORDER_STATUS.Backgrounded,
+    CHASE_ORDER_STATUS.Canceled,
+    CHASE_ORDER_STATUS.DurationReached,
+    CHASE_ORDER_STATUS.Failed,
+    CHASE_ORDER_STATUS.Filled,
+    CHASE_ORDER_STATUS.MaxDistanceReached,
+    CHASE_ORDER_STATUS.RepricingLimitReached,
   ]);
 
 export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
-  new Set(['active', 'termination_pending']);
+  new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
 /**
  * Decimal places used when displaying how far a position's current price sits
