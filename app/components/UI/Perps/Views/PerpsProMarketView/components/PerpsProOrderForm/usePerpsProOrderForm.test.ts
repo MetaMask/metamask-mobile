@@ -469,6 +469,7 @@ describe('usePerpsProOrderForm', () => {
     mockOrderForm.direction = 'long';
     mockOrderForm.amount = '100';
     mockOrderForm.leverage = 5;
+    mockOrderForm.balancePercent = 10;
     mockOrderForm.limitPrice = undefined;
     mockContextValue.triggerPrice = undefined;
     mockContextValue.hasBlurredLimitPrice = false;
@@ -1422,8 +1423,9 @@ describe('usePerpsProOrderForm', () => {
         {},
         { refresh },
       );
+      let submitPromise: Promise<void> | undefined;
       act(() => {
-        form.result.current.onPlaceOrderPress();
+        submitPromise = form.result.current.onPlaceOrderPress();
       });
 
       mockContextValue.orderForm = { ...mockOrderForm, type: 'market' };
@@ -1689,19 +1691,99 @@ describe('usePerpsProOrderForm', () => {
         {},
         { refresh },
       );
+      let submitPromise: Promise<void> | undefined;
       act(() => {
-        form.result.current.onPlaceOrderPress();
+        submitPromise = form.result.current.onPlaceOrderPress();
       });
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
       mockSelectedAddress = '0xaccount-b';
       form.rerender({});
-      await act(async () => resolveOrders?.([]));
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it('continues Chase submit when a MAX amount updates during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      mockOrderForm.balancePercent = 100;
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        amount: '99',
+      };
+      form.rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      await waitFor(() => expect(mockExecuteOrder).toHaveBeenCalledTimes(1));
+    });
+
+    it('abandons Chase submit when an explicit size changes during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      mockOrderForm.balancePercent = 0;
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        amount: '99',
+      };
+      form.rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('abandons Chase submit when leverage changes during session refresh', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -1719,19 +1801,23 @@ describe('usePerpsProOrderForm', () => {
         {},
         { refresh },
       );
+      let submitPromise: Promise<void> | undefined;
       act(() => {
-        form.result.current.onPlaceOrderPress();
+        submitPromise = form.result.current.onPlaceOrderPress();
       });
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
       mockContextValue.orderForm = {
         ...mockOrderForm,
-        amount: '99',
+        leverage: 10,
       };
       form.rerender({});
-      await act(async () => resolveOrders?.([]));
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
 
-      await waitFor(() => expect(mockExecuteOrder).toHaveBeenCalledTimes(1));
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
     it('uses the latest reference price for Chase USD distance', async () => {

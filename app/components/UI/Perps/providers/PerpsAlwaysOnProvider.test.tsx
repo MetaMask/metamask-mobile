@@ -615,6 +615,38 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it('uses the leaving-active suspension decision after discovery resolves while inactive', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    mockIsChaseOrderDiscoveryResolved = false;
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    act(() => mockAppStateListener?.('inactive'));
+    expect(mockDisconnect).not.toHaveBeenCalled();
+
+    mockIsChaseOrderDiscoveryResolved = true;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('suspends Chase orders once when iOS transitions through inactive to background', async () => {
     render(
       <PerpsAlwaysOnProvider>
@@ -727,6 +759,41 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         data: { notification_type: 'perps_chase_backgrounded' },
+      }),
+    );
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports every asset and uses truthful copy for multiple suspended orders', async () => {
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'chase-b', symbol: 'ETH', status: 'backgrounded' },
+      { handle: 'chase-a', symbol: 'BTC', status: 'backgrounded' },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'ETH' }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'BTC' }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'perps-chase-backgrounded-chase-a-chase-b',
+        body: '2 Chase orders are now resting as limit orders at their last chased prices.',
       }),
     );
     expect(mockDisconnect).toHaveBeenCalledTimes(1);

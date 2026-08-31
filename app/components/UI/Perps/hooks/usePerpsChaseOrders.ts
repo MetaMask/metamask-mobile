@@ -227,6 +227,9 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
       }
       refreshFailureLogged = false;
       cachedRoute = route;
+      // Controller v15 returns only successful aggregated reads and exposes no
+      // completeness metadata. Preserve missing retained sessions; only an
+      // empty response against a live cache is detectable as incomplete.
       const isIncompleteAggregatedRead =
         selectedProviderMode === 'aggregated' &&
         orders.length === 0 &&
@@ -438,6 +441,7 @@ const suspendAndCacheChaseOrders = async (
           cachedOrders = mergeWithCachedHistory(error.suspendedOrders, true);
           emitChange();
         }
+        // Both attempts share one timeout so the full suspension stays bounded.
         controllerSuspension =
           Engine.context.PerpsController.suspendChaseOrders();
         try {
@@ -464,7 +468,7 @@ const suspendAndCacheChaseOrders = async (
               failures: retryError.failures,
             });
           }
-          throw error;
+          throw retryError;
         }
       }
     } catch (error) {

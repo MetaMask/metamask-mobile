@@ -1870,6 +1870,7 @@
         "foreground_notice": "Keep the app open while the Chase order is running.",
         "backgrounded_title": "Chase paused",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
+        "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
         "active": "Active",

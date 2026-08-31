@@ -691,6 +691,15 @@ export const usePerpsProOrderForm = ({
           type: orderForm.type,
           asset: orderForm.asset,
           direction: orderForm.direction,
+          sizeIntent:
+            orderForm.balancePercent === 100
+              ? { mode: 'max' }
+              : {
+                  mode: 'explicit',
+                  amount: orderForm.amount,
+                  balancePercent: orderForm.balancePercent,
+                },
+          leverage: orderForm.leverage,
           reduceOnly,
           chaseMaxDistance,
           chaseMaxDistanceUnit,
