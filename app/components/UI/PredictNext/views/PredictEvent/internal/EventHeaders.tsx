@@ -85,27 +85,26 @@ const TeamLogo = ({
   const [imageFailed, setImageFailed] = useState(false);
 
   return (
-    <Box
-      twClassName="h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-muted"
-      accessible={false}
-    >
+    <Box twClassName="h-14 w-14 items-center justify-center" accessible={false}>
       {team.logoUrl && !imageFailed ? (
         <ExpoImage
           testID={PredictEventScreenTestIds.teamLogo(selection)}
           source={team.logoUrl}
           recyclingKey={team.logoUrl}
           contentFit="contain"
-          style={tw.style('h-12 w-12')}
+          style={tw.style('h-14 w-14')}
           onError={() => setImageFailed(true)}
         />
       ) : (
-        <Text
-          testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Bold}
-        >
-          {abbreviation}
-        </Text>
+        <Box twClassName="h-14 w-14 items-center justify-center rounded-full bg-muted">
+          <Text
+            testID={PredictEventScreenTestIds.teamLogoFallback(selection)}
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Bold}
+          >
+            {abbreviation}
+          </Text>
+        </Box>
       )}
     </Box>
   );
