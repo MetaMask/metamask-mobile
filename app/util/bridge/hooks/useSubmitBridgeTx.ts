@@ -1,6 +1,8 @@
-import type {
-  MetaMetricsSwapsEventSource,
-  QuoteResponse,
+import {
+  getQuotesReceivedProperties,
+  type MetaMetricsSwapsEventSource,
+  type QuoteMetadata,
+  type QuoteResponse,
 } from '@metamask/bridge-controller';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -9,17 +11,11 @@ import {
   selectAbTestContext,
   selectBridgeControllerState,
   selectDestToken,
+  selectIsSlippageUserOverride,
   selectIsGasIncludedSTXSendBundleSupported,
+  selectSlippage,
 } from '../../../core/redux/slices/bridge';
 import { useABTest } from '../../../hooks';
-import {
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-} from '../../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-} from '../../../components/UI/Bridge/components/TokenSelectorItem.abTestConfig';
 import {
   SWAPS_CTA_BUTTON_COLOR_AB_KEY,
   SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
@@ -44,6 +40,7 @@ import {
   normalizeActiveABTestAssignments,
 } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
+import { useUnifiedSwapBridgeContext } from '../../../components/UI/Bridge/hooks/useUnifiedSwapBridgeContext';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -62,17 +59,12 @@ export default function useSubmitBridgeTx() {
   const stxEnabled = useSelector(selectIsGasIncludedSTXSendBundleSupported);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destToken = useSelector(selectDestToken);
+  const slippage = useSelector(selectSlippage);
+  const isSlippageUserOverride =
+    useSelector(selectIsSlippageUserOverride) ?? false;
   const bridgeControllerState = useSelector(selectBridgeControllerState);
+  const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const abTestContext = useSelector(selectAbTestContext);
-  const { variantName: numpadVariantName, isActive: isNumpadAbActive } =
-    useABTest(NUMPAD_QUICK_ACTIONS_AB_KEY, NUMPAD_QUICK_ACTIONS_VARIANTS);
-  const {
-    variantName: tokenSelectorVariantName,
-    isActive: isTokenSelectorAbActive,
-  } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
   const {
     variantName: ambientColorVariantName,
     isActive: isAmbientColorAbActive,
@@ -98,24 +90,6 @@ export default function useSubmitBridgeTx() {
     : undefined;
   const activeAbTests = useMemo(() => {
     const tests: TransactionActiveAbTestEntry[] = [];
-
-    if (isNumpadAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          NUMPAD_QUICK_ACTIONS_AB_KEY,
-          numpadVariantName,
-        ),
-      );
-    }
-
-    if (isTokenSelectorAbActive) {
-      tests.push(
-        createActiveABTestAssignment(
-          TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-          tokenSelectorVariantName,
-        ),
-      );
-    }
 
     if (isAmbientColorAbActive) {
       tests.push(
@@ -146,10 +120,6 @@ export default function useSubmitBridgeTx() {
 
     return tests.length > 0 ? tests : undefined;
   }, [
-    isNumpadAbActive,
-    numpadVariantName,
-    isTokenSelectorAbActive,
-    tokenSelectorVariantName,
     isAmbientColorAbActive,
     ambientColorVariantName,
     isCtaButtonColorAbActive,
@@ -180,6 +150,24 @@ export default function useSubmitBridgeTx() {
     const tokenSecurityTypeDestination = destToken?.securityData?.type ?? null;
     const inputPrimaryDenomination =
       bridgeControllerState?.inputPrimaryDenomination ?? 'token_amount';
+    const quotesReceivedContext = getQuotesReceivedProperties(
+      quoteResponse,
+      [],
+      true,
+      undefined,
+      undefined,
+      undefined,
+      {
+        custom_slippage: isSlippageUserOverride,
+        slippage_limit: slippage === undefined ? undefined : Number(slippage),
+        usd_amount_source:
+          unifiedSwapBridgeContext.usd_amount_source || undefined,
+        token_symbol_source:
+          unifiedSwapBridgeContext.token_symbol_source || undefined,
+        token_symbol_destination:
+          unifiedSwapBridgeContext.token_symbol_destination || undefined,
+      },
+    );
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
@@ -192,6 +180,7 @@ export default function useSubmitBridgeTx() {
             activeAbTests: mergedActiveAbTests,
             tokenSecurityTypeDestination,
             inputPrimaryDenomination,
+            quotesReceivedContext,
             migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           });
         }
@@ -199,7 +188,7 @@ export default function useSubmitBridgeTx() {
           walletAddress,
           quoteResponse,
           stxEnabled,
-          undefined, // quotesReceivedContext
+          quotesReceivedContext,
           location,
           abTests,
           mergedActiveAbTests,

@@ -75,6 +75,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -193,6 +195,8 @@ export enum TraceName {
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
   PerpsLoadingSession = 'Perps Loading Session',
+  /** Market-detail mount to section resolution offsets for one mode/context generation. */
+  PerpsMarketDetailSession = 'Perps Market Detail Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -204,7 +208,7 @@ export enum TraceName {
   // Perps user-perceived CUF spans: gesture/open -> render with live data
   /** Tap/open -> Perps market list rendered with live prices. */
   PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
-  /** Market route open -> stats + chart + top-of-book live. */
+  /** Market detail mount -> metadata + stats + price + account resolved. */
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',

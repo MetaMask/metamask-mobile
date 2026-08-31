@@ -20,9 +20,16 @@ interface RootProps extends ChildrenProps {
 }
 
 const Root = ({ children, testID }: RootProps) => (
-  <Box testID={testID} twClassName="gap-[14px] rounded-2xl bg-section p-4">
+  <Box
+    testID={testID}
+    twClassName="gap-[14px] overflow-hidden rounded-2xl bg-section p-4"
+  >
     {children}
   </Box>
+);
+
+const Footer = ({ children }: ChildrenProps) => (
+  <Box twClassName="-mx-4 -mb-4">{children}</Box>
 );
 
 const Header = ({ children }: ChildrenProps) => (
@@ -138,6 +145,7 @@ const OutcomeButton = ({
 
 export const MarketCard = {
   Root,
+  Footer,
   Header,
   Summary,
   Title,
