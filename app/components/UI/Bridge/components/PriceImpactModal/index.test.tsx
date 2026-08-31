@@ -197,7 +197,7 @@ const defaultParams = {
 };
 
 const defaultViewData = {
-  textColor: TextColor.TextAlternative,
+  textColor: TextColor.TextDefault,
   icon: undefined,
   title: 'bridge.price_impact_info_title',
   description: 'bridge.price_impact_info_description',
