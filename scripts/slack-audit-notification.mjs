@@ -6,8 +6,26 @@
  * configured, their manager (see .github/audit-owners.yml and
  * docs/readme/dependency-audit.md).
  *
+ * Runs in one of two stages, controlled by SLACK_STAGE, so the owner gets a
+ * heads-up as soon as new advisories are found instead of only learning
+ * about them once a PR already exists (which can be several minutes later,
+ * once the AI-assisted tier has had a chance to run):
+ *   - "detected" (posted right after tier 1 runs, before any PR is opened):
+ *     announces how many advisories tier 1 auto-fixed vs. how many are being
+ *     escalated to the AI-assisted tier, with a link to the running workflow.
+ *   - "result" (default; posted once both tiers and any tracking issue are
+ *     done): the final summary with links to whichever of the tier 1 PR /
+ *     tier 2 PR / tracking issue actually got created.
+ * The "result" message is posted as a threaded reply to the "detected"
+ * message when SLACK_THREAD_TS is set, so both land in one place in Slack.
+ *
  * Required env: SLACK_BOT_TOKEN, AUDIT_RESULT_PATH
  * Optional env: OWNERS_YML_PATH (default .github/audit-owners.yml),
+ *               SLACK_STAGE ("detected" | "result", default "result"),
+ *               SLACK_THREAD_TS (reply in this thread instead of posting top-level),
+ *               SLACK_MESSAGE_TS_PATH (default slack-message-ts.txt; where this
+ *               run's message timestamp is written, so a later "result" call
+ *               can thread off of it),
  *               PR_URL, AI_PR_URL, ISSUE_URL, RUN_URL,
  *               SLACK_AUDIT_NOTIFICATION_DRY_RUN
  */
@@ -46,10 +64,63 @@ function advisoryLine(entry) {
 }
 
 /**
+ * The "we just found something and are working on it" message, posted before
+ * any PR exists — see the SLACK_STAGE doc comment above.
  * @param {object} options
  * @returns {{blocks: object[], text: string}}
  */
-function buildSlackMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
+function buildDetectedMessage({ fixedCount, manualCount, runUrl, ownerSlackId, managerSlackId }) {
+  const mentions = [`<@${ownerSlackId}>`];
+  if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
+
+  const total = fixedCount + manualCount;
+  const headerText = total === 1
+    ? '🔎 Dependency audit: 1 new advisory detected'
+    : `🔎 Dependency audit: ${total} new advisories detected`;
+
+  const summaryLines = [];
+  if (fixedCount > 0) {
+    summaryLines.push(`✅ ${fixedCount} auto-fixed already (tier 1, deterministic) — opening a PR now.`);
+  }
+  if (manualCount > 0) {
+    summaryLines.push(`🤖 ${manualCount} need a closer look — escalating to the AI-assisted tier now.`);
+  }
+
+  const blocks = [
+    { type: 'header', text: { type: 'plain_text', text: headerText, emoji: true } },
+    { type: 'section', text: { type: 'mrkdwn', text: summaryLines.join('\n') } },
+  ];
+
+  if (runUrl) {
+    blocks.push({
+      type: 'section',
+      text: { type: 'mrkdwn', text: `<${runUrl}|Watch the run> — I'll reply in this thread once a PR or tracking issue is ready.` },
+    });
+  }
+
+  blocks.push(
+    { type: 'divider' },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `cc ${mentions.join(' ')} — see docs/readme/dependency-audit.md for the escalation process and SLA.`,
+        },
+      ],
+    },
+  );
+
+  return { blocks, text: headerText };
+}
+
+/**
+ * The final "here's what happened" message, posted once both tiers and any
+ * tracking issue are done — see the SLACK_STAGE doc comment above.
+ * @param {object} options
+ * @returns {{blocks: object[], text: string}}
+ */
+function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
   const mentions = [`<@${ownerSlackId}>`];
   if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
 
@@ -114,9 +185,10 @@ function buildSlackMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, ow
  * @param {string} botToken
  * @param {string} channelId
  * @param {{blocks: object[], text: string}} payload
- * @returns {Promise<{success: boolean}>}
+ * @param {string} [threadTs] - reply in this thread instead of posting top-level
+ * @returns {Promise<{success: boolean, ts?: string}>}
  */
-async function postToSlack(botToken, channelId, payload) {
+async function postToSlack(botToken, channelId, payload, threadTs) {
   try {
     const response = await fetch('https://slack.com/api/chat.postMessage', {
       method: 'POST',
@@ -130,6 +202,7 @@ async function postToSlack(botToken, channelId, payload) {
         text: payload.text,
         unfurl_links: false,
         unfurl_media: false,
+        ...(threadTs ? { thread_ts: threadTs } : {}),
       }),
     });
 
@@ -138,7 +211,7 @@ async function postToSlack(botToken, channelId, payload) {
       throw new Error(`Slack API error: ${data.error}`);
     }
     console.log('✅ Slack notification sent successfully');
-    return { success: true };
+    return { success: true, ts: data.ts };
   } catch (error) {
     console.error(`❌ Failed to post to Slack: ${error.message}`);
     return { success: false };
@@ -148,6 +221,7 @@ async function postToSlack(botToken, channelId, payload) {
 async function main() {
   const dryRunEnv = process.env.SLACK_AUDIT_NOTIFICATION_DRY_RUN;
   const isDryRun = dryRunEnv === '1' || String(dryRunEnv).toLowerCase() === 'true';
+  const stage = process.env.SLACK_STAGE === 'detected' ? 'detected' : 'result';
 
   const requiredEnvVars = isDryRun ? ['AUDIT_RESULT_PATH'] : ['AUDIT_RESULT_PATH', 'SLACK_BOT_TOKEN'];
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
@@ -166,27 +240,39 @@ async function main() {
     return;
   }
 
-  const payload = buildSlackMessage({
-    fixed,
-    manual,
-    prUrl: process.env.PR_URL || '',
-    aiPrUrl: process.env.AI_PR_URL || '',
-    issueUrl: process.env.ISSUE_URL || '',
-    runUrl: process.env.RUN_URL || '',
-    ownerSlackId: owners.owner.slack_id,
-    managerSlackId: owners.manager?.slack_id,
-  });
+  const payload = stage === 'detected'
+    ? buildDetectedMessage({
+      fixedCount: fixed.length,
+      manualCount: manual.length,
+      runUrl: process.env.RUN_URL || '',
+      ownerSlackId: owners.owner.slack_id,
+      managerSlackId: owners.manager?.slack_id,
+    })
+    : buildResultMessage({
+      fixed,
+      manual,
+      prUrl: process.env.PR_URL || '',
+      aiPrUrl: process.env.AI_PR_URL || '',
+      issueUrl: process.env.ISSUE_URL || '',
+      runUrl: process.env.RUN_URL || '',
+      ownerSlackId: owners.owner.slack_id,
+      managerSlackId: owners.manager?.slack_id,
+    });
 
   if (isDryRun) {
     console.log('\n--- Slack payload (dry run) ---\n');
-    console.log(JSON.stringify({ channel: owners.slack_channel, ...payload }, null, 2));
+    console.log(JSON.stringify({ channel: owners.slack_channel, stage, threadTs: process.env.SLACK_THREAD_TS || null, ...payload }, null, 2));
     console.log('\n--- end dry run ---\n');
     return;
   }
 
-  const result = await postToSlack(process.env.SLACK_BOT_TOKEN, owners.slack_channel, payload);
+  const result = await postToSlack(process.env.SLACK_BOT_TOKEN, owners.slack_channel, payload, process.env.SLACK_THREAD_TS);
   if (!result.success) {
     console.log('⚠️ Slack notification failed but continuing (non-critical)');
+    return;
+  }
+  if (result.ts) {
+    fs.writeFileSync(process.env.SLACK_MESSAGE_TS_PATH || 'slack-message-ts.txt', result.ts);
   }
 }
 

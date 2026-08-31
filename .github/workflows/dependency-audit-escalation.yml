@@ -11,8 +11,11 @@ name: Dependency Audit Escalation
 #      trusts it — see the trust-model comment at the top of that script.
 # Both PRs are titled with a cp-<next-release> token so the existing
 # add-release-label automation tags them for release. Whatever neither tier
-# can fix gets filed/updated as a tracking issue, and the audit owner (and
-# their manager, if configured) is pinged in Slack either way. See
+# can fix gets filed/updated as a tracking issue. The audit owner (and their
+# manager, if configured) gets pinged in Slack twice: once right after tier 1
+# runs (so they know something was found before waiting on tier 2/PR
+# creation), and once at the end with links to whatever PR(s)/issue actually
+# got created, threaded off the first message. See
 # docs/readme/dependency-audit.md for the process, SLA, and how to accept a
 # risk instead of fixing it.
 
@@ -121,6 +124,24 @@ jobs:
           MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
           echo "fixed-count=$FIXED_COUNT" >> "$GITHUB_OUTPUT"
           echo "manual-count=$MANUAL_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack (detected)
+        id: notify-detected
+        # Fires as soon as tier 1 has run, before any PR exists, so the owner
+        # doesn't wait until the (potentially several-minutes-long) AI tier
+        # and PR/issue creation finish just to learn something was found.
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.fix.outputs.manual-count != '0') }}
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_STAGE: detected
+          AUDIT_RESULT_PATH: audit-fix-result.json
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node scripts/slack-audit-notification.mjs
+          if [[ -f slack-message-ts.txt ]]; then
+            echo "thread-ts=$(cat slack-message-ts.txt)" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Read audit owner
         id: owner
@@ -259,7 +280,7 @@ jobs:
           fi
           echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Notify Slack
+      - name: Notify Slack (result)
         if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.ai-fix.outputs.ai-fixed-count != '0' || steps.ai-fix.outputs.manual-count != '0') }}
         shell: bash
         env:
@@ -269,4 +290,8 @@ jobs:
           AI_PR_URL: ${{ steps.ai-fix.outputs.pr-url }}
           ISSUE_URL: ${{ steps.manual-issue.outputs.issue-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Threads off the "detected" message when it fired, so both land
+          # together in Slack. Empty when notify-detected was skipped/failed —
+          # slack-audit-notification.mjs then just posts top-level.
+          SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
         run: node scripts/slack-audit-notification.mjs

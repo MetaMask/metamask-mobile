@@ -18,9 +18,10 @@ flowchart TD
     fix1 -->|"cannot auto-fix"| fix2["Tier 2: scripts/attempt-audit-fix-ai.ts (Cursor Cloud Agent)"]
     fix2 -->|"verified fixed"| pr2["Tier 2 PR: cp-NEXT_SEMVER (AI-assisted), re-verified against the actual lockfile"]
     fix2 -->|"still cannot fix, or rejected by the file allowlist check"| issue["Tracking issue, assigned to the audit owner"]
-    pr1 --> slack["Slack: cc audit owner + manager"]
-    pr2 --> slack
-    issue --> slack
+    fix1 --> slack1["Slack: 'N advisories detected' (cc owner + manager)"]
+    pr1 --> slack2["Slack: final summary + links, threaded off the first message"]
+    pr2 --> slack2
+    issue --> slack2
     pr1 --> label["Merge to main applies a release-x.y.z label"]
     pr2 --> label
     label --> pick["Release engineers cherry-pick into any open release/* branch"]
@@ -53,9 +54,10 @@ To rotate the owner or manager, edit that file directly and open a normal PR —
    - A `resolutions` pin to the lowest published version outside the vulnerable range, for direct or transitive dependencies.
    - Each attempt is verified by re-running the audit for that advisory, then `yarn dedupe` and `yarn constraints`; anything that doesn't come back clean is reverted.
    - Advisories it could fix are bundled into **one PR** titled `fix: patch dependency audit advisories cp-<next-release>`, assigned to the owner.
-4. **Tier 2 — AI-assisted.** Whatever tier 1 couldn't clear (nothing published to bump to, or a fix that needs more than a version bump — e.g. dropping a stale `resolutions` override) goes to [`scripts/attempt-audit-fix-ai.ts`](../../scripts/attempt-audit-fix-ai.ts), which hands the batch to a Cursor Cloud Agent. See "The AI-assisted tier, and what keeps it safe" below for the trust model. Advisories it verifiably fixes are bundled into a second PR, also titled `cp-<next-release>`.
-5. Advisories neither tier could fix are filed as (or added to) **one open tracking issue** labeled `dependency-audit-manual`, assigned to the owner.
-6. Slack posts a summary to the configured channel — with links to whichever of the tier 1 PR / tier 2 PR / tracking issue exist — tagging the owner and manager.
+4. **Slack: "detected".** As soon as tier 1 finishes — before any PR exists yet — [`scripts/slack-audit-notification.mjs`](../../scripts/slack-audit-notification.mjs) (`SLACK_STAGE=detected`) posts how many advisories were auto-fixed vs. how many are being escalated to tier 2, with a link to the running workflow. This is so the owner isn't left waiting in silence while tier 2 (which calls out to a Cursor Cloud Agent and can take a few minutes) runs.
+5. **Tier 2 — AI-assisted.** Whatever tier 1 couldn't clear (nothing published to bump to, or a fix that needs more than a version bump — e.g. dropping a stale `resolutions` override) goes to [`scripts/attempt-audit-fix-ai.ts`](../../scripts/attempt-audit-fix-ai.ts), which hands the batch to a Cursor Cloud Agent. See "The AI-assisted tier, and what keeps it safe" below for the trust model. Advisories it verifiably fixes are bundled into a second PR, also titled `cp-<next-release>`.
+6. Advisories neither tier could fix are filed as (or added to) **one open tracking issue** labeled `dependency-audit-manual`, assigned to the owner.
+7. **Slack: "result".** The same script (`SLACK_STAGE=result`, the default) posts the final summary — with links to whichever of the tier 1 PR / tier 2 PR / tracking issue exist — tagging the owner and manager, as a threaded reply to the "detected" message from step 4.
 
 Run it manually via `workflow_dispatch` in the Actions tab to trigger triage outside the daily schedule.
 
