@@ -26,7 +26,6 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
-import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
@@ -35,7 +34,6 @@ import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHw
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
@@ -48,7 +46,6 @@ jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
-jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
 jest.mock('../pay/useFiatConfirm');
 jest.mock('../../../../../util/navigation/navUtils', () => ({
@@ -85,7 +82,6 @@ const useGaslessSupportedSmartTransactionsMock = jest.mocked(
 const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
-const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 const useHandleHwSendMock = jest.mocked(useHandleHwSend);
 const onFiatConfirmMock = jest.fn();
@@ -202,10 +198,6 @@ describe('useTransactionConfirm', () => {
     useHandleHwSendMock.mockReturnValue({
       shouldDefer: jest.fn(() => false),
       defer: jest.fn(),
-    });
-
-    useMusdConfirmNavigationMock.mockReturnValue({
-      navigateOnConfirm: mockMusdNavigateOnConfirm,
     });
 
     useIsGaslessSupportedMock.mockReturnValue({
@@ -591,21 +583,6 @@ describe('useTransactionConfirm', () => {
 
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-    });
-
-    it('calls musdConversionNavigateOnConfirm if musdConversion', async () => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: transactionIdMock,
-        type: TransactionType.musdConversion,
-      } as TransactionMeta);
-
-      const { result } = renderHook();
-
-      await act(async () => {
-        await result.current.onConfirm();
-      });
-
-      expect(mockMusdNavigateOnConfirm).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {

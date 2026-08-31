@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { AppState } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -23,6 +24,10 @@ interface MeasurementOptions {
   traceName: TraceName;
   op?: TraceOperation; // Optional operation type, defaults to PerpsOperation
 
+  // Starts a fresh measurement when the owning screen changes generation
+  // without unmounting, such as switching the active market in-place.
+  resetKey?: string | number;
+
   // Simple API - most common case
   conditions?: boolean[]; // Start immediately, end when all conditions are true
 
@@ -30,6 +35,15 @@ interface MeasurementOptions {
   startConditions?: boolean[];
   endConditions?: boolean[];
   resetConditions?: boolean[];
+  resetReason?: string;
+  blockStartWhileReset?: boolean;
+
+  // Blocks work after the owning session has ended. An active span is closed
+  // as unsuccessful when ownership is cancelled.
+  ownerActive?: boolean;
+  // Consumers that cancel on background must include their foreground
+  // generation in resetKey so the trace restarts when the owner resumes.
+  cancelOnAppBackground?: boolean;
 
   debugContext?: Record<string, unknown>;
 
@@ -88,10 +102,15 @@ interface MeasurementOptions {
 export const usePerpsMeasurement = ({
   traceName,
   op = TraceOperation.PerpsOperation, // Default to PerpsOperation for all UI measurements
+  resetKey,
   conditions,
   startConditions,
   endConditions,
   resetConditions,
+  resetReason = 'reset',
+  blockStartWhileReset = false,
+  ownerActive = true,
+  cancelOnAppBackground = false,
   debugContext = {},
   tags,
   endData,
@@ -102,6 +121,32 @@ export const usePerpsMeasurement = ({
   const traceStarted = useRef(false);
   const traceId = useRef<string>(uuidv4()); // Generate new ID on each trace start
   const activeTraceName = useRef(traceName);
+  const previousResetKey = useRef(resetKey);
+  const appStateActive = useRef(AppState.currentState === 'active');
+
+  useEffect(() => {
+    if (!cancelOnAppBackground) {
+      return;
+    }
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      appStateActive.current = nextState === 'active';
+      if (appStateActive.current || !traceStarted.current) {
+        return;
+      }
+
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: 'app_backgrounded' },
+      });
+      traceStarted.current = false;
+      hasCompleted.current = false;
+      previousStartState.current = false;
+      previousEndState.current = false;
+    });
+
+    return () => subscription.remove();
+  }, [cancelOnAppBackground]);
 
   // Note: debugContext is used directly rather than memoized since:
   // 1. It's typically used sparingly for debugging/logging
@@ -156,25 +201,63 @@ export const usePerpsMeasurement = ({
   );
 
   useEffect(() => {
-    // Handle reset conditions
-    if (shouldReset && (traceStarted.current || hasCompleted.current)) {
-      // End any active trace before resetting
-      if (traceStarted.current) {
-        endTrace({
-          name: traceName,
-          id: traceId.current,
-          data: {
-            success: false,
-            reason: 'reset',
-          },
-        });
-        traceStarted.current = false;
-      }
+    if (previousResetKey.current === resetKey) {
+      return;
+    }
+
+    if (traceStarted.current) {
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: 'generation_changed' },
+      });
+      traceStarted.current = false;
+    }
+    hasCompleted.current = false;
+    previousStartState.current = false;
+    previousEndState.current = false;
+    previousResetKey.current = resetKey;
+  }, [resetKey]);
+
+  const pauseForInactiveOwner = useCallback(() => {
+    if (ownerActive && (!cancelOnAppBackground || appStateActive.current)) {
+      return false;
+    }
+    if (!ownerActive && traceStarted.current) {
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: 'owner_cancelled' },
+      });
+      traceStarted.current = false;
+    }
+    previousStartState.current = false;
+    previousEndState.current = false;
+    return true;
+  }, [cancelOnAppBackground, ownerActive]);
+
+  const resetCurrentMeasurement = useCallback(() => {
+    if (!shouldReset) return false;
+    const hadActiveOrCompletedTrace =
+      traceStarted.current || hasCompleted.current;
+    if (traceStarted.current) {
+      endTrace({
+        name: activeTraceName.current,
+        id: traceId.current,
+        data: { success: false, reason: resetReason },
+      });
+      traceStarted.current = false;
+    }
+    if (hadActiveOrCompletedTrace) {
       hasCompleted.current = false;
       previousStartState.current = false;
       previousEndState.current = false;
-      return;
     }
+    return hadActiveOrCompletedTrace || blockStartWhileReset;
+  }, [blockStartWhileReset, resetReason, shouldReset]);
+
+  useEffect(() => {
+    if (pauseForInactiveOwner() || resetCurrentMeasurement()) return;
 
     // Handle start conditions
     if (shouldStart && !previousStartState.current && !traceStarted.current) {
@@ -236,9 +319,12 @@ export const usePerpsMeasurement = ({
   }, [
     traceName,
     op,
+    resetKey,
     shouldStart,
     shouldEnd,
     shouldReset,
+    pauseForInactiveOwner,
+    resetCurrentMeasurement,
     debugContext,
     tags,
     endData,

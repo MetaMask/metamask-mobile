@@ -37,7 +37,6 @@ class ImportSrpView {
         : `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`;
 
     return resolve({
-      detoxTestID: testID,
       androidAppiumTestID: testID,
       iosAppiumXPath: this.getAppiumIosSeedPhraseXPath(index),
     });
