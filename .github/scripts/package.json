@@ -9,7 +9,7 @@
     "check-template-and-add-labels": "ts-node ./check-template-and-add-labels.ts",
     "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
     "gen:commits": "node generate-rc-commits.mjs",
-    "check-feature-flag-registry": "ts-node ./check-feature-flag-registry.ts",
+    "check-feature-flag-registry": "ts-node ./qa/feature-flags-registry/check-feature-flag-registry.ts",
     "flaky-history-analysis": "ts-node ./flaky-history-analysis.ts",
     "flaky-sticky-comment": "ts-node ./flaky-sticky-comment.ts"
   },

@@ -5,7 +5,7 @@
  *
  * Usage:
  *   yarn appium-smoke:aggregate-timings
- *   yarn tsx .github/scripts/aggregate-appium-timings.ts [--input <dir>] [--markdown <path>]
+ *   yarn tsx .github/scripts/qa-automation/performance-tests/aggregate-appium-timings.ts [--input <dir>] [--markdown <path>]
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -18,9 +18,9 @@ import {
   loadTimingFile,
   parseArgs,
   type TimingSuiteFile,
-} from '../../tests/framework/telemetry/aggregatePhaseTimings.ts';
+} from '../../../../tests/framework/telemetry/aggregatePhaseTimings.ts';
 
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 function main(argv: string[] = process.argv.slice(2)): void {
   const opts = parseArgs(argv, resolve(repoRoot, DEFAULT_INPUT_DIR));

@@ -27,7 +27,7 @@ import {
   binPackShards,
   planShards,
   baseSpecPath,
-} from './shared/e2e-timing-shards.mjs';
+} from './e2e-timing-shards.mjs';
 
 const env = {
   TEST_SUITE_TAG: process.env.TEST_SUITE_TAG,

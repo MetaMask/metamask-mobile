@@ -335,8 +335,14 @@ function isE2ERelevantWorkflow(file: string): boolean {
       normalizedFile.endsWith('.yml')) ||
     (normalizedFile.startsWith('.github/workflows/run-appium-') &&
       normalizedFile.endsWith('.yml')) ||
-    (normalizedFile.startsWith('.github/scripts/e2e-') &&
-      normalizedFile.endsWith('.mjs'))
+    ((normalizedFile.startsWith('.github/scripts/qa-automation/reporting/') ||
+      normalizedFile.startsWith('.github/scripts/qa-automation/e2e-sharding/') ||
+      normalizedFile.startsWith(
+        '.github/actions/smart-e2e-selection/',
+      )) &&
+      normalizedFile.endsWith('.mjs')) ||
+    normalizedFile === '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs' ||
+    normalizedFile.startsWith('.github/scripts/qa-automation/e2e-ci-orchestration/')
   );
 }
 

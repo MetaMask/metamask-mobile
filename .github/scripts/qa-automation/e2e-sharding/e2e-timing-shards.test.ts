@@ -5,7 +5,7 @@ import {
   binPackShards,
   timingLookupKey,
   baseSpecPath,
-} from './shared/e2e-timing-shards.mjs';
+} from './e2e-timing-shards.mjs';
 
 describe('e2e-timing-shards', () => {
   describe('computeShardingSplit (equal-count fallback)', () => {
