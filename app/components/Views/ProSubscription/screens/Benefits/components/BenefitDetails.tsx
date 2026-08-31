@@ -74,7 +74,7 @@ const BenefitDetails = ({
 
         {details.link && (
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodySm}
             color={TextColor.TextDefault}
             twClassName="mb-3 self-start border-b border-border-default"
             onPress={handleLinkPress}
