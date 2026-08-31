@@ -325,8 +325,8 @@ export function resolvePreferredPayToken({
  * Deposit-direction flows funded by the Money Account (Money Account, Perps,
  * and Predict deposits) set `refundTo: MA` so failed Relay bridges refund to
  * the MA rather than the funding EOA. Money Account deposits additionally
- * flip `atomic: false` later via `useTransactionCustomAmount`'s `setIsMax`
- * when the user toggles max amount.
+ * flip `atomic: false` later via `setMoneyAccountDepositMaxAtomic` when the
+ * user toggles max amount.
  *
  * Money Account withdraw (`moneyAccountWithdraw`) keeps the default atomic
  * path with no recipient override: `processTransactions` overwrites the quote
@@ -364,6 +364,12 @@ export function applyMoneyAccountOverride(
   });
 }
 
+/**
+ * Toggle non-atomic mode on a Money Account deposit based on whether the user
+ * has selected the max-amount option. Only max-amount deposits need the
+ * post-Relay vault-deposit path; regular deposits stay atomic (EXPECTED_OUTPUT
+ * with the vault deposit embedded in the Relay bundle).
+ */
 export function getTotalPayFeesUsd(
   fees: TransactionPayTotals['fees'],
 ): BigNumber {
@@ -371,4 +377,16 @@ export function getTotalPayFeesUsd(
     .plus(fees.sourceNetwork?.estimate?.usd ?? 0)
     .plus(fees.targetNetwork?.usd ?? 0)
     .plus(fees.metaMask?.usd ?? 0);
+}
+
+export function setMoneyAccountDepositMaxAtomic(
+  transactionId: string,
+  isMax: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      config.atomic = isMax ? false : undefined;
+    },
+  );
 }

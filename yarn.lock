@@ -9177,18 +9177,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/logging-controller@npm:^8.0.2":
-  version: 8.0.2
-  resolution: "@metamask/logging-controller@npm:8.0.2"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.0.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    uuid: "npm:^8.3.2"
-  checksum: 10/6dc5a9b4d643c427c2c95d5618975d98933314fb3e1ec11fed87e966332648cbb2e5725d8cde76111b619fd2a5dc76b4596a8d214b02227dae446625b4ecdb34
-  languageName: node
-  linkType: hard
-
 "@metamask/logging-controller@npm:^9.0.0":
   version: 9.0.0
   resolution: "@metamask/logging-controller@npm:9.0.0"
@@ -10178,29 +10166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/signature-controller@npm:^39.2.0":
-  version: 39.2.9
-  resolution: "@metamask/signature-controller@npm:39.2.9"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^39.0.6"
-    "@metamask/approval-controller": "npm:^9.0.2"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/eth-sig-util": "npm:^8.2.0"
-    "@metamask/gator-permissions-controller": "npm:^5.0.1"
-    "@metamask/keyring-controller": "npm:^27.1.0"
-    "@metamask/logging-controller": "npm:^8.0.2"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/network-controller": "npm:^35.0.0"
-    "@metamask/utils": "npm:^11.11.0"
-    jsonschema: "npm:^1.4.1"
-    lodash: "npm:^4.17.21"
-    uuid: "npm:^8.3.2"
-  checksum: 10/0fd22ba1f9c7a5f6733a06ec8f89bdb787ae1bd2b7aca21e5f48580ddb74d3875754e6d323a15812d54c957e20f9687455731f9901a61e8530e8e8328c12f3f8
-  languageName: node
-  linkType: hard
-
-"@metamask/signature-controller@npm:^39.2.10":
+"@metamask/signature-controller@npm:^39.2.0, @metamask/signature-controller@npm:^39.2.10":
   version: 39.2.10
   resolution: "@metamask/signature-controller@npm:39.2.10"
   dependencies:
@@ -18471,17 +18437,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.101.4, @tanstack/query-core@npm:^5.90.20":
+"@tanstack/query-core@npm:5.101.4, @tanstack/query-core@npm:^5.62.16, @tanstack/query-core@npm:^5.90.20":
   version: 5.101.4
   resolution: "@tanstack/query-core@npm:5.101.4"
   checksum: 10/df86031035ac9a5cf54efece85718b90e93fca62068a44a176da232b6dd49b27168840f2da18c64a0eb25d171bc3fb1aab417db4643025cd194ff887833bd73f
-  languageName: node
-  linkType: hard
-
-"@tanstack/query-core@npm:^5.62.16":
-  version: 5.90.20
-  resolution: "@tanstack/query-core@npm:5.90.20"
-  checksum: 10/25e38f4382442bc15e0f6cce8d787e9df8d8822c61d3f3e9427e89e01b1e2506f848292e086dae29aeb55f8ce71b097c34221f3c5eda37fb4a688b5ceca5d1b3
   languageName: node
   linkType: hard
 
@@ -37207,21 +37166,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:3.3.18, nanoid@npm:^3.3.11":
+"nanoid@npm:3.3.18, nanoid@npm:^3.3.10, nanoid@npm:^3.3.11, nanoid@npm:^3.3.12, nanoid@npm:^3.3.8":
   version: 3.3.18
   resolution: "nanoid@npm:3.3.18"
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 10/1b3b4fdac831b92b56d1dbe8b1e63a372432faf86ea383134e3b53141ef8108a60b7f84343b5cefecac9550bb74edf8164da93ea07d1c4f757039bc75d8a5d9e
-  languageName: node
-  linkType: hard
-
-"nanoid@npm:^3.3.10, nanoid@npm:^3.3.12, nanoid@npm:^3.3.8":
-  version: 3.3.12
-  resolution: "nanoid@npm:3.3.12"
-  bin:
-    nanoid: bin/nanoid.cjs
-  checksum: 10/6eec280694e2088d18fb802b1e3bfc4578e27b665b7ecfbe36c7356612fea2f814277056e671e2a1529dff551588a652efdc0bfa39f8a3185bc2247be311872e
   languageName: node
   linkType: hard
 
@@ -40168,14 +40118,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^19.0.0, react-is@npm:^19.2.0":
-  version: 19.2.7
-  resolution: "react-is@npm:19.2.7"
-  checksum: 10/ae0d3ae7638aa2fa2a82a78a817daf2806e57fa0aef357d07e1e8d1e9a301902e5967168e9334b5816db0df8fa980a725cd57569ba5a9e6e76a71e117b18be04
-  languageName: node
-  linkType: hard
-
-"react-is@npm:^19.1.0":
+"react-is@npm:^19.0.0, react-is@npm:^19.1.0, react-is@npm:^19.2.0":
   version: 19.2.8
   resolution: "react-is@npm:19.2.8"
   checksum: 10/09d053ff36e0ba4d47164baf9eab1c7772791f0371aa92281f0e547e0f6a5a5c8a1eb939aadd1a08b3c565958dd63ee59c746b6ac0d5ccb14ad742ac0314ab15
