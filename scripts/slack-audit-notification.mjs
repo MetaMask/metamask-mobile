@@ -8,7 +8,7 @@
  *
  * Required env: SLACK_BOT_TOKEN, AUDIT_RESULT_PATH
  * Optional env: OWNERS_YML_PATH (default .github/audit-owners.yml),
- *               PR_URL, ISSUE_URL, RUN_URL,
+ *               PR_URL, AI_PR_URL, ISSUE_URL, RUN_URL,
  *               SLACK_AUDIT_NOTIFICATION_DRY_RUN
  */
 
@@ -49,7 +49,7 @@ function advisoryLine(entry) {
  * @param {object} options
  * @returns {{blocks: object[], text: string}}
  */
-function buildSlackMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
+function buildSlackMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
   const mentions = [`<@${ownerSlackId}>`];
   if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
 
@@ -87,6 +87,7 @@ function buildSlackMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlackI
 
   const links = [];
   if (prUrl) links.push(`<${prUrl}|View fix PR>`);
+  if (aiPrUrl) links.push(`<${aiPrUrl}|View AI-assisted fix PR>`);
   if (issueUrl) links.push(`<${issueUrl}|View tracking issue>`);
   if (runUrl) links.push(`<${runUrl}|View workflow run>`);
   if (links.length > 0) {
@@ -169,6 +170,7 @@ async function main() {
     fixed,
     manual,
     prUrl: process.env.PR_URL || '',
+    aiPrUrl: process.env.AI_PR_URL || '',
     issueUrl: process.env.ISSUE_URL || '',
     runUrl: process.env.RUN_URL || '',
     ownerSlackId: owners.owner.slack_id,

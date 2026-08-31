@@ -175,6 +175,7 @@
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
     "audit:attempt-fix": "yarn ts-node --transpile-only scripts/attempt-audit-fix.ts",
+    "audit:attempt-fix:ai": "yarn ts-node --transpile-only scripts/attempt-audit-fix-ai.ts",
     "skills:postinstall": "metamask-skills postinstall"
   },
   "lint-staged": {
@@ -622,6 +623,7 @@
     "@babel/preset-env": "^7.25.3",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.25.0",
+    "@cursor/sdk": "^1.0.30",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@expo/metro-config": "~55.0.23",

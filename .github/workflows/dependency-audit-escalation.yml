@@ -1,13 +1,20 @@
 name: Dependency Audit Escalation
 
 # `yarn audit:ci` is advisory-only in ci.yml (dependency-audit job) — it never
-# blocks a PR. This workflow is the actual triage loop: it re-runs the audit
-# daily against main, attempts a deterministic fix per advisory, opens one PR
-# bundling whatever it could fix (titled with a cp-<next-release> token so the
-# existing add-release-label automation tags it for release), files/updates a
-# tracking issue for whatever it could not fix, and pings the audit owner and
-# their manager in Slack. See docs/readme/dependency-audit.md for the process,
-# SLA, and how to accept a risk instead of fixing it.
+# blocks a PR. This workflow is the actual triage loop, in two fix tiers:
+#   1. scripts/attempt-audit-fix.ts — deterministic: yarn up / a resolutions
+#      pin, verified and reverted on failure. Bundled into one PR.
+#   2. scripts/attempt-audit-fix-ai.ts — a Cursor Cloud Agent attempts
+#      whatever tier 1 couldn't clear (dropping a stale resolutions override,
+#      bumping a parent package, etc). Its own PR is independently
+#      re-verified against the actual resulting lockfile before this workflow
+#      trusts it — see the trust-model comment at the top of that script.
+# Both PRs are titled with a cp-<next-release> token so the existing
+# add-release-label automation tags them for release. Whatever neither tier
+# can fix gets filed/updated as a tracking issue, and the audit owner (and
+# their manager, if configured) is pinged in Slack either way. See
+# docs/readme/dependency-audit.md for the process, SLA, and how to accept a
+# risk instead of fixing it.
 
 on:
   schedule:
@@ -125,7 +132,9 @@ jobs:
 
       - name: Get the next semver version
         id: next-semver
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.fixed-count != '0' }}
+        # Needed whenever either fix tier might open a PR, not just tier 1 —
+        # tier 2 (AI) can still produce a PR even when tier 1 fixed nothing.
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.fix.outputs.manual-count != '0') }}
         env:
           FORCE_NEXT_SEMVER_VERSION: ${{ vars.FORCE_NEXT_SEMVER_VERSION }}
         run: ./.github/scripts/get-next-semver-version.sh "$FORCE_NEXT_SEMVER_VERSION"
@@ -188,9 +197,32 @@ jobs:
             --reviewer "$OWNER_GH")
           echo "pr-url=$PR_URL" >> "$GITHUB_OUTPUT"
 
+      - name: Attempt AI-assisted fix for advisories tier 1 couldn't clear
+        id: ai-fix
+        # Always runs whenever tier 1 finished (even with zero manual items,
+        # or with no CURSOR_API_KEY configured yet) so its manual-count
+        # output is always set — never rely on an unset step output here,
+        # see the has-advisories/fixed-count empty-string bug fixed above.
+        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          OWNER_GH: ${{ steps.owner.outputs.github }}
+        run: |
+          yarn audit:attempt-fix:ai audit-fix-result.json
+          MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
+          AI_FIXED_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.filter((e) => e.method === 'ai-cloud-agent').length)")
+          AI_PR_URL=$(cat audit-ai-pr-url.txt 2>/dev/null || echo '')
+          {
+            echo "manual-count=$MANUAL_COUNT"
+            echo "ai-fixed-count=$AI_FIXED_COUNT"
+            echo "pr-url=$AI_PR_URL"
+          } >> "$GITHUB_OUTPUT"
+
       - name: File or update tracking issue for advisories needing manual review
         id: manual-issue
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.ai-fix.outputs.manual-count != '0' }}
         shell: bash
         env:
           GH_TOKEN: ${{ steps.get-token.outputs.token }}
@@ -228,12 +260,13 @@ jobs:
           echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack
-        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.fix.outputs.manual-count != '0') }}
+        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.ai-fix.outputs.ai-fixed-count != '0' || steps.ai-fix.outputs.manual-count != '0') }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           AUDIT_RESULT_PATH: audit-fix-result.json
           PR_URL: ${{ steps.fix-pr.outputs.pr-url }}
+          AI_PR_URL: ${{ steps.ai-fix.outputs.pr-url }}
           ISSUE_URL: ${{ steps.manual-issue.outputs.issue-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/slack-audit-notification.mjs
