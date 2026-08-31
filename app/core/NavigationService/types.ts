@@ -1072,6 +1072,7 @@ export type RootStackParamList = {
 
   // Earn routes
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnSearchList: EarnScreensStackParamList['EarnSearchList'];
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];

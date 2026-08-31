@@ -378,7 +378,6 @@ const ENTRY_POINT_MAP: [TransactionType[], MmPayEntryPoint][] = [
     [TransactionType.moneyAccountDeposit, TransactionType.moneyAccountWithdraw],
     'money_account',
   ],
-  [[TransactionType.musdConversion], 'money_hub'],
 ];
 
 function getEntryPoint(

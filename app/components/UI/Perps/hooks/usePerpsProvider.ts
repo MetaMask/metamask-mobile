@@ -17,6 +17,7 @@ import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
 import {
   PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
+  PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 
 interface OrderCapabilitiesState {
@@ -24,6 +25,14 @@ interface OrderCapabilitiesState {
   capabilities: PerpsOrderCapabilities | null;
   isLoading: boolean;
 }
+
+type ReadyOrderCapabilities = Extract<
+  PerpsOrderCapabilities,
+  { status: 'ready' }
+>;
+type SupportedOrderStrategy =
+  ReadyOrderCapabilities['supportedStrategies'][number];
+type OrderCapabilityProviderId = ReadyOrderCapabilities['providerId'];
 
 const EMPTY_ORDER_CAPABILITIES_STATE: OrderCapabilitiesState = {
   capabilities: null,
@@ -212,6 +221,44 @@ export function usePerpsProvider(
   const supportsTwapOrders =
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.supportedStrategies.includes('twap');
+  const supportsScaleOrders =
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
+    orderCapabilities.supportedStrategies.includes('scale');
+  const checkOrderCapability = useCallback(
+    async (
+      strategy: SupportedOrderStrategy,
+      expectedProviderId?: OrderCapabilityProviderId,
+    ): Promise<boolean> => {
+      const symbol = orderCapabilitiesParams?.symbol;
+      if (!symbol || initializationState !== InitializationState.Initialized) {
+        return false;
+      }
+
+      try {
+        const capabilities =
+          await Engine.context.PerpsController.getOrderCapabilities({
+            symbol,
+            providerId: orderCapabilitiesParams?.providerId,
+          });
+        return (
+          capabilities.status === 'ready' &&
+          capabilities.supportedStrategies.includes(strategy) &&
+          (strategy !== 'scale' ||
+            capabilities.providerId === PROVIDER_CONFIG.DefaultProvider) &&
+          (!expectedProviderId ||
+            capabilities.providerId === expectedProviderId)
+        );
+      } catch {
+        return false;
+      }
+    },
+    [
+      initializationState,
+      orderCapabilitiesParams?.providerId,
+      orderCapabilitiesParams?.symbol,
+    ],
+  );
 
   /**
    * Check if multi-provider mode is enabled (more than one provider available)
@@ -236,6 +283,8 @@ export function usePerpsProvider(
     isLoadingOrderCapabilities,
     orderCapabilities,
     supportsTwapOrders,
+    supportsScaleOrders,
+    checkOrderCapability,
     isMultiProviderEnabled,
   };
 }

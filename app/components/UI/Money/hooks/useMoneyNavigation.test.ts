@@ -73,7 +73,7 @@ describe('useMoneyNavigation', () => {
     it('forwards analytics context through Money onboarding', () => {
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
+      act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ONBOARDING, {
         analyticsContext,
@@ -108,7 +108,7 @@ describe('useMoneyNavigation', () => {
       });
       const { result } = renderHook(() => useMoneyNavigation());
 
-      act(() => result.current.navigateToMoneyHome(analyticsContext));
+      act(() => result.current.navigateToMoneyHome({ analyticsContext }));
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.HOME_TABS,
