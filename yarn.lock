@@ -10691,7 +10691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
+"@metamask/utils@npm:11.11.0":
   version: 11.11.0
   resolution: "@metamask/utils@npm:11.11.0"
   dependencies:
@@ -10710,7 +10710,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^8.2.0":
+"@metamask/utils@npm:8.5.0":
   version: 8.5.0
   resolution: "@metamask/utils@npm:8.5.0"
   dependencies:
@@ -10727,7 +10727,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^9.0.0, @metamask/utils@npm:^9.1.0":
+"@metamask/utils@npm:9.3.0":
   version: 9.3.0
   resolution: "@metamask/utils@npm:9.3.0"
   dependencies:
@@ -10741,6 +10741,59 @@ __metadata:
     semver: "npm:^7.5.4"
     uuid: "npm:^9.0.1"
   checksum: 10/ed6648cd973bbf3b4eb0e862903b795a99d27784c820e19f62f0bc0ddf353e98c2858d7e9aaebc0249a586391b344e35b9249d13c08e3ea0c74b23dc1c6b1558
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch":
+  version: 11.11.0
+  resolution: "@metamask/utils@patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch::version=11.11.0&hash=a43292"
+  dependencies:
+    "@ethereumjs/tx": "npm:^4.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@noble/hashes": "npm:^1.3.1"
+    "@scure/base": "npm:^1.1.3"
+    "@types/debug": "npm:^4.1.7"
+    "@types/lodash": "npm:^4.17.20"
+    debug: "npm:^4.3.4"
+    lodash: "npm:^4.17.21"
+    pony-cause: "npm:^2.1.10"
+    semver: "npm:^7.5.4"
+    uuid: "npm:^9.0.1"
+  checksum: 10/8afcbc991e5f83fd2dcf378ccb1dbda9e30830f622270fbb55a7595ee376371481ddee6f45f6b99037fc9ca56c66350bba583ebff03f9786af94d24d7445d0ca
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@patch:@metamask/utils@npm%3A8.5.0#~/.yarn/patches/@metamask-utils-npm-8.5.0-bf696c2d49.patch":
+  version: 8.5.0
+  resolution: "@metamask/utils@patch:@metamask/utils@npm%3A8.5.0#~/.yarn/patches/@metamask-utils-npm-8.5.0-bf696c2d49.patch::version=8.5.0&hash=67b04b"
+  dependencies:
+    "@ethereumjs/tx": "npm:^4.2.0"
+    "@metamask/superstruct": "npm:^3.0.0"
+    "@noble/hashes": "npm:^1.3.1"
+    "@scure/base": "npm:^1.1.3"
+    "@types/debug": "npm:^4.1.7"
+    debug: "npm:^4.3.4"
+    pony-cause: "npm:^2.1.10"
+    semver: "npm:^7.5.4"
+    uuid: "npm:^9.0.1"
+  checksum: 10/c640e0911a1bfa890b9f27de943b204db71792d3a67191bc367f94a91dfa323f633157f114f4ff66fd55e4d15197318b8af41c27a73b91c2fba2b38b5d335d5b
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@patch:@metamask/utils@npm%3A9.3.0#~/.yarn/patches/@metamask-utils-npm-9.3.0-23e0ce3a26.patch":
+  version: 9.3.0
+  resolution: "@metamask/utils@patch:@metamask/utils@npm%3A9.3.0#~/.yarn/patches/@metamask-utils-npm-9.3.0-23e0ce3a26.patch::version=9.3.0&hash=097689"
+  dependencies:
+    "@ethereumjs/tx": "npm:^4.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@noble/hashes": "npm:^1.3.1"
+    "@scure/base": "npm:^1.1.3"
+    "@types/debug": "npm:^4.1.7"
+    debug: "npm:^4.3.4"
+    pony-cause: "npm:^2.1.10"
+    semver: "npm:^7.5.4"
+    uuid: "npm:^9.0.1"
+  checksum: 10/ee6d0cb99a5efc88bd80efefe015417b8e0966acf0681cd412bb4828139c210e8478581ec210c15618aa038ecb6a55b143c8c8e1543523f72bd96c9224c04f4e
   languageName: node
   linkType: hard
 
@@ -19548,9 +19601,9 @@ __metadata:
   linkType: hard
 
 "@types/lodash@npm:^4.14.162, @types/lodash@npm:^4.14.167, @types/lodash@npm:^4.14.184, @types/lodash@npm:^4.17.20":
-  version: 4.17.20
-  resolution: "@types/lodash@npm:4.17.20"
-  checksum: 10/8cd8ad3bd78d2e06a93ae8d6c9907981d5673655fec7cb274a4d9a59549aab5bb5b3017361280773b8990ddfccf363e14d1b37c97af8a9fe363de677f9a61524
+  version: 4.17.25
+  resolution: "@types/lodash@npm:4.17.25"
+  checksum: 10/f786e05664439cc8d327fd97c62c060d81b3c4ed52127d01fbc926139e1a669c1554bf3cd0dbb43f8fcc7d9b5c6c23c543cc36de8dc815c9f289ea852b26ebd6
   languageName: node
   linkType: hard
 
@@ -35797,7 +35850,7 @@ __metadata:
     "@metamask/transaction-controller": "npm:^69.6.0"
     "@metamask/transaction-pay-controller": "npm:^27.0.0"
     "@metamask/tron-wallet-snap": "npm:^1.33.1"
-    "@metamask/utils": "npm:^11.11.0"
+    "@metamask/utils": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch"
     "@metamask/wallet": "npm:^11.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"

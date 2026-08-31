@@ -1,0 +1,26 @@
+diff --git a/dist/caip-types.cjs b/dist/caip-types.cjs
+index db7ed45059ef95b2c170e0fa7ef908fac7c5c2ef..57918efa2aac5de61f1e2cdf4cdb2882287891c9 100644
+--- a/dist/caip-types.cjs
++++ b/dist/caip-types.cjs
+@@ -126,7 +126,7 @@ exports.isCaipAssetId = isCaipAssetId;
+ function parseCaipChainId(caipChainId) {
+     const match = exports.CAIP_CHAIN_ID_REGEX.exec(caipChainId);
+     if (!match?.groups) {
+-        throw new Error('Invalid CAIP chain ID.');
++        throw new Error('Invalid CAIP chain ID. CAIPDBG input=' + JSON.stringify(caipChainId) + ' typeof=' + typeof caipChainId + ' stack=' + new Error('x').stack);
+     }
+     return {
+         namespace: match.groups.namespace,
+diff --git a/dist/caip-types.mjs b/dist/caip-types.mjs
+index 2b4e7cb8870d87a820d22a1a8f1b27f61148c45b..7c7ce8e393161cbeeac450ec23fe1874098ab14e 100644
+--- a/dist/caip-types.mjs
++++ b/dist/caip-types.mjs
+@@ -116,7 +116,7 @@ export function isCaipAssetId(value) {
+ export function parseCaipChainId(caipChainId) {
+     const match = CAIP_CHAIN_ID_REGEX.exec(caipChainId);
+     if (!match?.groups) {
+-        throw new Error('Invalid CAIP chain ID.');
++        throw new Error('Invalid CAIP chain ID. CAIPDBG input=' + JSON.stringify(caipChainId) + ' typeof=' + typeof caipChainId + ' stack=' + new Error('x').stack);
+     }
+     return {
+         namespace: match.groups.namespace,
