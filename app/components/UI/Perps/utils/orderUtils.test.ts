@@ -249,7 +249,36 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Take profit limit close long');
     });
 
-    it('should handle trigger orders as closing orders', () => {
+    it.each([
+      ['buy', 'Stop market long'],
+      ['sell', 'Stop market short'],
+    ] as const)(
+      'formats a non-reduce-only %s trigger using its direct direction',
+      (side, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'ETH',
+          side,
+          orderType: 'market',
+          detailedOrderType: 'Stop Market',
+          size: '1',
+          originalSize: '1',
+          price: '2800',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: false,
+          isTrigger: true,
+        };
+
+        const result = formatOrderLabel(order);
+
+        expect(result).toBe(expectedLabel);
+      },
+    );
+
+    it('formats a legacy trigger without reduce-only as a closing order', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'ETH',
@@ -262,11 +291,12 @@ describe('orderUtils', () => {
         remainingSize: '1',
         status: 'open',
         timestamp: Date.now(),
-        reduceOnly: false,
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Market close short');
+      const result = formatOrderLabel(order);
+
+      expect(result).toBe('Market close short');
     });
   });
 
@@ -450,14 +480,16 @@ describe('orderUtils', () => {
       ).toBe('short');
     });
 
-    it('returns "long" for a trigger sell (TP/SL closing a long)', () => {
-      expect(
-        getOrderPositionDirection({
-          ...baseOrder,
-          side: 'sell',
-          isTrigger: true,
-        }),
-      ).toBe('long');
+    it('returns "short" for a non-reduce-only trigger sell', () => {
+      const order: Order = {
+        ...baseOrder,
+        side: 'sell',
+        isTrigger: true,
+      };
+
+      const result = getOrderPositionDirection(order);
+
+      expect(result).toBe('short');
     });
   });
 

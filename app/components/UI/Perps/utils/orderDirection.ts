@@ -6,12 +6,24 @@ import type { Order } from '@metamask/perps-controller';
  * No runtime imports.
  */
 
-/** Reduce-only and trigger (TP/SL) orders both close a position. */
+/**
+ * Whether an order is restricted to reducing an existing position.
+ *
+ * Provider data with an explicit `reduceOnly` value is authoritative because
+ * trigger orders can also open or increase a position. Older provider records
+ * may omit that value, so triggers retain their legacy closing classification
+ * only when `reduceOnly` is absent.
+ */
 export const isClosingOrder = ({
   reduceOnly,
   isTrigger,
-}: Partial<Pick<Order, 'reduceOnly' | 'isTrigger'>>): boolean =>
-  Boolean(reduceOnly || isTrigger);
+}: Partial<Pick<Order, 'reduceOnly' | 'isTrigger'>>): boolean => {
+  if (typeof reduceOnly === 'boolean') {
+    return reduceOnly;
+  }
+
+  return Boolean(isTrigger);
+};
 
 /**
  * Position direction implied by an order's side: a closing sell exits a long

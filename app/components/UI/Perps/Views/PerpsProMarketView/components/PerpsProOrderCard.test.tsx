@@ -318,7 +318,7 @@ describe('PerpsProOrderCard', () => {
       severity: TagSeverity.Danger,
     },
     {
-      name: 'trigger-only sell',
+      name: 'non-reduce-only trigger sell',
       order: {
         ...baseOrder,
         side: 'sell' as const,
@@ -328,7 +328,7 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '220',
       },
-      directionLabel: 'Close long',
+      directionLabel: 'Short',
       severity: TagSeverity.Danger,
     },
     {
@@ -345,7 +345,7 @@ describe('PerpsProOrderCard', () => {
       severity: TagSeverity.Danger,
     },
     {
-      name: 'trigger-only buy',
+      name: 'non-reduce-only trigger buy',
       order: {
         ...baseOrder,
         side: 'buy' as const,
@@ -355,7 +355,7 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '101',
       },
-      directionLabel: 'Close short',
+      directionLabel: 'Long',
       severity: TagSeverity.Success,
     },
     {

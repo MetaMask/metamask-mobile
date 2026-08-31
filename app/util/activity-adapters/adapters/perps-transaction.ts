@@ -165,7 +165,7 @@ function mapOrderKind(
   const isStopMarket =
     Boolean(detailedOrderType?.toLowerCase().includes('stop')) && !isLimit;
 
-  if (isStopMarket) {
+  if (isStopMarket && isClosing) {
     return direction === 'long'
       ? 'stopMarketCloseLong'
       : 'stopMarketCloseShort';
