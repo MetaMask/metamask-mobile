@@ -211,4 +211,59 @@ describe('PerpsProSizeInput', () => {
 
     expect(onDragCancel).toHaveBeenCalledTimes(1);
   });
+
+  it('blocks direct mutation handlers while disabled', () => {
+    const onChangeText = jest.fn();
+    const onFocus = jest.fn();
+    const onBlur = jest.fn();
+    const onFieldPress = jest.fn();
+    const onToggleDenomination = jest.fn();
+    const onValueChange = jest.fn();
+    const onDragEnd = jest.fn();
+    const onDragCancel = jest.fn();
+    const onAddFundsPress = jest.fn();
+    renderInput({
+      isDisabled: true,
+      onChangeText,
+      onFocus,
+      onBlur,
+      onFieldPress,
+      onToggleDenomination,
+      onAddFundsPress,
+      sizeSlider: createSizeSlider({
+        onValueChange,
+        onDragEnd,
+        onDragCancel,
+      }),
+    });
+
+    fireEvent.press(screen.getByTestId(ids.SIZE_FIELD));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+    const sliderSection = screen.getByTestId(ids.SIZE_SLIDER_SECTION);
+
+    input.props.onChangeText('100');
+    input.props.onFocus();
+    input.props.onBlur();
+    input.props.onPressIn();
+    slider.props.onValueChange(50);
+    slider.props.onDragEnd(50);
+    sliderSection.props.onTouchCancel();
+
+    expect(input).toHaveProp('isDisabled', true);
+    expect(slider).toHaveProp('disabled', true);
+    expect(onChangeText).not.toHaveBeenCalled();
+    expect(onFocus).not.toHaveBeenCalled();
+    expect(onBlur).not.toHaveBeenCalled();
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onDragEnd).not.toHaveBeenCalled();
+    expect(onDragCancel).not.toHaveBeenCalled();
+    expect(onToggleDenomination).not.toHaveBeenCalled();
+    expect(onAddFundsPress).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
+  });
 });

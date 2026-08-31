@@ -164,7 +164,7 @@ describe('HomepagePredictDiscovery', () => {
             detailsTitle: undefined,
           },
           transactionActiveAbTests,
-          testID: 'homepage-predict-discovery-market-slot-2',
+          testID: 'homepage-predict-discovery-market-slot-1',
         }),
         expect.objectContaining({
           state: {
@@ -176,6 +176,16 @@ describe('HomepagePredictDiscovery', () => {
           testID: 'homepage-predict-discovery-market-slot-3',
         }),
       ]);
+    });
+
+    it('renders the BTC series between the configured championship slots', () => {
+      renderComponent();
+
+      expect(getChampionshipRowProps().map(({ testID }) => testID)).toEqual([
+        'homepage-predict-discovery-market-slot-1',
+        'homepage-predict-discovery-market-slot-3',
+      ]);
+      expect(mockBtcLiveRow).toHaveBeenCalledTimes(1);
     });
 
     it('rejects a market whose slug does not match its configured slot', () => {

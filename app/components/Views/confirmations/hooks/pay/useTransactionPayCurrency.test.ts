@@ -17,7 +17,6 @@ describe('useTransactionPayCurrency', () => {
   it.each([
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
-    TransactionType.musdConversion,
     TransactionType.perpsDeposit,
     TransactionType.perpsDepositAndOrder,
     TransactionType.perpsWithdraw,
