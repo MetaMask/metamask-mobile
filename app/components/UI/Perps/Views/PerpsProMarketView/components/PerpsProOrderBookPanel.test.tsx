@@ -19,7 +19,13 @@ let mockOrderBookPosition: 'left' | 'right' = 'right';
 jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
+  usePerpsLiveOrderBook: (params: { symbol: string }) => {
+    const result = mockUsePerpsLiveOrderBook(params);
+    return {
+      ...result,
+      dataSymbol: result.dataSymbol ?? params.symbol,
+    };
+  },
 }));
 
 jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
@@ -189,7 +195,32 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-ratio`)).toBeOnTheScreen();
   });
 
+  it('hides a prior-symbol raw spread beside the current ladder', () => {
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook: mockOrderBook,
+        dataSymbol: params.channel === 'orderBookAggregated' ? 'BTC' : 'ETH',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
+    expect(
+      within(getByTestId(`${testID}-spread`)).queryByText('$100 (0.2%)'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows a reconnect affordance when the aggregated stream errors', () => {
+    const onResolvedStateChange = jest.fn();
     mockUsePerpsLiveOrderBook.mockImplementation(
       (params: { channel?: string }) => {
         if (params.channel === 'orderBookAggregated') {
@@ -212,11 +243,16 @@ describe('PerpsProOrderBookPanel', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
     expect(getByTestId(`${testID}-connection-error`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'error');
     fireEvent.press(getByTestId(`${testID}-reconnect`));
     expect(mockReconnect).toHaveBeenCalledTimes(1);
   });
@@ -263,6 +299,119 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
     expect(queryByTestId(`${testID}-ask-row-0`)).not.toBeOnTheScreen();
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
+  });
+
+  it('keeps readiness loading while the book belongs to the prior symbol', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: mockOrderBook,
+      dataSymbol: 'ETH',
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+  });
+
+  it('waits for a new aggregated delivery after the market context changes', () => {
+    const onResolvedStateChange = jest.fn();
+    let aggregatedOrderBook = mockOrderBook;
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook:
+          params.channel === 'orderBookAggregated'
+            ? aggregatedOrderBook
+            : mockOrderBook,
+        dataSymbol: 'BTC',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-1"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    aggregatedOrderBook = { ...mockOrderBook, lastUpdated: 1700000000001 };
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+  });
+
+  it('disables both order-book sockets until the market context is ready', () => {
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady={false}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(view.getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+
+    mockUsePerpsLiveOrderBook.mockClear();
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady
+      />,
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: true }),
+    );
   });
 
   it('makes ladder rows interactive and reports the tapped price via onSelectPrice', () => {

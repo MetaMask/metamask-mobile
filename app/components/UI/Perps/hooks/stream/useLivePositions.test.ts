@@ -96,6 +96,7 @@ describe('usePerpsLivePositions', () => {
       // Assert
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs,
       });
     });
@@ -200,6 +201,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current).toEqual({
         positions: [],
         isInitialLoading: true,
+        deliveryRevision: 0,
       });
 
       // Simulate positions update
@@ -216,6 +218,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -231,6 +234,7 @@ describe('usePerpsLivePositions', () => {
       // Assert
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 0,
       });
     });
@@ -253,6 +257,7 @@ describe('usePerpsLivePositions', () => {
 
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 0,
       });
 
@@ -263,6 +268,7 @@ describe('usePerpsLivePositions', () => {
       expect(mockUnsubscribe1).toHaveBeenCalled();
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 2000,
       });
     });
@@ -285,6 +291,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: [],
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -309,6 +316,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current).toEqual({
         positions: [],
         isInitialLoading: true,
+        deliveryRevision: 0,
       });
     });
 
@@ -340,6 +348,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: validPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -411,6 +420,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: firstPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
 
@@ -427,6 +437,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: secondPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
         expect(result.current.positions).not.toContain(mockPosition);
       });
