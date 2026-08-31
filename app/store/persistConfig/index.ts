@@ -86,7 +86,9 @@ export const ControllerStorage = {
    * for safety checks where a silent failure could lead to data loss.
    */
   async getItemStrict(key: string): Promise<string | null> {
-    return FilesystemStorage.getItem(key);
+    // FilesystemStorage.getItem returns `string | undefined`; normalize missing
+    // values to null so callers can distinguish absence from I/O failure.
+    return (await FilesystemStorage.getItem(key)) ?? null;
   },
 
   async getAllPersistedState(): Promise<Record<string, unknown>> {
