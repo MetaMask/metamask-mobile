@@ -765,7 +765,7 @@ const Wallet = ({
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isCompactHeader = true;
+  const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);

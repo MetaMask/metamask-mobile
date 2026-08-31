@@ -615,7 +615,7 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isFloatingTabBar = true;
+  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 

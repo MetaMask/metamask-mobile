@@ -22,6 +22,8 @@ export const ExploreSearchScreenSelectorsIDs = {
   PILL_PREDICTIONS: 'explore-search-pill-predictions',
   /** Sites feed pill */
   PILL_SITES: 'explore-search-pill-sites',
+  /** Open-browser-tabs button, rendered only when at least one tab is open */
+  BROWSER_TABS_BUTTON: 'explore-search-browser-tabs-button',
 } as const;
 
 export type ExploreSearchScreenSelectorsIDsType =

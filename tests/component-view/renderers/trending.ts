@@ -113,7 +113,7 @@ export function renderExploreSearchScreenWithRoutes(
   return renderScreenWithRoutes(
     ExploreSearchScreen as unknown as React.ComponentType,
     { name: Routes.EXPLORE_SEARCH },
-    [],
+    [{ name: Routes.BROWSER.HOME }],
     { state },
     initialParams,
   );
