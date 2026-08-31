@@ -132,6 +132,15 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(false);
   });
 
+  it('omits market comparison when market is applied to a sub-dollar dest token', () => {
+    mockFiatRates({ destRate: 0.10298176120674981 });
+
+    const { result } = renderPriceAdjustHook();
+
+    expect(result.current.limitPrice).not.toBe('0.1');
+    expect(result.current.marketComparison).toBeUndefined();
+  });
+
   it('applies negative percent preset in buy mode', () => {
     const { result } = renderPriceAdjustHook({
       destTokenAmount: undefined,
@@ -180,7 +189,27 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.isCustomActive).toBe(true);
   });
 
-  it('ignores commitCustomPercent when custom percent is invalid', () => {
+  it('exits custom mode without changing the limit price when custom percent is empty', () => {
+    const { result } = renderPriceAdjustHook({
+      destTokenAmount: undefined,
+    });
+
+    act(() => {
+      result.current.handleLimitPriceChange('3');
+      result.current.handleCustomPress();
+      result.current.handleCustomValueChange('');
+    });
+
+    act(() => {
+      result.current.commitCustomPercent();
+    });
+
+    expect(result.current.limitPrice).toBe('3');
+    expect(result.current.isCustomActive).toBe(false);
+    expect(result.current.customValue).toBe('');
+  });
+
+  it('exits custom mode without changing the limit price when custom percent is zero', () => {
     const { result } = renderPriceAdjustHook({
       destTokenAmount: undefined,
     });
@@ -196,6 +225,8 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     });
 
     expect(result.current.limitPrice).toBe('3');
+    expect(result.current.isCustomActive).toBe(false);
+    expect(result.current.customValue).toBe('');
   });
 
   it('toggles fiat mode when both token fiat rates are available', () => {
