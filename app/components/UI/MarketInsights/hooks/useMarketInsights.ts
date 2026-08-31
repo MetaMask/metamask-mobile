@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
+import { digestQueryCacheTimeOption } from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
 
@@ -25,8 +26,8 @@ export interface UseMarketInsightsResult {
 /**
  * Hook to fetch market insights for a given asset.
  *
- * This hook reads market insights through AiDigestController, which caches
- * insights per asset identifier and fetches them from the digest service as needed.
+ * Fetches through AiDigestController (passthrough to the digest service).
+ * React Query owns the 10-minute cache; a `null` miss is not cached as a hit.
  *
  * @param assetIdentifier - The asset identifier: either a CAIP-19 ID (e.g. "eip155:1/slip44:60")
  * or a perps market symbol (e.g. "ETH").
@@ -48,13 +49,9 @@ export const useMarketInsights = (
       ),
     enabled: isQueryEnabled,
     retry: false,
-    // The controller can satisfy this request from its persisted cache while
-    // offline. Let it decide whether a network request is necessary.
     networkMode: 'always',
-    // AiDigestController owns the 10-minute cache and intentionally does not
-    // cache empty results. React Query only coordinates active requests here.
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: digestQueryCacheTimeOption,
+    gcTime: digestQueryCacheTimeOption,
   });
 
   useEffect(() => {
