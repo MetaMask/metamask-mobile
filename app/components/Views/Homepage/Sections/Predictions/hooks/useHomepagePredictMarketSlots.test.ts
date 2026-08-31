@@ -26,16 +26,35 @@ const createMarket = (
 
 describe('orderHomepagePredictEventMarkets', () => {
   it('returns configured events in slot order', () => {
-    const nba = createMarket('478277', 'nba-2027-champion', 'NBA');
+    const serieA = createMarket(
+      '659488',
+      'serie-a-2027-champion-20260701200118390',
+      'Serie A',
+    );
+    const bundesliga = createMarket(
+      '681261',
+      'bundesliga-2027-champion-20260708164840303',
+      'Bundesliga',
+    );
+    const laLiga = createMarket(
+      '659548',
+      'laliga-2027-champion-20260701200737375',
+      'La Liga',
+    );
     const epl = createMarket(
       '659518',
       'epl-2027-champion-20260701200428749',
       'EPL',
     );
 
-    const result = orderHomepagePredictEventMarkets([nba, epl]);
+    const result = orderHomepagePredictEventMarkets([
+      serieA,
+      bundesliga,
+      laLiga,
+      epl,
+    ]);
 
-    expect(result).toEqual([epl, nba]);
+    expect(result).toEqual([epl, laLiga, bundesliga, serieA]);
   });
 
   it('excludes an event when its slug does not match config', () => {
