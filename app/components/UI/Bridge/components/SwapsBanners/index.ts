@@ -8,7 +8,8 @@ export { InsufficientNativeReserveBanner } from './banners/InsufficientNativeRes
 export { MissingQuoteAndAssetsPriceDataBanner } from './banners/MissingQuoteAndAssetsPriceDataBanner';
 export { MissingQuotePriceDataBanner } from './banners/MissingQuotePriceDataBanner';
 export { QuoteErrorBanner } from './banners/QuoteErrorBanner';
-export { StellarTrustlineBanner } from './banners/StellarTrustlineBanner';
+export { DestAssetRequireActivateBanner } from './banners/DestAssetRequireActivateBanner';
+
 export { TokenWarningBanner } from './banners/TokenWarningBanner';
 export type {
   SwapsBannersContextValue,

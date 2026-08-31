@@ -114,7 +114,7 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuotePriceDataBanner,
   QuoteErrorBanner,
-  StellarTrustlineBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -625,7 +625,7 @@ const BridgeMarketViewContent = ({
           >
             <QuoteErrorBanner />
             <TokenWarningBanner />
-            <StellarTrustlineBanner />
+            <DestAssetRequireActivateBanner />
             <InsufficientNativeReserveBanner />
             <MissingQuotePriceDataBanner />
           </SwapsBanners>

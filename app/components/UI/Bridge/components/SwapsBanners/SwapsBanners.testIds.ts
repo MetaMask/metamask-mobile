@@ -10,7 +10,8 @@ export const SwapsBannersSelectorsIDs = {
     'swaps-banners-missing-quote-and-assets-price',
   TOKEN_WARNING: 'swaps-banners-token-warning',
   INSUFFICIENT_NATIVE_RESERVE: 'swaps-banners-insufficient-native-reserve',
-  STELLAR_TRUSTLINE: 'swaps-banners-stellar-trustline',
+  DEST_ASSET_REQUIRE_ACTIVATE: 'swaps-banners-dest-asset-require-activate',
+
   HARDWARE_WALLET_UNSUPPORTED: 'swaps-banners-hardware-wallet-unsupported',
   HARDWARE_WALLET_ORDER_TYPE_UNSUPPORTED:
     'swaps-banners-hardware-wallet-order-type-unsupported',

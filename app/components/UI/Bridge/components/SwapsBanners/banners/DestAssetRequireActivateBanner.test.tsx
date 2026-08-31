@@ -8,7 +8,7 @@ import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireA
 import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
 import { createMockToken } from '../../../testUtils';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
-import { StellarTrustlineBanner } from './StellarTrustlineBanner';
+import { DestAssetRequireActivateBanner } from './DestAssetRequireActivateBanner';
 import { createBannerState, renderBanner } from './testUtils';
 
 const mockDispatch = jest.fn();
@@ -56,7 +56,7 @@ const mockStellarXlm = createMockToken({
   chainId: XlmScope.Pubnet,
 });
 
-describe('StellarTrustlineBanner', () => {
+describe('DestAssetRequireActivateBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.mocked(useDestAssetRequireActivate).mockReturnValue({
@@ -72,7 +72,7 @@ describe('StellarTrustlineBanner', () => {
 
   it('shows a warning banner with Activate CTA when dest is the active account', () => {
     const { getByTestId, getByText } = renderBanner(
-      <StellarTrustlineBanner />,
+      <DestAssetRequireActivateBanner />,
       {
         state: createBannerState({
           sourceToken: mockEthSource,
@@ -82,27 +82,35 @@ describe('StellarTrustlineBanner', () => {
     );
 
     expect(
-      getByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+      getByTestId(SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE),
     ).toBeTruthy();
     expect(
       getByText(
-        strings('bridge.stellar_trustline_warning_title', { token: 'USDC' }),
+        strings('bridge.dest_asset_require_activate_warning_title', {
+          network: XlmScope.Pubnet,
+          token: 'USDC',
+        }),
       ),
     ).toBeTruthy();
     expect(
       getByText(
-        strings('bridge.stellar_trustline_warning_message', { token: 'USDC' }),
+        strings('bridge.dest_asset_require_activate_warning_message', {
+          network: XlmScope.Pubnet,
+          token: 'USDC',
+        }),
       ),
     ).toBeTruthy();
     expect(
       getByText(
-        strings('bridge.stellar_trustline_warning_cta', { token: 'USDC' }),
+        strings('bridge.dest_asset_require_activate_warning_cta', {
+          token: 'USDC',
+        }),
       ),
     ).toBeTruthy();
   });
 
   it('navigates to Asset details when the activate CTA is pressed', () => {
-    const { getByText } = renderBanner(<StellarTrustlineBanner />, {
+    const { getByText } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
         sourceToken: mockEthSource,
         destToken: mockStellarUsdc,
@@ -111,7 +119,9 @@ describe('StellarTrustlineBanner', () => {
 
     fireEvent.press(
       getByText(
-        strings('bridge.stellar_trustline_warning_cta', { token: 'USDC' }),
+        strings('bridge.dest_asset_require_activate_warning_cta', {
+          token: 'USDC',
+        }),
       ),
     );
 
@@ -135,7 +145,7 @@ describe('StellarTrustlineBanner', () => {
     });
 
     const { getByTestId, getByText, queryByText } = renderBanner(
-      <StellarTrustlineBanner />,
+      <DestAssetRequireActivateBanner />,
       {
         state: createBannerState({
           sourceToken: mockEthSource,
@@ -145,19 +155,25 @@ describe('StellarTrustlineBanner', () => {
     );
 
     expect(
-      getByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+      getByTestId(SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE),
     ).toBeTruthy();
     expect(
       getByText(
-        strings('bridge.stellar_trustline_warning_message_different_account', {
-          account: 'Account 2',
-          token: 'USDC',
-        }),
+        strings(
+          'bridge.dest_asset_require_activate_warning_message_different_account',
+          {
+            network: XlmScope.Pubnet,
+            account: 'Account 2',
+            token: 'USDC',
+          },
+        ),
       ),
     ).toBeTruthy();
     expect(
       queryByText(
-        strings('bridge.stellar_trustline_warning_cta', { token: 'USDC' }),
+        strings('bridge.dest_asset_require_activate_warning_cta', {
+          token: 'USDC',
+        }),
       ),
     ).toBeNull();
   });
@@ -168,7 +184,7 @@ describe('StellarTrustlineBanner', () => {
       isDestSameAsActiveAccount: true,
     });
 
-    const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
+    const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
         sourceToken: mockEthSource,
         destToken: mockStellarUsdc,
@@ -176,17 +192,17 @@ describe('StellarTrustlineBanner', () => {
     });
 
     expect(
-      queryByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+      queryByTestId(SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE),
     ).toBeNull();
   });
 
-  it('renders nothing for same-chain Stellar swaps', () => {
+  it('renders nothing for same-chain destination swaps', () => {
     jest.mocked(useDestAssetRequireActivate).mockReturnValue({
       isDestAssetRequireActivate: false,
       isDestSameAsActiveAccount: true,
     });
 
-    const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
+    const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
         sourceToken: mockStellarXlm,
         destToken: mockStellarUsdc,
@@ -194,17 +210,17 @@ describe('StellarTrustlineBanner', () => {
     });
 
     expect(
-      queryByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+      queryByTestId(SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE),
     ).toBeNull();
   });
 
-  it('renders nothing for non-Stellar destinations', () => {
+  it('renders nothing for destinations that do not require activation', () => {
     jest.mocked(useDestAssetRequireActivate).mockReturnValue({
       isDestAssetRequireActivate: false,
       isDestSameAsActiveAccount: true,
     });
 
-    const { queryByTestId } = renderBanner(<StellarTrustlineBanner />, {
+    const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
         sourceToken: mockEthSource,
         destToken: createMockToken({
@@ -216,7 +232,7 @@ describe('StellarTrustlineBanner', () => {
     });
 
     expect(
-      queryByTestId(SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE),
+      queryByTestId(SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE),
     ).toBeNull();
   });
 });

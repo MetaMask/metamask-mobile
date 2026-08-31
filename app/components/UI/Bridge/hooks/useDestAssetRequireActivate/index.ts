@@ -13,9 +13,12 @@ import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stel
 import type { RootState } from '../../../../../reducers';
 
 /**
- * Whether a cross-chain swap destination is a Stellar classic asset that still
- * needs trustline activation on the **destination** account (`destAddress`),
- * and whether that account matches the active account for the dest chain.
+ * Whether a cross-chain swap destination asset still needs activation on the
+ * **destination** account (`destAddress`), and whether that account matches
+ * the active account for the dest chain.
+ *
+ * Used for networks that require per-asset activation before receive
+ * (e.g. Stellar trustlines, Ripple trusts).
  *
  * External / unknown recipients return `isDestAssetRequireActivate: false`
  * (no in-app activate CTA). When `destAddress` is missing, activation is false.

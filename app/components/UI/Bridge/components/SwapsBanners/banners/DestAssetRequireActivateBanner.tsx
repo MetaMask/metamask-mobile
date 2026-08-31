@@ -1,5 +1,6 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BannerBase,
   ButtonSize,
@@ -8,8 +9,11 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
 import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
 import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
@@ -18,16 +22,29 @@ import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
 import { useSwapsBannersContext } from '../SwapsBannersContext';
 
 /**
- * Non-blocking warning when a cross-chain swap destination is a Stellar classic
- * asset that still needs trustline activation on the destination account.
+ * Non-blocking warning when a cross-chain swap destination asset still needs
+ * activation on the destination account (e.g. Stellar trustline, Ripple trust).
  * Same as active account → Activate CTA. Different dest → no CTA + switch copy.
  */
-export const StellarTrustlineBanner = () => {
+export const DestAssetRequireActivateBanner = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { destToken } = useSwapsBannersContext();
   const { isDestAssetRequireActivate, isDestSameAsActiveAccount } =
     useDestAssetRequireActivate();
   const { destinationDisplayName } = useRecipientDisplayData();
+  const networkConfigurations = useSelector(
+    selectNetworkConfigurationsByCaipChainId,
+  );
+
+  const networkName = useMemo(() => {
+    if (!destToken?.chainId) {
+      return '';
+    }
+    const caipChainId = isCaipChainId(destToken.chainId)
+      ? destToken.chainId
+      : formatChainIdToCaip(destToken.chainId);
+    return networkConfigurations[caipChainId]?.name ?? caipChainId;
+  }, [destToken?.chainId, networkConfigurations]);
 
   const handleActivatePress = useCallback(() => {
     if (!destToken) {
@@ -49,16 +66,21 @@ export const StellarTrustlineBanner = () => {
   }
 
   const description = isDestSameAsActiveAccount
-    ? strings('bridge.stellar_trustline_warning_message', {
+    ? strings('bridge.dest_asset_require_activate_warning_message', {
+        network: networkName,
         token: destToken.symbol,
       })
-    : strings('bridge.stellar_trustline_warning_message_different_account', {
-        account: destinationDisplayName ?? '',
-        token: destToken.symbol,
-      });
+    : strings(
+        'bridge.dest_asset_require_activate_warning_message_different_account',
+        {
+          network: networkName,
+          account: destinationDisplayName ?? '',
+          token: destToken.symbol,
+        },
+      );
 
   const bannerProps = {
-    testID: SwapsBannersSelectorsIDs.STELLAR_TRUSTLINE,
+    testID: SwapsBannersSelectorsIDs.DEST_ASSET_REQUIRE_ACTIVATE,
     twClassName: WARNING_BANNER_TW_CLASSNAME,
     startAccessory: (
       <Icon
@@ -67,7 +89,8 @@ export const StellarTrustlineBanner = () => {
         size={IconSize.Lg}
       />
     ),
-    title: strings('bridge.stellar_trustline_warning_title', {
+    title: strings('bridge.dest_asset_require_activate_warning_title', {
+      network: networkName,
       token: destToken.symbol,
     }),
     description,
@@ -77,9 +100,12 @@ export const StellarTrustlineBanner = () => {
     return (
       <BannerBase
         {...bannerProps}
-        actionButtonLabel={strings('bridge.stellar_trustline_warning_cta', {
-          token: destToken.symbol,
-        })}
+        actionButtonLabel={strings(
+          'bridge.dest_asset_require_activate_warning_cta',
+          {
+            token: destToken.symbol,
+          },
+        )}
         actionButtonOnPress={handleActivatePress}
         actionButtonProps={{
           size: ButtonSize.Sm,
