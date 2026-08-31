@@ -3,7 +3,7 @@
  * Attempts a deterministic fix for each advisory reported by `yarn audit:ci`.
  *
  * This is the auto-fix half of the dependency-audit escalation loop (see
- * docs/readme/dependency-audit.md and .github/workflows/dependency-audit-escalation.yml).
+ * .github/workflows/dependency-audit-escalation.yml).
  * It never opens a PR or talks to GitHub/Slack itself — it only mutates the
  * working tree (package.json / yarn.lock) and reports what it did, so the
  * calling workflow can decide whether to commit, open a PR, or fall back to a
@@ -11,7 +11,7 @@
  *
  * Usage: yarn ts-node --transpile-only scripts/attempt-audit-fix.ts <audit-ndjson-path> [skip-ids-json-path]
  *
- * <audit-ndjson-path> is the stdout of `yarn audit:ci:json` (one JSON object
+ * <audit-ndjson-path> is the stdout of AUDIT_JSON_ARGS below (one JSON object
  * per line, per `yarn npm audit --json`'s tree output format).
  * [skip-ids-json-path] is an optional path to a JSON array of advisory IDs to
  * skip (already covered by an open PR/issue, or explicitly accepted).
@@ -64,6 +64,10 @@ interface FixResult {
 }
 
 const RESULT_PATH = process.env.AUDIT_FIX_RESULT_PATH || 'audit-fix-result.json';
+// Same args the escalation workflow's "Run dependency audit" step uses to produce
+// the NDJSON this script is fed on stdin/argv, kept in sync manually since neither
+// side is a package.json script.
+const AUDIT_JSON_ARGS = ['npm', 'audit', '--environment', 'production', '--severity', 'moderate', '--no-deprecations', '--json'];
 
 function tryShQuiet(cmd: string, args: string[]): { ok: boolean; output: string } {
   try {
@@ -188,7 +192,7 @@ function revertLockfileChanges(): void {
 
 /** Re-runs the audit and returns true if `id` no longer appears for `pkg`. */
 function isAdvisoryCleared(pkg: string, id: string): boolean {
-  const result = tryShQuiet('yarn', ['audit:ci:json']);
+  const result = tryShQuiet('yarn', AUDIT_JSON_ARGS);
   // Non-zero exit just means "advisories exist somewhere" — we only care
   // whether this specific (pkg, id) pair is still one of them.
   const remaining = parseAuditNdjson(result.output);

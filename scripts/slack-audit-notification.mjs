@@ -3,8 +3,7 @@
  *
  * Posts a Slack message when the daily dependency-audit-escalation workflow
  * finds new production advisories, tagging the audit owner and, if
- * configured, their manager (see .github/audit-owners.yml and
- * docs/readme/dependency-audit.md).
+ * configured, their manager (see .github/audit-owners.yml).
  *
  * Runs in one of two stages, controlled by SLACK_STAGE, so the owner gets a
  * heads-up as soon as new advisories are found instead of only learning
@@ -105,7 +104,7 @@ function buildDetectedMessage({ fixedCount, manualCount, runUrl, ownerSlackId, m
       elements: [
         {
           type: 'mrkdwn',
-          text: `cc ${mentions.join(' ')} — see docs/readme/dependency-audit.md for the escalation process and SLA.`,
+          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process and SLA.`,
         },
       ],
     },
@@ -172,7 +171,7 @@ function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, o
       elements: [
         {
           type: 'mrkdwn',
-          text: `cc ${mentions.join(' ')} — see docs/readme/dependency-audit.md for the escalation process and SLA.`,
+          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process and SLA.`,
         },
       ],
     },

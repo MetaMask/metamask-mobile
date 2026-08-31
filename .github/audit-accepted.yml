@@ -3,10 +3,9 @@
 # published). Listed advisory IDs are permanently skipped by
 # dependency-audit-escalation.yml's fix/PR/issue loop until removed here.
 #
-# See docs/readme/dependency-audit.md for the acceptance process. Every entry
-# must include a reason and the GitHub handle who accepted it, and should be
-# revisited periodically — this file is not a way to silence an advisory
-# forever without review.
+# Every entry must include a reason and the GitHub handle who accepted it, and
+# should be revisited periodically — this file is not a way to silence an
+# advisory forever without review.
 #
 # accepted:
 #   - id: 'GHSA-xxxx-xxxx-xxxx'

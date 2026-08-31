@@ -82,6 +82,9 @@ interface AuditAdvisory {
 
 const ALLOWED_FILES = new Set(['package.json', 'yarn.lock']);
 const AI_PR_URL_PATH = 'audit-ai-pr-url.txt';
+// Same args scripts/attempt-audit-fix.ts uses to verify a fix — kept in sync
+// manually since neither side is a package.json script.
+const AUDIT_JSON_ARGS = ['npm', 'audit', '--environment', 'production', '--severity', 'moderate', '--no-deprecations', '--json'];
 
 function tryShQuiet(cmd: string, args: string[]): { ok: boolean; output: string } {
   try {
@@ -118,7 +121,7 @@ function parseAuditNdjson(raw: string): AuditAdvisory[] {
 
 /** Snapshot of every (pkg, id) pair still flagged by a fresh audit run. */
 function getRemainingAdvisoryKeys(): Set<string> {
-  const result = tryShQuiet('yarn', ['audit:ci:json']);
+  const result = tryShQuiet('yarn', AUDIT_JSON_ARGS);
   const remaining = parseAuditNdjson(result.output);
   return new Set(remaining.map((a) => `${a.pkg}@@${a.id}`));
 }
@@ -176,7 +179,7 @@ Rules, no exceptions:
 1. Only modify package.json and yarn.lock. Do not touch any other file, including this script, workflow files, CI config, or tests.
 2. Within package.json, only change the "dependencies", "devDependencies", or "resolutions" fields. Do not change scripts, engines, or anything else.
 3. For each advisory, consider: bumping the direct dependency, adding/adjusting a "resolutions" pin, or — if an existing "resolutions" entry is itself pinning a package into the vulnerable range — removing or loosening that entry.
-4. After every change, run \`yarn install --mode=update-lockfile\`, then \`yarn dedupe\` and \`yarn constraints\`, then re-run \`yarn audit:ci:json\` yourself and confirm the specific advisory ID is gone from the output.
+4. After every change, run \`yarn install --mode=update-lockfile\`, then \`yarn dedupe\` and \`yarn constraints\`, then re-run \`yarn npm audit --environment production --severity moderate --no-deprecations --json\` yourself and confirm the specific advisory ID is gone from the output.
 5. If you cannot verify a given advisory is cleared this way, revert that specific change and leave that advisory alone — do not guess or leave an unverified change in place.
 6. If you cannot safely fix any of the advisories, make no changes at all and do not open a PR.
 7. Open a PR with your verified changes when you're done. Keep the PR description focused on which advisory IDs you fixed and how.`;
@@ -246,7 +249,7 @@ function closePrForAllowlistViolation(repo: string, prNumber: number, violatingF
     '--repo', repo,
     '--delete-branch',
     '--comment',
-    `Closed automatically by attempt-audit-fix-ai.ts: this PR modified file(s) outside the package.json/yarn.lock allowlist (${violatingFiles.join(', ')}), which the dependency-audit escalation loop does not permit for AI-proposed fixes. See docs/readme/dependency-audit.md.`,
+    `Closed automatically by attempt-audit-fix-ai.ts: this PR modified file(s) outside the package.json/yarn.lock allowlist (${violatingFiles.join(', ')}), which the dependency-audit escalation loop does not permit for AI-proposed fixes.`,
   ]);
 }
 

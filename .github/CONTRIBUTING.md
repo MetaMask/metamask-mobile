@@ -24,8 +24,6 @@ When you're done with your project / bugfix / feature and ready to submit a PR, 
 - [ ] **Get the PR reviewed by code owners**: At least two code owner approvals are mandatory before merging any PR.
 - [ ] **Ensure the PR is correctly labeled.**: More detail about labels definitions can be found [here](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md).
 
-`yarn audit:ci` (dependency advisory scan) is advisory-only in PR CI and does not block merges. See [`docs/readme/dependency-audit.md`](https://github.com/MetaMask/metamask-mobile/blob/main/docs/readme/dependency-audit.md) for how advisories are triaged, who the audit owner is, and how the `cp-` PR-title token relates to (but does not automate) cherry-picking.
-
 ### Runner provider switch
 
 Which runner fleet a job lands on is controlled by four repository-level Actions variables. They exist so the fleet can be moved or rolled back by editing variables, with no code change, no revert and no redeploy.

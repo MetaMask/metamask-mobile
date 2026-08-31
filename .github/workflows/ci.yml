@@ -390,7 +390,7 @@ jobs:
 
   # Advisory only: never fails, never gates merges. A daily scheduled job
   # (dependency-audit-escalation.yml) owns the actual fix/PR/Slack escalation
-  # loop and follow-up SLA — see docs/readme/dependency-audit.md.
+  # loop and follow-up SLA — see .github/audit-owners.yml.
   dependency-audit:
     name: Dependency audit (advisory)
     runs-on: >-
@@ -441,13 +441,13 @@ jobs:
             echo "No production advisories at moderate severity or above."
             exit 0
           fi
-          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is notified by the daily dependency-audit-escalation workflow; see docs/readme/dependency-audit.md."
+          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is notified by the daily dependency-audit-escalation workflow."
           {
             echo '### Dependency audit'
             echo
             echo 'Advisories found at moderate severity or above. This check is advisory only and does not block merge.'
             echo
-            echo "The daily [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage, auto-fix attempts, and Slack escalation to the audit owner. See docs/readme/dependency-audit.md."
+            echo "The daily [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage, auto-fix attempts, and Slack escalation to the audit owner."
           } >> "$GITHUB_STEP_SUMMARY"
           exit 0
 
