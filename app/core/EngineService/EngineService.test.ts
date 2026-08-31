@@ -733,7 +733,7 @@ describe('EngineService', () => {
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         true,
       );
     });
@@ -760,7 +760,7 @@ describe('EngineService', () => {
 
       // Assert
       expect(Logger.log).toHaveBeenCalledWith(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         false,
       );
     });
@@ -974,7 +974,7 @@ describe('EngineService', () => {
       );
       // Vault diagnostic log should fire because isNewUser was corrected to false
       expect(Logger.log).toHaveBeenCalledWith(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         false,
       );
 
