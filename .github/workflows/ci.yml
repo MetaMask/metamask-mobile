@@ -340,8 +340,6 @@ jobs:
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: format:check
             profile: namespace-profile-metamask-ci-linux-small
-          - scripts: audit:ci
-            profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
@@ -389,6 +387,69 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  # Advisory only: never fails, never gates merges. A daily scheduled job
+  # (dependency-audit-escalation.yml) owns the actual fix/PR/Slack escalation
+  # loop and follow-up SLA — see docs/readme/dependency-audit.md.
+  dependency-audit:
+    name: Dependency audit (advisory)
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Dependency audit (advisory only, never fails this job)
+        shell: bash
+        run: |
+          set -uo pipefail
+          if yarn audit:ci; then
+            echo "No production advisories at moderate severity or above."
+            exit 0
+          fi
+          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is notified by the daily dependency-audit-escalation workflow; see docs/readme/dependency-audit.md."
+          {
+            echo '### Dependency audit'
+            echo
+            echo 'Advisories found at moderate severity or above. This check is advisory only and does not block merge.'
+            echo
+            echo "The daily [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage, auto-fix attempts, and Slack escalation to the audit owner. See docs/readme/dependency-audit.md."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 0
 
   js-bundle-size-check:
     # Stays on 8x16 (MCWP-813). It is the thinnest margin on the profile — 14.3 GB

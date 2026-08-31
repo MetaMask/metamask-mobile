@@ -1,0 +1,239 @@
+name: Dependency Audit Escalation
+
+# `yarn audit:ci` is advisory-only in ci.yml (dependency-audit job) — it never
+# blocks a PR. This workflow is the actual triage loop: it re-runs the audit
+# daily against main, attempts a deterministic fix per advisory, opens one PR
+# bundling whatever it could fix (titled with a cp-<next-release> token so the
+# existing add-release-label automation tags it for release), files/updates a
+# tracking issue for whatever it could not fix, and pings the audit owner and
+# their manager in Slack. See docs/readme/dependency-audit.md for the process,
+# SLA, and how to accept a risk instead of fixing it.
+
+on:
+  schedule:
+    # Advisory data changes independently of code changes, so this runs on a
+    # fixed cadence rather than per-push. 06:00 UTC: after the 02:00-06:00 UTC
+    # nightly CI suite in ci.yml, before EU/US working hours.
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  dependency-audit-escalation:
+    name: Triage dependency audit advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0 # needed so get-next-semver-version.sh can see all release/* branches
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Run dependency audit
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          yarn audit:ci:json > audit.ndjson 2> audit.stderr
+          EXIT="$?"
+          set -e
+          cat audit.stderr >&2 || true
+          # Exit 0 = clean, non-zero = advisories found. Either way audit.ndjson
+          # is what matters; a truncated/empty file on a non-zero exit is a real
+          # script error and should fail the job instead of silently no-oping.
+          if [[ "$EXIT" -ne 0 && ! -s audit.ndjson ]]; then
+            echo "::error::yarn audit:ci:json exited $EXIT with no output; treating as a script failure, not a clean audit."
+            exit "$EXIT"
+          fi
+          if [[ -s audit.ndjson ]]; then
+            echo "has-advisories=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-advisories=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build skip-list from open PRs/issues and accepted advisories
+        id: skip-list
+        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          {
+            gh pr list --repo "$GITHUB_REPOSITORY" --label dependency-audit --state open --json body --jq '.[].body'
+            gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json body --jq '.[].body'
+          } | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' | tr ',' '\n' \
+            > skip-ids.txt || true
+
+          if [[ -f .github/audit-accepted.yml ]]; then
+            node -e "
+              const yaml = require('js-yaml');
+              const fs = require('fs');
+              const doc = yaml.load(fs.readFileSync('.github/audit-accepted.yml', 'utf8')) || {};
+              for (const entry of doc.accepted || []) {
+                if (entry?.id) console.log(entry.id);
+              }
+            " >> skip-ids.txt
+          fi
+
+          node -e "
+            const fs = require('fs');
+            const ids = fs.existsSync('skip-ids.txt')
+              ? fs.readFileSync('skip-ids.txt', 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)
+              : [];
+            fs.writeFileSync('skip-ids.json', JSON.stringify([...new Set(ids)]));
+          "
+          echo "Skip list: $(cat skip-ids.json)"
+
+      - name: Attempt deterministic auto-fix
+        id: fix
+        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        run: |
+          yarn audit:attempt-fix audit.ndjson skip-ids.json
+          FIXED_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.length)")
+          MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
+          echo "fixed-count=$FIXED_COUNT" >> "$GITHUB_OUTPUT"
+          echo "manual-count=$MANUAL_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Read audit owner
+        id: owner
+        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        run: |
+          OWNER_GH=$(node -e "console.log(require('js-yaml').load(require('fs').readFileSync('.github/audit-owners.yml','utf8')).owner.github)")
+          echo "github=$OWNER_GH" >> "$GITHUB_OUTPUT"
+
+      - name: Get the next semver version
+        id: next-semver
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.fixed-count != '0' }}
+        env:
+          FORCE_NEXT_SEMVER_VERSION: ${{ vars.FORCE_NEXT_SEMVER_VERSION }}
+        run: ./.github/scripts/get-next-semver-version.sh "$FORCE_NEXT_SEMVER_VERSION"
+
+      - name: Get token
+        id: get-token
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.fix.outputs.manual-count != '0') }}
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+            issues: write
+
+      - name: Open PR for auto-fixed advisories
+        id: fix-pr
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.fixed-count != '0' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          OWNER_GH: ${{ steps.owner.outputs.github }}
+        run: |
+          set -euo pipefail
+          BRANCH="chore/dependency-audit-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git config user.name "metamaskbot"
+          git config user.email "metamaskbot@users.noreply.github.com"
+          git add package.json yarn.lock
+          git commit -m "fix: patch dependency audit advisories"
+          git push origin "$BRANCH"
+
+          IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.map((e) => e.id).join(','))")
+          BODY_FILE="$(mktemp)"
+          {
+            echo "Auto-generated by [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})."
+            echo
+            echo "Patches the following advisories found by \`yarn audit:ci\` (see docs/readme/dependency-audit.md):"
+            echo
+            node -e "
+              const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed;
+              for (const e of entries) {
+                console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title} (\${e.method}, now \${e.toVersion})\`);
+              }
+            "
+            echo
+            echo "Titled with a \`cp-\` token so the existing release-labeling automation tags this for the next release; ask a release engineer to cherry-pick it into any already-open \`release/*\` branch."
+            echo
+            echo "<!-- audit-ids: ${IDS} -->"
+          } > "$BODY_FILE"
+
+          PR_URL=$(gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head "$BRANCH" \
+            --title "fix: patch dependency audit advisories cp-${NEXT_SEMVER_VERSION}" \
+            --body-file "$BODY_FILE" \
+            --label dependency-audit \
+            --assignee "$OWNER_GH" \
+            --reviewer "$OWNER_GH")
+          echo "pr-url=$PR_URL" >> "$GITHUB_OUTPUT"
+
+      - name: File or update tracking issue for advisories needing manual review
+        id: manual-issue
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          OWNER_GH: ${{ steps.owner.outputs.github }}
+        run: |
+          set -euo pipefail
+          IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
+          BODY_FILE="$(mktemp)"
+          {
+            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See docs/readme/dependency-audit.md for the SLA and how to accept a risk instead of fixing it."
+            echo
+            node -e "
+              const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;
+              for (const e of entries) {
+                console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title}\`);
+                console.log(\`  - Reason: \${e.reason}\`);
+              }
+            "
+            echo
+            echo "<!-- audit-ids: ${IDS} -->"
+          } > "$BODY_FILE"
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$EXISTING" ]]; then
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+            ISSUE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${EXISTING}"
+          else
+            ISSUE_URL=$(gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Dependency audit: manual review needed" \
+              --body-file "$BODY_FILE" \
+              --label dependency-audit-manual \
+              --assignee "$OWNER_GH")
+          fi
+          echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack
+        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && (steps.fix.outputs.fixed-count != '0' || steps.fix.outputs.manual-count != '0') }}
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          AUDIT_RESULT_PATH: audit-fix-result.json
+          PR_URL: ${{ steps.fix-pr.outputs.pr-url }}
+          ISSUE_URL: ${{ steps.manual-issue.outputs.issue-url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/slack-audit-notification.mjs

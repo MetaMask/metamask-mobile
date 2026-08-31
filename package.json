@@ -22,6 +22,7 @@
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",
     "audit:ci": "yarn npm audit --environment production --severity moderate --no-deprecations",
+    "audit:ci:json": "yarn npm audit --environment production --severity moderate --no-deprecations --json",
     "watch": "./scripts/build.sh watcher",
     "watch:clean": "./scripts/build.sh watcher --clean",
     "clean:ios": "rm -rf ios/build",
@@ -173,6 +174,7 @@
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
+    "audit:attempt-fix": "yarn ts-node --transpile-only scripts/attempt-audit-fix.ts",
     "skills:postinstall": "metamask-skills postinstall"
   },
   "lint-staged": {

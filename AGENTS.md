@@ -108,6 +108,7 @@ scripts/                  # Build and automation scripts
 | [`docs/testing/appium-smoke-testing.md`](docs/testing/appium-smoke-testing.md)             | Appium smoke — main-e2e builds, `yarn appium-smoke:*`                        |
 | [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
 | [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
+| [`docs/readme/dependency-audit.md`](docs/readme/dependency-audit.md)                       | `yarn audit:ci` advisories — advisory-only in CI, owner + escalation loop    |
 
 General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
 

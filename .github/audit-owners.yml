@@ -1,0 +1,27 @@
+# Single source of truth for who is paged when `dependency-audit-escalation.yml`
+# finds a new production advisory (moderate severity or above) via `yarn audit:ci`.
+#
+# To rotate the owner or manager, edit this file and open a normal PR — no
+# workflow or secret changes are required.
+#
+# `slack_id` values must be Slack *member IDs* (e.g. "U0XXXXXXXXX"), not
+# display names or @handles — only member IDs render as a notifying mention
+# in `chat.postMessage`. Find a member ID via their Slack profile > "Copy
+# member ID".
+#
+# `slack_channel` must be a Slack *channel ID* (e.g. "C0XXXXXXXXX"), not a
+# channel name, so the bot posts reliably even if the channel is renamed.
+
+slack_channel: 'C0XXXXXXXXX'
+
+owner:
+  # GitHub handle: assigned as the PR/issue author's reviewer and assignee.
+  github: 'REPLACE_WITH_OWNER_GH_HANDLE'
+  slack_id: 'U0XXXXXXXXX'
+
+manager:
+  slack_id: 'U0YYYYYYYYY'
+
+# Business days allowed before the escalation workflow re-pings Slack on an
+# still-open advisory PR/issue. See docs/readme/dependency-audit.md.
+sla_days: 5
