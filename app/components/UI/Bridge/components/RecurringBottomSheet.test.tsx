@@ -5,6 +5,8 @@ import RecurringBottomSheet, {
   BRIDGE_TABS_BAR_HEIGHT,
 } from './RecurringBottomSheet';
 
+const CALLER_STYLE = { opacity: 0.5 };
+
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactModule = jest.requireActual<typeof React>('react');
   const { View } = jest.requireActual<{
@@ -13,23 +15,23 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...jest.requireActual('@metamask/design-system-react-native'),
-    BottomSheet: ReactModule.forwardRef(function MockBottomSheet(
-      {
-        style,
-        children,
-        ...props
-      }: {
-        style?: StyleProp<ViewStyle>;
-        children?: React.ReactNode;
-      },
-      _ref: React.Ref<object>,
-    ) {
-      return (
+    BottomSheet: ReactModule.forwardRef(
+      (
+        {
+          style,
+          children,
+          ...props
+        }: {
+          style?: StyleProp<ViewStyle>;
+          children?: React.ReactNode;
+        },
+        _ref: React.Ref<object>,
+      ) => (
         <View testID="ds-bottom-sheet" style={style} {...props}>
           {children}
         </View>
-      );
-    }),
+      ),
+    ),
   };
 });
 
@@ -45,7 +47,7 @@ describe('RecurringBottomSheet', () => {
 
   it('keeps caller style after the tabs offset', () => {
     const { getByTestId } = render(
-      <RecurringBottomSheet style={{ opacity: 0.5 }} />,
+      <RecurringBottomSheet style={CALLER_STYLE} />,
     );
 
     expect(getByTestId('ds-bottom-sheet')).toHaveStyle({

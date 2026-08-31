@@ -12,17 +12,22 @@ import {
  */
 export const BRIDGE_TABS_BAR_HEIGHT = 40;
 
+const RECURRING_BOTTOM_SHEET_STYLE = {
+  top: -BRIDGE_TABS_BAR_HEIGHT,
+  zIndex: 1,
+};
+
 const RecurringBottomSheet = forwardRef<
   BottomSheetRef,
   ComponentPropsWithoutRef<typeof BottomSheet>
->(function RecurringBottomSheet({ style, ...props }, ref) {
-  return (
-    <BottomSheet
-      {...props}
-      ref={ref}
-      style={[{ top: -BRIDGE_TABS_BAR_HEIGHT, zIndex: 1 }, style]}
-    />
-  );
-});
+>(({ style, ...props }, ref) => (
+  <BottomSheet
+    {...props}
+    ref={ref}
+    style={[RECURRING_BOTTOM_SHEET_STYLE, style]}
+  />
+));
+
+RecurringBottomSheet.displayName = 'RecurringBottomSheet';
 
 export default RecurringBottomSheet;
