@@ -914,7 +914,10 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {},
+  "AiDigestController": {
+    "marketInsights": {},
+    "marketOverview": null
+  },
   "RampsController": {
     "userRegion": null,
     "countries": {
