@@ -95,7 +95,7 @@ const WalletActivitySectionContent = ({
       <View>
         {ListHeaderComponent}
         <View style={disabled ? styles.disabledContent : undefined}>
-          <View style={styles.line} />
+          <View style={styles.lineSpacer} />
           <View style={styles.setting}>
             <View style={styles.walletActivityHeader}>
               <Text
