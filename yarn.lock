@@ -8390,7 +8390,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.42.0":
+"@metamask/design-system-react-native@npm:0.42.0":
   version: 0.42.0
   resolution: "@metamask/design-system-react-native@npm:0.42.0"
   dependencies:
@@ -8409,6 +8409,28 @@ __metadata:
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
   checksum: 10/875df28e26b3726266ca26a95a4302a45696fff80bf2c153028bda433666cd2bac376e88245648f33bb400dbe8225a304983a39b5a4ab9f12df3c0580f5b052e
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.42.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.42.0-41ac5412c5.patch":
+  version: 0.42.0
+  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.42.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.42.0-41ac5412c5.patch::version=0.42.0&hash=eed373"
+  dependencies:
+    "@metamask/design-system-shared": "npm:^0.34.0"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.10.0
+    "@metamask/design-tokens": ^10.0.0
+    "@metamask/utils": ^11.11.0
+    expo-image: ">=3.0.0"
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/0f38a5da30c3e0f68f11fd9a56d2ffc40166c0b2d3cc323d37256cdd3a553c0a0df4d3ad5794ff9214927a033ea0cab6f5ef4269074f4d6c0386c19be2cc96e8
   languageName: node
   linkType: hard
 
@@ -35768,7 +35790,7 @@ __metadata:
     "@metamask/core-backend": "npm:^9.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.42.0"
+    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.42.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.42.0-41ac5412c5.patch"
     "@metamask/design-system-twrnc-preset": "npm:^0.10.0"
     "@metamask/design-tokens": "npm:^10.0.0"
     "@metamask/device-mcp": "npm:^0.3.0"
