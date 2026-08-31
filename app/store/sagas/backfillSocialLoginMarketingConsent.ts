@@ -11,6 +11,12 @@ import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selector
 import { UserActionType } from '../../actions/user';
 import OAuthService from '../../core/OAuthService/OAuthService';
 import { setDataCollectionForMarketing } from '../../actions/security';
+import Engine from '../../core/Engine';
+import { containsErrorMessage } from '../../util/errorHandling';
+import { ensureError } from '../../util/errorUtils';
+
+const OAUTH_ACCESS_TOKEN_UNAVAILABLE_MESSAGE =
+  'No access token found. User must be authenticated.';
 
 export function* backfillSocialLoginMarketingConsentSaga() {
   yield take(UserActionType.LOGIN);
@@ -30,6 +36,15 @@ export function* backfillSocialLoginMarketingConsentSaga() {
 
   try {
     if (marketingConsent !== true) {
+      const accessToken: string | undefined = yield call([
+        Engine.context.SeedlessOnboardingController,
+        Engine.context.SeedlessOnboardingController.getAccessToken,
+      ]);
+
+      if (!accessToken) {
+        return;
+      }
+
       const marketingOptIn: Awaited<
         ReturnType<typeof OAuthService.getMarketingOptInStatus>
       > = yield call([OAuthService, OAuthService.getMarketingOptInStatus]);
@@ -59,8 +74,14 @@ export function* backfillSocialLoginMarketingConsentSaga() {
     yield put(setDataCollectionForMarketing(resolvedMarketingConsent));
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
   } catch (error) {
+    const err = ensureError(error);
+
+    if (containsErrorMessage(err, OAUTH_ACCESS_TOKEN_UNAVAILABLE_MESSAGE)) {
+      return;
+    }
+
     Logger.error(
-      error as Error,
+      err,
       'Failed to backfill social login marketing consent analytics',
     );
     if (fetchedMarketingConsent) {

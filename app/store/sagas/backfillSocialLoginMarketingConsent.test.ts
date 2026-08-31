@@ -8,6 +8,7 @@ import { UserActionType } from '../../actions/user';
 import OAuthService from '../../core/OAuthService/OAuthService';
 import Logger from '../../util/Logger';
 import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import Engine from '../../core/Engine';
 
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
@@ -38,6 +39,17 @@ jest.mock('../../core/OAuthService/OAuthService', () => ({
   },
 }));
 
+jest.mock('../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      SeedlessOnboardingController: {
+        getAccessToken: jest.fn().mockResolvedValue('mock-access-token'),
+      },
+    },
+  },
+}));
+
 const loginAction = { type: UserActionType.LOGIN };
 
 describe('backfillSocialLoginMarketingConsent', () => {
@@ -46,11 +58,15 @@ describe('backfillSocialLoginMarketingConsent', () => {
   const mockedGetMarketingOptInStatus = jest.mocked(
     OAuthService.getMarketingOptInStatus,
   );
+  const mockedGetAccessToken = jest.mocked(
+    Engine.context.SeedlessOnboardingController.getAccessToken,
+  );
   const mockedLoggerError = jest.mocked(Logger.error);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockedGetMarketingOptInStatus.mockResolvedValue({ is_opt_in: false });
+    mockedGetAccessToken.mockResolvedValue('mock-access-token');
   });
 
   it('does nothing when no pending backfill marker exists', async () => {
@@ -173,9 +189,62 @@ describe('backfillSocialLoginMarketingConsent', () => {
     );
   });
 
-  it('clears the marker when getMarketingOptInStatus rejects', async () => {
+  it('keeps the marker when OAuth access token is unavailable', async () => {
+    mockedGetAccessToken.mockResolvedValueOnce(undefined);
+
+    const state = {
+      ...initialRootState,
+      security: {
+        ...initialRootState.security,
+        dataCollectionForMarketing: false,
+      },
+      onboarding: {
+        ...initialRootState.onboarding,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    };
+
+    await expectSaga(backfillSocialLoginMarketingConsentSaga)
+      .withState(state)
+      .dispatch(loginAction)
+      .run();
+
+    expect(mockedGetMarketingOptInStatus).not.toHaveBeenCalled();
+    expect(mockedLoggerError).not.toHaveBeenCalled();
+    expect(mockedIdentify).not.toHaveBeenCalled();
+    expect(mockedTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('keeps the marker when getMarketingOptInStatus rejects with no access token', async () => {
     mockedGetMarketingOptInStatus.mockRejectedValueOnce(
-      new Error('no access token'),
+      new Error('No access token found. User must be authenticated.'),
+    );
+
+    const state = {
+      ...initialRootState,
+      security: {
+        ...initialRootState.security,
+        dataCollectionForMarketing: false,
+      },
+      onboarding: {
+        ...initialRootState.onboarding,
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    };
+
+    await expectSaga(backfillSocialLoginMarketingConsentSaga)
+      .withState(state)
+      .dispatch(loginAction)
+      .run();
+
+    expect(mockedLoggerError).not.toHaveBeenCalled();
+    expect(mockedIdentify).not.toHaveBeenCalled();
+    expect(mockedTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('clears the marker when getMarketingOptInStatus rejects with an unexpected error', async () => {
+    mockedGetMarketingOptInStatus.mockRejectedValueOnce(
+      new Error('marketing opt-in request failed'),
     );
 
     const state = {
