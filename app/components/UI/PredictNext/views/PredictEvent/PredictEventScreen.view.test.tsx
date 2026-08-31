@@ -30,6 +30,9 @@ import type {
 } from '../../types';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictMarketHistoryTestIds } from './internal/PredictMarketHistory.testIds';
+import { EventAboutTestIds } from './EventAbout.testIds';
+import { EVENT_DETAIL_TABS } from './EventDetailTabs';
+import { EventDetailTabsTestIds } from './EventDetailTabs.testIds';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 import { RulesBottomSheetTestIds } from './internal/RulesBottomSheet.testIds';
 
@@ -1608,6 +1611,101 @@ describe('PredictEventScreen', () => {
       'market-1',
       'ALL',
     );
+  });
+
+  it('keeps prediction cards on Outcomes and hides Positions', async () => {
+    resolveEvent(
+      createEvent({
+        description: 'Canonical event description.',
+        rules: 'Event resolution rules.',
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(EventDetailTabsTestIds.BAR);
+
+    expect(
+      view.getByTestId(EventDetailTabsTestIds.tab(EVENT_DETAIL_TABS.OUTCOMES)),
+    ).toHaveTextContent('Outcomes');
+    expect(
+      view.getByTestId(EventDetailTabsTestIds.tab(EVENT_DETAIL_TABS.ABOUT)),
+    ).toHaveTextContent('About');
+    expect(view.queryByText('Positions')).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(EventAboutTestIds.SECTION)).not.toBeOnTheScreen();
+  });
+
+  it('renders the About tab with description and a separate rules card', async () => {
+    resolveEvent(
+      createEvent({
+        description: 'Canonical event description.',
+        rules: 'Event resolution rules.',
+      }),
+    );
+    const view = renderPredictEventScreen(routeParams);
+
+    fireEvent.press(
+      await view.findByTestId(
+        EventDetailTabsTestIds.tab(EVENT_DETAIL_TABS.ABOUT),
+      ),
+    );
+    const about = await view.findByTestId(EventAboutTestIds.SECTION);
+
+    expect(view.getByTestId(EventAboutTestIds.TITLE)).toHaveTextContent(
+      'Description',
+    );
+    expect(view.getByTestId(EventAboutTestIds.DESCRIPTION)).toHaveTextContent(
+      'Canonical event description.',
+    );
+    expect(view.getByTestId(EventAboutTestIds.RULES_TITLE)).toHaveTextContent(
+      'Rules',
+    );
+    expect(view.getByTestId(EventAboutTestIds.RULES)).toHaveTextContent(
+      'Event resolution rules.',
+    );
+    expect(
+      view.getByTestId(EventAboutTestIds.DESCRIPTION_CARD),
+    ).not.toHaveTextContent('Event resolution rules.');
+    expect(about).not.toHaveTextContent('Market rules');
+    expect(
+      view.getByTestId(PredictEventScreenTestIds.STANDARD_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictMarketHistoryTestIds.VIEW),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits the About tab when description and rules are missing', async () => {
+    resolveEvent(createEvent());
+    const view = renderPredictEventScreen(routeParams);
+
+    await view.findByTestId(PredictEventScreenTestIds.STANDARD_HEADER);
+
+    expect(
+      view.queryByTestId(EventDetailTabsTestIds.BAR),
+    ).not.toBeOnTheScreen();
+    expect(view.queryByTestId(EventAboutTestIds.SECTION)).not.toBeOnTheScreen();
+  });
+
+  it('renders a long Event description on the About tab', async () => {
+    const description = `${'The event description continues. '.repeat(12).trim()}`;
+    resolveEvent(createEvent({ description }));
+    const view = renderPredictEventScreen(routeParams);
+
+    fireEvent.press(
+      await view.findByTestId(
+        EventDetailTabsTestIds.tab(EVENT_DETAIL_TABS.ABOUT),
+      ),
+    );
+
+    expect(
+      await view.findByTestId(EventAboutTestIds.DESCRIPTION),
+    ).toHaveTextContent(description);
   });
 
   it('returns Home when the Event has no originating screen', async () => {

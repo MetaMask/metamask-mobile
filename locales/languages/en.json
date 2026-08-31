@@ -2930,6 +2930,8 @@
       }
     },
     "event": {
+      "about": "About",
+      "description": "Description",
       "loading_accessibility_label": "Loading event",
       "unable_to_load": "Unable to load this event."
     },

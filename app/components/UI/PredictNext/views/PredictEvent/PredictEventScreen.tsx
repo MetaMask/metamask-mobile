@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   useRoute,
@@ -43,11 +42,20 @@ import {
   GameEventHeader,
   StandardEventHeader,
 } from './internal/EventHeaders';
+import { EventAbout } from './EventAbout';
+import {
+  EVENT_DETAIL_TABS,
+  EventDetailTabs,
+  type EventDetailTab,
+} from './EventDetailTabs';
 import RulesBottomSheet from './internal/RulesBottomSheet';
 import { createMarketGroupProjection } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
 
 const styles = StyleSheet.create({
+  marketGroup: {
+    flexGrow: 0,
+  },
   marketFilter: {
     height: 'auto',
     minHeight: 32,
@@ -69,26 +77,19 @@ const EventScreenLayout = ({
   children: React.ReactNode;
   footer?: React.ReactNode;
   onBack: () => void;
-}) => {
-  const tw = useTailwind();
-
-  return (
-    <Box
-      testID={PredictEventScreenTestIds.VIEW}
-      twClassName="flex-1 bg-default"
-    >
-      <HeaderStandard
-        includesTopInset
-        onBack={onBack}
-        backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
-      />
-      <ScrollView contentContainerStyle={tw.style('flex-grow')}>
-        <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
-      </ScrollView>
-      {footer}
-    </Box>
-  );
-};
+}) => (
+  <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
+    <HeaderStandard
+      includesTopInset
+      onBack={onBack}
+      backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+    />
+    <ScrollView>
+      <Box twClassName="px-4 pb-8">{children}</Box>
+    </ScrollView>
+    {footer}
+  </Box>
+);
 
 export const PredictEventScreen = () => {
   const navigation =
@@ -98,6 +99,9 @@ export const PredictEventScreen = () => {
   const query = useEvent(venueId, eventId);
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
+  const [selectedTab, setSelectedTab] = useState<EventDetailTab>(
+    EVENT_DETAIL_TABS.OUTCOMES,
+  );
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
   const [selectedMarketIds, setSelectedMarketIds] = useState<
     Record<string, PredictMarket['id']>
@@ -146,6 +150,7 @@ export const PredictEventScreen = () => {
   useEffect(() => {
     setSelectedMarketId(undefined);
     setSelectedMarketIds({});
+    setSelectedTab(EVENT_DETAIL_TABS.OUTCOMES);
     setRulesTarget(null);
   }, [eventId]);
   const handleBack = useCallback(
@@ -202,6 +207,14 @@ export const PredictEventScreen = () => {
   if (query.data) {
     const event = query.data;
     const eventRules = event.rules?.trim();
+    const eventDescription = event.description?.trim();
+    const aboutTabs =
+      eventDescription || eventRules
+        ? ([EVENT_DETAIL_TABS.OUTCOMES, EVENT_DETAIL_TABS.ABOUT] as const)
+        : ([EVENT_DETAIL_TABS.OUTCOMES] as const);
+    const isAboutTab =
+      selectedTab === EVENT_DETAIL_TABS.ABOUT &&
+      Boolean(eventDescription || eventRules);
     const firstProjectedMarket =
       marketProjection[0]?.type === 'group'
         ? marketProjection[0].markets[0]
@@ -329,6 +342,7 @@ export const PredictEventScreen = () => {
               value={historyMarket?.id ?? ''}
               onChange={handleMarketSelect}
               variant={FilterButtonVariant.Secondary}
+              style={styles.marketGroup}
               testID={PredictEventScreenTestIds.MARKETS}
             >
               {event.markets.map((market) => (
@@ -348,8 +362,17 @@ export const PredictEventScreen = () => {
               ))}
             </FilterButtonGroup>
           ) : null}
-          {renderMarketHistory()}
-          {marketProjection.length > 0 ? (
+          <Box twClassName="mt-4">{renderMarketHistory()}</Box>
+          <EventDetailTabs
+            selectedTab={
+              isAboutTab ? EVENT_DETAIL_TABS.ABOUT : EVENT_DETAIL_TABS.OUTCOMES
+            }
+            tabs={aboutTabs}
+            onSelectTab={setSelectedTab}
+          />
+          {isAboutTab ? (
+            <EventAbout description={eventDescription} rules={eventRules} />
+          ) : marketProjection.length > 0 ? (
             <Box
               testID={PredictEventScreenTestIds.PREDICT_SECTION}
               twClassName="mt-8 gap-[14px]"
