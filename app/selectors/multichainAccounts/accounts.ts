@@ -76,7 +76,7 @@ export const getWalletIdFromAccountGroup = (
  * );
  * ```
  */
-const findInternalAccountByScope = (
+export const findInternalAccountByScope = (
   accountTreeState: AccountTreeControllerState,
   internalAccountsMap: Record<AccountId, InternalAccount>,
   accountGroupId: string,

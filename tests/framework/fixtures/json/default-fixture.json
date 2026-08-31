@@ -163,6 +163,7 @@
             "primaryFundingAsset": null
           },
           "cardHomeDataStatus": "success",
+          "cardHomeDataError": null,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,

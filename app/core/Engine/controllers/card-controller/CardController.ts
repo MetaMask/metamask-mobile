@@ -1,6 +1,11 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import { ethers } from 'ethers';
-import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  numberToHex,
+  type CaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -21,6 +26,8 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type CardHomeDataError,
+  type CardHomeDataErrorReason,
   type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
@@ -69,6 +76,7 @@ import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
+import { findInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
 import {
@@ -105,6 +113,7 @@ import {
 import { CardService } from './services/CardService';
 import { CardApiError } from './services/BaanxService';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
+import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -178,6 +187,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  cardHomeDataError: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
   cardHomeDataFetchedThisSession: {
     persist: false,
     includeInDebugSnapshot: false,
@@ -203,6 +218,7 @@ export const defaultCardControllerState: CardControllerState = {
   cardHomeData: null,
   cardHomeDataAddress: null,
   cardHomeDataStatus: 'idle',
+  cardHomeDataError: null,
   cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
 };
@@ -287,6 +303,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -308,9 +325,8 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed).
-    // The selector traverses all wallet→group→account IDs so the handler fires
-    // for both new wallets and new accounts added within an existing wallet.
+    // Re-check when the account tree changes (account added/removed) or the
+    // selected group changes. Membership alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
@@ -319,14 +335,17 @@ export class CardController extends BaseController<
         this.#handleAccountSwitch();
       },
       (state) =>
-        Object.values(state.accountTree?.wallets ?? {})
-          .flatMap((wallet) =>
-            Object.values(wallet.groups ?? {}).flatMap(
-              (group) => group.accounts ?? [],
-            ),
-          )
-          .sort()
-          .join(','),
+        [
+          state.selectedAccountGroup ?? '',
+          Object.values(state.accountTree?.wallets ?? {})
+            .flatMap((wallet) =>
+              Object.values(wallet.groups ?? {}).flatMap(
+                (group) => group.accounts ?? [],
+              ),
+            )
+            .sort()
+            .join(','),
+        ].join('|'),
     );
 
     this.messenger.subscribe(
@@ -360,6 +379,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -632,8 +652,19 @@ export class CardController extends BaseController<
       // fetch: doing so stops `useCardHomeData` retrying once an address
       // exists, stranding restored data until a forced refresh.
       if (!hasRestoredCardHomeData) {
+        const cardHomeDataError =
+          this.#buildCardHomeDataError('no_evm_address');
+        Logger.error(new Error('CardHomeData fetch aborted: no EVM address'), {
+          tags: { feature: 'card', reason: 'no_evm_address' },
+          context: {
+            name: 'CardController',
+            data: { method: 'fetchCardHomeData' },
+          },
+        });
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
+          (s as unknown as CardControllerState).cardHomeDataError =
+            cardHomeDataError as unknown as Record<string, Json>;
         });
       }
       return;
@@ -665,25 +696,41 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataAddress = address;
           s.cardHomeDataStatus = 'success';
+          s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
+        const cardHomeDataError = this.#classifyCardHomeError(error);
         Logger.error(error as Error, {
-          tags: { feature: 'card' },
+          tags: {
+            feature: 'card',
+            reason: cardHomeDataError.reason,
+          },
           context: {
             name: 'CardController',
-            data: { method: 'fetchCardHomeData' },
+            data: {
+              method: 'fetchCardHomeData',
+              code: cardHomeDataError.code,
+              statusCode: cardHomeDataError.statusCode,
+            },
           },
         });
+        // Read at completion so a joined forced call's failure stays visible.
+        const recordsFailure = !this.#silentRevalidation;
         this.update((s) => {
-          // Read at completion so a joined forced call's failure stays visible.
-          if (!this.#silentRevalidation) {
+          if (recordsFailure) {
             s.cardHomeDataStatus = 'error';
+            (s as unknown as CardControllerState).cardHomeDataError =
+              cardHomeDataError as unknown as Record<string, Json>;
           }
         });
-        this.#lastFetchedAt = Date.now();
+        // A swallowed failure leaves restored data on screen with no error to
+        // retry from, so the freshness window must not suppress the next fetch.
+        if (recordsFailure) {
+          this.#lastFetchedAt = Date.now();
+        }
       }
     }
   }
@@ -705,14 +752,85 @@ export class CardController extends BaseController<
           annotateTrace(context, { success: true });
           return data;
         } catch (error) {
+          const classified = this.#classifyCardHomeError(error);
           annotateTrace(context, {
             success: false,
             error_name: (error as Error)?.name ?? 'unknown',
+            reason: classified.reason,
+            ...(typeof classified.statusCode === 'number'
+              ? { statusCode: classified.statusCode }
+              : {}),
+            ...(typeof classified.code === 'string'
+              ? { code: classified.code }
+              : {}),
           });
           throw error;
         }
       },
     );
+  }
+
+  #buildCardHomeDataError(
+    reason: CardHomeDataErrorReason,
+    extras: { code?: string; statusCode?: number } = {},
+  ): CardHomeDataError {
+    return {
+      reason,
+      code: extras.code ?? null,
+      statusCode: extras.statusCode ?? null,
+      at: Date.now(),
+    };
+  }
+
+  #classifyCardHomeError(error: unknown): CardHomeDataError {
+    const statusCode =
+      error instanceof CardProviderError || error instanceof CardApiError
+        ? error.statusCode
+        : typeof (error as { statusCode?: unknown })?.statusCode === 'number'
+          ? ((error as { statusCode: number }).statusCode as number)
+          : undefined;
+
+    const code =
+      error instanceof CardProviderError
+        ? error.code
+        : error instanceof CardApiError
+          ? error.errorCode
+          : undefined;
+
+    let reason: CardHomeDataErrorReason = 'unknown';
+    if (
+      error instanceof CardProviderError &&
+      error.message.startsWith('No active provider')
+    ) {
+      reason = 'no_active_provider';
+    } else if (
+      statusCode === 401 ||
+      (error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.InvalidCredentials)
+    ) {
+      reason = 'auth_expired';
+    } else if (statusCode === 429) {
+      reason = 'rate_limited';
+    } else if (
+      statusCode === 0 ||
+      statusCode === 408 ||
+      (error instanceof CardProviderError &&
+        (error.code === CardProviderErrorCode.Network ||
+          error.code === CardProviderErrorCode.Timeout))
+    ) {
+      reason = 'network';
+    } else if (
+      (typeof statusCode === 'number' && statusCode >= 500) ||
+      (error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.ServerError)
+    ) {
+      reason = 'server_error';
+    }
+
+    return this.#buildCardHomeDataError(reason, {
+      ...(code !== undefined ? { code } : {}),
+      ...(statusCode !== undefined ? { statusCode } : {}),
+    });
   }
 
   /**
@@ -730,6 +848,27 @@ export class CardController extends BaseController<
     const { internalAccounts } = this.messenger.call(
       'AccountsController:getState',
     );
+
+    try {
+      const accountTreeState = this.messenger.call(
+        'AccountTreeController:getState',
+      ) as AccountTreeControllerState;
+      const selectedAccountGroup = accountTreeState?.selectedAccountGroup;
+      if (selectedAccountGroup) {
+        const groupEvmAccount = findInternalAccountByScope(
+          accountTreeState,
+          internalAccounts.accounts,
+          selectedAccountGroup,
+          'eip155:0' as CaipChainId,
+        );
+        if (groupEvmAccount && isEthAccount(groupEvmAccount)) {
+          return groupEvmAccount.address;
+        }
+      }
+    } catch {
+      // Fall through to the legacy selectedAccount pointer.
+    }
+
     const selected =
       internalAccounts.accounts[internalAccounts.selectedAccount];
     if (!selected || !isEthAccount(selected)) return null;
@@ -807,6 +946,7 @@ export class CardController extends BaseController<
         s.cardHomeData = null;
         s.cardHomeDataAddress = null;
         s.cardHomeDataStatus = 'idle';
+        s.cardHomeDataError = null;
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
         ] = { location: tokenSet.location };
@@ -867,6 +1007,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
       if (pid) {
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
