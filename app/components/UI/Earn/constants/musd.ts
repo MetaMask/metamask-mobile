@@ -8,7 +8,6 @@
 
 import { MUSD_TOKEN as MUSD_TOKEN_BASE } from '@metamask/money-account-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
 import MusdIcon from '../../../../images/musd-icon-2x.png';
 
 export {
@@ -31,15 +30,6 @@ export const MUSD_TOKEN = {
 
 export const MUSD_CONVERSION_DEFAULT_CHAIN_ID = CHAIN_IDS.MAINNET;
 
-/**
- * Chains where mUSD CTA should show (buy routes available).
- * BSC is excluded as buy routes are not yet available.
- */
-export const MUSD_BUYABLE_CHAIN_IDS: Hex[] = [
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-  // CHAIN_IDS.BSC, // TODO: Uncomment once buy routes are available
-];
 export const MUSD_CONVERSION_APY = 3;
 
 // Delay before cleaning up toast tracking entries after final transaction status

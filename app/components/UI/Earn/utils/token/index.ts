@@ -5,6 +5,16 @@ import {
 } from '../../../../../util/number';
 import { EarnTokenDetails } from '../../types/lending.types';
 import { TOKENS_REQUIRING_ALLOWANCE_RESET } from '../../constants/token';
+import { AssetType } from '../../../../Views/confirmations/types/token';
+
+/**
+ * Extracts the fiat balance from a token, defaulting to 0 when missing.
+ * Exported so consumers that sort, filter, or project based on the token's
+ * fiat value stay in lockstep with each other.
+ */
+export const tokenFiatValue = (
+  token: Pick<AssetType, 'fiat'> | undefined | null,
+): number => token?.fiat?.balance ?? 0;
 
 export const getEstimatedAnnualRewards = (
   apr: string,

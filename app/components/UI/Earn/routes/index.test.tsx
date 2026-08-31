@@ -33,19 +33,6 @@ jest.mock('../Views/EarnLendingWithdrawalConfirmationView', () => {
   return MockView;
 });
 
-jest.mock('../Views/EarnMusdConversionEducationView', () => {
-  const MockView = () => {
-    const { View, Text } = jest.requireActual('react-native');
-    return (
-      <View testID="musd-conversion-education">
-        <Text>MUSD Conversion Education</Text>
-      </View>
-    );
-  };
-  MockView.displayName = 'MockEarnMusdConversionEducationView';
-  return MockView;
-});
-
 jest.mock('../modals/LendingMaxWithdrawalModal', () => {
   const MockModal = () => {
     const { View, Text } = jest.requireActual('react-native');
@@ -120,10 +107,6 @@ describe('EarnScreenStack', () => {
 
   it('defines lending withdrawal confirmation route', () => {
     expect(Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION).toBeDefined();
-  });
-
-  it('defines MUSD conversion education route', () => {
-    expect(Routes.EARN.MUSD.CONVERSION_EDUCATION).toBeDefined();
   });
 
   it('defines full screen confirmations route', () => {

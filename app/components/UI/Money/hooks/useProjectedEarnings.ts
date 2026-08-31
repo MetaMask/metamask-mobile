@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { tokenFiatValue } from '../../Earn/hooks/useMusdConversionTokens';
+import { tokenFiatValue } from '../../Earn/utils/token';
 import type { MoneyDepositAsset } from '../selectors/depositTokens';
 import { moneySafeTokenFiatCurrency } from '../utils/moneyFormatFiat';
 import {

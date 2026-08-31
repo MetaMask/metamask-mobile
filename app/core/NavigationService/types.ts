@@ -1074,7 +1074,6 @@ export type RootStackParamList = {
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
-  EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
   EarnStrategySelection: EarnScreensStackParamList['EarnStrategySelection'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];

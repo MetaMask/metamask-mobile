@@ -293,30 +293,9 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectEarnHomeSectionEnabledFlag: jest.fn(() => false),
-  selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectPooledStakingEnabledFlag: jest.fn(() => false),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
-  selectIsMusdGetBuyCtaEnabledFlag: jest.fn(() => false),
-  selectMusdConversionCTATokens: jest.fn(() => ({})),
-  selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
-  selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMusdBalanceChainIds: jest.fn(() => []),
-}));
-
-const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
-jest.mock('../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
-  useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
-}));
-
-const mockUseMusdConversionTokens = jest.fn(() => ({
-  tokens: [],
-  filterAllowedTokens: (tokens: unknown[]) => tokens,
-  isConversionToken: () => false,
-  isMusdSupportedOnChain: () => false,
-  hasConvertibleTokensByChainId: () => false,
-}));
-jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => mockUseMusdConversionTokens(),
 }));
 
 const mockEnableAllPopularNetworks = jest.fn();
@@ -384,10 +363,6 @@ describe('Homepage', () => {
     jest
       .requireMock('../../UI/Assets/selectors/featureFlags')
       .selectTokenWatchlistEnabled.mockReturnValue(false);
-    jest
-      .requireMock('../../UI/Earn/selectors/featureFlags')
-      .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
-    mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];

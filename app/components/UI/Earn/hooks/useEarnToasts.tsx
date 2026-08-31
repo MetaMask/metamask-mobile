@@ -37,16 +37,7 @@ export type EarnToastOptions = Omit<
   }[];
 };
 
-export interface MusdConversionInProgressParams {
-  tokenSymbol: string;
-}
-
 export interface EarnToastOptionsConfig {
-  mUsdConversion: {
-    inProgress: (params: MusdConversionInProgressParams) => EarnToastOptions;
-    success: EarnToastOptions;
-    failed: EarnToastOptions;
-  };
   bonusClaim: {
     inProgress: EarnToastOptions;
     success: EarnToastOptions;
@@ -177,39 +168,6 @@ const useEarnToasts = (): {
   // Centralized toast options for Earn
   const EarnToastOptions: EarnToastOptionsConfig = useMemo(
     () => ({
-      mUsdConversion: {
-        inProgress: ({ tokenSymbol }: MusdConversionInProgressParams) => ({
-          ...earnBaseToastOptions.inProgress,
-          labelOptions: getEarnToastLabels({
-            primary: strings('earn.musd_conversion.toasts.converting', {
-              token: tokenSymbol,
-            }),
-          }),
-          closeButtonOptions,
-        }),
-        success: {
-          ...earnBaseToastOptions.success,
-          labelOptions: getEarnToastLabels({
-            primary: strings('earn.musd_conversion.toasts.delivered'),
-            secondary: (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {strings('earn.musd_conversion.toasts.delivered_description')}
-              </Text>
-            ),
-          }),
-          closeButtonOptions,
-        },
-        failed: {
-          ...earnBaseToastOptions.error,
-          labelOptions: getEarnToastLabels({
-            primary: strings('earn.musd_conversion.toasts.failed'),
-          }),
-          closeButtonOptions,
-        },
-      },
       bonusClaim: {
         inProgress: {
           ...earnBaseToastOptions.inProgress,
@@ -218,7 +176,6 @@ const useEarnToasts = (): {
           }),
           closeButtonOptions,
         },
-        // Reuse the mUSD conversion success toast as per acceptance criteria
         success: {
           ...earnBaseToastOptions.success,
           labelOptions: getEarnToastLabels({

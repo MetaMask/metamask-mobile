@@ -10,9 +10,6 @@ import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
 ///: END:ONLY_INCLUDE_IF
-import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
-import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../selectors/featureFlags';
 export interface EarnBalanceProps {
   asset: TokenI;
 }
@@ -29,13 +26,6 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     selectIsStakeableToken(state, asset),
   );
 
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-
-  const { isConversionToken } = useMusdConversionTokens();
-  const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTron = asset?.chainId?.startsWith('tron:');
@@ -44,9 +34,6 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
     return null;
   }
   ///: END:ONLY_INCLUDE_IF
-
-  const isConvertibleStablecoin =
-    isMusdConversionFlowEnabled && isConversionToken(asset) && isGeoEligible;
 
   // EVM staking: only when stakeable and not a staked output token
   if (isStakeableToken && !asset.isStaked) {
@@ -59,7 +46,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
 
   if (!asset.chainId) return null;
 
-  if (isLendingToken || isReceiptToken || isConvertibleStablecoin) {
+  if (isLendingToken || isReceiptToken) {
     return <EarnLendingBalance asset={asset} />;
   }
 
