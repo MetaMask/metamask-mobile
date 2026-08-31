@@ -36,23 +36,23 @@ export function applyBridgeQuote(
   subjectAddress?: string,
 ) {
   const quote = bridgeHistory?.quote;
-  if (
-    !bridgeHistory ||
-    !quote ||
-    !isCrossChain(quote.srcChainId, quote.destChainId)
-  ) {
+  if (!bridgeHistory || !quote) {
     return activity;
   }
 
+  const isBridge = isCrossChain(quote.srcChainId, quote.destChainId);
   const fees = 'fees' in activity.data ? activity.data.fees : undefined;
-  const status =
+  const bridgeStatus =
     activity.status === 'failed'
       ? 'failed'
       : getBridgeActivityStatus(bridgeHistory);
+  // A same-chain swap is settled as soon as its keyring transaction confirms,
+  // so only bridges take their status from the bridge history.
+  const status = isBridge ? bridgeStatus : undefined;
 
   return {
     ...activity,
-    type: 'bridge',
+    type: isBridge ? 'bridge' : 'swap',
     ...(status ? { status } : {}),
     data: {
       from: subjectAddress,

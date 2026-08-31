@@ -111,6 +111,8 @@ export const getSwapLegTokenIdentifiers = (
 
   return {
     addresses: normalize([
+      quote?.srcAsset?.assetId,
+      quote?.destAsset?.assetId,
       quote?.srcAsset?.address,
       quote?.destAsset?.address,
       tx.sourceTokenAddress,
@@ -219,6 +221,31 @@ export const useTokenTransactions = (
       const assetAddress = asset.address?.toLowerCase();
       const assetSymbol = asset.symbol?.toLowerCase();
       const isNativeAsset = asset.isNative || asset.isETH;
+      // Tron same-chain swaps often record only the
+      // native TRX send movement on the keyring transaction. Use the persisted
+      // quote to recover the received token so the swap also appears on that
+      // token's details page.
+      const quoteIncludesAsset = (tx: Transaction) => {
+        const bridgeHistoryItem = findBridgeHistoryItem({
+          bridgeHistory,
+          transactionMetaId: tx.id,
+          transactionHash: tx.id,
+        });
+        const { addresses, symbols } = getSwapLegTokenIdentifiers(
+          tx,
+          bridgeHistoryItem,
+        );
+
+        if (assetAddress && addresses.length > 0) {
+          return addresses.some(
+            (identifier) =>
+              identifier.includes(assetAddress) ||
+              assetAddress.includes(identifier),
+          );
+        }
+
+        return Boolean(assetSymbol && symbols.includes(assetSymbol));
+      };
 
       let filteredTransactions: Transaction[] = txs;
 
@@ -231,11 +258,13 @@ export const useTokenTransactions = (
         filteredTransactions = txs.filter((tx: Transaction) => {
           const txData = (tx.from || []).concat(tx.to || []);
 
-          return txData.some(
-            (participant: { asset?: { type?: string } }) =>
-              participant.asset &&
-              typeof participant.asset === 'object' &&
-              participant.asset.type === nativeAssetId,
+          return (
+            txData.some(
+              (participant: { asset?: { type?: string } }) =>
+                participant.asset &&
+                typeof participant.asset === 'object' &&
+                participant.asset.type === nativeAssetId,
+            ) || quoteIncludesAsset(tx)
           );
         });
       } else if (assetAddress || assetSymbol) {
@@ -263,7 +292,7 @@ export const useTokenTransactions = (
             },
           );
 
-          return involvesToken;
+          return involvesToken || quoteIncludesAsset(tx);
         });
       }
 
@@ -281,6 +310,7 @@ export const useTokenTransactions = (
     asset.symbol,
     asset.isNative,
     asset.isETH,
+    bridgeHistory,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTransactionsData,
     ///: END:ONLY_INCLUDE_IF

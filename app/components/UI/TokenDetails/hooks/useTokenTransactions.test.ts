@@ -950,14 +950,17 @@ describe('useTokenTransactions', () => {
   });
 
   describe('non-EVM asset filtering', () => {
-    const setupNonEvmMocks = (transactions: unknown[]) => {
+    const setupNonEvmMocks = (
+      transactions: unknown[],
+      bridgeHistory: Record<string, unknown> = {},
+    ) => {
       jest.mocked(isNonEvmChainId).mockReturnValue(true);
       jest
         .mocked(formatChainIdToCaip)
         .mockImplementation((chainId: unknown) => chainId as never);
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return [];
-        if (selector === selectBridgeHistoryForAccount) return {};
+        if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -996,6 +999,26 @@ describe('useTokenTransactions', () => {
       time: 1,
       from: [createSolanaMovement(USDC_ASSET_ID, 'USDC')],
       to: [createSolanaMovement(USDC_ASSET_ID, 'USDC')],
+    });
+
+    const createSameChainSwapHistory = (id: string) => ({
+      [id]: {
+        status: { status: 'COMPLETE', srcChain: { txHash: id } },
+        quote: {
+          srcChainId: SOLANA_CHAIN_ID,
+          destChainId: SOLANA_CHAIN_ID,
+          srcTokenAmount: '1000000000',
+          destTokenAmount: '1000000',
+          srcAsset: {
+            assetId: SOL_ASSET_ID,
+            symbol: 'SOL',
+          },
+          destAsset: {
+            assetId: USDC_ASSET_ID,
+            symbol: 'USDC',
+          },
+        },
+      },
     });
 
     const solanaAsset = (overrides: Partial<TokenI>) =>
@@ -1048,6 +1071,43 @@ describe('useTokenTransactions', () => {
 
       expect(result.current.transactions.map((tx) => tx.id)).toEqual([
         'swap-token-page',
+      ]);
+    });
+
+    it('includes a same-chain swap on the destination token page using its bridge quote', async () => {
+      const transactionId = 'native-only-swap';
+      setupNonEvmMocks(
+        [
+          {
+            id: transactionId,
+            chain: SOLANA_CHAIN_ID,
+            status: TX_CONFIRMED,
+            type: 'send',
+            time: 2,
+            from: [createSolanaMovement(SOL_ASSET_ID, 'SOL')],
+            to: [],
+          },
+        ],
+        createSameChainSwapHistory(transactionId),
+      );
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'USDC',
+            name: 'USD Coin',
+            isNative: false,
+            address: USDC_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id)).toEqual([
+        transactionId,
       ]);
     });
 
