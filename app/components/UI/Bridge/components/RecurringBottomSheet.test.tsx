@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import RecurringBottomSheet, { BRIDGE_TABS_BAR_HEIGHT } from './RecurringBottomSheet';
+import RecurringBottomSheet, {
+  BRIDGE_TABS_BAR_HEIGHT,
+} from './RecurringBottomSheet';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactModule = jest.requireActual<typeof React>('react');
