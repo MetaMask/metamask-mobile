@@ -1,8 +1,7 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import {
+import QuickCrypto, {
   CryptoKey,
   SubtleAlgorithm,
-} from 'react-native-quick-crypto/lib/typescript/src/keys';
+} from 'react-native-quick-crypto';
 import { toByteArray } from 'react-native-quick-base64'; // Import the Base64 decoding function
 import AppConstants from '../../AppConstants';
 
@@ -98,7 +97,7 @@ async function lazyGetTools() {
     namedCurve: 'P-256',
   } as const;
 
-  const key = await QuickCrypto.webcrypto.subtle.importKey(
+  const key = await QuickCrypto.subtle.importKey(
     'jwk',
     getKeyData(),
     algorithm,
@@ -137,12 +136,7 @@ export const verifyDeeplinkSignature = async (
 
     const data = encoder.encode(canonicalUrl);
 
-    const ok = await QuickCrypto.webcrypto.subtle.verify(
-      algorithm,
-      key,
-      signature,
-      data,
-    );
+    const ok = await QuickCrypto.subtle.verify(algorithm, key, signature, data);
     return ok ? VALID : INVALID;
   } catch (error) {
     return INVALID;

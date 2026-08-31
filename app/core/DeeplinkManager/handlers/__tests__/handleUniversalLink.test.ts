@@ -88,11 +88,9 @@ jest.mock('../../../redux', () => ({
   },
 }));
 jest.mock('react-native-quick-crypto', () => ({
-  webcrypto: {
-    subtle: {
-      importKey: jest.fn(),
-      verify: jest.fn(),
-    },
+  subtle: {
+    importKey: jest.fn(),
+    verify: jest.fn(),
   },
 }));
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -114,8 +112,8 @@ jest.mock('react-native-branch', () => ({
   getLatestReferringParams: jest.fn(),
 }));
 
-const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
-  typeof QuickCrypto.webcrypto.subtle
+const mockSubtle = QuickCrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.subtle
 > & {
   verify: jest.Mock<Promise<boolean>>;
 };

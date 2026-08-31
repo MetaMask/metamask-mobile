@@ -1,5 +1,4 @@
-import QuickCrypto from 'react-native-quick-crypto';
-import { CryptoKey } from 'react-native-quick-crypto/lib/typescript/src/keys';
+import QuickCrypto, { CryptoKey } from 'react-native-quick-crypto';
 import {
   verifyDeeplinkSignature,
   hasSignature,
@@ -10,16 +9,14 @@ import {
 import AppConstants from '../../AppConstants';
 
 jest.mock('react-native-quick-crypto', () => ({
-  webcrypto: {
-    subtle: {
-      importKey: jest.fn(),
-      verify: jest.fn(),
-    },
+  subtle: {
+    importKey: jest.fn(),
+    verify: jest.fn(),
   },
 }));
 
-const mockSubtle = QuickCrypto.webcrypto.subtle as jest.Mocked<
-  typeof QuickCrypto.webcrypto.subtle
+const mockSubtle = QuickCrypto.subtle as jest.Mocked<
+  typeof QuickCrypto.subtle
 > & {
   verify: jest.Mock<Promise<boolean>>;
 };
