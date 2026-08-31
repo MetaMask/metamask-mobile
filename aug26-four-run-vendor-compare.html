@@ -345,7 +345,7 @@ function render(){
   }).join('') + (DATA.heOrder||[]).map(id=>{
     const r=DATA.heRuns[id];
     return `<a href="${r.url}" target="_blank">${r.label} · ${id}</a>`;
-  }).join('') + `<a href="./sauce-aug25-triple-compare-2.html">Aug 25 Sauce batch 2</a><a href="./vendor-scoreboard.html">Vendor scoreboard</a>`;
+  }).join('') + `<a href="./sauce-aug25-triple-compare-2.html">Aug 25 Sauce batch 2</a><a href="./vendor-scoreboard.html">Vendor scoreboard</a><a href="./final-vendor-compare-run-e.html">Final Run E compare</a>`;
 
   const vendors=computeVendorScores();
   const ranked=Object.entries(vendors).sort((a,b)=>b[1].final-a[1].final);
