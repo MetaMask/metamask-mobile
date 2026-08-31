@@ -225,6 +225,7 @@ describe('Feature Flag Registry', () => {
       const deprecated = getRegistryEntriesByStatus(
         FeatureFlagStatus.Deprecated,
       );
+      expect(deprecated.length).toBeGreaterThan(0);
       for (const entry of deprecated) {
         expect(entry.status).toBe(FeatureFlagStatus.Deprecated);
       }

@@ -23,9 +23,6 @@ import {
   type SetExistingUserAction,
   type SetIsConnectionRemovedAction,
   type SetMultichainAccountsIntroModalSeenAction,
-  type SetMusdConversionEducationSeenAction,
-  type SetMusdConversionAssetDetailCtaSeenAction,
-  type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
@@ -203,36 +200,6 @@ export function setMultichainAccountsIntroModalSeen(
   return {
     type: UserActionType.SET_MULTICHAIN_ACCOUNTS_INTRO_MODAL_SEEN,
     payload: { seen },
-  };
-}
-
-/**
- * Action to set mUSD conversion education as seen
- */
-export function setMusdConversionEducationSeen(
-  seen: boolean,
-): SetMusdConversionEducationSeenAction {
-  return {
-    type: UserActionType.SET_MUSD_CONVERSION_EDUCATION_SEEN,
-    payload: { seen },
-  };
-}
-
-export function setMusdConversionAssetDetailCtaSeen(
-  key: string,
-): SetMusdConversionAssetDetailCtaSeenAction {
-  return {
-    type: UserActionType.SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN,
-    payload: { key },
-  };
-}
-
-/**
- * Clears persisted mUSD asset-detail CTA dismissals (fresh-install behavior for CTAs).
- */
-export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAssetDetailCtasSeenAction {
-  return {
-    type: UserActionType.CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN,
   };
 }
 
