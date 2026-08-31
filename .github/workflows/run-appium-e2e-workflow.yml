@@ -181,14 +181,15 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
+          # ~/.android/avd carries the primed golden emulator snapshot between
+          # the prime job and shard jobs (and across runs). Shard boots are
+          # `-read-only` with `-no-snapshot-save`, so shards never mutate it.
+          # NB: no `#` comments inside the block scalar — they become literal paths.
           path: |
             ~/.cache/yarn
             .metamask
             node_modules
             .yarn/cache
-            # Carries the primed golden emulator snapshot between the prime job
-            # and shard jobs (and across runs). Shard boots are `-read-only`
-            # with `-no-snapshot-save`, so shards never mutate it.
             ~/.android/avd
 
       # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
