@@ -10690,10 +10690,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^1.33.1":
-  version: 1.33.1
-  resolution: "@metamask/tron-wallet-snap@npm:1.33.1"
-  checksum: 10/cd1d5acb6ad4b7753aca0fd78bb2abec2dc1977d6e93fd6512e9536cf6af46ded04e83092b63a13ba6aac91e96b192a38aba959b96d42c025b13d3d7bfab5c79
+"@metamask/tron-wallet-snap@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@metamask/tron-wallet-snap@npm:3.2.0"
+  checksum: 10/8d65d9d037269b4a9f507bf80080bfe7817e6d58396f6b87400f73295e060237792a3b3ecfb719daa658a08bcb7d5825598cb69abb2c1ec724ccb096273ec6eb
   languageName: node
   linkType: hard
 
@@ -35881,7 +35881,7 @@ __metadata:
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^69.6.0"
     "@metamask/transaction-pay-controller": "npm:^27.0.0"
-    "@metamask/tron-wallet-snap": "npm:^1.33.1"
+    "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^11.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
