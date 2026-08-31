@@ -273,6 +273,15 @@ runs:
         IMAGE_PACKAGE: ${{ steps.prepare-android-system-image.outputs.image-package }}
       run: |
         set -euo pipefail
+        AVD_DIR="$HOME/.android/avd/$ANDROID_AVD_NAME.avd"
+        # A primed golden quick-boot snapshot lives inside the AVD dir;
+        # `create avd --force` would delete it. Appium CI shards/primers skip
+        # recreation and resume from the snapshot instead. Nothing else creates
+        # e2e_golden snapshots, so other callers are unaffected.
+        if [ -f "$AVD_DIR/snapshots/e2e_golden/snapshot.pb" ]; then
+          echo "Golden snapshot present for $ANDROID_AVD_NAME — skipping AVD recreation."
+          exit 0
+        fi
         echo "Creating AVD with image: $IMAGE_PACKAGE"
         "/opt/android-sdk/cmdline-tools/latest/bin/avdmanager" --verbose create avd \
           --force \

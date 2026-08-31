@@ -66,6 +66,15 @@ on:
         required: false
         type: string
         default: 'default'
+      android-emulator-boot-mode:
+        description: >-
+          Android emulator boot mode: `auto` (resume from the cached golden
+          snapshot when valid, else cold boot), `snapshot` (require the golden
+          snapshot — fail loudly when missing/stale), or `cold` (always
+          `-wipe-data` cold boot — pre-snapshot behavior / kill switch).
+        required: false
+        type: string
+        default: 'auto'
 
 permissions:
   contents: read
@@ -177,6 +186,10 @@ jobs:
             .metamask
             node_modules
             .yarn/cache
+            # Carries the primed golden emulator snapshot between the prime job
+            # and shard jobs (and across runs). Shard boots are `-read-only`
+            # with `-no-snapshot-save`, so shards never mutate it.
+            ~/.android/avd
 
       # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
       # never runs pod install.
@@ -203,6 +216,20 @@ jobs:
           configure-keystores: 'false'
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
+
+      # Resolves the system-image fingerprint and validates the cached golden
+      # snapshot; exports ANDROID_EMULATOR_IMAGE_FINGERPRINT for the emulator
+      # helper and ANDROID_GOLDEN_SNAPSHOT_VALID for logging. Never fails — on
+      # error shards fall back to cold boot.
+      - name: Check Android golden snapshot
+        if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
+        id: android-golden-snapshot
+        env:
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+          ANDROID_SYSTEM_IMAGE_ABI: x86_64
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
 
       - name: Setup E2E environment (iOS)
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
@@ -420,6 +447,7 @@ jobs:
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
           ANDROID_BOOT_TIMEOUT_MS: '300000'
           ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_BOOT_MODE: ${{ inputs.android-emulator-boot-mode }}
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'

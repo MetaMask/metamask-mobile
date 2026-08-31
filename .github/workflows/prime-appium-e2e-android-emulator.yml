@@ -1,0 +1,131 @@
+# Prime Appium Android Emulator Snapshot
+#
+# Boots the Appium smoke AVD once per system image, stabilizes it (system
+# trimming, animations off, network up), and saves a named quick-boot snapshot
+# ("e2e_golden") onto the shared Namespace cache volume. Shard jobs
+# (run-appium-e2e-workflow.yml, boot mode `auto`) resume from that snapshot in
+# seconds instead of paying a wiped cold boot (~171s) per shard.
+#
+# Snapshot validity is pinned to a fingerprint of the system image metadata,
+# the emulator binary version, and the CI boot args — see
+# .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts. When the fingerprint changes
+# (image/emulator/args bump), this job re-primes automatically.
+#
+# Called from run-appium-smoke-tests-android.yml before the shard jobs fan out.
+# Namespace-only for now: the snapshot persists via the nscloud cache volume;
+# GitHub/Cirrus runners have no shared ~/.android/avd volume and simply keep
+# cold-booting (boot mode `auto` finds no snapshot).
+
+name: Prime Appium Android Emulator Snapshot
+
+on:
+  workflow_call:
+    inputs:
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'namespace'
+      android-tag:
+        description: 'Android system image tag (must match shard jobs)'
+        required: false
+        type: string
+        default: 'default'
+      force_reprime:
+        description: 'Re-prime even when a valid golden snapshot is cached'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  prime-android-emulator-snapshot:
+    name: Prime Android golden emulator snapshot
+    # MUST run on the same Namespace profile as the shard jobs in
+    # run-appium-e2e-workflow.yml: Namespace keys the bundled cache volume per
+    # profile, and the golden snapshot lives on that volume. If the shard
+    # profile changes, change it here too or shards silently cold-boot forever.
+    runs-on: >-
+      ${{
+        inputs.runner_provider == 'namespace' &&
+        'namespace-profile-metamask-android-e2e' ||
+        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]')
+      }}
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Configure Namespace cache
+        if: ${{ inputs.runner_provider == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+            ~/.android/avd
+
+      - name: Setup E2E environment (Android)
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-tag: ${{ inputs.android-tag }}
+          android-api-level: '36'
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'false'
+          runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Check Android golden snapshot
+        id: golden-snapshot-check
+        env:
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+          ANDROID_SYSTEM_IMAGE_ABI: x86_64
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
+
+      # Namespace-only: without the shared cache volume the snapshot cannot
+      # reach shard jobs, so priming would be pure waste on other providers.
+      - name: Prime Android golden snapshot
+        if: >-
+          ${{
+            inputs.runner_provider == 'namespace' &&
+            (env.ANDROID_GOLDEN_SNAPSHOT_VALID != 'true' || inputs.force_reprime)
+          }}
+        timeout-minutes: 12
+        env:
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+          ANDROID_SYSTEM_IMAGE_ABI: x86_64
+          ANDROID_BOOT_TIMEOUT_MS: '300000'
+          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts prime
+
+      - name: Re-check Android golden snapshot
+        id: golden-snapshot-recheck
+        env:
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+          ANDROID_SYSTEM_IMAGE_ABI: x86_64
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
+
+      - name: Warn when no valid snapshot is available
+        if: ${{ inputs.runner_provider == 'namespace' && env.ANDROID_GOLDEN_SNAPSHOT_VALID != 'true' }}
+        run: |
+          echo "::warning::No valid golden emulator snapshot after prime step — shards will cold boot (pre-snapshot behavior)."
