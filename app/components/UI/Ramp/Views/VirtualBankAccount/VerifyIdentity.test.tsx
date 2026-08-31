@@ -186,11 +186,12 @@ describe('VbaVerifyIdentity', () => {
 
   it('launches the Sumsub SDK with a mock applicant token when continue is pressed', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const continueButton = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,
+    );
 
     await act(async () => {
-      fireEvent.press(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-      );
+      await continueButton.props.onPress?.();
     });
 
     expect(mockLaunchSumSubSdk).toHaveBeenCalledWith({
@@ -201,11 +202,12 @@ describe('VbaVerifyIdentity', () => {
 
   it('returns the mock applicant token when the SDK asks to refresh', async () => {
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const continueButton = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,
+    );
 
     await act(async () => {
-      fireEvent.press(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-      );
+      await continueButton.props.onPress?.();
     });
 
     const { onTokenExpired } = mockLaunchSumSubSdk.mock.calls[0][0];
@@ -218,11 +220,12 @@ describe('VbaVerifyIdentity', () => {
   it('stays on the screen when the Sumsub SDK launch fails', async () => {
     mockLaunchSumSubSdk.mockRejectedValueOnce(new Error('launch failed'));
     const { getByTestId } = renderWithProvider(<VbaVerifyIdentity />);
+    const continueButton = getByTestId(
+      VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON,
+    );
 
     await act(async () => {
-      fireEvent.press(
-        getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
-      );
+      await continueButton.props.onPress?.();
     });
 
     expect(mockLaunchSumSubSdk).toHaveBeenCalledTimes(1);

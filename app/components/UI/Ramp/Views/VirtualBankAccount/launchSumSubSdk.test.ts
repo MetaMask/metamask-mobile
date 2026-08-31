@@ -68,6 +68,7 @@ describe('launchSumSubSdk', () => {
 
   afterEach(() => {
     restoreSumSubNativeModule();
+    jest.clearAllMocks();
     jest.resetAllMocks();
   });
 
