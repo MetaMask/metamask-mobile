@@ -367,26 +367,42 @@ export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
 
 export enum HeaderNavBarVariant {
   Control = 'control',
-  Treatment = 'treatment',
+  TreatmentA = 'treatmentA',
+  TreatmentB = 'treatmentB',
 }
+
+export type HeaderNavBarLayout = 'a' | 'b';
 
 interface HeaderNavBarVariantConfig {
   useRefreshedHeaderAndNavBar: boolean;
+  /** Which design take on the refreshed surfaces to render; `null` in control. */
+  layout: HeaderNavBarLayout | null;
 }
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: { useRefreshedHeaderAndNavBar: false },
-  [HeaderNavBarVariant.Treatment]: { useRefreshedHeaderAndNavBar: true },
+  [HeaderNavBarVariant.Control]: {
+    useRefreshedHeaderAndNavBar: false,
+    layout: null,
+  },
+  [HeaderNavBarVariant.TreatmentA]: {
+    useRefreshedHeaderAndNavBar: true,
+    layout: 'a',
+  },
+  [HeaderNavBarVariant.TreatmentB]: {
+    useRefreshedHeaderAndNavBar: true,
+    layout: 'b',
+  },
 };
 
 export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Header and Nav Bar refresh',
   variationNames: {
     control: 'Current header and NavBar',
-    treatment: 'Refreshed header with consolidated hamburger menu and NavBar',
+    treatmentA: 'Refreshed header and NavBar, design A',
+    treatmentB: 'Refreshed header and NavBar, design B',
   },
 } as const;
 
