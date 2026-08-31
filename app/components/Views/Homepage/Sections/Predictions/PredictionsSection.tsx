@@ -27,7 +27,10 @@ import {
   useHomepagePredictMarketSlots,
   usePredictHomepageDiscoveryExperiment,
 } from './hooks';
-import { MAX_MARKETS_DISPLAYED } from './predictionsSectionConstants';
+import {
+  MAX_MARKETS_DISPLAYED,
+  MAX_POSITIONS_DISPLAYED,
+} from './predictionsSectionConstants';
 import type { PredictionsSectionProps } from './predictionsSectionTypes';
 import {
   usePredictionsCommonSetup,
@@ -206,6 +209,7 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     error: positionsError,
     refetch: refetchPositions,
   } = usePredictPositionsForHomepage({
+    maxPositions: MAX_POSITIONS_DISPLAYED,
     enabled: homepageQueriesEnabled,
   });
   const { totalClaimableValue, isLoading: isLoadingClaimable } =
