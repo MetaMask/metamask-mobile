@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import RecurringBottomSheet, {
   BRIDGE_TABS_BAR_HEIGHT,
 } from './RecurringBottomSheet';
@@ -18,13 +19,13 @@ jest.mock('@metamask/design-system-react-native', () => {
         children,
         ...props
       }: {
-        style?: unknown;
+        style?: StyleProp<ViewStyle>;
         children?: React.ReactNode;
       },
-      ref: React.Ref<unknown>,
+      _ref: React.Ref<object>,
     ) {
       return (
-        <View ref={ref} testID="ds-bottom-sheet" style={style} {...props}>
+        <View testID="ds-bottom-sheet" style={style} {...props}>
           {children}
         </View>
       );
