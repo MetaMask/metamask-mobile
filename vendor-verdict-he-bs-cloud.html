@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -89,8 +89,8 @@ a{color:#93c5fd}
   <header class="hero">
     <div class="eyebrow">MetaMask Mobile · Performance E2E · vendor verdict</div>
     <h1>TestMu HE vs BrowserStack vs Sauce Cloud</h1>
-    <p>Solo medias por vendor. Sin listado de runs. Mejor / peor remarcados. Sauce Cloud se evalúa como candidato real (ya no “under test”).</p>
-    <div class="banner"><strong>Métricas:</strong> flakiness % · session-create fail % · tiempo medio de scenarios en PASS · pass rate. Score compuesto = 30% pass + 30% (anti)flake + 20% (anti)session-fail + 20% velocidad.</div>
+    <p>Vendor averages only. No per-run listing. Best / worst highlighted. Sauce Cloud is evaluated as a full candidate (no longer “under test”).</p>
+    <div class="banner"><strong>Metrics:</strong> flakiness % · session-create fail % · mean PASS scenario time · pass rate. Composite score = 30% pass + 30% (anti)flake + 20% (anti)session-fail + 20% speed.</div>
     <nav class="links">
       <a href="./final-vendor-compare-run-e.html">Run E detail</a>
       <a href="./he-bs-saucecloud-flake-timing.html">Detail flake/timing table</a>
@@ -99,22 +99,22 @@ a{color:#93c5fd}
   </header>
 
   <section class="section">
-    <h2>Medias por vendor</h2>
+    <h2>Vendor averages</h2>
     <div class="grid3" id="cards"></div>
   </section>
 
   <section class="section">
-    <h2>Tabla comparativa</h2>
+    <h2>Comparison table</h2>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Métrica</th>
+            <th>Metric</th>
             <th>TestMu HE</th>
             <th>BrowserStack</th>
             <th>Sauce Cloud</th>
-            <th>Mejor</th>
-            <th>Peor</th>
+            <th>Best</th>
+            <th>Worst</th>
           </tr>
         </thead>
         <tbody id="table"></tbody>
@@ -163,7 +163,7 @@ function render(){
     return `<article class="card ${isBest?'best':''} ${isWorst?'worst':''}" style="--c:${m.color}">
       <div>${badges.map(([t,l])=>`<span class="badge ${t}">${l}</span>`).join('')}</div>
       <h3>${m.name}</h3>
-      <div class="muted" style="font-size:12px">Score compuesto · rank #${rank}</div>
+      <div class="muted" style="font-size:12px">Composite score · rank #${rank}</div>
       <div class="score" style="color:${m.color}">${DATA.scores[k]}<span>/100</span></div>
       <div class="metrics">
         <div class="row"><span class="k">Flakiness</span>${mark(m.flakyPct,'leastFlaky','mostFlaky',v=>v+'%')}</div>
@@ -212,26 +212,26 @@ function render(){
 
   const w = DATA.ranked[0];
   document.getElementById('verdict').innerHTML = `
-    <h2>Ganador</h2>
+    <h2>Winner</h2>
     <div class="winner-name">${M[w].name}</div>
-    <p><strong>Mi veredicto:</strong> también gana <strong>TestMu HyperExecute</strong> (${DATA.scores.testmu_he}/100), por delante de Sauce Cloud (${DATA.scores.sauce_cloud}) y BrowserStack (${DATA.scores.browserstack}).</p>
-    <p>Coincido contigo. HE es el mejor equilibrio: mínima flakiness, cero session fails y calidad estable. Cloud es el más rápido, pero flakea más y pasa menos. BS sigue siendo un baseline sólido en pass rate, pero pierde en estabilidad y velocidad media.</p>
+    <p><strong>My verdict:</strong> <strong>TestMu HyperExecute</strong> wins (${DATA.scores.testmu_he}/100), ahead of Sauce Cloud (${DATA.scores.sauce_cloud}) and BrowserStack (${DATA.scores.browserstack}).</p>
+    <p>I agree with the TestMu call. HE is the best overall balance: lowest flakiness, zero session fails, and stable quality. Cloud is the fastest, but flakes more and passes less. BS remains a solid pass-rate baseline, but loses on stability and mean speed.</p>
     <div class="compare">
       <div class="box">
-        <h3>Por qué HE</h3>
+        <h3>Why HE</h3>
         <ul style="margin:0;padding-left:18px;color:#d1fae5;font-size:13px">
-          <li>Flakiness claramente inferior (8.7% vs 21–26%)</li>
-          <li>0% session-create fails (empate con Cloud, mejor que BS)</li>
-          <li>Pass rate alto y estable (~78%)</li>
-          <li>Tiempo medio competitivo (solo ~0.16s detrás de Cloud)</li>
+          <li>Clearly lower flakiness (8.7% vs 21–26%)</li>
+          <li>0% session-create fails (tied with Cloud, better than BS)</li>
+          <li>High, stable pass rate (~78%)</li>
+          <li>Competitive mean time (only ~0.16s behind Cloud)</li>
         </ul>
       </div>
       <div class="box">
-        <h3>Qué no decide solo</h3>
+        <h3>What this does not settle alone</h3>
         <ul style="margin:0;padding-left:18px;color:#d1fae5;font-size:13px">
-          <li>Cloud gana velocidad pura — útil si el KPI #1 es wall-clock</li>
-          <li>BS sigue siendo referencia de producto/proceso</li>
-          <li>Falta un dispatch HE+BS+Cloud same-commit/device para cerrar el lab gap</li>
+          <li>Cloud wins pure speed — useful if wall-clock is KPI #1</li>
+          <li>BS remains the product/process baseline</li>
+          <li>Still need an HE+BS+Cloud same-commit/device dispatch to close the lab gap</li>
         </ul>
       </div>
     </div>`;
