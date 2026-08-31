@@ -673,8 +673,6 @@
             "stxMigrationCancel": "sentinel on",
             "stxMigrationGetFees": "sentinel on",
             "stxMigrationSubmitTransactions": "sentinel on",
-            "swapsSWAPS4135AbtestNumpadQuickAmounts": "treatment",
-            "swapsSWAPS4242AbtestTokenSelectorBalanceLayout": "treatment",
             "swapsSWAPS4784AbtestCTAButtonColor": "control",
             "swapsSWAPS4825AbtestChainValueOrder": "control",
             "tokenDetailsV2AbTest": "Control is OFF",
