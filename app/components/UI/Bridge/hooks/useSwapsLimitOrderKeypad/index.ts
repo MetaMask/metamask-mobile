@@ -5,7 +5,7 @@ import type { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import type { useSourceAmountInput } from '../useSourceAmountInput';
 import type { BridgeToken } from '../../types';
-import { FIAT_INPUT_DECIMALS } from '../../utils/sourceAmountInputMode';
+import { LIMIT_ORDER_FIAT_PRICE_DECIMALS } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 
 export enum LimitOrderKeypadField {
   Amount = 'amount',
@@ -15,7 +15,7 @@ export enum LimitOrderKeypadField {
 
 const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 const CUSTOM_PERCENT_KEYPAD_CURRENCY = 'LIMIT_ORDER_CUSTOM_PERCENT';
-const CUSTOM_PERCENT_DECIMALS = 2;
+const CUSTOM_PERCENT_DECIMALS = 0;
 
 interface UseLimitOrderKeypadOptions {
   customPercent: string | undefined;
@@ -42,7 +42,7 @@ export const useSwapsLimitOrderKeypad = ({
   );
 
   const limitPriceDecimals = isLimitFiatMode
-    ? FIAT_INPUT_DECIMALS
+    ? LIMIT_ORDER_FIAT_PRICE_DECIMALS
     : (nativeToken?.decimals ?? Infinity);
 
   const {
@@ -133,6 +133,7 @@ export const useSwapsLimitOrderKeypad = ({
         value: customPercent || '0',
         currency: CUSTOM_PERCENT_KEYPAD_CURRENCY,
         decimals: CUSTOM_PERCENT_DECIMALS,
+        periodButtonProps: { isDisabled: true },
       };
     }
 
