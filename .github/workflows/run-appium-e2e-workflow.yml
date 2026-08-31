@@ -123,7 +123,6 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           OUTPUT_PATH: ./e2e-timings.json
-
       # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
       - name: Download previous Playwright results (on re-run)
         if: ${{ github.run_attempt > 1 }}
@@ -418,6 +417,8 @@ jobs:
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
           read -r -a specs <<< "${SPEC_FILES}"
@@ -452,6 +453,8 @@ jobs:
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
           read -r -a specs <<< "${SPEC_FILES}"
@@ -537,7 +540,7 @@ jobs:
 
       - name: Upload fixture validation reports
         if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fixture-validation-results-${{ inputs.test-suite-name }}
           path: |
