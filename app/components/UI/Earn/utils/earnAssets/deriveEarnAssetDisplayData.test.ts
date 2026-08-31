@@ -92,7 +92,7 @@ describe('earnDisplayData', () => {
       expect(displayData.fiatBalance).toBe('$10.00');
       expect(displayData.hasMinDepositAmount).toBe(true);
       expect(displayData.hasSubsidizedFee).toBe(true);
-      expect(displayData.rateCopy).toBe(
+      expect(displayData.highestRateCopy).toBe(
         strings('earn_module.get_rate_apy', { percentage: '4.2' }),
       );
     });
@@ -105,7 +105,7 @@ describe('earnDisplayData', () => {
       expect(displayData.fiatBalance).toBe('$0.00');
       expect(displayData.hasMinDepositAmount).toBe(false);
       expect(displayData.hasSubsidizedFee).toBe(false);
-      expect(displayData.rateCopy).toBe(
+      expect(displayData.highestRateCopy).toBe(
         strings('earn_module.rate_apy', { percentage: '4.2' }),
       );
     });
@@ -117,7 +117,7 @@ describe('earnDisplayData', () => {
 
       expect(displayData.fiatBalance).toBeUndefined();
       expect(displayData.hasMinDepositAmount).toBe(false);
-      expect(displayData.rateCopy).toBe(
+      expect(displayData.highestRateCopy).toBe(
         strings('earn_module.rate_apy', { percentage: '4.2' }),
       );
     });

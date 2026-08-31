@@ -27,6 +27,7 @@ import { selectPrivacyMode } from '../../../../../selectors/preferencesControlle
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { EARN_SECTION_LIST_TEST_IDS } from './EarnSectionListView.testIds';
 import EarnSectionListView from './EarnSectionListView';
 
@@ -42,7 +43,7 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseEarnAssetCatalogue = jest.mocked(useEarnAssetCatalogue);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseProjectedEarnings = jest.mocked(useProjectedEarnings);
-const mockNavigateToEarnOpportunity = jest.fn();
+const mockNavigateFromEarnAsset = jest.fn();
 const mockEarnMoneyAccountRow = jest.fn(
   ({
     item,
@@ -129,7 +130,7 @@ jest.mock('../../../Money/hooks/useProjectedEarnings', () => ({
 jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    navigateToEarnOpportunity: mockNavigateToEarnOpportunity,
+    navigateFromEarnAsset: mockNavigateFromEarnAsset,
   })),
 }));
 
@@ -702,8 +703,9 @@ describe('EarnSectionListView', () => {
       screen.getByTestId(`mock-earn-search-asset-row-${asset.assetId}`),
     );
 
-    expect(mockNavigateToEarnOpportunity).toHaveBeenCalledWith(
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       expect.objectContaining({ assetId: asset.assetId }),
+      TokenDetailsSource.ExploreEarn,
     );
   });
 

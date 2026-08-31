@@ -1,89 +1,214 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import EarnStrategyCard from './EarnStrategyCard';
-import { EarnStrategyRiskLevel } from './EarnStrategyCard.types';
+import { IconName, TagSeverity } from '@metamask/design-system-react-native';
+import type {
+  EarnAsset,
+  EarnExperience,
+  EarnRate,
+} from '../../types/earnAssets';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import EarnStrategyCardV2, { getRateTagSeverity } from './EarnStrategyCard';
+import {
+  EarnStrategyCardVariant,
+  type EarnStrategyCardProps,
+} from './EarnStrategyCard.types';
+import { EarnStrategyCardV2SelectorsIDs } from './EarnStrategyCardV2.testIds';
 
-const createCardProps = (
-  overrides: Partial<React.ComponentProps<typeof EarnStrategyCard>> = {},
-): React.ComponentProps<typeof EarnStrategyCard> => ({
-  risk: EarnStrategyRiskLevel.Recommended,
-  title: 'Stable earnings',
-  subtitle: 'Earn with a conservative strategy',
-  tertiaryText: '3.5% APR',
+const cardTestID = 'strategy-card';
+
+const createRate = (): EarnRate => ({
+  type: 'APY',
+  status: 'ready',
+  percentage: 6.2,
+});
+
+const createExperience = (
+  type: EarnExperience['type'],
+  overrides: Partial<EarnExperience> = {},
+): EarnExperience => ({
+  id: `${type}:usdc`,
+  type,
+  role: type === 'MONEY_ACCOUNT_DEPOSIT' ? 'funding' : 'underlying',
+  rate: createRate(),
+  isFeeSubsidized: false,
   ...overrides,
 });
 
-describe('EarnStrategyCard', () => {
-  it('renders strategy content and recommended risk tag', () => {
-    const props = createCardProps({ testID: 'strategy-card' });
+const createEarnAsset = (experience: EarnExperience): EarnAsset => ({
+  kind: 'discovery',
+  assetId: 'eip155:1/erc20:0x123',
+  metadata: {
+    address: '0x123',
+    chainId: '0x1',
+    decimals: 6,
+    image: '',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    logo: undefined,
+    isETH: false,
+  },
+  experiences: [experience],
+});
 
-    const { getByTestId, getByText } = render(<EarnStrategyCard {...props} />);
+const createPrimaryProps = (
+  overrides: Partial<
+    Extract<EarnStrategyCardProps, { variant: EarnStrategyCardVariant.Primary }>
+  > = {},
+): Extract<
+  EarnStrategyCardProps,
+  { variant: EarnStrategyCardVariant.Primary }
+> => {
+  const experience = createExperience('MONEY_ACCOUNT_DEPOSIT');
 
-    expect(getByTestId('strategy-card')).toBeOnTheScreen();
-    expect(getByText('Recommended')).toBeOnTheScreen();
-    expect(getByText(props.title)).toBeOnTheScreen();
-    expect(getByText(props.subtitle)).toBeOnTheScreen();
-    expect(getByText(props.tertiaryText)).toBeOnTheScreen();
-  });
+  return {
+    variant: EarnStrategyCardVariant.Primary,
+    earnAsset: createEarnAsset(experience),
+    experience: {
+      ...experience,
+      type: 'MONEY_ACCOUNT_DEPOSIT',
+    },
+    title: 'Money account',
+    infoRows: [
+      { id: 'row-1', icon: IconName.Chart, text: 'First detail' },
+      { id: 'row-2', icon: IconName.Lock, text: 'Second detail' },
+      { id: 'row-3', icon: IconName.SecurityTick, text: 'Third detail' },
+    ],
+    isActive: false,
+    testID: cardTestID,
+    ...overrides,
+  };
+};
 
-  it.each([
-    [EarnStrategyRiskLevel.Recommended, 'Recommended'],
-    [EarnStrategyRiskLevel.Low, 'Low risk'],
-    [EarnStrategyRiskLevel.Medium, 'Medium risk'],
-    [EarnStrategyRiskLevel.High, 'High risk'],
-  ] as const)('renders the %s risk label', (risk, label) => {
-    const props = createCardProps({ risk });
+const createSecondaryProps = (
+  overrides: Partial<
+    Extract<
+      EarnStrategyCardProps,
+      { variant: EarnStrategyCardVariant.Secondary }
+    >
+  > = {},
+): Extract<
+  EarnStrategyCardProps,
+  { variant: EarnStrategyCardVariant.Secondary }
+> => {
+  const experience = createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING);
 
-    const { getByText } = render(<EarnStrategyCard {...props} />);
+  return {
+    variant: EarnStrategyCardVariant.Secondary,
+    earnAsset: createEarnAsset(experience),
+    experience: {
+      ...experience,
+      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+    },
+    title: 'Lend USDC',
+    subtitle: 'Variable yield',
+    isActive: false,
+    testID: cardTestID,
+    ...overrides,
+  };
+};
 
-    expect(getByText(label)).toBeOnTheScreen();
-  });
-
-  it('renders the no-fee tag when fees are subsidized', () => {
-    const { getByTestId } = render(
-      <EarnStrategyCard
-        {...createCardProps({
-          isFeeSubsidized: true,
-          testID: 'strategy-card',
-        })}
-      />,
+describe('EarnStrategyCardV2', () => {
+  it('renders the primary card with its three information rows and Money success rate tag', () => {
+    const { getByTestId, getByText } = render(
+      <EarnStrategyCardV2 {...createPrimaryProps()} />,
     );
 
-    expect(getByTestId('strategy-card-no-fee-tag')).toBeOnTheScreen();
+    expect(getByText('Money account')).toBeOnTheScreen();
+    expect(getByText('6.2% APY')).toBeOnTheScreen();
+    expect(getRateTagSeverity('MONEY_ACCOUNT_DEPOSIT')).toBe(
+      TagSeverity.Success,
+    );
+    expect(
+      getByTestId(`${cardTestID}-${EarnStrategyCardV2SelectorsIDs.RATE_TAG}`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${cardTestID}-${EarnStrategyCardV2SelectorsIDs.INFO_ROW}-0`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${cardTestID}-${EarnStrategyCardV2SelectorsIDs.INFO_ROW}-1`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${cardTestID}-${EarnStrategyCardV2SelectorsIDs.INFO_ROW}-2`),
+    ).toBeOnTheScreen();
   });
 
-  it('omits the no-fee tag when fees are not subsidized', () => {
-    const { queryByTestId } = render(
-      <EarnStrategyCard
-        {...createCardProps({
-          isFeeSubsidized: false,
-          testID: 'strategy-card',
-        })}
-      />,
+  it('renders the secondary card without information rows and with an informational rate tag', () => {
+    const { getByTestId, getByText, queryByTestId } = render(
+      <EarnStrategyCardV2 {...createSecondaryProps()} />,
     );
 
-    expect(queryByTestId('strategy-card-no-fee-tag')).not.toBeOnTheScreen();
+    expect(getByText('Lend USDC')).toBeOnTheScreen();
+    expect(getByText('Variable yield')).toBeOnTheScreen();
+    expect(getRateTagSeverity(EARN_EXPERIENCES.STABLECOIN_LENDING)).toBe(
+      TagSeverity.Info,
+    );
+    expect(
+      getByTestId(`${cardTestID}-${EarnStrategyCardV2SelectorsIDs.RATE_TAG}`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        `${cardTestID}-${EarnStrategyCardV2SelectorsIDs.INFO_ROW}-0`,
+      ),
+    ).toBeNull();
   });
 
-  it('exposes selected button state and invokes onPress', () => {
+  it.each([true, false])(
+    'renders the no-fee tag when fee subsidization is %s',
+    (isFeeSubsidized) => {
+      const { queryByTestId } = render(
+        <EarnStrategyCardV2
+          {...createPrimaryProps({
+            experience: {
+              ...createPrimaryProps().experience,
+              isFeeSubsidized,
+            },
+          })}
+        />,
+      );
+
+      const noFeeTag = queryByTestId(
+        `${cardTestID}-${EarnStrategyCardV2SelectorsIDs.NO_FEE_TAG}`,
+      );
+
+      if (isFeeSubsidized) {
+        expect(noFeeTag).toBeOnTheScreen();
+      } else {
+        expect(noFeeTag).toBeNull();
+      }
+    },
+  );
+
+  it('exposes active state, renders the checkmark, and invokes onPress', () => {
     const onPress = jest.fn();
-
     const { getByTestId } = render(
-      <EarnStrategyCard
-        {...createCardProps({
-          onPress,
-          selected: true,
-          testID: 'strategy-card',
-        })}
+      <EarnStrategyCardV2
+        {...createSecondaryProps({ isActive: true, onPress })}
       />,
     );
-    const card = getByTestId('strategy-card');
+    const card = getByTestId(cardTestID);
 
-    expect(card.props.accessibilityRole).toBe('button');
     expect(card.props.accessibilityState).toEqual({ selected: true });
+    expect(
+      getByTestId(
+        `${cardTestID}-${EarnStrategyCardV2SelectorsIDs.ACTIVE_CHECK}`,
+      ),
+    ).toBeOnTheScreen();
 
     fireEvent.press(card);
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders visible unavailable copy when the experience rate is not ready', () => {
+    const props = createSecondaryProps({
+      experience: {
+        ...createSecondaryProps().experience,
+        rate: { type: 'APR', status: 'unavailable' },
+      },
+    });
+
+    const { getByText } = render(<EarnStrategyCardV2 {...props} />);
+
+    expect(getByText('Rate unavailable')).toBeOnTheScreen();
   });
 });

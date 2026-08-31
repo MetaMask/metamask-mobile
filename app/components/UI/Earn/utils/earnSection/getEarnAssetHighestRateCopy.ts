@@ -4,12 +4,12 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../earnAssets/earnAsset
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
 /**
- * Gets localized rate copy for a ranked Earn asset.
+ * Gets localized highest-rate copy for a ranked Earn asset.
  *
- * @param asset - Ranked Earn asset whose rate copy should be generated.
+ * @param asset - Ranked Earn asset whose highest-rate copy should be generated.
  * @returns Localized rate copy, including unavailable or get-started copy.
  */
-export const getEarnAssetRateCopy = ({
+export const getEarnAssetHighestRateCopy = ({
   asset,
 }: {
   asset: EarnSectionRankedAsset;

@@ -149,9 +149,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
-    const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
-      tokenDetailsSource,
-    });
+    const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
     const isHomepageSection = homeAnalytics !== undefined;
     const homepageTelemetryEnabled = isHomepageSection && enabled;
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
@@ -248,8 +246,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     }, [navigation]);
 
     const handleAssetCardPress = useCallback(
-      (asset: EarnAsset) => navigateToEarnOpportunity(asset),
-      [navigateToEarnOpportunity],
+      (asset: EarnAsset) => navigateFromEarnAsset(asset, tokenDetailsSource),
+      [navigateFromEarnAsset, tokenDetailsSource],
     );
 
     const moneyAccountCardSecondaryText = useMemo(() => {
@@ -319,7 +317,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             hasSubsidizedFee,
             hasMinDepositAmount,
             fiatBalance,
-            rateCopy,
+            highestRateCopy,
           } = deriveEarnAssetDisplayData(asset);
 
           return (
@@ -340,7 +338,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                 metadata,
                 privacyMode,
               })}
-              tertiaryText={rateCopy}
+              tertiaryText={highestRateCopy}
               testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />

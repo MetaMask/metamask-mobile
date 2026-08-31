@@ -1,90 +1,57 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
+  BottomSheet,
+  BottomSheetHeader,
+  BottomSheetRef,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconSize,
-  Skeleton,
-  Text,
-  TextColor,
-  TextVariant,
+  IconName,
 } from '@metamask/design-system-react-native';
 import {
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { Hex } from '@metamask/utils';
 import { ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
-import {
-  LENDING_FAQ_URL,
-  MONEY_LANDING_URL,
-  POOLED_STAKING_FAQ_URL,
-  TRON_STAKING_FAQ_URL,
-} from '../../../../../constants/urls';
 import { strings } from '../../../../../../locales/i18n';
-import EarnStrategyCard from '../../components/EarnStrategyCard';
-import EarnStrategyInfoRow from '../../components/EarnStrategyInfoRow';
-import { EARN_EXPERIENCES } from '../../constants/experiences';
-import useEarnAssetStrategies from '../../hooks/useEarnAssetStrategies';
-import { useStablecoinLendingRedirect } from '../../hooks/useStablecoinLendingRedirect';
-import useStakingChain from '../../../Stake/hooks/useStakingChain';
-import { useMoneyAccountDeposit } from '../../../Money/hooks/useMoneyAccount';
-import { earnAssetToToken, getEarnAssetMetadata } from '../../utils/earnAssets';
-import type { TokenI } from '../../../Tokens/types';
+import EarnStrategyCard, {
+  EarnStrategyCardVariant,
+} from '../../components/EarnStrategyCard';
 import type {
-  EarnAsset,
-  EarnAssetId,
-  EarnExperienceType,
-} from '../../types/earnAssets';
-import { useMoneyOnboardingNavigation } from '../../../Money/hooks/useMoneyNavigation';
-import { MoneyPostOnboardingRedirectType } from '../../../Money/types/navigation';
+  MoneyAccountDepositExperience,
+  NonMoneyAccountExperience,
+} from '../../components/EarnStrategyCard/EarnStrategyCard.types';
+import { EARN_EXPERIENCES } from '../../constants/experiences';
+import type { TokenI } from '../../../Tokens/types';
+import type { EarnAsset } from '../../types/earnAssets';
 import Logger from '../../../../../util/Logger';
 import useEarnToasts from '../../hooks/useEarnToasts';
+import {
+  isMoneyAccountDepositExperience,
+  isNonMoneyAccountExperience,
+  truncateNumber,
+} from '../../utils';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import { EarnStrategySelectionViewTestIds } from './EarnStrategySelectionView.testIds';
 
-export interface EarnStrategySelectionViewRouteParams {
-  assetId: EarnAssetId;
+export interface EarnStrategySelectionModalRouteParams {
+  earnAsset: EarnAsset;
 }
 
 type EarnStrategySelectionRoute = RouteProp<
-  { params: EarnStrategySelectionViewRouteParams },
+  { params: EarnStrategySelectionModalRouteParams },
   'params'
 >;
-
-/**
- * Builds the payment token required to start a Money deposit.
- *
- * @param earnAsset - Earn asset selected for the Money strategy.
- * @returns Payment token address and chain ID.
- * @throws When the selected asset is not a held asset with an address.
- */
-export const getMoneyDepositPaymentToken = (
-  earnAsset: EarnAsset,
-): { address: Hex; chainId: Hex } => {
-  if (earnAsset.kind !== 'held' || !('address' in earnAsset.asset)) {
-    throw new Error(
-      'Money deposit requires a held asset with address property',
-    );
-  }
-
-  return {
-    address: earnAsset.asset.address as Hex,
-    chainId: earnAsset.asset.chainId as Hex,
-  };
-};
 
 /**
  * Returns the token required to start a staking strategy.
@@ -101,39 +68,114 @@ export const requireEarnStrategyToken = (token?: TokenI): TokenI => {
   return token;
 };
 
-const FAQ_URL_BY_EXPERIENCE: Record<EarnExperienceType, string> = {
-  MONEY_ACCOUNT_DEPOSIT: MONEY_LANDING_URL,
-  [EARN_EXPERIENCES.POOLED_STAKING]: POOLED_STAKING_FAQ_URL,
-  [EARN_EXPERIENCES.STABLECOIN_LENDING]: LENDING_FAQ_URL,
-  [EARN_EXPERIENCES.TRX_STAKING]: TRON_STAKING_FAQ_URL,
+interface StrategyCardRenderContext {
+  earnAsset: EarnAsset;
+  selectedStrategyId?: string;
+  onStrategyPress: (strategyId: string) => void;
+}
+
+const renderMoneyStrategyCard = (
+  strategy: MoneyAccountDepositExperience,
+  { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
+) => {
+  const row1Text =
+    strategy.rate.status === 'ready'
+      ? strings('earn.strategy_selection.strategies.money.info_rows.row_1', {
+          percentage: truncateNumber(strategy.rate.percentage),
+        })
+      : strings(
+          'earn.strategy_selection.strategies.money.info_rows.row_1_unavailable',
+        );
+
+  const infoRows = [
+    {
+      id: 'row_1',
+      text: row1Text,
+      icon: IconName.Diagram,
+    },
+    {
+      id: 'row_2',
+      text: strings('earn.strategy_selection.strategies.money.info_rows.row_2'),
+      icon: IconName.Tint,
+    },
+    {
+      id: 'row_3',
+      text: strings('earn.strategy_selection.strategies.money.info_rows.row_3'),
+      icon: IconName.SecurityTick,
+    },
+  ];
+
+  return (
+    <EarnStrategyCard
+      key={strategy.id}
+      variant={EarnStrategyCardVariant.Primary}
+      experience={strategy}
+      title={strings('earn.strategy_selection.strategies.money.title')}
+      infoRows={infoRows}
+      isActive={selectedStrategyId === strategy.id}
+      onPress={() => onStrategyPress(strategy.id)}
+      testID={EarnStrategySelectionViewTestIds.STRATEGY_CARD(strategy.id)}
+    />
+  );
+};
+
+const renderNonMoneyStrategyCard = (
+  strategy: NonMoneyAccountExperience,
+  { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
+) => {
+  let title;
+  let subtitle;
+
+  if (strategy.rate.status === 'ready' && earnAsset.kind === 'held') {
+    const assetSymbol =
+      strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+        ? earnAsset.asset.symbol
+        : undefined;
+
+    title = strings(
+      `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.title`,
+      { asset: assetSymbol },
+    );
+    subtitle = strings(
+      `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
+      {
+        percentage: truncateNumber(strategy.rate.percentage),
+        asset: assetSymbol,
+      },
+    );
+  } else {
+    subtitle = strings(
+      'earn.strategy_selection.strategies.money.info_rows.row_1_unavailable',
+    );
+  }
+
+  return (
+    <EarnStrategyCard
+      key={strategy.id}
+      variant={EarnStrategyCardVariant.Secondary}
+      experience={strategy}
+      title={title}
+      subtitle={subtitle}
+      isActive={selectedStrategyId === strategy.id}
+      onPress={() => onStrategyPress(strategy.id)}
+      testID={EarnStrategySelectionViewTestIds.STRATEGY_CARD(strategy.id)}
+    />
+  );
 };
 
 const EarnStrategySelectionView = () => {
+  const sheetRef = useRef<BottomSheetRef>(null);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { params } = useRoute<EarnStrategySelectionRoute>();
-  const { assetId } = params;
-  const {
-    asset: earnAsset,
-    strategies,
-    isLoading,
-    hasError,
-  } = useEarnAssetStrategies(assetId);
+  const { earnAsset } = params;
+
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
-  const { isStakingSupportedChain } = useStakingChain();
-  const { initiateDeposit } = useMoneyAccountDeposit();
-  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const token = useMemo(
-    () => (earnAsset ? earnAssetToToken(earnAsset) : undefined),
-    [earnAsset],
-  );
-  const tokenMetadata = useMemo(
-    () => (earnAsset ? getEarnAssetMetadata(earnAsset) : undefined),
-    [earnAsset],
-  );
-  const handleLendingRedirect = useStablecoinLendingRedirect({ asset: token });
+  const { navigateToDepositForExperience } = useEarnOpportunityNavigation();
+
+  const strategies = earnAsset.experiences;
 
   useEffect(() => {
     if (
@@ -148,71 +190,18 @@ const EarnStrategySelectionView = () => {
     () => strategies.find(({ id }) => id === selectedStrategyId),
     [selectedStrategyId, strategies],
   );
-  const tokenLabel =
-    tokenMetadata?.ticker ?? tokenMetadata?.symbol ?? tokenMetadata?.name ?? '';
 
-  const handleGetStartedPress = useCallback(async () => {
+  const handleClose = useCallback(() => {
+    sheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleGetStartedAfterClose = useCallback(async () => {
     try {
-      setIsNavigatingToDeposit(true);
-
       if (!selectedStrategy || !earnAsset) {
         throw new Error('Selected strategy or earn asset is not available');
       }
 
-      const experienceType = selectedStrategy.experience.type;
-
-      if (experienceType === 'MONEY_ACCOUNT_DEPOSIT') {
-        const preferredPaymentToken = getMoneyDepositPaymentToken(earnAsset);
-
-        const redirectedToOnboarding = redirectToOnboardingIfNeeded({
-          postOnboardingRedirect: {
-            type: MoneyPostOnboardingRedirectType.DEPOSIT,
-            preferredPaymentToken,
-          },
-        });
-
-        if (redirectedToOnboarding) {
-          return;
-        }
-
-        try {
-          await initiateDeposit({
-            preferredPaymentToken,
-            intent: 'convert',
-          });
-        } catch (error) {
-          Logger.error(
-            error as Error,
-            '[Earn Strategy Selection View] Failed to initiate Money deposit',
-          );
-        }
-      }
-
-      if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
-        await handleLendingRedirect();
-        return;
-      }
-
-      if (
-        experienceType === EARN_EXPERIENCES.POOLED_STAKING &&
-        !isStakingSupportedChain
-      ) {
-        await Engine.context.MultichainNetworkController.setActiveNetwork(
-          'mainnet',
-        );
-      }
-
-      if (
-        experienceType === EARN_EXPERIENCES.POOLED_STAKING ||
-        experienceType === EARN_EXPERIENCES.TRX_STAKING
-      ) {
-        navigation.navigate('StakeScreens', {
-          screen: Routes.STAKING.STAKE,
-          params: {
-            token: requireEarnStrategyToken(token),
-          },
-        });
-      }
+      navigateToDepositForExperience(earnAsset, selectedStrategy);
     } catch (error) {
       showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
       Logger.error(
@@ -224,187 +213,86 @@ const EarnStrategySelectionView = () => {
     }
   }, [
     earnAsset,
-    handleLendingRedirect,
-    redirectToOnboardingIfNeeded,
-    showToast,
-    EarnToastOptions,
-    initiateDeposit,
-    isStakingSupportedChain,
-    navigation,
+    navigateToDepositForExperience,
     selectedStrategy,
-    token,
+    showToast,
+    EarnToastOptions.earnStrategySelection.navigationToDeposit,
   ]);
 
-  const handleLearnMorePress = useCallback(() => {
-    if (!selectedStrategy) return;
+  const handleGetStartedPress = useCallback(() => {
+    setIsNavigatingToDeposit(true);
 
-    navigation.navigate(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
-      params: {
-        newTabUrl: FAQ_URL_BY_EXPERIENCE[selectedStrategy.experience.type],
-        timestamp: Date.now(),
-        fromEarnStrategySelection: true,
-      },
-    });
-  }, [navigation, selectedStrategy]);
+    if (!selectedStrategy || !earnAsset) {
+      handleGetStartedAfterClose();
+      return;
+    }
 
-  const handleBackPress = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
+    sheetRef.current?.onCloseBottomSheet(handleGetStartedAfterClose);
+  }, [earnAsset, handleGetStartedAfterClose, selectedStrategy]);
+
   const handleStrategyPress = useCallback((strategyId: string) => {
     setSelectedStrategyId(strategyId);
   }, []);
 
-  let strategyContent: React.ReactNode;
-  if (isLoading) {
-    strategyContent = (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        gap={3}
-        twClassName="mt-7"
-        testID="earn-strategy-selection-loading"
-      >
-        <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
-        <Skeleton height={170} twClassName="flex-1 rounded-2xl" />
-      </Box>
-    );
-  } else if (!earnAsset) {
-    strategyContent = (
-      <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.ErrorDefault}
-        twClassName="mt-7"
-        testID="earn-strategy-selection-error"
-      >
-        {strings('earn_module.asset_unavailable')}
-      </Text>
-    );
-  } else {
-    strategyContent = (
-      <>
-        {hasError && (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="mt-7"
-            testID="earn-strategy-selection-degraded"
-          >
-            {strings('earn_module.rate_unavailable')}
-          </Text>
-        )}
-        <Box flexDirection={BoxFlexDirection.Row} gap={3} twClassName="mt-7">
-          {strategies.map((strategy) => (
-            <EarnStrategyCard
-              key={strategy.id}
-              risk={strategy.risk}
-              title={strategy.title}
-              subtitle={strategy.subtitle}
-              tertiaryText={strategy.tertiaryText}
-              isFeeSubsidized={strategy.experience.isFeeSubsidized}
-              selected={selectedStrategyId === strategy.id}
-              onPress={() => handleStrategyPress(strategy.id)}
-              testID={`earn-strategy-card-${strategy.id}`}
-            />
-          ))}
-        </Box>
-      </>
-    );
-  }
+  const strategyContent = (
+    <Box gap={3} twClassName="mt-7">
+      {strategies.map((strategy) => {
+        if (isMoneyAccountDepositExperience(strategy)) {
+          return renderMoneyStrategyCard(strategy, {
+            earnAsset,
+            selectedStrategyId,
+            onStrategyPress: handleStrategyPress,
+          });
+        }
+
+        if (!isNonMoneyAccountExperience(strategy)) {
+          throw new Error(`Unsupported Earn experience: ${strategy.type}`);
+        }
+
+        return renderNonMoneyStrategyCard(strategy, {
+          earnAsset,
+          selectedStrategyId,
+          onStrategyPress: handleStrategyPress,
+        });
+      })}
+    </Box>
+  );
 
   return (
-    <SafeAreaView
-      edges={['top', 'bottom']}
-      style={tw.style('flex-1 bg-default')}
-      testID="earn-strategy-selection-view"
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      isInteractable
+      testID={EarnStrategySelectionViewTestIds.MODAL}
+      twClassName="flex-1"
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="px-4 py-2"
+      <BottomSheetHeader
+        onClose={handleClose}
+        testID={EarnStrategySelectionViewTestIds.MODAL_HEADER}
       >
-        <ButtonIcon
-          iconName="ArrowLeft"
-          size={ButtonIconSize.Md}
-          onPress={handleBackPress}
-          accessibilityLabel={strings('navigation.back')}
-          testID="earn-strategy-selection-back-button"
-        />
-      </Box>
-
-      <Box twClassName="flex-1">
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 pb-6')}
-        >
-          <Text
-            variant={TextVariant.HeadingLg}
-            color={TextColor.TextDefault}
-            twClassName="mt-6"
-          >
-            {strings('earn.strategy_selection.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="mt-2"
-          >
-            {strings('earn.strategy_selection.subtitle', {
-              asset: tokenLabel,
-            })}
-          </Text>
-
-          {strategyContent}
-
-          {selectedStrategy && (
-            <Box gap={4} twClassName="mt-7">
-              {selectedStrategy.infoRows.map((infoRow) => (
-                <EarnStrategyInfoRow
-                  key={infoRow.id}
-                  text={infoRow.text}
-                  startAccessory={
-                    <Box
-                      twClassName="h-8 w-8 items-center justify-center rounded-full bg-muted"
-                      accessible={false}
-                    >
-                      <Icon
-                        name={infoRow.icon}
-                        size={IconSize.Sm}
-                        color={IconColor.SuccessDefault}
-                      />
-                    </Box>
-                  }
-                />
-              ))}
-            </Box>
-          )}
-        </ScrollView>
-      </Box>
+        {strings('earn.strategy_selection.title')}
+      </BottomSheetHeader>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 pb-6')}
+      >
+        {strategyContent}
+      </ScrollView>
 
       <Box gap={2} twClassName="px-4 pt-3 pb-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          isDisabled={!selectedStrategy || isNavigatingToDeposit || isLoading}
+          isDisabled={!selectedStrategy || isNavigatingToDeposit}
           isLoading={isNavigatingToDeposit}
           onPress={handleGetStartedPress}
-          testID="earn-strategy-selection-get-started-button"
+          testID={EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON}
         >
           {strings('earn.strategy_selection.get_started')}
         </Button>
-        <Button
-          variant={ButtonVariant.Tertiary}
-          isFullWidth
-          isDisabled={!selectedStrategy}
-          onPress={handleLearnMorePress}
-          testID="earn-strategy-selection-learn-more-button"
-        >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('earn.strategy_selection.learn_more')}
-          </Text>
-        </Button>
       </Box>
-    </SafeAreaView>
+    </BottomSheet>
   );
 };
 

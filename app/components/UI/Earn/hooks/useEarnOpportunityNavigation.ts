@@ -3,13 +3,26 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
-import type { EarnAsset } from '../types/earnAssets';
-import { earnAssetToToken } from '../utils/earnAssets';
+import type {
+  EarnAsset,
+  EarnExperience,
+  HeldEarnAsset,
+} from '../types/earnAssets';
+import {
+  earnAssetToToken,
+  getMoneyDepositPaymentToken,
+} from '../utils/earnAssets';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../utils/earnAssets/earnAssetBalance';
+import { EARN_EXPERIENCES } from '../constants/experiences';
+import { toHex } from '@metamask/controller-utils';
+import Engine from '../../../../core/Engine';
+import useStakingChain from '../../Stake/hooks/useStakingChain';
+import { useMoneyOnboardingNavigation } from '../../Money/hooks/useMoneyNavigation';
+import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
+import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
+import Logger from '../../../../util/Logger';
 
-interface UseEarnOpportunityNavigationOptions {
-  tokenDetailsSource: TokenDetailsSource;
-}
+const LOG_PREFIX = '[useEarnOpportunityNavigation]';
 
 /**
  * Navigates an Earn opportunity to strategy selection or Token Details based
@@ -18,31 +31,167 @@ interface UseEarnOpportunityNavigationOptions {
  * @param tokenDetailsSource - Attribution source for Token Details navigation.
  * @returns Earn opportunity navigation callback.
  */
-const useEarnOpportunityNavigation = ({
-  tokenDetailsSource,
-}: UseEarnOpportunityNavigationOptions) => {
+const useEarnOpportunityNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { isStakingSupportedChain } = useStakingChain();
+  const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
+  const { initiateDeposit } = useMoneyAccountDeposit();
 
-  const navigateToEarnOpportunity = useCallback(
-    (asset: EarnAsset) => {
-      if (!isEarnAssetBalanceBelowMinDepositAmount(asset)) {
-        navigation.navigate(Routes.EARN.MODALS.ROOT, {
-          screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
-          params: { assetId: asset.assetId },
+  /**
+   * Navigation to legacy EarnInputView screen.
+   * Used for pooled-staking and stablecoin lending experiences.
+   */
+  const navigateToLegacyEarnDeposit = useCallback(
+    (earnAsset: HeldEarnAsset) => {
+      const token = earnAssetToToken(earnAsset);
+
+      navigation.navigate('StakeScreens', {
+        screen: Routes.STAKING.STAKE,
+        params: {
+          token,
+        },
+      });
+    },
+    [navigation],
+  );
+
+  const navigateToStablecoinLending = useCallback(
+    async (earnAsset: HeldEarnAsset) => {
+      const { asset } = earnAsset;
+
+      if (!asset?.chainId) {
+        throw new Error(
+          `${LOG_PREFIX} Stablecoin lending redirect failed: chainId is required`,
+        );
+      }
+
+      const networkClientId =
+        Engine.context.NetworkController.findNetworkClientIdByChainId(
+          toHex(asset.chainId),
+        );
+
+      if (!networkClientId) {
+        console.error(
+          `Stablecoin lending redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
+        );
+        return;
+      }
+
+      await Engine.context.NetworkController.setActiveNetwork(networkClientId);
+
+      navigateToLegacyEarnDeposit(earnAsset);
+    },
+    [navigateToLegacyEarnDeposit],
+  );
+
+  const navigateToPooledStaking = useCallback(
+    async (earnAsset: HeldEarnAsset) => {
+      if (!isStakingSupportedChain) {
+        await Engine.context.MultichainNetworkController.setActiveNetwork(
+          'mainnet',
+        );
+      }
+
+      navigateToLegacyEarnDeposit(earnAsset);
+    },
+    [isStakingSupportedChain, navigateToLegacyEarnDeposit],
+  );
+
+  const navigateToMoneyDeposit = useCallback(
+    async (earnAsset: HeldEarnAsset) => {
+      const preferredPaymentToken = getMoneyDepositPaymentToken(earnAsset);
+
+      const redirectedToOnboarding = redirectToOnboardingIfNeeded({
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      });
+
+      if (redirectedToOnboarding) {
+        return;
+      }
+
+      try {
+        await initiateDeposit({
+          preferredPaymentToken,
+          intent: 'convert',
+        });
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          '[Earn Strategy Selection View] Failed to initiate Money deposit',
+        );
+      }
+    },
+    [initiateDeposit, redirectToOnboardingIfNeeded],
+  );
+
+  const navigateToDepositForExperience = useCallback(
+    (earnAsset: EarnAsset, experience: EarnExperience) => {
+      if (earnAsset.kind !== 'held') {
+        throw new Error(
+          `${LOG_PREFIX} Deposit redirect is only supported for held assets`,
+        );
+      }
+
+      switch (experience.type) {
+        case 'MONEY_ACCOUNT_DEPOSIT':
+          navigateToMoneyDeposit(earnAsset);
+          break;
+        case EARN_EXPERIENCES.STABLECOIN_LENDING:
+          navigateToStablecoinLending(earnAsset);
+          break;
+        case EARN_EXPERIENCES.POOLED_STAKING:
+          navigateToPooledStaking(earnAsset);
+          break;
+        case EARN_EXPERIENCES.TRX_STAKING:
+          navigateToLegacyEarnDeposit(earnAsset);
+          break;
+      }
+    },
+    [
+      navigateToMoneyDeposit,
+      navigateToPooledStaking,
+      navigateToStablecoinLending,
+      navigateToLegacyEarnDeposit,
+    ],
+  );
+
+  const navigateFromEarnAsset = useCallback(
+    (asset: EarnAsset, tokenDetailsSource?: TokenDetailsSource) => {
+      if (!asset) {
+        return;
+      }
+
+      if (isEarnAssetBalanceBelowMinDepositAmount(asset)) {
+        const token = earnAssetToToken(asset);
+        navigation.navigate('Asset', {
+          ...token,
+          source: tokenDetailsSource,
         });
         return;
       }
 
-      const token = earnAssetToToken(asset);
-      navigation.navigate('Asset', {
-        ...token,
-        source: tokenDetailsSource,
+      const hasSingleStrategy = asset.experiences.length === 1;
+
+      if (hasSingleStrategy) {
+        navigateToDepositForExperience(asset, asset.experiences[0]);
+        return;
+      }
+
+      navigation.navigate(Routes.EARN.MODALS.ROOT, {
+        screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
+        params: { earnAsset: asset },
       });
     },
-    [navigation, tokenDetailsSource],
+    [navigation, navigateToDepositForExperience],
   );
 
-  return { navigateToEarnOpportunity };
+  return {
+    navigateFromEarnAsset,
+    navigateToDepositForExperience,
+  };
 };
 
 export default useEarnOpportunityNavigation;

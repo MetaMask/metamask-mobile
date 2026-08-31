@@ -200,9 +200,7 @@ const EarnSectionListView = () => {
   const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
     useMoneyNavigation();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
-  const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
-    tokenDetailsSource: TokenDetailsSource.ExploreEarn,
-  });
+  const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
   const retryInFlightRef = useRef(false);
   const [isRetrying, setIsRetrying] = useState(false);
@@ -273,9 +271,9 @@ const EarnSectionListView = () => {
 
   const handleItemPress = useCallback(
     (item: EarnAssetSearchItem) => {
-      navigateToEarnOpportunity(item.asset);
+      navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn);
     },
-    [navigateToEarnOpportunity],
+    [navigateFromEarnAsset],
   );
 
   const handleDeposit = useCallback(
