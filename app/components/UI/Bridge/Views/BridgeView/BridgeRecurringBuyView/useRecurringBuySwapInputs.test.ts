@@ -36,7 +36,9 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
-const mockUseBridgeQuoteRequest = jest.fn(() => mockUpdateQuoteParams);
+const mockUseBridgeQuoteRequest = jest.fn(
+  (_options?: unknown) => mockUpdateQuoteParams,
+);
 jest.mock('../../../hooks/useBridgeQuoteRequest', () => ({
   useBridgeQuoteRequest: (options?: unknown) =>
     mockUseBridgeQuoteRequest(options),
