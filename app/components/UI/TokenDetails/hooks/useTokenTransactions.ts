@@ -127,6 +127,71 @@ export const getSwapLegTokenIdentifiers = (
   };
 };
 
+type BridgeQuoteAsset = {
+  assetId?: string;
+  address?: string;
+  symbol?: string;
+};
+
+const toNonEvmMovement = (
+  asset: BridgeQuoteAsset | undefined,
+  amount?: string,
+) => {
+  if (!asset?.assetId) {
+    return undefined;
+  }
+
+  return {
+    address: asset.address ?? '',
+    asset: {
+      fungible: true,
+      type: asset.assetId,
+      unit: asset.symbol ?? '',
+      amount: amount ?? '0',
+    },
+  };
+};
+
+/**
+ * Snap source bridges (e.g. Stellar) often omit `from`/`to`. Copy quote legs
+ * from `bridgeHistory` into that shape so the existing native/token filters
+ * still keep the row.
+ */
+const withFromToFromBridgeHistory = (
+  tx: Transaction,
+  bridgeHistory: Parameters<typeof findBridgeHistoryItem>[0]['bridgeHistory'],
+): Transaction => {
+  if (tx.from?.length || tx.to?.length) {
+    return tx;
+  }
+
+  const quote = findBridgeHistoryItem({
+    bridgeHistory,
+    transactionMetaId: tx.id,
+    transactionHash: tx.id,
+  })?.quote;
+
+  if (!quote) {
+    return tx;
+  }
+
+  const from = toNonEvmMovement(quote.srcAsset, quote.srcTokenAmount);
+  const to = toNonEvmMovement(quote.destAsset, quote.destTokenAmount);
+
+  if (!from && !to) {
+    return tx;
+  }
+
+  return {
+    ...tx,
+    from: from ? [from] : (tx.from ?? []),
+    to: to ? [to] : (tx.to ?? []),
+  };
+};
+
+const getTxStatusFingerprint = (transactions: Transaction[]) =>
+  transactions.map((tx) => `${tx.id}:${tx.status ?? ''}`).join(',');
+
 // Cache for non-EVM transactions
 // eslint-disable-next-line import-x/no-mutable-exports
 let cachedFilteredTransactions: Transaction[] | null = null;
@@ -210,10 +275,15 @@ export const useTokenTransactions = (
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
-      const txs =
+      // Some non-EVM bridge transactions don't have a from and to asset (Stellar),
+      // Map the transactions with BridgeHistory to include the from and to assets
+      const txs = (
         nonEvmTransactionsData?.transactions?.filter(
           (tx: Transaction) => tx.chain === asset.chainId,
-        ) || [];
+        ) || []
+      ).map((tx: Transaction) =>
+        withFromToFromBridgeHistory(tx, bridgeHistory),
+      );
 
       const assetAddress = asset.address?.toLowerCase();
       const assetSymbol = asset.symbol?.toLowerCase();
@@ -225,6 +295,9 @@ export const useTokenTransactions = (
         assetSymbol,
         isNativeAsset,
         lastTxId: txs[0]?.id,
+        // Txn status may update after it submitted,
+        // We need to include it in the cache key to avoid showing stale data
+        txStatuses: getTxStatusFingerprint(txs),
       });
 
       let filteredTransactions: Transaction[];
@@ -301,6 +374,7 @@ export const useTokenTransactions = (
     asset.symbol,
     asset.isNative,
     asset.isETH,
+    bridgeHistory,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTransactionsData,
     ///: END:ONLY_INCLUDE_IF
@@ -612,7 +686,9 @@ export const useTokenTransactions = (
           (txsRef.current.length === 0 && !txState.transactionsUpdated) ||
           txsRef.current.length !== filteredTransactions.length ||
           chainIdRef.current !== chainId ||
-          txState.loading
+          txState.loading ||
+          getTxStatusFingerprint(txsRef.current) !==
+            getTxStatusFingerprint(filteredTransactions)
         ) {
           txsRef.current = filteredTransactions;
           txsPendingRef.current = [];
