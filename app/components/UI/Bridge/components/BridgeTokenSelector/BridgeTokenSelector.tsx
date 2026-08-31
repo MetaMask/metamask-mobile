@@ -77,7 +77,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import { useABTest } from '../../../../../hooks';
 import {
   ARC_NATIVE_ASSET_ID,
   ARC_NATIVE_ASSET_ID_LEGACY,
@@ -96,12 +95,6 @@ import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToS
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutConfig,
-  TokenSelectorBalanceLayoutVariant,
-} from '../TokenSelectorItem.abTestConfig';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -126,7 +119,6 @@ interface BridgeTokenSelectorRowProps {
   isSelected: boolean;
   isNoFeeAsset: boolean;
   showStockBadge: boolean;
-  balanceLayoutConfig: TokenSelectorBalanceLayoutConfig;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -137,7 +129,6 @@ const BridgeTokenSelectorRow = React.memo(
     isSelected,
     isNoFeeAsset,
     showStockBadge,
-    balanceLayoutConfig,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -161,7 +152,6 @@ const BridgeTokenSelectorRow = React.memo(
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
         showStockBadge={showStockBadge}
-        balanceLayoutConfigOverride={balanceLayoutConfig}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -261,15 +251,6 @@ export const BridgeTokenSelector: React.FC = () => {
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-  const { variant: balanceLayoutConfig } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
-  const tokenBalanceLayoutConfig =
-    balanceLayoutConfig ??
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-      TokenSelectorBalanceLayoutVariant.Control
-    ];
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -884,7 +865,6 @@ export const BridgeTokenSelector: React.FC = () => {
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
           showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
-          balanceLayoutConfig={tokenBalanceLayoutConfig}
         />
       );
     },
@@ -894,7 +874,6 @@ export const BridgeTokenSelector: React.FC = () => {
       handleInfoButtonPress,
       getIsNoFeeAsset,
       isRWAEnabled,
-      tokenBalanceLayoutConfig,
     ],
   );
 

@@ -45,11 +45,13 @@ const BASE_ASSETS_FLAGS = [
           featureVersion: '1',
           minimumVersion: '8.3.0',
           enabled: true,
+          useUnlockCleanup: true,
         },
         '7.60.0': {
           enabled: false,
           featureVersion: null,
           minimumVersion: null,
+          useUnlockCleanup: true,
         },
       },
     },

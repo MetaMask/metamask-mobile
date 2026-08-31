@@ -251,6 +251,69 @@ describe('MultichainTransactionsView', () => {
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
 
+  it.each([
+    [TransactionType.StakeDeposit, 'stake', 'out'],
+    [TransactionType.StakeWithdraw, 'unstake', 'in'],
+  ])(
+    'classifies a Tron %s as a %s row',
+    async (keyringType, expectedType, expectedDirection) => {
+      const movement = [
+        {
+          address: mockSelectedAddress,
+          asset: {
+            amount: '100',
+            fungible: true,
+            type: 'tron:728126428/slip44:195',
+            unit: 'TRX',
+          },
+        },
+      ];
+      const stakingTransaction = {
+        id: 'tron-stake',
+        chain: 'tron:728126428',
+        from: keyringType === TransactionType.StakeDeposit ? movement : [],
+        to: keyringType === TransactionType.StakeWithdraw ? movement : [],
+        type: keyringType,
+        status: TransactionStatus.Confirmed,
+        timestamp: 1742400000,
+      };
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return mockSelectedAddress;
+        }
+        if (selector === selectNonEvmTransactions) {
+          return { transactions: [stakingTransaction] };
+        }
+        return null;
+      });
+
+      customRender(
+        <MultichainTransactionsView
+          selectedAddress={mockSelectedAddress}
+          chainId={SolScope.Mainnet}
+          location={TransactionDetailLocation.AssetDetails}
+        />,
+      );
+
+      expect(ActivityListItemRow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item: expect.objectContaining({
+            type: expectedType,
+            data: expect.objectContaining({
+              token: expect.objectContaining({
+                symbol: 'TRX',
+                amount: '100',
+                direction: expectedDirection,
+              }),
+            }),
+          }),
+        }),
+        undefined,
+      );
+    },
+  );
+
   it('keeps swaps carrying bridge history on the redesigned row instead of the legacy bridge row', async () => {
     const bridgeHistoryItem = {
       status: { srcChain: { txHash: 'tx-123' } },
