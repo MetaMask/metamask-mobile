@@ -31,6 +31,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  id-token: write # required by MetaMask/github-tools/.github/actions/get-token
 
 jobs:
   dependency-audit-escalation:
