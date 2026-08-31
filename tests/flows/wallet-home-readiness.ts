@@ -1,5 +1,5 @@
 import Matchers from '../framework/Matchers';
-import { withImplicitWait } from '../framework/PlaywrightUtilities';
+import { withImplicitWait } from '../framework/AppiumUtilities';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { sleep } from '../framework/Utilities';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';

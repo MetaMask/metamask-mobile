@@ -149,10 +149,14 @@ export const handleMoney = () => {
       return;
     }
 
-    NavigationService.navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    NavigationService.navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   } catch (error) {
     DevLogger.log('[handleMoney] Failed to handle deeplink:', error);
     Logger.error(error as Error, '[handleMoney] Error handling money deeplink');

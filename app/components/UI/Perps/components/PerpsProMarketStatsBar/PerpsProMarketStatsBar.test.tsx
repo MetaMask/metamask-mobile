@@ -4,6 +4,7 @@ import PerpsProMarketStatsBar from './PerpsProMarketStatsBar';
 import type { PerpsProMarketStatsBarProps } from './PerpsProMarketStatsBar.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
+import { Text, TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -139,6 +140,34 @@ describe('PerpsProMarketStatsBar', () => {
     expect(
       getByText(`${FUNDING_RATE_CONFIG.ZeroDisplay} / 39:24`),
     ).toBeOnTheScreen();
+  });
+
+  it('displays a positive threshold funding rate in success color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('displays a negative threshold funding rate in error color', () => {
+    mockUsePerpsMarketStats.mockReturnValue({
+      ...mockMarketStats,
+      fundingRate: '-<0.0001%',
+    });
+
+    const { UNSAFE_getAllByType } = renderComponent();
+
+    const fundingRateText = UNSAFE_getAllByType(Text).find(
+      (textElement) => textElement.props.children === '-<0.0001% / 39:24',
+    );
+    expect(fundingRateText?.props.color).toBe(TextColor.ErrorDefault);
   });
 
   it('reflects live volume updates on re-render', () => {

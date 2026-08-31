@@ -13,7 +13,6 @@ import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
-import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
 import ActivityListAccountImportTimeRow from '../ActivityListItemRow/ActivityListAccountImportTimeRow';
@@ -54,9 +53,6 @@ export const AssetDetailsActivityListItem = ({
   // Used for TokensController lookups (matches useLocalActivityItems)
   const groupEvmAccount = useSelector(
     selectSelectedAccountGroupEvmInternalAccount,
-  );
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
   );
 
   const networkConfigurations = useSelector(
@@ -131,12 +127,10 @@ export const AssetDetailsActivityListItem = ({
           ? item.raw.data.primaryTransaction
           : undefined;
 
-      if (isTransactionsRedesignEnabled) {
-        const detailsRoute = getActivityDetailsRoute(item);
-        if (detailsRoute) {
-          navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-          return;
-        }
+      const detailsRoute = getActivityDetailsRoute(item);
+      if (detailsRoute) {
+        navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+        return;
       }
 
       if (!selectedTx) return;
@@ -164,7 +158,6 @@ export const AssetDetailsActivityListItem = ({
     [
       bridgeHistoryItem,
       currentChainId,
-      isTransactionsRedesignEnabled,
       navigation,
       onCancelAction,
       onSpeedUpAction,
