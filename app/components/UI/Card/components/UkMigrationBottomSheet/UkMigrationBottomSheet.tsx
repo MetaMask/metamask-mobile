@@ -15,7 +15,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
 
 export const createUkMigrationBottomSheetNavigationDetails =
@@ -23,6 +24,19 @@ export const createUkMigrationBottomSheetNavigationDetails =
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.UK_MIGRATION,
   );
+
+/**
+ * Placeholder UK migration cutoff until a remote feature flag supplies it.
+ * Month is 0-indexed (8 = September).
+ */
+const UK_MIGRATION_DEADLINE = new Date(2026, 8, 30);
+
+const formatUkMigrationDeadline = (deadline: Date): string =>
+  getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(deadline);
 
 const MIGRATION_STEP_KEYS = [
   'card.uk_migration_bottom_sheet.steps.reverify_identity',
@@ -93,12 +107,18 @@ const UkMigrationBottomSheet = () => {
           twClassName="text-alternative"
           testID={UkMigrationBottomSheetSelectors.DESCRIPTION}
         >
-          {strings('card.uk_migration_bottom_sheet.description')}
+          {strings('card.uk_migration_bottom_sheet.description', {
+            deadline: formatUkMigrationDeadline(UK_MIGRATION_DEADLINE),
+          })}
         </Text>
 
         <Box twClassName="gap-4" testID={UkMigrationBottomSheetSelectors.STEPS}>
           {steps.map((step) => (
-            <Box key={step.number} twClassName="flex-row items-center gap-3">
+            <Box
+              key={step.number}
+              twClassName="flex-row items-center gap-3"
+              testID={UkMigrationBottomSheetSelectors.step(step.number)}
+            >
               <Box twClassName="w-6 h-6 rounded-full bg-icon-default items-center justify-center">
                 <Text
                   variant={TextVariant.BodySm}

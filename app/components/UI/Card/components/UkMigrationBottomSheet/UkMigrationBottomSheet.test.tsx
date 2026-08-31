@@ -2,9 +2,17 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import UkMigrationBottomSheet from './UkMigrationBottomSheet';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
+import I18n from '../../../../../../locales/i18n';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 
 const mockOnCloseBottomSheet = jest.fn();
 const mockGoBack = jest.fn();
+
+const expectedDeadlineLabel = getIntlDateTimeFormatter(I18n.locale, {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+}).format(new Date(2026, 8, 30));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -17,11 +25,13 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  __esModule: true,
+  default: { locale: 'en-US' },
+  strings: (key: string, vars?: Record<string, string>) => {
     const map: Record<string, string> = {
       'card.uk_migration_bottom_sheet.title': 'Update your MetaMask Card',
       'card.uk_migration_bottom_sheet.description':
-        "We've switched to a new card provider. To keep spending without interruption, complete these steps before Sep 30, 2026.",
+        "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
       'card.uk_migration_bottom_sheet.steps.reverify_identity':
         'Re-verify your identity',
       'card.uk_migration_bottom_sheet.steps.get_new_card_number':
@@ -31,7 +41,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.uk_migration_bottom_sheet.get_started': 'Get started',
       'card.uk_migration_bottom_sheet.remind_me_later': 'Remind me later',
     };
-    return map[key] || key;
+    let value = map[key] || key;
+    if (vars) {
+      Object.entries(vars).forEach(([name, replacement]) => {
+        value = value.replace(`{{${name}}}`, replacement);
+      });
+    }
+    return value;
   },
 }));
 
@@ -65,26 +81,37 @@ describe('UkMigrationBottomSheet', () => {
   });
 
   it('renders title, description, steps, and actions', () => {
-    const { getByTestId, getByText } = render(<UkMigrationBottomSheet />);
+    const { getByTestId } = render(<UkMigrationBottomSheet />);
 
-    expect(getByTestId(UkMigrationBottomSheetSelectors.CONTAINER)).toBeTruthy();
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.CONTAINER),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.TITLE),
-    ).toHaveTextContent('Update your MetaMask Card');
+    ).toBeOnTheScreen();
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.DESCRIPTION),
     ).toHaveTextContent(
-      "We've switched to a new card provider. To keep spending without interruption, complete these steps before Sep 30, 2026.",
+      `We've switched to a new card provider. To keep spending without interruption, complete these steps before ${expectedDeadlineLabel}.`,
     );
-    expect(getByText('Re-verify your identity')).toBeTruthy();
-    expect(getByText('Get your new card number')).toBeTruthy();
-    expect(getByText('Convert your funds to USDC on Base')).toBeTruthy();
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.STEPS),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.step(1)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.step(2)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(UkMigrationBottomSheetSelectors.step(3)),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.GET_STARTED_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(UkMigrationBottomSheetSelectors.REMIND_LATER_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('closes the sheet when Get started is pressed', () => {
