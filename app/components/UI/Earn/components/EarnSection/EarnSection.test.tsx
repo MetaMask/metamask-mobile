@@ -551,8 +551,8 @@ describe('EarnSection', () => {
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
+    expect(navigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
       params: { assetId },
     });
   });
@@ -590,8 +590,8 @@ describe('EarnSection', () => {
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
+    expect(navigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
       params: { assetId },
     });
   });

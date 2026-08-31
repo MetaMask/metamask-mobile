@@ -76,8 +76,8 @@ describe('useEarnOpportunityNavigation', () => {
       result.current.navigateToEarnOpportunity(earnAsset);
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.EARN.MODALS.ROOT, {
+      screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
       params: { assetId: earnAsset.assetId },
     });
   });

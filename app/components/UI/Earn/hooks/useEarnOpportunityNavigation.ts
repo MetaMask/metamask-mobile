@@ -26,8 +26,8 @@ const useEarnOpportunityNavigation = ({
   const navigateToEarnOpportunity = useCallback(
     (asset: EarnAsset) => {
       if (!isEarnAssetBalanceBelowMinDepositAmount(asset)) {
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.STRATEGY_SELECTION,
+        navigation.navigate(Routes.EARN.MODALS.ROOT, {
+          screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
           params: { assetId: asset.assetId },
         });
         return;

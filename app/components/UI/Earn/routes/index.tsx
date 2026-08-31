@@ -48,11 +48,6 @@ const EarnScreenStack = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name={Routes.EARN.STRATEGY_SELECTION}
-        component={EarnStrategySelectionView}
-        options={{ headerShown: false, presentation: 'card' }}
-      />
-      <Stack.Screen
         name={Routes.EARN.SEARCH_LIST}
         component={EarnSectionListView}
         options={{ headerShown: false }}
@@ -82,6 +77,11 @@ const EarnModalStack = () => (
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
       options={{ headerShown: false, presentation: 'card' }}
+    />
+    <ModalStack.Screen
+      name={Routes.EARN.MODALS.STRATEGY_SELECTION}
+      component={EarnStrategySelectionView}
+      options={{ headerShown: false }}
     />
   </ModalStack.Navigator>
 );
