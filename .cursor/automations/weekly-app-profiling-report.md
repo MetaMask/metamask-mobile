@@ -19,7 +19,7 @@ BrowserStack app-profiling averages for the top scenarios, then produces an
 
 ## Prompt (copy into Cursor Automation)
 
-```text
+````text
 You are running the weekly MetaMask Mobile app-profiling report.
 
 ## Goal
@@ -39,8 +39,9 @@ that order.
 1. From the repo root, run:
    ```bash
    node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
-   ```
-   If `gh` auth is missing, fix auth first. Do not invent metrics.
+````
+
+If `gh` auth is missing, fix auth first. Do not invent metrics.
 
 2. Read:
    - `/tmp/weekly-app-profiling/report.json`
@@ -48,7 +49,7 @@ that order.
    - `/tmp/weekly-app-profiling/slack.md`
 
 3. **AI final analysis (required)**  
-Using only the collected app-profiling data, write:
+   Using only the collected app-profiling data, write:
    - an executive summary with at most 3 bullets
    - at most 3 investigation findings
    - at most 3 priority actions
@@ -93,19 +94,19 @@ Using only the collected app-profiling data, write:
 
 Use this order:
 
-*Weekly App Profiling Report*
+_Weekly App Profiling Report_
 
-*Window:* [start date] → [end date]
+_Window:_ [start date] → [end date]
 
-*Executive summary*
+_Executive summary_
 
 - <@TEAM_ID> [Profiling insight supported by metrics]
 - <@TEAM_ID> [Profiling insight supported by metrics]
 - <@TEAM_ID> [Profiling insight supported by metrics]
 
-*Data details*
+_Data details_
 
-*<@TEAM_ID> Scenario name*
+_<@TEAM_ID> Scenario name_
 
 Profiling samples: n=[sample count]
 
@@ -113,25 +114,25 @@ CPU avg: [value] · Memory avg: [value] · Memory max: [value]
 
 Slow frames: [value] · Issues: [value] · App size: [value]
 
-*Profiling leads*
+_Profiling leads_
 
 [No more than 3 concise profiling-based leads, each ending with a BrowserStack recording link for the peak/outlier sample when available.]
 
-*AI insights to investigate*
+_AI insights to investigate_
 
 [No more than 3 concise profiling-based insights.]
 
-*Priority actions*
+_Priority actions_
 
 1. [Action based only on profiling data]
 2. [Action based only on profiling data]
 3. [Action based only on profiling data]
 
-*Setup:* Weekly BrowserStack app-profiling rollup (last 7 days)
+_Setup:_ Weekly BrowserStack app-profiling rollup (last 7 days)
 
-*Disclaimer:* This report is for TESTING purposes only and should not be treated as a production alert.
+_Disclaimer:_ This report is for TESTING purposes only and should not be treated as a production alert.
 
-*CC:* <@UEYQL2PEV>
+_CC:_ <@UEYQL2PEV>
 
 Do not add device, PR-count, run-count, pass-count, failure-count, or artifact-download metadata to the Slack message.
 
@@ -140,10 +141,12 @@ Do not add device, PR-count, run-count, pass-count, failure-count, or artifact-d
    - a 2–3 sentence executive summary of the most important investigation item
 
 ## Non-goals
+
 - Do not create a PR unless asked
 - Do not modify app source code
 - Do not claim profiling regressions without numbers from report.json
-```
+
+````
 
 ## Manual dry-run
 
@@ -151,7 +154,7 @@ Do not add device, PR-count, run-count, pass-count, failure-count, or artifact-d
 node tests/scripts/weekly-app-profiling-report.mjs --days 7 --top 10 --out-dir /tmp/weekly-app-profiling
 # Inspect /tmp/weekly-app-profiling/{report.json,slack.md,ai-briefing.md}
 # Then paste ai-briefing.md into an agent chat to generate insights and Slack the result
-```
+````
 
 ## Notes
 

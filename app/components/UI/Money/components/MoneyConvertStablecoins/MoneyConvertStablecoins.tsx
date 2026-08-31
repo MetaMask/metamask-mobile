@@ -1,25 +1,19 @@
 import React, { useCallback } from 'react';
 import {
+  AvatarGroup,
+  AvatarGroupSize,
+  AvatarGroupVariant,
   Box,
   BoxFlexDirection,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
   IconSize,
+  Tag,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import TagBase from '../../../../../component-library/base-components/TagBase';
-import {
-  TagShape,
-  TagSeverity,
-} from '../../../../../component-library/base-components/TagBase/TagBase.types';
-import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
-import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { buildTokenIconUrl } from '../../../Card/util/buildTokenIconUrl';
@@ -62,19 +56,16 @@ const DAI_ADDRESS = '0x6B175474E89094C44Da98b954EedeAC495271d0F';
 
 const STABLECOIN_AVATAR_PROPS = [
   {
-    variant: AvatarVariant.Token as const,
     name: 'USDC',
-    imageSource: { uri: buildTokenIconUrl(ETHEREUM_CAIP, USDC_ADDRESS) },
+    src: { uri: buildTokenIconUrl(ETHEREUM_CAIP, USDC_ADDRESS) },
   },
   {
-    variant: AvatarVariant.Token as const,
     name: 'USDT',
-    imageSource: { uri: buildTokenIconUrl(ETHEREUM_CAIP, USDT_ADDRESS) },
+    src: { uri: buildTokenIconUrl(ETHEREUM_CAIP, USDT_ADDRESS) },
   },
   {
-    variant: AvatarVariant.Token as const,
     name: 'DAI',
-    imageSource: { uri: buildTokenIconUrl(ETHEREUM_CAIP, DAI_ADDRESS) },
+    src: { uri: buildTokenIconUrl(ETHEREUM_CAIP, DAI_ADDRESS) },
   },
 ];
 
@@ -92,25 +83,23 @@ const FeatureTags = () => {
       testID={MoneyConvertStablecoinsTestIds.FEATURE_TAGS}
     >
       {FEATURE_TAGS.map((tag) => (
-        <TagBase
+        <Tag
           key={tag}
           style={{ backgroundColor: tagBackgroundColor }}
-          shape={TagShape.Rectangle}
-          severity={TagSeverity.Neutral}
-          gap={4}
-          startAccessory={
-            <Icon
-              name={IconName.CheckBold}
-              size={IconSize.Sm}
-              color={IconColor.SuccessDefault}
-            />
-          }
-          textProps={{
-            variant: ComponentTextVariant.BodySMMedium,
+          startIconName={IconName.CheckBold}
+          startIconProps={{
+            size: IconSize.Sm,
+            color: IconColor.SuccessDefault,
           }}
         >
-          {strings(tag)}
-        </TagBase>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
+            {strings(tag)}
+          </Text>
+        </Tag>
       ))}
     </Box>
   );
@@ -253,9 +242,9 @@ const MoneyConvertStablecoins = ({
             testID={MoneyConvertStablecoinsTestIds.TOKEN_ICONS}
           >
             <AvatarGroup
-              avatarPropsList={STABLECOIN_AVATAR_PROPS}
-              size={AvatarSize.Md}
-              includesBorder={false}
+              variant={AvatarGroupVariant.Token}
+              avatarPropsArr={STABLECOIN_AVATAR_PROPS}
+              size={AvatarGroupSize.Md}
             />
           </Box>
         )}

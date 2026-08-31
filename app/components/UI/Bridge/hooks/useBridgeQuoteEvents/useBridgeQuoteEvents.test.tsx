@@ -12,7 +12,6 @@ import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
-    ...jest.requireActual('../../../../../core/Engine').context,
     BridgeController: {
       trackUnifiedSwapBridgeEvent: jest.fn(),
     },
@@ -41,9 +40,11 @@ describe('useBridgeQuoteEvents', () => {
     gas_included: false,
     gas_included_7702: false,
     has_sufficient_gas_for_quote: null,
+    custom_slippage: false,
     price_impact: -0.001991570073761955,
     provider: 'lifi_jupiter',
     quoted_time_minutes: 0.08333333333333333,
+    slippage_limit: 0,
     token_symbol_destination: 'USDC',
     token_symbol_source: 'SOL',
     usd_amount_source: 0,
@@ -188,6 +189,46 @@ describe('useBridgeQuoteEvents', () => {
       expect(mockFinishQuoteTrace).toHaveBeenCalledWith('success');
     },
   );
+
+  it('publishes the explicit slippage context', () => {
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides: {
+        quotesLoadingStatus: null,
+        quoteFetchError: null,
+        quotes: [mockQuoteWithMetadata],
+        quotesRefreshCount: 1,
+      },
+      bridgeReducerOverrides: {
+        slippage: '3.5',
+        isSlippageUserOverride: true,
+      },
+    });
+
+    renderHookWithProvider(
+      () =>
+        useBridgeQuoteEvents({
+          hasNoQuotesAvailable: false,
+          hasInsufficientBalance: false,
+          hasInsufficientGas: false,
+          isNetworkFeeUnavailable: false,
+          hasTxAlert: false,
+          isSubmitDisabled: false,
+          isPriceImpactWarningVisible: false,
+          hasInsufficientNativeReserveError: false,
+        }),
+      { state: testState },
+    );
+
+    expect(
+      Engine.context.BridgeController.trackUnifiedSwapBridgeEvent,
+    ).toHaveBeenCalledWith(
+      'Unified SwapBridge Quotes Received',
+      expect.objectContaining({
+        custom_slippage: true,
+        slippage_limit: 3.5,
+      }),
+    );
+  });
 
   it('ends the quote trace when a completed request has no quotes', () => {
     const testState = createBridgeTestState({

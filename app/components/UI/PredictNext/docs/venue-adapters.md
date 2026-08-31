@@ -37,7 +37,7 @@ Account Readiness, Account Setup, portfolio, trading, and funding are account-sc
 - Predict User identity is distinct from Funding Wallet and Venue Account.
 - The backend authorizes account-scoped requests from authenticated MetaMask identity, not client-supplied identity fields.
 - Every root Feed, Event, query key, route, and durable Venue Operation is Venue-qualified.
-- A canonical Event maps to exactly one Venue Event; adapters never merge Markets from multiple Venue Events into one Event.
+- A canonical Event has one parent Venue Event. An immutable Game detail read may append validated Markets from authoritative sibling Venue Events while retaining that parent identity.
 - Nested Category, Series, Market, and Outcome values carry opaque identifiers and inherit Venue and parent scope through containment.
 - A raw Venue identifier is meaningful only with its containing `venueId`.
 - Canonical entities contain no raw credentials, PII/KYC values, or authentication subjects.
