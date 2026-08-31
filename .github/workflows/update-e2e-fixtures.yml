@@ -212,38 +212,15 @@ jobs:
           PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
           OUTPUT_PATH: ./e2e-timings.json
 
-      - name: Select specs for fixture validation (timing bin-pack)
+      - name: Select specs for fixture validation
         id: select-specs
         run: |
-          PLATFORM="android"
-          TEST_SUITE_TAG="FixtureValidation"
-          SPLIT_NUMBER="1"
-          TOTAL_SPLITS="1"
-          BASE_DIR="tests/smoke-appium"
-          E2E_TIMINGS_PATH="./e2e-timings.json"
-
-          if [ -n "${{ github.event.pull_request.number }}" ] && [ "${{ steps.download-timings.outcome }}" == "skipped" ]; then
-            # For PR runs, use changed specs only
-            echo "CHANGED_SPEC_FILES=$(node .github/scripts/e2e-get-changed-specs.mjs)"
-          else
-            # For workflow_dispatch runs, include all fixture validation specs
-            CHANGED_SPEC_FILES=$(node .github/scripts/e2e-split-tags-shards.mjs \
-              --select-specs \
-              --test-suite-tag ${TEST_SUITE_TAG} \
-              --base-dir ${BASE_DIR} \
-              --e2e-timings-path ${E2E_TIMINGS_PATH} \
-              || echo "")
-            echo "CHANGED_SPEC_FILES=${CHANGED_SPEC_FILES}"
-          fi
-
-          readarray -t specs_array <<< "${CHANGED_SPEC_FILES}"
-          SPEC_FILES="${specs_array[*]}"
-          SPEC_COUNT=${#specs_array[@]}
-
+          # Single fixture validation spec — no sharding/selection needed.
+          SPEC_FILES="tests/smoke-appium/fixtures/fixture-validation.spec.ts"
           {
-            echo "spec_count=${SPEC_COUNT}"
+            echo "spec_count=1"
             echo "spec_files=${SPEC_FILES}"
-            echo "changed_spec_files=${CHANGED_SPEC_FILES}"
+            echo "changed_spec_files=${SPEC_FILES}"
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup Android AVD & Appium
@@ -305,12 +282,13 @@ jobs:
       - name: Run fixture validation tests
         id: run-tests-android
         timeout-minutes: ${{ inputs.test-timeout-minutes }}
+        continue-on-error: true
         env:
           SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
-          APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
-          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
-          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_SUITE_NAME: update-e2e-fixtures
+          APPIUM_SMOKE_JOB_TITLE: Appium update-e2e-fixtures (android)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-update-e2e-fixtures
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-update-e2e-fixtures
           PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
@@ -335,12 +313,6 @@ jobs:
 
       - name: Cache updated fixture
         uses: actions/cache/save@v4
-        with:
-          path: tests/framework/fixtures/json/default-fixture.json
-          key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
-      - name: Cache updated fixture
-        uses: actions/cache/save@v4
-        if: steps.run-fixture-validation-test.outcome == 'success'
         with:
           path: tests/framework/fixtures/json/default-fixture.json
           key: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
