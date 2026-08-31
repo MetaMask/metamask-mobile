@@ -70,3 +70,17 @@ index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604
        }
      end
  
+diff --git a/settings.gradle.kts b/settings.gradle.kts
+index 62527f0149f29f86e99aa90d39b28d3ff7364602..84d022e2bf5714bb8f81cab2a707d8b872ea1b79 100644
+--- a/settings.gradle.kts
++++ b/settings.gradle.kts
+@@ -45,7 +45,8 @@ project(":packages:react-native").projectDir = file("/tmp")
+ // and apply relevant properties to the :react-native project.
+ buildscript {
+   val properties = java.util.Properties()
+-  val propertiesToInherit = listOf("hermesV1Enabled", "react.hermesV1Enabled")
++  val propertiesToInherit =
++      listOf("hermesV1Enabled", "react.hermesV1Enabled", "reactNativeArchitectures")
+ 
+   // We cannot assume that the node_modules are next to the android project, for example
+   // in monorepos, they might get hoisted.
