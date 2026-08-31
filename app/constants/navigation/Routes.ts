@@ -467,6 +467,7 @@ const Routes = {
   },
   EARN: {
     ROOT: 'EarnScreens',
+    SEARCH_LIST: 'EarnSearchList',
     STRATEGY_SELECTION: 'EarnStrategySelection',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',

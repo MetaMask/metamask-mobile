@@ -1588,8 +1588,36 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
+      "keyboard_previous": "Previous field",
+      "keyboard_next": "Next field",
+      "keyboard_done": "Done",
       "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
-      "close_keyboard": "Close keyboard",
+      "scale": {
+        "start_price": "Start (USD)",
+        "end_price": "End (USD)",
+        "total_orders": "Order count",
+        "size_skew": "Size skew",
+        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
+        "range": "{{start}} → {{end}}",
+        "start": "Start",
+        "end": "End",
+        "margin": "Margin",
+        "orders_submitted": "Scale orders submitted",
+        "orders_placed": "Scale orders placed",
+        "orders_partially_placed": "Scale orders partially placed",
+        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
+        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "Enter both Scale range prices",
+          "size_required": "Enter a Scale order size",
+          "invalid_range": "Start price must be lower than end price",
+          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
+          "invalid_skew": "Size skew must be greater than 0",
+          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+        }
+      },
       "twap": {
         "running_time": "Running time",
         "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
@@ -1803,21 +1831,25 @@
           "title": "Limit",
           "description": "Execute at your specified price or better"
         },
+        "scale": {
+          "title": "Scale",
+          "description": "Multiple limit orders spread across a price range"
+        },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Limit fills at trigger price"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Place a market order if trigger price hits"
+          "description": "Market fills at trigger price"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Limit take-profit at trigger price"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Market take-profit at trigger price"
         },
         "twap": {
           "title": "TWAP",
@@ -2319,6 +2351,10 @@
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
+      "size_skew": {
+        "title": "Size skew",
+        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
       "closing_fees": {
         "title": "Closing fees",
         "metamask_fee": "MetaMask fee",
@@ -2589,6 +2625,7 @@
       "added": "Added {{symbol}} to watchlist",
       "removed": "Removed {{symbol}} from watchlist",
       "add_error": "Failed to add market to watchlist",
+      "remove_error": "Failed to remove market from watchlist",
       "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
@@ -2699,6 +2736,9 @@
       "listed_by": "Listed by",
       "value_type": "Value type",
       "group_by": "Group by",
+      "layout": "Order book layout",
+      "layout_left": "Left",
+      "layout_right": "Right",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -2861,7 +2901,18 @@
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
     "market": {
-      "volume": "{{value}} Vol."
+      "volume": "{{value}} Vol.",
+      "draw": "Draw",
+      "footer_price_unavailable": "price unavailable"
+    },
+    "market_groups": {
+      "total_points": "Total points",
+      "spread": "Spreads",
+      "market_option": "Market option",
+      "line_unavailable": "line unavailable",
+      "price_unavailable": "price unavailable",
+      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -7846,6 +7897,10 @@
     "asset_unavailable": "Asset unavailable",
     "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
     "retry": "Retry",
+    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
+    "money_fallback_description": "Add assets to your Money account to start earning",
+    "more_ways_to_earn": "More ways to earn",
+    "empty_state_description": "No earning opportunities are available right now.",
     "view_more": "View more"
   },
   "money": {
@@ -7947,8 +8002,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your",
-      "description_with_amounts_middle": "in assets and you could earn up to",
+      "description_with_amounts_prefix": "Add your",
+      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -8719,7 +8774,17 @@
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
-      "expired_after": "Expired after {{duration}}"
+      "expired_after": "Expired after {{duration}}",
+      "buy_when": "Buy when",
+      "sell_when": "Sell when",
+      "is_at_or_below": "is at or below",
+      "is_at_or_above": "is at or above",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% from market)",
+      "from_market_above": "(+{{percent}}% from market)",
+      "market": "Market",
+      "custom": "Custom"
     },
     "recurring": {
       "you_get": "You get",
@@ -8727,6 +8792,19 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "preview_order": "Preview Order",
+      "confirm_title": "Confirm recurring order",
+      "paying_all_orders": "Paying (all orders)",
+      "paying_per_order": "Paying (per order)",
+      "receiving": "Receiving",
+      "est_receiving_per_order": "Est. receiving (per order)",
+      "est_receiving_all_orders": "Est. receiving (all orders)",
+      "expires_after": "Expires after",
+      "slippage_all_orders": "Slippage (all orders)",
+      "est_network_fee_per_order": "Est. network fee (per order)",
+      "repeat_info_title": "Repeat orders",
+      "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "max_is": "Max is {{max}}",
       "price_range": {
         "label": "Price range",
         "not_set": "Not set",
@@ -8745,16 +8823,26 @@
         "minute": "minute",
         "hour": "hour",
         "day": "day",
-        "week": "week"
+        "week": "week",
+        "month": "month"
+      },
+      "unit_plural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
       },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
         "day": "Day",
-        "week": "Week"
+        "week": "Week",
+        "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",
+      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "filled": "Filled"
     },
@@ -10954,6 +11042,7 @@
       "all": "All",
       "crypto": "Crypto",
       "perps": "Perps",
+      "earn": "Earn",
       "stocks": "Stocks",
       "predictions": "Predictions",
       "sites": "Sites"

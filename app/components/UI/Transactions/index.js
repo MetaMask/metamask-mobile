@@ -88,7 +88,6 @@ import {
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import {
@@ -178,7 +177,6 @@ const Transactions = (props) => {
     skipScrollOnClick,
     location,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
-    isActivityRedesignEnabled,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
@@ -730,7 +728,6 @@ const Transactions = (props) => {
   const filteredTransactions =
     filterDuplicateOutgoingTransactions(listTransactions);
   const shouldUseActivityRedesign =
-    isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
   const activityListData = shouldUseActivityRedesign
     ? groupActivityListItems(
@@ -929,7 +926,6 @@ Transactions.propTypes = {
     hideAwaitingConfirmation: PropTypes.func,
     showHardwareWalletError: PropTypes.func,
   }),
-  isActivityRedesignEnabled: PropTypes.bool,
 };
 
 Transactions.defaultProps = {
@@ -965,7 +961,6 @@ const mapStateToProps = (state, ownProps) => {
     primaryCurrency: selectPrimaryCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     networkType: isAssetDetails ? undefined : selectProviderType(state),
-    isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
   };
 };
 

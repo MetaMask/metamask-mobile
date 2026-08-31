@@ -733,6 +733,11 @@ const Onboarding = () => {
       };
 
       if (error instanceof OAuthError) {
+        if (error.code === OAuthErrorType.LoginInProgress) {
+          // Duplicate tap while the first OAuth attempt is still in flight.
+          return;
+        }
+
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
           error.code === OAuthErrorType.UserCancelled ||

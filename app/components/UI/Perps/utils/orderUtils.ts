@@ -81,7 +81,6 @@ export const isPriceOutsideDeviationBand = (
 };
 
 type OrderPriceLabelKey =
-  | 'perps.order.trigger_price'
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
 
@@ -92,26 +91,42 @@ type OrderPriceLabelKey =
 export const isTriggerOrder = (order: Order): boolean =>
   Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
 
+/**
+ * Resolves the execution price shown for an open order.
+ *
+ * Hyperliquid trigger-market orders carry a limit price as a slippage cap, but
+ * that cap is not a guaranteed execution price and must display as Market.
+ * Orders without a normalized `triggerOrderType` fall back to their detailed
+ * provider order type for backwards compatibility.
+ *
+ * @param order - Open order normalized by the Perps controller.
+ * @returns The display price and its localized label key.
+ */
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
 ): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
   const detailedOrderType = order.detailedOrderType ?? '';
   const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-  const isLimitOrder = Boolean(
-    order.orderType === 'limit' ||
-      normalizedDetailedOrderType.includes('limit'),
-  );
-  const validTriggerPrice = getValidTriggerPrice(order);
+  const isTrigger = isTriggerOrder(order);
+  const hasDetailedLimitExecution =
+    normalizedDetailedOrderType.includes('limit');
+  const hasDetailedMarketExecution =
+    normalizedDetailedOrderType.includes('market');
+  const isLimitOrder =
+    order.triggerOrderType !== undefined
+      ? isLimitExecutionOrderType(order.triggerOrderType)
+      : hasDetailedLimitExecution ||
+        (!hasDetailedMarketExecution && order.orderType === 'limit');
   const validOrderPrice = getValidOrderPrice(order);
 
-  if (isTriggerOrder(order) && validTriggerPrice !== null) {
+  if (isTrigger && !isLimitOrder) {
     return {
-      priceValue: validTriggerPrice,
-      labelKey: 'perps.order.trigger_price',
+      priceValue: null,
+      labelKey: 'perps.order.market_price',
     };
   }
 
-  if (isLimitOrder && validOrderPrice !== null) {
+  if (isLimitOrder) {
     return {
       priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',

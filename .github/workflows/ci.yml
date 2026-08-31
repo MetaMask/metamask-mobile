@@ -779,7 +779,14 @@ jobs:
     needs:
       - get_requirements
     steps:
+      # Last job in the Linux cohort still cloning from github.com on Namespace;
+      # everything else uses the in-region git mirror. Namespace scales network
+      # bandwidth with machine shape, so an internet clone costs roughly twice
+      # the wall-clock on the 4x8 profile as it did on 8x16.
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
       - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - uses: ./.github/actions/setup-ci-js-deps
         with:
           runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
@@ -1517,7 +1524,7 @@ jobs:
       - name: Fetch and freeze E2E timings
         id: fetch
         continue-on-error: true
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -1548,7 +1555,7 @@ jobs:
     # PRs into main do not build iOS from path filters alone — it has to be
     # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
     # path filters already require iOS. Both opt-ins are resolved into
-    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # ios_e2e_needed by .github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs, which also
     # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
     # only built when iOS E2E will actually run. Pushes to main/release/*, the
     # nightly schedule, and PRs into release/* are unaffected.
@@ -1768,7 +1775,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node .github/scripts/e2e-report-fixture-validation.mjs
+        run: node .github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs
 
   sonar-cloud:
     name: SonarCloud analysis

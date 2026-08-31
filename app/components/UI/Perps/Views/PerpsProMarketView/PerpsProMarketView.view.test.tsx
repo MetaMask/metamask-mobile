@@ -126,8 +126,56 @@ const renderProMarketWithTwapFlag = (
   });
 };
 
+const renderProMarketWithScaleFlag = (enabled: boolean) => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue({
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: enabled ? ['scale'] : [],
+    });
+
+  return renderPerpsProMarketView({
+    streamOverrides: {
+      account: createFundedAccountForViews('1000'),
+    },
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider: 'hyperliquid',
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsProTriggeredOrdersEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileScale: {
+                enabled,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
 const findSizeInput = () =>
   screen.findByTestId(ids.SIZE_INPUT, {}, { timeout: TIMEOUT_MS });
+
+const findPriceInput = (testID: string) =>
+  screen.findByTestId(
+    testID,
+    { includeHiddenElements: true },
+    { timeout: TIMEOUT_MS },
+  );
 
 const openTwapOrderForm = async () => {
   const sizeInput = await findSizeInput();
@@ -156,6 +204,25 @@ const openTwapOrderForm = async () => {
     durationValue: screen.getByTestId(ids.TWAP_DURATION_VALUE),
     randomize: screen.getByTestId(ids.TWAP_RANDOMIZE),
   };
+};
+
+const openScaleOrderForm = async () => {
+  const sizeInput = await findSizeInput();
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  const advancedTab = await screen.findByTestId(
+    PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+  fireEvent.press(advancedTab);
+  const scaleOption = await screen.findByTestId(
+    PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+  fireEvent.press(scaleOption);
+
+  return sizeInput;
 };
 
 const openTwapDurationSheet = async () => {
@@ -243,7 +310,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           { timeout: TIMEOUT_MS },
         ),
       );
-      const limitPriceInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      const limitPriceInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(limitPriceInput, '00025');
 
       await waitFor(() => expect(limitPriceInput).toHaveProp('value', '25'));
@@ -419,6 +486,79 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
         ),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the shared Advanced sheet when TWAP is absent and supported Scale is enabled',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      const advancedTab = await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      fireEvent.press(advancedTab);
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps the shared Basic and Triggered sheet when both advanced flags are off',
+    async () => {
+      renderProMarketWithScaleFlag(false);
+      await findSizeInput();
+
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.TABS,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
+      ).not.toBeOnTheScreen();
     },
   );
 
@@ -489,6 +629,34 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
           'Size (USD)',
         );
+      });
+    },
+  );
+
+  itForPlatforms(
+    'forces USD sizing when Scale ladder prices differ from the market',
+    async () => {
+      renderProMarketWithScaleFlag(true);
+      const sizeInput = await findSizeInput();
+      fireEvent.changeText(sizeInput, '100');
+      fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (ETH)',
+        ),
+      );
+
+      await openScaleOrderForm();
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+      await waitFor(() => {
+        expect(sizeInput).toHaveProp('value', '100');
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (USD)',
+        );
+        expect(screen.getByTestId(ids.SIZE_UNIT_BUTTON)).toBeDisabled();
       });
     },
   );
@@ -714,7 +882,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       expect(screen.queryByTestId(ids.LIMIT_PRICE_INPUT)).not.toBeOnTheScreen();
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
@@ -755,7 +923,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_MARKET_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '3000');
       fireEvent(triggerInput, 'blur');
 
@@ -783,7 +951,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '3000');
 
@@ -818,7 +986,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.TAKE_PROFIT_LIMIT_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       fireEvent.changeText(triggerInput, '1000');
 
@@ -850,7 +1018,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       PerpsOrderTypeBottomSheetSelectorsIDs.STOP_MARKET_OPTION,
     );
 
-    const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
     const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
 
     await waitFor(
@@ -892,7 +1060,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ),
       );
 
-      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
       expect(
         screen.queryByTestId(ids.PRICE_CARD_MESSAGE),
@@ -922,8 +1090,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
     );
 
-    const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
-    const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
     const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
     fireEvent.changeText(triggerInput, '2600');
 
@@ -966,8 +1134,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
-      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '2600');
       fireEvent(triggerInput, 'blur');
       fireEvent.changeText(limitInput, '2650');
@@ -1035,8 +1203,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
       );
 
-      const triggerInput = await screen.findByTestId(ids.TRIGGER_PRICE_INPUT);
-      const limitInput = await screen.findByTestId(ids.LIMIT_PRICE_INPUT);
+      const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
       fireEvent.changeText(triggerInput, '2600');
       fireEvent(triggerInput, 'blur');
       fireEvent.changeText(limitInput, '2650');
