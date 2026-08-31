@@ -81,11 +81,18 @@ jobs:
     # iOS Appium smoke is not put on low-priority: those runners are often
     # preempted around ~15m wall-clock, which kills the Playwright step before
     # reports/logs upload (and before shards that no longer fail-fast can finish).
+    #
+    # Android moves to `android-e2e`, off the `android-build` profile it used to
+    # share with Gradle. Both are ubuntu-24.04 / 16x32 with the same 90 GB cache
+    # volume, so this is a no-op on shape — the point is to be able to size the
+    # two workloads apart. They are not the same workload: Gradle sits at 100%
+    # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
+    # of 32 GB and wants less. Right-sizing this profile is a follow-up.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
-         'namespace-profile-metamask-android-build') ||
+         'namespace-profile-metamask-android-e2e') ||
         (inputs.platform == 'ios' &&
           fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
         (startsWith(github.base_ref, 'release/') &&
