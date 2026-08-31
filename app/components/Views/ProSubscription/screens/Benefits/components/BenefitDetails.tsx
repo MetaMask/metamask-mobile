@@ -22,15 +22,15 @@ const BenefitDetails = ({
   details,
   selectedPlan,
 }: BenefitDetailsProps) => {
-  const descriptionKey =
-    selectedPlan === 'monthly' && details?.descriptionMonthly
+  const descriptionKeys =
+    selectedPlan === 'monthly' && details.descriptionMonthly
       ? details.descriptionMonthly
       : details.description;
-  const handleLearnMorePress = useCallback(() => {
-    if (details.learnMoreUrl) {
-      Linking.openURL(details.learnMoreUrl);
+  const handleLinkPress = useCallback(() => {
+    if (details.link) {
+      Linking.openURL(details.link.url);
     }
-  }, [details.learnMoreUrl]);
+  }, [details.link]);
 
   return (
     <BottomSheet
@@ -45,22 +45,16 @@ const BenefitDetails = ({
         >
           {strings(details.title)}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mb-4"
-        >
-          {strings(descriptionKey)}
-        </Text>
-        {details.subDescription && (
+        {descriptionKeys.map((descriptionKey) => (
           <Text
+            key={descriptionKey}
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             twClassName="mb-4"
           >
-            {strings(details.subDescription)}
+            {strings(descriptionKey)}
           </Text>
-        )}
+        ))}
 
         {details.points && (
           <Box twClassName="flex flex-col gap-y-2 mb-4">
@@ -76,15 +70,15 @@ const BenefitDetails = ({
           </Box>
         )}
 
-        {details.learnMore && details.learnMoreUrl && (
+        {details.link && (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextDefault}
             twClassName="mb-4 self-start border-b-2 border-border-default"
-            onPress={handleLearnMorePress}
+            onPress={handleLinkPress}
             accessibilityRole="link"
           >
-            {strings(details.learnMore)}
+            {strings(details.link.label)}
           </Text>
         )}
 
