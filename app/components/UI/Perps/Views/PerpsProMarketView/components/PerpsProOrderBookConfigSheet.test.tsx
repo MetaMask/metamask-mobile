@@ -116,6 +116,7 @@ const defaultProps = {
   metric: 'total' as const,
   grouping: 1,
   groupingOptions: [0.1, 1, 10, 100, 1000],
+  layout: 'left' as const,
   onApply: jest.fn(),
   onClose: jest.fn(),
   testID: 'config-sheet',
@@ -157,6 +158,77 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(getByTestId('config-sheet-grouping-1000')).toBeOnTheScreen();
   });
 
+  it('renders the order-book layout options with the current side selected', () => {
+    const { getByTestId, getByText } = renderSheet({ layout: 'right' });
+
+    expect(getByText('Order book layout')).toBeOnTheScreen();
+    expect(getByTestId('config-sheet-layout-left')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
+    expect(getByTestId('config-sheet-layout-right')).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+  });
+
+  it('applies the drafted order-book side on Save', () => {
+    const onApply = jest.fn();
+    const { getByTestId } = renderSheet({ onApply });
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+    fireEvent.press(getByTestId('config-sheet-apply'));
+
+    expect(onApply).toHaveBeenCalledWith({
+      currency: 'usd',
+      metric: 'total',
+      grouping: 1,
+      layout: 'right',
+    });
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not apply a drafted order-book side when dismissed', () => {
+    const onApply = jest.fn();
+    const { getByTestId } = renderSheet({ onApply });
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+    fireEvent.press(getByTestId('config-sheet-close'));
+
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it('resets a drafted order-book side when the sheet reopens', () => {
+    const onApply = jest.fn();
+    const { getByTestId, rerender } = renderWithProvider(
+      <PerpsProOrderBookConfigSheet {...defaultProps} onApply={onApply} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+
+    rerender(
+      <PerpsProOrderBookConfigSheet
+        {...defaultProps}
+        isVisible={false}
+        onApply={onApply}
+      />,
+    );
+    rerender(
+      <PerpsProOrderBookConfigSheet
+        {...defaultProps}
+        isVisible
+        onApply={onApply}
+      />,
+    );
+
+    fireEvent.press(getByTestId('config-sheet-apply'));
+
+    expect(onApply).toHaveBeenCalledWith(
+      expect.objectContaining({ layout: 'left' }),
+    );
+  });
+
   it('renders order-book settings inside the Android modal gesture root', () => {
     const { getByTestId } = renderSheet();
 
@@ -187,6 +259,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'base',
       metric: 'size',
       grouping: 10,
+      layout: 'left',
     });
     expect(onClose).toHaveBeenCalled();
     // Three changed chip picks + the primary save commit.
@@ -262,6 +335,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'usd',
       metric: 'total',
       grouping: 100,
+      layout: 'left',
     });
   });
 
@@ -301,6 +375,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'usd',
       metric: 'total',
       grouping: 1,
+      layout: 'left',
     });
   });
 });

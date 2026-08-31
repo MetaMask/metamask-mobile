@@ -1,121 +1,115 @@
+import { captureException } from '@sentry/react-native';
+import { DEFAULT_PRO_LAYOUT_PREFERENCES } from '@metamask/perps-controller';
 import migrate, { migrationVersion } from './151';
+import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-describe(`Migration ${migrationVersion}: Remove mUSD conversion fields from user state`, () => {
+jest.mock('./util', () => ({
+  ensureValidState: jest.fn(),
+}));
+
+const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
+
+const createState = (perpsController: unknown) => ({
+  engine: {
+    backgroundState: {
+      PerpsController: perpsController,
+      OtherController: { preserved: true },
+    },
+    preserved: true,
+  },
+  preserved: true,
+});
+
+describe(`Migration ${migrationVersion}: apply the mobile Pro layout defaults`, () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    mockedEnsureValidState.mockReturnValue(true);
   });
 
-  it('returns state unchanged when ensureValidState fails', () => {
-    const invalidState = 'not an object';
-    const result = migrate(invalidState);
-
-    expect(result).toBe(invalidState);
-  });
-
-  it('returns state unchanged when user property is missing', () => {
-    const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-    };
-
-    const result = migrate(state) as typeof state;
-
-    expect(result).toStrictEqual(state);
-  });
-
-  it('returns state unchanged when user is not an object', () => {
-    const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-      user: 'invalid',
-    };
-
-    const result = migrate(state) as typeof state;
-
-    expect(result).toStrictEqual(state);
-  });
-
-  it('removes mUSD conversion fields from user state', () => {
-    const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-      user: {
-        existingUser: true,
-        musdConversionEducationSeen: true,
-        musdConversionAssetDetailCtasSeen: {
-          '0x1-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': true,
-        },
+  it('overwrites both preferences while preserving the siblings', () => {
+    const state = createState({
+      proLayoutPreferences: {
+        ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+        chartExpanded: true,
+        positionsSortField: 'size',
       },
-    };
+    });
 
-    const result = migrate(state) as typeof state;
-    const user = result.user as Record<string, unknown>;
+    const migrated = migrate(state) as typeof state;
+    const preferences = (
+      migrated.engine.backgroundState.PerpsController as {
+        proLayoutPreferences: Record<string, unknown>;
+      }
+    ).proLayoutPreferences;
 
-    expect(user.musdConversionEducationSeen).toBeUndefined();
-    expect(user.musdConversionAssetDetailCtasSeen).toBeUndefined();
+    expect(preferences.orderBookExpanded).toBe(true);
+    expect(preferences.orderBookPosition).toBe('right');
+    // Untouched by this migration.
+    expect(preferences.chartExpanded).toBe(true);
+    expect(preferences.positionsSortField).toBe('size');
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('preserves other user state fields', () => {
-    const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-      user: {
-        existingUser: true,
-        multichainAccountsIntroModalSeen: true,
-        moneyOnboardingSeen: true,
-        moneyEarnBannerDismissedTokens: { '0x1-0xabc': true },
-        musdConversionEducationSeen: true,
-        musdConversionAssetDetailCtasSeen: {},
-      },
-    };
+  it('writes the full defaults when the persisted state predates the field', () => {
+    // Controller init only seeds the mobile defaults when the whole controller
+    // is absent, so these users would otherwise read the Extension defaults.
+    const state = createState({ isTestnet: false });
 
-    const result = migrate(state) as typeof state;
-    const user = result.user as Record<string, unknown>;
+    const migrated = migrate(state) as typeof state;
+    const preferences = (
+      migrated.engine.backgroundState.PerpsController as {
+        proLayoutPreferences: Record<string, unknown>;
+      }
+    ).proLayoutPreferences;
 
-    expect(user.existingUser).toBe(true);
-    expect(user.multichainAccountsIntroModalSeen).toBe(true);
-    expect(user.moneyOnboardingSeen).toBe(true);
-    expect(user.moneyEarnBannerDismissedTokens).toEqual({ '0x1-0xabc': true });
+    expect(preferences).toStrictEqual({
+      ...DEFAULT_PRO_LAYOUT_PREFERENCES,
+      orderBookExpanded: true,
+      orderBookPosition: 'right',
+    });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles user state that already lacks the removed fields', () => {
+  it('leaves state untouched when PerpsController is absent', () => {
     const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-      user: {
-        existingUser: false,
-        moneyOnboardingSeen: false,
-      },
+      engine: { backgroundState: { OtherController: { preserved: true } } },
     };
 
-    const result = migrate(state) as typeof state;
-    const user = result.user as Record<string, unknown>;
-
-    expect(user.existingUser).toBe(false);
-    expect(user.moneyOnboardingSeen).toBe(false);
-    expect(user.musdConversionEducationSeen).toBeUndefined();
-    expect(user.musdConversionAssetDetailCtasSeen).toBeUndefined();
+    expect(migrate(state)).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('handles empty user object', () => {
-    const state = {
-      engine: { backgroundState: {} },
-      settings: {},
-      security: {},
-      user: {},
-    };
+  it('captures and bails when PerpsController is not an object', () => {
+    const state = createState('not-an-object');
 
-    const result = migrate(state) as typeof state;
+    expect(migrate(state)).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${migrationVersion}: Invalid PerpsController state: 'string'`,
+      ),
+    );
+  });
 
-    expect(result.user).toEqual({});
+  it('captures and bails when proLayoutPreferences is not an object', () => {
+    const state = createState({ proLayoutPreferences: 'not-an-object' });
+
+    expect(migrate(state)).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(
+      new Error(
+        `Migration ${migrationVersion}: Invalid proLayoutPreferences state: 'string'`,
+      ),
+    );
+  });
+
+  it('returns state unchanged when validation fails', () => {
+    mockedEnsureValidState.mockReturnValue(false);
+    const state = createState({ proLayoutPreferences: {} });
+
+    expect(migrate(state)).toStrictEqual(state);
   });
 });
