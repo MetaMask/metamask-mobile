@@ -291,7 +291,9 @@ const RecurringConfirmOrderSheet = ({
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_receiving_per_order')}
           value={estReceivingPerOrder}
-          testID={RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER}
+          testID={
+            RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER
+          }
           isLoading={showQuoteSkeletons}
           skeletonTestID={
             RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON

@@ -175,8 +175,8 @@ describe('BridgeRecurringBuyFooterView', () => {
     const { getByTestId } = renderFooter(buildActiveQuoteState());
 
     expect(
-      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props.accessibilityState
-        ?.busy,
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.busy,
     ).toBe(true);
   });
 

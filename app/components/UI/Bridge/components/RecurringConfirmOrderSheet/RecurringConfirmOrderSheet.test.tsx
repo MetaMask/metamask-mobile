@@ -144,7 +144,9 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
-    ).toHaveTextContent(`${strings('bridge.recurring.paying_per_order')}120 ETH`);
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.paying_per_order')}120 ETH`,
+    );
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
     ).toHaveTextContent(
@@ -248,7 +250,9 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
-    ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}Auto`);
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.slippage_all_orders')}Auto`,
+    );
   });
 
   it('shows the shared slippage percent when set', () => {
@@ -272,7 +276,9 @@ describe('RecurringConfirmOrderSheet', () => {
       `${strings('bridge.recurring.est_network_fee_per_order')}$1.23`,
     );
     expect(
-      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON,
+      ),
     ).not.toBeOnTheScreen();
   });
 
@@ -338,7 +344,9 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
-    ).toHaveTextContent(`${strings('bridge.recurring.paying_per_order')}120 ETH`);
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.paying_per_order')}120 ETH`,
+    );
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
     ).toHaveTextContent(
@@ -394,7 +402,9 @@ describe('RecurringConfirmOrderSheet', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON),
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE_SKELETON,
+      ),
     ).not.toBeOnTheScreen();
   });
 
