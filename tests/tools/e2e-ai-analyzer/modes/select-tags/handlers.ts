@@ -326,6 +326,12 @@ const E2E_RELEVANT_WORKFLOW_EXACT_PATHS = new Set([
   '.github/workflows/build.yml',
 ]);
 
+const E2E_RELEVANT_SCRIPT_PREFIXES = [
+  '.github/scripts/qa-automation/reporting/',
+  '.github/scripts/qa-automation/e2e-sharding/',
+  '.github/actions/smart-e2e-selection/',
+] as const;
+
 function isE2ERelevantWorkflow(file: string): boolean {
   const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '');
 
@@ -335,14 +341,15 @@ function isE2ERelevantWorkflow(file: string): boolean {
       normalizedFile.endsWith('.yml')) ||
     (normalizedFile.startsWith('.github/workflows/run-appium-') &&
       normalizedFile.endsWith('.yml')) ||
-    ((normalizedFile.startsWith('.github/scripts/qa-automation/reporting/') ||
-      normalizedFile.startsWith('.github/scripts/qa-automation/e2e-sharding/') ||
-      normalizedFile.startsWith(
-        '.github/actions/smart-e2e-selection/',
-      )) &&
+    (E2E_RELEVANT_SCRIPT_PREFIXES.some((prefix) =>
+      normalizedFile.startsWith(prefix),
+    ) &&
       normalizedFile.endsWith('.mjs')) ||
-    normalizedFile === '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs' ||
-    normalizedFile.startsWith('.github/scripts/qa-automation/e2e-ci-orchestration/')
+    normalizedFile ===
+      '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs' ||
+    normalizedFile.startsWith(
+      '.github/scripts/qa-automation/e2e-ci-orchestration/',
+    )
   );
 }
 
