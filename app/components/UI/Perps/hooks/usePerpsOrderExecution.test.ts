@@ -679,19 +679,16 @@ describe('usePerpsOrderExecution', () => {
       }
     });
 
-    it('keeps a waiting-only Scale result open for a stream boundary', async () => {
+    it('rejects a successful Scale result without resting or filled children', async () => {
       jest.useFakeTimers();
       try {
         mockPlaceOrder.mockResolvedValue({
           success: true,
           orderId: 'scale-group',
           childOrderIds: [],
-          acceptedChildren: [
-            { state: 'waitingForFill' },
-            { state: 'waitingForTrigger' },
-          ],
+          acceptedChildren: [],
           submittedSize: '0.2',
-          acceptedSize: '0.2',
+          acceptedSize: '0',
         });
         const { result } = renderHook(() => usePerpsOrderExecution());
 
@@ -706,22 +703,6 @@ describe('usePerpsOrderExecution', () => {
           });
         });
 
-        expect(mockEndTrace).not.toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({
-              success: false,
-              reason: 'request_failed',
-            }),
-          }),
-        );
-
-        // Waiting children have neither a resting ID nor a rendered fill. The
-        // only truthful CUF boundary is a later stream render, so silence ends
-        // as stream_timeout rather than request_failed or a false success.
-        act(() => {
-          jest.advanceTimersByTime(PERPS_CUF_STREAM_TIMEOUT_MS);
-        });
-
         expect(mockEndTrace).toHaveBeenCalledWith(
           expect.objectContaining({
             id: expect.stringContaining(
@@ -729,10 +710,11 @@ describe('usePerpsOrderExecution', () => {
             ),
             data: expect.objectContaining({
               success: false,
-              reason: 'stream_timeout',
+              reason: 'request_failed',
             }),
           }),
         );
+        act(() => jest.runOnlyPendingTimers());
       } finally {
         jest.useRealTimers();
       }

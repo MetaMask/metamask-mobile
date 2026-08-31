@@ -2472,7 +2472,7 @@ describe('usePerpsProOrderForm', () => {
         acceptedSize: '2.222',
         acceptedChildren: [
           { orderId: '101', state: 'resting' },
-          { state: 'waitingForFill' },
+          { orderId: '102', state: 'filled' },
         ],
       });
       const { result } = renderProForm();

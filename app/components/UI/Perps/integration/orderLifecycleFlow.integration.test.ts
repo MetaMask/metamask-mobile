@@ -250,12 +250,16 @@ describe('Perps order lifecycle — FLOW integration', () => {
           { orderId: '103', state: 'resting' },
         ],
         submittedValue: 30_134,
+        filledSize: undefined,
+        averagePrice: undefined,
+        resultOrderSize: 0.6,
+        resultOrderValue: 30_134,
       },
       {
         placement: 'partial',
         statuses: [
           { resting: { oid: 101 } },
-          'waitingForFill',
+          { filled: { oid: 102, avgPx: '50000', totalSz: '0.2' } },
           { error: 'Insufficient margin' },
         ],
         childOrderIds: ['101'],
@@ -263,9 +267,13 @@ describe('Perps order lifecycle — FLOW integration', () => {
         acceptedSize: '0.333',
         acceptedChildren: [
           { orderId: '101', state: 'resting' },
-          { state: 'waitingForFill' },
+          { orderId: '102', state: 'filled' },
         ],
         submittedValue: 16_517,
+        filledSize: '0.2',
+        averagePrice: '50000',
+        resultOrderSize: 0.2,
+        resultOrderValue: 10_000,
       },
     ])(
       'reports $placement Scale submitted size and weighted telemetry',
@@ -277,6 +285,10 @@ describe('Perps order lifecycle — FLOW integration', () => {
         acceptedSize,
         acceptedChildren,
         submittedValue,
+        filledSize,
+        averagePrice,
+        resultOrderSize,
+        resultOrderValue,
       }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
@@ -322,7 +334,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
           acceptedSize,
           acceptedChildren,
         });
-        expect(placeOrderResultRef.current?.averagePrice).toBeUndefined();
+        expect(placeOrderResultRef.current?.filledSize).toBe(filledSize);
+        expect(placeOrderResultRef.current?.averagePrice).toBe(averagePrice);
         expect(
           Number(placeOrderResultRef.current?.weightedAverageLimitPrice),
         ).toBeCloseTo(submittedValue / Number(acceptedSize));
@@ -332,9 +345,92 @@ describe('Perps order lifecycle — FLOW integration', () => {
           status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
           asset: 'BTC',
           order_type: 'scale',
-          order_size: Number(acceptedSize),
+          order_size: resultOrderSize,
           limit_price: submittedValue / Number(acceptedSize),
-          order_value: submittedValue,
+          order_value: resultOrderValue,
+        });
+        if (filledSize) {
+          const partialEvent = perps.analytics
+            .byName(PerpsAnalyticsEvent.TradeTransaction)
+            .find(
+              (event) =>
+                event.status === PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
+            );
+          expect(partialEvent).toMatchObject({
+            order_size: Number(acceptedSize),
+            amount_filled: Number(filledSize),
+            remaining_amount: Number(acceptedSize) - Number(filledSize),
+            limit_price: submittedValue / Number(acceptedSize),
+            order_value: submittedValue,
+          });
+        }
+        expect(
+          perps.harness.mocks.exchangeClient.cancel,
+        ).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each(['resolved', 'thrown'] as const)(
+      'rejects and cleans waiting Scale children from a %s venue response',
+      async (responseKind) => {
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        const venueResponse = {
+          status: 'ok' as const,
+          response: {
+            type: 'order' as const,
+            data: {
+              statuses: [
+                'waitingForFill',
+                'waitingForTrigger',
+                { error: 'Insufficient margin' },
+              ],
+            },
+          },
+        };
+        if (responseKind === 'thrown') {
+          perps.harness.mocks.exchangeClient.order.mockRejectedValueOnce(
+            new ApiRequestError(venueResponse, 'Insufficient margin'),
+          );
+        } else {
+          perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce(
+            venueResponse,
+          );
+        }
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+        let placeOrderResult: OrderResult | null = null;
+        await act(async () => {
+          placeOrderResult = await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.6',
+            orderType: 'scale',
+            currentPrice: 50_000,
+            scaleMinPrice: '49000',
+            scaleMaxPrice: '51000',
+            scaleNumOrders: 3,
+            scaleSkew: 2,
+          });
+        });
+
+        expect(placeOrderResult).toMatchObject({
+          success: false,
+          childOrderIds: [],
+          acceptedChildren: [
+            { state: 'waitingForFill' },
+            { state: 'waitingForTrigger' },
+          ],
+        });
+        const submittedOrders =
+          perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+        expect(
+          perps.harness.mocks.exchangeClient.cancelByCloid,
+        ).toHaveBeenCalledWith({
+          cancels: [0, 1].map((index) => ({
+            asset: 0,
+            cloid: submittedOrders[index].c,
+          })),
         });
         expect(
           perps.harness.mocks.exchangeClient.cancel,
@@ -347,6 +443,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
         failure: 'unrelated SDK error',
         error: new HyperliquidError('SDK failure'),
         message: 'SDK failure',
+        expectedCancels: undefined,
+        expectedCloidIndexes: [] as number[],
       },
       {
         failure: 'unknown partial status',
@@ -367,6 +465,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
           'Unknown bulk status',
         ),
         message: 'Unknown bulk status',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
       },
       {
         failure: 'malformed partial status',
@@ -387,6 +487,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
           'Malformed bulk status',
         ),
         message: 'Malformed bulk status',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [1],
       },
       {
         failure: 'hybrid partial response',
@@ -410,6 +512,8 @@ describe('Perps order lifecycle — FLOW integration', () => {
           'Hybrid bulk response',
         ),
         message: 'Hybrid bulk response',
+        expectedCancels: [{ a: 0, o: 101 }],
+        expectedCloidIndexes: [2],
       },
       {
         failure: 'all-rejected partial response',
@@ -430,10 +534,12 @@ describe('Perps order lifecycle — FLOW integration', () => {
           'order 0: Multi-sig required',
         ),
         message: PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED,
+        expectedCancels: undefined,
+        expectedCloidIndexes: [] as number[],
       },
     ])(
       'preserves failure behavior for a $failure',
-      async ({ error, message }) => {
+      async ({ error, message, expectedCancels, expectedCloidIndexes }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
@@ -461,9 +567,31 @@ describe('Perps order lifecycle — FLOW integration', () => {
           success: false,
           error: message,
         });
-        expect(
-          perps.harness.mocks.exchangeClient.cancel,
-        ).not.toHaveBeenCalled();
+        if (expectedCancels) {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).toHaveBeenCalledWith({ cancels: expectedCancels });
+        } else {
+          expect(
+            perps.harness.mocks.exchangeClient.cancel,
+          ).not.toHaveBeenCalled();
+        }
+        if (expectedCloidIndexes.length > 0) {
+          const submittedOrders =
+            perps.harness.mocks.exchangeClient.order.mock.calls[0][0].orders;
+          expect(
+            perps.harness.mocks.exchangeClient.cancelByCloid,
+          ).toHaveBeenCalledWith({
+            cancels: expectedCloidIndexes.map((index) => ({
+              asset: 0,
+              cloid: submittedOrders[index].c,
+            })),
+          });
+        } else {
+          expect(
+            perps.harness.mocks.exchangeClient.cancelByCloid,
+          ).not.toHaveBeenCalled();
+        }
       },
     );
 

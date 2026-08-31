@@ -306,13 +306,10 @@ export function usePerpsOrderExecution(
         onSuccess: async (result) => {
           if (isRestingOrder) {
             // Confirm immediately, then end when a resting child or fill
-            // renders. A Scale batch can contain only filled or waiting
-            // children and therefore have no resting IDs; that is still a
-            // valid acceptance, so it stays open for a stream boundary or
-            // timeout rather than being marked as a request failure. The CUF
-            // boundary vocabulary only has STREAM, not controller acceptance,
-            // and waiting children expose no ID that the order stream can
-            // match.
+            // renders. A Scale batch can contain only filled children and
+            // therefore have no resting IDs; that is still a valid acceptance,
+            // so it stays open for a position stream boundary or timeout rather
+            // than being marked as a request failure.
             onSuccess?.();
             const orderIds = (
               orderParams.orderType === 'scale'
