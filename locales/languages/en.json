@@ -9465,6 +9465,17 @@
       "learn_more": "Learn more",
       "got_it": "Got it"
     },
+    "uk_migration_bottom_sheet": {
+      "title": "Update your MetaMask Card",
+      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "steps": {
+        "reverify_identity": "Re-verify your identity",
+        "get_new_card_number": "Get your new card number",
+        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+      },
+      "get_started": "Get started",
+      "remind_me_later": "Remind me later"
+    },
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",
       "timeout_error": "Payment verification timed out. Please check your transaction status.",
