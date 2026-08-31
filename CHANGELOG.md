@@ -124,7 +124,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
 - Fixed Max token deposits being blocked by an insufficient fees alert when the amount matched the available balance (#35247)
 - Fixed Money Sweepstakes showing a $0 shortfall when a day has a not_scored status (#35196)
 - Fixed Money Account deposit prefill amount flickering when selecting a token (#35167)
@@ -206,6 +205,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Quick Buy Sell button staying disabled after entering a valid amount (#34422)
 - Fixed gas estimation failing on networks whose RPC nodes reject hex values with leading zeros (such as `0x00`) (#34412)
 - Fixed wallet activity push notifications so they are only hidden in the foreground and still appear when the app is backgrounded or closed (#34411)
+
+## [8.8.3]
+
+### Fixed
+
+- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
 
 ## [8.8.2]
 
@@ -13618,7 +13623,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.1...HEAD
 [8.9.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.0...v8.9.1
-[8.9.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.9.0
+[8.9.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.3...v8.9.0
+[8.8.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.8.3
 [8.8.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.1...v8.8.2
 [8.8.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.0...v8.8.1
 [8.8.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.7.0...v8.8.0
