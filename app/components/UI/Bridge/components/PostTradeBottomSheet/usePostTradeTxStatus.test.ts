@@ -178,55 +178,56 @@ describe('usePostTradeTxStatus', () => {
         }),
       ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        metaHash: '',
-        srcChainId: SOLANA_MAINNET_CHAIN_ID,
-        destChainId: SOLANA_MAINNET_CHAIN_ID,
-        transactionHash: 'sol-sig',
-        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.Success);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          metaHash: '',
+          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          transactionHash: 'sol-sig',
+          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: SOLANA_MAINNET_CHAIN_ID,
-        destChainId: SOLANA_MAINNET_CHAIN_ID,
-        transactionHash: 'sol-sig',
-        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Failed),
-      }),
-    ).toBe(Status.Failed);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          transactionHash: 'sol-sig',
+          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Failed),
+        }),
+      ).toBe(Status.Failed);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        isBridge: true,
-        srcChainId: SOLANA_MAINNET_CHAIN_ID,
-        destChainId: 1,
-        transactionHash: 'sol-sig',
-        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.InProgress);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          isBridge: true,
+          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          destChainId: 1,
+          transactionHash: 'sol-sig',
+          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.InProgress);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: SOLANA_MAINNET_CHAIN_ID,
-        destChainId: SOLANA_MAINNET_CHAIN_ID,
-        statusSrcTxHash: 'sol-sig',
-        nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
-      }),
-    ).toBe(Status.Success);
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          statusSrcTxHash: 'sol-sig',
+          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+        }),
+      ).toBe(Status.Success);
 
-    expect(
-      statusOf(undefined, BridgeStatus.UNKNOWN, {
-        srcChainId: SOLANA_MAINNET_CHAIN_ID,
-        destChainId: SOLANA_MAINNET_CHAIN_ID,
-        nonEvmTransactions: solanaTx(
-          KeyringTransactionStatus.Confirmed,
-          'tx-id',
-        ),
-      }),
-    ).toBe(Status.Success);
-  });
+      expect(
+        statusOf(undefined, BridgeStatus.UNKNOWN, {
+          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          destChainId: SOLANA_MAINNET_CHAIN_ID,
+          nonEvmTransactions: solanaTx(
+            KeyringTransactionStatus.Confirmed,
+            'tx-id',
+          ),
+        }),
+      ).toBe(Status.Success);
+    },
+  );
 
   describe('cross-chain bridge completion', () => {
     it('stays in progress when a bridge reports COMPLETE without a destination tx hash', () => {
