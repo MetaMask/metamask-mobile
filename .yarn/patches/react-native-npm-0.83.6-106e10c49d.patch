@@ -1,8 +1,8 @@
 diff --git a/ReactAndroid/hermes-engine/build.gradle.kts b/ReactAndroid/hermes-engine/build.gradle.kts
-index 5a5e1385c9ef4d9939e34fcfc80de11a4184b8a2..e3a59c8f8a5c9304b6f6463bead20206293d052b 100644
+index 5a5e1385c9ef4d9939e34fcfc80de11a4184b8a2..4b1d8fdc31ea037985d546339f96efdd73df90c9 100644
 --- a/ReactAndroid/hermes-engine/build.gradle.kts
 +++ b/ReactAndroid/hermes-engine/build.gradle.kts
-@@ -280,12 +280,15 @@ android {
+@@ -280,12 +280,17 @@ android {
              "-DJSI_DIR=${jsiDir}",
              "-DHERMES_BUILD_SHARED_JSI=True",
              "-DHERMES_RELEASE_VERSION=for RN ${version}",
@@ -12,7 +12,9 @@ index 5a5e1385c9ef4d9939e34fcfc80de11a4184b8a2..e3a59c8f8a5c9304b6f6463bead20206
              "-DHERMES_ENABLE_INTL=True",
          )
  
-+        if (System.getenv("METAMASK_ENVIRONMENT") != "e2e") {
++        if (System.getenv("METAMASK_ENVIRONMENT") == "e2e") {
++          arguments("-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=False")
++        } else {
 +          arguments("-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=True")
 +        }
 +
