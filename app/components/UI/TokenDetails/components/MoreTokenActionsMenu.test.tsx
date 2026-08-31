@@ -483,16 +483,17 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: 'https://etherscan.io/token/0x123',
+            title: 'Etherscan',
+          },
+        });
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith('WalletView');
-      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://etherscan.io/token/0x123',
-          title: 'Etherscan',
-        },
-      });
       expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
         expect.any(Function),
         expect.any(Function),
@@ -519,12 +520,13 @@ describe('MoreTokenActionsMenu', () => {
 
       await userEvent.press(getByTestId('more-actions-view-explorer'));
 
-      await Promise.resolve();
+      await waitFor(() => {
+        expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
+          'https://etherscan.io/token/0x123',
+        );
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith('WalletView');
-      expect(mockInAppBrowserOpen).toHaveBeenCalledWith(
-        'https://etherscan.io/token/0x123',
-      );
     });
 
     it('uses block explorer base URL for native currency when View on block explorer is pressed', async () => {
@@ -741,9 +743,9 @@ describe('MoreTokenActionsMenu', () => {
       await userEvent.press(getByTestId('more-actions-deactivate-asset'));
 
       await waitFor(() => {
-        expect(mockDeactivateAsset).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
+      expect(mockDeactivateAsset).toHaveBeenCalled();
       expect(NotificationManager.showSimpleNotification).not.toHaveBeenCalled();
     });
 
