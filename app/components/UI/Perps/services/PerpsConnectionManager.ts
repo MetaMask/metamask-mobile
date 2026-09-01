@@ -50,6 +50,10 @@ import {
   PERPS_CONNECTION_SOURCE,
 } from '../constants/perpsConfig';
 import { reportSuspendedChaseOrders } from './ChaseOrderSuspensionEvents';
+import {
+  reportChaseOrderStoreReconciliation,
+  type ChaseOrderRouteIdentity,
+} from './ChaseOrderStoreReconciliationEvents';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -162,6 +166,18 @@ class PerpsConnectionManagerClass {
     return `${this.getSelectedMarketContextKey()}|${address}`;
   }
 
+  private getChaseOrderRouteIdentity(): ChaseOrderRouteIdentity {
+    const state = store.getState();
+    return {
+      account:
+        selectSelectedInternalAccountByScope(state)(
+          'eip155:1',
+        )?.address.toLowerCase() ?? '',
+      provider: selectPerpsProvider(state) ?? '',
+      network: selectPerpsNetwork(state) ?? '',
+    };
+  }
+
   private prepareForContextChange(): Promise<void> {
     if (this.isContextChangePrepared) {
       return Promise.resolve();
@@ -170,6 +186,7 @@ class PerpsConnectionManagerClass {
       return this.contextChangePreparationPromise;
     }
     const preparation = (async () => {
+      const routeIdentity = this.getChaseOrderRouteIdentity();
       let timer: ReturnType<typeof setTimeout> | undefined;
       const timeoutError = new Error('Chase context suspension timed out');
       const timeout = new Promise<never>((_, reject) => {
@@ -180,30 +197,45 @@ class PerpsConnectionManagerClass {
       });
       let suspension = Engine.context.PerpsController.suspendChaseOrders();
       const reportLateSuccess = (pending: typeof suspension) => {
-        pending.then(reportSuspendedChaseOrders).catch((error) => {
-          if (error instanceof ChaseOrderSuspensionError) {
-            reportSuspendedChaseOrders(error.suspendedOrders);
-          }
-          Logger.error(
-            ensureError(error, 'PerpsConnectionManager.lateContextSuspension'),
-            {
-              tags: {
-                feature: PERPS_CONSTANTS.FeatureName,
-                component: 'PerpsConnectionManager',
-                action: 'late_chase_context_suspension',
-              },
-              context: {
-                name: 'PerpsConnectionManager.lateContextSuspension',
-                data: {
-                  partialCount:
-                    error instanceof ChaseOrderSuspensionError
-                      ? error.suspendedOrders.length
-                      : 0,
+        pending
+          .then((orders) => {
+            reportSuspendedChaseOrders(orders);
+            reportChaseOrderStoreReconciliation({
+              orders,
+              route: routeIdentity,
+            });
+          })
+          .catch((error) => {
+            if (error instanceof ChaseOrderSuspensionError) {
+              reportSuspendedChaseOrders(error.suspendedOrders);
+              reportChaseOrderStoreReconciliation({
+                orders: error.suspendedOrders,
+                route: routeIdentity,
+              });
+            }
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.lateContextSuspension',
+              ),
+              {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsConnectionManager',
+                  action: 'late_chase_context_suspension',
+                },
+                context: {
+                  name: 'PerpsConnectionManager.lateContextSuspension',
+                  data: {
+                    partialCount:
+                      error instanceof ChaseOrderSuspensionError
+                        ? error.suspendedOrders.length
+                        : 0,
+                  },
                 },
               },
-            },
-          );
-        });
+            );
+          });
       };
       try {
         try {

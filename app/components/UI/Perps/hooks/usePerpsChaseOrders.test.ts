@@ -13,6 +13,7 @@ import { selectSelectedInternalAccountAddress } from '../../../../selectors/acco
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { reportSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
+import { reportChaseOrderStoreReconciliation } from '../services/ChaseOrderStoreReconciliationEvents';
 import { CHASE_ORDER_UI_CONFIG } from '../constants/perpsConfig';
 import {
   selectPerpsInitializationState,
@@ -156,15 +157,21 @@ describe('usePerpsChaseOrders', () => {
 
   it('stops polling while blurred and restores one interval on refocus', async () => {
     mockGetChaseOrders.mockResolvedValue([activeOrder]);
-    const hook = renderHook(
+    const backgroundConsumer = renderHook(() =>
+      usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true }),
+    );
+    const screenConsumer = renderHook(
       ({ isFocused }: { isFocused: boolean }) =>
-        usePerpsChaseOrders({ isEnabled: isFocused }),
+        usePerpsChaseOrders({
+          isEnabled: isFocused,
+          enableDiscovery: false,
+        }),
       { initialProps: { isFocused: true } },
     );
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
     expect(jest.getTimerCount()).toBeGreaterThan(0);
 
-    hook.rerender({ isFocused: false });
+    screenConsumer.rerender({ isFocused: false });
 
     expect(jest.getTimerCount()).toBe(0);
     const callsWhileBlurred = mockGetChaseOrders.mock.calls.length;
@@ -175,7 +182,7 @@ describe('usePerpsChaseOrders', () => {
     });
     expect(mockGetChaseOrders).toHaveBeenCalledTimes(callsWhileBlurred);
 
-    hook.rerender({ isFocused: true });
+    screenConsumer.rerender({ isFocused: true });
     await waitFor(() =>
       expect(mockGetChaseOrders.mock.calls.length).toBeGreaterThan(
         callsWhileBlurred,
@@ -188,7 +195,32 @@ describe('usePerpsChaseOrders', () => {
       );
     });
     expect(mockGetChaseOrders).toHaveBeenCalledTimes(callsAfterRefocus + 1);
-    hook.unmount();
+    screenConsumer.unmount();
+    backgroundConsumer.unmount();
+  });
+
+  it('does not discover or retry from a blurred screen consumer', async () => {
+    mockGetChaseOrders.mockRejectedValue(new Error('provider unavailable'));
+    const screenConsumer = renderHook(
+      ({ isFocused }: { isFocused: boolean }) =>
+        usePerpsChaseOrders({
+          isEnabled: isFocused,
+          enableDiscovery: false,
+        }),
+      { initialProps: { isFocused: true } },
+    );
+    await act(async () => Promise.resolve());
+
+    screenConsumer.rerender({ isFocused: false });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.DiscoveryRetryMaxDelayMs * 2,
+      );
+    });
+
+    expect(mockGetChaseOrders).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
+    screenConsumer.unmount();
   });
 
   it.each(['context_not_ready', 'stale_request'] as const)(
@@ -256,6 +288,65 @@ describe('usePerpsChaseOrders', () => {
     await act(async () => hook.result.current.getChaseOrders());
 
     expect(hook.result.current.chaseOrders).toEqual([providerOrder]);
+    hook.unmount();
+  });
+
+  it('reconciles an external suspension report for the selected route', async () => {
+    const backgroundedOrder = {
+      ...activeOrder,
+      status: 'backgrounded' as const,
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([backgroundedOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    act(() => {
+      reportChaseOrderStoreReconciliation({
+        orders: [backgroundedOrder],
+        route: {
+          account: mockSelectedAddress,
+          provider: mockPerpsProvider,
+          network: mockPerpsNetwork,
+        },
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([backgroundedOrder]),
+    );
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    hook.unmount();
+  });
+
+  it('ignores an external suspension report from an old route', async () => {
+    const backgroundedOrder = {
+      ...activeOrder,
+      status: 'backgrounded' as const,
+    };
+    mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    act(() => {
+      reportChaseOrderStoreReconciliation({
+        orders: [backgroundedOrder],
+        route: {
+          account: mockSelectedAddress,
+          provider: secondaryProvider,
+          network: mockPerpsNetwork,
+        },
+      });
+    });
+    await act(async () => Promise.resolve());
+
+    expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
     hook.unmount();
   });
 
@@ -463,7 +554,7 @@ describe('usePerpsChaseOrders', () => {
   it('keeps one-shot retained discovery off the 1 Hz polling loop', async () => {
     const setIntervalSpy = jest.spyOn(global, 'setInterval');
     const { result, unmount } = renderHook(() =>
-      usePerpsChaseOrders({ isEnabled: false }),
+      usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true }),
     );
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
@@ -1133,6 +1224,73 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
     loggerError.mockRestore();
   });
+
+  it.each(['late-first', 'newer-first'] as const)(
+    'keeps the newer suspension authoritative when overlapping results settle %s',
+    async (order) => {
+      let currentAppState = 'active';
+      Object.defineProperty(AppState, 'currentState', {
+        configurable: true,
+        get: () => currentAppState,
+      });
+      const lateOrder = {
+        ...activeOrder,
+        handle: 'chase-overlap-late',
+        status: 'backgrounded' as const,
+      };
+      const newerOrder = {
+        ...activeOrder,
+        handle: 'chase-overlap-newer',
+        status: 'backgrounded' as const,
+      };
+      let resolveLate: ((orders: (typeof lateOrder)[]) => void) | undefined;
+      let resolveNewer: ((orders: (typeof newerOrder)[]) => void) | undefined;
+      mockGetChaseOrders.mockResolvedValueOnce([]);
+      mockSuspendChaseOrders
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveLate = resolve;
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveNewer = resolve;
+            }),
+        );
+      const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+      currentAppState = 'background';
+      const lateResult = hook.result.current
+        .suspendChaseOrders()
+        .catch((error) => error);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+      });
+      expect(await lateResult).toEqual(new Error('Chase mutation timed out'));
+
+      const newerResult = hook.result.current.suspendChaseOrders();
+      await act(async () => Promise.resolve());
+      if (order === 'late-first') {
+        await act(async () => resolveLate?.([lateOrder]));
+        await act(async () => resolveNewer?.([newerOrder]));
+      } else {
+        await act(async () => resolveNewer?.([newerOrder]));
+        await act(async () => resolveLate?.([lateOrder]));
+      }
+      await newerResult;
+      await act(async () => Promise.resolve());
+
+      expect(hook.result.current.chaseOrders).toEqual([newerOrder]);
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(reportSuspendedChaseOrders).toHaveBeenCalledTimes(1);
+      expect(reportSuspendedChaseOrders).toHaveBeenCalledWith([lateOrder]);
+      hook.unmount();
+    },
+  );
 
   it('reconciles a late suspension with a fresh identity-checked read', async () => {
     let currentAppState = 'active';

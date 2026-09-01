@@ -217,6 +217,7 @@ const PerpsProPositionsPanel = ({
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
+    enableDiscovery: false,
   });
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);

@@ -85,6 +85,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     // Wallet root owns one-shot retained discovery and suspension only.
     // Screen consumers opt into the 1 Hz refresh loop while Perps is visible.
     isEnabled: false,
+    enableDiscovery: true,
   });
   const shouldSuspendChaseOrders =
     isChaseEnabled || hasLiveChaseOrders || !isChaseOrderDiscoveryResolved;
@@ -219,10 +220,11 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           .map((order) => order.handle)
           .sort((left, right) => left.localeCompare(right))
           .join('-');
+        const notificationId = `perps-chase-backgrounded-${handles}`;
         // Pending/notified handle sets make reported batches disjoint, so the
         // sorted-handle ID is stable and safe for notification deduplication.
         await NotificationsService.displayNotification({
-          id: `perps-chase-backgrounded-${handles}`,
+          id: notificationId,
           title: strings('perps.order.chase.backgrounded_title'),
           body:
             notificationOrders.length === 1
@@ -234,6 +236,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
                   },
                 ),
           data: {
+            notification_id: notificationId,
             notification_type:
               PERPS_EVENT_VALUE.NOTIFICATION_TYPE.CHASE_BACKGROUNDED,
           },

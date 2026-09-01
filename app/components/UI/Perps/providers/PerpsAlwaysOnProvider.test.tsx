@@ -42,11 +42,13 @@ let mockIsPerpsPushNotificationsEnabled = true;
 const mockUseFeatureNotificationsStatus = jest.fn(() => ({
   isPushEnabled: mockIsPerpsPushNotificationsEnabled,
 }));
-const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
-  hasLiveChaseOrders: mockHasLiveChaseOrders,
-  isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
-  suspendChaseOrders: mockSuspendChaseOrders,
-}));
+const mockUsePerpsChaseOrders = jest.fn(
+  (_options: { isEnabled: boolean; enableDiscovery?: boolean }) => ({
+    hasLiveChaseOrders: mockHasLiveChaseOrders,
+    isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
+    suspendChaseOrders: mockSuspendChaseOrders,
+  }),
+);
 const mockIsChaseOrderSymbolVisible = jest.fn(
   (_symbol: string): boolean => false,
 );
@@ -56,8 +58,10 @@ jest.mock('../hooks/usePerpsEventTracking', () => ({
 }));
 
 jest.mock('../hooks/usePerpsChaseOrders', () => ({
-  usePerpsChaseOrders: (options: { isEnabled: boolean }) =>
-    mockUsePerpsChaseOrders(options),
+  usePerpsChaseOrders: (options: {
+    isEnabled: boolean;
+    enableDiscovery?: boolean;
+  }) => mockUsePerpsChaseOrders(options),
 }));
 
 jest.mock('../services/ChaseOrderVisibility', () => ({
@@ -700,7 +704,10 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({ isEnabled: false });
+    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({
+      isEnabled: false,
+      enableDiscovery: true,
+    });
   });
 
   it('keeps wallet-root Chase discovery off the screen polling loop', () => {
@@ -710,7 +717,10 @@ describe('PerpsAlwaysOnProvider', () => {
       </PerpsAlwaysOnProvider>,
     );
 
-    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({ isEnabled: false });
+    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({
+      isEnabled: false,
+      enableDiscovery: true,
+    });
     expect(mockUseFeatureNotificationsStatus).toHaveBeenCalledTimes(1);
   });
 
@@ -889,7 +899,10 @@ describe('PerpsAlwaysOnProvider', () => {
     );
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { notification_type: 'chase_backgrounded' },
+        data: {
+          notification_id: 'perps-chase-backgrounded-chase-disable',
+          notification_type: 'chase_backgrounded',
+        },
       }),
     );
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
@@ -1363,8 +1376,10 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         data: {
+          notification_id: 'perps-chase-backgrounded-chase-backgrounded',
           notification_type: 'chase_backgrounded',
         },
+        title: 'Chase became a limit order',
         throwOnError: true,
       }),
     );
@@ -1403,6 +1418,11 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'perps-chase-backgrounded-chase-a-chase-b',
+        title: 'Chase became a limit order',
+        data: {
+          notification_id: 'perps-chase-backgrounded-chase-a-chase-b',
+          notification_type: 'chase_backgrounded',
+        },
         body: '2 Chase orders are now resting as limit orders at their last chased prices.',
       }),
     );

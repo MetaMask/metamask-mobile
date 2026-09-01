@@ -109,10 +109,12 @@ const mockUpdateOrderForm = jest.fn();
 const mockSetMaxPossibleAmountOverride = jest.fn();
 const mockGetChaseOrders = jest.fn();
 let mockChaseOrders: { status: string }[] = [];
-const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
-  chaseOrders: mockChaseOrders,
-  getChaseOrders: mockGetChaseOrders,
-}));
+const mockUsePerpsChaseOrders = jest.fn(
+  (_options: { isEnabled: boolean; enableDiscovery?: boolean }) => ({
+    chaseOrders: mockChaseOrders,
+    getChaseOrders: mockGetChaseOrders,
+  }),
+);
 const mockRefreshChaseCapability = jest.fn().mockResolvedValue(null);
 
 const mockContextValue = {
@@ -366,8 +368,10 @@ jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
 
   return {
     ChaseOrderRequestError: MockChaseOrderRequestError,
-    usePerpsChaseOrders: (options: { isEnabled: boolean }) =>
-      mockUsePerpsChaseOrders(options),
+    usePerpsChaseOrders: (options: {
+      isEnabled: boolean;
+      enableDiscovery?: boolean;
+    }) => mockUsePerpsChaseOrders(options),
   };
 });
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
@@ -1591,6 +1595,7 @@ describe('usePerpsProOrderForm', () => {
       );
       expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
         isEnabled: true,
+        enableDiscovery: false,
       });
 
       chaseGate.isScreenFocused = false;
@@ -1598,6 +1603,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
         isEnabled: false,
+        enableDiscovery: false,
       });
       expect(form.result.current.orderType).toBe('chase');
     });
@@ -1670,6 +1676,93 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).not.toHaveBeenCalledWith(
         strings('perps.order.validation.chase_details_changed'),
       );
+    });
+
+    it('aborts Chase when a price tick changes reviewed exposure during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockLivePrice = '45000';
+      mockLiveMarkPrice = '45000';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts Chase when effective token precision changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockSizeDecimals = 2;
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('accepts formatting-equivalent prices during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockLivePrice = '90000.0';
+      mockLiveMarkPrice = '90000.00';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(validationError).not.toHaveBeenCalled();
     });
 
     it('uses committed Chase refs during a render-phase compliance callback', async () => {
@@ -2127,55 +2220,6 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
-    });
-
-    it('keeps Chase validation stable across a live price tick', async () => {
-      const validResult = {
-        errors: [],
-        warnings: [],
-        fieldIssues: [] as OrderFormFieldIssue[],
-        isValid: true,
-      };
-      let resolveValidation: ((value: typeof validResult) => void) | undefined;
-      mockValidation.validateNow.mockReset();
-      mockValidation.validateNow.mockReturnValueOnce(
-        new Promise((resolve) => {
-          resolveValidation = resolve;
-        }),
-      );
-      mockOrderForm.type = 'chase';
-      const refresh = jest.fn().mockResolvedValue('hyperliquid');
-      const form = renderProForm(
-        true,
-        true,
-        'hyperliquid',
-        false,
-        {},
-        { refresh },
-      );
-      let submission: Promise<void> | undefined;
-
-      act(() => {
-        submission = form.result.current.onPlaceOrderPress();
-      });
-      await waitFor(() =>
-        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
-      );
-      mockLivePrice = '45000';
-      mockLiveMarkPrice = '45000';
-      form.rerender({});
-      await act(async () => {
-        resolveValidation?.(validResult);
-        await submission;
-      });
-
-      expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
-      expect(mockExecuteOrder).toHaveBeenCalledWith(
-        expect.objectContaining({
-          currentPrice: 90000,
-          size: '0.002',
-        }),
-      );
     });
 
     it('uses the latest validated Chase size in confirmation copy', async () => {

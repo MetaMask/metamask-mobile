@@ -261,6 +261,7 @@ describe('PerpsProPositionsPanel', () => {
     );
     expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
       isEnabled: true,
+      enableDiscovery: false,
     });
 
     view.rerender(
@@ -269,6 +270,7 @@ describe('PerpsProPositionsPanel', () => {
 
     expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
       isEnabled: false,
+      enableDiscovery: false,
     });
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),

@@ -48,6 +48,7 @@ import PerpsTPSLView from '../../../app/components/UI/Perps/Views/PerpsTPSLView/
 import PerpsOrderDetailsView from '../../../app/components/UI/Perps/Views/PerpsOrderDetailsView/PerpsOrderDetailsView';
 import PerpsOrderView from '../../../app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView';
 import PerpsProMarketView from '../../../app/components/UI/Perps/Views/PerpsProMarketView/PerpsProMarketView';
+import { usePerpsChaseOrders } from '../../../app/components/UI/Perps/hooks/usePerpsChaseOrders';
 import PerpsCancelAllOrdersView from '../../../app/components/UI/Perps/Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsCloseAllPositionsView from '../../../app/components/UI/Perps/Views/PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsSelectAdjustMarginActionView from '../../../app/components/UI/Perps/Views/PerpsSelectAdjustMarginActionView/PerpsSelectAdjustMarginActionView';
@@ -135,6 +136,11 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   },
 };
 
+const PerpsChaseDiscoveryConsumer = () => {
+  usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true });
+  return null;
+};
+
 const PerpsTestProviders = ({
   children,
   connectionValue = testConnectionValue,
@@ -151,6 +157,7 @@ const PerpsTestProviders = ({
       <AccessRestrictedProvider>
         <PerpsConnectionContext.Provider value={connectionValue}>
           <PerpsStreamProvider testStreamManager={streamManager}>
+            <PerpsChaseDiscoveryConsumer />
             {children}
           </PerpsStreamProvider>
         </PerpsConnectionContext.Provider>

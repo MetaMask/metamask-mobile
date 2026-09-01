@@ -1872,7 +1872,7 @@
         "max_distance": "Max distance",
         "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
         "foreground_notice": "Keep the app open while the Chase order is running.",
-        "backgrounded_title": "Chase paused",
+        "backgrounded_title": "Chase became a limit order",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
         "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
         "max_distance_reached_title": "Chase max distance reached",

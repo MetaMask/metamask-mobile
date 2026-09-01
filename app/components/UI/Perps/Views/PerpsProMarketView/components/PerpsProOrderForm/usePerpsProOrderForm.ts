@@ -629,6 +629,7 @@ export const usePerpsProOrderForm = ({
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
+    enableDiscovery: false,
   });
   const [chaseMaxDistance, setChaseMaxDistance] = useState('');
   const [chaseMaxDistanceUnit, setChaseMaxDistanceUnit] = useState<
@@ -680,6 +681,7 @@ export const usePerpsProOrderForm = ({
     ScaleOrderValidationCode | undefined
   >(undefined);
   const submissionStateRef = useRef('');
+  const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
   useLayoutEffect(
     () => () => {
@@ -934,28 +936,6 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
   });
-  const currentSubmissionState =
-    orderForm.type === 'chase'
-      ? JSON.stringify({
-          type: orderForm.type,
-          asset: orderForm.asset,
-          direction: orderForm.direction,
-          sizeIntent: isAtMaxAmount
-            ? { mode: 'max' }
-            : { mode: 'explicit', amount: orderForm.amount },
-          leverage: orderForm.leverage,
-          reduceOnly,
-          chaseMaxDistance,
-          chaseMaxDistanceUnit,
-          selectedAddress: normalizedSelectedAddress,
-          providerId: chaseProviderId,
-          network,
-        })
-      : orderForm.type;
-  useLayoutEffect(() => {
-    submissionStateRef.current = currentSubmissionState;
-  }, [currentSubmissionState]);
-
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
   const orderProviderId = isTwapOrder
@@ -1404,6 +1384,39 @@ export const usePerpsProOrderForm = ({
     isScaleOrder && scaleLadderResult.success
       ? scaleLadderResult.totalSize
       : (exactFullCloseSize ?? positionSize);
+  const currentSubmissionState =
+    orderForm.type === 'chase'
+      ? JSON.stringify({
+          type: orderForm.type,
+          asset: orderForm.asset,
+          direction: orderForm.direction,
+          sizeIntent: isAtMaxAmount
+            ? { mode: 'max' }
+            : { mode: 'explicit', amount: orderForm.amount },
+          leverage: orderForm.leverage,
+          reduceOnly,
+          chaseMaxDistance,
+          chaseMaxDistanceUnit,
+          selectedAddress: normalizedSelectedAddress,
+          providerId: chaseProviderId,
+          network,
+        })
+      : orderForm.type;
+  const currentComplianceState =
+    orderForm.type === 'chase'
+      ? JSON.stringify({
+          submissionState: currentSubmissionState,
+          effectivePrice: new BigNumber(effectivePrice || 0).toFixed(),
+          effectivePositionSize: new BigNumber(
+            submissionPositionSize || 0,
+          ).toFixed(),
+          effectiveUsdAmount: new BigNumber(effectiveUsdAmount || 0).toFixed(),
+        })
+      : currentSubmissionState;
+  useLayoutEffect(() => {
+    submissionStateRef.current = currentSubmissionState;
+    complianceStateRef.current = currentComplianceState;
+  }, [currentComplianceState, currentSubmissionState]);
   const effectiveMarginRequired =
     isScaleOrder && scaleLadderResult.success
       ? calculateMarginRequired({
@@ -3345,6 +3358,7 @@ export const usePerpsProOrderForm = ({
     }
 
     const expectedSubmissionState = submissionStateRef.current;
+    const expectedComplianceState = complianceStateRef.current;
     const expectedSelectedAddress = selectedAddressRef.current;
     const isChaseSubmission = orderForm.type === 'chase';
     const expectedChaseProviderId = chaseProviderIdRef.current;
@@ -3368,7 +3382,7 @@ export const usePerpsProOrderForm = ({
         if (lifecycleGenerationRef.current !== expectedLifecycleGeneration) {
           return;
         }
-        if (submissionStateRef.current !== expectedSubmissionState) {
+        if (complianceStateRef.current !== expectedComplianceState) {
           if (isChaseSubmission) {
             showToast(
               PerpsToastOptions.formValidation.orderForm.validationError(

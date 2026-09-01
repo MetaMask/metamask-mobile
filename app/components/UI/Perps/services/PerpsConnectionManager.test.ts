@@ -158,6 +158,7 @@ import {
   resetSuspendedChaseOrderBufferForTests,
   subscribeToSuspendedChaseOrders,
 } from './ChaseOrderSuspensionEvents';
+import { subscribeToChaseOrderStoreReconciliation } from './ChaseOrderStoreReconciliationEvents';
 
 const mockClearPendingPerpsCufTraces =
   clearPendingPerpsCufTraces as jest.MockedFunction<
@@ -373,6 +374,9 @@ describe('PerpsConnectionManager', () => {
       resetSuspendedChaseOrderBufferForTests();
       const listener = jest.fn();
       const unsubscribe = subscribeToSuspendedChaseOrders(listener);
+      const storeListener = jest.fn();
+      const unsubscribeStore =
+        subscribeToChaseOrderStoreReconciliation(storeListener);
       const partialOrder = {
         handle: 'late-context-partial',
         symbol: 'ETH',
@@ -413,6 +417,15 @@ describe('PerpsConnectionManager', () => {
 
         expect(listener).toHaveBeenCalledTimes(1);
         expect(listener).toHaveBeenCalledWith([partialOrder]);
+        expect(storeListener).toHaveBeenCalledTimes(1);
+        expect(storeListener).toHaveBeenCalledWith({
+          orders: [partialOrder],
+          route: {
+            account: '0x1234567890123456789012345678901234567890',
+            provider: 'hyperliquid',
+            network: 'testnet',
+          },
+        });
         expect(transition).not.toHaveBeenCalled();
         expect(loggerError).toHaveBeenCalledWith(
           expect.any(Error),
@@ -424,6 +437,7 @@ describe('PerpsConnectionManager', () => {
         );
       } finally {
         unsubscribe();
+        unsubscribeStore();
         loggerError.mockRestore();
         resetSuspendedChaseOrderBufferForTests();
         jest.useRealTimers();

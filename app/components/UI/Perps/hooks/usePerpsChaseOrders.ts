@@ -28,6 +28,10 @@ import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { reportSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
 import {
+  subscribeToChaseOrderStoreReconciliation,
+  type ChaseOrderRouteIdentity,
+} from '../services/ChaseOrderStoreReconciliationEvents';
+import {
   selectPerpsInitializationState,
   selectPerpsNetwork,
   selectPerpsProvider,
@@ -72,6 +76,7 @@ let mutationQueue: Promise<void> = Promise.resolve();
 let mutationQueueEpoch = 0;
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 let invalidationUnsubscribe: (() => void) | undefined;
+let storeReconciliationUnsubscribe: (() => void) | undefined;
 let discoveryInvalidationUnsubscribe: (() => void) | undefined;
 let discoveryAppStateSubscription:
   | ReturnType<typeof AppState.addEventListener>
@@ -428,10 +433,35 @@ function installDiscoveryRecoverySubscriptions() {
 
 const subscribe = (listener: () => void): (() => void) => {
   listeners.add(listener);
+  storeReconciliationUnsubscribe ??= subscribeToChaseOrderStoreReconciliation(
+    ({ orders, route }) => {
+      const routeKey = getRouteIdentityKey(route);
+      if (routeKey !== getRouteKey()) return;
+      enqueueStoreReconciliation({
+        orders,
+        route: routeKey,
+        expectedEpoch: mutationQueueEpoch,
+        applyOrders: true,
+      }).catch((error) => {
+        Logger.error(
+          ensureError(error, 'usePerpsChaseOrders.externalReconciliation'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsChaseOrders',
+              action: 'external_chase_reconciliation',
+            },
+          },
+        );
+      });
+    },
+  );
   syncRefreshLifecycle();
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0) {
+      storeReconciliationUnsubscribe?.();
+      storeReconciliationUnsubscribe = undefined;
       resetChaseOrdersStore();
     } else {
       syncRefreshLifecycle();
@@ -470,6 +500,59 @@ export const resetPerpsChaseOrdersStoreForTests = () => {
 
 const getSnapshot = () => storeSnapshot;
 
+function getRouteIdentityKey(route: ChaseOrderRouteIdentity) {
+  return `${route.account.toLowerCase()}:${route.provider}:${route.network}`;
+}
+
+function enqueueStoreReconciliation({
+  orders,
+  route,
+  expectedEpoch,
+  applyOrders,
+}: {
+  orders: ChaseOrder[];
+  route: string;
+  expectedEpoch: number;
+  applyOrders: boolean;
+}) {
+  const previousMutationQueue = mutationQueue;
+  const operation = previousMutationQueue.then(async () => {
+    if (
+      expectedEpoch !== mutationQueueEpoch ||
+      route !== getRouteKey() ||
+      !canRefreshCurrentRoute()
+    ) {
+      return;
+    }
+    if (applyOrders && orders.length > 0) {
+      cachedRoute = route;
+      const ordersChanged = setCachedOrders(
+        mergeWithCachedHistory(orders, true),
+      );
+      if (ordersChanged) emitChange();
+    }
+    const generation = ++requestGeneration;
+    refreshPromise = undefined;
+    setDiscoveryResolvedRoute('');
+    const freshOrders = await Engine.context.PerpsController.getChaseOrders();
+    if (
+      expectedEpoch !== mutationQueueEpoch ||
+      generation !== requestGeneration ||
+      route !== getRouteKey() ||
+      !canRefreshCurrentRoute()
+    ) {
+      return;
+    }
+    cachedRoute = route;
+    const ordersChanged = setCachedOrders(mergeWithCachedHistory(freshOrders));
+    if (ordersChanged) emitChange();
+    setDiscoveryResolvedRoute(route);
+    syncRefreshLifecycle();
+  });
+  mutationQueue = operation.catch(() => undefined);
+  return operation;
+}
+
 const suspendAndCacheChaseOrders = async (
   isCurrentLifecycle: () => boolean,
 ): Promise<ChaseOrder[]> => {
@@ -479,7 +562,7 @@ const suspendAndCacheChaseOrders = async (
       await previousMutationQueue;
       return [];
     }
-    mutationQueueEpoch += 1;
+    const operationEpoch = ++mutationQueueEpoch;
     const route = getRouteKey();
     const generation = ++requestGeneration;
     refreshPromise = undefined;
@@ -489,14 +572,12 @@ const suspendAndCacheChaseOrders = async (
     const reconcileLateSuspension = (suspension: Promise<ChaseOrder[]>) => {
       const reconcileOrders = (orders: ChaseOrder[]) => {
         reportSuspendedChaseOrders(orders);
-        if (route !== getRouteKey()) return;
-        requestGeneration += 1;
-        refreshPromise = undefined;
-        setDiscoveryResolvedRoute('');
-        if (!canRefreshCurrentRoute()) return;
-        refreshChaseOrders()
-          .then(() => setDiscoveryResolvedRoute(route))
-          .catch(() => undefined);
+        enqueueStoreReconciliation({
+          orders,
+          route,
+          expectedEpoch: operationEpoch,
+          applyOrders: false,
+        }).catch(() => undefined);
       };
       suspension.then(reconcileOrders).catch((error) => {
         if (error instanceof ChaseOrderSuspensionError) {
@@ -531,6 +612,7 @@ const suspendAndCacheChaseOrders = async (
         }
         if (
           isCurrentLifecycle() &&
+          operationEpoch === mutationQueueEpoch &&
           generation === requestGeneration &&
           route === getRouteKey()
         ) {
@@ -553,6 +635,7 @@ const suspendAndCacheChaseOrders = async (
             const suspendedOrders = [...suspendedOrdersByHandle.values()];
             if (
               isCurrentLifecycle() &&
+              operationEpoch === mutationQueueEpoch &&
               generation === requestGeneration &&
               route === getRouteKey()
             ) {
@@ -589,6 +672,7 @@ const suspendAndCacheChaseOrders = async (
     }
     if (
       isCurrentLifecycle() &&
+      operationEpoch === mutationQueueEpoch &&
       generation === requestGeneration &&
       route === getRouteKey()
     ) {
@@ -631,7 +715,13 @@ const getConnectionIdentitySnapshot = () =>
   PerpsConnectionManager.isSelectedUserContextReady();
 const getServerConnectionIdentitySnapshot = () => false;
 
-export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
+export function usePerpsChaseOrders({
+  isEnabled,
+  enableDiscovery = true,
+}: {
+  isEnabled: boolean;
+  enableDiscovery?: boolean;
+}) {
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const activeProvider = useSelector(selectPerpsProvider);
   const perpsNetwork = useSelector(selectPerpsNetwork);
@@ -661,8 +751,9 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     wasEnabledRef.current = isEnabled;
     if (isEnabled) enabledConsumerCount += 1;
     syncRefreshLifecycle();
-    if (becameEnabled) startRetainedDiscovery(true);
+    if (enableDiscovery && becameEnabled) startRetainedDiscovery(true);
     if (
+      enableDiscovery &&
       becameDisabled &&
       enabledConsumerCount === 0 &&
       initialRefreshRoute === getRouteKey()
@@ -676,7 +767,7 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
       }
       syncRefreshLifecycle();
     };
-  }, [isEnabled]);
+  }, [enableDiscovery, isEnabled]);
   // Reset route-scoped state first so the initialization effect below can run
   // exactly one discovery read for the new route.
   useLayoutEffect(() => {
@@ -709,8 +800,8 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
       return;
     }
     syncRefreshLifecycle();
-    startRetainedDiscovery(true);
-  }, [connectionIdentityReady, route]);
+    if (enableDiscovery) startRetainedDiscovery(true);
+  }, [connectionIdentityReady, enableDiscovery, route]);
   useEffect(() => {
     isControllerInitialized =
       initializationState === InitializationState.Initialized;
@@ -723,8 +814,8 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
       return;
     }
     syncRefreshLifecycle();
-    startRetainedDiscovery();
-  }, [connectionIdentityReady, initializationState, route]);
+    if (enableDiscovery) startRetainedDiscovery();
+  }, [connectionIdentityReady, enableDiscovery, initializationState, route]);
   const getChaseOrders = useCallback(
     async (): Promise<ChaseOrder[]> => await getFreshChaseOrders(),
     [],
