@@ -253,12 +253,8 @@ function perpsPositionSubtitle(
   );
 }
 
-function getPredictActivity(item: ActivityListItem) {
-  return item.raw?.type === 'predictActivity' ? item.raw.data : undefined;
-}
-
 function predictMarketSubtitle(item: ActivityListItem): string | undefined {
-  return getPredictActivity(item)?.title;
+  return 'marketTitle' in item.data ? item.data.marketTitle : undefined;
 }
 
 function protocolSubtitle(item: ActivityListItem): string | undefined {
@@ -1267,7 +1263,9 @@ export function useActivityListItemRowContent(
       : undefined
     : undefined;
   const predictIconUrl = isPredictTradeKind(item.type)
-    ? getPredictActivity(item)?.icon
+    ? 'icon' in item.data
+      ? item.data.icon
+      : undefined
     : undefined;
 
   let avatarTokens: TokenAmount[];

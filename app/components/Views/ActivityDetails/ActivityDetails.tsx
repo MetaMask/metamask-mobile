@@ -50,11 +50,11 @@ const ActivityDetails = () => {
   const isFocused = useIsFocused();
   const { chainId, txIdentifier, preloadKey } =
     useParams<ActivityDetailsParams>();
-  // Provider-backed rows (Perps / Predict) are handed off via a transient store
-  // keyed by `preloadKey` (params stay serializable). Capture the row once per
-  // key and hold it, so a later store eviction can't blank a still-mounted
-  // screen on re-render; re-read only when the key changes (the screen is reused
-  // across navigations).
+  // Provider-backed rows (Perps) are handed off via a transient store keyed by
+  // `preloadKey` (params stay serializable). Capture the row once per key and
+  // hold it, so a later store eviction can't blank a still-mounted screen on
+  // re-render; re-read only when the key changes (the screen is reused across
+  // navigations). Predict rows re-resolve from the provider feed by id.
   const preloadedRef = useRef<{
     key?: string;
     item: ReturnType<typeof getPreloadedActivityItem>;
