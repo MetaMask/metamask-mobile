@@ -77,11 +77,9 @@ on:
         default: 'auto'
       cache-android-golden-snapshot:
         description: >-
-          Mount `~/.android/avd` on the Namespace cache volume (carries the
-          primed golden emulator snapshot between the prime job and smoke
-          shards). Set false for jobs that cold-boot on a runner-local AVD
-          (e.g. fixture validation) so they do not race with the prime job on
-          the shared volume.
+          Download the primed golden AVD artifact from the prime job and
+          attempt snapshot resume. Set false for jobs that always cold-boot
+          (e.g. fixture validation).
         required: false
         type: boolean
         default: true
@@ -186,48 +184,12 @@ jobs:
       # that resolve $(SRCROOT) to a physical path (#34931). iOS Appium builds
       # WebDriverAgent from node_modules, so it is exposed to that; Android
       # runs no Xcode or Gradle and does not republish node_modules.
-      # nscloud-cache-action only volume-links paths that exist on the host at
-      # mount time. setup-e2e-env creates the AVD dir later, which would be a
-      # runner-local dir — the golden snapshot would never reach the volume.
-      - name: Create AVD host dir before cache mount (Android)
-        if: >-
-          ${{
-            inputs.runner_provider == 'namespace' &&
-            inputs.platform == 'android' &&
-            inputs.cache-android-golden-snapshot &&
-            steps.select-specs.outputs.spec_count != '0'
-          }}
-        run: mkdir -p "$HOME/.android/avd"
-
-      - name: Configure Namespace cache (Android, with golden snapshot)
-        if: >-
-          ${{
-            inputs.runner_provider == 'namespace' &&
-            inputs.platform == 'android' &&
-            inputs.cache-android-golden-snapshot &&
-            steps.select-specs.outputs.spec_count != '0'
-          }}
-        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
-        with:
-          # ~/.android/avd carries the primed golden emulator snapshot between
-          # the prime job and shard jobs (and across runs). Shard boots are
-          # `-read-only` with `-no-snapshot-save`, so shards never mutate it.
-          # NB: no `#` comments inside the block scalar — they become literal paths.
-          path: |
-            ~/.cache/yarn
-            .metamask
-            node_modules
-            .yarn/cache
-            ~/.android/avd
-
-      - name: Configure Namespace cache (Android, without golden snapshot)
-        if: >-
-          ${{
-            inputs.runner_provider == 'namespace' &&
-            inputs.platform == 'android' &&
-            !inputs.cache-android-golden-snapshot &&
-            steps.select-specs.outputs.spec_count != '0'
-          }}
+      #
+      # Do NOT put ~/.android/avd on the Namespace volume: volumes fork per job
+      # and commit last-write-wins, so concurrent shards clobber a primed
+      # snapshot. Golden AVDs arrive via workflow artifact from the prime job.
+      - name: Configure Namespace cache (Android)
+        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -247,6 +209,23 @@ jobs:
             .metamask
             .yarn/cache
 
+      # Restore the primed AVD before setup-e2e-env so Create AVD can skip
+      # recreation when e2e_golden/snapshot.pb is present. Artifact is produced
+      # by the prime job (Namespace-only via dual-upload skip-github).
+      - name: Download golden AVD artifact
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
+        continue-on-error: true
+        uses: ./.github/actions/download-e2e-artifact
+        with:
+          name: android-e2e-golden-avd
+          path: ~/.android/avd
+          runner-provider: ${{ inputs.runner_provider }}
+
       - name: Setup E2E environment (Android)
         if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/setup-e2e-env
@@ -262,7 +241,7 @@ jobs:
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
 
-      # Resolves the system-image fingerprint and validates the cached golden
+      # Resolves the system-image fingerprint and validates the downloaded golden
       # snapshot; exports ANDROID_EMULATOR_IMAGE_FINGERPRINT for the emulator
       # helper and ANDROID_GOLDEN_SNAPSHOT_VALID for logging. Never fails — on
       # error shards fall back to cold boot.
