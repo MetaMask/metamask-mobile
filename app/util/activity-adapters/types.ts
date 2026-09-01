@@ -75,6 +75,18 @@ type ActivityRaw =
 
 interface MobileFields {
   isEarliestNonce?: boolean;
+  /** Stable TransactionMeta.id for local EVM rows (replaces raw for lookup). */
+  localTransactionMetaId?: string;
+  /** Initial tx meta id (speed-up/cancel parent) for bridge lookup and navigation. */
+  localTransactionInitialMetaId?: string;
+  /** Bridge history action id from the initial local TransactionMeta. */
+  localTransactionActionId?: string;
+  /** Primary and initial tx hashes for local EVM row lookup. */
+  localTransactionLookupHashes?: string[];
+  /** Keyring transaction id for non-EVM rows (replaces raw for lookup). */
+  keyringTransactionId?: string;
+  /** Indexed API EVM row (replaces raw.type === 'apiEvmTransaction' checks). */
+  apiEvmTransaction?: true;
   /** @deprecated Get raw transaction data directly as needed */
   raw?: ActivityRaw;
 }
@@ -93,6 +105,9 @@ type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
 
 interface MobileDataExtras {
   fees?: ActivityFee[];
+  nftContractAddress?: string;
+  nftTokenId?: string;
+  transactionProtocol?: string;
 }
 
 type WithMobileDataTokens<T> = T extends { data: infer D }

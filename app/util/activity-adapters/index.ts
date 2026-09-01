@@ -13,6 +13,16 @@ export type {
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export {
+  collectLocalTransactionLookupKeys,
+  getKeyringTransactionId,
+  getLocalTransactionActionId,
+  getLocalTransactionInitialMetaId,
+  getLocalTransactionMetaId,
+  isApiEvmTransactionItem,
+  isKeyringTransactionItem,
+  isLocalTransactionItem,
+} from './local-transaction-lookup';
+export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';

@@ -385,6 +385,20 @@ export function useLocalActivityItems(): ActivityListItem[] {
         ...item,
         raw: { type: 'localTransaction' as const, data: group },
         isEarliestNonce,
+        localTransactionMetaId: tx.id,
+        localTransactionInitialMetaId: group.initialTransaction.id,
+        localTransactionActionId:
+          group.initialTransaction.actionId ?? tx.actionId,
+        localTransactionLookupHashes: [
+          tx.hash,
+          group.primaryTransaction.hash,
+          group.initialTransaction.hash,
+        ].filter((hash): hash is string => Boolean(hash)),
+        data: {
+          ...item.data,
+          from: group.initialTransaction.txParams.from,
+          to: group.initialTransaction.txParams.to,
+        },
       });
     }
 

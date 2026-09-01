@@ -19,8 +19,8 @@ import {
 import {
   getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
-  getBridgeExplorerSheetTx,
-  getBridgeHistoryItem,
+  useBridgeExplorerSheetTx,
+  useBridgeHistoryItem,
 } from './bridgeDetailsUtils';
 
 export function BridgeDetails({
@@ -29,12 +29,12 @@ export function BridgeDetails({
   item: Extract<ActivityListItem, { type: 'bridge' }>;
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem = getBridgeHistoryItem(item, bridgeHistory);
+  const bridgeHistoryItem = useBridgeHistoryItem(item, bridgeHistory);
   const destinationChainId = getBridgeDestinationCaipChainId(
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
-  const explorerSheetTx = getBridgeExplorerSheetTx(item);
+  const explorerSheetTx = useBridgeExplorerSheetTx(item);
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,

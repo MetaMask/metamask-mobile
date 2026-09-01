@@ -1,8 +1,5 @@
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionType } from '@metamask/transaction-controller';
 import { numberToHex, type CaipChainId } from '@metamask/utils';
 import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -45,7 +42,10 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectAllConfiguredNonEvmChainIds } from '../../../selectors/multichainNetworkController';
-import { selectRelatedChainIdsByTransactionId } from '../../../selectors/transactionController';
+import {
+  selectRelatedChainIdsByTransactionId,
+  selectTransactionMetadataById,
+} from '../../../selectors/transactionController';
 import { baseStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import {
@@ -93,11 +93,14 @@ import { type ActivityListItem } from './types';
 import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isApiEvmTransactionItem,
+  isKeyringTransactionItem,
+  isLocalTransactionItem,
   preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
-  type TransactionGroup,
 } from '../../../util/activity-adapters';
+import { store } from '../../../store';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
@@ -155,20 +158,6 @@ const generateGroupedKey = (
   item: GroupedActivityListItem,
   index: number = 0,
 ): string => getGroupedActivityListItemKey(item, index);
-
-const PERPS_WALLET_TX_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
-];
-
-const isPerpsWalletTransactionGroup = (group: TransactionGroup): boolean =>
-  [group.primaryTransaction, group.initialTransaction].some(
-    (meta) =>
-      hasTransactionType(meta, PERPS_WALLET_TX_TYPES) ||
-      (meta?.originalType !== undefined &&
-        PERPS_WALLET_TX_TYPES.includes(meta.originalType)),
-  );
 
 const getBlockExplorerTrackingText = (url: string, fallbackName?: string) => {
   const blockExplorerName = getBlockExplorerName(url) ?? fallbackName;
@@ -379,24 +368,20 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         localActivityItems
           .filter(
             (item) =>
+              isLocalTransactionItem(item) &&
               (item.type === 'predictionsAddFunds' ||
                 item.type === 'predictionsWithdrawFunds' ||
                 item.type === 'deposit' ||
-                item.type === 'smartAccountUpgrade') &&
-              item.raw?.type === 'localTransaction',
+                item.type === 'smartAccountUpgrade'),
           )
-          .map((item) =>
-            item.raw?.type === 'localTransaction'
-              ? item.raw.data.primaryTransaction.hash?.toLowerCase()
-              : undefined,
-          )
+          .map((item) => item.hash?.toLowerCase())
           .filter(Boolean) as string[],
       );
 
       const localWinsHashes = new Set(localDomainKindHashes);
       for (const localItem of localActivityItems) {
-        if (localItem.raw?.type !== 'localTransaction') continue;
-        const hash = localItem.raw.data.primaryTransaction.hash?.toLowerCase();
+        if (!isLocalTransactionItem(localItem)) continue;
+        const hash = localItem.hash?.toLowerCase();
         if (!hash) continue;
         const confirmed = confirmedItemByHash.get(hash);
         if (!confirmed) continue;
@@ -408,11 +393,17 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       // localActivityItems are already mapped from TransactionMeta via the adapter;
       // here we apply the same chain-filter and EVM-confirmed dedup that existed before.
       const filteredLocalItems = localActivityItems.filter((item) => {
-        const raw = item.raw;
-        if (raw?.type !== 'localTransaction') return true;
-        const tx = raw.data.primaryTransaction;
+        if (!isLocalTransactionItem(item)) return true;
+        const metaId = item.localTransactionMetaId;
+        const tx = metaId
+          ? selectTransactionMetadataById(store.getState(), metaId)
+          : undefined;
+        if (!tx) return true;
 
-        if (isPerpsEnabled && isPerpsWalletTransactionGroup(raw.data)) {
+        if (
+          isPerpsEnabled &&
+          (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw')
+        ) {
           return false;
         }
 
@@ -443,9 +434,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           if (nonce !== undefined && nonce !== null && from) {
             const matchedByNonce = allConfirmedForConfiguredChains.some(
               (confirmed) => {
-                const confirmedRaw = confirmed.raw;
-                if (confirmedRaw?.type !== 'apiEvmTransaction') return false;
-                const confirmedApiTx = confirmedRaw.data;
+                if (confirmed.localTransactionMetaId) return false;
+                const confirmedApiTx =
+                  confirmed.raw?.type === 'apiEvmTransaction'
+                    ? confirmed.raw.data
+                    : undefined;
+                if (!confirmedApiTx) return false;
                 const hexChainId = confirmed.chainId.split(':')[1]
                   ? `0x${parseInt(confirmed.chainId.split(':')[1], 10).toString(16)}`
                   : '';
@@ -876,18 +870,21 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        // Flag off: non-EVM cross-chain bridges keep the bridge-status screen.
-        if (raw.type === 'keyringTransaction') {
+        if (isKeyringTransactionItem(item)) {
+          const multiChainTx = nonEvmTransactions.find(
+            (transaction) => transaction.id === item.keyringTransactionId,
+          );
           const keyringBridgeHistoryItem = getBridgeHistoryItemByHash(
             item.hash,
           );
           if (
+            multiChainTx &&
             keyringBridgeHistoryItem &&
             isBridgeTxHistoryItemBridge(keyringBridgeHistoryItem)
           ) {
             handleUnifiedSwapsTxHistoryItemClick({
               navigation,
-              multiChainTx: raw.data,
+              multiChainTx,
               bridgeTxHistoryItem: keyringBridgeHistoryItem,
             });
             return;
@@ -923,9 +920,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
-        if (raw.type === 'localTransaction') {
-          const tx = raw.data.primaryTransaction;
-          if (tx.type === TransactionType.bridge) {
+        if (isLocalTransactionItem(item)) {
+          const metaId = item.localTransactionMetaId;
+          const tx = metaId
+            ? selectTransactionMetadataById(store.getState(), metaId)
+            : undefined;
+          if (tx?.type === TransactionType.bridge) {
             const bridgeTxHistoryItem =
               bridgeHistory[tx.id] ??
               // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
@@ -944,17 +944,20 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           }
         }
       },
-      [bridgeHistory, getBridgeHistoryItemByHash, goToBuy, navigation],
+      [
+        bridgeHistory,
+        getBridgeHistoryItemByHash,
+        goToBuy,
+        navigation,
+        nonEvmTransactions,
+      ],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.
     const lastConfirmedEvmIndex = useMemo(() => {
       for (let index = groupedData.length - 1; index >= 0; index -= 1) {
         const item = groupedData[index];
-        if (
-          item.type === 'item' &&
-          item.item.raw?.type === 'apiEvmTransaction'
-        ) {
+        if (item.type === 'item' && isApiEvmTransactionItem(item.item)) {
           return index;
         }
       }

@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
-import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -14,13 +13,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
-import { selectTransactionMetadataById } from '../../../selectors/transactionController';
 // eslint-disable-next-line import-x/no-restricted-paths
 import {
   useBridgeHistoryItemBySrcTxHash,
   findBridgeHistoryItemBySrcTxHash,
 } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
-import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
 import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
@@ -34,6 +31,7 @@ import {
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
+import { useLocalTransactionMeta } from './hooks/useActivityTransactionSources';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
@@ -80,13 +78,7 @@ const ActivityDetails = () => {
   // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
   // resolved item so the banner reflects current status/gas. Only local EVM
   // items carry a `TransactionMeta`; API / non-EVM items have none (no banner).
-  const localTxId =
-    item?.raw?.type === 'localTransaction'
-      ? item.raw.data.primaryTransaction?.id
-      : undefined;
-  const pendingTx = useSelector((state: RootState) =>
-    localTxId ? selectTransactionMetadataById(state, localTxId) : undefined,
-  );
+  const pendingTx = useLocalTransactionMeta(item);
 
   const {
     speedUpIsOpen,

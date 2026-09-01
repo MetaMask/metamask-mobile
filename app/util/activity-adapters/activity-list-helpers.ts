@@ -216,44 +216,10 @@ export function enrichTokenFromApi(
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
-  const rawFrom = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.from;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.from;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.from[0]?.address;
-    }
-
-    return undefined;
-  })();
-
-  const rawTo = (() => {
-    if (item.raw?.type === 'apiEvmTransaction') {
-      return item.raw.data.to;
-    }
-
-    if (item.raw?.type === 'localTransaction') {
-      return item.raw.data.initialTransaction.txParams.to;
-    }
-
-    if (item.raw?.type === 'keyringTransaction') {
-      return item.raw.data.to[0]?.address;
-    }
-
-    return undefined;
-  })();
 
   return {
-    from:
-      'from' in data && typeof data.from === 'string'
-        ? data.from
-        : (rawFrom ?? ''),
-    to: 'to' in data && typeof data.to === 'string' ? data.to : (rawTo ?? ''),
+    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
+    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
   };
 };
 
@@ -269,26 +235,17 @@ export const getGroupedActivityListItemKey = (
     return `date-header-${item.date}`;
   }
 
-  const raw = item.item.raw;
   const { chainId } = item.item;
-  if (raw?.type === 'localTransaction') {
-    const txId =
-      raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
-    if (txId) {
-      return `local-transaction-${chainId}-${txId}`;
-    }
+  if (item.item.localTransactionMetaId) {
+    return `local-transaction-${chainId}-${item.item.localTransactionMetaId}`;
   }
 
-  if (raw?.type === 'keyringTransaction' && raw.data.id) {
-    return `keyring-transaction-${chainId}-${raw.data.id}`;
-  }
-
-  if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
-    return `api-evm-transaction-${chainId}-${item.item.hash}`;
+  if (item.item.keyringTransactionId) {
+    return `keyring-transaction-${chainId}-${item.item.keyringTransactionId}`;
   }
 
   if (item.item.hash) {
-    return `${chainId}-${item.item.type}-${item.item.hash}`;
+    return `api-evm-transaction-${chainId}-${item.item.hash}`;
   }
 
   return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;

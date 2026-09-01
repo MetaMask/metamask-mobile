@@ -262,9 +262,10 @@ function predictMarketSubtitle(item: ActivityListItem): string | undefined {
 }
 
 function protocolSubtitle(item: ActivityListItem): string | undefined {
-  const rawData =
-    item.raw?.type === 'apiEvmTransaction' ? item.raw.data : undefined;
-  const protocol = rawData?.transactionProtocol;
+  const protocol =
+    'transactionProtocol' in item.data
+      ? item.data.transactionProtocol
+      : undefined;
 
   if (
     !protocol ||
