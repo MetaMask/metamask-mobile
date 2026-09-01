@@ -163,7 +163,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         if (!(await isPushPermissionGranted())) return;
         const handles = notificationOrders
           .map((order) => order.handle)
-          .sort()
+          .sort((left, right) => left.localeCompare(right))
           .join('-');
         // Pending/notified handle sets make reported batches disjoint, so the
         // sorted-handle ID is stable and safe for notification deduplication.
