@@ -99,8 +99,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
       const traceId =
         srcAmount && srcAmount !== '.'
           ? swapQuoteFetchTrace.start({
-              sourceToken: srcToken,
-              destToken,
+              srcChainId,
+              destChainId,
               isRefresh: requestOptions.isRefresh ?? false,
             })
           : undefined;
