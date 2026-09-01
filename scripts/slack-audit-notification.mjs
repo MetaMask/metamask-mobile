@@ -5,7 +5,7 @@
  * finds new production advisories, tagging the audit owner and, if
  * configured, their manager (see .github/audit-owners.yml).
  *
- * Runs in one of two stages, controlled by SLACK_STAGE, so the owner gets a
+ * Runs in one of three stages, controlled by SLACK_STAGE, so the owner gets a
  * heads-up as soon as new advisories are found instead of only learning
  * about them once a PR already exists (which can be several minutes later,
  * once the AI-assisted tier has had a chance to run):
@@ -15,17 +15,25 @@
  *   - "result" (default; posted once both tiers and any tracking issue are
  *     done): the final summary with links to whichever of the tier 1 PR /
  *     tier 2 PR / tracking issue actually got created.
- * The "result" message is posted as a threaded reply to the "detected"
- * message when SLACK_THREAD_TS is set, so both land in one place in Slack.
+ *   - "failure" (posted when an infra step — e.g. Get token — fails after
+ *     "detected" already went out): by default GitHub Actions skips every
+ *     step after a failed one unless that step's own dependencies already
+ *     ran, which meant a Get token failure used to leave the owner with a
+ *     "detected" message and then silence, with no indication anything had
+ *     gone wrong. This is a minimal alert, not a full result summary — it
+ *     doesn't require AUDIT_RESULT_PATH, since the whole point is to fire
+ *     even when the steps that produce that file's later state didn't run.
+ * The "result"/"failure" messages are posted as a threaded reply to the
+ * "detected" message when SLACK_THREAD_TS is set, so all land in one place.
  *
- * Required env: SLACK_BOT_TOKEN, AUDIT_RESULT_PATH
+ * Required env: SLACK_BOT_TOKEN, AUDIT_RESULT_PATH (not required for "failure")
  * Optional env: OWNERS_YML_PATH (default .github/audit-owners.yml),
- *               SLACK_STAGE ("detected" | "result", default "result"),
+ *               SLACK_STAGE ("detected" | "result" | "failure", default "result"),
  *               SLACK_THREAD_TS (reply in this thread instead of posting top-level),
  *               SLACK_MESSAGE_TS_PATH (default slack-message-ts.txt; where this
  *               run's message timestamp is written, so a later "result" call
  *               can thread off of it),
- *               PR_URL, AI_PR_URL, ISSUE_URL, RUN_URL,
+ *               PR_URL, AI_PR_URL, ISSUE_URL, RUN_URL, FAILED_STEP,
  *               SLACK_AUDIT_NOTIFICATION_DRY_RUN
  */
 
@@ -181,6 +189,52 @@ function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, o
 }
 
 /**
+ * A deliberately minimal alert for when an infra step (e.g. Get token) fails
+ * partway through — see the SLACK_STAGE doc comment above for why this
+ * exists. Unlike buildResultMessage, this never depends on
+ * audit-fix-result.json, since the failure it's reporting is often exactly
+ * why that file's later state was never reached.
+ * @param {object} options
+ * @returns {{blocks: object[], text: string}}
+ */
+function buildFailureMessage({ failedStep, runUrl, ownerSlackId, managerSlackId }) {
+  const mentions = [`<@${ownerSlackId}>`];
+  if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
+
+  const headerText = '🚨 Dependency audit escalation hit an error';
+
+  const blocks = [
+    { type: 'header', text: { type: 'plain_text', text: headerText, emoji: true } },
+    {
+      type: 'section',
+      text: {
+        type: 'mrkdwn',
+        text: `The "${failedStep || 'an unknown step'}" step failed, so this run could not finish triaging the advisories it detected — no fix PR, tracking issue, or final summary was produced for them.`,
+      },
+    },
+  ];
+
+  if (runUrl) {
+    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `<${runUrl}|View the failed run>` } });
+  }
+
+  blocks.push(
+    { type: 'divider' },
+    {
+      type: 'context',
+      elements: [
+        {
+          type: 'mrkdwn',
+          text: `cc ${mentions.join(' ')} — this needs manual follow-up; re-running the workflow may be enough if this was transient.`,
+        },
+      ],
+    },
+  );
+
+  return { blocks, text: headerText };
+}
+
+/**
  * @param {string} botToken
  * @param {string} channelId
  * @param {{blocks: object[], text: string}} payload
@@ -220,9 +274,13 @@ async function postToSlack(botToken, channelId, payload, threadTs) {
 async function main() {
   const dryRunEnv = process.env.SLACK_AUDIT_NOTIFICATION_DRY_RUN;
   const isDryRun = dryRunEnv === '1' || String(dryRunEnv).toLowerCase() === 'true';
-  const stage = process.env.SLACK_STAGE === 'detected' ? 'detected' : 'result';
+  const stage = ['detected', 'failure'].includes(process.env.SLACK_STAGE) ? process.env.SLACK_STAGE : 'result';
 
-  const requiredEnvVars = isDryRun ? ['AUDIT_RESULT_PATH'] : ['AUDIT_RESULT_PATH', 'SLACK_BOT_TOKEN'];
+  // "failure" intentionally never depends on AUDIT_RESULT_PATH — see the
+  // SLACK_STAGE doc comment above.
+  const requiredEnvVars = stage === 'failure'
+    ? (isDryRun ? [] : ['SLACK_BOT_TOKEN'])
+    : (isDryRun ? ['AUDIT_RESULT_PATH'] : ['AUDIT_RESULT_PATH', 'SLACK_BOT_TOKEN']);
   const missingVars = requiredEnvVars.filter((v) => !process.env[v]);
   if (missingVars.length > 0) {
     console.warn(`⚠️ Missing required environment variables: ${missingVars.join(', ')}`);
@@ -232,31 +290,42 @@ async function main() {
 
   const ownersPath = process.env.OWNERS_YML_PATH || DEFAULT_OWNERS_PATH;
   const owners = loadOwners(ownersPath);
-  const { fixed, manual } = loadAuditResult(process.env.AUDIT_RESULT_PATH);
 
-  if (fixed.length === 0 && manual.length === 0) {
-    console.log('No advisories to report — skipping Slack notification.');
-    return;
-  }
-
-  const payload = stage === 'detected'
-    ? buildDetectedMessage({
-      fixedCount: fixed.length,
-      manualCount: manual.length,
-      runUrl: process.env.RUN_URL || '',
-      ownerSlackId: owners.owner.slack_id,
-      managerSlackId: owners.manager?.slack_id,
-    })
-    : buildResultMessage({
-      fixed,
-      manual,
-      prUrl: process.env.PR_URL || '',
-      aiPrUrl: process.env.AI_PR_URL || '',
-      issueUrl: process.env.ISSUE_URL || '',
+  let payload;
+  if (stage === 'failure') {
+    payload = buildFailureMessage({
+      failedStep: process.env.FAILED_STEP || '',
       runUrl: process.env.RUN_URL || '',
       ownerSlackId: owners.owner.slack_id,
       managerSlackId: owners.manager?.slack_id,
     });
+  } else {
+    const { fixed, manual } = loadAuditResult(process.env.AUDIT_RESULT_PATH);
+
+    if (fixed.length === 0 && manual.length === 0) {
+      console.log('No advisories to report — skipping Slack notification.');
+      return;
+    }
+
+    payload = stage === 'detected'
+      ? buildDetectedMessage({
+        fixedCount: fixed.length,
+        manualCount: manual.length,
+        runUrl: process.env.RUN_URL || '',
+        ownerSlackId: owners.owner.slack_id,
+        managerSlackId: owners.manager?.slack_id,
+      })
+      : buildResultMessage({
+        fixed,
+        manual,
+        prUrl: process.env.PR_URL || '',
+        aiPrUrl: process.env.AI_PR_URL || '',
+        issueUrl: process.env.ISSUE_URL || '',
+        runUrl: process.env.RUN_URL || '',
+        ownerSlackId: owners.owner.slack_id,
+        managerSlackId: owners.manager?.slack_id,
+      });
+  }
 
   if (isDryRun) {
     console.log('\n--- Slack payload (dry run) ---\n');

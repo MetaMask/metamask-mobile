@@ -343,3 +343,22 @@ jobs:
           # slack-audit-notification.mjs then just posts top-level.
           SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
         run: node scripts/slack-audit-notification.mjs
+
+      # GitHub Actions skips every later step by default once one fails,
+      # unless that step's own `if:` opts back in with always() — which the
+      # "Notify Slack (result)" step above does, but its own condition still
+      # references steps.ai-fix's outputs, which never got set if the job
+      # never reached tier 2. Net effect: a Get token (or tier 1) failure
+      # used to leave the owner with only the "detected" message and no
+      # indication anything went wrong afterward. This step exists purely to
+      # close that gap with an explicit, unambiguous check.
+      - name: Notify Slack (failure)
+        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && (steps.fix.outcome == 'failure' || steps.get-token.outcome == 'failure') }}
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_STAGE: failure
+          FAILED_STEP: ${{ steps.fix.outcome == 'failure' && 'Attempt deterministic auto-fix' || 'Get token' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
+        run: node scripts/slack-audit-notification.mjs
