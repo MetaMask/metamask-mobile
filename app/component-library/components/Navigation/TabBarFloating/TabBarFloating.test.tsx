@@ -23,6 +23,12 @@ jest.mock('../../../../components/Views/TrendingView/search/analytics', () => ({
   trackExploreSearchOpened: jest.fn(),
 }));
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 const mockNavigateToMoneyHome = jest.fn();
 jest.mock('../../../../components/UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
@@ -306,6 +312,62 @@ describe('TabBarFloating', () => {
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
 
     expect(callback).toHaveBeenCalled();
+  });
+
+  describe('trade trailing action (treatmentC)', () => {
+    const renderTradeBar = () =>
+      renderWithProvider(
+        <TabBarFloating
+          state={state as TabNavigationState<ParamListBase>}
+          descriptors={
+            descriptors as unknown as Record<
+              string,
+              ExtendedBottomTabDescriptor
+            >
+          }
+          navigation={navigation}
+          trailingAction="trade"
+        />,
+        { state: mockInitialState },
+      );
+
+    it('replaces the search button with the trade button', () => {
+      const { getByTestId, queryByTestId } = renderTradeBar();
+
+      expect(
+        getByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the trade tray without the bottom notch', () => {
+      const { getByTestId } = renderTradeBar();
+
+      fireEvent.press(getByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
+          params: expect.objectContaining({ hasBottomNotch: false }),
+        }),
+      );
+    });
+
+    it('sizes the trade button to a circle matching the pill height', () => {
+      const { getByTestId } = renderTradeBar();
+
+      fireEvent(getByTestId(TAB_BAR_FLOATING_TEST_IDS.PILL), 'layout', {
+        nativeEvent: { layout: { height: 60, width: 300, x: 0, y: 0 } },
+      });
+
+      expect(getByTestId(TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON)).toHaveStyle({
+        height: 60,
+        width: 60,
+      });
+    });
   });
 
   it('skips hidden descriptors', () => {

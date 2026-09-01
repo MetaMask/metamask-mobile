@@ -109,11 +109,21 @@ export interface TradeWalletActionsParams {
     width: number;
     height: number;
   };
+  /**
+   * Whether the sheet dips into a peak above the opening button. Defaults to
+   * true for the centred Trade button; the floating bar's trailing "+" opens a
+   * plain rounded sheet instead.
+   */
+  hasBottomNotch?: boolean;
 }
 
 function TradeWalletActions() {
   const { navigate } = useNavigation();
-  const { onDismiss, buttonLayout } = useParams<TradeWalletActionsParams>();
+  const {
+    onDismiss,
+    buttonLayout,
+    hasBottomNotch = true,
+  } = useParams<TradeWalletActionsParams>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const postCallback = useRef<(() => void | Promise<void>) | undefined>(
@@ -450,54 +460,58 @@ function TradeWalletActions() {
         <View
           testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
           style={tw.style(
-            `${surfaceClass} p-4 rounded-t-2xl px-0`,
-            'border-t border-l border-r border-alternative',
+            `${surfaceClass} p-4 px-0 border-alternative`,
+            hasBottomNotch
+              ? 'rounded-t-2xl border-t border-l border-r'
+              : 'rounded-2xl border mb-4',
           )}
         >
           {actionList}
         </View>
-        <View
-          style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
-        >
+        {hasBottomNotch && (
           <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-bl-2xl`,
-              'border-l border-b border-alternative',
-            )}
-          />
-          <BottomShape
-            width={bottomShapeMaskWidth}
-            height={bottomMaskHeight}
-            peakHeight={16}
-            peakBezierLength={25}
-            baseBezierLength={55}
-            fill={elevatedSurfaceColor}
-          />
-          <View
-            style={tw.style(
-              `${surfaceClass} flex-1 rounded-br-2xl`,
-              'border-r border-b border-alternative',
-            )}
-          />
-          <View
-            pointerEvents="none"
-            style={tw.style('absolute bottom-0 inset-x-0 items-center')}
-            testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+            style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
           >
+            <View
+              style={tw.style(
+                `${surfaceClass} flex-1 rounded-bl-2xl`,
+                'border-l border-b border-alternative',
+              )}
+            />
             <BottomShape
-              width={bottomShapeMaskWidth + 4}
+              width={bottomShapeMaskWidth}
               height={bottomMaskHeight}
               peakHeight={16}
               peakBezierLength={25}
               baseBezierLength={55}
-              strokeOnly
-              pathProps={{
-                stroke: colors.border.alternative,
-                strokeWidth: 2,
-              }}
+              fill={elevatedSurfaceColor}
             />
+            <View
+              style={tw.style(
+                `${surfaceClass} flex-1 rounded-br-2xl`,
+                'border-r border-b border-alternative',
+              )}
+            />
+            <View
+              pointerEvents="none"
+              style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+              testID={WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE}
+            >
+              <BottomShape
+                width={bottomShapeMaskWidth + 4}
+                height={bottomMaskHeight}
+                peakHeight={16}
+                peakBezierLength={25}
+                baseBezierLength={55}
+                strokeOnly
+                pathProps={{
+                  stroke: colors.border.alternative,
+                  strokeWidth: 2,
+                }}
+              />
+            </View>
           </View>
-        </View>
+        )}
       </View>
     </Animated.View>
   );

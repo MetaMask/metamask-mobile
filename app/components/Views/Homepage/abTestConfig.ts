@@ -367,26 +367,48 @@ export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
 
 export enum HeaderNavBarVariant {
   Control = 'control',
-  Treatment = 'treatment',
+  SearchFocused = 'searchFocused',
+  TradeFocused = 'tradeFocused',
 }
+
+/** Trailing circular button alongside the floating NavBar pill. */
+export type HeaderNavBarTrailingAction = 'none' | 'search' | 'trade';
 
 interface HeaderNavBarVariantConfig {
   isCompactHeaderEnabled: boolean;
+  trailingNavBarAction: HeaderNavBarTrailingAction;
+  /** Search moves into the header when the NavBar button opens the trade tray. */
+  isHeaderSearchEnabled: boolean;
 }
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: { isCompactHeaderEnabled: false },
-  [HeaderNavBarVariant.Treatment]: { isCompactHeaderEnabled: true },
+  [HeaderNavBarVariant.Control]: {
+    isCompactHeaderEnabled: false,
+    trailingNavBarAction: 'none',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.SearchFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'search',
+    isHeaderSearchEnabled: false,
+  },
+  [HeaderNavBarVariant.TradeFocused]: {
+    isCompactHeaderEnabled: true,
+    trailingNavBarAction: 'trade',
+    isHeaderSearchEnabled: true,
+  },
 };
 
 export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Header and Nav Bar refresh',
   variationNames: {
     control: 'Current header and NavBar',
-    treatment: 'Refreshed header with consolidated hamburger menu and NavBar',
+    searchFocused:
+      'Refreshed header with consolidated hamburger menu and NavBar search',
+    tradeFocused: 'Refreshed header with NavBar trade button and header search',
   },
 } as const;
 

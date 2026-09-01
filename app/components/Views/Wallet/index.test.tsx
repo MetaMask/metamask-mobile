@@ -124,7 +124,8 @@ jest.mock('../../../hooks', () => ({
       return {
         variantName: mockHeaderNavBarVariantName,
         variant: {
-          isCompactHeaderEnabled: mockHeaderNavBarVariantName === 'treatment',
+          isCompactHeaderEnabled:
+            mockHeaderNavBarVariantName === 'searchFocused',
         },
         isActive: true,
       };
@@ -1968,7 +1969,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('moves the account name above the balance in treatment', () => {
-    mockHeaderNavBarVariantName = 'treatment';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = render(Wallet);
 
@@ -1978,7 +1979,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('renders the account name when the balance breakdown treatment is also active', () => {
-    mockHeaderNavBarVariantName = 'treatment';
+    mockHeaderNavBarVariantName = 'searchFocused';
     mockBalanceBreakdownVariantName = 'icons';
 
     const { getByTestId } = render(Wallet);
@@ -1989,7 +1990,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('renders only the avatar and rewards entry points in treatment', () => {
-    mockHeaderNavBarVariantName = 'treatment';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId, queryByTestId } = render(Wallet);
 
@@ -2029,7 +2030,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   };
 
   it('opens the account hub from the treatment avatar', () => {
-    mockHeaderNavBarVariantName = 'treatment';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
     fireEvent.press(
@@ -2040,7 +2041,7 @@ describe('Header and Nav Bar refresh AB test', () => {
   });
 
   it('opens rewards from the treatment gift icon', () => {
-    mockHeaderNavBarVariantName = 'treatment';
+    mockHeaderNavBarVariantName = 'searchFocused';
 
     const { getByTestId } = renderWithNavigationProp();
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON));
