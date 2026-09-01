@@ -121,7 +121,14 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      ANDROID_EMULATOR_CI_CORES: '8'
+      # Must stay identical to the value in prime-appium-e2e-android-emulator.yml.
+      # Cores are part of the snapshot fingerprint, so if prime and shards
+      # disagree every snapshot is rejected and all shards silently cold boot.
+      # 5 rather than 8: the profile is an 8 vCPU shape, so an 8-core emulator
+      # would claim the whole box and leave nothing for the Appium server,
+      # Playwright, node, adb and the failure-path ffmpeg capture. Drop to 4
+      # before touching the shape if resume or boot timeouts appear.
+      ANDROID_EMULATOR_CI_CORES: '5'
 
     steps:
       - name: Checkout (Namespace)

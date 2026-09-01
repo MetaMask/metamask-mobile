@@ -11,6 +11,18 @@ const logger = createLogger({ name: 'AndroidGoldenSnapshot' });
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
+/**
+ * Guest RAM ceiling, sized for the 8x16 `android-e2e` runner. A 12 GB guest on
+ * a 16 GB host with `swap_size_mb: 0` leaves nothing to absorb a spike, which
+ * is the shape of the INFRA-3891 OOM. Measured peak RSS for the whole instance
+ * is 8.89 GB p50 / 9.23 p99 / 9.33 max, so 10 GB stays clear of real usage
+ * while capping the worst case at ~12 GB of 16. Still 5x a physical Pixel 5.
+ *
+ * A snapshot records its RAM size, so prime and resume must agree — both read
+ * this same constant, and it is part of the fingerprint, so changing it
+ * invalidates cached snapshots and forces a re-prime rather than a bad resume.
+ */
+const ANDROID_EMULATOR_CI_MEMORY_MB = '10240';
 
 /** Named quick-boot snapshot shared by Appium CI shards. */
 export const ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME = 'e2e_golden';
@@ -184,7 +196,7 @@ export function buildAndroidEmulatorArgs(options: {
     '-skin',
     skin,
     '-memory',
-    '12288',
+    ANDROID_EMULATOR_CI_MEMORY_MB,
     '-cores',
     cores,
     '-dns-server',

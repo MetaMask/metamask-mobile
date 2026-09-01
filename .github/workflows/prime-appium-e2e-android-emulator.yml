@@ -42,7 +42,12 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      ANDROID_EMULATOR_CI_CORES: '8'
+      # Must stay identical to the value in run-appium-e2e-workflow.yml. Cores
+      # are part of the snapshot fingerprint, so if prime and shards disagree
+      # every snapshot is rejected and all shards silently cold boot.
+      # 5 rather than 8: the profile is an 8 vCPU shape, so an 8-core emulator
+      # would claim the whole box and leave nothing for the harness.
+      ANDROID_EMULATOR_CI_CORES: '5'
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1

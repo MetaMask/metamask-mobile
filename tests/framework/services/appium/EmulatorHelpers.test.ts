@@ -156,14 +156,18 @@ describe('EmulatorHelpers', () => {
   describe('buildAndroidEmulatorArgs', () => {
     const base = { avdName: 'appium_smoke_avd', isCI: true };
 
-    it('cold mode reproduces the historical CI flag set exactly', () => {
+    // Pins the cold-boot flag set so it cannot drift silently. It matches the
+    // pre-snapshot set except for `-memory`, deliberately lowered from 12288
+    // when the profile moved to the 8x16 shape (a 12 GB guest on a 16 GB host
+    // with no swap has nothing to absorb a spike).
+    it('cold mode reproduces the pinned CI flag set exactly', () => {
       expect(buildAndroidEmulatorArgs({ ...base, bootMode: 'cold' })).toEqual([
         '-avd',
         'appium_smoke_avd',
         '-skin',
         '1440x3120',
         '-memory',
-        '12288',
+        '10240',
         '-cores',
         '8',
         '-dns-server',
