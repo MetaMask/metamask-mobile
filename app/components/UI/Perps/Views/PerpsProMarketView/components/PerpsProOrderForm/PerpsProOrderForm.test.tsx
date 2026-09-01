@@ -9,6 +9,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
+  getPerpsProChaseFormActiveCountSelector,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
@@ -199,6 +200,24 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
+    it('exposes the active Chase count only on the Chase form', () => {
+      const view = renderForm({ activeChaseCount: 2 });
+
+      expect(
+        screen.queryByTestId(getPerpsProChaseFormActiveCountSelector(2)),
+      ).not.toBeOnTheScreen();
+
+      view.rerender(
+        <PerpsProOrderForm
+          {...createProps({ orderType: 'chase', activeChaseCount: 2 })}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(getPerpsProChaseFormActiveCountSelector(2)),
+      ).toBeOnTheScreen();
+    });
+
     it('renders the compact Chase card and toggles the distance unit', () => {
       const onChaseMaxDistanceUnitChange = jest.fn();
       renderForm({
@@ -1333,6 +1352,18 @@ describe('PerpsProOrderForm', () => {
       fireEvent.press(screen.getByTestId(ids.PLACE_ORDER_BUTTON));
 
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes ready state on the existing Place Order label', () => {
+      const view = renderForm();
+
+      expect(screen.getByTestId(ids.PLACE_ORDER_READY)).toBeOnTheScreen();
+
+      view.rerender(
+        <PerpsProOrderForm {...createProps({ isPlaceOrderLoading: true })} />,
+      );
+
+      expect(screen.queryByTestId(ids.PLACE_ORDER_READY)).not.toBeOnTheScreen();
     });
 
     it('plays selection when leverage is opened', () => {

@@ -1438,14 +1438,22 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('abandons a captured compliance action during render after draft and account change', async () => {
+    it('uses committed Chase refs during a render-phase compliance callback', async () => {
       let capturedAction: (() => Promise<unknown>) | undefined;
       mockComplianceGate.mockImplementationOnce((action) => {
         capturedAction = action;
         return Promise.resolve();
       });
       mockOrderForm.type = 'chase';
-      const form = renderProForm();
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
       act(() => {
         form.result.current.onPlaceOrderPress();
       });
@@ -1464,6 +1472,7 @@ describe('usePerpsProOrderForm', () => {
       form.rerender({});
       await act(async () => capturedResult);
 
+      expect(refresh).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(playImpact).not.toHaveBeenCalled();
     });

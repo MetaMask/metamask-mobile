@@ -1304,12 +1304,13 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
-  it('keeps an accepted cancellation over a stale refresh', async () => {
+  it('reconciles an accepted cancellation with controller lifecycle truth', async () => {
     mockGetChaseOrders
       .mockResolvedValueOnce([activeOrder])
       .mockResolvedValueOnce([
         { ...activeOrder, status: 'termination_pending' },
-      ]);
+      ])
+      .mockResolvedValueOnce([{ ...activeOrder, status: 'canceled' }]);
     const { result, unmount } = renderHook(() =>
       usePerpsChaseOrders({ isEnabled: true }),
     );
@@ -1320,8 +1321,22 @@ describe('usePerpsChaseOrders', () => {
     act(() =>
       result.current.recordChaseOrderStatus(activeOrder.handle, 'canceled'),
     );
-    await act(async () => result.current.getChaseOrders());
+    expect(result.current.chaseOrders).toEqual([
+      {
+        ...activeOrder,
+        status: 'canceled',
+      },
+    ]);
 
+    await act(async () => result.current.getChaseOrders());
+    expect(result.current.chaseOrders).toEqual([
+      {
+        ...activeOrder,
+        status: 'termination_pending',
+      },
+    ]);
+
+    await act(async () => result.current.getChaseOrders());
     expect(result.current.chaseOrders).toEqual([
       {
         ...activeOrder,

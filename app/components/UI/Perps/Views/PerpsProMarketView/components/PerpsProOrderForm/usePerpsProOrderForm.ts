@@ -932,7 +932,9 @@ export const usePerpsProOrderForm = ({
           selectedAddress: normalizedSelectedAddress,
         })
       : '';
-  submissionStateRef.current = currentSubmissionState;
+  useLayoutEffect(() => {
+    submissionStateRef.current = currentSubmissionState;
+  }, [currentSubmissionState]);
 
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
@@ -2559,7 +2561,9 @@ export const usePerpsProOrderForm = ({
     }
   };
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
-  handlePlaceOrderRef.current = handlePlaceOrder;
+  useLayoutEffect(() => {
+    handlePlaceOrderRef.current = handlePlaceOrder;
+  });
 
   const onTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {

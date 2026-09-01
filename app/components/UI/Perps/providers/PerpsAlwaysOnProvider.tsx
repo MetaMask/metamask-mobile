@@ -25,6 +25,8 @@ import { strings } from '../../../../../locales/i18n';
 import { usePerpsEventTracking } from '../hooks/usePerpsEventTracking';
 import { usePerpsChaseOrders } from '../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
+import AppConstants from '../../../../core/AppConstants';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
@@ -53,6 +55,9 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   isPerpsEnabledRef.current = isPerpsEnabled;
   const { track } = usePerpsEventTracking();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
+  const isPushNotificationsEnabled = useSelector(
+    selectIsMetaMaskPushNotificationsEnabled,
+  );
   const {
     hasLiveChaseOrders,
     isChaseOrderDiscoveryResolved,
@@ -72,11 +77,13 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     shouldSuspendChaseOrders,
     suspendChaseOrders,
     track,
+    isPushNotificationsEnabled,
   });
   chaseLifecycleRef.current = {
     shouldSuspendChaseOrders,
     suspendChaseOrders,
     track,
+    isPushNotificationsEnabled,
   };
 
   // Track AppState so Perps CUF spans can tag lifecycle_context.
@@ -164,7 +171,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         notifyingBackgroundedChaseHandlesRef.current.add(order.handle),
       );
       (async () => {
-        if (!(await isPushPermissionGranted())) return;
+        if (!chaseLifecycleRef.current.isPushNotificationsEnabled) return;
+        if (
+          !(await isPushPermissionGranted()) ||
+          !isActive ||
+          !chaseLifecycleRef.current.isPushNotificationsEnabled
+        ) {
+          return;
+        }
         const handles = notificationOrders
           .map((order) => order.handle)
           .sort((left, right) => left.localeCompare(right))
@@ -187,6 +201,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           data: {
             notification_type:
               PERPS_EVENT_VALUE.NOTIFICATION_TYPE.CHASE_BACKGROUNDED,
+            deeplink: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps`,
           },
         });
         notificationOrders.forEach((order) => {
@@ -229,7 +244,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              CHASE_ORDER_STATUS.MaxDistanceReached,
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
             [PERPS_EVENT_PROPERTY.ASSET]: event.symbol,
           },
         );
@@ -243,7 +258,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       notifyingMaxDistanceChaseHandlesRef.current.add(event.handle);
       (async () => {
-        if (!(await isPushPermissionGranted()) || !isActive) return;
+        if (!chaseLifecycleRef.current.isPushNotificationsEnabled) return;
+        if (
+          !(await isPushPermissionGranted()) ||
+          !isActive ||
+          !chaseLifecycleRef.current.isPushNotificationsEnabled
+        ) {
+          return;
+        }
         await NotificationsService.displayNotification({
           id: `perps-chase-max-distance-${event.handle}`,
           pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
@@ -252,7 +274,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
             symbol: event.symbol,
           }),
           data: {
-            notification_type: CHASE_ORDER_STATUS.MaxDistanceReached,
+            deeplink: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps-asset?symbol=${encodeURIComponent(event.symbol)}`,
           },
         });
         const notifiedHandles = notifiedMaxDistanceChaseHandlesRef.current;

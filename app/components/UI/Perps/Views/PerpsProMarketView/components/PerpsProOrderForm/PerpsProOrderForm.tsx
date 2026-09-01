@@ -671,10 +671,7 @@ const PerpsProOrderForm = ({
             (wraps form + divider + book), not this Box. Summary rows use
             KeyValueRow which ships with px-4 by default — override to px-0 so
             margin/liquidation/slippage/fees align with the form above. */}
-        <Box
-          twClassName="gap-4"
-          testID={getPerpsProChaseFormActiveCountSelector(activeChaseCount)}
-        >
+        <Box twClassName="gap-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -778,7 +775,18 @@ const PerpsProOrderForm = ({
                 twClassName="min-w-0 flex-1 flex-row items-center justify-between pr-2"
                 testID={`${ids.ORDER_TYPE_BUTTON}-label-row`}
               >
-                <Text variant={TextVariant.BodySm}>{orderTypeTitle}</Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  testID={
+                    isChase
+                      ? getPerpsProChaseFormActiveCountSelector(
+                          activeChaseCount,
+                        )
+                      : undefined
+                  }
+                >
+                  {orderTypeTitle}
+                </Text>
                 {isChase ? (
                   <Text
                     variant={TextVariant.BodySm}
@@ -933,29 +941,27 @@ const PerpsProOrderForm = ({
             />
           ) : null}
           <Notices notices={notices} />
-          <Box
-            testID={
-              !isPlaceOrderDisabled && !isPlaceOrderLoading
-                ? ids.PLACE_ORDER_READY
-                : undefined
+          <ButtonSemantic
+            severity={
+              placeOrderIntent === 'long'
+                ? ButtonSemanticSeverity.Success
+                : ButtonSemanticSeverity.Danger
             }
+            size={ButtonBaseSize.Lg}
+            isFullWidth
+            isDisabled={isPlaceOrderDisabled}
+            isLoading={isPlaceOrderLoading}
+            onPress={onPlaceOrderPress}
+            testID={ids.PLACE_ORDER_BUTTON}
+            textProps={{
+              testID:
+                !isPlaceOrderDisabled && !isPlaceOrderLoading
+                  ? ids.PLACE_ORDER_READY
+                  : undefined,
+            }}
           >
-            <ButtonSemantic
-              severity={
-                placeOrderIntent === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
-              size={ButtonBaseSize.Lg}
-              isFullWidth
-              isDisabled={isPlaceOrderDisabled}
-              isLoading={isPlaceOrderLoading}
-              onPress={onPlaceOrderPress}
-              testID={ids.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </ButtonSemantic>
-          </Box>
+            {placeOrderLabel}
+          </ButtonSemantic>
           {isScaleOrder ? (
             <ScalePreview model={scaleOrder} summary={summary} />
           ) : null}

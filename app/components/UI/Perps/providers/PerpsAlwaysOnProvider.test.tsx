@@ -16,6 +16,7 @@ import NotificationsService, {
 import { PressActionId } from '../../../../util/notifications';
 import { selectPerpsEnabledFlag } from '../index';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
+import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -118,6 +119,7 @@ jest.mock('@metamask/perps-controller', () => ({
   PERPS_EVENT_VALUE: {
     INTERACTION_TYPE: {
       CHASE_BACKGROUNDED_CONVERTED: 'chase_backgrounded_converted',
+      CHASE_TERMINATED: 'chase_terminated',
     },
     NOTIFICATION_TYPE: {
       CHASE_BACKGROUNDED: 'perps_chase_backgrounded',
@@ -141,6 +143,14 @@ jest.mock('../index', () => ({
 
 jest.mock('../selectors/featureFlags', () => ({
   selectPerpsMobileChaseEnabledFlag: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/notifications', () => ({
+  selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
+}));
+
+jest.mock('../../../../core/AppConstants', () => ({
+  MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -216,6 +226,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
   });
@@ -310,7 +321,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        interaction_type: 'max_distance_reached',
+        interaction_type: 'chase_terminated',
         asset: 'ETH',
       }),
     );
@@ -320,7 +331,9 @@ describe('PerpsAlwaysOnProvider', () => {
       pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
       title: 'Chase max distance reached',
       body: 'Your ETH Chase order reached its max distance and is now resting as a limit order.',
-      data: { notification_type: 'max_distance_reached' },
+      data: {
+        deeplink: 'https://link.metamask.io/perps-asset?symbol=ETH',
+      },
     });
   });
 
@@ -360,6 +373,73 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 
+  it('skips max-distance notification when in-app notifications are disabled', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return false;
+      return undefined;
+    });
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockMaxDistanceHandler?.({
+        handle: 'chase-max-distance-disabled',
+        symbol: 'ETH',
+        side: 'buy',
+        restingOrderId: 'resting-disabled',
+        restingPrice: '2500',
+        maxDistanceBps: 100,
+        timestamp: 1_711_756_800_000,
+        providerId: 'hyperliquid',
+      });
+      await Promise.resolve();
+    });
+
+    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('retries max-distance notification after display failure', async () => {
+    mockDisplayNotification
+      .mockRejectedValueOnce(new Error('display failed'))
+      .mockResolvedValueOnce(undefined);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'chase-max-distance-display-retry',
+      symbol: 'ETH',
+      side: 'buy' as const,
+      restingOrderId: 'resting-display-retry',
+      restingPrice: '2500',
+      maxDistanceBps: 100,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as const,
+    };
+
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
+  });
+
   it('does not call resumeFromForeground on mount when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -376,6 +456,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return false;
       if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
 
@@ -407,6 +488,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return isPerpsEnabled;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     const view = render(
@@ -433,12 +515,13 @@ describe('PerpsAlwaysOnProvider', () => {
     );
   });
 
-  it('notifies converted Chase orders before disconnecting when Perps is disabled', async () => {
+  it('tracks converted Chase orders before disconnecting when Perps is disabled', async () => {
     let isPerpsEnabled = true;
     mockHasLiveChaseOrders = true;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return isPerpsEnabled;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     mockSuspendChaseOrders.mockResolvedValueOnce([
@@ -470,11 +553,7 @@ describe('PerpsAlwaysOnProvider', () => {
         asset: 'ETH',
       }),
     );
-    expect(mockDisplayNotification).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: { notification_type: 'perps_chase_backgrounded' },
-      }),
-    );
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
       mockDisconnect.mock.invocationCallOrder[0],
     );
@@ -524,6 +603,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     render(
@@ -546,6 +626,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     render(
@@ -578,6 +659,7 @@ describe('PerpsAlwaysOnProvider', () => {
       if (selector === selectPerpsMobileChaseEnabledFlag) {
         return isChaseEnabled;
       }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     const view = render(
@@ -629,6 +711,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     mockSuspendChaseOrders.mockImplementationOnce(
@@ -672,6 +755,7 @@ describe('PerpsAlwaysOnProvider', () => {
       if (selector === selectPerpsMobileChaseEnabledFlag) {
         return isChaseEnabled;
       }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     const { rerender } = render(
@@ -721,6 +805,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     mockIsChaseOrderDiscoveryResolved = true;
@@ -744,6 +829,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     mockIsChaseOrderDiscoveryResolved = false;
@@ -797,6 +883,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
       return undefined;
     });
     mockIsChaseOrderDiscoveryResolved = true;
@@ -937,7 +1024,10 @@ describe('PerpsAlwaysOnProvider', () => {
     );
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        data: { notification_type: 'perps_chase_backgrounded' },
+        data: {
+          notification_type: 'perps_chase_backgrounded',
+          deeplink: 'https://link.metamask.io/perps',
+        },
       }),
     );
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
@@ -1017,6 +1107,106 @@ describe('PerpsAlwaysOnProvider', () => {
       }),
     );
     expect(mockDisconnect).toHaveBeenCalledTimes(2);
+  });
+
+  it('skips background notification when in-app notifications are disabled', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return false;
+      return undefined;
+    });
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      {
+        handle: 'chase-background-disabled',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('skips background notification after unmount during permission check', async () => {
+    let resolvePermission: ((isGranted: boolean) => void) | undefined;
+    mockIsPushPermissionGranted.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePermission = resolve;
+        }),
+    );
+    mockSuspendChaseOrders.mockResolvedValue([
+      {
+        handle: 'chase-background-unmount',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      },
+    ]);
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    view.unmount();
+    await act(async () => {
+      resolvePermission?.(true);
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('retries background notification after display failure', async () => {
+    const backgroundedOrder = {
+      handle: 'chase-background-display-retry',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    };
+    mockSuspendChaseOrders.mockResolvedValue([backgroundedOrder]);
+    mockDisplayNotification
+      .mockRejectedValueOnce(new Error('display failed'))
+      .mockResolvedValueOnce(undefined);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    act(() => mockAppStateListener?.('active'));
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
   });
 
   it('reports each backgrounded Chase handle only on its first transition', async () => {

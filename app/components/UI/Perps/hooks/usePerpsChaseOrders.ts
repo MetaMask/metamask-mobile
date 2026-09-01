@@ -77,32 +77,20 @@ const mergeWithCachedHistory = (
   orders: ChaseOrder[],
   preserveMissingRetainedOrders = false,
 ): ChaseOrder[] => {
-  const cachedHistoryByHandle = new Map(
-    cachedOrders
-      .filter((order) => CHASE_HISTORY_STATUSES.has(order.status))
-      .map((order) => [order.handle, order]),
-  );
-  const mergedOrders = orders.map((order): ChaseOrder => {
-    const cachedHistory = cachedHistoryByHandle.get(order.handle);
-    if (cachedHistory && !CHASE_HISTORY_STATUSES.has(order.status)) {
-      return cachedHistory;
-    }
-    return order;
-  });
-  const liveHandles = new Set(mergedOrders.map((order) => order.handle));
+  const controllerHandles = new Set(orders.map((order) => order.handle));
   return [
-    ...mergedOrders,
+    ...orders,
     ...(preserveMissingRetainedOrders
       ? cachedOrders.filter(
           (order) =>
             CHASE_RETAINED_STATUSES.has(order.status) &&
-            !liveHandles.has(order.handle),
+            !controllerHandles.has(order.handle),
         )
       : []),
     ...cachedOrders.filter(
       (order) =>
         CHASE_HISTORY_STATUSES.has(order.status) &&
-        !liveHandles.has(order.handle),
+        !controllerHandles.has(order.handle),
     ),
   ];
 };

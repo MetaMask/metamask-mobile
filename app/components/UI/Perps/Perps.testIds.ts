@@ -963,7 +963,7 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
   SCALE_OPTION: 'perps-order-type-scale',
-  CHASE_OPTION: 'perps-pro-order-type-chase',
+  CHASE_OPTION: 'perps-order-type-chase',
   STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
   STOP_MARKET_OPTION: 'perps-order-type-stop-market',
   TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',
