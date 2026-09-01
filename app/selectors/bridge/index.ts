@@ -188,11 +188,7 @@ export const selectIsDestAssetRequireActivate = createSelector(
  * Activate CTA path remains available.
  */
 export const selectIsDestSameAsActiveAccount = createSelector(
-  [
-    (state: RootState) => state,
-    selectDestAccountForBridge,
-    selectDestToken,
-  ],
+  [(state: RootState) => state, selectDestAccountForBridge, selectDestToken],
   (state, destAccount, destToken) => {
     if (!destAccount?.id || !destToken?.chainId) {
       return true;
