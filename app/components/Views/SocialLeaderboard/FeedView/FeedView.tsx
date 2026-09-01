@@ -40,6 +40,7 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Routes from '../../../../constants/navigation/Routes';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
   ImpactMoment,
   playImpact,
@@ -150,6 +151,7 @@ const FeedView: React.FC<FeedViewProps> = ({
   pageRef,
 }) => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
   // `'TopTradersView'` is the *route* name for the whole Follow Trading surface
@@ -543,7 +545,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('pb-6')}
+          contentContainerStyle={tw.style(`pb-[${24 + floatingTabBarInset}px]`)}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -575,7 +577,9 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6 flex-grow')}
+        contentContainerStyle={tw.style(
+          `pb-[${24 + floatingTabBarInset}px] flex-grow`,
+        )}
         extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}

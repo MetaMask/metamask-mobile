@@ -9,6 +9,9 @@ import {
   BadgeWrapper,
   BadgeWrapperPosition,
   BadgeWrapperPositionAnchorShape,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
@@ -40,6 +43,8 @@ export interface WalletHeaderCompactProps {
   touchAreaSlop: TouchAreaSlop;
   scrollY: SharedValue<number>;
   titleSectionHeight: SharedValue<number>;
+  /** Set when the NavBar's trailing button opens the trade tray instead of search. */
+  handleSearchPress?: () => void;
 }
 
 const WalletHeaderCompact = ({
@@ -51,6 +56,7 @@ const WalletHeaderCompact = ({
   touchAreaSlop,
   scrollY,
   titleSectionHeight,
+  handleSearchPress,
 }: WalletHeaderCompactProps) => {
   const hasUnreadNotifications = useHasUnreadNotifications();
 
@@ -88,17 +94,36 @@ const WalletHeaderCompact = ({
         </ButtonAnimated>
       }
       endAccessory={
-        <ButtonIcon
-          iconProps={{
-            color: MMDSIconColor.IconDefault,
-          }}
-          onPress={handleRewardsPress}
-          iconName={MMDSIconName.Gift}
-          size={ButtonIconSize.Md}
-          testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
-          accessibilityLabel={strings('wallet.rewards_accessibility_label')}
-          hitSlop={touchAreaSlop}
-        />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <ButtonIcon
+            iconProps={{
+              color: MMDSIconColor.IconDefault,
+            }}
+            onPress={handleRewardsPress}
+            iconName={MMDSIconName.Gift}
+            size={ButtonIconSize.Md}
+            testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
+            accessibilityLabel={strings('wallet.rewards_accessibility_label')}
+            hitSlop={touchAreaSlop}
+          />
+          {handleSearchPress ? (
+            <ButtonIcon
+              iconProps={{
+                color: MMDSIconColor.IconDefault,
+              }}
+              onPress={handleSearchPress}
+              iconName={MMDSIconName.Search}
+              size={ButtonIconSize.Md}
+              testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+              accessibilityLabel={strings('wallet.search_accessibility_label')}
+              hitSlop={touchAreaSlop}
+            />
+          ) : null}
+        </Box>
       }
       twClassName="pl-4 pr-3"
     />

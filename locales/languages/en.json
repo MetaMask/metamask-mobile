@@ -705,7 +705,8 @@
     "settings": "Settings",
     "rewards": "Rewards",
     "trending": "Explore",
-    "money": "Money"
+    "money": "Money",
+    "social": "Social"
   },
   "drawer": {
     "send_button": "Send",
@@ -7670,7 +7671,7 @@
       "toasts": {
         "deposit_navigation": {
           "failed": "Failed to navigate to deposit screen for selected strategy"
-        } 
+        }
       },
       "strategies": {
         "money": {
