@@ -31,6 +31,7 @@ const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
 const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const MOCK_MONEY_ACCOUNT_ADDRESS = '0x3333333333333333333333333333333333333333';
 
 const mockState = {
   user: {
@@ -169,6 +170,12 @@ jest.mock('../../../selectors/multichain', () => ({
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(() => ({
+    address: MOCK_MONEY_ACCOUNT_ADDRESS,
+  })),
+}));
+
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
@@ -203,6 +210,10 @@ jest.mock('../../../util/networks', () => ({
 }));
 
 jest.mock('../../../util/address', () => ({
+  areAddressesEqual: jest.fn(
+    (first: string, second: string) =>
+      first.toLowerCase() === second.toLowerCase(),
+  ),
   renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
   safeToChecksumAddress: jest.requireActual('../../../util/address')
     .safeToChecksumAddress,
@@ -672,6 +683,60 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
       '+$200.34',
+    );
+  });
+
+  it('renders a Money Account deposit as a sent transfer with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Sent mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `To: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-2.5 mUSD',
+    );
+  });
+
+  it('renders a Money Account withdrawal as a received transfer with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'receive',
+      from: MOCK_MONEY_ACCOUNT_ADDRESS,
+      to: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '1750000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `From: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+1.75 mUSD',
     );
   });
 

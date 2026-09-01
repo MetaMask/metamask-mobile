@@ -10,6 +10,7 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
+import { selectPrimaryMoneyAccount } from '../../../selectors/moneyAccountController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
 import { useConvertToFiat } from '../../hooks/useConvertToFiat';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
@@ -19,7 +20,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import { renderShortAddress } from '../../../util/address';
+import { areAddressesEqual, renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -1127,7 +1128,7 @@ export function useActivityListItemRowContent(
       : item.type === 'send'
         ? item.data.to
         : undefined;
-  const counterpartyName = useAccountNames(
+  const accountGroupName = useAccountNames(
     counterpartyAddress
       ? [
           {
@@ -1138,6 +1139,13 @@ export function useActivityListItemRowContent(
         ]
       : [],
   )[0];
+  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const counterpartyName =
+    counterpartyAddress &&
+    moneyAccountAddress &&
+    areAddressesEqual(counterpartyAddress, moneyAccountAddress)
+      ? strings('transaction_details.label.money_account')
+      : accountGroupName;
 
   const content = resolveCoreContent(
     item,
