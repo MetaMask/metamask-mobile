@@ -13,16 +13,6 @@ export type {
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export {
-  collectLocalTransactionLookupKeys,
-  getKeyringTransactionId,
-  getLocalTransactionActionId,
-  getLocalTransactionInitialMetaId,
-  getLocalTransactionMetaId,
-  isApiEvmTransactionItem,
-  isKeyringTransactionItem,
-  isLocalTransactionItem,
-} from './local-transaction-lookup';
-export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';
@@ -54,12 +44,20 @@ export {
 export { formatTokenDisplayAmount } from './token-display';
 export {
   enrichTokenFromApi,
+  collectLocalTransactionLookupKeys,
   formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
+  getKeyringTransactionId,
+  getLocalTransactionActionId,
+  getLocalTransactionInitialMetaId,
+  getLocalTransactionMetaId,
   groupActivityListItems,
+  isApiEvmTransactionItem,
   isFailedOrCancelledTransfer,
+  isKeyringTransactionItem,
+  isLocalTransactionItem,
   preferLocalOrApiActivityItem,
   shouldShowPlusSign,
   type GroupedActivityListItem,
