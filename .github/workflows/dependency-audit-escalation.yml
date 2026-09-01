@@ -240,12 +240,20 @@ jobs:
       # and secrets ai-pr-risk-analysis.yml / flaky-unit-test-detection.yml
       # already use. Only checked out when there's something for tier 2 to
       # look at, so a clean audit never pays for it.
+      #
+      # Pinned to the same commit ai-pr-risk-analysis.yml uses (not the `v1`
+      # tag flaky-unit-test-detection.yml uses): v1 still has a
+      # validateProvidedFiles() check in src/index.ts requiring every
+      # --changed-files entry to already be a committed git diff against the
+      # base branch, which the advisory context file this script writes
+      # (untracked, no diff yet) can never satisfy. That check is gone as of
+      # this commit.
       - name: Checkout AI Analyzer
         if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: v1
+          ref: 68870b76360431110ae00b27a0072d3011e6238c
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 

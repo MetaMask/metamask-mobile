@@ -196,7 +196,9 @@ function runAnalyzer(manual: ManualEntry[]): AiProposedFix[] | null {
   }));
   writeFileSync(ADVISORY_CONTEXT_PATH, `${JSON.stringify(contextEntries, null, 2)}\n`);
 
-  const changedFiles = ['package.json', 'yarn.lock', ADVISORY_CONTEXT_PATH].join(',');
+  // Whitespace-separated, not comma-separated — see resolveChangedFilesList
+  // in MetaMask/ai-analyzer's src/utils/changed-files.ts.
+  const changedFiles = ['package.json', 'yarn.lock', ADVISORY_CONTEXT_PATH].join(' ');
   console.log(`Handing ${manual.length} unresolved advisor${manual.length === 1 ? 'y' : 'ies'} to MetaMask/ai-analyzer's dependency-audit-fix mode.`);
   const result = tryShQuiet('node', [
     '-r', 'esbuild-register',
