@@ -9,14 +9,14 @@
  * dual Android upload.
  */
 
-const {
+import {
   MAIN_WITH_SRP_CUSTOM_ID,
   MAIN_WITHOUT_SRP_CUSTOM_ID,
   assertBrowserStackAppUrl,
   assertBrowserStackCustomId,
   isMainBranchBrowserStackCustomId,
   writeGithubOutputs,
-} = require('./browserstack-app-validation.cjs');
+} from './browserstack-app-validation.mjs';
 
 const githubOutputPath = process.env.GITHUB_OUTPUT;
 if (!githubOutputPath) {

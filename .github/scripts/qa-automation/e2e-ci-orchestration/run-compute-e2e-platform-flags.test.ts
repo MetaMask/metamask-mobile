@@ -5,7 +5,7 @@ import path from 'node:path';
 
 const ENTRYPOINT = path.join(
   __dirname,
-  'run-compute-e2e-platform-flags.cjs',
+  'run-compute-e2e-platform-flags.mjs',
 );
 
 /**
