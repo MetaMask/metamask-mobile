@@ -67,7 +67,6 @@ import {
 } from '../../../../UI/Perps/utils/perpsLoadingSession';
 import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
 import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 type HomepagePerpsContentVariant =
   | 'positions_and_orders'
@@ -136,14 +135,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       // Orders are low-frequency user state and should render immediately.
       throttleMs: 0,
     });
-
-    // [PR-TAT-3824] reproduction marker: one line per positions delivery so the
-    // wallet-home update cadence can be measured from Metro log timestamps.
-    useEffect(() => {
-      DevLogger.log(
-        `[PR-TAT-3824] BUG_MARKER: wallet-home positions delivery ts=${Date.now()} count=${positions.length} pnl=${positions[0]?.unrealizedPnl ?? 'none'}`,
-      );
-    }, [positions]);
 
     const hookLoading = positionsLoading || ordersLoading;
 
