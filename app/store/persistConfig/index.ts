@@ -161,8 +161,13 @@ export const createPersistController = (debounceMs: number = 200) =>
     }
   }, debounceMs);
 
-const persistUserTransform = createTransform(
-  (inboundState: UserState) => {
+type PersistedUserState = Omit<
+  UserState,
+  'initialScreen' | 'isAuthChecked' | 'appServicesReady' | 'userLoggedIn'
+>;
+
+const persistUserTransform = createTransform<UserState, PersistedUserState>(
+  (inboundState) => {
     const {
       initialScreen,
       isAuthChecked,
@@ -173,7 +178,17 @@ const persistUserTransform = createTransform(
     // userLoggedIn is session-only; rehydrated true would claim unlocked during Login.
     return state;
   },
-  null,
+  // Restore session fields to their initial values on read. Older builds
+  // persisted userLoggedIn, so without the explicit `false` here the first
+  // rehydrate after an upgrade would claim the wallet is unlocked while it
+  // is still locked.
+  (outboundState) => ({
+    ...outboundState,
+    initialScreen: '',
+    isAuthChecked: false,
+    appServicesReady: false,
+    userLoggedIn: false,
+  }),
   { whitelist: ['user'] },
 );
 
