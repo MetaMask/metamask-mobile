@@ -18,12 +18,14 @@ import {
   SWAPS_HAPTICS_EXPOSURE_METADATA,
   SWAPS_HAPTICS_VARIANTS,
 } from '../../haptics/abTestConfig';
+import {
+  FLIP_BUTTON_CUTOUT_HEIGHT,
+  FLIP_BUTTON_CUTOUT_WIDTH,
+  getFlipButtonFilletPaths,
+} from './getFlipButtonFilletPaths';
 
 const ARROW_ICON_SIZE = IconSize.Lg;
-const CUTOUT_WING_WIDTH = 77;
-const CUTOUT_WING_HEIGHT = 37;
-const CUTOUT_WING_PATH =
-  'M70.3701 18.4727L76.9141 36.9453C72.3883 28.1234 66.7174 24.2023 57.5107 22.5781H0V15.2041C50.3731 15.2041 69.4871 20.9645 76.9141 0L70.3701 18.4727Z';
+const CUTOUT_PATHS = getFlipButtonFilletPaths();
 
 interface Props {
   onPress: () => void;
@@ -86,22 +88,15 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
   return (
     <Box style={styles.arrowContainer}>
       <Svg
-        width={CUTOUT_WING_WIDTH}
-        height={CUTOUT_WING_HEIGHT}
-        viewBox={`0 0 ${CUTOUT_WING_WIDTH} ${CUTOUT_WING_HEIGHT}`}
-        style={[styles.cutoutWing, styles.leftCutoutWing]}
+        width={FLIP_BUTTON_CUTOUT_WIDTH}
+        height={FLIP_BUTTON_CUTOUT_HEIGHT}
+        viewBox={`0 0 ${FLIP_BUTTON_CUTOUT_WIDTH} ${FLIP_BUTTON_CUTOUT_HEIGHT}`}
+        style={styles.cutoutOverlay}
         pointerEvents="none"
       >
-        <Path d={CUTOUT_WING_PATH} fill={colors.background.default} />
-      </Svg>
-      <Svg
-        width={CUTOUT_WING_WIDTH}
-        height={CUTOUT_WING_HEIGHT}
-        viewBox={`0 0 ${CUTOUT_WING_WIDTH} ${CUTOUT_WING_HEIGHT}`}
-        style={[styles.cutoutWing, styles.rightCutoutWing]}
-        pointerEvents="none"
-      >
-        <Path d={CUTOUT_WING_PATH} fill={colors.background.default} />
+        {CUTOUT_PATHS.map((d) => (
+          <Path key={d} d={d} fill={colors.background.default} />
+        ))}
       </Svg>
       <Box style={styles.arrowCircle}>
         <TouchableOpacity

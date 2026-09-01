@@ -8785,7 +8785,18 @@
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
       "market": "Market",
-      "custom": "Custom"
+      "custom": "Custom",
+      "expires": "Expires",
+      "expiration": "Expiration",
+      "expiration_option": {
+        "minutes": "{{count}} minutes",
+        "hour": "{{count}} hour",
+        "day": "{{count}} day",
+        "days": "{{count}} days",
+        "week": "{{count}} week",
+        "month": "{{count}} month"
+      },
+      "est_network_fee": "Est. network fee"
     },
     "recurring": {
       "you_get": "You get",
