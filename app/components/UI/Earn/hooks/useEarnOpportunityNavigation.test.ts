@@ -329,18 +329,18 @@ describe('useEarnOpportunityNavigation', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
-  it('throws when a discovery asset is passed directly to deposit navigation', () => {
+  it('rejects when a discovery asset is passed directly to deposit navigation', async () => {
     const earnAsset = createDiscoveryEarnAsset([
       createExperience(EARN_EXPERIENCES.TRX_STAKING),
     ]);
     const { result } = renderHook(() => useEarnOpportunityNavigation());
 
-    expect(() =>
+    await expect(
       result.current.navigateToDepositForExperience(
         earnAsset,
         earnAsset.experiences[0],
       ),
-    ).toThrow(
+    ).rejects.toThrow(
       '[useEarnOpportunityNavigation] Deposit redirect is only supported for held assets',
     );
   });
