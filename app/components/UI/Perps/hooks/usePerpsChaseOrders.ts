@@ -35,6 +35,26 @@ interface ChaseOrdersSnapshot {
   discoveryResolvedRoute: string;
 }
 
+export type ChaseOrderRequestErrorCode = 'context_not_ready' | 'stale_request';
+
+export class ChaseOrderRequestError extends Error {
+  readonly code: ChaseOrderRequestErrorCode;
+
+  constructor(code: ChaseOrderRequestErrorCode) {
+    super(
+      code === 'context_not_ready'
+        ? 'Chase order context is not ready'
+        : 'Chase order request became stale',
+    );
+    this.name = 'ChaseOrderRequestError';
+    this.code = code;
+  }
+}
+
+export const isExpectedChaseOrderRequestError = (
+  error: unknown,
+): error is ChaseOrderRequestError => error instanceof ChaseOrderRequestError;
+
 let cachedOrders: ChaseOrder[] = [];
 let cachedRoute = '';
 let selectedRoute = '';
@@ -189,6 +209,10 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
   }
   const promise = Engine.context.PerpsController.getChaseOrders()
     .catch((error) => {
+      if (isExpectedChaseOrderRequestError(error)) {
+        Logger.log('Chase order refresh skipped', { code: error.code });
+        throw error;
+      }
       if (!refreshFailureLogged) {
         refreshFailureLogged = true;
         Logger.error(ensureError(error, 'usePerpsChaseOrders.refresh'), {
@@ -211,7 +235,7 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
         route !== getRouteKey() ||
         !canRefreshCurrentRoute()
       ) {
-        throw new Error('Chase order request became stale');
+        throw new ChaseOrderRequestError('stale_request');
       }
       refreshFailureLogged = false;
       cachedRoute = route;
@@ -513,13 +537,13 @@ const suspendAndCacheChaseOrders = async (
 
 const getFreshChaseOrders = async (): Promise<ChaseOrder[]> => {
   if (!canRefreshCurrentRoute()) {
-    throw new Error('Chase order context is not ready');
+    throw new ChaseOrderRequestError('context_not_ready');
   }
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
   const operation = mutationQueue.then(async () => {
     if (epoch !== mutationQueueEpoch || !canRefreshCurrentRoute()) {
-      throw new Error('Chase order request became stale');
+      throw new ChaseOrderRequestError('stale_request');
     }
     requestGeneration += 1;
     refreshPromise = undefined;

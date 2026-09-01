@@ -18,6 +18,8 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import {
+  ChaseOrderRequestError,
+  isExpectedChaseOrderRequestError,
   resetPerpsChaseOrdersStoreForTests,
   usePerpsChaseOrders,
 } from './usePerpsChaseOrders';
@@ -129,10 +131,31 @@ describe('usePerpsChaseOrders', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
     resetPerpsChaseOrdersStoreForTests();
+    jest.useRealTimers();
   });
+
+  it('clears polling when the last Chase consumer unmounts', async () => {
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+    hook.unmount();
+
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it.each(['context_not_ready', 'stale_request'] as const)(
+    'recognizes %s as an expected Chase request race',
+    (code) => {
+      const error = new ChaseOrderRequestError(code);
+
+      const result = isExpectedChaseOrderRequestError(error);
+
+      expect(result).toBe(true);
+      expect(error.code).toBe(code);
+    },
+  );
 
   it('preserves retained orders when an aggregated refresh returns no orders', async () => {
     mockPerpsProvider = 'aggregated';
@@ -1486,11 +1509,16 @@ describe('usePerpsChaseOrders', () => {
     );
     hook.rerender({});
 
+    let requestError: unknown;
     await act(async () => {
-      await expect(hook.result.current.getChaseOrders()).rejects.toThrow(
-        'Chase order context is not ready',
-      );
+      try {
+        await hook.result.current.getChaseOrders();
+      } catch (error) {
+        requestError = error;
+      }
     });
+    expect(requestError).toBeInstanceOf(ChaseOrderRequestError);
+    expect(requestError).toMatchObject({ code: 'context_not_ready' });
     expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
 
     mockConnectionIdentityReady = true;

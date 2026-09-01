@@ -227,6 +227,13 @@ describe('PerpsProOrderForm', () => {
       expect(
         screen.getByTestId(getPerpsProChaseFormActiveCountSelector(2)),
       ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsProChaseFormActiveCountSelector(2)),
+      ).toHaveTextContent(strings('perps.order.type.chase.title'));
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.order.type.chase.title'),
+      );
     });
 
     it('renders the compact Chase card and toggles the distance unit', () => {

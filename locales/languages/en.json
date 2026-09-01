@@ -1891,7 +1891,6 @@
         "card": {
           "size": "Size",
           "filled_size": "Filled size",
-          "runtime": "Runtime",
           "max_distance": "Max distance",
           "distance_chased": "Distance chased",
           "distance_chased_with_max": "{{distance}} / {{max}} max"
@@ -2198,7 +2197,7 @@
         "chaseLimitReached": "Too many chase orders are already running",
         "chaseAbandoned": "Chase order was cancelled because the connection dropped",
         "chaseTouchUnavailable": "No market price is available to place this chase order",
-        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range."
+        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
       },
       "networkToggleFailed": "Failed to toggle network: {{error}}",
       "accountBalanceFailed": "Failed to get account balance: {{error}}",

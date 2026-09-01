@@ -24,7 +24,10 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
-import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
+import {
+  ChaseOrderRequestError,
+  resetPerpsChaseOrdersStoreForTests,
+} from '../../hooks/usePerpsChaseOrders';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -909,12 +912,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         getPerpsProChaseRowSelector('ETH', backgroundedChase.handle, true),
       );
       expect(
-        within(row).getByText(strings('perps.order.chase.card.runtime')),
+        within(row).getByText(strings('perps.order.chase.card.max_distance')),
       ).toBeOnTheScreen();
-      expect(within(row).getByText('--')).toBeOnTheScreen();
-      expect(
-        within(row).queryByText(strings('perps.order.chase.card.max_distance')),
-      ).not.toBeOnTheScreen();
+      expect(within(row).getByText('0.05%')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           getPerpsProChaseTerminateSelector(
@@ -1116,6 +1116,59 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           screen.queryByText(strings('perps.order.failed_to_cancel_order')),
         ).not.toBeOnTheScreen();
       } finally {
+        loggerError.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'logs an expected Chase refresh race without reporting an error',
+    async () => {
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
+      const loggerLog = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(() => undefined);
+      const loggerError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      getChaseOrders
+        .mockResolvedValueOnce([activeChase])
+        .mockRejectedValueOnce(new ChaseOrderRequestError('context_not_ready'));
+      cancelOrder.mockClear();
+
+      try {
+        renderFundedProMarket();
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+          ),
+        );
+        loggerLog.mockClear();
+        loggerError.mockClear();
+        fireEvent.press(
+          screen.getByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+
+        await waitFor(() => {
+          expect(cancelOrder).toHaveBeenCalledTimes(1);
+          expect(loggerLog).toHaveBeenCalledWith(
+            'Chase refresh skipped after accepted cancellation',
+            { code: 'context_not_ready' },
+          );
+        });
+        expect(loggerError).not.toHaveBeenCalled();
+      } finally {
+        loggerLog.mockRestore();
         loggerError.mockRestore();
       }
     },

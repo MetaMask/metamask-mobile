@@ -118,7 +118,6 @@ jest.mock('@metamask/perps-controller', () => ({
   PERPS_EVENT_VALUE: {
     INTERACTION_TYPE: {
       CHASE_BACKGROUNDED_CONVERTED: 'chase_backgrounded_converted',
-      CHASE_TERMINATED: 'chase_terminated',
     },
     NOTIFICATION_TYPE: {
       CHASE_BACKGROUNDED: 'perps_chase_backgrounded',
@@ -294,7 +293,7 @@ describe('PerpsAlwaysOnProvider', () => {
     );
   });
 
-  it('notifies and tracks a max-distance event once for duplicate delivery', async () => {
+  it('notifies a max-distance event once without termination analytics', async () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -318,14 +317,7 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).toHaveBeenCalledTimes(1);
-    expect(mockTrack).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({
-        interaction_type: 'chase_terminated',
-        asset: 'ETH',
-      }),
-    );
+    expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledWith({
       id: 'perps-chase-max-distance-chase-max-distance',
@@ -333,6 +325,10 @@ describe('PerpsAlwaysOnProvider', () => {
       body: 'Your ETH Chase order reached its max distance and is now resting as a limit order.',
       throwOnError: true,
     });
+    expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty('data');
+    expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
+      'pressActionId',
+    );
   });
 
   it('retries a max-distance notification after permission is granted', async () => {
@@ -367,7 +363,7 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 
@@ -434,7 +430,7 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
   });
 

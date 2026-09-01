@@ -141,9 +141,11 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Hero card interactions:** `'display_hero_card'` | `'share_pnl_hero_card'`
   - **Pay-with interactions:** `'payment_token_selector'` | `'payment_method_changed'` | `'cancel_trade_with_token'`
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
+  - **Chase interactions:** `'chase_backgrounded_converted'` | `'chase_terminated'`
   - **Discovery interactions:** `'related_market_clicked'`
   - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
   - **Mode selection:** `'mode_selection_dismissed'` — Lite/Pro chooser closed without selecting _(local constant `PERPS_MODE_SELECTION_DISMISSED`, pending addition to `PERPS_EVENT_VALUE`)_. Includes `source`, `entry`, and `time_on_screen_ms`. Selection itself uses `button_clicked` with `perps_mode`. Header toggles also use `button_clicked` with `perps_mode`, but only after the mode is actually applied (not when the chooser opens instead).
+  - **Chase max-distance limitation:** Controller v15 emits the max-distance lifecycle event but exports no matching `interaction_type` or `notification_type`. Mobile sends the local notification without fabricating either analytics value. User termination remains the only source of `chase_terminated`.
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -151,7 +153,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `direction` (optional): `'long' | 'short'`
 - `order_size` (optional): Size of the order in tokens (number)
 - `leverage_used` (optional): Leverage value being used (number)
-- `order_type` (optional): `'market' | 'limit'`
+- `order_type` (optional): `'market' | 'limit' | 'stop_market' | 'stop_limit' | 'take_profit_market' | 'take_profit_limit' | 'twap' | 'scale' | 'chase'`
 - `setting_type` (optional): Type of setting changed: `'leverage'` | `'slippage'`
 - `input_method` (optional): How value was entered: `'slider' | 'keyboard' | 'preset' | 'manual' | 'percentage_button'`
 - `candle_period` (optional): Selected candle period
@@ -194,7 +196,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `status` (required): `'submitted' | 'executed' | 'partially_filled' | 'failed'`
 - `asset` (required): Asset symbol (e.g., `'BTC'`, `'ETH'`)
 - `direction` (required): `'long' | 'short'`
-- `order_type` (required): `'market' | 'limit'`
+- `order_type` (required): `'market' | 'limit' | 'stop_market' | 'stop_limit' | 'take_profit_market' | 'take_profit_limit' | 'twap' | 'scale' | 'chase'`
 - `leverage` (required): Leverage multiplier (number)
 - `order_size` (required for executed): Size of the order in tokens (number)
 - `asset_price` (required for executed): Price of the asset (number)

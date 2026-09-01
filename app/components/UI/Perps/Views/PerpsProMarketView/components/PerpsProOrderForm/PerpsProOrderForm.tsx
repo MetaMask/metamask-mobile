@@ -769,6 +769,7 @@ const PerpsProOrderForm = ({
                 size: IconSize.Sm,
                 testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
               }}
+              accessibilityLabel={isChase ? orderTypeTitle : undefined}
               testID={ids.ORDER_TYPE_BUTTON}
             >
               {isChase ? (
@@ -778,6 +779,7 @@ const PerpsProOrderForm = ({
                 >
                   <Text
                     variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
                     testID={getPerpsProChaseFormActiveCountSelector(
                       activeChaseCount,
                     )}

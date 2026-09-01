@@ -77,7 +77,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import { usePerpsTrading } from '../../../hooks/usePerpsTrading';
-import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
+import {
+  isExpectedChaseOrderRequestError,
+  usePerpsChaseOrders,
+} from '../../../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../../../selectors/featureFlags';
 import {
   selectPerpsNetwork,
@@ -695,29 +698,35 @@ const PerpsProPositionsPanel = ({
         } catch (error) {
           // The exchange already accepted cancellation. A failed follow-up read
           // must not tell the user to retry the completed financial action.
-          Logger.error(
-            ensureError(
-              error,
-              'PerpsProPositionsPanel.refreshAfterTerminateChase',
-            ),
-            {
-              tags: {
-                feature: PERPS_CONSTANTS.FeatureName,
-                component: 'PerpsProPositionsPanel',
-                action: 'refresh_after_terminate_chase',
-                provider: order.providerId ?? activeProvider,
-                network: perpsNetwork,
-              },
-              context: {
-                name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
-                data: {
-                  symbol: order.symbol,
+          if (isExpectedChaseOrderRequestError(error)) {
+            Logger.log('Chase refresh skipped after accepted cancellation', {
+              code: error.code,
+            });
+          } else {
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsProPositionsPanel.refreshAfterTerminateChase',
+              ),
+              {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsProPositionsPanel',
+                  action: 'refresh_after_terminate_chase',
                   provider: order.providerId ?? activeProvider,
                   network: perpsNetwork,
                 },
+                context: {
+                  name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+                  data: {
+                    symbol: order.symbol,
+                    provider: order.providerId ?? activeProvider,
+                    network: perpsNetwork,
+                  },
+                },
               },
-            },
-          );
+            );
+          }
         }
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
@@ -805,10 +814,10 @@ const PerpsProPositionsPanel = ({
       order.distanceChasedBps / 100,
     )}%`;
     const displayedDistanceLabel = isHistoryOrder
-      ? strings('perps.order.chase.card.runtime')
+      ? strings('perps.order.chase.card.max_distance')
       : strings('perps.order.chase.card.distance_chased');
     const displayedDistance = isHistoryOrder
-      ? PERPS_CONSTANTS.FallbackDataDisplay
+      ? maxDistance
       : order.maxDistanceBps === undefined
         ? distanceChased
         : strings('perps.order.chase.card.distance_chased_with_max', {

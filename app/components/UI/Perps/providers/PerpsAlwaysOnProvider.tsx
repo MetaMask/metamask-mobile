@@ -67,7 +67,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const reportedBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const notifiedBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const notifyingBackgroundedChaseHandlesRef = useRef(new Set<string>());
-  const reportedMaxDistanceChaseHandlesRef = useRef(new Set<string>());
   const notifiedMaxDistanceChaseHandlesRef = useRef(new Set<string>());
   const notifyingMaxDistanceChaseHandlesRef = useRef(new Set<string>());
   const chaseLifecycleRef = useRef({
@@ -237,24 +236,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     const handleChaseOrderMaxDistanceReached = (
       event: ChaseOrderMaxDistanceReached,
     ) => {
-      const reportedHandles = reportedMaxDistanceChaseHandlesRef.current;
-      if (!reportedHandles.has(event.handle)) {
-        reportedHandles.add(event.handle);
-        while (reportedHandles.size > MAX_REPORTED_CHASE_HANDLES) {
-          const oldestHandle = reportedHandles.values().next().value;
-          if (oldestHandle === undefined) break;
-          reportedHandles.delete(oldestHandle);
-        }
-        chaseLifecycleRef.current.track(
-          MetaMetricsEvents.PERPS_UI_INTERACTION,
-          {
-            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-              PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
-            [PERPS_EVENT_PROPERTY.ASSET]: event.symbol,
-          },
-        );
-      }
-
       if (
         notifiedMaxDistanceChaseHandlesRef.current.has(event.handle) ||
         notifyingMaxDistanceChaseHandlesRef.current.has(event.handle)
@@ -277,6 +258,8 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           body: strings('perps.order.chase.max_distance_reached_notification', {
             symbol: event.symbol,
           }),
+          // Controller v15 has no max-distance notification enum, so
+          // notification_type is omitted and tap attribution is unavailable.
           throwOnError: true,
         });
         const notifiedHandles = notifiedMaxDistanceChaseHandlesRef.current;
