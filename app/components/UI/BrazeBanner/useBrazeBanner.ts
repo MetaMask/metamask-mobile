@@ -17,6 +17,7 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceValue,
 } from '../../../util/trace';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
@@ -123,7 +124,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
   const brazeTraceIdRef = useRef<string>('');
   const brazeTraceEndedRef = useRef(false);
-  const endBrazeTrace = useCallback((data: Record<string, unknown>) => {
+  const endBrazeTrace = useCallback((data: Record<string, TraceValue>) => {
     if (brazeTraceEndedRef.current) return;
     brazeTraceEndedRef.current = true;
     endTrace({
@@ -179,6 +180,14 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         currentBannerTrackingIdRef.current = null;
         setBanner(null);
         setStatus('empty');
+        // Content determination is finished: no banner will be shown. Settle
+        // the span now instead of letting it run until unmount.
+        endBrazeTrace({
+          success: false,
+          reason: 'empty',
+          source,
+          placement_id: placementId,
+        });
         return;
       }
 

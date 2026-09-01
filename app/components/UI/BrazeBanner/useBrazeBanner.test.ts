@@ -63,6 +63,28 @@ jest.mock('../../../core/Braze', () => ({
 }));
 
 // ---------------------------------------------------------------------------
+// Mock: trace
+// ---------------------------------------------------------------------------
+jest.mock('../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    BrazeBannerTimeToContent: 'Braze Banner Time To Content',
+  },
+  TraceOperation: {
+    BrazeBannerPerformance: 'braze_banner.performance',
+  },
+}));
+
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-braze-trace-id'),
+}));
+
+const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
+  '../../../util/trace',
+);
+
+// ---------------------------------------------------------------------------
 // Mock: react-redux
 // ---------------------------------------------------------------------------
 const mockDispatch = jest.fn();
@@ -697,6 +719,146 @@ describe('useBrazeBanner', () => {
     it('returns null deeplink when no banner is loaded', () => {
       const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
       expect(result.current.deeplink).toBeNull();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Performance trace
+  // ---------------------------------------------------------------------------
+  describe('performance trace', () => {
+    it('starts the time-to-content span on mount with the placement tag', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      expect(mockTrace).toHaveBeenCalledTimes(1);
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        op: 'braze_banner.performance',
+        id: 'test-braze-trace-id',
+        tags: { placement_id: TEST_PLACEMENT_ID },
+      });
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('ends with success and source event when a banner event is accepted', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner({ bannerName: 'campaign-abc' })]);
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: true,
+          source: 'event',
+          placement_id: TEST_PLACEMENT_ID,
+          banner_name: 'campaign-abc',
+        },
+      });
+    });
+
+    it('omits banner_name when the accepted banner has none', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner()]);
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            success: true,
+            source: 'event',
+            placement_id: TEST_PLACEMENT_ID,
+          },
+        }),
+      );
+    });
+
+    it('ends with source warm-cache when the probe resolves a banner', async () => {
+      mockGetBannerForPlacement.mockResolvedValue(makeBanner());
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      await waitFor(() => expect(result.current.status).toBe('visible'));
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            success: true,
+            source: 'warm-cache',
+          }),
+        }),
+      );
+    });
+
+    it('ends with reason empty when a control banner settles the placement', async () => {
+      mockGetBannerForPlacement.mockResolvedValue({
+        ...makeBanner(),
+        isControl: true,
+      });
+
+      const { result } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      await waitFor(() => expect(result.current.status).toBe('empty'));
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'empty',
+          source: 'warm-cache',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('ends with reason timeout when no banner arrives in the window', () => {
+      renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      act(() => {
+        jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'timeout',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('ends with reason unmounted when the hook unmounts before settling', () => {
+      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Braze Banner Time To Content',
+        id: 'test-braze-trace-id',
+        data: {
+          success: false,
+          reason: 'unmounted',
+          placement_id: TEST_PLACEMENT_ID,
+        },
+      });
+    });
+
+    it('does not end again after the span already settled', () => {
+      const { unmount } = renderHook(() => useBrazeBanner(TEST_PLACEMENT_ID));
+
+      fireBannerEvent([makeBanner()]);
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(SKELETON_TIMEOUT_MS);
+      });
+      unmount();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
   });
 });
