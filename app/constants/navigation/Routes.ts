@@ -42,6 +42,9 @@ const Routes = {
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     GET_PIX_KEY: 'RampGetPixKey',
     VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
+    VBA_MOCK_KYC_EMAIL: 'RampVbaMockKycEmail',
+    VBA_MOCK_KYC_SUCCESS: 'RampVbaMockKycSuccess',
+    VBA_ACCOUNT: 'RampVbaAccount',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',

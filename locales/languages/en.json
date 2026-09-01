@@ -1101,6 +1101,25 @@
     }
   },
   "virtual_bank_account": {
+    "title": "Bank account",
+    "heading": "Your virtual bank account",
+    "description": "Deposit with Pix and we'll convert to crypto automatically.",
+    "ws_connected": "Live updates on",
+    "ws_disconnected": "Live updates off",
+    "wallet_label": "Destination wallet",
+    "missing_wallet": "No wallet address available",
+    "account_status_heading": "Account status",
+    "autoramp_id": "Account ID: {{id}}",
+    "current_status": "Status: {{status}}",
+    "last_seen_status": "Previously seen: {{status}}",
+    "last_ws_push": "Last live update: {{time}}",
+    "no_autoramp": "No bank account yet. Finish verification to create one.",
+    "additional_count": "+{{count}} more account(s)",
+    "refresh_button": "Refresh status",
+    "refresh_failed": "Could not refresh your account status.",
+    "create_failed": "Could not create your bank account.",
+    "status_changed": "Status changed from {{previous}} to {{status}}.",
+    "status_updated_while_away": "Status changed from {{previous}} to {{status}} while you were away.",
     "get_pix_key": {
       "navbar_title": "Bank account",
       "title": "Get your Pix Key",
@@ -1134,6 +1153,30 @@
       "sumsub_privacy_policy": "Sumsub Privacy Policy",
       "sumsub_terms": "Sumsub T&C",
       "button": "Continue"
+    },
+    "mock_kyc": {
+      "email": {
+        "navbar_title": "Step 1 of 2 • Mock KYC",
+        "title": "Placeholder KYC Flow",
+        "description": "Phasellus elementum tincidunt faucibus.",
+        "input_placeholder": "Prefill a fake email here",
+        "button": "Continue"
+      },
+      "success": {
+        "navbar_title": "Step 2 of 2 • Complete",
+        "title": "Successful KYC",
+        "description": "Phasellus elementum tincidunt faucibus. Pellentesque congue, felis eget euismod auctor.",
+        "button": "Finish"
+      }
+    },
+    "kyc_error": {
+      "title": "Identity verification",
+      "start_failed": "We couldn't start identity verification. Try again.",
+      "verification_failed": "We couldn't verify your identity. Try again.",
+      "wallet_registration_failed": "Identity verified, but we couldn't register your Money Account wallet. You can continue."
+    },
+    "deposit_demo": {
+      "success_toast": "Deposit successful"
     }
   },
   "social_leaderboard": {

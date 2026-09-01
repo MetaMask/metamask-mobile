@@ -783,6 +783,34 @@
     "isUiOpen": false
   },
   "ComplianceController": {},
+  "KycController": {
+    "phase": "idle",
+    "statusMessage": "",
+    "error": null,
+    "email": null,
+    "termsAcceptedAt": null,
+    "acceptedDisclaimerIds": [],
+    "disclaimers": [],
+    "disclaimersError": null,
+    "geoCountry": null,
+    "sessionToken": null,
+    "accessToken": null,
+    "moonpayCustomerId": null,
+    "activeVendor": "moonpay",
+    "activeProduct": null,
+    "kycRequiredByProduct": {},
+    "lastCheckedAt": null,
+    "userStatus": null,
+    "userStatusSumsubSessionId": null,
+    "userStatusErrorCode": null,
+    "sumsub": {
+      "status": "idle",
+      "result": null,
+      "sessionId": null,
+      "applicantAccessToken": null,
+      "sessionStatus": null
+    }
+  },
   "ConnectivityController": {
     "connectivityStatus": "online"
   },

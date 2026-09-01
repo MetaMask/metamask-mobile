@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -29,6 +29,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { PIX_BRAND_COLOR, VBA_KYC_COUNTRY_CODE } from './constants';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { startIronKycFlow } from './ironKycFlow';
 import LegalLink from './components/LegalLink';
 
 // Pix's badge is bold italic white on brand teal regardless of app theme.
@@ -60,16 +61,32 @@ const BenefitRow = ({
 const GetPixKey = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const [isStartingKyc, setIsStartingKyc] = useState(false);
   const { disclaimers, isLoading, error, retry } =
     useKycDisclaimers(VBA_KYC_COUNTRY_CODE);
 
-  // The user can't agree to disclaimers they haven't been shown.
-  const canAgreeAndContinue = !isLoading && !error && disclaimers.length > 0;
+  // The user can't agree to disclaimers they haven't been shown. Also
+  // block while Iron `initialize` is in flight so Agree can't be double-tapped.
+  const canAgreeAndContinue =
+    !isLoading && !error && disclaimers.length > 0 && !isStartingKyc;
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
-  const handleAgreeAndContinue = useCallback(() => {
-    navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+  const handleAgreeAndContinue = useCallback(async () => {
+    setIsStartingKyc(true);
+    try {
+      await startIronKycFlow();
+      navigation.navigate(Routes.RAMP.VBA_VERIFY_IDENTITY);
+    } catch (error_) {
+      Alert.alert(
+        strings('virtual_bank_account.kyc_error.title'),
+        error_ instanceof Error
+          ? error_.message
+          : strings('virtual_bank_account.kyc_error.start_failed'),
+      );
+    } finally {
+      setIsStartingKyc(false);
+    }
   }, [navigation]);
 
   return (

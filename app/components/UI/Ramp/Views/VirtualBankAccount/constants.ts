@@ -54,3 +54,23 @@ export const IDOS_PRIVACY_POLICY_URL =
 export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
+
+// Demo-only mock KYC flow (not production). Prefills so the teammate can
+// tap through without typing.
+export const MOCK_KYC_PREFILLED_EMAIL = 'demo@metamask.io';
+export const MOCK_KYC_PROGRESS_STEPS = 4;
+
+// Demo-only autoramp payload. The Ramps Dev API forwards this to MoonPay
+// unchanged, so the vocabulary and casing are MoonPay's (PascalCase `type`,
+// currency codes). Destination token uses MoonPay's branded `mUSD` symbol
+// (autoramp create 400s on uppercase `MUSD`). `customer_id` is deliberately
+// absent: RampsController resolves and injects it.
+export const DEMO_AUTORAMP_SOURCE_CURRENCY_CODE = 'BRL';
+export const DEMO_AUTORAMP_DESTINATION_TOKEN = 'mUSD';
+export const DEMO_AUTORAMP_DESTINATION_BLOCKCHAIN = 'Monad';
+
+// MoonPay self-hosted wallet registration via
+// `RampsController.registerMoneyAccountWallet` hardcodes this chain in
+// NeoBankService (`blockchain: 'Monad'`). Keep the demo autoramp destination
+// aligned with this registration chain so MoonPay accepts the recipient.
+export const MONEY_ACCOUNT_WALLET_REGISTRATION_BLOCKCHAIN = 'Monad';

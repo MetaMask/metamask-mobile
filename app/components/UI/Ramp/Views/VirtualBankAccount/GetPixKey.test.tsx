@@ -1,10 +1,11 @@
 import React from 'react';
-import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { Alert, Linking } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import GetPixKey from './GetPixKey';
 import { GetPixKeySelectorsIDs } from './GetPixKey.testIds';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
+import { startIronKycFlow } from './ironKycFlow';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -18,7 +19,9 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('./hooks/useKycDisclaimers');
+jest.mock('./ironKycFlow');
 const mockUseKycDisclaimers = jest.mocked(useKycDisclaimers);
+const mockStartIronKycFlow = jest.mocked(startIronKycFlow);
 const mockRetry = jest.fn();
 
 const loadedDisclaimer = {
@@ -31,6 +34,7 @@ describe('GetPixKey', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.resetAllMocks();
+    mockStartIronKycFlow.mockResolvedValue(undefined);
     mockUseKycDisclaimers.mockReturnValue({
       disclaimers: [loadedDisclaimer],
       isLoading: false,
@@ -62,14 +66,37 @@ describe('GetPixKey', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('navigates to the verify identity screen when agree and continue is pressed after disclaimers load', () => {
+  it('starts the Iron KYC flow and navigates to verify identity when agree and continue is pressed after disclaimers load', async () => {
     const { getByTestId } = renderWithProvider(<GetPixKey />);
 
     const button = getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON);
     expect(button).toBeEnabled();
 
     fireEvent.press(button);
-    expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+
+    await waitFor(() => {
+      expect(mockStartIronKycFlow).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('RampVbaVerifyIdentity');
+    });
+  });
+
+  it('alerts and stays put when the Iron KYC flow fails to start', async () => {
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation();
+    mockStartIronKycFlow.mockRejectedValue(new Error('No disclaimers.'));
+    const { getByTestId } = renderWithProvider(<GetPixKey />);
+
+    fireEvent.press(
+      getByTestId(GetPixKeySelectorsIDs.AGREE_AND_CONTINUE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(alertSpy).toHaveBeenCalledWith(
+        'Identity verification',
+        'No disclaimers.',
+      );
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    alertSpy.mockRestore();
   });
 
   it('shows a skeleton loader instead of any disclaimer links while the fetch is in flight, and disables the CTA', () => {
