@@ -45,7 +45,8 @@ appiumTest.describe(
             await SecurityAndPrivacy.scrollToChangePassword();
             await SecurityAndPrivacy.tapChangePassword();
 
-            await ChangePasswordView.expectTitleVisible();
+            // changePassword waits for ResetPassword screen testID (not the
+            // Settings "Change password" button text, which is ambiguous).
             await ChangePasswordView.changePassword(
               TEST_PASSWORD,
               NEW_PASSWORD,

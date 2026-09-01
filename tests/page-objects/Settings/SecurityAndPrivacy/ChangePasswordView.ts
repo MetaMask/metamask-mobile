@@ -1,5 +1,8 @@
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
-import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
+import {
+  ChangePasswordViewSelectorsIDs,
+  ChangePasswordViewSelectorsText,
+} from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 import Assertions from '../../../framework/Assertions';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
@@ -12,11 +15,27 @@ import { PlatformDetector } from '../../../framework/PlatformLocator';
  * Two-step UI:
  * 1. Confirm current password
  * 2. Enter new password + confirm + checkbox → Save
+ *
+ * On devices with biometrics available, ResetPassword may auto-reauthenticate
+ * and skip step 1 (lands on the new-password form).
  */
 class ChangePasswordView {
-  get title(): Promise<AppiumElement> {
+  /**
+   * Do not assert title text alone — Settings list button uses the same
+   * "Change password" string, so that matcher can pass without navigation.
+   */
+  get screen(): Promise<AppiumElement> {
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByAndroidUIAutomator(
+        `.resourceIdMatches(".*${ChangePasswordViewSelectorsIDs.SCREEN_ID}.*")`,
+      );
+    }
+    return Matchers.getElementByID(ChangePasswordViewSelectorsIDs.SCREEN_ID);
+  }
+
+  get enterCurrentPasswordLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
-      ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
+      ChangePasswordViewSelectorsText.ENTER_CURRENT_PASSWORD,
     );
   }
 
@@ -26,7 +45,7 @@ class ChangePasswordView {
 
   /**
    * Shared field id for "current password" (step 1) and "new password" (step 2).
-   * Match via Android content-desc / iOS catch-all like CreatePasswordView.
+   * Match via Android content-desc / catch-all like CreatePasswordView.
    */
   get passwordInput(): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
@@ -84,19 +103,33 @@ class ChangePasswordView {
 
   private getCatchAllXPath(identifier: string): string {
     if (PlatformDetector.isAndroid()) {
-      return `//*[@resource-id='${identifier}' or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
+      return `//*[contains(@resource-id,'${identifier}') or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
     }
     return `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
   }
 
-  async expectTitleVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.title, {
-      description: 'Change password title should be visible',
-      timeout: 15000,
+  /**
+   * Wait until ResetPassword body is mounted (after biometry loader if any).
+   * Uses screen testID — not the Settings "Change password" button text.
+   */
+  async expectScreenVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.screen, {
+      description:
+        'ResetPassword screen (account-backup-step-4-screen) should be visible',
+      timeout: 30000,
     });
   }
 
+  /** @deprecated Use expectScreenVisible — title text matches Settings button. */
+  async expectTitleVisible(): Promise<void> {
+    await this.expectScreenVisible();
+  }
+
   async expectCurrentPasswordStepVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.enterCurrentPasswordLabel, {
+      description: 'Enter your current password label should be visible',
+      timeout: 15000,
+    });
     await Assertions.expectElementToBeVisible(this.passwordInput, {
       description: 'Current password input should be visible',
       timeout: 15000,
@@ -119,6 +152,21 @@ class ChangePasswordView {
       description: 'I understand checkbox should be visible',
       timeout: 10000,
     });
+  }
+
+  /**
+   * True when biometry auto-reauth skipped the current-password step.
+   */
+  private async isNewPasswordFormShowing(): Promise<boolean> {
+    try {
+      await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
+        description: 'Probe for new-password confirm field',
+        timeout: 3000,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async enterCurrentPassword(password: string): Promise<void> {
@@ -182,7 +230,7 @@ class ChangePasswordView {
   }
 
   /**
-   * Completes both change-password steps after the screen is open.
+   * Completes change-password after the Settings entry is tapped.
    * Seedless Save shows a confirmation sheet that must be confirmed before
    * the password is applied and the success toast appears.
    */
@@ -190,11 +238,16 @@ class ChangePasswordView {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    await this.expectCurrentPasswordStepVisible();
-    await this.enterCurrentPassword(currentPassword);
-    await this.tapConfirmCurrentPassword();
+    await this.expectScreenVisible();
 
-    await this.expectNewPasswordFormVisible();
+    const skippedCurrentPasswordStep = await this.isNewPasswordFormShowing();
+    if (!skippedCurrentPasswordStep) {
+      await this.expectCurrentPasswordStepVisible();
+      await this.enterCurrentPassword(currentPassword);
+      await this.tapConfirmCurrentPassword();
+      await this.expectNewPasswordFormVisible();
+    }
+
     await this.enterNewPassword(newPassword);
     await this.reEnterNewPassword(newPassword);
     await this.tapIUnderstandCheckBox();
