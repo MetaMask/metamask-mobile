@@ -119,20 +119,24 @@ type ChaseActivityFilter = 'active' | 'history';
 const isChaseHistoryOrder = (order: ChaseOrder) =>
   CHASE_HISTORY_STATUSES.has(order.status);
 
-const CHASE_TRANSLATED_STATUSES: ReadonlySet<ChaseOrder['status']> = new Set([
-  ...Object.values(CHASE_ORDER_STATUS).filter(
-    (status) => status !== CHASE_ORDER_STATUS.Active,
-  ),
-]);
-
-const getChaseStatusLabel = (status: ChaseOrder['status']) => {
-  if (status === CHASE_ORDER_STATUS.Active) {
-    return strings('perps.order.chase.running');
-  }
-  return CHASE_TRANSLATED_STATUSES.has(status)
-    ? strings(`perps.order.chase.status.${status}`)
-    : strings('perps.order.chase.status.unknown');
+const CHASE_STATUS_I18N_KEYS: Record<ChaseOrder['status'], string> = {
+  [CHASE_ORDER_STATUS.Active]: 'perps.order.chase.running',
+  [CHASE_ORDER_STATUS.TerminationPending]:
+    'perps.order.chase.status.termination_pending',
+  [CHASE_ORDER_STATUS.Backgrounded]: 'perps.order.chase.status.backgrounded',
+  [CHASE_ORDER_STATUS.MaxDistanceReached]:
+    'perps.order.chase.status.max_distance_reached',
+  [CHASE_ORDER_STATUS.DurationReached]:
+    'perps.order.chase.status.duration_reached',
+  [CHASE_ORDER_STATUS.RepricingLimitReached]:
+    'perps.order.chase.status.repricing_limit_reached',
+  [CHASE_ORDER_STATUS.Filled]: 'perps.order.chase.status.filled',
+  [CHASE_ORDER_STATUS.Canceled]: 'perps.order.chase.status.canceled',
+  [CHASE_ORDER_STATUS.Failed]: 'perps.order.chase.status.failed',
 };
+
+const getChaseStatusLabel = (status: ChaseOrder['status']) =>
+  strings(CHASE_STATUS_I18N_KEYS[status]);
 
 const ChaseKeyValueItem = ({
   label,
@@ -437,6 +441,10 @@ const PerpsProPositionsPanel = ({
     () => visibleChaseOrders.filter((order) => !isChaseHistoryOrder(order)),
     [visibleChaseOrders],
   );
+  const allActiveChaseOrders = useMemo(
+    () => chaseOrders.filter((order) => !isChaseHistoryOrder(order)),
+    [chaseOrders],
+  );
   const historyChaseOrders = useMemo(
     () =>
       visibleChaseOrders.filter(
@@ -518,9 +526,9 @@ const PerpsProPositionsPanel = ({
           {
             key: 'chase',
             label:
-              activeChaseOrders.length > 0
+              allActiveChaseOrders.length > 0
                 ? strings('perps.order.chase.tab_with_count', {
-                    count: activeChaseOrders.length,
+                    count: allActiveChaseOrders.length,
                   })
                 : strings('perps.order.chase.tab'),
             content: null,
@@ -887,7 +895,7 @@ const PerpsProPositionsPanel = ({
             </Box>
             <View
               accessible
-              accessibilityLabel={statusLabel}
+              accessibilityLabel={progressLabel}
               testID={getPerpsProChaseStatusSelector(
                 order.status,
                 order.symbol,
@@ -918,7 +926,9 @@ const PerpsProPositionsPanel = ({
                 />
               </Box>
               <Box twClassName="flex-1 gap-3">
-                <View
+                <ChaseKeyValueItem
+                  label={strings('perps.order.limit_price')}
+                  value={restingPrice}
                   testID={
                     order.repricings > 0
                       ? getPerpsProChaseRepriceSelector(
@@ -928,12 +938,7 @@ const PerpsProPositionsPanel = ({
                         )
                       : undefined
                   }
-                >
-                  <ChaseKeyValueItem
-                    label={strings('perps.order.limit_price')}
-                    value={restingPrice}
-                  />
-                </View>
+                />
                 <ChaseKeyValueItem
                   label={displayedDistanceLabel}
                   value={displayedDistance}

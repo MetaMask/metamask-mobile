@@ -79,7 +79,10 @@ import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
 import { usePerpsMaxSlippage } from '../../../../hooks/usePerpsMaxSlippage';
-import { usePerpsChaseOrders } from '../../../../hooks/usePerpsChaseOrders';
+import {
+  ChaseOrderRequestError,
+  usePerpsChaseOrders,
+} from '../../../../hooks/usePerpsChaseOrders';
 import { usePerpsOICap } from '../../../../hooks/usePerpsOICap';
 import type { PerpsStackParamList } from '../../../../types/navigation';
 import { getPerpsChartLibrary } from '../../../../utils/chartAnalytics';
@@ -2038,12 +2041,19 @@ export const usePerpsProOrderForm = ({
         let latestChases: ChaseOrder[];
         try {
           latestChases = await getChaseOrders();
-        } catch {
-          showToast(
-            PerpsToastOptions.formValidation.orderForm.validationError(
-              strings('perps.order.validation.chase_unavailable'),
-            ),
-          );
+        } catch (error) {
+          if (
+            error instanceof ChaseOrderRequestError &&
+            error.code === 'stale_request'
+          ) {
+            reportChaseSubmissionChanged();
+          } else {
+            showToast(
+              PerpsToastOptions.formValidation.orderForm.validationError(
+                strings('perps.order.validation.chase_unavailable'),
+              ),
+            );
+          }
           return;
         }
         if (
@@ -2584,6 +2594,8 @@ export const usePerpsProOrderForm = ({
       isSubmittingRef.current = false;
     }
   };
+  // Keep the stable press callback pointed at the latest render's financial
+  // state without wrapping the large async submission closure in useCallback.
   const handlePlaceOrderRef = useRef(handlePlaceOrder);
   useLayoutEffect(() => {
     handlePlaceOrderRef.current = handlePlaceOrder;

@@ -1905,8 +1905,7 @@
           "duration_reached": "Duration reached · resting",
           "repricing_limit_reached": "Repricing limit reached · resting",
           "filled": "Filled",
-          "failed": "Chase stopped",
-          "unknown": "Unknown"
+          "failed": "Chase stopped"
         }
       },
       "payment_token": "Payment token",

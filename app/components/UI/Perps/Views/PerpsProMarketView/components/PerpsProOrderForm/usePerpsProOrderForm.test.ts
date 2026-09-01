@@ -15,6 +15,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
+import { ChaseOrderRequestError } from '../../../../hooks/usePerpsChaseOrders';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
@@ -348,12 +349,24 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
-jest.mock('../../../../hooks/usePerpsChaseOrders', () => ({
-  usePerpsChaseOrders: () => ({
-    chaseOrders: mockChaseOrders,
-    getChaseOrders: mockGetChaseOrders,
-  }),
-}));
+jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
+  class MockChaseOrderRequestError extends Error {
+    code: 'context_not_ready' | 'stale_request';
+
+    constructor(code: 'context_not_ready' | 'stale_request') {
+      super(code);
+      this.code = code;
+    }
+  }
+
+  return {
+    ChaseOrderRequestError: MockChaseOrderRequestError,
+    usePerpsChaseOrders: () => ({
+      chaseOrders: mockChaseOrders,
+      getChaseOrders: mockGetChaseOrders,
+    }),
+  };
+});
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
   useVipTier: () => 1,
 }));
@@ -1642,6 +1655,24 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('asks for review when the Chase session refresh becomes stale', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockRejectedValueOnce(
+        new ChaseOrderRequestError('stale_request'),
+      );
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
         strings('perps.order.validation.chase_unavailable'),
       );
     });

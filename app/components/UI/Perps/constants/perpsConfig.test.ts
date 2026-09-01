@@ -1,3 +1,4 @@
+import { CHASE_ORDER_STATUS } from '@metamask/perps-controller';
 import {
   CHASE_HISTORY_STATUSES,
   CHASE_RETAINED_STATUSES,
@@ -140,5 +141,25 @@ describe('CHASE_RETAINED_STATUSES', () => {
 describe('CHASE_HISTORY_STATUSES', () => {
   it('contains backgrounded', () => {
     expect(CHASE_HISTORY_STATUSES.has('backgrounded')).toBe(true);
+  });
+});
+
+describe('Chase status groups', () => {
+  it('partition every controller Chase status without overlap', () => {
+    const retainedStatuses = [...CHASE_RETAINED_STATUSES];
+    const historyStatuses = [...CHASE_HISTORY_STATUSES];
+    const overlap = retainedStatuses.filter((status) =>
+      CHASE_HISTORY_STATUSES.has(status),
+    );
+
+    const partitionedStatuses = new Set([
+      ...retainedStatuses,
+      ...historyStatuses,
+    ]);
+
+    expect(overlap).toEqual([]);
+    expect([...partitionedStatuses].sort()).toEqual(
+      Object.values(CHASE_ORDER_STATUS).sort(),
+    );
   });
 });

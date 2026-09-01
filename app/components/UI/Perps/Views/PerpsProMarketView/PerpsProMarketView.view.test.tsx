@@ -33,6 +33,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
+  getPerpsProChaseRepriceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProChaseStatusSelector,
@@ -750,6 +751,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(rowContent.getByText('Running · 20%')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
+          getPerpsProChaseStatusSelector(
+            'active',
+            'ETH',
+            activeChase.handle,
+            true,
+          ),
+        ),
+      ).toHaveProp('accessibilityLabel', 'Running · 20%');
+      expect(
+        screen.getByTestId(
           getPerpsProChaseTerminateSelector(
             'active',
             'ETH',
@@ -758,6 +769,33 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ),
         ),
       ).toBeEnabled();
+    },
+  );
+
+  itForPlatforms(
+    'exposes the repriced limit value on the Chase key-value item',
+    async () => {
+      const repricedChase: ChaseOrder = {
+        ...activeChase,
+        handle: 'chase-view-repriced',
+        repricings: 1,
+      };
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      getChaseOrders.mockResolvedValue([repricedChase]);
+      renderFundedProMarket();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getPerpsProChaseRepriceSelector('ETH', repricedChase.handle, true),
+        ),
+      ).toHaveTextContent(/\$2,500\.1/u);
     },
   );
 
@@ -1362,30 +1400,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       ).toHaveTextContent(
         strings('perps.order.chase.empty_filtered', { ticker: 'ETH' }),
       );
+      const chaseTab = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      );
+      const chaseTabLabels = within(chaseTab).getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 1 }),
+      );
+      chaseTabLabels.forEach((label) => expect(label).toBeOnTheScreen());
     },
   );
-
-  itForPlatforms('falls back safely for an unknown Chase status', async () => {
-    const getChaseOrders = Engine.context.PerpsController
-      .getChaseOrders as jest.Mock;
-    getChaseOrders.mockResolvedValue([
-      {
-        ...activeChase,
-        status: 'provider_added_status',
-      } as unknown as ChaseOrder,
-    ]);
-    renderFundedProMarket();
-
-    fireEvent.press(
-      await screen.findByTestId(
-        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
-      ),
-    );
-
-    expect(
-      await screen.findByText(strings('perps.order.chase.status.unknown')),
-    ).toBeOnTheScreen();
-  });
 
   itForPlatforms(
     'supports size backspace and retype, then removes limit-price leading zeros',
