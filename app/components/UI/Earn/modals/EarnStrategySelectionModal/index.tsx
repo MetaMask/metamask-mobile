@@ -228,7 +228,7 @@ const EarnStrategySelectionModal = () => {
   }, []);
 
   const strategyContent = (
-    <Box gap={3} twClassName="mt-7">
+    <Box gap={4} twClassName="mt-1">
       {strategies.map((strategy) => {
         if (isMoneyAccountDepositExperience(strategy)) {
           return renderMoneyStrategyCard(strategy, {
@@ -272,7 +272,7 @@ const EarnStrategySelectionModal = () => {
         {strategyContent}
       </ScrollView>
 
-      <Box gap={2} twClassName="px-4 pt-3 pb-3">
+      <Box twClassName="px-4 pt-3 pb-3">
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

@@ -1557,7 +1557,9 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsTestIds.VIEW_ALL_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS, {
+      overrideToUsd: true,
+    });
   });
 
   it('opens the Money landing URL in the in-app browser when learn more is pressed in unfunded state', () => {
@@ -2425,6 +2427,7 @@ describe('MoneyHomeView', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MONEY.POTENTIAL_EARNINGS,
+        { overrideToUsd: true },
       );
     });
 

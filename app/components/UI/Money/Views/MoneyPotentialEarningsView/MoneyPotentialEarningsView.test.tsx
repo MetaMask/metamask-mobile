@@ -18,11 +18,18 @@ import {
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockUseRoute = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockTrackTooltipClicked = jest.fn();
 const mockTrackTokenButtonClicked = jest.fn();
 const mockTrackTokenSurfaceClicked = jest.fn();
 let mockTokens: unknown[] = [];
+const mockUseMoneyDepositTokens = jest.fn(
+  (_options: { overrideToUsd?: boolean }) => ({
+    tokens: mockTokens,
+    isNoFeeToken: jest.fn(() => false),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -32,6 +39,7 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -99,10 +107,8 @@ const mockDepositTokens = [
 ];
 
 jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => ({
-    tokens: mockTokens,
-    isNoFeeToken: jest.fn(() => false),
-  }),
+  useMoneyDepositTokens: (options: { overrideToUsd?: boolean }) =>
+    mockUseMoneyDepositTokens(options),
 }));
 
 jest.mock('../../hooks/useMoneyVaultApy', () => ({
@@ -164,6 +170,7 @@ describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTokens = mockDepositTokens;
+    mockUseRoute.mockReturnValue({ params: undefined });
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockUseMoneyVaultApy.mockReturnValue({
       apyPercent: 4,
@@ -175,6 +182,23 @@ describe('MoneyPotentialEarningsView', () => {
       },
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
   });
+
+  it.each([
+    ['true', { overrideToUsd: true }, true],
+    ['false', { overrideToUsd: false }, false],
+    ['missing', undefined, false],
+  ] as const)(
+    'passes %s overrideToUsd route param to deposit tokens hook',
+    (_caseName, params, expectedOverrideToUsd) => {
+      mockUseRoute.mockReturnValue({ params });
+
+      renderWithProvider(<MoneyPotentialEarningsView />);
+
+      expect(mockUseMoneyDepositTokens).toHaveBeenCalledWith({
+        overrideToUsd: expectedOverrideToUsd,
+      });
+    },
+  );
 
   it('renders the container', () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
