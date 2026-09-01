@@ -288,6 +288,10 @@ class PerpsProMarketView {
   }
 
   async tapMidPriceButton(): Promise<void> {
+    await this.scrollUntilVisible(
+      this.midPriceButton,
+      'Pro order form mid price preset',
+    );
     await Gestures.waitAndTap(this.midPriceButton, {
       elemDescription: 'Pro order form mid price preset',
       checkForDisplayed: true,
@@ -297,6 +301,10 @@ class PerpsProMarketView {
   }
 
   async enterLimitPrice(price: string): Promise<void> {
+    await this.scrollUntilVisible(
+      this.limitPriceInput,
+      'Pro order form limit price input',
+    );
     await Gestures.waitAndTap(this.limitPriceInput, {
       elemDescription: 'Pro order form limit price input',
       checkForDisplayed: true,
@@ -311,6 +319,10 @@ class PerpsProMarketView {
   }
 
   async tapTpslSection(): Promise<void> {
+    await this.scrollUntilVisible(
+      this.tpslButton,
+      'Pro order form TPSL section',
+    );
     await Gestures.waitAndTap(this.tpslButton, {
       elemDescription: 'Pro order form TPSL section',
       checkForDisplayed: true,
@@ -324,7 +336,7 @@ class PerpsProMarketView {
     if (!(await Utilities.isElementVisible(this.placeOrderButton, 2000))) {
       await Gestures.swipe(this.scrollView, 'up', {
         speed: 'fast',
-        percentage: 0.4,
+        percentage: 0.7,
         elemDescription: 'Swipe Pro market view to Place order',
       });
     }
@@ -354,14 +366,15 @@ class PerpsProMarketView {
     timeout = 45000,
   ): Promise<void> {
     await this.dismissOrderFormKeyboard();
+    const scrollView = await this.scrollView;
     await Utilities.executeWithRetry(
       async () => {
         if (await Utilities.isElementVisible(target, 1500)) {
           return;
         }
-        await Gestures.swipe(this.scrollView, 'up', {
+        await Gestures.swipe(scrollView, 'up', {
           speed: 'fast',
-          percentage: 0.55,
+          percentage: 0.7,
           elemDescription: `Swipe Pro market view toward ${elemDescription}`,
         });
         if (!(await Utilities.isElementVisible(target, 1500))) {
@@ -374,6 +387,14 @@ class PerpsProMarketView {
         description: `scroll until ${elemDescription} visible`,
       },
     );
+    // Order/position rows often land in the bottom 15% after the first swipe;
+    // nudge fully on-screen so Android exposes the row testID for taps/asserts.
+    await Gestures.scrollIntoViewFullyVisible(target, {
+      direction: 'up',
+      scrollableElement: scrollView,
+      maxScrolls: 6,
+      percent: 0.7,
+    });
   }
 
   private async swipeUntilVisibleThenTap(
@@ -425,6 +446,10 @@ class PerpsProMarketView {
 
   async expectPositionRowNotVisible(symbol: string): Promise<void> {
     await this.tapPositionsTab();
+    await this.scrollUntilVisible(
+      this.positionsPanel,
+      'Pro positions panel list',
+    );
     await Assertions.expectElementToNotBeVisible(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} should not be visible`,
       timeout: 10000,
@@ -436,6 +461,11 @@ class PerpsProMarketView {
    * Navigates to the Close Position screen.
    */
   async tapPositionCloseButton(symbol: string): Promise<void> {
+    await this.tapPositionsTab();
+    await this.scrollUntilVisible(
+      this.positionRow(symbol),
+      `Pro position row for ${symbol}`,
+    );
     await Gestures.waitAndTap(
       Matchers.getElementByID(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
       {
@@ -450,6 +480,11 @@ class PerpsProMarketView {
    * Taps Edit TP/SL on the position row to open the Auto close sheet.
    */
   async tapPositionEditTpslButton(symbol: string): Promise<void> {
+    await this.tapPositionsTab();
+    await this.scrollUntilVisible(
+      this.positionRow(symbol),
+      `Pro position row for ${symbol}`,
+    );
     await Gestures.waitAndTap(
       Matchers.getElementByID(
         PerpsProMarketViewSelectorsIDs.POSITION_EDIT_TPSL,
@@ -483,13 +518,29 @@ class PerpsProMarketView {
     index: number,
     timeout = 20000,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.orderRow(symbol, index), {
-      description: `Pro order row ${symbol}[${index}]`,
-      timeout,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.tapOrdersTab();
+        await this.scrollUntilVisible(
+          this.orderRow(symbol, index),
+          `Pro order row ${symbol}[${index}]`,
+          8000,
+        );
+        await Assertions.expectElementToBeVisible(this.orderRow(symbol, index), {
+          description: `Pro order row ${symbol}[${index}]`,
+          timeout: 3000,
+        });
+      },
+      { interval: 1000, timeout },
+    );
   }
 
   async expectOrderRowVisible(symbol: string, index: number): Promise<void> {
+    await this.tapOrdersTab();
+    await this.scrollUntilVisible(
+      this.orderRow(symbol, index),
+      `Pro order row ${symbol}[${index}]`,
+    );
     await Assertions.expectElementToBeVisible(this.orderRow(symbol, index), {
       description: `Pro order row ${symbol}[${index}]`,
       timeout: 10000,
@@ -497,6 +548,11 @@ class PerpsProMarketView {
   }
 
   async expectOrderRowNotVisible(symbol: string, index: number): Promise<void> {
+    await this.tapOrdersTab();
+    await this.scrollUntilVisible(
+      this.positionsPanel,
+      'Pro positions panel orders list',
+    );
     await Assertions.expectElementToNotBeVisible(this.orderRow(symbol, index), {
       description: `Pro order row ${symbol}[${index}] should not be visible`,
       timeout: 10000,
@@ -508,14 +564,15 @@ class PerpsProMarketView {
    * orders list. For single-order scenarios this unambiguously cancels the order.
    */
   async tapOrderCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(
-      Matchers.getElementByID(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
-      {
-        elemDescription: 'Pro order cancel button',
-        checkForDisplayed: true,
-        timeout: 10000,
-      },
+    const cancelButton = Matchers.getElementByID(
+      PerpsProMarketViewSelectorsIDs.ORDER_CANCEL,
     );
+    await this.scrollUntilVisible(cancelButton, 'Pro order cancel button');
+    await Gestures.waitAndTap(cancelButton, {
+      elemDescription: 'Pro order cancel button',
+      checkForDisplayed: true,
+      timeout: 10000,
+    });
   }
 }
 
