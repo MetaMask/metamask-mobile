@@ -370,10 +370,6 @@ const RewardsDashboard: React.FC = () => {
     }, []),
   );
 
-  // Treatment pushes Rewards onto the root stack instead of giving it a tab, so
-  // it needs a way back. Asking navigation directly avoids reading the
-  // experiment flag here and stays correct however the arms are configured: a
-  // tab has nothing to pop, a pushed screen does.
   const isPushedScreen = navigation.canGoBack();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
