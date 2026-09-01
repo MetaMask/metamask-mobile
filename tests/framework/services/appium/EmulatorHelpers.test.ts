@@ -6,6 +6,7 @@ import {
   ANDROID_E2E_PACKAGES_TO_DISABLE,
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  computeAndroidSystemImageFingerprint,
   findAnrDialogRecoveryTapPoint,
   findAnrDialogWaitTapPoint,
   getGoldenSnapshotDir,
@@ -314,6 +315,27 @@ describe('EmulatorHelpers', () => {
       ).toBe(true);
     });
 
+    it('isGoldenSnapshotUsable rejects missing fingerprint in CI', () => {
+      writeSnapshot();
+      expect(
+        isGoldenSnapshotUsable(avdName, {
+          ANDROID_AVD_HOME: avdHome,
+          CI: 'true',
+        }),
+      ).toBe(false);
+    });
+
+    it('isGoldenSnapshotUsable rejects when ANDROID_GOLDEN_SNAPSHOT_VALID is false', () => {
+      writeSnapshot('fp-1');
+      expect(
+        isGoldenSnapshotUsable(avdName, {
+          ANDROID_AVD_HOME: avdHome,
+          ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
+          ANDROID_GOLDEN_SNAPSHOT_VALID: 'false',
+        }),
+      ).toBe(false);
+    });
+
     it('isGoldenSnapshotUsable enforces the fingerprint when set', () => {
       writeSnapshot('fp-1');
       const env = {
@@ -337,6 +359,76 @@ describe('EmulatorHelpers', () => {
           ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
         }),
       ).toBe(false);
+    });
+  });
+
+  describe('computeAndroidSystemImageFingerprint', () => {
+    let androidHome: string;
+
+    beforeEach(() => {
+      androidHome = fs.mkdtempSync(path.join(os.tmpdir(), 'mm-android-home-'));
+      const imageDir = path.join(
+        androidHome,
+        'system-images',
+        'android-36',
+        'default',
+        'x86_64',
+      );
+      fs.mkdirSync(imageDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(imageDir, 'source.properties'),
+        'Pkg.Revision=1',
+      );
+      fs.writeFileSync(path.join(imageDir, 'build.props'), 'ro.build.id=test');
+      const emulatorDir = path.join(androidHome, 'emulator');
+      fs.mkdirSync(emulatorDir, { recursive: true });
+      const emulatorBin = path.join(emulatorDir, 'emulator');
+      fs.writeFileSync(
+        emulatorBin,
+        '#!/bin/sh\necho "Android emulator version 1.0.0"\n',
+      );
+      fs.chmodSync(emulatorBin, 0o755);
+    });
+
+    afterEach(() => {
+      fs.rmSync(androidHome, { recursive: true, force: true });
+    });
+
+    it('changes when ANDROID_EMULATOR_CI_CORES changes', async () => {
+      const base = {
+        ANDROID_HOME: androidHome,
+        ANDROID_SYSTEM_IMAGE_API_LEVEL: '36',
+        ANDROID_SYSTEM_IMAGE_TAG: 'default',
+        ANDROID_SYSTEM_IMAGE_ABI: 'x86_64',
+      };
+      const fp8 = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_CORES: '8',
+      });
+      const fp16 = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_CORES: '16',
+      });
+      expect(fp8).not.toBe(fp16);
+    });
+
+    it('changes when ANDROID_EMULATOR_CI_SKIN changes', async () => {
+      const base = {
+        ANDROID_HOME: androidHome,
+        ANDROID_SYSTEM_IMAGE_API_LEVEL: '36',
+        ANDROID_SYSTEM_IMAGE_TAG: 'default',
+        ANDROID_SYSTEM_IMAGE_ABI: 'x86_64',
+        ANDROID_EMULATOR_CI_CORES: '8',
+      };
+      const fpA = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_SKIN: '1080x2340',
+      });
+      const fpB = await computeAndroidSystemImageFingerprint({
+        ...base,
+        ANDROID_EMULATOR_CI_SKIN: '1440x3120',
+      });
+      expect(fpA).not.toBe(fpB);
     });
   });
 });

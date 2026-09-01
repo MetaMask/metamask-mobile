@@ -315,8 +315,10 @@ export function readGoldenSnapshotFingerprint(
 /**
  * True when a golden snapshot exists and — when ANDROID_EMULATOR_IMAGE_FINGERPRINT
  * is set — was primed against the same system image / emulator / boot args.
- * Existence-only acceptance when no fingerprint is configured keeps local
- * experimentation simple; CI should always set the fingerprint.
+ *
+ * `ANDROID_GOLDEN_SNAPSHOT_VALID=false` (from the CI check helper) is authoritative
+ * and forces unusable. In CI, a missing fingerprint is also unusable — existence-only
+ * acceptance is for local experimentation only.
  */
 export function isGoldenSnapshotUsable(
   avdName: string,
@@ -325,8 +327,20 @@ export function isGoldenSnapshotUsable(
   if (!hasGoldenSnapshot(avdName, env)) {
     return false;
   }
+  if (env.ANDROID_GOLDEN_SNAPSHOT_VALID?.trim().toLowerCase() === 'false') {
+    logger.warn(
+      'ANDROID_GOLDEN_SNAPSHOT_VALID=false — treating golden snapshot as unusable.',
+    );
+    return false;
+  }
   const expected = env.ANDROID_EMULATOR_IMAGE_FINGERPRINT?.trim();
   if (!expected) {
+    if (env.CI === 'true') {
+      logger.warn(
+        'ANDROID_EMULATOR_IMAGE_FINGERPRINT not set in CI — treating golden snapshot as unusable.',
+      );
+      return false;
+    }
     logger.warn(
       'ANDROID_EMULATOR_IMAGE_FINGERPRINT not set — accepting golden snapshot on existence only.',
     );
@@ -440,9 +454,10 @@ export function buildAndroidEmulatorArgs(options: {
 
 /**
  * Fingerprint of the host-side inputs a golden snapshot depends on: system
- * image metadata, emulator binary version, and the CI boot args (RAM size is
- * baked into a snapshot, so any arg change must invalidate cached snapshots).
- * Shard boots reject snapshots whose stored fingerprint does not match.
+ * image metadata, emulator binary version, and the CI boot args (RAM, cores,
+ * skin — baked into a snapshot, so any arg change must invalidate caches).
+ * Pass cores/skin via `env` (not only process.env) so the hash matches what
+ * prime and shards actually spawn. Shard boots reject mismatched fingerprints.
  */
 export async function computeAndroidSystemImageFingerprint(
   env: Record<string, string | undefined> = process.env,
@@ -486,6 +501,8 @@ export async function computeAndroidSystemImageFingerprint(
         avdName: '',
         isCI: true,
         bootMode: 'snapshot-prime',
+        cores: env.ANDROID_EMULATOR_CI_CORES,
+        skin: env.ANDROID_EMULATOR_CI_SKIN,
       }),
     ),
   );
@@ -991,6 +1008,9 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
       if (serial) {
         return serial;
       }
+      // Local artifact only (per-shard download) — drop a resume-failed snapshot
+      // so a job retry does not pay ANDROID_EMULATOR_SNAPSHOT_BOOT_TIMEOUT_MS again.
+      removeGoldenSnapshot(avdName);
       if (bootMode === 'snapshot') {
         throw new Error(
           `ANDROID_EMULATOR_BOOT_MODE=snapshot but golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" for AVD "${avdName}" failed to boot. ` +
@@ -1213,6 +1233,22 @@ export async function primeAndroidGoldenSnapshot(
       `Snapshot save completed but ${getGoldenSnapshotDir(avdName)} has no snapshot.pb — refusing to mark the snapshot as primed.`,
     );
   }
+
+  // Prove the snapshot resumes before publishing the fingerprint. Existence of
+  // snapshot.pb alone does not guarantee load; a resume-fail would tax every
+  // shard with the fail-fast timeout before cold boot.
+  logger.info(
+    `Verifying golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" can resume...`,
+  );
+  const verifiedSerial = await tryBootFromGoldenSnapshot(emulatorBin, avdName);
+  if (!verifiedSerial) {
+    removeGoldenSnapshot(avdName);
+    throw new Error(
+      `Golden snapshot for "${avdName}" was saved but failed resume verification — refusing to publish.`,
+    );
+  }
+  await killEmulatorSerialBestEffort(verifiedSerial);
+  await sleep(2000);
 
   const fingerprint = options?.fingerprint?.trim() || 'unknown';
   fs.writeFileSync(
