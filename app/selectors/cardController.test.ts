@@ -11,6 +11,7 @@ import {
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
+  selectCardHomeDataError,
   selectCardHomeDataFetchedThisSession,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
@@ -129,6 +130,7 @@ const createMockRootState = (
           providerData: {},
           cardHomeData: null,
           cardHomeDataStatus: 'idle',
+          cardHomeDataError: null,
           moneyAccountCardLinkInProgress: false,
           ...overrides,
         },
@@ -516,6 +518,31 @@ describe('selectCardHomeDataStatus', () => {
       engine: { backgroundState: {} },
     } as unknown as RootState;
     expect(selectCardHomeDataStatus(state)).toBe('idle');
+  });
+});
+
+describe('selectCardHomeDataError', () => {
+  it('returns null by default', () => {
+    const state = createMockRootState();
+    expect(selectCardHomeDataError(state)).toBeNull();
+  });
+
+  it('returns the stored error object', () => {
+    const error = {
+      reason: 'no_evm_address' as const,
+      code: null,
+      statusCode: null,
+      at: 123,
+    };
+    const state = createMockRootState({ cardHomeDataError: error });
+    expect(selectCardHomeDataError(state)).toStrictEqual(error);
+  });
+
+  it('returns null when CardController state is undefined', () => {
+    const state = {
+      engine: { backgroundState: {} },
+    } as unknown as RootState;
+    expect(selectCardHomeDataError(state)).toBeNull();
   });
 });
 
