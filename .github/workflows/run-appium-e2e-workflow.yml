@@ -66,6 +66,23 @@ on:
         required: false
         type: string
         default: 'default'
+      android-emulator-boot-mode:
+        description: >-
+          Android emulator boot mode: `auto` (resume from the cached golden
+          snapshot when valid, else cold boot), `snapshot` (require the golden
+          snapshot — fail loudly when missing/stale), or `cold` (always
+          `-wipe-data` cold boot — pre-snapshot behavior / kill switch).
+        required: false
+        type: string
+        default: 'auto'
+      cache-android-golden-snapshot:
+        description: >-
+          Restore the primed golden AVD from actions/cache (fingerprint key)
+          and attempt snapshot resume. Set false for jobs that always cold-boot
+          (e.g. fixture validation).
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -99,6 +116,12 @@ jobs:
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
       }}
+    env:
+      ANDROID_AVD_NAME: appium_smoke_avd
+      ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+      ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+      ANDROID_SYSTEM_IMAGE_ABI: x86_64
+      ANDROID_EMULATOR_CI_CORES: '8'
 
     steps:
       - name: Checkout (Namespace)
@@ -167,6 +190,10 @@ jobs:
       # that resolve $(SRCROOT) to a physical path (#34931). iOS Appium builds
       # WebDriverAgent from node_modules, so it is exposed to that; Android
       # runs no Xcode or Gradle and does not republish node_modules.
+      #
+      # Do NOT put ~/.android/avd on the Namespace volume: volumes fork per job
+      # and commit last-write-wins, so concurrent shards clobber a primed
+      # snapshot. Golden AVDs arrive via workflow artifact from the prime job.
       - name: Configure Namespace cache (Android)
         if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
@@ -202,6 +229,40 @@ jobs:
           configure-keystores: 'false'
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
+
+      # Fingerprint for cache key + isGoldenSnapshotUsable (clears on error).
+      - name: Resolve Android golden snapshot fingerprint
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
+
+      # Same key the prime job saves. Overwrites any AVD created during setup.
+      - name: Restore golden AVD cache
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0' &&
+            env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != ''
+          }}
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/avd
+          key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
+
+      - name: Re-check Android golden snapshot after cache restore
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
 
       - name: Setup E2E environment (iOS)
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
@@ -415,10 +476,9 @@ jobs:
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
-          ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
           ANDROID_BOOT_TIMEOUT_MS: '300000'
-          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_BOOT_MODE: ${{ inputs.android-emulator-boot-mode }}
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
