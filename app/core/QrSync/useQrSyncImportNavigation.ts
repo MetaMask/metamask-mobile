@@ -6,7 +6,6 @@ import Routes from '../../constants/navigation/Routes';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { selectQrSyncShouldNavigateToImport } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
-import Engine from '../Engine';
 import { useMessenger } from '../../hooks/useMessenger';
 import { QrSyncSyncFlows } from './constants';
 import type { RouteMessengerInstance } from './route-messenger';
@@ -46,8 +45,7 @@ const finishExistingUserSyncWithoutMnemonic = async (
   let importFailed = false;
 
   try {
-    // TODO: Use messenger instead:
-    await Engine.context.QrSyncProvisioningService.provisionFromMetadata();
+    await messenger.call('QrSyncProvisioningService:provisionFromMetadata');
   } catch (error) {
     importFailed = true;
     reportQrSyncFailure(error, {

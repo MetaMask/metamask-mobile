@@ -82,10 +82,6 @@ jest.mock('../Engine', () => ({
       },
       resetState: () => mockResetState(),
     },
-    QrSyncProvisioningService: {
-      provisionFromMetadata: (...args: unknown[]) =>
-        mockProvisionFromMetadata(...args),
-    },
   },
 }));
 
@@ -146,10 +142,10 @@ const renderUseQrSyncImportNavigation = <TProps>(
             'QrSyncController:resetState': mockResetState,
             'QrSyncController:hasPendingSecretImports':
               mockHasPendingSecretImports,
-            'QrSyncController:importRemainingSecrets':
-              mockImportRemainingSecrets,
             'QrSyncController:handleScannedQrPayload': jest.fn(),
             'KeyringController:getAccounts': mockGetAccounts,
+            'QrSyncProvisioningService:provisionFromMetadata':
+              mockProvisionFromMetadata,
           }),
         },
         children,

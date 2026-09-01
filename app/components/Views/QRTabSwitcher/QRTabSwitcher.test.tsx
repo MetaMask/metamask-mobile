@@ -54,9 +54,6 @@ jest.mock('../../../core/Engine', () => {
       QrSyncController: {
         state: { ...mockDefaultQrSyncControllerState },
       },
-      QrSyncProvisioningService: {
-        provisionFromMetadata: jest.fn(() => Promise.resolve()),
-      },
     },
   };
 });
@@ -64,13 +61,11 @@ jest.mock('../../../core/Engine', () => {
 import Engine from '../../../core/Engine';
 
 const mockResetState = jest.fn();
-const mockImportRemainingSecrets = jest.fn(() => Promise.resolve());
 const mockGetAccounts = jest.fn<Promise<string[]>, []>(() =>
   Promise.resolve([]),
 );
 const mockHasPendingSecretImports = jest.fn().mockResolvedValue(false);
-const mockProvisionFromMetadata = Engine.context.QrSyncProvisioningService
-  .provisionFromMetadata as jest.Mock;
+const mockProvisionFromMetadata = jest.fn(() => Promise.resolve());
 
 jest.mock('../../../core/QrSync/showExtensionCancelledErrorSheet', () => {
   const actual = jest.requireActual(
@@ -107,10 +102,11 @@ const wrapQrTabSwitcher = (ui: React.ReactElement = <QRTabSwitcher />) => (
   <RouteMessengerContext.Provider
     value={createMockRouteMessenger({
       'QrSyncController:resetState': mockResetState,
-      'QrSyncController:importRemainingSecrets': mockImportRemainingSecrets,
       'QrSyncController:handleScannedQrPayload': jest.fn(),
       'QrSyncController:hasPendingSecretImports': mockHasPendingSecretImports,
       'KeyringController:getAccounts': mockGetAccounts,
+      'QrSyncProvisioningService:provisionFromMetadata':
+        mockProvisionFromMetadata,
     })}
   >
     {ui}
