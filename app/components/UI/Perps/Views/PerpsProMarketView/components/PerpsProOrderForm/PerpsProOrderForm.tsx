@@ -771,31 +771,29 @@ const PerpsProOrderForm = ({
               }}
               testID={ids.ORDER_TYPE_BUTTON}
             >
-              <Box
-                twClassName="min-w-0 flex-1 flex-row items-center justify-between pr-2"
-                testID={`${ids.ORDER_TYPE_BUTTON}-label-row`}
-              >
-                <Text
-                  variant={TextVariant.BodySm}
-                  testID={
-                    isChase
-                      ? getPerpsProChaseFormActiveCountSelector(
-                          activeChaseCount,
-                        )
-                      : undefined
-                  }
+              {isChase ? (
+                <Box
+                  twClassName="min-w-0 flex-1 flex-row items-center justify-between pr-2"
+                  testID={`${ids.ORDER_TYPE_BUTTON}-label-row`}
                 >
-                  {orderTypeTitle}
-                </Text>
-                {isChase ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    testID={getPerpsProChaseFormActiveCountSelector(
+                      activeChaseCount,
+                    )}
+                  >
+                    {orderTypeTitle}
+                  </Text>
                   <Text
                     variant={TextVariant.BodySm}
                     testID={ids.CHASE_REFERENCE_PRICE}
                   >
                     {chaseReferencePrice}
                   </Text>
-                ) : null}
-              </Box>
+                </Box>
+              ) : (
+                orderTypeTitle
+              )}
             </ButtonBase>
             <PriceField
               label={strings('perps.order.trigger_price')}

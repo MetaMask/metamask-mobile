@@ -905,6 +905,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ),
         ),
       ).toHaveTextContent(strings('perps.order.chase.status.backgrounded'));
+      const row = screen.getByTestId(
+        getPerpsProChaseRowSelector('ETH', backgroundedChase.handle, true),
+      );
+      expect(
+        within(row).getByText(strings('perps.order.chase.card.runtime')),
+      ).toBeOnTheScreen();
+      expect(within(row).getByText('--')).toBeOnTheScreen();
+      expect(
+        within(row).queryByText(strings('perps.order.chase.card.max_distance')),
+      ).not.toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           getPerpsProChaseTerminateSelector(

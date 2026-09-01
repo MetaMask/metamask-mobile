@@ -669,44 +669,74 @@ const PerpsProPositionsPanel = ({
     />
   );
 
-  const handleTerminateChase = async (order: ChaseOrder) => {
-    if (terminatingChaseHandle) return;
-    setTerminatingChaseHandle(order.handle);
-    try {
-      const result = await cancelOrder({
-        orderId: order.handle,
-        // Chase rotates ordinary child IDs while repricing, so no one child can
-        // provide a stable order-absence confirmation boundary.
-        skipCufConfirmationTrace: true,
-        symbol: order.symbol,
-        orderType: 'chase',
-        providerId: order.providerId,
-      });
-      if (!result.success) {
-        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
-        return;
-      }
-      recordChaseOrderStatus(order.handle, CHASE_ORDER_STATUS.Canceled);
+  const handleTerminateChase = useCallback(
+    async (order: ChaseOrder) => {
+      if (terminatingChaseHandle) return;
+      setTerminatingChaseHandle(order.handle);
       try {
-        await getChaseOrders();
+        const result = await cancelOrder({
+          orderId: order.handle,
+          // Chase rotates ordinary child IDs while repricing, so no one child can
+          // provide a stable order-absence confirmation boundary.
+          skipCufConfirmationTrace: true,
+          symbol: order.symbol,
+          orderType: 'chase',
+          providerId: order.providerId,
+        });
+        if (!result.success) {
+          showToast(
+            PerpsToastOptions.orderManagement.shared.cancellationFailed,
+          );
+          return;
+        }
+        recordChaseOrderStatus(order.handle, CHASE_ORDER_STATUS.Canceled);
+        try {
+          await getChaseOrders();
+        } catch (error) {
+          // The exchange already accepted cancellation. A failed follow-up read
+          // must not tell the user to retry the completed financial action.
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsProPositionsPanel.refreshAfterTerminateChase',
+            ),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+                component: 'PerpsProPositionsPanel',
+                action: 'refresh_after_terminate_chase',
+                provider: order.providerId ?? activeProvider,
+                network: perpsNetwork,
+              },
+              context: {
+                name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+                data: {
+                  symbol: order.symbol,
+                  provider: order.providerId ?? activeProvider,
+                  network: perpsNetwork,
+                },
+              },
+            },
+          );
+        }
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
+          [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
+        });
       } catch (error) {
-        // The exchange already accepted cancellation. A failed follow-up read
-        // must not tell the user to retry the completed financial action.
         Logger.error(
-          ensureError(
-            error,
-            'PerpsProPositionsPanel.refreshAfterTerminateChase',
-          ),
+          ensureError(error, 'PerpsProPositionsPanel.handleTerminateChase'),
           {
             tags: {
               feature: PERPS_CONSTANTS.FeatureName,
               component: 'PerpsProPositionsPanel',
-              action: 'refresh_after_terminate_chase',
+              action: 'terminate_chase',
               provider: order.providerId ?? activeProvider,
               network: perpsNetwork,
             },
             context: {
-              name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+              name: 'PerpsProPositionsPanel.handleTerminateChase',
               data: {
                 symbol: order.symbol,
                 provider: order.providerId ?? activeProvider,
@@ -715,38 +745,23 @@ const PerpsProPositionsPanel = ({
             },
           },
         );
+        showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
+      } finally {
+        setTerminatingChaseHandle(null);
       }
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
-        [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
-      });
-    } catch (error) {
-      Logger.error(
-        ensureError(error, 'PerpsProPositionsPanel.handleTerminateChase'),
-        {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'PerpsProPositionsPanel',
-            action: 'terminate_chase',
-            provider: order.providerId ?? activeProvider,
-            network: perpsNetwork,
-          },
-          context: {
-            name: 'PerpsProPositionsPanel.handleTerminateChase',
-            data: {
-              symbol: order.symbol,
-              provider: order.providerId ?? activeProvider,
-              network: perpsNetwork,
-            },
-          },
-        },
-      );
-      showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
-    } finally {
-      setTerminatingChaseHandle(null);
-    }
-  };
+    },
+    [
+      activeProvider,
+      cancelOrder,
+      getChaseOrders,
+      perpsNetwork,
+      PerpsToastOptions.orderManagement.shared.cancellationFailed,
+      recordChaseOrderStatus,
+      showToast,
+      terminatingChaseHandle,
+      track,
+    ],
+  );
 
   const handleChaseActivityChange = useCallback(
     (value: string) => {
@@ -755,6 +770,14 @@ const PerpsProPositionsPanel = ({
       setChaseActivityFilter(value);
     },
     [playSelection],
+  );
+  const handleFilledOnlyChange = useCallback(
+    (value: boolean) => {
+      if (value === isFilledOnly) return;
+      playSelection().catch(() => undefined);
+      setIsFilledOnly(value);
+    },
+    [isFilledOnly, playSelection],
   );
 
   const renderChaseCard = (order: ChaseOrder, index: number) => {
@@ -782,10 +805,10 @@ const PerpsProPositionsPanel = ({
       order.distanceChasedBps / 100,
     )}%`;
     const displayedDistanceLabel = isHistoryOrder
-      ? strings('perps.order.chase.card.max_distance')
+      ? strings('perps.order.chase.card.runtime')
       : strings('perps.order.chase.card.distance_chased');
     const displayedDistance = isHistoryOrder
-      ? maxDistance
+      ? PERPS_CONSTANTS.FallbackDataDisplay
       : order.maxDistanceBps === undefined
         ? distanceChased
         : strings('perps.order.chase.card.distance_chased_with_max', {
@@ -1082,7 +1105,7 @@ const PerpsProPositionsPanel = ({
               label={strings('perps.order.chase.filled_only')}
               labelProps={{ variant: TextVariant.BodySm }}
               isSelected={isFilledOnly}
-              onChange={setIsFilledOnly}
+              onChange={handleFilledOnlyChange}
               testID={PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY}
             />
           </Box>

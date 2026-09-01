@@ -1471,6 +1471,40 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('rejects preflight reads while account and provider context reconnects', async () => {
+    mockGetChaseOrders
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([activeOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+    mockSelectedAddress = '0xaccount-b';
+    mockPerpsProvider = 'aggregated';
+    mockConnectionIdentityReady = false;
+    act(() =>
+      mockConnectionIdentityListeners.forEach((listener) => listener()),
+    );
+    hook.rerender({});
+
+    await act(async () => {
+      await expect(hook.result.current.getChaseOrders()).rejects.toThrow(
+        'Chase order context is not ready',
+      );
+    });
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+
+    mockConnectionIdentityReady = true;
+    act(() => {
+      mockConnectionIdentityListeners.forEach((listener) => listener());
+    });
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    hook.unmount();
+  });
+
   it('rejects a read that settles after the account route changes', async () => {
     let resolveRead: ((orders: (typeof activeOrder)[]) => void) | undefined;
     mockGetChaseOrders

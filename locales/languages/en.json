@@ -1891,6 +1891,7 @@
         "card": {
           "size": "Size",
           "filled_size": "Filled size",
+          "runtime": "Runtime",
           "max_distance": "Max distance",
           "distance_chased": "Distance chased",
           "distance_chased_with_max": "{{distance}} / {{max}} max"

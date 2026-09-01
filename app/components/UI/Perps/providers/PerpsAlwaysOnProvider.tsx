@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -17,7 +17,6 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { ensureError } from '../../../../util/errorUtils';
 import { initPerpsLifecycleTracking } from '../utils/perpsLifecycleContext';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { PressActionId } from '../../../../util/notifications';
 import NotificationsService, {
   isPushPermissionGranted,
 } from '../../../../util/notifications/services/NotificationService';
@@ -26,7 +25,6 @@ import { usePerpsEventTracking } from '../hooks/usePerpsEventTracking';
 import { usePerpsChaseOrders } from '../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
-import AppConstants from '../../../../core/AppConstants';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
@@ -52,7 +50,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabledRef = useRef(isPerpsEnabled);
-  isPerpsEnabledRef.current = isPerpsEnabled;
   const { track } = usePerpsEventTracking();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const isPushNotificationsEnabled = useSelector(
@@ -79,12 +76,21 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     track,
     isPushNotificationsEnabled,
   });
-  chaseLifecycleRef.current = {
+  useLayoutEffect(() => {
+    isPerpsEnabledRef.current = isPerpsEnabled;
+    chaseLifecycleRef.current = {
+      shouldSuspendChaseOrders,
+      suspendChaseOrders,
+      track,
+      isPushNotificationsEnabled,
+    };
+  }, [
+    isPerpsEnabled,
+    isPushNotificationsEnabled,
     shouldSuspendChaseOrders,
     suspendChaseOrders,
     track,
-    isPushNotificationsEnabled,
-  };
+  ]);
 
   // Track AppState so Perps CUF spans can tag lifecycle_context.
   useEffect(() => initPerpsLifecycleTracking(), []);
@@ -187,7 +193,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         // sorted-handle ID is stable and safe for notification deduplication.
         await NotificationsService.displayNotification({
           id: `perps-chase-backgrounded-${handles}`,
-          pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
           title: strings('perps.order.chase.backgrounded_title'),
           body:
             notificationOrders.length === 1
@@ -201,8 +206,8 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           data: {
             notification_type:
               PERPS_EVENT_VALUE.NOTIFICATION_TYPE.CHASE_BACKGROUNDED,
-            deeplink: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps`,
           },
+          throwOnError: true,
         });
         notificationOrders.forEach((order) => {
           const notifiedHandles = notifiedBackgroundedChaseHandlesRef.current;
@@ -268,14 +273,11 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         await NotificationsService.displayNotification({
           id: `perps-chase-max-distance-${event.handle}`,
-          pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
           title: strings('perps.order.chase.max_distance_reached_title'),
           body: strings('perps.order.chase.max_distance_reached_notification', {
             symbol: event.symbol,
           }),
-          data: {
-            deeplink: `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/perps-asset?symbol=${encodeURIComponent(event.symbol)}`,
-          },
+          throwOnError: true,
         });
         const notifiedHandles = notifiedMaxDistanceChaseHandlesRef.current;
         notifiedHandles.add(event.handle);

@@ -1408,6 +1408,27 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
+    it('blocks Chase placement until session context reconnects', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders
+        .mockRejectedValueOnce(new Error('Chase order context is not ready'))
+        .mockResolvedValueOnce([]);
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
     it('abandons Chase when compliance resolves after fallback', async () => {
       let releaseCompliance: (() => Promise<void>) | undefined;
       mockComplianceGate.mockImplementationOnce(

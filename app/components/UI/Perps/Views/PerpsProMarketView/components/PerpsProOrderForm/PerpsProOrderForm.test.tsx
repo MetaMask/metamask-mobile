@@ -200,6 +200,17 @@ describe('PerpsProOrderForm', () => {
   });
 
   describe('inputs', () => {
+    it('uses ButtonBase text rendering for non-Chase order titles', () => {
+      renderForm({ orderType: 'market' });
+
+      expect(
+        screen.queryByTestId(`${ids.ORDER_TYPE_BUTTON}-label-row`),
+      ).not.toBeOnTheScreen();
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+        strings('perps.order.type.market.title'),
+      );
+    });
+
     it('exposes the active Chase count only on the Chase form', () => {
       const view = renderForm({ activeChaseCount: 2 });
 

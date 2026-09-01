@@ -266,6 +266,7 @@ class NotificationsService {
     body,
     data,
     id,
+    throwOnError = false,
   }: {
     channelId?: ChannelId;
     pressActionId?: PressActionId;
@@ -273,6 +274,7 @@ class NotificationsService {
     body?: string;
     data?: unknown;
     id?: string;
+    throwOnError?: boolean;
   }): Promise<void> => {
     try {
       const channel = notificationChannels.find((c) => c.id === channelId);
@@ -311,6 +313,9 @@ class NotificationsService {
       });
     } catch (error) {
       Logger.log('Error displaying notification ', error);
+      if (throwOnError) {
+        throw error;
+      }
     }
   };
 }

@@ -13,7 +13,6 @@ import {
 import NotificationsService, {
   isPushPermissionGranted,
 } from '../../../../util/notifications/services/NotificationService';
-import { PressActionId } from '../../../../util/notifications';
 import { selectPerpsEnabledFlag } from '../index';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
@@ -149,10 +148,6 @@ jest.mock('../../../../selectors/notifications', () => ({
   selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
 }));
 
-jest.mock('../../../../core/AppConstants', () => ({
-  MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
-}));
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockResumeFromForeground =
   PerpsConnectionManager.resumeFromForeground as jest.Mock;
@@ -168,6 +163,11 @@ const mockControllerSubscribe = Engine.controllerMessenger
   .subscribe as jest.Mock;
 const mockControllerUnsubscribe = Engine.controllerMessenger
   .unsubscribe as jest.Mock;
+let mockProviderChildRenderAction: (() => void) | undefined;
+const ProviderRenderProbe = () => {
+  mockProviderChildRenderAction?.();
+  return <Text>child</Text>;
+};
 
 describe('PerpsAlwaysOnProvider', () => {
   let mockAppStateListener: ((state: string) => void) | null = null;
@@ -197,6 +197,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockSuspendChaseOrders.mockReset().mockResolvedValue([]);
     mockHasLiveChaseOrders = false;
     mockIsChaseOrderDiscoveryResolved = true;
+    mockProviderChildRenderAction = undefined;
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
     mockControllerSubscribe.mockImplementation((eventName, handler) => {
@@ -328,12 +329,9 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledWith({
       id: 'perps-chase-max-distance-chase-max-distance',
-      pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
       title: 'Chase max distance reached',
       body: 'Your ETH Chase order reached its max distance and is now resting as a limit order.',
-      data: {
-        deeplink: 'https://link.metamask.io/perps-asset?symbol=ETH',
-      },
+      throwOnError: true,
     });
   });
 
@@ -438,6 +436,54 @@ describe('PerpsAlwaysOnProvider', () => {
 
     expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses committed notification settings during a render-phase event', async () => {
+    let notificationsEnabled = true;
+    let permissionCallsDuringRender = 0;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) {
+        return notificationsEnabled;
+      }
+      return undefined;
+    });
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <ProviderRenderProbe />
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'chase-max-distance-render',
+      symbol: 'ETH',
+      side: 'buy' as const,
+      restingOrderId: 'resting-render',
+      restingPrice: '2500',
+      maxDistanceBps: 100,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as const,
+    };
+
+    notificationsEnabled = false;
+    mockProviderChildRenderAction = () => {
+      mockMaxDistanceHandler?.(event);
+      permissionCallsDuringRender =
+        mockIsPushPermissionGranted.mock.calls.length;
+      mockProviderChildRenderAction = undefined;
+    };
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <ProviderRenderProbe />
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(permissionCallsDuringRender).toBe(1);
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
   });
 
   it('does not call resumeFromForeground on mount when perps is disabled', () => {
@@ -1026,9 +1072,12 @@ describe('PerpsAlwaysOnProvider', () => {
       expect.objectContaining({
         data: {
           notification_type: 'perps_chase_backgrounded',
-          deeplink: 'https://link.metamask.io/perps',
         },
+        throwOnError: true,
       }),
+    );
+    expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
+      'pressActionId',
     );
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });

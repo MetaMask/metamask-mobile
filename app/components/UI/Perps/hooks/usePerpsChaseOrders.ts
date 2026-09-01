@@ -512,11 +512,13 @@ const suspendAndCacheChaseOrders = async (
 };
 
 const getFreshChaseOrders = async (): Promise<ChaseOrder[]> => {
-  if (!isConnectionIdentityReady()) return EMPTY_ORDERS;
+  if (!canRefreshCurrentRoute()) {
+    throw new Error('Chase order context is not ready');
+  }
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
   const operation = mutationQueue.then(async () => {
-    if (epoch !== mutationQueueEpoch) {
+    if (epoch !== mutationQueueEpoch || !canRefreshCurrentRoute()) {
       throw new Error('Chase order request became stale');
     }
     requestGeneration += 1;
