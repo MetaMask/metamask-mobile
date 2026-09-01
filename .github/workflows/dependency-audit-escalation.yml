@@ -3,8 +3,9 @@ name: Dependency Audit Escalation
 # `yarn audit:ci` is advisory-only in ci.yml (dependency-audit job) — it never
 # blocks a PR. This workflow is the actual triage loop:
 #   1. scripts/collect-audit-advisories.ts parses the raw `yarn audit` output
-#      and drops anything already tracked by an open PR/issue or explicitly
-#      accepted (.github/audit-accepted.yml).
+#      and drops anything already tracked by an open PR/issue. (Permanently
+#      accepted risks never even get this far — see
+#      npmAuditIgnoreAdvisories in .yarnrc.yml.)
 #   2. scripts/attempt-audit-fix.ts hands what's left to MetaMask/ai-analyzer's
 #      dependency-audit-fix mode (routed through the org's LiteLLM proxy),
 #      which proposes a fix per advisory (a version bump, a `resolutions`
@@ -19,8 +20,8 @@ name: Dependency Audit Escalation
 # found (so they know before waiting on the AI step/PR creation, which can
 # take a few minutes), and once at the end with links to whatever PR/issue
 # actually got created, threaded off the first message. See
-# .github/audit-owners.yml (owner) and .github/audit-accepted.yml
-# (accepting a risk instead of fixing it).
+# .github/audit-owners.yml (owner) and npmAuditIgnoreAdvisories in
+# .yarnrc.yml (accepting a risk instead of fixing it).
 #
 # No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
 # on every push/PR/hourly-schedule run ci.yml itself has, so re-running the
@@ -100,8 +101,14 @@ jobs:
           gh label create dependency-audit-manual --repo "$GITHUB_REPOSITORY" --color 'd93f0b' \
             --description 'Tracking issue for an advisory dependency-audit-escalation.yml could not auto-fix' --force
 
-      - name: Build skip-list from open PRs/issues and accepted advisories
+      - name: Build skip-list from open PRs/issues
         id: skip-list
+        # Advisories the owner has permanently accepted as risk are handled
+        # by .yarnrc.yml's npmAuditIgnoreAdvisories instead — those never
+        # reach `yarn npm audit`'s output at all, so there's nothing to skip
+        # here for them. This step only dedupes against advisories that are
+        # mid-flight (already tracked by an open fix PR or manual-review
+        # issue from a previous run).
         if: ${{ steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
@@ -113,17 +120,6 @@ jobs:
             gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json body --jq '.[].body'
           } | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' | tr ',' '\n' \
             > skip-ids.txt || true
-
-          if [[ -f .github/audit-accepted.yml ]]; then
-            node -e "
-              const yaml = require('js-yaml');
-              const fs = require('fs');
-              const doc = yaml.load(fs.readFileSync('.github/audit-accepted.yml', 'utf8')) || {};
-              for (const entry of doc.accepted || []) {
-                if (entry?.id) console.log(entry.id);
-              }
-            " >> skip-ids.txt
-          fi
 
           node -e "
             const fs = require('fs');
@@ -245,7 +241,7 @@ jobs:
           IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
           BODY_FILE="$(mktemp)"
           {
-            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add an entry to .github/audit-accepted.yml to accept this as a risk instead of fixing it."
+            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
             echo
             node -e "
               const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;

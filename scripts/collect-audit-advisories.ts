@@ -2,9 +2,11 @@
 /**
  * Parses `yarn npm audit --json`'s NDJSON output into the advisory list the
  * dependency-audit escalation loop works from, dropping anything already
- * tracked by an open PR/issue or explicitly accepted (see
- * .github/workflows/dependency-audit-escalation.yml's "Build skip-list" step
- * and .github/audit-accepted.yml).
+ * tracked by an open PR/issue (see
+ * .github/workflows/dependency-audit-escalation.yml's "Build skip-list"
+ * step). Permanently accepted risks never reach this script at all — they're
+ * suppressed at the `yarn npm audit` level itself via npmAuditIgnoreAdvisories
+ * in .yarnrc.yml.
  *
  * This script never attempts a fix itself — it only builds the initial
  * `manual` list scripts/attempt-audit-fix.ts hands to MetaMask/ai-analyzer.
@@ -117,7 +119,7 @@ function main(): void {
     seen.add(key);
 
     if (skipIds.has(advisory.id)) {
-      console.log(`[${advisory.id}] ${advisory.pkg}: skipped (already tracked by an open PR/issue or accepted)`);
+      console.log(`[${advisory.id}] ${advisory.pkg}: skipped (already tracked by an open PR/issue)`);
       continue;
     }
 

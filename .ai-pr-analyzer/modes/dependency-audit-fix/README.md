@@ -18,7 +18,7 @@ The AI never edits any file — it only investigates (`read_file` on package.jso
 
 ## Input artifact
 
-`scripts/attempt-audit-fix.ts` writes `.ai-pr-analyzer/dependency-audit-advisories.json` before invoking the analyzer — a JSON array of the advisories `scripts/collect-audit-advisories.ts` collected (found by `yarn audit:ci`, minus anything already tracked or accepted), e.g.:
+`scripts/attempt-audit-fix.ts` writes `.ai-pr-analyzer/dependency-audit-advisories.json` before invoking the analyzer — a JSON array of the advisories `scripts/collect-audit-advisories.ts` collected (found by `yarn audit:ci`, minus anything already tracked by an open PR/issue or permanently accepted via `npmAuditIgnoreAdvisories` in `.yarnrc.yml`), e.g.:
 
 ```json
 [
