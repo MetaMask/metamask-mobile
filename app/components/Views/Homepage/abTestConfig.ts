@@ -367,26 +367,41 @@ export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
 
 export enum HeaderNavBarVariant {
   Control = 'control',
-  Treatment = 'treatment',
+  TreatmentA = 'treatmentA',
+  TreatmentB = 'treatmentB',
 }
+
+export type HeaderNavBarLayout = 'a' | 'b';
 
 interface HeaderNavBarVariantConfig {
   isCompactHeaderEnabled: boolean;
+  layout: HeaderNavBarLayout | null;
 }
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: { isCompactHeaderEnabled: false },
-  [HeaderNavBarVariant.Treatment]: { isCompactHeaderEnabled: true },
+  [HeaderNavBarVariant.Control]: {
+    isCompactHeaderEnabled: false,
+    layout: null,
+  },
+  [HeaderNavBarVariant.TreatmentA]: {
+    isCompactHeaderEnabled: true,
+    layout: 'a',
+  },
+  [HeaderNavBarVariant.TreatmentB]: {
+    isCompactHeaderEnabled: true,
+    layout: 'b',
+  },
 };
 
 export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
   experimentName: 'Header and Nav Bar refresh',
   variationNames: {
     control: 'Current header and NavBar',
-    treatment: 'Refreshed header with consolidated hamburger menu and NavBar',
+    treatmentA: 'Refreshed header and NavBar, design A',
+    treatmentB: 'Refreshed header and NavBar, design B',
   },
 } as const;
 
