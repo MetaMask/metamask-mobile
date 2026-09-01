@@ -1,12 +1,48 @@
+import { isCrossChain } from '@metamask/bridge-controller';
+import { getMemoizedInternalAccountByAddress } from '../accountsController';
+import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
+import { getIsAssetRequireActivate } from '../stellar/stellar-assets';
 import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
-import * as bridgeController from '@metamask/bridge-controller';
-import * as accountsController from '../accountsController';
-import * as multichainAccounts from '../multichainAccounts/accounts';
-import * as stellarAssets from '../stellar/stellar-assets';
 
 jest.mock('../smartTransactionsController', () => ({
   getGaslessBridgeWith7702EnabledForChain: jest.fn().mockReturnValue(false),
 }));
+
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    ...actual,
+    isCrossChain: jest.fn(actual.isCrossChain),
+  };
+});
+
+jest.mock('../accountsController', () => {
+  const actual = jest.requireActual('../accountsController');
+  return {
+    ...actual,
+    getMemoizedInternalAccountByAddress: jest.fn(
+      actual.getMemoizedInternalAccountByAddress,
+    ),
+  };
+});
+
+jest.mock('../multichainAccounts/accounts', () => {
+  const actual = jest.requireActual('../multichainAccounts/accounts');
+  return {
+    ...actual,
+    selectSelectedInternalAccountByScope: jest.fn(
+      actual.selectSelectedInternalAccountByScope,
+    ),
+  };
+});
+
+jest.mock('../stellar/stellar-assets', () => {
+  const actual = jest.requireActual('../stellar/stellar-assets');
+  return {
+    ...actual,
+    getIsAssetRequireActivate: jest.fn(actual.getIsAssetRequireActivate),
+  };
+});
 
 import { initialState as bridgeInitialState } from '../../core/redux/slices/bridge';
 import {
@@ -532,23 +568,21 @@ describe('bridge selectors', () => {
       });
 
     beforeEach(() => {
-      jest.spyOn(bridgeController, 'isCrossChain').mockReturnValue(true);
+      jest.mocked(isCrossChain).mockReturnValue(true);
+      jest.mocked(getIsAssetRequireActivate).mockReturnValue(true);
       jest
-        .spyOn(stellarAssets, 'getIsAssetRequireActivate')
-        .mockReturnValue(true);
-      jest
-        .spyOn(accountsController, 'getMemoizedInternalAccountByAddress')
+        .mocked(getMemoizedInternalAccountByAddress)
         .mockReturnValue(DEST_ACCOUNT as never);
       mockSelectedByScope.mockReturnValue(DEST_ACCOUNT);
       jest
-        .spyOn(multichainAccounts, 'selectSelectedInternalAccountByScope')
+        .mocked(selectSelectedInternalAccountByScope)
         .mockReturnValue(mockSelectedByScope);
       selectIsDestAssetRequireActivate.clearCache();
       selectIsDestSameAsActiveAccount.clearCache();
     });
 
     afterEach(() => {
-      jest.restoreAllMocks();
+      jest.clearAllMocks();
     });
 
     it('returns true when cross-chain dest requires activation on the dest account', () => {
@@ -556,7 +590,7 @@ describe('bridge selectors', () => {
 
       expect(selectIsDestAssetRequireActivate(state)).toBe(true);
       expect(selectIsDestSameAsActiveAccount(state)).toBe(true);
-      expect(stellarAssets.getIsAssetRequireActivate).toHaveBeenCalledWith(
+      expect(getIsAssetRequireActivate).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
           assetId: STELLAR_USDC,
@@ -575,16 +609,16 @@ describe('bridge selectors', () => {
 
     it('returns false when destAddress has no matching internal account', () => {
       jest
-        .spyOn(accountsController, 'getMemoizedInternalAccountByAddress')
+        .mocked(getMemoizedInternalAccountByAddress)
         .mockReturnValue(undefined);
       const state = createDestActivateState({ destAddress: 'GEXTERNAL' });
 
       expect(selectIsDestAssetRequireActivate(state)).toBe(false);
-      expect(stellarAssets.getIsAssetRequireActivate).not.toHaveBeenCalled();
+      expect(getIsAssetRequireActivate).not.toHaveBeenCalled();
     });
 
     it('returns false for same-chain swaps', () => {
-      jest.spyOn(bridgeController, 'isCrossChain').mockReturnValue(false);
+      jest.mocked(isCrossChain).mockReturnValue(false);
       const state = createDestActivateState();
 
       expect(selectIsDestAssetRequireActivate(state)).toBe(false);
