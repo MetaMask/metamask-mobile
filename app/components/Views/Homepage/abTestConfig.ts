@@ -399,8 +399,12 @@ const HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
   isHeaderSearchEnabled: true,
 };
 
-/** Non-App-Store environments that opt into the override below. */
-const HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
+/**
+ * Non-App-Store environments that opt into the override below — every track the
+ * TestFlight workflow can build (`build-and-upload-to-testflight.yml`). Only the
+ * App Store `production` build is excluded.
+ */
+const HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS = ['dev', 'exp', 'beta', 'rc'];
 
 /**
  * TEMPORARY — forces one treatment arm for internal team testing (TMCU-1276).
