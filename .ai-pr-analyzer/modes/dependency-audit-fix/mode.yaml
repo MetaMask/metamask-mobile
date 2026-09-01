@@ -1,4 +1,4 @@
 id: dependency-audit-fix
-description: Proposes package.json/yarn.lock fixes for dependency-audit advisories the deterministic tier could not clear
+description: Proposes package.json/yarn.lock fixes for dependency-audit advisories found by `yarn audit:ci`
 finalizeToolName: finalize_dependency_audit_fix
 outputFile: .ai-pr-analyzer/dependency-audit-fix.json

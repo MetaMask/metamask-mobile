@@ -7,14 +7,14 @@
  *
  * Runs in one of three stages, controlled by SLACK_STAGE, so the owner gets a
  * heads-up as soon as new advisories are found instead of only learning
- * about them once a PR already exists (which can be several minutes later,
- * once the AI-assisted tier has had a chance to run):
- *   - "detected" (posted right after tier 1 runs, before any PR is opened):
- *     announces how many advisories tier 1 auto-fixed vs. how many are being
- *     escalated to the AI-assisted tier, with a link to the running workflow.
- *   - "result" (default; posted once both tiers and any tracking issue are
- *     done): the final summary with links to whichever of the tier 1 PR /
- *     tier 2 PR / tracking issue actually got created.
+ * about them once a PR already exists (which can be a few minutes later,
+ * once the AI-assisted fix step has had a chance to run):
+ *   - "detected" (posted right after advisories are collected, before the AI
+ *     step or any PR runs): announces how many new advisories were found,
+ *     with a link to the running workflow.
+ *   - "result" (default; posted once the fix attempt and any tracking issue
+ *     are done): the final summary with links to whichever of the fix PR /
+ *     tracking issue actually got created.
  *   - "failure" (posted when an infra step — e.g. Get token — fails after
  *     "detected" already went out): by default GitHub Actions skips every
  *     step after a failed one unless that step's own dependencies already
@@ -33,7 +33,7 @@
  *               SLACK_MESSAGE_TS_PATH (default slack-message-ts.txt; where this
  *               run's message timestamp is written, so a later "result" call
  *               can thread off of it),
- *               PR_URL, AI_PR_URL, ISSUE_URL, RUN_URL, FAILED_STEP,
+ *               PR_URL, ISSUE_URL, RUN_URL, FAILED_STEP,
  *               SLACK_AUDIT_NOTIFICATION_DRY_RUN
  */
 
@@ -72,30 +72,25 @@ function advisoryLine(entry) {
 
 /**
  * The "we just found something and are working on it" message, posted before
- * any PR exists — see the SLACK_STAGE doc comment above.
+ * the AI-assisted fix step runs or any PR exists — see the SLACK_STAGE doc
+ * comment above.
  * @param {object} options
  * @returns {{blocks: object[], text: string}}
  */
-function buildDetectedMessage({ fixedCount, manualCount, runUrl, ownerSlackId, managerSlackId }) {
+function buildDetectedMessage({ count, runUrl, ownerSlackId, managerSlackId }) {
   const mentions = [`<@${ownerSlackId}>`];
   if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
 
-  const total = fixedCount + manualCount;
-  const headerText = total === 1
+  const headerText = count === 1
     ? '🔎 Dependency audit: 1 new advisory detected'
-    : `🔎 Dependency audit: ${total} new advisories detected`;
-
-  const summaryLines = [];
-  if (fixedCount > 0) {
-    summaryLines.push(`✅ ${fixedCount} auto-fixed already (tier 1, deterministic) — opening a PR now.`);
-  }
-  if (manualCount > 0) {
-    summaryLines.push(`🤖 ${manualCount} need a closer look — escalating to the AI-assisted tier now.`);
-  }
+    : `🔎 Dependency audit: ${count} new advisories detected`;
 
   const blocks = [
     { type: 'header', text: { type: 'plain_text', text: headerText, emoji: true } },
-    { type: 'section', text: { type: 'mrkdwn', text: summaryLines.join('\n') } },
+    {
+      type: 'section',
+      text: { type: 'mrkdwn', text: `🤖 Escalating to AI-assisted review now (MetaMask/ai-analyzer proposes a fix, which is then independently applied and re-verified before being trusted).` },
+    },
   ];
 
   if (runUrl) {
@@ -122,12 +117,12 @@ function buildDetectedMessage({ fixedCount, manualCount, runUrl, ownerSlackId, m
 }
 
 /**
- * The final "here's what happened" message, posted once both tiers and any
- * tracking issue are done — see the SLACK_STAGE doc comment above.
+ * The final "here's what happened" message, posted once the fix attempt and
+ * any tracking issue are done — see the SLACK_STAGE doc comment above.
  * @param {object} options
  * @returns {{blocks: object[], text: string}}
  */
-function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
+function buildResultMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlackId, managerSlackId }) {
   const mentions = [`<@${ownerSlackId}>`];
   if (managerSlackId) mentions.push(`<@${managerSlackId}>`);
 
@@ -148,7 +143,7 @@ function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, o
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*✅ Auto-fixed (${fixed.length}):*\n${fixed.map(advisoryLine).join('\n')}`,
+        text: `*✅ Fixed (AI-proposed, independently verified) (${fixed.length}):*\n${fixed.map(advisoryLine).join('\n')}`,
       },
     });
   }
@@ -165,7 +160,6 @@ function buildResultMessage({ fixed, manual, prUrl, aiPrUrl, issueUrl, runUrl, o
 
   const links = [];
   if (prUrl) links.push(`<${prUrl}|View fix PR>`);
-  if (aiPrUrl) links.push(`<${aiPrUrl}|View AI-assisted fix PR>`);
   if (issueUrl) links.push(`<${issueUrl}|View tracking issue>`);
   if (runUrl) links.push(`<${runUrl}|View workflow run>`);
   if (links.length > 0) {
@@ -309,8 +303,7 @@ async function main() {
 
     payload = stage === 'detected'
       ? buildDetectedMessage({
-        fixedCount: fixed.length,
-        manualCount: manual.length,
+        count: fixed.length + manual.length,
         runUrl: process.env.RUN_URL || '',
         ownerSlackId: owners.owner.slack_id,
         managerSlackId: owners.manager?.slack_id,
@@ -319,7 +312,6 @@ async function main() {
         fixed,
         manual,
         prUrl: process.env.PR_URL || '',
-        aiPrUrl: process.env.AI_PR_URL || '',
         issueUrl: process.env.ISSUE_URL || '',
         runUrl: process.env.RUN_URL || '',
         ownerSlackId: owners.owner.slack_id,

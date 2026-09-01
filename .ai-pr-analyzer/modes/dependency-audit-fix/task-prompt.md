@@ -1,4 +1,4 @@
-Read `.ai-pr-analyzer/dependency-audit-advisories.json` with `read_file`. It is a JSON array of advisories tier 1 (a deterministic script) already tried and failed to fix; each entry has `package`, `advisory_id`, `severity`, `title`, `url`, and `tier_1_failure_reason`.
+Read `.ai-pr-analyzer/dependency-audit-advisories.json` with `read_file`. It is a JSON array of advisories found by `yarn audit:ci`; each entry has `package`, `advisory_id`, `severity`, `title`, and `url`.
 
 {{changed_files}}
 
