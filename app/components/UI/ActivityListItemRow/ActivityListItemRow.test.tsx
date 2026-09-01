@@ -713,6 +713,30 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
+  it('uses deposit copy and hides amounts for a cancelled EOA transfer to Money', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Deposit cancelled',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
   it('renders a Money Account withdrawal as a received transfer with Money account counterparty', () => {
     const item = makeItem({
       type: 'receive',

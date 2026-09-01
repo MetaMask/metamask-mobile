@@ -534,8 +534,11 @@ function resolveCoreContent(
         : item.type === 'receive'
           ? 'Receive failed'
           : 'Send failed';
-      const cancelledLabel =
-        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
+      const cancelledLabel = isMoneyDeposit
+        ? 'Deposit cancelled'
+        : item.type === 'receive'
+          ? 'Receive cancelled'
+          : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
       const counterpartyLabel =
         counterpartyName ||
