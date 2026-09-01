@@ -1883,6 +1883,7 @@ export const usePerpsProOrderForm = ({
     expectedChaseProviderId: PerpsProviderType | null,
     expectedNetwork: typeof network,
     expectedLifecycleGeneration: number,
+    expectedComplianceState: string,
   ) => {
     if (isSubmittingRef.current) {
       return;
@@ -2511,6 +2512,13 @@ export const usePerpsProOrderForm = ({
         submissionChaseSnapshot?.reduceOnlyValidation ?? reduceOnlyValidation;
       const placementCurrentMarketPosition =
         submissionChaseSnapshot?.currentMarketPosition ?? currentMarketPosition;
+      if (
+        placementOrderForm.type === 'chase' &&
+        complianceStateRef.current !== expectedComplianceState
+      ) {
+        reportChaseSubmissionChanged();
+        return;
+      }
       const orderParams = buildPerpsOrderParams({
         asset: placementOrderForm.asset,
         isBuy: placementOrderForm.direction === 'long',
@@ -3410,6 +3418,7 @@ export const usePerpsProOrderForm = ({
           expectedChaseProviderId,
           expectedNetwork,
           expectedLifecycleGeneration,
+          expectedComplianceState,
         );
       });
     } finally {

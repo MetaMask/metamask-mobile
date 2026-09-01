@@ -111,6 +111,7 @@ class PerpsConnectionManagerClass {
   private connectionGeneration = 0;
   private readonly connectionGenerationListeners = new Set<() => void>();
   private initializedUserContextKey: string | null = null;
+  private initializedChaseRouteIdentity: ChaseOrderRouteIdentity | null = null;
   private readonly initializedUserContextListeners = new Set<() => void>();
   private isDisconnecting = false;
   private error: string | null = null;
@@ -186,7 +187,8 @@ class PerpsConnectionManagerClass {
       return this.contextChangePreparationPromise;
     }
     const preparation = (async () => {
-      const routeIdentity = this.getChaseOrderRouteIdentity();
+      const routeIdentity =
+        this.initializedChaseRouteIdentity ?? this.getChaseOrderRouteIdentity();
       let timer: ReturnType<typeof setTimeout> | undefined;
       const timeoutError = new Error('Chase context suspension timed out');
       const timeout = new Promise<never>((_, reject) => {
@@ -306,6 +308,9 @@ class PerpsConnectionManagerClass {
       return;
     }
     this.initializedUserContextKey = key;
+    if (key !== null) {
+      this.initializedChaseRouteIdentity = this.getChaseOrderRouteIdentity();
+    }
     this.initializedUserContextListeners.forEach((listener) => listener());
   }
 

@@ -2222,7 +2222,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('uses the latest validated Chase size in confirmation copy', async () => {
+    it('aborts when validation changes the reviewed Chase size', async () => {
       const validResult = {
         errors: [],
         warnings: [],
@@ -2250,7 +2250,6 @@ describe('usePerpsProOrderForm', () => {
         {},
         { refresh },
       );
-      const initiatingConfirmation = mockExecutionOptions.onSuccess;
       let submission: Promise<void> | undefined;
 
       act(() => {
@@ -2267,18 +2266,15 @@ describe('usePerpsProOrderForm', () => {
         resolveFirstValidation?.(validResult);
         await submission;
       });
-      act(() => {
-        initiatingConfirmation?.();
-      });
-
       expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
-      expect(mockExecuteOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ size: '0.003' }),
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(chaseConfirmed).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
       );
-      expect(chaseConfirmed).toHaveBeenCalledWith('long', '0.003', 'BTC');
     });
 
-    it('continues Chase submit when a MAX amount updates during session refresh', async () => {
+    it('aborts when MAX-derived size changes during session refresh', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -2322,15 +2318,8 @@ describe('usePerpsProOrderForm', () => {
         await submitPromise;
       });
 
-      await waitFor(() =>
-        expect(mockExecuteOrder).toHaveBeenCalledWith(
-          expect.objectContaining({
-            usdAmount: '900',
-            leverage: 5,
-          }),
-        ),
-      );
-      expect(validationError).not.toHaveBeenCalledWith(
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
         strings('perps.order.validation.chase_details_changed'),
       );
     });
@@ -2413,7 +2402,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('uses the latest reference price for Chase USD distance', async () => {
+    it('aborts when effective price changes during session refresh', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -2439,12 +2428,14 @@ describe('usePerpsProOrderForm', () => {
 
       mockLivePrice = '45000';
       form.rerender({});
-      await act(async () => resolveOrders?.([]));
+      await act(async () => {
+        resolveOrders?.([]);
+        await Promise.resolve();
+      });
 
-      await waitFor(() =>
-        expect(mockExecuteOrder).toHaveBeenCalledWith(
-          expect.objectContaining({ chaseMaxDistanceBps: 20 }),
-        ),
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
       );
     });
 

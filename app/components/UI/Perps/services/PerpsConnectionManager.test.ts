@@ -200,6 +200,11 @@ const resetManager = (manager: unknown) => {
     initializedMarketContextKey: string | null;
     initializedConnectionGeneration: number | null;
     initializedUserContextKey: string | null;
+    initializedChaseRouteIdentity: {
+      account: string;
+      provider: string;
+      network: string;
+    } | null;
     connectionGeneration: number;
     isDisconnecting: boolean;
     connectionRefCount: number;
@@ -257,6 +262,7 @@ const resetManager = (manager: unknown) => {
   m.initializedMarketContextKey = null;
   m.initializedConnectionGeneration = null;
   m.initializedUserContextKey = null;
+  m.initializedChaseRouteIdentity = null;
   m.connectionGeneration = 0;
   m.isDisconnecting = false;
   m.connectionRefCount = 0;
@@ -369,7 +375,7 @@ describe('PerpsConnectionManager', () => {
       }
     });
 
-    it('reports a partial suspension that rejects after the context deadline', async () => {
+    it('reports a late partial suspension against the last initialized route', async () => {
       jest.useFakeTimers();
       resetSuspendedChaseOrderBufferForTests();
       const listener = jest.fn();
@@ -390,6 +396,16 @@ describe('PerpsConnectionManager', () => {
       );
       const transition = jest.fn().mockResolvedValue({ success: true });
       const loggerError = jest.spyOn(Logger, 'error').mockImplementation();
+      const manager = PerpsConnectionManager as unknown as {
+        setInitializedUserContextKey: (key: string) => void;
+      };
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xold-account' }));
+      manager.setInitializedUserContextKey('old-route');
+      (
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xnew-account' }));
       try {
         const result =
           PerpsConnectionManager.runWithContextChangePreparation(transition);
@@ -421,7 +437,7 @@ describe('PerpsConnectionManager', () => {
         expect(storeListener).toHaveBeenCalledWith({
           orders: [partialOrder],
           route: {
-            account: '0x1234567890123456789012345678901234567890',
+            account: '0xold-account',
             provider: 'hyperliquid',
             network: 'testnet',
           },
