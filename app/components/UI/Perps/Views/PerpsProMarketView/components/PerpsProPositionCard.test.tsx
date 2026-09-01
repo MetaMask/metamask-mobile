@@ -207,31 +207,25 @@ describe('PerpsProPositionCard', () => {
       <PerpsProPositionCard position={{ ...position, takeProfitCount: 3 }} />,
     );
 
-    expect(screen.getByText('3 orders / $2,000')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('3 orders / $2,000');
     expect(screen.queryByText(/\$3,500/)).toBeNull();
   });
 
-  it('renders the trigger price for a single take profit order that closes the position partially', () => {
+  // Whether that one order closes the position fully or partially is the controller's
+  // concern: `resolvePositionTriggerSummaryPrice` returns the order's own trigger price
+  // whenever exactly one exists, partial or not (@metamask/perps-controller). The card's
+  // obligation is to show that price instead of a count of one.
+  it('renders the trigger price when the controller reports a single take profit order', () => {
     render(
-      <PerpsProPositionCard
-        position={{
-          ...position,
-          takeProfitCount: 1,
-          takeProfitOrders: [
-            {
-              orderId: '1',
-              direction: 'take_profit',
-              triggerPrice: '3500',
-              size: '0.5',
-              isPartial: true,
-              reduceOnly: true,
-            },
-          ],
-        }}
-      />,
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 1 }} />,
     );
 
-    expect(screen.getByText('$3,500 / $2,000')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('$3,500 / $2,000');
+    expect(screen.queryByText(/1 order/)).toBeNull();
   });
 
   // Which orders belong in the tally is the controller's decision: it counts every
@@ -246,7 +240,9 @@ describe('PerpsProPositionCard', () => {
       />,
     );
 
-    expect(screen.getByText('2 orders / 2 orders')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('2 orders / 2 orders');
   });
 
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {

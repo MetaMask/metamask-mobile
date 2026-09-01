@@ -531,6 +531,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_REVERSE: 'perps-pro-market-position-reverse',
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
+  POSITION_TPSL_VALUE: 'perps-pro-market-position-tpsl-value',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_ROW: 'perps-pro-market-position-row',

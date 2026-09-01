@@ -74,6 +74,8 @@ interface KeyValueItemProps {
   isValuePressDisabled?: boolean;
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
+  /** Sits on the text that holds the value, so recipes can read it without a press target. */
+  valueTestID?: string;
   showEditIcon?: boolean;
 }
 
@@ -87,6 +89,7 @@ const KeyValueItem = ({
   isValuePressDisabled = false,
   valuePressTestID,
   valuePressAccessibilityLabel,
+  valueTestID,
   showEditIcon = false,
 }: KeyValueItemProps) => {
   const valueContent = (
@@ -97,6 +100,7 @@ const KeyValueItem = ({
         color={isHidden ? TextColor.TextDefault : valueColor}
         isHidden={isHidden}
         length={SensitiveTextLength.Short}
+        testID={valueTestID}
       >
         {value}
       </SensitiveText>
@@ -411,6 +415,7 @@ const PerpsProPositionCard = ({
                 valuePressAccessibilityLabel={strings(
                   'perps.position.card.edit_tpsl',
                 )}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE}
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>
