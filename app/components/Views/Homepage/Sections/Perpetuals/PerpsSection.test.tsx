@@ -410,6 +410,13 @@ describe('PerpsSection', () => {
       orders: [],
       isInitialLoading: false,
     });
+    usePerpsLiveAccount.mockReturnValue({
+      account: {
+        unrealizedPnl: '95.39',
+        returnOnEquity: '9.4',
+      },
+      isInitialLoading: false,
+    });
     usePerpsMarkets.mockReturnValue({
       markets: [],
       isLoading: false,
