@@ -19,7 +19,7 @@ export interface UseOnboardingLoadingStallTrackerParams {
 }
 
 /**
- * Fires Onboarding Loading Stalled once when `isLoading` stays true for
+ * Fires Onboarding Loading Timed Out once when `isLoading` stays true for
  * {@link ONBOARDING_LOADING_STALL_MS}. Cancels if loading ends first.
  * Behavior-neutral: tracking only.
  */
@@ -42,7 +42,7 @@ export function useOnboardingLoadingStallTracker({
     const startedAt = Date.now();
     const timeoutId = setTimeout(() => {
       trackDeferredOnboardingEvent(
-        MetaMetricsEvents.ONBOARDING_LOADING_STALLED,
+        MetaMetricsEvents.ONBOARDING_LOADING_TIMED_OUT,
         {
           screen,
           elapsed_ms: Date.now() - startedAt,

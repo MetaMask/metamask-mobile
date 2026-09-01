@@ -1098,6 +1098,11 @@ const Onboarding = () => {
           return;
         }
 
+        setState((prevState) => ({
+          ...prevState,
+          createWallet,
+          existingWallet: !createWallet,
+        }));
         setLoading();
         const loginHandlerOptions =
           provider === AuthConnection.Telegram
