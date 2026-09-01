@@ -169,7 +169,7 @@
       },
       "warning": {
         "message": "Security partners don't have enough reliable history to verify this address.",
-        "title": "Limited or mixed address signals"
+        "title": "Limited address signals"
       }
     },
     "url_trust_signal": {
@@ -1027,7 +1027,7 @@
       "description": "Card purchases typically take a few minutes",
       "bank_transfer_description": "Bank transfers typically take a few business days",
       "success_title": "Deposit complete",
-      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful",
       "error_title": "Deposit failed",
       "error_description": "We were unable to complete your deposit",
       "cancel_order_description": "You requested a cancellation of your deposit.",
@@ -1080,7 +1080,7 @@
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
       "deposit_cancelled_description": "You requested a cancellation of your deposit.",
-      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful",
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
       "deposit_pending_description": "This should only take a few minutes..."
@@ -1456,7 +1456,7 @@
       "processing": {
         "title": "Processing deposit"
       },
-      "deposit_completed": "Deposit completed successfully!",
+      "deposit_completed": "Deposit completed successfully",
       "deposit_failed": "Deposit failed",
       "retry_deposit": "Retry deposit",
       "go_back": "Go back",
@@ -1486,7 +1486,7 @@
       "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
-        "title": "Deposit successful!",
+        "title": "Deposit successful",
         "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
         "amount": "Amount",
         "processing_time": "Processing time",
@@ -5043,13 +5043,13 @@
     "malicious_token_description_no_symbol": "Security partners flag this token as high risk.",
     "malicious_token_banner_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_banner_description_no_symbol": "Security partners flag this token as high risk.",
-    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
-    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
+    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
-    "risky_token_description": "{{symbol}} has limited history or risk signals.",
-    "risky_token_description_no_symbol": "This token has limited history or risk signals.",
+    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
@@ -5059,7 +5059,7 @@
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
     "subtitle_no_issues": "No risk signals detected. Always research any asset before trading.",
-    "subtitle_suspicious": "This token has limited history or risk signals.",
+    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
     "subtitle_malicious": "Security partners flag this token as high risk.",
     "subtitle_unavailable": "Security analysis could not be loaded for this token.",
     "token_distribution": "Token distribution",
@@ -6092,7 +6092,7 @@
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
     "cta_text": "Confirm phrase",
-    "modal_title": "Secret Recovery Phrase confirmed!",
+    "modal_title": "Secret Recovery Phrase confirmed",
     "modal_text": "This was to ensure you follow this security measure",
     "modal_button": "Next"
   },
@@ -6258,10 +6258,10 @@
     "pending_deposit_title": "Deposit in progress",
     "pending_withdrawal_title": "Withdrawal in progress",
     "cancelled_title": "Transaction cancelled",
-    "success_title": "Transaction #{{nonce}} Complete!",
+    "success_title": "Transaction #{{nonce}} complete",
     "speedup_title": "Speeding up #{{nonce}}",
-    "success_deposit_title": "Deposit complete!",
-    "success_withdrawal_title": "Withdrawal complete!",
+    "success_deposit_title": "Deposit complete",
+    "success_withdrawal_title": "Withdrawal complete",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
     "erc20_sent_title": "Funds sent",
@@ -6735,6 +6735,7 @@
     "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
+    "wallet_pay_terms": "By continuing, you accept Crossmint's",
     "terms_of_service": "Terms of Service",
     "amount_to_buy": "Buy",
     "amount_to_sell": "Sell",
