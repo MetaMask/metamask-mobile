@@ -57,21 +57,26 @@ export function finalizeOnboardingCompletion({
     return;
   }
 
-  const state = store.getState();
-  // Skip when engine/RFF state is unavailable (e.g. partial test stores);
-  // defaults to OFF, matching the production kill-switch default.
-  const canReadRemoteFeatureFlags = Boolean(
-    state?.engine?.backgroundState?.RemoteFeatureFlagController,
-  );
-  if (
-    canReadRemoteFeatureFlags &&
-    selectMobileUxBftcConsolidationFlagEnabled(state)
-  ) {
-    dispatch(setBasicFunctionalityConsolidatedEnabled(true));
-    syncConsolidatedBasicFunctionalityPreferences(isBasicFunctionalityEnabled);
-  }
-
   if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+    // BFT cohort enrollment is gated by the same first-time onboarding
+    // eligibility check above so SETTINGS_BACKUP / REMINDER_BACKUP do not
+    // overwrite existing users' granular privacy preferences.
+    // Skip when engine/RFF state is unavailable (e.g. partial test stores);
+    // defaults to OFF, matching the production kill-switch default.
+    const state = store.getState();
+    const canReadRemoteFeatureFlags = Boolean(
+      state?.engine?.backgroundState?.RemoteFeatureFlagController,
+    );
+    if (
+      canReadRemoteFeatureFlags &&
+      selectMobileUxBftcConsolidationFlagEnabled(state)
+    ) {
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+      syncConsolidatedBasicFunctionalityPreferences(
+        isBasicFunctionalityEnabled,
+      );
+    }
+
     const onboardingCompletedProperties =
       getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
         accountType,
