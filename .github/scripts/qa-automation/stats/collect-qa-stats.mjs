@@ -44,18 +44,16 @@
 import { readFile, writeFile, mkdir, readdir, access } from 'fs/promises';
 import { constants as fsConstants } from 'fs';
 import { execSync } from 'child_process';
-import { createRequire } from 'module';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
-const require = createRequire(import.meta.url);
-const {
+import {
   getE2EArtifactDimensions,
   countExecutedTestsFromPlaywrightJson,
   aggregateTimingsFromPlaywrightJson,
   countSkips,
   countDefinedTests,
-} = require('./qa-stats-e2e.cjs');
+} from './qa-stats-e2e.mjs';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPOSITORY = process.env.GITHUB_REPOSITORY ?? 'MetaMask/metamask-mobile';

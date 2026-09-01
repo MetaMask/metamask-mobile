@@ -194,7 +194,7 @@ function countDefinedTests(source) {
   return (source.match(new RegExp(TEST_CALL_SOURCE, 'g')) ?? []).length;
 }
 
-module.exports = {
+export {
   getE2EArtifactDimensions,
   countExecutedTestsFromPlaywrightJson,
   normalizeSpecPath,
