@@ -399,7 +399,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               !isFiatPrefillSkip &&
               (isPrefillPending || isDepositPrefillLoading)
             }
-            preserveAmountOnMaxQuoteLoad={isMoneyAccountDeposit}
             onPress={
               stage === CustomAmountStage.Loading && !canEditZeroAmount
                 ? undefined
