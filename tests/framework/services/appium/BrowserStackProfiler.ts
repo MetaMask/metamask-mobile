@@ -50,10 +50,14 @@ export async function stopBrowserStackProfiler(
   await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
   await stopButton.click();
 
-  const startButton = await driver.$('~profiler-start-button');
-  await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
-
   const resultReady = await driver.$('~e2e-profiler-result-ready');
+  if (shouldUseShake) {
+    const startButton = await driver.$('~profiler-start-button');
+    await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+  } else {
+    await resultReady.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+  }
+
   const resultLabel = await resultReady.getAttribute('content-desc');
   const fileName = resultLabel?.split(':').pop();
   if (!fileName?.endsWith('.cpuprofile')) {
