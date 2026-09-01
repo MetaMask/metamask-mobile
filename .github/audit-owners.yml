@@ -22,13 +22,7 @@ owner:
   # TODO: fill in the owner's Slack member ID so the escalation Slack
   # message actually notifies them (see comment above).
   slack_id: 'U0XXXXXXXXX'
-
 # Manager escalation is disabled for now — uncomment and fill in a
 # manager.slack_id to re-enable the second @-mention in the Slack message.
 # manager:
 #   slack_id: 'U0YYYYYYYYY'
-
-# Business days allowed before an open advisory PR/issue is considered stale.
-# There is currently no automated re-ping; the owner (and manager, if
-# configured) tagged in the original Slack message are expected to follow up.
-sla_days: 5

@@ -19,7 +19,7 @@ name: Dependency Audit Escalation
 # found (so they know before waiting on the AI step/PR creation, which can
 # take a few minutes), and once at the end with links to whatever PR/issue
 # actually got created, threaded off the first message. See
-# .github/audit-owners.yml (owner/SLA) and .github/audit-accepted.yml
+# .github/audit-owners.yml (owner) and .github/audit-accepted.yml
 # (accepting a risk instead of fixing it).
 #
 # No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
@@ -245,7 +245,7 @@ jobs:
           IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
           BODY_FILE="$(mktemp)"
           {
-            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the SLA, or add an entry to .github/audit-accepted.yml to accept this as a risk instead of fixing it."
+            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add an entry to .github/audit-accepted.yml to accept this as a risk instead of fixing it."
             echo
             node -e "
               const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;

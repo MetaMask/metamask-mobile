@@ -44,7 +44,7 @@ const DEFAULT_OWNERS_PATH = '.github/audit-owners.yml';
 
 /**
  * @param {string} path
- * @returns {{slack_channel: string, owner: {github: string, slack_id: string}, manager?: {slack_id: string}, sla_days: number}}
+ * @returns {{slack_channel: string, owner: {github: string, slack_id: string}, manager?: {slack_id: string}}}
  */
 function loadOwners(path) {
   const raw = fs.readFileSync(path, 'utf8');
@@ -107,7 +107,7 @@ function buildDetectedMessage({ count, runUrl, ownerSlackId, managerSlackId }) {
       elements: [
         {
           type: 'mrkdwn',
-          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process and SLA.`,
+          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process.`,
         },
       ],
     },
@@ -173,7 +173,7 @@ function buildResultMessage({ fixed, manual, prUrl, issueUrl, runUrl, ownerSlack
       elements: [
         {
           type: 'mrkdwn',
-          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process and SLA.`,
+          text: `cc ${mentions.join(' ')} — see .github/audit-owners.yml for the escalation process.`,
         },
       ],
     },

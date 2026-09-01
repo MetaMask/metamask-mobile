@@ -389,8 +389,8 @@ jobs:
           fi
 
   # Advisory only: never fails, never gates merges. dependency-audit-escalation.yml
-  # owns the actual fix/PR/Slack escalation loop and follow-up SLA — see
-  # .github/audit-owners.yml. It has no schedule of its own; the
+  # owns the actual fix/PR/Slack escalation loop — see .github/audit-owners.yml
+  # for who gets paged. It has no schedule of its own; the
   # dependency-audit-escalation job below calls it only when this job
   # actually finds advisories, on whatever cadence ci.yml itself already
   # runs (push/PR/hourly schedule) — no separate cron needed.
