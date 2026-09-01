@@ -170,18 +170,24 @@ function getEoaFacingMoneyToken(
     return undefined;
   }
 
+  const isPostQuote =
+    transactionGroup.transactionPayData?.isPostQuote ??
+    transaction.metamaskPay?.isPostQuote;
+  if (isPostQuote) {
+    // The Pay source amount is not the amount of the token received by the EOA.
+    // Keep the transfer direction, but omit all token metadata so Activity does
+    // not interpret a metadata-only token as zero or backfill it from Pay legs.
+    return { direction };
+  }
+
   const caipChainId = toCaipChainId(
     KnownCaipNamespace.Eip155,
     Number.parseInt(tokenChainId, 16).toString(),
   );
   const isNative =
     tokenAddress.toLowerCase() === environment.nativeTokenAddress.toLowerCase();
-  const isPostQuote =
-    transactionGroup.transactionPayData?.isPostQuote ??
-    transaction.metamaskPay?.isPostQuote;
-  let amount = isPostQuote
-    ? undefined
-    : transactionGroup.transactionPayData?.sourceAmounts?.[0]?.sourceAmountRaw;
+  let amount =
+    transactionGroup.transactionPayData?.sourceAmounts?.[0]?.sourceAmountRaw;
   let symbol = paymentToken?.symbol;
   let decimals = paymentToken?.decimals;
 

@@ -10,6 +10,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../components/UI/Earn/constants/musd';
+import { getHumanReadableTokenAmount } from '../fiat';
 
 const chainId = '0x1';
 const from = '0x1111111111111111111111111111111111111111';
@@ -286,6 +287,24 @@ describe('local activity call-site mapping', () => {
   it('does not mislabel a post-quote source amount as the destination token amount', () => {
     const moneyAccountAddress = '0x3333333333333333333333333333333333333333';
     const usdcAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const;
+    const relatedTransaction = buildGroup({
+      id: 'pay-leg',
+      type: TransactionType.tokenMethodTransfer,
+      txParams: {
+        from: moneyAccountAddress,
+        to: usdcAddress,
+        value: '0x0',
+        data: `0xa9059cbb${from.slice(2).padStart(64, '0')}${(7_000_000)
+          .toString(16)
+          .padStart(64, '0')}` as `0x${string}`,
+      },
+      transferInformation: {
+        amount: '7000000',
+        contractAddress: usdcAddress,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+    }).initialTransaction;
     const item = mapLocalActivity(
       buildGroup(
         {
@@ -326,6 +345,7 @@ describe('local activity call-site mapping', () => {
               },
             ],
           },
+          relatedTransactions: [relatedTransaction],
         },
       ),
     );
@@ -336,15 +356,14 @@ describe('local activity call-site mapping', () => {
         from: moneyAccountAddress,
         to: from,
         token: {
-          decimals: 6,
           direction: 'in',
-          symbol: 'USDC',
         },
       },
     });
     expect(item.type).toBe('receive');
     if (item.type === 'receive') {
-      expect(item.data.token).not.toHaveProperty('amount');
+      expect(item.data.token).toEqual({ direction: 'in' });
+      expect(getHumanReadableTokenAmount(item.data.token)).toBeUndefined();
     }
   });
 
