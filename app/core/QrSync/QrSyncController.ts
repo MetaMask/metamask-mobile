@@ -206,6 +206,14 @@ export class QrSyncController extends BaseController<
   }
 
   /**
+   * Whether ephemeral secrets are waiting for vault import.
+   * UI callers should use this instead of reading `pendingSecretImports`.
+   */
+  public hasPendingSecretImports(): boolean {
+    return Boolean(this.state.pendingSecretImports?.length);
+  }
+
+  /**
    * E2E-only: apply an SRP sync-ready payload without MWP pairing.
    *
    * Sets `awaiting_password` + pending secrets so `useQrSyncImportNavigation`

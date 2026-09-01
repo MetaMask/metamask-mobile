@@ -22,6 +22,9 @@ const PRO_FLOW_ROUTE_NAMES = new Set<string>([
  * Preserved routes keep nested `state` and `params`. HomeNav is a tab
  * navigator; dropping its nested state would remount it on the initial Wallet
  * tab instead of the Money (or other) tab that started the flow.
+ *
+ * If every route is a Pro / Join Pro screen, HomeNav is inserted so Header
+ * back from Pro Hub has a destination instead of a single-screen dead end.
  */
 export const buildPostCancellationResetState = (
   state: NavigationState,
@@ -39,8 +42,16 @@ export const buildPostCancellationResetState = (
         : {}),
     }));
 
+  // A Pro-only stack (deep link, prior reset) would leave Pro Hub with
+  // nothing underneath. HomeNav is the app's safe root so Header back
+  // is never a dead end.
+  const originRoutes =
+    preservedRoutes.length > 0
+      ? preservedRoutes
+      : [{ name: Routes.ONBOARDING.HOME_NAV }];
+
   const routes = [
-    ...preservedRoutes,
+    ...originRoutes,
     {
       name: Routes.PRO_HUB.ROOT,
       params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },

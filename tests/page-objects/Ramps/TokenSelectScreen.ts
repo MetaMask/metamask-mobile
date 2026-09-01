@@ -4,7 +4,7 @@ import {
   Matchers,
   PlatformDetector,
   sleep,
-  type EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 import { selectTokenSelectors } from '../../../app/components/UI/Ramp/Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
@@ -13,7 +13,7 @@ const TOKEN_SEARCH_SETTLE_MS = 1000;
 const TOKEN_SEARCH_IOS_XPATH = `//*[@name='${selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}' or @name='${TEXTFIELDSEARCH_TEST_ID}' or contains(@label,'Search by cryptocurrency') or contains(@name,'Search by cryptocurrency') or contains(@label,'Search token by name or address') or contains(@name,'Search token by name or address')]`;
 
 class TokenSelectScreen {
-  get tokenSearchInput(): EncapsulatedElementType {
+  get tokenSearchInput(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(TOKEN_SEARCH_IOS_XPATH);
     }

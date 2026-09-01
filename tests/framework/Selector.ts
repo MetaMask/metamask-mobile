@@ -1,6 +1,6 @@
-import { encapsulated } from './EncapsulatedElement.ts';
 import type { AppiumElement } from './AppiumElement.ts';
 import AppiumMatchers from './AppiumMatchers.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 export type Selector =
   | { testID: string; index?: number }
@@ -8,18 +8,25 @@ export type Selector =
   | { label: string; index?: number }
   | { text: string; index?: number }
   | { textPattern: RegExp; index?: number }
-  | { detoxTestID: string; appiumTestID: string }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumTestID: string;
-    }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumXPath: string;
-    }
+  | { androidAppiumTestID: string; iosAppiumTestID: string }
+  | { androidAppiumTestID: string; iosAppiumXPath: string }
   | { testID: string; iosAppiumTestID: string; index?: number };
+
+function encapsulated(locators: {
+  android?: () => Promise<AppiumElement>;
+  ios?: () => Promise<AppiumElement>;
+}): Promise<AppiumElement> {
+  const platform = PlatformDetector.getPlatform();
+  const locator = locators[platform];
+  if (!locator) {
+    return Promise.reject(
+      new Error(
+        `Locator for platform '${platform}' is not provided in the configuration`,
+      ),
+    );
+  }
+  return locator();
+}
 
 /**
  * Resolve a declarative Selector to the Appium Element API.
@@ -27,113 +34,81 @@ export type Selector =
 export function resolve(selector: Selector): Promise<AppiumElement> {
   if ('iosAppiumXPath' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
     });
   }
 
   if ('androidAppiumTestID' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
-      },
-    });
-  }
-
-  if ('detoxTestID' in selector) {
-    return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.appiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.appiumTestID),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () =>
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
     });
   }
 
   if ('iosAppiumTestID' in selector) {
     return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementById(selector.testID, {
-            exact: true,
-            index: selector.index,
-          }),
-        ios: () =>
-          AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
-            index: selector.index,
-          }),
-      },
-    });
-  }
-
-  if ('label' in selector) {
-    return encapsulated({
-      appium: {
-        android: () =>
-          AppiumMatchers.getElementByAndroidUIAutomator(
-            `.description("${selector.label}")`,
-            { index: selector.index ?? 0 },
-          ),
-        ios: () =>
-          AppiumMatchers.getElementByCatchAll(selector.label, {
-            index: selector.index ?? 0,
-          }),
-      },
-    });
-  }
-
-  if ('text' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementByText(selector.text, false, {
-          index: selector.index ?? 0,
-        }),
-    });
-  }
-
-  if ('textPattern' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementByText(selector.textPattern, false, {
-          index: selector.index ?? 0,
-        }),
-    });
-  }
-
-  if ('testIDPattern' in selector) {
-    return encapsulated({
-      appium: () =>
-        AppiumMatchers.getElementById(selector.testIDPattern, {
-          index: selector.index,
-        }),
-    });
-  }
-
-  return encapsulated({
-    appium: {
       android: () =>
         AppiumMatchers.getElementById(selector.testID, {
           exact: true,
           index: selector.index,
         }),
       ios: () =>
-        AppiumMatchers.getElementByAccessibilityId(selector.testID, {
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
           index: selector.index,
         }),
-    },
+    });
+  }
+
+  if ('label' in selector) {
+    return encapsulated({
+      android: () =>
+        AppiumMatchers.getElementByAndroidUIAutomator(
+          `.description("${selector.label}")`,
+          { index: selector.index ?? 0 },
+        ),
+      ios: () =>
+        AppiumMatchers.getElementByCatchAll(selector.label, {
+          index: selector.index ?? 0,
+        }),
+    });
+  }
+
+  if ('text' in selector) {
+    return AppiumMatchers.getElementByText(selector.text, false, {
+      index: selector.index ?? 0,
+    });
+  }
+
+  if ('textPattern' in selector) {
+    return AppiumMatchers.getElementByText(selector.textPattern, false, {
+      index: selector.index ?? 0,
+    });
+  }
+
+  if ('testIDPattern' in selector) {
+    return AppiumMatchers.getElementById(selector.testIDPattern, {
+      index: selector.index,
+    });
+  }
+
+  return encapsulated({
+    android: () =>
+      AppiumMatchers.getElementById(selector.testID, {
+        exact: true,
+        index: selector.index,
+      }),
+    ios: () =>
+      AppiumMatchers.getElementByAccessibilityId(selector.testID, {
+        index: selector.index,
+      }),
   });
 }
 
@@ -150,7 +125,6 @@ export function isSelector(value: unknown): value is Selector {
     'label' in v ||
     'text' in v ||
     'textPattern' in v ||
-    'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
     'iosAppiumTestID' in v ||
     'iosAppiumXPath' in v
