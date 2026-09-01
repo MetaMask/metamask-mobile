@@ -205,9 +205,6 @@ export class QrSyncController extends BaseController<
    * UI callers should use this instead of reading `pendingPayload` directly.
    */
   public hasPendingSecretImports(): boolean {
-    // TODO: pendingPayload always includes the primary wallet, so this returns
-    // true for any non-null payload. Old model only counted non-primary wallets.
-    // Revisit if we need to skip provisionFromMetadata when only a primary is present.
     return this.state.pendingPayload !== null;
   }
 
