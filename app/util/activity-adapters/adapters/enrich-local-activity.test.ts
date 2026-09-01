@@ -362,8 +362,12 @@ describe('local activity call-site mapping', () => {
     });
     expect(item.type).toBe('receive');
     if (item.type === 'receive') {
-      expect(item.data.token).toEqual({ direction: 'in' });
-      expect(getHumanReadableTokenAmount(item.data.token)).toBeUndefined();
+      const token = item.data.token;
+      expect(token).toEqual({ direction: 'in' });
+      if (!token) {
+        throw new Error('Expected the receive activity to include a token');
+      }
+      expect(getHumanReadableTokenAmount(token)).toBeUndefined();
     }
   });
 
