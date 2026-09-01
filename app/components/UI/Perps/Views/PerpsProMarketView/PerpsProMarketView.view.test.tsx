@@ -1182,6 +1182,130 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
+  itForPlatforms(
+    'renders an immediately filled Chase in History after placement and tab remount',
+    async () => {
+      const filledChase: ChaseOrder = {
+        handle: 'chase-75dc4054-7c01-4bff-b31f-2a046c35ffdb',
+        symbol: 'ETH',
+        side: 'buy',
+        originalSize: '0.3',
+        remainingSize: '0',
+        arrivalPrice: '2500',
+        restingPrice: '2500',
+        restingOrderId: null,
+        distanceChasedBps: 0,
+        maxDistanceBps: 122.05839273508447,
+        repricings: 0,
+        startedAt: 1_788_274_359_115,
+        status: 'filled',
+      };
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      jest
+        .mocked(Engine.context.PerpsController.getOrderCapabilities)
+        .mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: ['chase'],
+        });
+      getChaseOrders
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([])
+        .mockResolvedValue([filledChase]);
+      placeOrder.mockResolvedValueOnce({
+        success: true,
+        orderId: filledChase.handle,
+        childOrderIds: ['59067112481'],
+        submittedSize: '0.3',
+      });
+      renderPerpsProMarketView({
+        streamOverrides: { account: createFundedAccountForViews('1000') },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsProModeEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                  perpsMobileChase: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+      const sizeInput = await findSizeInput();
+      await waitFor(() =>
+        expect(
+          Engine.context.PerpsController.getOrderCapabilities,
+        ).toHaveBeenCalled(),
+      );
+      await act(async () => Promise.resolve());
+      fireEvent.changeText(sizeInput, '30');
+      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+        ),
+      );
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+        ),
+      );
+      const placeOrderButton = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+      await waitFor(() => expect(placeOrderButton).toBeEnabled(), {
+        timeout: TIMEOUT_MS,
+      });
+
+      fireEvent.press(placeOrderButton);
+
+      await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1));
+      await waitFor(() => expect(getChaseOrders).toHaveBeenCalledTimes(3));
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+      );
+      const rowSelector = getPerpsProChaseRowSelector(
+        'ETH',
+        filledChase.handle,
+        true,
+      );
+      expect(await screen.findByTestId(rowSelector)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY),
+      );
+      expect(await screen.findByTestId(rowSelector)).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+
+      expect(await screen.findByTestId(rowSelector)).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.order.chase.status.filled')),
+      ).toBeOnTheScreen();
+    },
+  );
+
   itForPlatforms('shows loading while a Chase cancel is pending', async () => {
     let resolveCancel:
       | ((value: { success: boolean; orderId: string }) => void)

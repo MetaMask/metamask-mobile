@@ -1515,7 +1515,7 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(3);
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
@@ -1760,7 +1760,7 @@ describe('usePerpsProOrderForm', () => {
         await submitPromise;
       });
 
-      expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
       expect(validationError).not.toHaveBeenCalled();
     });
@@ -1825,6 +1825,36 @@ describe('usePerpsProOrderForm', () => {
           [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: false,
         }),
       );
+    });
+
+    it('refreshes Chase history after a successful terminal placement', async () => {
+      const filledChase = {
+        handle: 'chase-75dc4054-7c01-4bff-b31f-2a046c35ffdb',
+        symbol: 'BTC',
+        side: 'buy',
+        originalSize: '0.3',
+        remainingSize: '0',
+        arrivalPrice: '90000',
+        restingPrice: '90000',
+        restingOrderId: null,
+        distanceChasedBps: 0,
+        repricings: 0,
+        startedAt: 1_788_274_359_115,
+        status: 'filled',
+      };
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([filledChase]);
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+      await expect(mockGetChaseOrders.mock.results[1].value).resolves.toEqual([
+        filledChase,
+      ]);
     });
 
     it('fails closed before controller placement when Chase is disabled', async () => {

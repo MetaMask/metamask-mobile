@@ -42,6 +42,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Engine from '../../../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import { DevLogger } from '../../../../../../../core/SDKConnect/utils/DevLogger';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { selectSelectedInternalAccountAddress } from '../../../../../../../selectors/accountsController';
@@ -2631,6 +2632,32 @@ export const usePerpsProOrderForm = ({
         const orderResult = await executeOrder(orderParams);
         if (!orderResult?.success) {
           return;
+        }
+        if (placementOrderForm.type === 'chase') {
+          try {
+            await getChaseOrders();
+          } catch (error) {
+            if (error instanceof ChaseOrderRequestError) {
+              DevLogger.log(
+                'usePerpsProOrderForm: Chase post-placement refresh became stale',
+                { code: error.code },
+              );
+            } else {
+              Logger.error(
+                ensureError(
+                  error,
+                  'usePerpsProOrderForm.postPlacementChaseRefresh',
+                ),
+                {
+                  tags: {
+                    feature: PERPS_CONSTANTS.FeatureName,
+                    component: 'usePerpsProOrderForm',
+                    action: 'post_placement_chase_refresh',
+                  },
+                },
+              );
+            }
+          }
         }
       }
 
