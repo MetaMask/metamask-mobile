@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import RecurringBottomSheet from '../RecurringBottomSheet';
 import { strings } from '../../../../../../locales/i18n';
 import {
   RECURRING_INTERVAL_UNITS,
@@ -45,7 +45,7 @@ const RecurringIntervalSheet = ({
   }
 
   return (
-    <BottomSheet
+    <RecurringBottomSheet
       ref={sheetRef}
       testID={RecurringIntervalSheetSelectorsIDs.SHEET}
       onClose={onClose}
@@ -77,7 +77,7 @@ const RecurringIntervalSheet = ({
           testID: RecurringIntervalSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />
-    </BottomSheet>
+    </RecurringBottomSheet>
   );
 };
 

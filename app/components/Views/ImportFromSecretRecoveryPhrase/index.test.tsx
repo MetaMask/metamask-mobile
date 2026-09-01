@@ -34,6 +34,7 @@ import {
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -41,11 +42,13 @@ jest.mock('../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
-      QrSyncController: {
-        resetState: () => mockQrSyncResetState(),
-      },
+      QrSyncController: {},
     },
   },
+}));
+
+jest.mock('../QRTabSwitcher', () => ({
+  QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
@@ -142,13 +145,34 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
 function renderWithProvider(
   ...args: Parameters<typeof baseRenderWithProvider>
 ) {
-  const result = baseRenderWithProvider(...args);
+  const [component, providerValues, ...rest] = args;
+  const routeMessenger =
+    providerValues?.routeMessenger ??
+    createMockRouteMessenger({
+      'QrSyncController:resetState': mockQrSyncResetState,
+    });
+  const result = baseRenderWithProvider(
+    component,
+    { ...providerValues, routeMessenger },
+    ...rest,
+  );
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
 
 function renderScreen(...args: Parameters<typeof baseRenderScreen>) {
-  const result = baseRenderScreen(...args);
+  const [component, options, providerValues, ...rest] = args;
+  const routeMessenger =
+    providerValues?.routeMessenger ??
+    createMockRouteMessenger({
+      'QrSyncController:resetState': mockQrSyncResetState,
+    });
+  const result = baseRenderScreen(
+    component,
+    options,
+    { ...providerValues, routeMessenger },
+    ...rest,
+  );
   ReduxService.store = result.store as unknown as ReduxStore;
   return result;
 }
@@ -1438,8 +1462,10 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+      });
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {

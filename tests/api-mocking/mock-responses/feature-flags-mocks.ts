@@ -145,6 +145,15 @@ export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });
 
+/**
+ * Header & NavBar refresh A/B arm. The refreshed Explore header — browser tab
+ * count button, back-arrow dismiss in search — only renders on a treatment
+ * arm, so specs covering it must opt in.
+ */
+export const remoteFeatureFlagHeaderNavBar = (variant = 'treatmentA') => ({
+  homeTMCU1276AbtestHeaderNavBar: variant,
+});
+
 export const remoteFeatureFlagTronAccounts = (enabled = true) => ({
   tronAccounts: {
     enabled,

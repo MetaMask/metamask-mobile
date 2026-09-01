@@ -11,11 +11,48 @@ import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/Tr
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { TrendingQuickBuySheetProvider } from '../../../app/components/UI/Trending/contexts';
 import { initialStateTrending } from '../presets/trending';
+import {
+  HEADER_NAV_BAR_AB_KEY,
+  HeaderNavBarVariant,
+} from '../../../app/components/Views/Homepage/abTestConfig';
+
+// Re-exported so Explore view tests can pick an arm without importing across
+// route boundaries (ADR-0020).
+export { HeaderNavBarVariant };
 
 interface RenderTrendingViewOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
   initialParams?: Record<string, unknown>;
+  headerNavBarVariant?: HeaderNavBarVariant;
+}
+
+type TrendingStateBuilder = ReturnType<typeof initialStateTrending>;
+
+function buildTrendingState(
+  options: RenderTrendingViewOptions,
+): ReturnType<TrendingStateBuilder['build']> {
+  const { overrides, deterministicFiat, headerNavBarVariant } = options;
+
+  const builder = initialStateTrending({ deterministicFiat });
+  if (overrides) {
+    builder.withOverrides(overrides);
+  }
+  if (headerNavBarVariant) {
+    builder.withOverrides({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              [HEADER_NAV_BAR_AB_KEY]: headerNavBarVariant,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  return builder.build();
 }
 
 function withQueryClient(
@@ -59,13 +96,8 @@ function withExploreFeedProviders(
 export function renderTrendingViewWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat, initialParams } = options;
-
-  const builder = initialStateTrending({ deterministicFiat });
-  if (overrides) {
-    builder.withOverrides(overrides);
-  }
-  const state = builder.build();
+  const { initialParams } = options;
+  const state = buildTrendingState(options);
 
   return renderScreenWithRoutes(
     withExploreFeedProviders(
@@ -102,18 +134,13 @@ export function renderTrendingViewWithRoutes(
 export function renderExploreSearchScreenWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
-  const { overrides, deterministicFiat, initialParams } = options;
-
-  const builder = initialStateTrending({ deterministicFiat });
-  if (overrides) {
-    builder.withOverrides(overrides);
-  }
-  const state = builder.build();
+  const { initialParams } = options;
+  const state = buildTrendingState(options);
 
   return renderScreenWithRoutes(
     ExploreSearchScreen as unknown as React.ComponentType,
     { name: Routes.EXPLORE_SEARCH },
-    [],
+    [{ name: Routes.BROWSER.HOME }],
     { state },
     initialParams,
   );
