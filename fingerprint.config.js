@@ -147,41 +147,23 @@ const config = {
     '.github/scripts/shared/**',
     '.github/scripts/fitness-functions/**',
     '.github/scripts/add-release-label-to-pr-and-linked-issues.ts',
-    '.github/scripts/check-feature-flag-registry.ts',
-    '.github/scripts/check-feature-flag-registry.test.ts',
     '.github/scripts/check-pr-has-required-labels.ts',
     '.github/scripts/check-template-and-add-labels.ts',
     '.github/scripts/check-template-and-add-labels.test.ts',
     '.github/scripts/close-release-bug-report-issue.ts',
-    '.github/scripts/collect-qa-stats.mjs',
     '.github/scripts/create-bug-report-issue.ts',
     '.github/scripts/extract-semver.sh',
     '.github/scripts/generate-regression-slack-summary.mjs',
     '.github/scripts/get-next-semver-version.sh',
     '.github/scripts/get-stable-released-version.sh',
-    '.github/scripts/known-feature-flag-constants.ts',
     '.github/scripts/resolve-previous-ref.sh',
     '.github/scripts/run-update-release-changelog-mobile.sh',
     '.github/scripts/scripts.types.ts',
     '.github/scripts/validate-pr-commit.sh',
 
-    // Operate on already-built app artifacts/test reports, not native compilation.
-    '.github/scripts/e2e-create-json-test-report.mjs',
-    '.github/scripts/e2e-extract-test-results.mjs',
-    '.github/scripts/e2e-freeze-timings.mjs',
-    '.github/scripts/e2e-merge-detox-junit-reports.mjs',
-    '.github/scripts/e2e-merge-test-results.mjs',
-    '.github/scripts/e2e-report-fixture-validation.mjs',
-    '.github/scripts/e2e-smart-selection.mjs',
-    '.github/scripts/e2e-split-tags-shards.mjs',
-
-    // E2E platform-gating logic. Its outputs (`native_build_needed`,
-    // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, ...) only decide *whether*
-    // build/test jobs run - none of them is a build parameter, so no change here can
-    // alter what gets compiled.
-    '.github/scripts/compute-e2e-platform-flags.cjs',
-    '.github/scripts/compute-e2e-platform-flags.test.ts',
-    '.github/scripts/run-compute-e2e-platform-flags.cjs',
+    // QA-owned test orchestration and reporting scripts.
+    // New scripts added here are assumed not to affect native compilation.
+    '.github/scripts/qa-automation/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.
@@ -243,8 +225,6 @@ const config = {
 
     // Fire-and-forget dispatchers/re-runners around `ci.yml` (which is itself tracked) -
     // these don't run any build steps of their own.
-    '.github/workflows/ci-bitrise-shadow.yml',
-    '.github/workflows/ci-namespace-shadow.yml',
     '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
 
     // Notification-only.
@@ -255,17 +235,24 @@ const config = {
     '.github/workflows/docker.yml',
 
     // Run or report on tests against an already-built app artifact - can't change the
-    // compiled binary. (`detox build-framework-cache` only builds Detox's own test-runner
-    // framework cache, not the app.)
+    // compiled binary.
     '.github/workflows/run-appium-e2e-workflow.yml',
     '.github/workflows/run-appium-smoke-tests-android.yml',
     '.github/workflows/run-appium-smoke-tests-ios.yml',
     '.github/workflows/run-e2e-api-specs.yml',
-    '.github/workflows/run-e2e-workflow.yml',
     '.github/workflows/performance-test-runner.yml',
     '.github/workflows/update-e2e-fixtures.yml',
     '.github/workflows/upload-to-testflight.yml',
     '.github/workflows/runway-ota-resolve-context.yml',
+
+    // Reuses a native binary compiled by an earlier run, swaps in a JS bundle, patches the
+    // build number and re-signs. It never invokes a compiler, so the native code it ships is
+    // byte-identical to the donor's and nothing it does can change what a native build of
+    // this commit would produce - the same reasoning that already exempts
+    // `upload-to-testflight.yml` above. Tracking it would also be self-defeating: the fast
+    // path only runs when this fingerprint matches an earlier build, so every edit to the
+    // workflow would invalidate the very donors it needs.
+    '.github/workflows/build-rc-repack.yml',
 
     // Gating only: every `workflow_call` output it exposes (`native_build_needed`,
     // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, `run_performance`, ...) is a

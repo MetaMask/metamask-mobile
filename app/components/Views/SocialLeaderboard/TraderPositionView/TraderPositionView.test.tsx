@@ -12,6 +12,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
+import type { TradeAction } from '../utils/tradeAction';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
@@ -33,15 +34,21 @@ interface MockRouteParams {
   traderImageUrl?: string;
   traderAddress?: string;
   tokenSymbol?: string;
-  position?: Position;
+  position?: PositionWithActions;
   source?: string;
   originalEntryPoint?: string;
 }
 
-const makeMockTrades = (): Trade[] => [
+type TradeWithAction = Trade & { action: TradeAction };
+type PositionWithActions = Omit<Position, 'trades'> & {
+  trades: TradeWithAction[];
+};
+
+const makeMockTrades = (): TradeWithAction[] => [
   {
     intent: 'enter',
     direction: 'buy',
+    action: 'opened',
     tokenAmount: 1000,
     usdCost: 2200,
     timestamp: Date.now() - 30 * 60 * 1000, // 30 minutes ago
@@ -50,6 +57,7 @@ const makeMockTrades = (): Trade[] => [
   {
     intent: 'exit',
     direction: 'sell',
+    action: 'reduced',
     tokenAmount: 500,
     usdCost: 1100,
     timestamp: Date.now() - 60 * 60 * 1000, // 1 hour ago
@@ -57,7 +65,7 @@ const makeMockTrades = (): Trade[] => [
   },
 ];
 
-const makeDefaultPosition = (): Position => ({
+const makeDefaultPosition = (): PositionWithActions => ({
   positionId: 'pepe-base',
   tokenSymbol: 'PEPE',
   tokenName: 'Pepe',
@@ -110,7 +118,7 @@ jest.mock('../../../../core/ClipboardManager', () => ({
 // QuickBuy provider/controller (bridge selectors, NetworkController, …). This
 // file intentionally uses a minimal Redux store, so we stub the sheet here.
 const mockTraderPositionQuickBuy = jest.fn((_props: unknown) => null);
-jest.mock('./components/QuickBuy', () => ({
+jest.mock('../../../UI/QuickBuy', () => ({
   __esModule: true,
   default: (props: unknown) => mockTraderPositionQuickBuy(props),
   positionToQuickBuyTarget: (position: {
@@ -147,7 +155,7 @@ jest.mock('../../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
   },
 }));
 
-jest.mock('./components/QuickBuy/hooks/useQuickBuySetup', () => ({
+jest.mock('../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: () => ({
     chainId: '0x2105',
     destToken: {
@@ -1063,6 +1071,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'enter',
           direction: 'buy',
+          action: 'opened',
           tokenAmount: 1000,
           usdCost: 2200,
           timestamp: now - 30 * 60 * 1000,
@@ -1071,6 +1080,7 @@ describe('TraderPositionView', () => {
         {
           intent: 'exit',
           direction: 'sell',
+          action: 'reduced',
           tokenAmount: 500,
           usdCost: 1100,
           timestamp: now - 2 * 24 * 60 * 60 * 1000,

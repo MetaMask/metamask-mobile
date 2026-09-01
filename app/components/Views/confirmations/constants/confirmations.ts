@@ -16,7 +16,6 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDepositAndOrder,
@@ -51,7 +50,6 @@ export const TRANSFER_TRANSACTION_TYPES = [
 export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
@@ -99,6 +97,14 @@ export const POST_QUOTE_TRANSACTION_TYPES = [
 export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 
 /**
+ * Decimals every fiat amount on the activity details screen renders with.
+ * Pinned so the same value reads identically whichever row or transaction type
+ * produced it, rather than dropping decimals whenever the amount is a whole
+ * number.
+ */
+export const ACTIVITY_FIAT_FRACTION_DIGITS = 2;
+
+/**
  * Transaction types that participate in the pay flow (deposits, orders,
  * conversions, withdrawals). Token/amount displays inside these confirmations
  * are priced in USD unless the type is also in {@link USER_CURRENCY_TYPES}.
@@ -106,7 +112,6 @@ export const USER_CURRENCY_TYPES = [TransactionType.musdClaim] as const;
 export const PAY_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
@@ -126,7 +131,6 @@ export const MM_PAY_TRANSACTION_TYPES = [
   TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.perpsWithdraw,
@@ -151,7 +155,6 @@ export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
  * legitimately submit without engaging MetaMask Pay.
  */
 export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,

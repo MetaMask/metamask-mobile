@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -10,6 +10,8 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import ExploreEarnSection from '../components/ExploreEarnSection';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
@@ -34,7 +36,12 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
-import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
+import {
+  RobinhoodBanner,
+  RobinhoodBannerSurface,
+  useRobinhoodBanner,
+} from '../../../UI/RobinhoodBanner';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -111,16 +118,20 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-
-  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
-    null,
-  );
+  const isEarnSectionEnabled = useSelector(selectExploreEarnSectionEnabledFlag);
+  const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
     EXPLORE_QUICK_BUY_AB_KEY,
     EXPLORE_QUICK_BUY_VARIANTS,
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
+
+  const {
+    dismiss: dismissRobinhoodBanner,
+    handlePress: handleRobinhoodBannerPress,
+    shouldShow: shouldShowRobinhoodBanner,
+  } = useRobinhoodBanner(RobinhoodBannerSurface.ExploreCrypto);
 
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictionsFeed({
@@ -152,11 +163,13 @@ const CryptoTabContent: React.FC<TabProps> = ({
           })
         }
         onQuickTrade={
-          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+          quickBuyVariant.showQuickTradeButton
+            ? (token) => openQuickBuy(token, 'explore_crypto')
+            : undefined
         }
       />
     ),
-    [quickBuyVariant.showQuickTradeButton],
+    [openQuickBuy, quickBuyVariant.showQuickTradeButton],
   );
 
   const showTokens = tokens.isLoading || tokens.data.length > 0;
@@ -209,6 +222,13 @@ const CryptoTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (isEarnSectionEnabled) {
+      items.push({
+        key: 'earn',
+        content: <ExploreEarnSection tabName="Crypto" refresh={refresh} />,
+      });
+    }
+
     if (showPredictions) {
       items.push({
         key: 'predictions',
@@ -232,6 +252,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   }, [
     showTokens,
     showCryptoPerps,
+    isEarnSectionEnabled,
     showPredictions,
     navigation,
     tokens.data,
@@ -249,14 +270,14 @@ const CryptoTabContent: React.FC<TabProps> = ({
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
       >
+        {shouldShowRobinhoodBanner ? (
+          <RobinhoodBanner
+            onDismiss={dismissRobinhoodBanner}
+            onPress={handleRobinhoodBannerPress}
+          />
+        ) : null}
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
-
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-        source="explore_crypto"
-      />
     </View>
   );
 };

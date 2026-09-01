@@ -10,6 +10,7 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
+import type { ProLayoutPreferences } from '@metamask/perps-controller';
 import React, {
   useCallback,
   useEffect,
@@ -17,8 +18,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
 import {
@@ -26,6 +28,9 @@ import {
   type OrderBookListCurrency,
   type OrderBookListMetric,
 } from '../../../utils/orderBookGrouping';
+import PerpsProModalPortal from './PerpsProModalPortal';
+import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
+import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
@@ -34,10 +39,13 @@ export interface PerpsProOrderBookConfigSheetProps {
   metric: OrderBookListMetric;
   grouping: number | null;
   groupingOptions: number[];
+  /** Side the order-book column is currently pinned to. */
+  layout: ProLayoutPreferences['orderBookPosition'];
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
+    layout: ProLayoutPreferences['orderBookPosition'];
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -71,6 +79,15 @@ const createChipStyles = (colors: Colors) =>
     chipUnselected: {
       borderColor: colors.border.muted,
     },
+    chipWithThumbnail: {
+      height: 'auto',
+      paddingVertical: 12,
+      gap: 8,
+    },
+    thumbnail: {
+      flexDirection: 'row',
+      gap: 8,
+    },
   });
 
 interface OptionChipProps {
@@ -78,6 +95,8 @@ interface OptionChipProps {
   isSelected: boolean;
   onPress: () => void;
   testID: string;
+  /** Optional thumbnail rendered above the label (layout picker). */
+  thumbnail?: React.ReactNode;
 }
 
 /**
@@ -90,6 +109,7 @@ const OptionChip = ({
   isSelected,
   onPress,
   testID,
+  thumbnail,
 }: OptionChipProps) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createChipStyles(colors), [colors]);
@@ -103,8 +123,10 @@ const OptionChip = ({
       style={[
         styles.chip,
         isSelected ? styles.chipSelected : styles.chipUnselected,
+        thumbnail ? styles.chipWithThumbnail : null,
       ]}
     >
+      {thumbnail ? <View style={styles.thumbnail}>{thumbnail}</View> : null}
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
@@ -117,12 +139,13 @@ const OptionChip = ({
 };
 
 /**
- * Bottom sheet for Pro order-book list currency, metric, and price grouping.
- * Matches Figma "Order book settings" (layout section omitted).
+ * Bottom sheet for Pro order-book list currency, metric, price grouping, and
+ * the side the order-book column is pinned to.
  *
- * Rendered inside a RN Modal so the sheet is not clipped by the narrow Pro
- * order-book column (BottomSheet uses absolute inset-0 relative to its parent).
- * Android: wrap Modal in a plain View to avoid rendering/freezing issues.
+ * Rendered inside a Pro modal portal so the sheet is not clipped by the narrow
+ * order-book column. The portal preserves the Android View/Modal rendering
+ * workaround and provides the modal-scoped gesture root required for swipe
+ * gestures.
  */
 const PerpsProOrderBookConfigSheet = ({
   isVisible,
@@ -131,16 +154,20 @@ const PerpsProOrderBookConfigSheet = ({
   metric,
   grouping,
   groupingOptions,
+  layout,
   onApply,
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
 }: PerpsProOrderBookConfigSheetProps) => {
+  const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
   const [draftCurrency, setDraftCurrency] =
     useState<OrderBookListCurrency>(currency);
   const [draftMetric, setDraftMetric] = useState<OrderBookListMetric>(metric);
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
+  const [draftLayout, setDraftLayout] =
+    useState<ProLayoutPreferences['orderBookPosition']>(layout);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -155,24 +182,79 @@ const PerpsProOrderBookConfigSheet = ({
     setDraftCurrency(currency);
     setDraftMetric(metric);
     setDraftGrouping(grouping);
+    setDraftLayout(layout);
     sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, currency, metric, grouping]);
+  }, [isVisible, currency, metric, grouping, layout]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onClose);
   }, [onClose]);
 
+  const handleCurrencySelect = useCallback(
+    (next: OrderBookListCurrency) => {
+      if (draftCurrency === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftCurrency(next);
+    },
+    [draftCurrency, playSelection],
+  );
+
+  const handleMetricSelect = useCallback(
+    (next: OrderBookListMetric) => {
+      if (draftMetric === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftMetric(next);
+    },
+    [draftMetric, playSelection],
+  );
+
+  const handleGroupingSelect = useCallback(
+    (next: number) => {
+      if (draftGrouping === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftGrouping(next);
+    },
+    [draftGrouping, playSelection],
+  );
+
+  const handleLayoutSelect = useCallback(
+    (next: ProLayoutPreferences['orderBookPosition']) => {
+      if (draftLayout === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftLayout(next);
+    },
+    [draftLayout, playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
     }
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onApply({
       currency: draftCurrency,
       metric: draftMetric,
       grouping: draftGrouping,
+      layout: draftLayout,
     });
     handleClose();
-  }, [draftCurrency, draftMetric, draftGrouping, onApply, handleClose]);
+  }, [
+    draftCurrency,
+    draftMetric,
+    draftGrouping,
+    draftLayout,
+    onApply,
+    handleClose,
+    playImpact,
+  ]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -194,112 +276,146 @@ const PerpsProOrderBookConfigSheet = ({
   }
 
   return (
-    <View>
-      <Modal
-        visible
-        transparent
-        animationType="none"
-        statusBarTranslucent
-        onRequestClose={handleClose}
-      >
-        <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-          <BottomSheetHeader
-            onClose={handleClose}
-            closeButtonProps={{ testID: `${testID}-close` }}
-          >
-            {strings('perps.order_book.config_title')}
-          </BottomSheetHeader>
+    <PerpsProModalPortal onRequestClose={handleClose}>
+      <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{ testID: `${testID}-close` }}
+        >
+          {strings('perps.order_book.config_title')}
+        </BottomSheetHeader>
 
-          <Box twClassName="w-full gap-6 px-0 pb-3 pt-2">
-            <Box twClassName="w-full gap-2">
-              <Box twClassName="px-4">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('perps.order_book.listed_by')}
-                </Text>
-              </Box>
-              <Box twClassName="w-full gap-3">
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  twClassName="w-full gap-2 px-4"
-                  testID={`${testID}-currency`}
-                >
-                  <OptionChip
-                    label={baseSymbol}
-                    isSelected={draftCurrency === 'base'}
-                    onPress={() => setDraftCurrency('base')}
-                    testID={`${testID}-currency-base`}
-                  />
-                  <OptionChip
-                    label="USD"
-                    isSelected={draftCurrency === 'usd'}
-                    onPress={() => setDraftCurrency('usd')}
-                    testID={`${testID}-currency-usd`}
-                  />
-                </Box>
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  twClassName="w-full gap-2 px-4"
-                  testID={`${testID}-metric`}
-                >
-                  <OptionChip
-                    label={strings('perps.order_book.size')}
-                    isSelected={draftMetric === 'size'}
-                    onPress={() => setDraftMetric('size')}
-                    testID={`${testID}-metric-size`}
-                  />
-                  <OptionChip
-                    label={strings('perps.order_book.total')}
-                    isSelected={draftMetric === 'total'}
-                    onPress={() => setDraftMetric('total')}
-                    testID={`${testID}-metric-total`}
-                  />
-                </Box>
-              </Box>
+        <Box twClassName="w-full gap-6 px-0 pb-3 pt-2">
+          <Box twClassName="w-full gap-2">
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {strings('perps.order_book.listed_by')}
+              </Text>
             </Box>
-
-            <Box twClassName="w-full gap-2">
-              <Box twClassName="px-4">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('perps.order_book.group_by')}
-                </Text>
+            <Box twClassName="w-full gap-3">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="w-full gap-2 px-4"
+                testID={`${testID}-currency`}
+              >
+                <OptionChip
+                  label={baseSymbol}
+                  isSelected={draftCurrency === 'base'}
+                  onPress={() => handleCurrencySelect('base')}
+                  testID={`${testID}-currency-base`}
+                />
+                <OptionChip
+                  label="USD"
+                  isSelected={draftCurrency === 'usd'}
+                  onPress={() => handleCurrencySelect('usd')}
+                  testID={`${testID}-currency-usd`}
+                />
               </Box>
-              <Box twClassName="w-full gap-3">
-                {groupingRows.map((row) => (
-                  <Box
-                    key={row.join('-')}
-                    flexDirection={BoxFlexDirection.Row}
-                    twClassName="w-full gap-2 px-4"
-                  >
-                    {row.map((value) => (
-                      <OptionChip
-                        key={value}
-                        label={formatGroupingLabel(value)}
-                        isSelected={draftGrouping === value}
-                        onPress={() => setDraftGrouping(value)}
-                        testID={`${testID}-grouping-${value}`}
-                      />
-                    ))}
-                  </Box>
-                ))}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="w-full gap-2 px-4"
+                testID={`${testID}-metric`}
+              >
+                <OptionChip
+                  label={strings('perps.order_book.size')}
+                  isSelected={draftMetric === 'size'}
+                  onPress={() => handleMetricSelect('size')}
+                  testID={`${testID}-metric-size`}
+                />
+                <OptionChip
+                  label={strings('perps.order_book.total')}
+                  isSelected={draftMetric === 'total'}
+                  onPress={() => handleMetricSelect('total')}
+                  testID={`${testID}-metric-total`}
+                />
               </Box>
             </Box>
           </Box>
 
-          <BottomSheetFooter
-            primaryButtonProps={primaryButtonProps}
-            twClassName="pt-4"
-          />
-        </BottomSheet>
-      </Modal>
-    </View>
+          <Box twClassName="w-full gap-2">
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {strings('perps.order_book.group_by')}
+              </Text>
+            </Box>
+            <Box twClassName="w-full gap-3">
+              {groupingRows.map((row) => (
+                <Box
+                  key={row.join('-')}
+                  flexDirection={BoxFlexDirection.Row}
+                  twClassName="w-full gap-2 px-4"
+                >
+                  {row.map((value) => (
+                    <OptionChip
+                      key={value}
+                      label={formatGroupingLabel(value)}
+                      isSelected={draftGrouping === value}
+                      onPress={() => handleGroupingSelect(value)}
+                      testID={`${testID}-grouping-${value}`}
+                    />
+                  ))}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          <Box twClassName="w-full gap-2">
+            <Box twClassName="px-4">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {strings('perps.order_book.layout')}
+              </Text>
+            </Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              twClassName="w-full gap-2 px-4"
+              testID={`${testID}-layout`}
+            >
+              <OptionChip
+                label={strings('perps.order_book.layout_left')}
+                isSelected={draftLayout === 'left'}
+                onPress={() => handleLayoutSelect('left')}
+                testID={`${testID}-layout-left`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderBookGlyph align="left" />
+                    <PerpsProOrderFormGlyph />
+                  </>
+                }
+              />
+              <OptionChip
+                label={strings('perps.order_book.layout_right')}
+                isSelected={draftLayout === 'right'}
+                onPress={() => handleLayoutSelect('right')}
+                testID={`${testID}-layout-right`}
+                thumbnail={
+                  <>
+                    <PerpsProOrderFormGlyph />
+                    <PerpsProOrderBookGlyph align="right" />
+                  </>
+                }
+              />
+            </Box>
+          </Box>
+        </Box>
+
+        <BottomSheetFooter
+          primaryButtonProps={primaryButtonProps}
+          twClassName="pt-4"
+        />
+      </BottomSheet>
+    </PerpsProModalPortal>
   );
 };
 

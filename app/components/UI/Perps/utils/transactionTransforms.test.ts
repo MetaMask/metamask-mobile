@@ -13,7 +13,11 @@ import {
 } from './transactionTransforms';
 import { getTokenTransferData } from '../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
-import { OrderFill } from '@metamask/perps-controller';
+import {
+  OrderFill,
+  type OrdinaryOrderType,
+  type TriggerOrderType,
+} from '@metamask/perps-controller';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,
@@ -1026,11 +1030,185 @@ describe('transactionTransforms', () => {
       timestamp: 1640995200000,
     };
 
+    const orderTypeCases = [
+      {
+        orderType: 'market',
+        executionType: 'market',
+        detailedOrderType: 'Market',
+        price: '50000',
+        triggerOrderType: undefined,
+        triggerPrice: undefined,
+      },
+      {
+        orderType: 'limit',
+        executionType: 'limit',
+        detailedOrderType: 'Limit',
+        price: '50000',
+        triggerOrderType: undefined,
+        triggerPrice: undefined,
+      },
+      {
+        orderType: 'stop_market',
+        executionType: 'market',
+        detailedOrderType: 'Stop Market',
+        price: '50500',
+        triggerOrderType: 'stop_market',
+        triggerPrice: '50000',
+      },
+      {
+        orderType: 'stop_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Stop Limit',
+        price: '49500',
+        triggerOrderType: 'stop_limit',
+        triggerPrice: '50000',
+      },
+      {
+        orderType: 'take_profit_market',
+        executionType: 'market',
+        detailedOrderType: 'Take Profit Market',
+        price: '50500',
+        triggerOrderType: 'take_profit_market',
+        triggerPrice: '51000',
+      },
+      {
+        orderType: 'take_profit_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Take Profit Limit',
+        price: '51500',
+        triggerOrderType: 'take_profit_limit',
+        triggerPrice: '51000',
+      },
+    ] as const satisfies readonly {
+      orderType: OrdinaryOrderType;
+      executionType: 'market' | 'limit';
+      detailedOrderType: string;
+      price: string;
+      triggerOrderType?: TriggerOrderType;
+      triggerPrice?: string;
+    }[];
+
+    const legacyTriggerOrderCases = [
+      {
+        orderType: 'stop_market',
+        executionType: 'market',
+        detailedOrderType: 'Stop Market',
+        price: '50500',
+        triggerPrice: '50000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'stop_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Stop Limit',
+        price: '49500',
+        triggerPrice: '50000',
+        limitPrice: '49500',
+      },
+      {
+        orderType: 'take_profit_market',
+        executionType: 'market',
+        detailedOrderType: 'Take Profit Market',
+        price: '50500',
+        triggerPrice: '51000',
+        limitPrice: undefined,
+      },
+      {
+        orderType: 'take_profit_limit',
+        executionType: 'limit',
+        detailedOrderType: 'Take Profit Limit',
+        price: '51500',
+        triggerPrice: '51000',
+        limitPrice: '51500',
+      },
+    ] as const satisfies readonly {
+      orderType: TriggerOrderType;
+      executionType: 'market' | 'limit';
+      detailedOrderType: string;
+      price: string;
+      triggerPrice: string;
+      limitPrice: string | undefined;
+    }[];
+
+    it.each(orderTypeCases)(
+      'preserves $orderType price fields in transaction history',
+      ({
+        orderType,
+        executionType,
+        detailedOrderType,
+        price,
+        triggerOrderType,
+        triggerPrice,
+      }) => {
+        const sourceOrder = {
+          ...mockOrder,
+          orderType: executionType,
+          triggerOrderType,
+          detailedOrderType,
+          price,
+          triggerPrice,
+        };
+
+        const result = transformOrdersToTransactions([sourceOrder]);
+        const transformedOrder = result[0].order;
+
+        expect(transformedOrder).toMatchObject({
+          orderType,
+          type: executionType,
+          detailedOrderType,
+          triggerPrice:
+            orderType === 'market' || orderType === 'limit'
+              ? undefined
+              : triggerPrice,
+          limitPrice:
+            orderType === 'market' ||
+            orderType === 'stop_market' ||
+            orderType === 'take_profit_market'
+              ? undefined
+              : price,
+        });
+      },
+    );
+
+    it.each(legacyTriggerOrderCases)(
+      'recovers $orderType from legacy order metadata',
+      ({
+        orderType,
+        executionType,
+        detailedOrderType,
+        price,
+        triggerPrice,
+        limitPrice,
+      }) => {
+        const sourceOrder = {
+          ...mockOrder,
+          orderType: executionType,
+          isTrigger: true,
+          detailedOrderType,
+          price,
+          triggerPrice,
+        };
+
+        const result = transformOrdersToTransactions([sourceOrder]);
+
+        expect(result[0]?.order).toEqual(
+          expect.objectContaining({
+            orderType,
+            type: executionType,
+            isTrigger: true,
+            detailedOrderType,
+            triggerPrice,
+            limitPrice,
+          }),
+        );
+      },
+    );
+
     it('transforms filled order correctly (defaults to 100% without fill data)', () => {
       const result = transformOrdersToTransactions([mockOrder]);
 
       expect(result).toHaveLength(1);
-      expect(result[0]).toEqual({
+      expect(result[0]).toMatchObject({
         id: 'order1-1640995200000',
         type: 'order',
         category: 'limit_order',
@@ -1039,9 +1217,11 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'BTC',
         order: {
+          orderId: 'order1',
           text: PerpsOrderTransactionStatus.Filled,
           statusType: PerpsOrderTransactionStatusType.Filled,
           type: 'limit',
+          orderType: 'limit',
           size: '50000',
           limitPrice: '50000',
           filled: '100%', // Filled status without fill data defaults to 100%

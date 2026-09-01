@@ -24,6 +24,8 @@ jest.mock('../constants/errors', () => ({
     PREDICT_UNKNOWN_ERROR: 'Something went wrong',
     PREDICT_BUY_ORDER_NOT_FULLY_FILLED: 'Buy order not fully filled',
     PREDICT_SELL_ORDER_NOT_FULLY_FILLED: 'Sell order not fully filled',
+    PREDICT_DEPOSIT_FAILED: 'Deposit failed mapped',
+    PREDICT_WITHDRAW_FAILED: 'Withdraw failed mapped',
   }),
 }));
 
@@ -199,6 +201,30 @@ describe('predictErrorHandler', () => {
       });
 
       expect(result).toBe('completely unknown');
+    });
+
+    it('maps deposit failed code to human-readable copy', () => {
+      const result = parseErrorMessage({
+        error: new Error(PREDICT_ERROR_CODES.DEPOSIT_FAILED),
+      });
+
+      expect(result).toBe('Deposit failed mapped');
+    });
+
+    it('maps withdraw failed code to human-readable copy', () => {
+      const result = parseErrorMessage({
+        error: new Error(PREDICT_ERROR_CODES.WITHDRAW_FAILED),
+      });
+
+      expect(result).toBe('Withdraw failed mapped');
+    });
+
+    it('falls back to unknown error for unmapped PREDICT_* codes', () => {
+      const result = parseErrorMessage({
+        error: new Error('PREDICT_SOME_NEW_CODE'),
+      });
+
+      expect(result).toBe('Something went wrong');
     });
 
     it('converts string error to message', () => {

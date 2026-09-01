@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useRef } from 'react';
-import { ActivityIndicator, type ScrollViewProps } from 'react-native';
+import { type ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,8 @@ import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  IconSize,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -27,7 +29,9 @@ import {
 } from '../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions } from '../../util/metrics';
+import { CardActions, withCardProvider } from '../../util/metrics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../../util/getAssetBalanceKey';
 import { useUpdateFundingPriority } from '../../hooks/useUpdateFundingPriority';
 import {
@@ -39,6 +43,7 @@ import { useCardHomeData } from '../../hooks/useCardHomeData';
 import AssetSelectionRow, {
   type AssetSelectionRowItem,
 } from './AssetSelectionRow';
+import { AssetSelectionBottomSheetTestIds } from './AssetSelectionBottomSheet.testIds';
 
 export interface AssetSelectionModalNavigationDetails {
   navigateToCardHomeOnPriorityToken?: boolean;
@@ -71,6 +76,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const tw = useTailwind();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
 
   // Read card data from state instead of navigation params
   const {
@@ -193,22 +199,24 @@ const AssetSelectionBottomSheet: React.FC = () => {
     async (token: CardFundingToken) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({
-            action: CardActions.ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET,
-            bottomsheet_selected_token_symbol: token.symbol,
-            bottomsheet_selected_token_chain_id: token.caipChainId,
-            bottomsheet_selected_token_limit_amount: isNaN(
-              Number(token.spendableBalance),
-            )
-              ? 0
-              : Number(token.spendableBalance),
-          })
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              action: CardActions.ASSET_ITEM_SELECT_TOKEN_BOTTOMSHEET,
+              bottomsheet_selected_token_symbol: token.symbol,
+              bottomsheet_selected_token_chain_id: token.caipChainId,
+              bottomsheet_selected_token_limit_amount: isNaN(
+                Number(token.spendableBalance),
+              )
+                ? 0
+                : Number(token.spendableBalance),
+            }),
+          )
           .build(),
       );
 
       await updateFundingPriority(token);
     },
-    [updateFundingPriority, trackEvent, createEventBuilder],
+    [updateFundingPriority, trackEvent, createEventBuilder, activeProviderId],
   );
 
   const isPriorityToken = useCallback(
@@ -316,10 +324,10 @@ const AssetSelectionBottomSheet: React.FC = () => {
   const renderBottomSheetContent = useCallback(() => {
     if (!cardHomeData?.delegationSettings) {
       return (
-        <Box twClassName="items-center justify-center py-8">
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary.default}
+        <Box twClassName="flex-1 items-center justify-center py-8">
+          <Spinner
+            testID={AssetSelectionBottomSheetTestIds.LOADING_SPINNER}
+            spinnerIconProps={{ size: IconSize.Xl }}
           />
         </Box>
       );
@@ -327,7 +335,7 @@ const AssetSelectionBottomSheet: React.FC = () => {
 
     if (supportedTokensWithBalances.length === 0) {
       return (
-        <Box twClassName="items-center justify-center py-8">
+        <Box twClassName="flex-1 items-center justify-center py-8">
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
@@ -353,7 +361,6 @@ const AssetSelectionBottomSheet: React.FC = () => {
   }, [
     cardHomeData?.delegationSettings,
     supportedTokensWithBalances,
-    theme,
     renderItem,
     keyExtractor,
   ]);

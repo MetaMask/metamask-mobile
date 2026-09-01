@@ -185,7 +185,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     CREDIT_REDEEM: 'CreditRedeem',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
-    SET_PIN_SUCCESS: 'CardSetPinSuccess',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
@@ -207,6 +206,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       WAITLIST_FORM: 'WaitlistForm',
       FORGOT_PASSWORD: 'ForgotPassword',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      UK_MIGRATION: 'CardUkMigrationModal',
     },
   },
 }));

@@ -38,6 +38,25 @@ const SPRING_CONFIG = {
   dampingRatio: 0.75,
 } as const;
 
+/**
+ * Extra horizontal padding vs. the previous `px-4` so Android has room for
+ * the full "Following" / "All" glyphs. Do not shrink the font to fit.
+ */
+const SEGMENT_TW_CLASS = 'rounded-xl px-6 h-8 items-center justify-center';
+
+const AUDIENCE_LABEL_KEYS: Record<FeedAudience, string> = {
+  following: 'social_leaderboard.feed.following',
+  all: 'social_leaderboard.feed.all',
+};
+
+/** Left-to-right segment order. Both options are always rendered. */
+export type FeedAudienceOrder = readonly [FeedAudience, FeedAudience];
+
+export const DEFAULT_FEED_AUDIENCE_ORDER: FeedAudienceOrder = [
+  'following',
+  'all',
+];
+
 const styles = StyleSheet.create({
   row: {
     position: 'relative',
@@ -52,9 +71,17 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'visible',
+  },
+  container: {
+    flexShrink: 0,
+  },
+  touchable: {
+    overflow: 'visible',
+    flexShrink: 0,
   },
   labelActive: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -63,6 +90,14 @@ const styles = StyleSheet.create({
 export interface FeedAudienceToggleProps {
   value: FeedAudience;
   onChange: (value: FeedAudience) => void;
+  /**
+   * Left-to-right segment order. Defaults to Following then All; the feed passes
+   * the preselected audience first so the active segment is the leftmost one.
+   * Treated as fixed for the lifetime of the toggle — the slide math reads the
+   * first segment's measured width, so reordering mid-life would animate from a
+   * stale offset.
+   */
+  order?: FeedAudienceOrder;
   testID?: string;
 }
 
@@ -74,24 +109,29 @@ export interface FeedAudienceToggleProps {
  * the pill, so the colour tracks the slide rather than snapping. The scope
  * change is dispatched in a transition so the toggle paints before the feed
  * re-renders.
+ *
+ * `slideProgress` runs 0 -> 1 from the first to the second segment in `order`,
+ * so all the animation math is expressed in positional (first/second) terms
+ * rather than in audience names.
  */
 const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   value,
   onChange,
+  order = DEFAULT_FEED_AUDIENCE_ORDER,
   testID = FeedViewSelectorsIDs.AUDIENCE_TOGGLE,
 }) => {
   const { colors } = useTheme();
+  const [firstOption, secondOption] = order;
 
-  const slideProgress = useSharedValue(value === 'all' ? 1 : 0);
-  const followingWidthSV = useSharedValue(0);
-  const followingXSV = useSharedValue(0);
-  const allWidthSV = useSharedValue(0);
+  const slideProgress = useSharedValue(value === secondOption ? 1 : 0);
+  const firstWidthSV = useSharedValue(0);
+  const firstXSV = useSharedValue(0);
+  const secondWidthSV = useSharedValue(0);
 
   const prevValueRef = useRef<FeedAudience | null>(null);
   const [displayValue, setDisplayValue] = useState(value);
-  const [followingLayout, setFollowingLayout] =
-    useState<LayoutRectangle | null>(null);
-  const [allWidth, setAllWidth] = useState(0);
+  const [firstLayout, setFirstLayout] = useState<LayoutRectangle | null>(null);
+  const [secondWidth, setSecondWidth] = useState(0);
 
   useEffect(() => {
     setDisplayValue(value);
@@ -99,14 +139,14 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
 
   const animateSlideTo = useCallback(
     (next: FeedAudience) => {
-      if (!followingLayout) {
+      if (!firstLayout) {
         return;
       }
-      const target = next === 'following' ? 0 : 1;
+      const target = next === firstOption ? 0 : 1;
       prevValueRef.current = next;
       slideProgress.value = withSpring(target, SPRING_CONFIG);
     },
-    [followingLayout, slideProgress],
+    [firstLayout, firstOption, slideProgress],
   );
 
   const handlePress = (next: FeedAudience) => {
@@ -128,10 +168,10 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   };
 
   useEffect(() => {
-    if (!followingLayout) {
+    if (!firstLayout) {
       return;
     }
-    const target = value === 'following' ? 0 : 1;
+    const target = value === firstOption ? 0 : 1;
 
     if (prevValueRef.current === null) {
       slideProgress.value = target;
@@ -143,24 +183,24 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
       prevValueRef.current = value;
       slideProgress.value = withSpring(target, SPRING_CONFIG);
     }
-  }, [value, followingLayout, slideProgress]);
+  }, [value, firstLayout, firstOption, slideProgress]);
 
   const sliderStyle = useAnimatedStyle(() => ({
-    left: followingXSV.value,
+    left: firstXSV.value,
     width: interpolate(
       slideProgress.value,
       [0, 1],
-      [followingWidthSV.value, allWidthSV.value],
+      [firstWidthSV.value, secondWidthSV.value],
     ),
-    transform: [{ translateX: slideProgress.value * followingWidthSV.value }],
+    transform: [{ translateX: slideProgress.value * firstWidthSV.value }],
   }));
 
   // Cross-fade the active (white) label in sync with the pill: driven by the
   // same spring, so the colour transition tracks the slide instead of snapping.
-  const followingActiveStyle = useAnimatedStyle(() => ({
+  const firstActiveStyle = useAnimatedStyle(() => ({
     opacity: Math.max(0, Math.min(1, 1 - slideProgress.value)),
   }));
-  const allActiveStyle = useAnimatedStyle(() => ({
+  const secondActiveStyle = useAnimatedStyle(() => ({
     opacity: Math.max(0, Math.min(1, slideProgress.value)),
   }));
 
@@ -168,24 +208,82 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
   // selected tab shows a single label. Leaving the base at full opacity under
   // the active overlay double-renders the text (different weight + colour),
   // which reads as a faint drop shadow / ghosting on the selected side.
-  const followingBaseStyle = useAnimatedStyle(() => ({
+  const firstBaseStyle = useAnimatedStyle(() => ({
     opacity: Math.max(0, Math.min(1, slideProgress.value)),
   }));
-  const allBaseStyle = useAnimatedStyle(() => ({
+  const secondBaseStyle = useAnimatedStyle(() => ({
     opacity: Math.max(0, Math.min(1, 1 - slideProgress.value)),
   }));
 
   const sliderWidth =
-    displayValue === 'following' ? (followingLayout?.width ?? 0) : allWidth;
+    displayValue === firstOption ? (firstLayout?.width ?? 0) : secondWidth;
+
+  // Plain render helper (not a component) so both segments keep sharing the
+  // hook-created animated styles above.
+  const renderSegment = (
+    option: FeedAudience,
+    isFirst: boolean,
+    activeStyle: ReturnType<typeof useAnimatedStyle>,
+    baseStyle: ReturnType<typeof useAnimatedStyle>,
+  ) => (
+    <TouchableOpacity
+      key={option}
+      onPress={() => handlePress(option)}
+      onLayout={(e) => {
+        const layout = e.nativeEvent.layout;
+        if (isFirst) {
+          setFirstLayout(layout);
+          firstWidthSV.value = layout.width;
+          firstXSV.value = layout.x;
+          return;
+        }
+        setSecondWidth(layout.width);
+        secondWidthSV.value = layout.width;
+      }}
+      accessibilityRole="button"
+      accessibilityState={{ selected: displayValue === option }}
+      testID={getFeedAudienceOptionTestId(option)}
+      style={styles.touchable}
+    >
+      <Box twClassName={SEGMENT_TW_CLASS}>
+        <Box style={styles.labelWrap}>
+          {/* In-flow Medium label sets the segment width so the wider
+              selected weight never clips (e.g. Android "Followin[g]"). */}
+          <Animated.View style={activeStyle}>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+            >
+              {strings(AUDIENCE_LABEL_KEYS[option])}
+            </Text>
+          </Animated.View>
+          <Animated.View
+            style={[styles.labelActive, baseStyle]}
+            pointerEvents="none"
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+            >
+              {strings(AUDIENCE_LABEL_KEYS[option])}
+            </Text>
+          </Animated.View>
+        </Box>
+      </Box>
+    </TouchableOpacity>
+  );
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      twClassName="border border-muted rounded-2xl p-1"
+      twClassName="shrink-0 border border-muted rounded-2xl p-1"
+      style={styles.container}
       testID={testID}
     >
       <Box flexDirection={BoxFlexDirection.Row} style={styles.row}>
-        {followingLayout && sliderWidth > 0 && (
+        {firstLayout && sliderWidth > 0 && (
           <Animated.View
             style={[
               styles.slider,
@@ -195,82 +293,8 @@ const FeedAudienceToggle: React.FC<FeedAudienceToggleProps> = ({
           />
         )}
 
-        <TouchableOpacity
-          onPress={() => handlePress('following')}
-          onLayout={(e) => {
-            const layout = e.nativeEvent.layout;
-            setFollowingLayout(layout);
-            followingWidthSV.value = layout.width;
-            followingXSV.value = layout.x;
-          }}
-          accessibilityRole="button"
-          accessibilityState={{ selected: displayValue === 'following' }}
-          testID={getFeedAudienceOptionTestId('following')}
-        >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
-            <Box style={styles.labelWrap}>
-              <Animated.View style={followingBaseStyle}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.feed.following')}
-                </Text>
-              </Animated.View>
-              <Animated.View
-                style={[styles.labelActive, followingActiveStyle]}
-                pointerEvents="none"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('social_leaderboard.feed.following')}
-                </Text>
-              </Animated.View>
-            </Box>
-          </Box>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => handlePress('all')}
-          onLayout={(e) => {
-            const width = e.nativeEvent.layout.width;
-            setAllWidth(width);
-            allWidthSV.value = width;
-          }}
-          accessibilityRole="button"
-          accessibilityState={{ selected: displayValue === 'all' }}
-          testID={getFeedAudienceOptionTestId('all')}
-        >
-          <Box twClassName="rounded-xl px-4 h-8 items-center justify-center">
-            <Box style={styles.labelWrap}>
-              <Animated.View style={allBaseStyle}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.feed.all')}
-                </Text>
-              </Animated.View>
-              <Animated.View
-                style={[styles.labelActive, allActiveStyle]}
-                pointerEvents="none"
-              >
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                >
-                  {strings('social_leaderboard.feed.all')}
-                </Text>
-              </Animated.View>
-            </Box>
-          </Box>
-        </TouchableOpacity>
+        {renderSegment(firstOption, true, firstActiveStyle, firstBaseStyle)}
+        {renderSegment(secondOption, false, secondActiveStyle, secondBaseStyle)}
       </Box>
     </Box>
   );

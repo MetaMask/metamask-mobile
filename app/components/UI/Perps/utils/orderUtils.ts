@@ -2,6 +2,7 @@ import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
   isTPSLOrder,
+  isTriggerOrderType,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -27,21 +28,30 @@ const TRIGGER_CONDITION_PRICE_ABOVE = 'perps.order_details.price_above';
 const TRIGGER_CONDITION_PRICE_BELOW = 'perps.order_details.price_below';
 
 /**
- * Parses the trigger price from an order, returning null when absent or invalid.
- * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
+ * Parses a Perps price, returning null when absent or invalid.
+ *
+ * @param price - Price value from a controller order or transaction.
+ * @returns The positive numeric price, or null when unavailable.
  */
-export const getValidTriggerPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.triggerPrice ?? '');
+export const getValidPerpsPrice = (
+  price: string | number | null | undefined,
+): number | null => {
+  const parsed = typeof price === 'number' ? price : parseFloat(price ?? '');
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
 /**
+ * Parses the trigger price from an order, returning null when absent or invalid.
+ * Use this instead of inline `parseFloat(order.triggerPrice ?? '')` + validity checks.
+ */
+export const getValidTriggerPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.triggerPrice);
+
+/**
  * Parses the execution/limit price from an order, returning null when absent or invalid.
  */
-export const getValidOrderPrice = (order: Order): number | null => {
-  const parsed = parseFloat(order.price ?? '');
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-};
+export const getValidOrderPrice = (order: Order): number | null =>
+  getValidPerpsPrice(order.price);
 
 /**
  * Whether an order price is outside HyperLiquid's allowed band relative to a
@@ -81,7 +91,6 @@ export const isPriceOutsideDeviationBand = (
 };
 
 type OrderPriceLabelKey =
-  | 'perps.order.trigger_price'
   | 'perps.order.limit_price'
   | 'perps.order.market_price';
 
@@ -92,26 +101,97 @@ type OrderPriceLabelKey =
 export const isTriggerOrder = (order: Order): boolean =>
   Boolean(order.isTrigger || isTPSLOrder(order.detailedOrderType));
 
+export interface PerpsTransactionOrderLike {
+  type: 'limit' | 'market';
+  orderType?: OrderType;
+  detailedOrderType?: string;
+}
+
+/**
+ * Resolves the normalized order type for transaction-history data.
+ *
+ * @param order - Transaction order data, including legacy fields.
+ * @returns The normalized order type used by detail-row policies.
+ */
+export const resolvePerpsTransactionOrderType = (
+  order: PerpsTransactionOrderLike,
+): OrderType => {
+  // A normalized trigger type is authoritative. Ordinary market/limit values
+  // are legacy execution types and must not mask a detailed trigger label.
+  if (order.orderType && isTriggerOrderType(order.orderType)) {
+    return order.orderType;
+  }
+
+  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
+
+  if (detailedOrderType.includes('take profit')) {
+    return detailedOrderType.includes('limit')
+      ? 'take_profit_limit'
+      : 'take_profit_market';
+  }
+
+  if (detailedOrderType.includes('stop')) {
+    return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
+  }
+
+  return order.orderType ?? order.type;
+};
+
+export interface PerpsOrderPriceRowVisibility {
+  showTriggerPrice: boolean;
+  showLimitPrice: boolean;
+}
+
+/**
+ * Resolves which price rows belong in an order detail view.
+ *
+ * @param orderType - Normalized placement type for the order.
+ * @returns Visibility flags for trigger and limit price rows.
+ */
+export const getOrderPriceRowVisibility = (
+  orderType: OrderType | undefined,
+): PerpsOrderPriceRowVisibility => ({
+  showTriggerPrice: orderType !== undefined && isTriggerOrderType(orderType),
+  showLimitPrice:
+    orderType !== undefined && isLimitExecutionOrderType(orderType),
+});
+
+/**
+ * Resolves the execution price shown for an open order.
+ *
+ * Hyperliquid trigger-market orders carry a limit price as a slippage cap, but
+ * that cap is not a guaranteed execution price and must display as Market.
+ * Orders without a normalized `triggerOrderType` fall back to their detailed
+ * provider order type for backwards compatibility.
+ *
+ * @param order - Open order normalized by the Perps controller.
+ * @returns The display price and its localized label key.
+ */
 export const resolveOrderDisplayPriceAndLabel = (
   order: Order,
 ): { priceValue: number | null; labelKey: OrderPriceLabelKey } => {
   const detailedOrderType = order.detailedOrderType ?? '';
   const normalizedDetailedOrderType = detailedOrderType.toLowerCase();
-  const isLimitOrder = Boolean(
-    order.orderType === 'limit' ||
-      normalizedDetailedOrderType.includes('limit'),
-  );
-  const validTriggerPrice = getValidTriggerPrice(order);
+  const isTrigger = isTriggerOrder(order);
+  const hasDetailedLimitExecution =
+    normalizedDetailedOrderType.includes('limit');
+  const hasDetailedMarketExecution =
+    normalizedDetailedOrderType.includes('market');
+  const isLimitOrder =
+    order.triggerOrderType !== undefined
+      ? isLimitExecutionOrderType(order.triggerOrderType)
+      : hasDetailedLimitExecution ||
+        (!hasDetailedMarketExecution && order.orderType === 'limit');
   const validOrderPrice = getValidOrderPrice(order);
 
-  if (isTriggerOrder(order) && validTriggerPrice !== null) {
+  if (isTrigger && !isLimitOrder) {
     return {
-      priceValue: validTriggerPrice,
-      labelKey: 'perps.order.trigger_price',
+      priceValue: null,
+      labelKey: 'perps.order.market_price',
     };
   }
 
-  if (isLimitOrder && validOrderPrice !== null) {
+  if (isLimitOrder) {
     return {
       priceValue: validOrderPrice,
       labelKey: 'perps.order.limit_price',

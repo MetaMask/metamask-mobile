@@ -15,6 +15,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { playSelection } from '../../../../../util/haptics';
+
+jest.mock('../../../../../util/haptics');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -734,6 +737,7 @@ describe('PerpsMarketListView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playSelection).mockClear();
 
     // Reset watchlist flag so each test starts with it off
     mockWatchlistFlagEnabled = false;
@@ -862,9 +866,7 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SEARCH_BAR),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByPlaceholderText('Search by token symbol'),
-      ).toBeOnTheScreen();
+      expect(screen.getByPlaceholderText('Search')).toBeOnTheScreen();
     });
 
     it('disables autocorrect and autocapitalize on the search input', () => {
@@ -1609,12 +1611,44 @@ describe('PerpsMarketListView', () => {
                 params: expect.objectContaining({
                   market: mockMarketData[1],
                   source: 'perp_markets',
+                  detailGenerationTrigger: 'market_switch',
                 }),
               }),
             ],
           }),
         }),
       );
+    });
+
+    it('plays selection haptics when enableHaptics is opted in', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-picker',
+        name: 'PerpsMarketListView',
+        params: {
+          replaceOnSelect: true,
+          enableHaptics: true,
+        },
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not play selection haptics when enableHaptics is omitted', () => {
+      mockUseRoute.mockReturnValue({
+        key: 'PerpsMarketListView-123',
+        name: 'PerpsMarketListView',
+        params: {},
+      });
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      fireEvent.press(screen.getAllByTestId('market-row-ETH')[0]);
+
+      expect(playSelection).not.toHaveBeenCalled();
     });
   });
 
@@ -1749,7 +1783,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Search-only (no category filter active)', () => {
-      it('shows the NO_RESULTS container with "No tokens found" title', () => {
+      it('shows the NO_RESULTS container with no-markets description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ' }),
         );
@@ -1758,7 +1792,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No tokens found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'We couldn\'t find any markets with the name "XYZ". Try a different search.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear search" label', () => {
@@ -1804,7 +1842,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Filter + search (filter-priority branch)', () => {
-      it('shows the NO_RESULTS container with "No markets found" title', () => {
+      it('shows the NO_RESULTS container with filter-search description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ searchQuery: 'XYZ', marketTypeFilter: 'crypto' }),
         );
@@ -1813,7 +1851,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'No markets match "XYZ" in this category. Try a different search or clear the filter.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {
@@ -1858,7 +1900,7 @@ describe('PerpsMarketListView', () => {
     });
 
     describe('Filter-only (no search query)', () => {
-      it('shows the NO_RESULTS_FILTER container with "No markets found" title', () => {
+      it('shows the NO_RESULTS_FILTER container with filter description', () => {
         mockUsePerpsMarketListView.mockReturnValueOnce(
           buildHookReturn({ marketTypeFilter: 'stock' }),
         );
@@ -1867,7 +1909,11 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByTestId(PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER),
         ).toBeOnTheScreen();
-        expect(screen.getByText('No markets found')).toBeOnTheScreen();
+        expect(
+          screen.getByText(
+            'No markets match your current filter. Try a different category.',
+          ),
+        ).toBeOnTheScreen();
       });
 
       it('shows the EMPTY_STATE_CTA with "Clear filter" label', () => {
@@ -2722,10 +2768,56 @@ describe('PerpsMarketListView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the rail while the watchlist filter is active', () => {
+    it('renders the rail when the watchlist filter is active', () => {
       mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['ETH']);
       mockUsePerpsMarketListView.mockReturnValueOnce(
         buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId('recently-viewed-row-ETH')).toBeOnTheScreen();
+    });
+
+    it('keeps only watchlisted markets on the recently viewed rail when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1], mockMarketData[0]],
+        }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
+      expect(screen.getByTestId('recently-viewed-row-BTC')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('recently-viewed-row-ETH'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the rail on the watchlist tab when recently viewed markets are not watchlisted', () => {
+      mockWatchlistFlagEnabled = true;
+      const { selectPerpsWatchlistMarkets } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      selectPerpsWatchlistMarkets.mockReturnValue(['BTC']);
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({
+          showFavoritesOnly: true,
+          recentlyViewedMarketObjects: [mockMarketData[1]],
+        }),
       );
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2753,7 +2845,7 @@ describe('PerpsMarketListView', () => {
       );
     });
 
-    it('keeps the search bar and both fixed filter rows above the rail', () => {
+    it('places the recently viewed rail above the sticky sort row', () => {
       mockUsePerpsMarketListView.mockReturnValueOnce(buildHookReturn());
 
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
@@ -2764,6 +2856,29 @@ describe('PerpsMarketListView', () => {
       expect(
         screen.getByTestId(PerpsMarketListViewSelectorsIDs.SORT_FILTERS),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-sort`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-recently-viewed-rail-mock'),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the market count and sort control visible when the watchlist filter is active', () => {
+      mockWatchlistFlagEnabled = true;
+      mockUsePerpsMarketListView.mockReturnValueOnce(
+        buildHookReturn({ showFavoritesOnly: true }),
+      );
+
+      renderWithProvider(<PerpsMarketListView />, { state: mockState });
+
       expect(
         screen.getByTestId(
           `${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`,
@@ -2821,7 +2936,7 @@ describe('PerpsMarketListView', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       // Verify search input is visible
-      const searchInput = screen.getByPlaceholderText('Search by token symbol');
+      const searchInput = screen.getByPlaceholderText('Search');
       expect(searchInput).toBeOnTheScreen();
 
       // Verify all markets are still displayed (whitespace is trimmed)

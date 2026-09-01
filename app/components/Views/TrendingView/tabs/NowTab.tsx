@@ -55,15 +55,14 @@ import PillScrollList from '../components/PillScrollList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
-import {
-  MAX_ITEMS_DISPLAYED,
-  WhatsHappeningSource,
-} from '../../../UI/WhatsHappening/constants';
+import { WhatsHappeningSource } from '../../../UI/WhatsHappening/constants';
 import {
   isWhatsHappeningSectionVisible,
   useWhatsHappening,
 } from '../../../UI/WhatsHappening/hooks';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import ExploreEarnSection from '../components/ExploreEarnSection';
 
 interface PerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -225,8 +224,9 @@ const NowTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const isEarnSectionEnabled = useSelector(selectExploreEarnSectionEnabledFlag);
 
-  const whatsHappening = useWhatsHappening(MAX_ITEMS_DISPLAYED);
+  const whatsHappening = useWhatsHappening();
   const refreshWhatsHappening = whatsHappening.refresh;
 
   useEffect(() => {
@@ -368,6 +368,13 @@ const NowTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (isEarnSectionEnabled) {
+      items.push({
+        key: 'earn',
+        content: <ExploreEarnSection tabName="Now" refresh={refresh} />,
+      });
+    }
+
     if (showWhatsHappening) {
       items.push({
         key: 'wh',
@@ -415,6 +422,7 @@ const NowTabContent: React.FC<TabProps> = ({
     showPredictions,
     showCryptoMovers,
     showPerps,
+    isEarnSectionEnabled,
     showStocks,
     whatsHappening,
     displayedPredictions,

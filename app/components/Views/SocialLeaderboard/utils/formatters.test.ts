@@ -1,5 +1,6 @@
 import {
   formatUsd,
+  formatTradeUnitPrice,
   formatSignedUsd,
   formatSignedAbbreviatedUsd,
   formatSignedFullUsdNoDecimals,
@@ -30,6 +31,22 @@ describe('formatUsd', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatUsd(undefined)).toBe('\u2014');
+  });
+});
+
+describe('formatTradeUnitPrice', () => {
+  it('formats sub-cent per-unit prices with perps precision', () => {
+    expect(formatTradeUnitPrice(0.002759)).toBe('$0.002759');
+  });
+
+  it('formats dollar-scale prices with tiered precision', () => {
+    expect(formatTradeUnitPrice(63_850)).toBe('$63,850');
+    expect(formatTradeUnitPrice(0.15)).toBe('$0.15');
+  });
+
+  it('returns an em dash for nullish values', () => {
+    expect(formatTradeUnitPrice(null)).toBe('\u2014');
+    expect(formatTradeUnitPrice(undefined)).toBe('\u2014');
   });
 });
 
@@ -285,8 +302,15 @@ const DAY = 24 * HOUR;
 describe('formatFeedTimestamp', () => {
   const now = new Date('2026-07-09T12:00:00Z').getTime();
 
-  it('formats seconds within the last minute', () => {
-    expect(formatFeedTimestamp(now - 21 * SECOND, now)).toBe('21s');
+  it('renders "Just now" within the last minute', () => {
+    expect(formatFeedTimestamp(now - 21 * SECOND, now)).toBe('Just now');
+  });
+
+  // The whole sub-minute range collapses to one label, so pin the exact
+  // handover to minutes: anything under 60s reads "Just now", 60s reads "1m".
+  it('switches from "Just now" to minutes at the one-minute boundary', () => {
+    expect(formatFeedTimestamp(now - 59 * SECOND, now)).toBe('Just now');
+    expect(formatFeedTimestamp(now - MINUTE, now)).toBe('1m');
   });
 
   it('formats minutes within the last hour', () => {
@@ -297,8 +321,8 @@ describe('formatFeedTimestamp', () => {
     expect(formatFeedTimestamp(now - 3 * HOUR, now)).toBe('3h');
   });
 
-  it('clamps future timestamps to 0 seconds', () => {
-    expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('0s');
+  it('renders "Just now" for timestamps slightly in the future', () => {
+    expect(formatFeedTimestamp(now + 5 * SECOND, now)).toBe('Just now');
   });
 
   it('formats an absolute clock time for timestamps older than 24h', () => {

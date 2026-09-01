@@ -1,17 +1,9 @@
 import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import {
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { type AppiumElement, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
 export class WalletHomeScroll {
@@ -19,12 +11,12 @@ export class WalletHomeScroll {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
   }
 
-  get walletScrollView(): EncapsulatedElementType {
+  get walletScrollView(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
   isAndroidAppium(): boolean {
-    return FrameworkDetector.isAppium() && !PlatformDetector.isIOS();
+    return PlatformDetector.isAndroid();
   }
 
   mapWalletHomeScrollToSwipe(scrollDirection: 'up' | 'down'): 'up' | 'down' {
@@ -41,9 +33,9 @@ export class WalletHomeScroll {
     }
 
     const swipeDirection = this.mapWalletHomeScrollToSwipe(scrollDirection);
-    await UnifiedGestures.swipe(this.walletScrollView, swipeDirection, {
+    await Gestures.swipe(this.walletScrollView, swipeDirection, {
       percentage: percent,
-      description: `Scroll wallet homepage ${scrollDirection}`,
+      elemDescription: `Scroll wallet homepage ${scrollDirection}`,
     });
   }
 
@@ -51,7 +43,9 @@ export class WalletHomeScroll {
     scrollDirection: 'up' | 'down',
     percent = 0.45,
   ): Promise<void> {
-    const container = await asPlaywrightElement(this.walletScrollView);
+    const container = (await Promise.resolve(
+      this.walletScrollView,
+    )) as AppiumElement;
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
     const centerX = Math.floor(location.x + size.width / 2);
@@ -66,8 +60,9 @@ export class WalletHomeScroll {
         : location.y + Math.floor(size.height * 0.35);
     const toY = fingerDirection === 'up' ? fromY - travel : fromY + travel;
 
-    await PlaywrightGestures.swipe({
-      scrollParams: { direction: fingerDirection },
+    const drv = getDriver();
+    await drv.swipe({
+      direction: fingerDirection,
       percent,
       duration: 600,
       from: { x: centerX, y: fromY },
@@ -76,7 +71,7 @@ export class WalletHomeScroll {
   }
 
   async scrollWalletHomeToElement(
-    target: EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
@@ -86,35 +81,14 @@ export class WalletHomeScroll {
         timeout: resolveE2EWaitTimeoutMs(10_000),
         description: `wallet-scroll-view for ${description}`,
       });
-      const scrollView = await asPlaywrightElement(this.walletScrollView);
-      const targetElement = await asPlaywrightElement(target);
-      await PlaywrightGestures.scrollIntoView(targetElement, {
+      const scrollView = (await Promise.resolve(
+        this.walletScrollView,
+      )) as AppiumElement;
+      await Gestures.scrollIntoView(target, {
         scrollableElement: scrollView,
-        scrollParams: {
-          direction: direction === 'down' ? 'up' : 'down',
-        },
+        direction: direction === 'down' ? 'up' : 'down',
         maxScrolls: maxAttempts,
       });
-      await Assertions.expectElementToBeVisible(target, {
-        timeout: 5_000,
-        description,
-      });
-      return;
-    }
-
-    if (FrameworkDetector.isAppium()) {
-      for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-        try {
-          await Assertions.expectElementToBeVisible(target, {
-            timeout: 1_500,
-            description,
-          });
-          return;
-        } catch {
-          await this.scrollWalletHome(direction, 0.5);
-        }
-      }
-
       await Assertions.expectElementToBeVisible(target, {
         timeout: 5_000,
         description,
@@ -141,21 +115,17 @@ export class WalletHomeScroll {
   }
 
   async tapIfAlreadyVisible(
-    target: DetoxElement | EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     options: { tapTimeout?: number } = {},
   ): Promise<boolean> {
-    if (!FrameworkDetector.isAppium()) {
-      return false;
-    }
-
     const { tapTimeout = 30_000 } = options;
 
     try {
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(target),
-        { timeout: 2000, description },
-      );
+      await Assertions.expectElementToBeVisible(target, {
+        timeout: 2000,
+        description,
+      });
       await Gestures.waitAndTap(target, {
         elemDescription: description,
         timeout: tapTimeout,
@@ -167,7 +137,7 @@ export class WalletHomeScroll {
   }
 
   async scrollAndTapSection(
-    target: DetoxElement | EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: {
@@ -177,69 +147,33 @@ export class WalletHomeScroll {
       tapTimeout?: number;
     } = {},
   ): Promise<void> {
-    const {
-      scrollAmount = 200,
-      overshootSwipe,
-      timeout = 15_000,
-      tapTimeout = 30_000,
-    } = options;
+    const { overshootSwipe, timeout = 15_000, tapTimeout = 30_000 } = options;
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.scrollToElement(target, this.walletScrollContainer, {
-          direction,
-          scrollAmount,
-          timeout,
-          elemDescription: `Scroll to ${description}`,
-        });
-        if (overshootSwipe) {
-          await Gestures.swipe(
-            this.walletScrollView,
-            overshootSwipe.direction,
-            {
-              percentage: overshootSwipe.percentage ?? 0.15,
-              speed: 'slow',
-              elemDescription: `Overshoot swipe for ${description}`,
-            },
-          );
-        }
-        await Gestures.waitAndTap(target, {
-          elemDescription: description,
-          timeout: tapTimeout,
-        });
-      },
-      appium: async () => {
-        await this.scrollWalletHomeToElement(
-          target as EncapsulatedElementType,
-          description,
-          direction,
-          Math.max(8, Math.ceil(timeout / 2_000)),
+    await this.scrollWalletHomeToElement(
+      target,
+      description,
+      direction,
+      Math.max(8, Math.ceil(timeout / 2_000)),
+    );
+    if (overshootSwipe) {
+      const overshootScrollDirection =
+        overshootSwipe.direction === 'up' ? 'down' : 'up';
+      if (this.isAndroidAppium()) {
+        await this.scrollWalletHomeAndroid(
+          overshootScrollDirection,
+          overshootSwipe.percentage ?? 0.15,
         );
-        if (overshootSwipe) {
-          const overshootScrollDirection =
-            overshootSwipe.direction === 'up' ? 'down' : 'up';
-          if (this.isAndroidAppium()) {
-            await this.scrollWalletHomeAndroid(
-              overshootScrollDirection,
-              overshootSwipe.percentage ?? 0.15,
-            );
-          } else {
-            await Gestures.swipe(
-              this.walletScrollView,
-              overshootSwipe.direction,
-              {
-                percentage: overshootSwipe.percentage ?? 0.15,
-                speed: 'slow',
-                elemDescription: `Overshoot swipe for ${description}`,
-              },
-            );
-          }
-        }
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(target as EncapsulatedElementType),
-          { timeout: tapTimeout },
-        );
-      },
+      } else {
+        await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
+          percentage: overshootSwipe.percentage ?? 0.15,
+          speed: 'slow',
+          elemDescription: `Overshoot swipe for ${description}`,
+        });
+      }
+    }
+    await Gestures.waitAndTap(target, {
+      elemDescription: description,
+      timeout: tapTimeout,
     });
   }
 

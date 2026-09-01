@@ -23,7 +23,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { apyDigitCount } from '../../utils/riveApy';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { setMoneyOnboardingSeen } from '../../../../../actions/user';
@@ -34,15 +34,17 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
-import Rive, {
-  AutoBind,
-  useRive,
-  useRiveNumber,
+import {
   Fit,
-  useRiveTrigger,
+  RiveErrorType,
+  RiveView,
+  useRiveFile,
+  useRiveNumber,
   useRiveString,
-  RNRiveError,
-} from 'rive-react-native';
+  useRiveTrigger,
+  useViewModelInstance,
+  type RiveError,
+} from '@rive-app/react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
@@ -61,6 +63,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
 import onboardingFlowV25Animation from '../../../../../animations/onboarding_flow_v25.riv';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -70,6 +73,8 @@ const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 const RIVE_ARTBOARD_NAME = 'Money_Account';
 const CARD_CASHBACK_PERCENTAGE = 3;
 const CLOSE_TRIGGER = 'close';
+const CONTINUE_TRIGGER = 'continue';
+const BACK_TRIGGER = 'back';
 
 /** Data binding holding the full APY, percent sign included, e.g. "4.6%". */
 const RIVE_APY_VALUE_PATH = 'apyValue';
@@ -81,43 +86,21 @@ const RIVE_APY_VALUE_PATH = 'apyValue';
 const RIVE_APY_AMOUNT_DIGIT_PATH = 'apyAmountDigit';
 
 /**
- * The keys in this mapping refer to the step state names in the Rive file.
- * Do not change the keys without updating the Rive file.
+ * Steps as authored in the Rive file: UI1 (0), APY (1), Card (2), Coins (3)
+ * and FinalState (4). The Nitro runtime has no `onStateChanged`, so the
+ * current step is reconstructed from the artboard's `continue`/`back`
+ * view-model triggers instead of the reported state names.
  */
-const RIVE_STEP_NAMES = {
-  UI1: 'UI1',
-  APY: 'APY',
-  CARD: 'Card',
-  COINS: 'Coins',
-  FINAL_STATE: 'FinalState',
-};
+const FINAL_STEP_INDEX = 4;
+const TOTAL_ONBOARDING_STEPS = FINAL_STEP_INDEX + 1;
 
-const RIVE_TRANSITION_STATE_NAMES = {
-  // Forward navigation states
-  UI_TO_APY: 'UI to APY',
-  APY_TO_WALLET: 'APY to Wallet',
-  CARD_TO_COINS: 'Card to Coins',
-  COINS_TO_FOX: 'Coins to Fox',
-  // Backward navigation states
-  APY_TO_UI: 'APY to UI',
-  WALLET_TO_APY: 'Wallet to APY',
-  COINS_TO_CARD: 'Coins to Card',
-  FOX_TO_COINS: 'Fox to Coins',
-};
-
-const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
-  [RIVE_STEP_NAMES.UI1]: 0,
-  [RIVE_STEP_NAMES.APY]: 1,
-  [RIVE_STEP_NAMES.CARD]: 2,
-  [RIVE_STEP_NAMES.COINS]: 3,
-  [RIVE_STEP_NAMES.FINAL_STATE]: 4,
-};
-
-const RIVE_TRANSITION_STATES = new Set<string>(
-  Object.values(RIVE_TRANSITION_STATE_NAMES),
-);
-
-const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
+/**
+ * Matches the transition speed pushed to the artboard (`setTransitionSpeed`).
+ * With no `onStateChanged` to observe the transition finishing, the overlay
+ * copy swap, VIEWED tracking, and final-step completion are timed to the
+ * authored transition instead.
+ */
+const STEP_TRANSITION_MS = 300;
 const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
@@ -262,6 +245,7 @@ const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<MoneyOnboardingRouteProp>();
   const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const analyticsContext = route.params?.analyticsContext;
 
   const isUsUnauthenticatedNonCardholder = useSelector(
     selectIsUsUnauthenticatedNonCardholder,
@@ -274,22 +258,34 @@ const MoneyOnboardingView = () => {
     component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
   });
 
-  const { apyPercent, apyPercentFormatted } = useMoneyAccountBalance();
+  const { apyPercent, apyPercentFormatted } = useMoneyVaultApy();
   const riveApyValue = apyPercentFormatted ?? `${FALLBACK_APY}%`;
   const { initiateDeposit } = useMoneyAccountDeposit();
 
-  const [ref, riveRef] = useRive();
+  const { riveFile } = useRiveFile(onboardingFlowV25Animation);
+  // VM instance is created off the file (async) and bound via `dataBind`
+  // (replaces the legacy `AutoBind(true)` mode).
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName: RIVE_ARTBOARD_NAME,
+    async: true,
+  });
 
   const stepRef = useRef(0);
   const [overlayStep, setOverlayStep] = useState(0);
   const overlayOpacity = useSharedValue(0);
 
-  const [, setButtonText] = useRiveString(riveRef, 'button');
-  const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
-  const [, setApyValue] = useRiveString(riveRef, RIVE_APY_VALUE_PATH);
-  const [, setApyAmountDigit] = useRiveNumber(
-    riveRef,
+  const { setValue: setButtonText } = useRiveString('button', instance);
+  const { setValue: setTransitionSpeed } = useRiveNumber(
+    'transitionSpeed',
+    instance,
+  );
+  const { setValue: setApyValue } = useRiveString(
+    RIVE_APY_VALUE_PATH,
+    instance,
+  );
+  const { setValue: setApyAmountDigit } = useRiveNumber(
     RIVE_APY_AMOUNT_DIGIT_PATH,
+    instance,
   );
 
   // Hardcoded to English to simplify event tracking.
@@ -340,33 +336,40 @@ const MoneyOnboardingView = () => {
   );
 
   useEffect(() => {
-    if (!riveRef) return;
+    if (!instance) return;
 
     // Config
-    setTransitionSpeed(300);
+    setTransitionSpeed(STEP_TRANSITION_MS);
     setButtonText(strings('money.rive_onboarding.button_text'));
     overlayOpacity.set(
       withTiming(1, {
         duration: OVERLAY_FADE_DURATION_MS,
       }),
     );
-  }, [riveRef, setTransitionSpeed, setButtonText, overlayOpacity]);
+  }, [instance, setTransitionSpeed, setButtonText, overlayOpacity]);
 
   // Kept out of the config effect above so a rate change re-pushes the APY
   // without replaying the one-off setup.
   useEffect(() => {
-    if (!riveRef) return;
+    if (!instance) return;
 
     setApyValue(riveApyValue);
     setApyAmountDigit(apyDigitCount(riveApyValue));
-  }, [riveRef, riveApyValue, setApyValue, setApyAmountDigit]);
+  }, [instance, riveApyValue, setApyValue, setApyAmountDigit]);
 
   const navigateToMoneyHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
-  }, [navigation]);
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: {
+          screen: Routes.MONEY.HOME,
+          ...(analyticsContext ? { params: { analyticsContext } } : {}),
+        },
+      },
+      { pop: true },
+    );
+  }, [analyticsContext, navigation]);
 
   const navigateToPostOnboardingDestination = useCallback(async () => {
     if (
@@ -453,29 +456,42 @@ const MoneyOnboardingView = () => {
     ],
   );
 
-  useRiveTrigger(riveRef, CLOSE_TRIGGER, () => {
-    handleClose(stepRef.current);
-  });
+  // Legacy tracked the first VIEWED when `onStateChanged` reported the initial
+  // `UI1` state; Nitro exposes no such signal, so it's tracked once the
+  // view-model instance is bound.
+  const hasTrackedInitialStepRef = useRef(false);
+  useEffect(() => {
+    if (!instance || hasTrackedInitialStepRef.current) return;
+    hasTrackedInitialStepRef.current = true;
+    handleStepViewed(0);
+  }, [instance, handleStepViewed]);
 
-  const handleStateChanged = useCallback(
-    (_stateMachineName: string, stateName: string) => {
-      if (RIVE_TRANSITION_STATES.has(stateName)) {
-        playImpact(ImpactMoment.PageNavigation);
-        overlayOpacity.set(
-          withTiming(0, {
-            duration: OVERLAY_FADE_DURATION_MS,
-          }),
-        );
-        return;
-      }
+  // Step navigation. The artboard owns the actual slide transitions; RN
+  // observes the `continue`/`back` view-model triggers to mirror the step
+  // index. The overlay fades out immediately (as the authored transition
+  // starts) and the copy swap / VIEWED tracking / completion fire once the
+  // transition has had time to finish.
+  const stepTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(
+    () => () => {
+      if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
+    },
+    [],
+  );
 
-      const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
-
-      if (stepIndex !== undefined) {
-        stepRef.current = stepIndex;
-
-        if (stepContent[stepIndex]) {
-          setOverlayStep(stepIndex);
+  const goToStep = useCallback(
+    (nextStep: number) => {
+      stepRef.current = nextStep;
+      playImpact(ImpactMoment.PageNavigation);
+      overlayOpacity.set(
+        withTiming(0, {
+          duration: OVERLAY_FADE_DURATION_MS,
+        }),
+      );
+      if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
+      stepTimerRef.current = setTimeout(() => {
+        if (stepContent[nextStep]) {
+          setOverlayStep(nextStep);
           overlayOpacity.set(
             withTiming(1, {
               duration: OVERLAY_FADE_DURATION_MS,
@@ -483,21 +499,41 @@ const MoneyOnboardingView = () => {
           );
         }
 
-        handleStepViewed(stepIndex);
-      }
+        handleStepViewed(nextStep);
 
-      if (stateName === RIVE_STEP_NAMES.FINAL_STATE) {
-        handleComplete(stepRef.current);
-      }
+        if (nextStep === FINAL_STEP_INDEX) {
+          handleComplete(nextStep);
+        }
+      }, STEP_TRANSITION_MS);
     },
     [handleStepViewed, handleComplete, overlayOpacity, stepContent],
   );
 
+  const handleContinue = useCallback(() => {
+    if (stepRef.current >= FINAL_STEP_INDEX) return;
+    goToStep(stepRef.current + 1);
+  }, [goToStep]);
+
+  const handleBack = useCallback(() => {
+    if (stepRef.current === 0) return;
+    goToStep(stepRef.current - 1);
+  }, [goToStep]);
+
+  useRiveTrigger(CLOSE_TRIGGER, instance, {
+    onTrigger: () => {
+      handleClose(stepRef.current);
+    },
+  });
+  useRiveTrigger(CONTINUE_TRIGGER, instance, { onTrigger: handleContinue });
+  useRiveTrigger(BACK_TRIGGER, instance, { onTrigger: handleBack });
+
   const handleError = useCallback(
-    (riveError: RNRiveError) => {
+    (riveError: RiveError) => {
       Logger.error(
         new Error(
-          `MoneyOnboardingView: Rive error: ${riveError.message} - ${riveError.type}`,
+          `MoneyOnboardingView: Rive error: ${riveError.message} - ${
+            RiveErrorType[riveError.type]
+          }`,
         ),
       );
       dispatch(setMoneyOnboardingSeen(true));
@@ -508,19 +544,20 @@ const MoneyOnboardingView = () => {
 
   return (
     <View style={styles.root}>
-      <Rive
-        ref={ref}
-        source={onboardingFlowV25Animation}
-        artboardName={RIVE_ARTBOARD_NAME}
-        stateMachineName={RIVE_STATE_MACHINE_NAME}
-        dataBinding={AutoBind(true)}
-        fit={Fit.Layout}
-        layoutScaleFactor={PixelRatio.get()}
-        onStateChanged={handleStateChanged}
-        onError={handleError}
-        style={StyleSheet.absoluteFillObject}
-        testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-      />
+      {riveFile && instance && (
+        <RiveView
+          file={riveFile}
+          artboardName={RIVE_ARTBOARD_NAME}
+          stateMachineName={RIVE_STATE_MACHINE_NAME}
+          dataBind={instance}
+          autoPlay
+          fit={Fit.Layout}
+          layoutScaleFactor={PixelRatio.get()}
+          onError={handleError}
+          style={StyleSheet.absoluteFill}
+          testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+        />
+      )}
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
         opacity={overlayOpacity}
@@ -529,4 +566,65 @@ const MoneyOnboardingView = () => {
   );
 };
 
-export default MoneyOnboardingView;
+// Used in E2E and performance tests to complete onboarding without rendering Rive.
+const MoneyOnboardingViewE2E = () => {
+  const dispatch = useDispatch();
+
+  const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute<MoneyOnboardingRouteProp>();
+  const postOnboardingRedirect = route.params?.postOnboardingRedirect;
+  const { initiateDeposit } = useMoneyAccountDeposit();
+
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
+  }, [navigation]);
+
+  const navigateToPostOnboardingDestination = useCallback(async () => {
+    if (
+      postOnboardingRedirect?.type !== MoneyPostOnboardingRedirectType.DEPOSIT
+    ) {
+      navigateToMoneyHome();
+      return;
+    }
+
+    try {
+      await initiateDeposit({
+        preferredPaymentToken: postOnboardingRedirect.preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: navigateToMoneyHome,
+      });
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to initiate deposit after onboarding',
+      );
+    }
+  }, [initiateDeposit, navigateToMoneyHome, postOnboardingRedirect]);
+
+  const completeOnboardingAndRedirect = useCallback(() => {
+    dispatch(setMoneyOnboardingSeen(true));
+    navigateToPostOnboardingDestination();
+  }, [dispatch, navigateToPostOnboardingDestination]);
+
+  useEffect(() => {
+    completeOnboardingAndRedirect();
+  }, [completeOnboardingAndRedirect]);
+
+  return null;
+};
+
+const MoneyOnboardingViewGate = () => {
+  if (isE2EOrPerformanceTest) {
+    return <MoneyOnboardingViewE2E />;
+  }
+  return <MoneyOnboardingView />;
+};
+
+export default MoneyOnboardingViewGate;

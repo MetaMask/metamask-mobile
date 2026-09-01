@@ -1,8 +1,10 @@
-import type {
-  IPlatformDriver,
-  SessionLaunchInput,
-  StateSnapshotCapability,
-  WorkflowContext,
+import {
+  generateSessionId,
+  knowledgeStore,
+  type IPlatformDriver,
+  type SessionLaunchInput,
+  type StateSnapshotCapability,
+  type WorkflowContext,
 } from '@metamask/client-mcp-core';
 
 import { AndroidLaunchError, IOSLaunchError } from '../launcher-types';
@@ -13,7 +15,17 @@ import type {
   ResolvedMobileLaunchOptions,
 } from '../platform-adapter';
 
-jest.mock('@metamask/client-mcp-core', () => ({}));
+jest.mock('@metamask/client-mcp-core', () => ({
+  generateSessionId: jest.fn().mockReturnValue('mm-test-session-id'),
+  knowledgeStore: {
+    writeSessionMetadata: jest.fn().mockResolvedValue('/tmp/session.json'),
+  },
+}));
+
+const mockGenerateSessionId = jest.mocked(generateSessionId);
+const mockWriteSessionMetadata = jest.mocked(
+  knowledgeStore.writeSessionMetadata,
+);
 
 const state = {
   isLoaded: true,
@@ -178,6 +190,39 @@ describe('MetaMaskMobileSessionManager', () => {
         ports: { anvil: 0, fixtureServer: 0 },
         stateMode: 'default',
       }),
+    );
+  });
+
+  it('generates an mm-prefixed session ID and persists session metadata', async () => {
+    await manager.launch(createLaunchInput({ goal: 'test goal' }));
+
+    expect(mockGenerateSessionId).toHaveBeenCalledTimes(1);
+    expect(mockWriteSessionMetadata).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sessionId: 'mm-test-session-id',
+        goal: 'test goal',
+        schemaVersion: 1,
+      }),
+    );
+    expect(manager.getSessionMetadata()).toEqual(
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
+    );
+  });
+
+  it('completes the launch even when session metadata persistence fails', async () => {
+    mockWriteSessionMetadata.mockRejectedValueOnce(new Error('disk full'));
+
+    const result = await manager.launch(
+      createLaunchInput({ goal: 'test goal' }),
+    );
+
+    expect(result.extensionId).toBe('io.metamask.MetaMask');
+    expect(manager.hasActiveSession()).toBe(true);
+    expect(manager.getSessionMetadata()).toEqual(
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
+    );
+    expect(stderrSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('disk full'),
     );
   });
 

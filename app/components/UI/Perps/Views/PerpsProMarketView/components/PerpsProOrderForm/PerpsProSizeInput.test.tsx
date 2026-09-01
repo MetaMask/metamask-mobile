@@ -1,10 +1,18 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../../../util/haptics';
 import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
+import { getPerpsProInputAccessoryID } from './PerpsProCompactInput';
 import PerpsProSizeInput, {
   type PerpsProSizeInputProps,
 } from './PerpsProSizeInput';
+
+jest.mock('../../../../../../../util/haptics');
 
 const mockInputFocus = jest.fn();
 
@@ -63,6 +71,8 @@ const renderInput = (overrides: Partial<PerpsProSizeInputProps> = {}) =>
 describe('PerpsProSizeInput', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
   });
 
   it('focuses the input when the upper field is pressed', () => {
@@ -73,14 +83,32 @@ describe('PerpsProSizeInput', () => {
     expect(mockInputFocus).toHaveBeenCalledTimes(1);
   });
 
-  it('refocuses the input after the denomination toggle is pressed', () => {
+  it('does not focus the input when the denomination toggle is pressed', () => {
     const onToggleDenomination = jest.fn();
     renderInput({ onToggleDenomination });
 
     fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
 
     expect(onToggleDenomination).toHaveBeenCalledTimes(1);
-    expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    expect(mockInputFocus).not.toHaveBeenCalled();
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays PrimaryCTA when Add funds is pressed', () => {
+    const onAddFundsPress = jest.fn();
+    renderInput({ onAddFundsPress });
+
+    fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
+
+    expect(onAddFundsPress).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+  });
+
+  it('does not play Add funds haptics when the action is disabled', () => {
+    renderInput({ onAddFundsPress: undefined });
+
+    expect(screen.getByTestId(ids.ADD_FUNDS_BUTTON)).toBeDisabled();
+    expect(playImpact).not.toHaveBeenCalled();
   });
 
   it('disables the denomination toggle when conversion is unavailable', () => {
@@ -94,6 +122,7 @@ describe('PerpsProSizeInput', () => {
 
     expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
       'inputAccessoryViewID',
+      getPerpsProInputAccessoryID(ids.SIZE_INPUT),
     );
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp('returnKeyType');
     expect(screen.getByTestId(ids.SIZE_INPUT)).not.toHaveProp(
@@ -181,5 +210,60 @@ describe('PerpsProSizeInput', () => {
     fireEvent(screen.getByTestId(ids.SIZE_SLIDER_SECTION), 'touchCancel');
 
     expect(onDragCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks direct mutation handlers while disabled', () => {
+    const onChangeText = jest.fn();
+    const onFocus = jest.fn();
+    const onBlur = jest.fn();
+    const onFieldPress = jest.fn();
+    const onToggleDenomination = jest.fn();
+    const onValueChange = jest.fn();
+    const onDragEnd = jest.fn();
+    const onDragCancel = jest.fn();
+    const onAddFundsPress = jest.fn();
+    renderInput({
+      isDisabled: true,
+      onChangeText,
+      onFocus,
+      onBlur,
+      onFieldPress,
+      onToggleDenomination,
+      onAddFundsPress,
+      sizeSlider: createSizeSlider({
+        onValueChange,
+        onDragEnd,
+        onDragCancel,
+      }),
+    });
+
+    fireEvent.press(screen.getByTestId(ids.SIZE_FIELD));
+    fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+    fireEvent.press(screen.getByTestId(ids.ADD_FUNDS_BUTTON));
+    const slider = screen.UNSAFE_getByType(host('PerpsSlider'));
+    const input = screen.getByTestId(ids.SIZE_INPUT);
+    const sliderSection = screen.getByTestId(ids.SIZE_SLIDER_SECTION);
+
+    input.props.onChangeText('100');
+    input.props.onFocus();
+    input.props.onBlur();
+    input.props.onPressIn();
+    slider.props.onValueChange(50);
+    slider.props.onDragEnd(50);
+    sliderSection.props.onTouchCancel();
+
+    expect(input).toHaveProp('isDisabled', true);
+    expect(slider).toHaveProp('disabled', true);
+    expect(onChangeText).not.toHaveBeenCalled();
+    expect(onFocus).not.toHaveBeenCalled();
+    expect(onBlur).not.toHaveBeenCalled();
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(onValueChange).not.toHaveBeenCalled();
+    expect(onDragEnd).not.toHaveBeenCalled();
+    expect(onDragCancel).not.toHaveBeenCalled();
+    expect(onToggleDenomination).not.toHaveBeenCalled();
+    expect(onAddFundsPress).not.toHaveBeenCalled();
+    expect(playImpact).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
   });
 });

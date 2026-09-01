@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import type {
   MarketOverview,
@@ -6,7 +7,14 @@ import type {
 } from '@metamask/ai-controllers';
 import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import type { WhatsHappeningItem } from '../types';
+
+/** Internal error flag when fetch rejects with a non-Error value (not shown in UI). */
+export const WHATS_HAPPENING_FETCH_FAILED = 'WHATS_HAPPENING_FETCH_FAILED';
+
+const WHATS_HAPPENING_QUERY_KEY = 'whats-happening';
 
 /**
  * Result interface for useWhatsHappening hook
@@ -36,11 +44,8 @@ export const isWhatsHappeningSectionVisible = ({
 }: Pick<UseWhatsHappeningResult, 'isLoading' | 'items' | 'error'>): boolean =>
   isLoading || items.length > 0 || Boolean(error);
 
-const mapTrendsToItems = (
-  overview: MarketOverview,
-  limit: number,
-): WhatsHappeningItem[] =>
-  overview.trends.slice(0, limit).map((trend, index) => ({
+const mapTrendsToItems = (overview: MarketOverview): WhatsHappeningItem[] =>
+  overview.trends.map((trend, index) => ({
     id: `trend-${index}`,
     title: trend.title,
     description: trend.description,
@@ -112,13 +117,11 @@ const getTitleKey = (title: string): string =>
  *
  * @param outdatedItem - The fetched front-page item to prepend, or `null`.
  * @param baseItems - The latest market overview items.
- * @param limit - Maximum number of items to return.
- * @returns The items to render, capped at `limit`.
+ * @returns The items to render.
  */
 const prependOutdatedItem = (
   outdatedItem: WhatsHappeningItem | null,
   baseItems: WhatsHappeningItem[],
-  limit: number,
 ): WhatsHappeningItem[] => {
   if (!outdatedItem) {
     return baseItems;
@@ -139,7 +142,30 @@ const prependOutdatedItem = (
       )
     : baseItems;
 
-  return [item, ...rest].slice(0, limit);
+  return [item, ...rest];
+};
+
+const fetchWhatsHappeningItems = async (
+  outdatedItemId: string | null,
+): Promise<WhatsHappeningItem[]> => {
+  try {
+    const data = await Engine.context.AiDigestController.fetchMarketOverview();
+    const baseItems =
+      data === null || data === undefined ? [] : mapTrendsToItems(data);
+
+    // When a deep link supplied an id, prepend that front-page item as the
+    // first card, deduped against the latest feed. It is flagged "Outdated"
+    // only when it is not already in the feed (see prependOutdatedItem).
+    const outdatedItem = await fetchOutdatedItem(outdatedItemId);
+
+    return prependOutdatedItem(outdatedItem, baseItems);
+  } catch (err) {
+    Logger.error(ensureError(err, 'useWhatsHappening.fetchItems'), {
+      tags: { feature: 'WhatsHappening' },
+      extra: { hook: 'useWhatsHappening' },
+    });
+    throw err instanceof Error ? err : new Error(WHATS_HAPPENING_FETCH_FAILED);
+  }
 };
 
 /**
@@ -147,65 +173,98 @@ const prependOutdatedItem = (
  *
  * Calls `AiDigestController.fetchMarketOverview()` (which handles caching
  * internally) and maps the returned `MarketOverviewTrend` entries to
- * `WhatsHappeningItem` shape for the carousel cards.
+ * `WhatsHappeningItem` shape for the carousel cards. Item count is owned by
+ * the Digest API — the client does not slice the response.
  *
- * @param limit - Maximum number of items to return (default: 5)
+ * React Query only coordinates in-flight work. The controller remains the
+ * 10-minute cache.
+ *
+ * @param options - Hook options (`enabled`, `outdatedItemId`).
  * @returns Object with items, isLoading, error, refresh
  */
 export const useWhatsHappening = (
-  limit = 5,
   options?: UseWhatsHappeningOptions,
 ): UseWhatsHappeningResult => {
   const isFeatureEnabled = useSelector(selectWhatsHappeningEnabled);
   const outdatedItemId = options?.outdatedItemId ?? null;
   const isHookEnabled = options?.enabled ?? true;
   const isActive = isFeatureEnabled && isHookEnabled;
+  const queryClient = useQueryClient();
+  const pendingRefreshRef = useRef<(() => void) | null>(null);
+  const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
-  const [items, setItems] = useState<WhatsHappeningItem[]>([]);
-  const [isLoading, setIsLoading] = useState(isActive);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchItems = useCallback(async () => {
-    if (!isActive) {
-      setItems([]);
-      setIsLoading(false);
-      setError(null);
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data =
-        await Engine.context.AiDigestController.fetchMarketOverview();
-      const baseItems = data === null ? [] : mapTrendsToItems(data, limit);
-
-      // When a deep link supplied an id, prepend that front-page item as the
-      // first card, deduped against the latest feed. It is flagged "Outdated"
-      // only when it is not already in the feed (see prependOutdatedItem).
-      const outdatedItem = await fetchOutdatedItem(outdatedItemId);
-
-      setItems(prependOutdatedItem(outdatedItem, baseItems, limit));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to fetch trending items',
-      );
-      setItems([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [isActive, limit, outdatedItemId]);
-
-  const refresh = useCallback(async () => {
-    await fetchItems();
-  }, [fetchItems]);
+  const query = useQuery<WhatsHappeningItem[], Error>({
+    queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
+    queryFn: () => fetchWhatsHappeningItems(outdatedItemId),
+    enabled: isActive,
+    retry: false,
+    // The controller can satisfy this request from its persisted cache while
+    // offline. Let it decide whether a network request is necessary.
+    networkMode: 'always',
+    // AiDigestController owns the cache. React Query only coordinates
+    // in-flight requests here.
+    staleTime: 0,
+    gcTime: 0,
+    // Match the previous hook: fetch on mount / refresh / key change, not on
+    // app resume or reconnect (those would mark every subscriber as fetching).
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    // Only the feature flag should drop the shared query. `enabled: false` is
+    // used by WhatsHappeningSection when a parent already owns the feed.
+    if (!isFeatureEnabled) {
+      queryClient.removeQueries({
+        queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
+        exact: true,
+      });
+    }
+  }, [isFeatureEnabled, outdatedItemId, queryClient]);
 
-  return { items, isLoading, error, refresh };
+  useEffect(
+    () => () => {
+      pendingRefreshRef.current?.();
+      pendingRefreshRef.current = null;
+    },
+    [],
+  );
+
+  const refresh = useCallback(() => {
+    pendingRefreshRef.current?.();
+    pendingRefreshRef.current = null;
+    setIsManualRefreshing(true);
+
+    return new Promise<void>((resolve) => {
+      pendingRefreshRef.current = resolve;
+      queryClient
+        .refetchQueries({
+          queryKey: [WHATS_HAPPENING_QUERY_KEY, outdatedItemId],
+          exact: true,
+        })
+        .finally(() => {
+          if (pendingRefreshRef.current === resolve) {
+            pendingRefreshRef.current();
+            pendingRefreshRef.current = null;
+            setIsManualRefreshing(false);
+          }
+        });
+    });
+  }, [outdatedItemId, queryClient]);
+
+  const error =
+    isActive && query.error
+      ? query.error.message || WHATS_HAPPENING_FETCH_FAILED
+      : null;
+
+  return {
+    items: isActive && !error ? (query.data ?? []) : [],
+    // isFetching is true for background refetches (new observer, stale mount).
+    // Only the initial load and an explicit refresh should show skeletons.
+    isLoading: isActive && (query.isLoading || isManualRefreshing),
+    error,
+    refresh,
+  };
 };
 
 export default useWhatsHappening;

@@ -1,7 +1,12 @@
 import React from 'react';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE, PerpsMode } from '@metamask/perps-controller';
+import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
@@ -70,6 +75,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const mockPerpsModeToggle = jest.fn();
+let mockPerpsModeValue = PerpsMode.Lite;
 
 // Stub the reusable Lite/Pro toggle so this view test focuses on header wiring
 // (its analytics/design-system internals are covered by its own unit tests).
@@ -84,11 +90,13 @@ jest.mock('../../components/PerpsModeToggle', () => {
     default: ({
       onChange,
       variant,
+      enableHaptics,
     }: {
       onChange?: (mode: string) => void;
       variant?: string;
+      enableHaptics?: boolean;
     }) => {
-      mockPerpsModeToggle({ variant });
+      mockPerpsModeToggle({ variant, enableHaptics });
       return ReactActual.createElement(TouchableOpacity, {
         testID: SelectorsIDs.CONTAINER,
         // Simulate the user switching to Pro from the stubbed toggle.
@@ -134,6 +142,7 @@ const mockCloseEligibilityModal = jest.fn();
 const mockSetPerpsMode = jest.fn();
 const mockUsePerpsHomeSectionTracking = jest.fn();
 jest.mock('../../hooks', () => ({
+  useBottomSafeAreaInset: jest.fn(() => 0),
   usePerpsHomeData: jest.fn(),
   usePerpsMeasurement: jest.fn(),
   usePerpsNavigation: jest.fn(() => ({
@@ -155,7 +164,7 @@ jest.mock('../../hooks', () => ({
   })),
   usePerpsHomeSectionTracking: () => mockUsePerpsHomeSectionTracking(),
   usePerpsMode: jest.fn(() => ({
-    mode: 'lite',
+    mode: mockPerpsModeValue,
     setMode: mockSetPerpsMode,
   })),
 }));
@@ -473,6 +482,18 @@ jest.mock('../../../../UI/WhatsHappening', () => {
     return <View testID="whats-happening-section" />;
   };
 });
+jest.mock('../../../../UI/WhatsHappening/hooks', () => {
+  const actual = jest.requireActual('../../../../UI/WhatsHappening/hooks');
+  return {
+    ...actual,
+    useWhatsHappening: jest.fn(() => ({
+      items: [],
+      isLoading: true,
+      error: null,
+      refresh: jest.fn(),
+    })),
+  };
+});
 jest.mock(
   '../../../../../selectors/featureFlagController/whatsHappening',
   () => ({
@@ -530,6 +551,35 @@ const mockScrollTracking = () => ({
 const mockUsePerpsLiveAccount = jest.requireMock('../../hooks/stream')
   .usePerpsLiveAccount as jest.Mock;
 
+const mockUseBottomSafeAreaInset = jest.requireMock('../../hooks')
+  .useBottomSafeAreaInset as jest.Mock;
+
+// Stand-in for a real Android gesture navigation bar (24dp), so a regression that
+// drops the inset from a layout calculation changes the asserted value.
+const NAVIGATION_BAR_INSET = 24;
+
+const fundedAccount = {
+  account: {
+    totalBalance: '100',
+    spendableBalance: '100',
+    withdrawableBalance: '100',
+    unrealizedPnl: '0',
+    returnOnEquity: '0',
+  },
+  isInitialLoading: false,
+};
+
+// Children such as PerpsCompetitionBanner resolve storage in an async effect
+// after the first render; flush it so assertions run on a settled tree.
+const settleAsyncChildren = async () => {
+  await act(async () => {
+    await Promise.resolve();
+  });
+};
+
+const flattenStyle = (node: { props: Record<string, unknown> }) =>
+  StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
+
 describe('PerpsHomeView', () => {
   const mockDefaultData = {
     positions: [],
@@ -553,11 +603,15 @@ describe('PerpsHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Pin the default inset so a mockReturnValue set by one test cannot leak
+    // into later ones (clearAllMocks resets call state, not return values).
+    mockUseBottomSafeAreaInset.mockReturnValue(0);
     mockHasCompletedPerpsModeSelection.mockResolvedValue(false);
     mockNavigateBack.mockClear();
     mockNavigateToWallet.mockClear();
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
+    mockPerpsModeValue = PerpsMode.Lite;
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
     mockUsePerpsHomeSectionTracking.mockReturnValue(mockScrollTracking());
     mockUsePerpsTopMovers.mockReturnValue({
@@ -606,7 +660,7 @@ describe('PerpsHomeView', () => {
     expect(getByTestId(PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE)).toBeTruthy();
   });
 
-  it('renders the active-mode pill in the header when the Pro mode flag is enabled', () => {
+  it('enables mode-toggle haptics for the Lite mode header', () => {
     // Arrange
     mockUseSelector.mockImplementation(
       (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
@@ -615,7 +669,7 @@ describe('PerpsHomeView', () => {
     // Act
     const { getByTestId } = render(<PerpsHomeView />);
 
-    // Assert - back/search remain and the toggle is shown centered
+    // Assert - back/search remain and the active-mode pill sits in endAccessory
     expect(
       getByTestId(PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON),
     ).toBeTruthy();
@@ -623,7 +677,27 @@ describe('PerpsHomeView', () => {
     expect(
       getByTestId(PerpsModeToggleSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(mockPerpsModeToggle).toHaveBeenCalledWith({ variant: 'active' });
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
+  });
+
+  it('enables mode-toggle haptics for the Pro mode header', () => {
+    // Arrange
+    mockPerpsModeValue = PerpsMode.Pro;
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsProModeEnabledFlag,
+    );
+
+    // Act
+    render(<PerpsHomeView />);
+
+    // Assert
+    expect(mockPerpsModeToggle).toHaveBeenCalledWith({
+      variant: 'active',
+      enableHaptics: true,
+    });
   });
 
   it('does not render the Lite/Pro toggle when the Pro mode flag is disabled', () => {
@@ -1252,6 +1326,62 @@ describe('PerpsHomeView', () => {
         getByTestId(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON),
       ).toBeTruthy();
     });
+
+    it('adds the system navigation bar inset to the fixed footer padding', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.FIXED_FOOTER)),
+      ).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
+    });
+
+    it('reserves scroll space for the navigation bar inset below the fixed footer', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      expect(
+        flattenStyle(getByTestId(PerpsHomeViewSelectorsIDs.BOTTOM_SPACER)),
+      ).toEqual(
+        expect.objectContaining({
+          height:
+            FIXED_BOTTOM_CONTAINER_BASE_HEIGHT +
+            NAVIGATION_BAR_INSET +
+            FIXED_BOTTOM_CONTAINER_PADDING,
+        }),
+      );
+    });
+  });
+
+  describe('scroll content bottom padding', () => {
+    it('adds the system navigation bar inset when no fixed footer is rendered', async () => {
+      mockUseBottomSafeAreaInset.mockReturnValue(NAVIGATION_BAR_INSET);
+      mockUsePerpsLiveAccount.mockReturnValue(fundedAccount);
+
+      const { getByTestId } = render(<PerpsHomeView />);
+      await settleAsyncChildren();
+
+      const contentContainerStyle = StyleSheet.flatten(
+        getByTestId(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT).props
+          .contentContainerStyle as StyleProp<ViewStyle>,
+      );
+
+      expect(contentContainerStyle).toEqual(
+        expect.objectContaining({
+          paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + NAVIGATION_BAR_INSET,
+        }),
+      );
+    });
   });
 
   describe('header', () => {
@@ -1288,6 +1418,10 @@ describe('PerpsHomeView', () => {
 
     interface TrackingOptions {
       properties?: Record<string, unknown>;
+      navigationAnalyticsContext?: {
+        id: string;
+        attribution: string;
+      };
     }
 
     const getBaseEventProperties = (
@@ -1302,6 +1436,27 @@ describe('PerpsHomeView', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+    });
+
+    it('delegates source attribution to Perps event tracking', () => {
+      mockRouteParams = {
+        analyticsContext: {
+          id: 'balance-breakdown-navigation',
+          attribution: 'homescreen_balance_breakdown',
+        },
+      };
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.source).toBe('main_action_button');
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          navigationAnalyticsContext: mockRouteParams.analyticsContext,
+        }),
+      );
     });
 
     it('includes sections_displayed containing balance and explore sections when markets exist', () => {

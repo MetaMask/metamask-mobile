@@ -9,7 +9,6 @@ import {
   selectPredictFeaturedCarouselEnabledFlag,
   selectPredictFeatureFlags,
   selectPredictFeeCollectionFlag,
-  selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
   selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
@@ -1105,54 +1104,6 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictGtmOnboardingModalEnabledFlag', () => {
-    it('returns version-gated flag value when remote flag is set', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(true);
-      const stateWithRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: {
-                  enabled: true,
-                  minimumVersion: '1.0.0',
-                },
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result =
-        selectPredictGtmOnboardingModalEnabledFlag(stateWithRemoteFlag);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when env var not set and no remote flag', () => {
-      delete process.env.MM_PREDICT_GTM_MODAL_ENABLED;
-      const stateWithoutRemoteFlag = {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                predictGtmOnboardingModalEnabled: null,
-              },
-              cacheTimestamp: 0,
-            },
-          },
-        },
-      };
-
-      const result = selectPredictGtmOnboardingModalEnabledFlag(
-        stateWithoutRemoteFlag,
-      );
-
-      expect(result).toBe(false);
-    });
-  });
-
   describe('selectPredictHomeFeaturedVariant', () => {
     it('returns carousel by default', () => {
       const result = selectPredictHomeFeaturedVariant(mockedEmptyFlagsState);
@@ -2047,6 +1998,7 @@ describe('Predict Feature Flag Selectors', () => {
       mode: 'custom',
       title: '  Wimbledon  ',
       deeplink: '  https://link.metamask.io/predict?feed=sports&tab=tennis  ',
+      priorityOrder: [' 10684 ', '10684', ' ', '10683'],
       contentSource: {
         composition: 'query-results',
         queryParams: '  ?tag_slug=tennis&order=volume24hr  ',
@@ -2071,6 +2023,7 @@ describe('Predict Feature Flag Selectors', () => {
         ...validFlag,
         title: 'Wimbledon',
         deeplink: 'https://link.metamask.io/predict?feed=sports&tab=tennis',
+        priorityOrder: ['10684', '10683'],
         contentSource: {
           composition: 'query-results',
           queryParams: 'tag_slug=tennis&order=volume24hr',
@@ -2118,9 +2071,28 @@ describe('Predict Feature Flag Selectors', () => {
       expect(result).toBe(DEFAULT_PREDICT_FEED_CAROUSEL_FLAG);
     });
 
+    it('applies priorityOrder in live mode', () => {
+      const result = selectPredictFeedCarouselConfig(
+        createState({
+          enabled: true,
+          minimumVersion: '1.0.0',
+          mode: 'live',
+          priorityOrder: [' 10684 ', '10684', ' ', '10683'],
+        }),
+      );
+
+      expect(result).toStrictEqual({
+        ...DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+        mode: 'live',
+        priorityOrder: ['10684', '10683'],
+      });
+    });
+
     it.each([
       { ...validFlag, enabled: false },
-      { ...validFlag, mode: 'live' },
+      { ...validFlag, mode: 'live', priorityOrder: [] },
       { ...validFlag, deeplink: 'https://example.com/predict' },
       { ...validFlag, deeplink: 'metamask://connect?channelId=test' },
       {
@@ -2141,6 +2113,7 @@ describe('Predict Feature Flag Selectors', () => {
           excludedMarketIds: ['market-1', 2],
         },
       },
+      { ...validFlag, priorityOrder: ['10684', 2] },
       { ...validFlag, minimumVersion: 'not-semver' },
       { ...validFlag, minimumVersion: '99.0.0' },
     ])('returns live mode for unavailable or malformed config %#', (flag) => {

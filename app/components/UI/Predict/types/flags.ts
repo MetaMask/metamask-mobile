@@ -22,6 +22,12 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
   title?: string;
   deeplink?: string;
+  /**
+   * Series IDs pinned to the front of the Live Now carousel, first = highest
+   * priority. Unknown IDs are ignored. Empty keeps the default composition
+   * order (sports interleaved with crypto).
+   */
+  priorityOrder: string[];
   contentSource: {
     /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
     composition: 'query-results' | 'live-now';
@@ -45,6 +51,18 @@ export interface PredictMarketHighlight {
 
 export interface PredictMarketHighlightsFlag extends VersionGatedFeatureFlag {
   highlights: PredictMarketHighlight[];
+}
+
+export interface PredictHiddenMarketsEntry {
+  category: string;
+  /** IDs matching `PredictMarket.id` (Polymarket event ids) to hide. */
+  marketIds: string[];
+  /** Slugs matching `PredictMarket.slug` (Polymarket event slugs) to hide. */
+  slugs: string[];
+}
+
+export interface PredictHiddenMarketsFlag extends VersionGatedFeatureFlag {
+  hidden: PredictHiddenMarketsEntry[];
 }
 
 export interface PredictExtendedSportsMarketsFlag
@@ -106,6 +124,7 @@ export interface PredictFeatureFlags {
   enabledSportsMarketTypes: string[];
   nonRegTimeSportsMarketTypes: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  hiddenMarketsFlag: PredictHiddenMarketsFlag;
   fakOrdersEnabled: boolean;
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;

@@ -52,11 +52,10 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useRoute: jest.fn(),
   useIsFocused: jest.fn(() => true),
-  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
-    children,
 }));
 
 jest.mock('../../hooks/usePredictActiveOrder', () => ({
@@ -604,8 +603,9 @@ function setupPredictMarketDetailsTest(
 
   usePredictMarket.mockReturnValue({
     data: mockMarket,
-    isLoading: false,
+    isPending: false,
     isFetching: false,
+    error: null,
     refetch: jest.fn(),
     ...hookOverrides.market,
   });
@@ -615,6 +615,7 @@ function setupPredictMarketDetailsTest(
     marketId: undefined,
     isLoading: false,
     isFetching: false,
+    error: null,
     refetch: jest.fn(),
     ...hookOverrides.currentSeriesMarket,
   });
@@ -819,10 +820,59 @@ describe('PredictMarketDetails', () => {
         {},
         {},
         {
-          market: { data: null, isLoading: true, isFetching: true },
+          market: { data: null, isPending: true, isFetching: true },
         },
       );
 
+      expect(
+        screen.queryByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE,
+        ),
+      ).toBeNull();
+    });
+
+    it('renders the retry state instead of an empty tab bar when the market request fails', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {},
+        {
+          market: {
+            data: null,
+            isLoading: false,
+            isFetching: false,
+            error: new Error('Network error'),
+          },
+        },
+      );
+
+      expect(screen.getByText('predict.error.title')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PredictMarketDetailsSelectorsIDs.TAB_BAR),
+      ).toBeNull();
+    });
+
+    it('renders the retry state when resolving a series market fails', () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            seriesId: 'series-1',
+            seriesRecurrence: '5m',
+          },
+        },
+        {
+          market: { data: null, isLoading: false, isFetching: false },
+          currentSeriesMarket: {
+            market: undefined,
+            marketId: undefined,
+            isLoading: false,
+            isFetching: false,
+            error: new Error('Network error'),
+          },
+        },
+      );
+
+      expect(screen.getByText('predict.error.title')).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
           PredictMarketDetailsSelectorsIDs.MARKET_UNAVAILABLE,
@@ -854,7 +904,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(
         {},
         {},
-        { market: { isLoading: true, isFetching: true, data: null } },
+        { market: { isPending: true, isFetching: true, data: null } },
       );
 
       expect(

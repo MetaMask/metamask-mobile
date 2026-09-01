@@ -17,16 +17,26 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { useHaptics } from '../../../../../../util/haptics';
 import { usePerpsProPositionsPanelActions } from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsProOrdersPreferences } from '../../../hooks/usePerpsProOrdersPreferences';
+import { usePerpsProPositionsPreferences } from '../../../hooks/usePerpsProPositionsPreferences';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -36,30 +46,23 @@ import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
+import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
+  DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
   getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
-  type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
-import {
-  DEFAULT_PRO_ORDER_SORT,
-  sortProOrders,
-  type ProOrderSortConfig,
-} from '../utils/proOrderSort';
-import {
-  DEFAULT_PRO_POSITION_SORT,
-  sortProPositions,
-  type ProPositionSortConfig,
-} from '../utils/proPositionSort';
+import { sortProOrders } from '../utils/proOrderSort';
+import { sortProPositions } from '../utils/proPositionSort';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -79,6 +82,13 @@ interface PerpsProPositionsPanelProps {
   ) => void;
   /** Navigates to the order history screen. */
   onHistoryPress?: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+    deliveryRevisions: { positions: number; orders: number },
+  ) => void;
+  isMarketContextReady?: boolean;
+  marketContextKey?: string;
 }
 
 /**
@@ -87,9 +97,8 @@ interface PerpsProPositionsPanelProps {
  * Renders the two-tab bar (Positions / Orders) matching the Figma design.
  * The Positions tab shows the user's open positions across all assets,
  * falling back to an empty state when there are none.
- * The sort, side, and `$TICKER only` controls apply to both tabs. Positions
- * and orders use domain-specific sort fields while sharing side and market
- * filters.
+ * Sort and side-filter preferences persist independently per tab via
+ * PerpsController. `$TICKER only` is still shared local UI state.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -99,26 +108,47 @@ const PerpsProPositionsPanel = ({
   symbol,
   onSelectMarket,
   onHistoryPress,
+  onResolvedStateChange,
+  isMarketContextReady = true,
+  marketContextKey = '',
 }: PerpsProPositionsPanelProps) => {
+  const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const [isSideFilterSheetOpen, setIsSideFilterSheetOpen] = useState(false);
-  const [sideFilter, setSideFilter] = useState<ProPositionSideFilter>(
-    DEFAULT_PRO_POSITION_SIDE_FILTER,
+  const {
+    sideFilter: positionsSideFilter,
+    sortConfig,
+    setSideFilter: setPositionsSideFilter,
+    setSortConfig,
+  } = usePerpsProPositionsPreferences();
+  const {
+    sideFilter: ordersSideFilter,
+    sortConfig: orderSortConfig,
+    setSideFilter: setOrdersSideFilter,
+    setSortConfig: setOrderSortConfig,
+  } = usePerpsProOrdersPreferences();
+  const handleTickerOnlyChange = useCallback(
+    (nextIsTickerOnly: boolean) => {
+      if (nextIsTickerOnly === isTickerOnly) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setIsTickerOnly(nextIsTickerOnly);
+    },
+    [isTickerOnly, playSelection],
   );
-  const [sortConfig, setSortConfig] = useState<ProPositionSortConfig>(
-    DEFAULT_PRO_POSITION_SORT,
-  );
-  const [orderSortConfig, setOrderSortConfig] = useState<ProOrderSortConfig>(
-    DEFAULT_PRO_ORDER_SORT,
-  );
-  const { positions, isInitialLoading } = usePerpsLivePositions({
-    throttleMs: 1000,
-    useLivePnl: true,
-  });
-  const { orders, isInitialLoading: areOrdersInitiallyLoading } =
-    usePerpsLiveOrders({ throttleMs: 1000 });
+  const {
+    positions,
+    isInitialLoading,
+    deliveryRevision: positionsDeliveryRevision = 0,
+  } = usePerpsLivePositions({ throttleMs: 1000, useLivePnl: true });
+  const {
+    orders,
+    isInitialLoading: areOrdersInitiallyLoading,
+    deliveryRevision: ordersDeliveryRevision = 0,
+  } = usePerpsLiveOrders({ throttleMs: 1000 });
   const {
     handleClosePosition,
     handleReversePosition,
@@ -129,6 +159,7 @@ const PerpsProPositionsPanel = ({
     handleEditOrderPrice,
     handleEditOrderSize,
     handleCloseAllPress,
+    handleCancelAllPress,
     cancelingOrderId,
     editingOrderId,
     isOrderCancelable,
@@ -138,6 +169,37 @@ const PerpsProPositionsPanel = ({
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
   const { markets } = usePerpsMarkets();
+
+  useEffect(() => {
+    const deliveryRevisions = {
+      positions: positionsDeliveryRevision,
+      orders: ordersDeliveryRevision,
+    };
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+      return;
+    }
+    if (isInitialLoading || areOrdersInitiallyLoading) {
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      positions.length > 0 || orders.length > 0 ? 'content' : 'empty',
+      deliveryRevisions,
+    );
+  }, [
+    areOrdersInitiallyLoading,
+    isInitialLoading,
+    isMarketContextReady,
+    marketContextKey,
+    onResolvedStateChange,
+    orders.length,
+    ordersDeliveryRevision,
+    positions.length,
+    positionsDeliveryRevision,
+    symbol,
+  ]);
 
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 
@@ -195,15 +257,27 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, orders, symbol],
   );
 
+  const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
+  const activeSideFilter = isOrdersTab ? ordersSideFilter : positionsSideFilter;
+  const setActiveSideFilter = isOrdersTab
+    ? setOrdersSideFilter
+    : setPositionsSideFilter;
+
   const sideFilteredPositions = useMemo(
-    () => filterProPositionsBySide(visiblePositions, sideFilter),
-    [sideFilter, visiblePositions],
+    () => filterProPositionsBySide(visiblePositions, positionsSideFilter),
+    [positionsSideFilter, visiblePositions],
   );
 
+  const isPositionsFiltered =
+    isTickerOnly || positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER;
+
   const sideFilteredOrders = useMemo(
-    () => filterProOrdersBySide(visibleOrders, sideFilter),
-    [sideFilter, visibleOrders],
+    () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
+    [ordersSideFilter, visibleOrders],
   );
+
+  const areOrdersFiltered =
+    isTickerOnly || ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER;
 
   const sortedVisiblePositions = useMemo(
     () =>
@@ -255,11 +329,11 @@ const PerpsProPositionsPanel = ({
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
   const isSideFilterEmpty =
-    sideFilter !== 'all' &&
+    positionsSideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER &&
     sideFilteredPositions.length === 0 &&
     visiblePositions.length > 0;
   const sideFilterEmptyDescriptionKey = isSideFilterEmpty
-    ? getProPositionSideFilterEmptyDescriptionKey(sideFilter)
+    ? getProPositionSideFilterEmptyDescriptionKey(positionsSideFilter)
     : undefined;
   const filteredTicker =
     isTickerOnly &&
@@ -271,11 +345,11 @@ const PerpsProPositionsPanel = ({
 
   const hasAnyOrders = orders.length > 0;
   const isOrderSideFilterEmpty =
-    sideFilter !== 'all' &&
+    ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
     sideFilteredOrders.length === 0 &&
     visibleOrders.length > 0;
   const orderSideFilterEmptyDescriptionKey = isOrderSideFilterEmpty
-    ? getProOrderSideFilterEmptyDescriptionKey(sideFilter)
+    ? getProOrderSideFilterEmptyDescriptionKey(ordersSideFilter)
     : undefined;
   const filteredOrdersTicker =
     isTickerOnly &&
@@ -293,9 +367,7 @@ const PerpsProPositionsPanel = ({
             unrealizedPnl={aggregateTotals.unrealizedPnl}
             returnOnEquity={aggregateTotals.returnOnEquity}
             positionCount={sideFilteredPositions.length}
-            isFiltered={
-              isTickerOnly || sideFilter !== DEFAULT_PRO_POSITION_SIDE_FILTER
-            }
+            isFiltered={isPositionsFiltered}
             onCloseAll={handleCloseAllPress}
           />
           {sortedVisiblePositions.map((position) => (
@@ -335,6 +407,10 @@ const PerpsProPositionsPanel = ({
     if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
+          <PerpsProOrdersSummary
+            orderCount={sideFilteredOrders.length}
+            onCancelAll={handleCancelAllPress}
+          />
           {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
@@ -385,7 +461,7 @@ const PerpsProPositionsPanel = ({
         ticker: displaySymbol,
       })}
       isSelected={isTickerOnly}
-      onChange={setIsTickerOnly}
+      onChange={handleTickerOnlyChange}
       testID={PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY}
     />
   );
@@ -452,7 +528,7 @@ const PerpsProPositionsPanel = ({
           onPress={() => setIsSideFilterSheetOpen(true)}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON}
         >
-          {strings(getProPositionSideFilterButtonLabelKey(sideFilter))}
+          {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
         </Button>
         <Box twClassName="bg-muted rounded-lg px-2 py-1">
           {renderTickerOnlyCheckbox()}
@@ -461,7 +537,12 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(sideFilteredPositions)}
+      {renderActionSheets(
+        sideFilteredPositions,
+        isPositionsFiltered,
+        sideFilteredOrders,
+        areOrdersFiltered,
+      )}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}
@@ -481,8 +562,8 @@ const PerpsProPositionsPanel = ({
       )}
       <PerpsProPositionsSideFilterSheet
         isVisible={isSideFilterSheetOpen}
-        sideFilter={sideFilter}
-        onApply={setSideFilter}
+        sideFilter={activeSideFilter}
+        onApply={setActiveSideFilter}
         onClose={() => setIsSideFilterSheetOpen(false)}
         testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}
       />

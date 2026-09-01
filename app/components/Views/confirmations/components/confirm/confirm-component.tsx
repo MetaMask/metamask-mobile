@@ -21,6 +21,7 @@ import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -44,6 +45,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -128,6 +130,7 @@ const ConfirmWrapped = ({
               </TouchableWithoutFeedback>
             </ScrollView>
             <Footer />
+            <MmPayDebugFloatingButton />
           </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
@@ -152,6 +155,7 @@ export const Confirm = ({
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
+  const { onFirstPaint } = useConfirmationLoadMetrics();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
@@ -196,6 +200,7 @@ export const Confirm = ({
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
         style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
+        onLayout={onFirstPaint}
       >
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
@@ -203,12 +208,12 @@ export const Confirm = ({
   }
 
   return (
-    <BottomSheet
-      onClose={() => onReject()}
-      style={styles.bottomSheetDialogSheet}
-      testID={ConfirmationUIType.MODAL}
-    >
-      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
+      <View
+        testID={approvalRequest?.type}
+        style={styles.confirmContainer}
+        onLayout={onFirstPaint}
+      >
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>

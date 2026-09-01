@@ -1,6 +1,13 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { act, waitFor } from '@testing-library/react-native';
 import { type AccountState } from '@metamask/perps-controller';
 import { usePerpsLiveAccount } from './usePerpsLiveAccount';
+
+let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -39,6 +46,7 @@ describe('usePerpsLiveAccount', () => {
     jest.clearAllMocks();
     mockCachedUserData = null;
     mockChannelAccountSnapshot = undefined;
+    mockSelectedAddress = '0x1111111111111111111111111111111111111111';
   });
 
   describe('default state', () => {
@@ -61,6 +69,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
       });
     });
 
@@ -75,6 +84,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
       });
     });
   });
@@ -100,10 +110,11 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: 0,
       });
     });
 
-    it('returns account state from PerpsController', () => {
+    it('returns account state from PerpsController', async () => {
       const mockAccountState: AccountState = {
         spendableBalance: '3000',
         withdrawableBalance: '3000',
@@ -113,11 +124,18 @@ describe('usePerpsLiveAccount', () => {
         totalBalance: '5050',
       };
 
-      // Mock the subscription to immediately call the callback with the account data
-      mockSubscribe.mockImplementation(({ callback }) => {
-        callback(mockAccountState);
-        return jest.fn();
-      });
+      let callback!: (account: AccountState | null) => void;
+      mockSubscribe
+        .mockImplementationOnce((params) => {
+          callback = params.callback;
+          callback(mockAccountState);
+          params.onDelivery('fresh');
+          return jest.fn();
+        })
+        .mockImplementation((params) => {
+          callback = params.callback;
+          return jest.fn();
+        });
 
       const { result } = renderHookWithProvider(() => usePerpsLiveAccount(), {
         state: {},
@@ -126,7 +144,11 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: 1,
       });
+
+      act(() => callback(null));
+      await waitFor(() => expect(result.current.isInitialLoading).toBe(true));
     });
 
     it('handles zero balance account state', () => {
@@ -153,6 +175,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: mockAccountState,
         isInitialLoading: false,
+        deliveryRevision: expect.any(Number),
       });
       expect(result.current?.account?.spendableBalance).toBe('0');
       expect(result.current?.account?.totalBalance).toBe('0');
@@ -195,6 +218,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
       });
     });
   });
@@ -328,6 +352,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: cachedAccount,
         isInitialLoading: false,
+        deliveryRevision: expect.any(Number),
       });
     });
 
@@ -343,6 +368,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
       });
     });
 
@@ -358,6 +384,7 @@ describe('usePerpsLiveAccount', () => {
       expect(result.current).toEqual({
         account: null,
         isInitialLoading: true,
+        deliveryRevision: expect.any(Number),
       });
     });
   });

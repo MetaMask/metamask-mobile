@@ -42,6 +42,7 @@ interface ManageCardOptionsProps {
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
+  onTransactionHistory?: () => void;
 }
 
 const ManageCardOptions = ({
@@ -72,6 +73,7 @@ const ManageCardOptions = ({
   hasPriorityTokenBalance,
   onCashback,
   onTravel,
+  onTransactionHistory,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -92,6 +94,9 @@ const ManageCardOptions = ({
     !!account?.shippingAddress &&
     card?.type === CardType.VIRTUAL &&
     isFullySetUp;
+
+  // Providers set hasPin on CardDetails; absent means treat as true.
+  const cardHasPin = card?.hasPin !== false;
 
   // Providers without funding limits (e.g. Immersve) expose manage options as
   // soon as a card exists; balance-gating only applies to funding-limit
@@ -169,6 +174,7 @@ const ManageCardOptions = ({
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinView)) && (
           <ManageCardListItem
@@ -186,6 +192,7 @@ const ManageCardOptions = ({
           card &&
           card.status === CardStatus.ACTIVE &&
           capabilities?.supportsPinSet &&
+          cardHasPin &&
           !hideManageOptions) ||
           (showTeaserOptions && capabilities?.supportsPinSet)) && (
           <ManageCardListItem
@@ -239,6 +246,15 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
+        {isFullySetUp && !hideManageOptions && onTransactionHistory ? (
+          <ManageCardListItem
+            title={strings('card.transactions.manage_entry_title')}
+            description={strings('card.transactions.manage_entry_description')}
+            rightIcon={IconName.ArrowRight}
+            onPress={onTransactionHistory}
+            testID="card-transaction-history-item"
+          />
+        ) : null}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(

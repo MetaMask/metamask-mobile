@@ -334,6 +334,7 @@ describe('BaanxProvider', () => {
       holderName: 'Test User',
       shippingAddress: null,
       usState: 'CA',
+      createdAt: '2025-01-01T00:00:00.000Z',
     };
 
     const card: CardDetails = {
@@ -729,6 +730,7 @@ describe('BaanxProvider', () => {
         usState: null,
         verificationStatus: 'VERIFIED',
         holderName: 'Jane',
+        createdAt: null,
       } satisfies Partial<CardAccountStatus>);
     });
 
@@ -739,6 +741,7 @@ describe('BaanxProvider', () => {
             verificationState: 'VERIFIED',
             countryOfResidence: 'US',
             usState: 'ca',
+            createdAt: '2025-01-15T00:00:00.000Z',
           });
         }
         return Promise.resolve(null);
@@ -749,6 +752,7 @@ describe('BaanxProvider', () => {
       expect(result.account).toMatchObject({
         countryOfResidence: 'US',
         usState: 'CA',
+        createdAt: '2025-01-15T00:00:00.000Z',
       } satisfies Partial<CardAccountStatus>);
     });
 
@@ -770,6 +774,64 @@ describe('BaanxProvider', () => {
         statusCode: 401,
       });
     });
+  });
+});
+
+describe('BaanxProvider — getCardDetails hasPin', () => {
+  const buildProvider = (get: jest.Mock) =>
+    new BaanxProvider({
+      service: { get, apiKey: 'k' } as unknown as BaanxService,
+    });
+
+  const buildCardStatus = (overrides: Record<string, unknown> = {}) => ({
+    id: 'card-1',
+    status: CardStatus.ACTIVE,
+    type: CardType.VIRTUAL,
+    panLast4: '1234',
+    holderName: 'Jane Doe',
+    isFreezable: true,
+    ...overrides,
+  });
+
+  it('sets hasPin false for international virtual cards', async () => {
+    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'international',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(false);
+  });
+
+  it('sets hasPin true for US virtual cards', async () => {
+    const get = jest.fn().mockResolvedValue(buildCardStatus());
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'us',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(true);
+  });
+
+  it('sets hasPin true for international physical cards', async () => {
+    const get = jest
+      .fn()
+      .mockResolvedValue(buildCardStatus({ type: CardType.PHYSICAL }));
+    const tokens: CardAuthTokens = {
+      accessToken: 'at',
+      accessTokenExpiresAt: FIXED_NOW + 3_600_000,
+      location: 'international',
+    };
+
+    const card = await buildProvider(get).getCardDetails(tokens);
+
+    expect(card.hasPin).toBe(true);
   });
 });
 
@@ -1134,7 +1196,7 @@ describe('BaanxProvider — listTransactions', () => {
       fundingSources: [
         {
           txHash: '0xb92de09d893e8162b0861c0f7321f68df022',
-          address: '0x3a11a86cf218c448be519728cd3ac5c741fb3424',
+          walletAddress: '0x3a11a86cf218c448be519728cd3ac5c741fb3424',
           network: 'linea',
           chainId: 'eip155:59144',
           amount: '0.104201',
@@ -1256,20 +1318,6 @@ describe('BaanxProvider — listTransactions', () => {
     expect(get).toHaveBeenCalledWith('/v1/card/transactions?page=0', tokens);
   });
 
-  it('passes searchQuery as searchKey', async () => {
-    const get = jest.fn().mockResolvedValue([]);
-
-    await buildProvider(get).listTransactions(
-      { searchQuery: 'uber eats' },
-      tokens,
-    );
-
-    expect(get).toHaveBeenCalledWith(
-      '/v1/card/transactions?page=0&searchKey=uber+eats',
-      tokens,
-    );
-  });
-
   it('sends dateFrom/dateTo only as a pair (API rejects a lone bound)', async () => {
     const get = jest.fn().mockResolvedValue([]);
     const provider = buildProvider(get);
@@ -1317,10 +1365,34 @@ describe('BaanxProvider — listTransactions', () => {
     );
   });
 
-  it('omits nextCursor for a short (final) page', async () => {
+  it('keeps paginating after a page shorter than the requested limit', async () => {
+    const shortPage = Array.from({ length: 10 }, (_, i) =>
+      buildRawTransaction({ id: `tx-${i}` }),
+    );
+    const olderPage = Array.from({ length: 10 }, (_, i) =>
+      buildRawTransaction({ id: `older-tx-${i}` }),
+    );
     const get = jest
       .fn()
-      .mockResolvedValue([buildRawTransaction(), buildRawTransaction()]);
+      .mockResolvedValueOnce(shortPage)
+      .mockResolvedValueOnce(olderPage);
+    const provider = buildProvider(get);
+
+    const firstPage = await provider.listTransactions({ limit: 20 }, tokens);
+    expect(firstPage.nextCursor).toBeDefined();
+
+    const secondPage = await provider.listTransactions(
+      { limit: 20, cursor: firstPage.nextCursor },
+      tokens,
+    );
+
+    expect(secondPage.items.map(({ id }) => id)).toStrictEqual(
+      olderPage.map(({ id }) => id),
+    );
+  });
+
+  it('omits nextCursor once a page comes back empty', async () => {
+    const get = jest.fn().mockResolvedValue([]);
 
     const result = await buildProvider(get).listTransactions({}, tokens);
 

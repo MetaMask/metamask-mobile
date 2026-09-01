@@ -16,6 +16,7 @@ import compareVersions from 'compare-versions';
 import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
@@ -60,6 +61,10 @@ export const PredictFeedCarouselSchema = defaulted(
     ),
     title: optional(string()),
     deeplink: optional(string()),
+    priorityOrder: defaulted(
+      array(string()),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.priorityOrder,
+    ),
     contentSource: defaulted(
       type({
         composition: defaulted(
@@ -80,6 +85,27 @@ export const PredictFeedCarouselSchema = defaulted(
     ),
   }),
   () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+);
+
+const PredictHiddenMarketsEntrySchema = type({
+  category: string(),
+  marketIds: defaulted(array(string()), () => []),
+  slugs: defaulted(array(string()), () => []),
+});
+
+export const PredictHiddenMarketsSchema = defaulted(
+  type({
+    enabled: defaulted(boolean(), () => DEFAULT_HIDDEN_MARKETS_FLAG.enabled),
+    minimumVersion: defaulted(
+      MinimumVersionSchema,
+      () => DEFAULT_HIDDEN_MARKETS_FLAG.minimumVersion,
+    ),
+    hidden: defaulted(
+      array(PredictHiddenMarketsEntrySchema),
+      () => DEFAULT_HIDDEN_MARKETS_FLAG.hidden,
+    ),
+  }),
+  () => DEFAULT_HIDDEN_MARKETS_FLAG,
 );
 
 const PredictFeedBannerPositionSchema = union([

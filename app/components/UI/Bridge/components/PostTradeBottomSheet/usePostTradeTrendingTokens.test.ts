@@ -1,5 +1,10 @@
 import React from 'react';
-import { act, renderHook, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  cleanup,
+  renderHook,
+  waitFor,
+} from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   getTrendingTokens,
@@ -24,16 +29,13 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 }));
 
 const mockGetTrendingTokens = jest.mocked(getTrendingTokens);
+const queryClients = new Set<QueryClient>();
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
-    logger: {
-      log: () => undefined,
-      warn: () => undefined,
-      error: () => undefined,
-    },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
+  queryClients.add(queryClient);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -71,6 +73,15 @@ describe('usePostTradeTrendingTokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetTrendingTokens.mockResolvedValue([]);
+  });
+
+  afterEach(async () => {
+    cleanup();
+    await Promise.all(
+      Array.from(queryClients, (queryClient) => queryClient.cancelQueries()),
+    );
+    queryClients.forEach((queryClient) => queryClient.clear());
+    queryClients.clear();
   });
 
   it('fetches, sorts by market cap descending, and caps results', async () => {

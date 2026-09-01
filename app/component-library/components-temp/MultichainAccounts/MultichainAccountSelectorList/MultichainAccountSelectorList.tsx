@@ -8,6 +8,7 @@ import React, {
 import { View, ScrollViewProps } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
@@ -22,7 +23,9 @@ import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAcc
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
-import AccountListFooter from './AccountListFooter';
+import AccountListFooter, {
+  abandonCreateMultichainAccountTrace,
+} from './AccountListFooter';
 
 import {
   MultichainAccountSelectorListProps,
@@ -62,6 +65,15 @@ const keyExtractor = (
   }
 };
 
+const renderListSlot = (
+  slot: MultichainAccountSelectorListProps['ListHeaderComponent'],
+) => {
+  if (!slot) {
+    return null;
+  }
+  return React.isValidElement(slot) ? slot : React.createElement(slot);
+};
+
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -73,6 +85,7 @@ const MultichainAccountSelectorList = ({
   accountSections: accountSectionsProp,
   chainId,
   hideAccountCellMenu = false,
+  hideSearch = false,
   showExternalAccountOnEmptySearch = false,
   onSelectExternalAccount,
   selectedExternalAddress,
@@ -97,6 +110,20 @@ const MultichainAccountSelectorList = ({
   const selectedIdSet = useMemo(
     () => new Set(selectedAccountGroups.map((g) => g.id)),
     [selectedAccountGroups],
+  );
+
+  // Abandon in-flight CreateMultichainAccount spans when the hosting screen
+  // loses focus. Kept here (not in AccountListFooter) because the footer is a
+  // FlashList cell with removeClippedSubviews and can unmount while creation
+  // continues. Clears span ownership so a stale footer finally cannot end a
+  // newer create's pending span.
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        abandonCreateMultichainAccountTrace();
+      },
+      [],
+    ),
   );
 
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -239,6 +266,9 @@ const MultichainAccountSelectorList = ({
 
   // Scroll to selected item on initial mount
   useEffect(() => {
+    if (props.ListHeaderComponent) {
+      return undefined;
+    }
     if (
       !hasScrolledToSelected.current &&
       listRefToUse.current &&
@@ -263,7 +293,13 @@ const MultichainAccountSelectorList = ({
       }
       hasScrolledToSelected.current = true;
     }
-  }, [flattenedData, selectedAccountGroups, listRefToUse]);
+    return undefined;
+  }, [
+    props.ListHeaderComponent,
+    flattenedData,
+    selectedAccountGroups,
+    listRefToUse,
+  ]);
 
   // Reset scroll to top when search text changes
   useEffect(() => {
@@ -411,42 +447,48 @@ const MultichainAccountSelectorList = ({
 
   return (
     <>
-      <View style={styles.searchContainer}>
-        <TextFieldSearch
-          value={searchText}
-          onChangeText={setSearchText}
-          onPressClearButton={() => setSearchText('')}
-          placeholder={strings('accounts.search_your_accounts')}
-          inputProps={{
-            testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
-          }}
-          autoFocus={false}
-          isError={shouldShowInvalidAddressError}
-        />
-        {shouldShowInvalidAddressError ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            style={styles.searchErrorText}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
-          >
-            {strings('bridge.invalid_recipient_address')}
-          </Text>
-        ) : null}
-      </View>
+      {hideSearch ? null : (
+        <View style={styles.searchContainer}>
+          <TextFieldSearch
+            value={searchText}
+            onChangeText={setSearchText}
+            onPressClearButton={() => setSearchText('')}
+            placeholder={strings('accounts.search_your_accounts')}
+            inputProps={{
+              testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+            }}
+            autoFocus={false}
+            isError={shouldShowInvalidAddressError}
+          />
+          {shouldShowInvalidAddressError ? (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              style={styles.searchErrorText}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
+            >
+              {strings('bridge.invalid_recipient_address')}
+            </Text>
+          ) : null}
+        </View>
+      )}
       <View style={styles.listContainer} testID={testID}>
         {flattenedData.length === 0 ? (
-          <View
-            style={styles.emptyState}
-            testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextMuted}
-              style={styles.emptyStateText}
+          <View style={styles.emptyStateColumn}>
+            {renderListSlot(props.ListHeaderComponent)}
+            <View
+              style={styles.emptyState}
+              testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
             >
-              {emptyStateText}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextMuted}
+                style={styles.emptyStateText}
+              >
+                {emptyStateText}
+              </Text>
+            </View>
+            {renderListSlot(props.ListFooterComponent)}
           </View>
         ) : (
           <FlashList

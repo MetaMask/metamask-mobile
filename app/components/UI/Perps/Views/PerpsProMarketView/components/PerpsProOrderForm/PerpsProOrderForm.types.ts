@@ -1,4 +1,12 @@
 import type { OrderType } from '@metamask/perps-controller';
+import type { Ref } from 'react';
+import type { View } from 'react-native';
+
+export interface ScaleOrderRung {
+  index: number;
+  price: string;
+  size: string;
+}
 
 export type PerpsProOrderDirection = 'long' | 'short';
 
@@ -53,6 +61,52 @@ export interface PerpsProOrderSummaryProps {
   onFeesInfoPress?: () => void;
 }
 
+export interface PerpsProTwapModel {
+  days: string;
+  hours: string;
+  minutes: string;
+  randomize: boolean;
+  durationError?: string;
+  onDaysChange: (value: string) => void;
+  onHoursChange: (value: string) => void;
+  onMinutesChange: (value: string) => void;
+  onRandomizeChange: (value: boolean) => void;
+}
+
+export interface PerpsProScaleOrderModel {
+  startPrice: string;
+  endPrice: string;
+  totalOrders: string;
+  sizeSkew: string;
+  onStartPriceChange: (value: string) => void;
+  onStartPriceBlur: () => void;
+  onEndPriceChange: (value: string) => void;
+  onEndPriceBlur: () => void;
+  onTotalOrdersChange: (value: string) => void;
+  onTotalOrdersBlur: () => void;
+  onSizeSkewChange: (value: string) => void;
+  onSizeSkewBlur: () => void;
+  onSizeSkewInfoPress: () => void;
+  rungs: ScaleOrderRung[];
+  marginRange: string;
+  liquidationRange: string;
+  fees: string;
+}
+
+export interface PerpsProFieldKeyboardScroll {
+  cardRef: Ref<View>;
+  onFocus: () => void;
+  onBlur: () => void;
+  realign: () => void;
+}
+
+export interface PerpsProScaleKeyboardScroll {
+  startPrice: PerpsProFieldKeyboardScroll;
+  endPrice: PerpsProFieldKeyboardScroll;
+  totalOrders: PerpsProFieldKeyboardScroll;
+  sizeSkew: PerpsProFieldKeyboardScroll;
+}
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
@@ -68,17 +122,46 @@ export interface PerpsProOrderFormProps {
   leverageLabel: string;
   onLeveragePress?: () => void;
   orderType: OrderType;
+  scaleOrder: PerpsProScaleOrderModel;
+  scaleKeyboardScroll?: PerpsProScaleKeyboardScroll;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
+  onLimitPriceFocus?: () => void;
   onLimitPriceBlur?: () => void;
+  /**
+   * Forwarded to the order-type card — which holds the limit price row, and
+   * later the trigger price row — so it can be measured for keyboard clearance.
+   */
+  orderTypeCardRef?: Ref<View>;
+  /** Fires on every limit price field tap, including while already focused. */
+  onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
+  triggerPrice?: string;
+  onTriggerPriceChange?: (value: string) => void;
+  onTriggerPriceFocus?: () => void;
+  onTriggerPriceBlur?: () => void;
+  onTriggerPriceFieldPress?: () => void;
+  /**
+   * Helper or warning shown under the grouped price card after the owning
+   * field blurs. Error blocks the CTA before presentation; warning does not.
+   */
+  priceCardMessage?: {
+    severity: 'error' | 'warning';
+    message: string;
+  };
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
+  /** Forwarded to the size card so it can be measured for keyboard clearance. */
+  sizeCardRef?: Ref<View>;
+  /** Fires on every size-field tap, including while already focused. */
+  onSizeFieldPress?: () => void;
   availableBalance: string;
   onAddFundsPress?: () => void;
   reduceOnly: boolean;
   onReduceOnlyChange: (value: boolean) => void;
+  twap: PerpsProTwapModel;
+  onTwapDurationPress: () => void;
   isTPSLConfigured: boolean;
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];

@@ -1,24 +1,54 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import PerpsProOrderBookPanel from './PerpsProOrderBookPanel';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import type { OrderBookData } from '../../../hooks/stream/usePerpsLiveOrderBook';
+import { playSelection } from '../../../../../../util/haptics';
 
 const mockUsePerpsLiveOrderBook = jest.fn();
 const mockReconnect = jest.fn();
 const mockSaveGrouping = jest.fn();
 const mockSavedGroupingBySymbol: Record<string, number | undefined> = {};
+const mockSetOrderBookPosition = jest.fn();
+let mockOrderBookPosition: 'left' | 'right' = 'right';
+
+jest.mock('../../../../../../util/haptics');
 
 jest.mock('../../../hooks/stream/usePerpsLiveOrderBook', () => ({
-  usePerpsLiveOrderBook: (params: unknown) => mockUsePerpsLiveOrderBook(params),
+  usePerpsLiveOrderBook: (params: { symbol: string }) => {
+    const result = mockUsePerpsLiveOrderBook(params);
+    return {
+      ...result,
+      dataSymbol: result.dataSymbol ?? params.symbol,
+    };
+  },
 }));
 
 jest.mock('../../../hooks/usePerpsOrderBookGrouping', () => ({
   usePerpsOrderBookGrouping: (symbol: string) => ({
     savedGrouping: mockSavedGroupingBySymbol[symbol],
     saveGrouping: mockSaveGrouping,
+  }),
+}));
+
+// Persistence through to `setProLayoutPreferences` is covered by
+// usePerpsProOrderBookPosition.test.ts; here only the panel wiring matters.
+jest.mock('../../../hooks/usePerpsProOrderBookPosition', () => ({
+  usePerpsProOrderBookPosition: () => ({
+    orderBookPosition: mockOrderBookPosition,
+    setOrderBookPosition: mockSetOrderBookPosition,
+  }),
+}));
+
+const mockSetOrderBookPreferences = jest.fn();
+jest.mock('../../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: mockSetOrderBookPreferences,
   }),
 }));
 
@@ -64,11 +94,56 @@ const mockOrderBook: OrderBookData = {
   maxTotal: '3.5',
 };
 
+/**
+ * kPEPE-shaped book (TAT-3713): a sub-cent mid whose ladder prices need all six
+ * decimals to stay distinguishable at the 1e-6 grouping step.
+ */
+const subCentOrderBook: OrderBookData = {
+  bids: [
+    {
+      price: '0.002651',
+      size: '1500000',
+      total: '1500000',
+      notional: '3976.5',
+      totalNotional: '3976.5',
+    },
+    {
+      price: '0.002650',
+      size: '2000000',
+      total: '3500000',
+      notional: '5300',
+      totalNotional: '9276.5',
+    },
+  ],
+  asks: [
+    {
+      price: '0.002653',
+      size: '1200000',
+      total: '1200000',
+      notional: '3183.6',
+      totalNotional: '3183.6',
+    },
+    {
+      price: '0.002654',
+      size: '1800000',
+      total: '3000000',
+      notional: '4777.2',
+      totalNotional: '7960.8',
+    },
+  ],
+  spread: '0.000002',
+  spreadPercentage: '0.075',
+  midPrice: '0.002652',
+  lastUpdated: 1700000000000,
+  maxTotal: '3500000',
+};
+
 describe('PerpsProOrderBookPanel', () => {
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderBookPosition = 'right';
     Object.keys(mockSavedGroupingBySymbol).forEach((key) => {
       delete mockSavedGroupingBySymbol[key];
     });
@@ -120,7 +195,32 @@ describe('PerpsProOrderBookPanel', () => {
     expect(getByTestId(`${testID}-ratio`)).toBeOnTheScreen();
   });
 
+  it('hides a prior-symbol raw spread beside the current ladder', () => {
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook: mockOrderBook,
+        dataSymbol: params.channel === 'orderBookAggregated' ? 'BTC' : 'ETH',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-ask-row-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-bid-row-0`)).toBeOnTheScreen();
+    expect(
+      within(getByTestId(`${testID}-spread`)).queryByText('$100 (0.2%)'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows a reconnect affordance when the aggregated stream errors', () => {
+    const onResolvedStateChange = jest.fn();
     mockUsePerpsLiveOrderBook.mockImplementation(
       (params: { channel?: string }) => {
         if (params.channel === 'orderBookAggregated') {
@@ -143,11 +243,16 @@ describe('PerpsProOrderBookPanel', () => {
     );
 
     const { getByTestId } = renderWithProvider(
-      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
       { state: { engine: { backgroundState } } },
     );
 
     expect(getByTestId(`${testID}-connection-error`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'error');
     fireEvent.press(getByTestId(`${testID}-reconnect`));
     expect(mockReconnect).toHaveBeenCalledTimes(1);
   });
@@ -196,6 +301,119 @@ describe('PerpsProOrderBookPanel', () => {
     expect(queryByTestId(`${testID}-reconnect`)).not.toBeOnTheScreen();
   });
 
+  it('keeps readiness loading while the book belongs to the prior symbol', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: mockOrderBook,
+      dataSymbol: 'ETH',
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+  });
+
+  it('waits for a new aggregated delivery after the market context changes', () => {
+    const onResolvedStateChange = jest.fn();
+    let aggregatedOrderBook = mockOrderBook;
+    mockUsePerpsLiveOrderBook.mockImplementation(
+      (params: { channel?: string }) => ({
+        orderBook:
+          params.channel === 'orderBookAggregated'
+            ? aggregatedOrderBook
+            : mockOrderBook,
+        dataSymbol: 'BTC',
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }),
+    );
+
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-1"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'loading');
+
+    aggregatedOrderBook = { ...mockOrderBook, lastUpdated: 1700000000001 };
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        marketContextKey="generation-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('BTC', 'content');
+  });
+
+  it('disables both order-book sockets until the market context is ready', () => {
+    const view = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady={false}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: false }),
+    );
+    expect(view.getByTestId(`${testID}-skeleton`)).toBeOnTheScreen();
+
+    mockUsePerpsLiveOrderBook.mockClear();
+    view.rerender(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={50000}
+        isMarketContextReady
+      />,
+    );
+
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ enabled: true }),
+    );
+    expect(mockUsePerpsLiveOrderBook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('makes ladder rows interactive and reports the tapped price via onSelectPrice', () => {
     const onSelectPrice = jest.fn();
     const { getByTestId } = renderWithProvider(
@@ -209,10 +427,12 @@ describe('PerpsProOrderBookPanel', () => {
 
     fireEvent.press(getByTestId(`${testID}-bid-row-0`));
     expect(onSelectPrice).toHaveBeenCalledWith('50000');
+    expect(playSelection).toHaveBeenCalledTimes(1);
 
     fireEvent.press(getByTestId(`${testID}-ask-row-0`));
     // Asks render farthest-to-closest, so ask-row-0 is the deepest ask (50200).
     expect(onSelectPrice).toHaveBeenLastCalledWith('50200');
+    expect(playSelection).toHaveBeenCalledTimes(2);
   });
 
   it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
@@ -242,6 +462,18 @@ describe('PerpsProOrderBookPanel', () => {
       getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLLAPSE_BUTTON),
     );
     expect(onCollapse).toHaveBeenCalledTimes(1);
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays selection when the settings icon opens the config sheet', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('positions collapse at the leading edge and settings at the trailing edge', () => {
@@ -285,6 +517,171 @@ describe('PerpsProOrderBookPanel', () => {
     fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
 
     expect(mockSaveGrouping).toHaveBeenCalledWith(100);
+  });
+
+  it('persists the chosen order book side on save', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-apply`));
+
+    expect(mockSetOrderBookPosition).toHaveBeenCalledWith('right');
+  });
+
+  it('leaves the order book side untouched when the sheet is dismissed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-layout-right`));
+    fireEvent.press(getByTestId(`${testID}-config-sheet-close`));
+
+    expect(mockSetOrderBookPosition).not.toHaveBeenCalled();
+  });
+
+  it('seeds the sheet with the persisted order book side', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
+
+    expect(getByTestId(`${testID}-config-sheet-layout-right`)).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+    expect(getByTestId(`${testID}-config-sheet-layout-left`)).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
+  });
+
+  it('mirrors the column headers when the book is pinned left', () => {
+    mockOrderBookPosition = 'left';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    // Value leads and price trails, mirroring the ladder rows below.
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-value`,
+      `${testID}-column-header-price`,
+    ]);
+  });
+
+  it('keeps the default column header order when the book is pinned right', () => {
+    mockOrderBookPosition = 'right';
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    const headerOrder = getByTestId(`${testID}-column-headers`).children.map(
+      (child) => (typeof child === 'string' ? child : child.props.testID),
+    );
+
+    expect(headerOrder).toEqual([
+      `${testID}-column-header-price`,
+      `${testID}-column-header-value`,
+    ]);
+  });
+
+  // Header order and row order come from separate derivations of the same
+  // condition, so the ladder itself needs its own assertions.
+  const getLadderRowOrder = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) =>
+    within(view.getByTestId(rowTestID))
+      .getAllByTestId(/-(price|value)$/)
+      .map((cell) => cell.props.testID);
+
+  const getDepthBarAnchor = (
+    view: ReturnType<typeof renderWithProvider>,
+    rowTestID: string,
+  ) => {
+    const { left, right } = StyleSheet.flatten(
+      view.getByTestId(`${rowTestID}-depth-bar`).props.style,
+    );
+
+    return { left, right };
+  };
+
+  const renderLadder = (position: 'left' | 'right') => {
+    mockOrderBookPosition = position;
+
+    return renderWithProvider(
+      <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,
+      { state: { engine: { backgroundState } } },
+    );
+  };
+
+  // Row order and depth-bar anchor are separate expressions, so they get
+  // separate cases — one regressing must not hide behind the other passing.
+  it('mirrors the ladder row columns when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    // Value leads and price trails on both halves of the ladder.
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-value`,
+      `${testID}-ask-row-0-price`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-value`,
+      `${testID}-bid-row-0-price`,
+    ]);
+  });
+
+  it('keeps the default ladder row columns when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getLadderRowOrder(view, `${testID}-ask-row-0`)).toEqual([
+      `${testID}-ask-row-0-price`,
+      `${testID}-ask-row-0-value`,
+    ]);
+    expect(getLadderRowOrder(view, `${testID}-bid-row-0`)).toEqual([
+      `${testID}-bid-row-0-price`,
+      `${testID}-bid-row-0-value`,
+    ]);
+  });
+
+  it('grows the depth bars from the left edge when the book is pinned left', () => {
+    const view = renderLadder('left');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: 0,
+      right: undefined,
+    });
+  });
+
+  it('grows the depth bars from the right edge when the book is pinned right', () => {
+    const view = renderLadder('right');
+
+    expect(getDepthBarAnchor(view, `${testID}-ask-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
+    expect(getDepthBarAnchor(view, `${testID}-bid-row-0`)).toEqual({
+      left: undefined,
+      right: 0,
+    });
   });
 
   it('shows the spread value alone, keeping the label for screen readers', () => {
@@ -502,6 +899,63 @@ describe('PerpsProOrderBookPanel', () => {
     expect(lastAggregatedCall).toMatchObject({
       symbol: 'ETH',
       nSigFigs: 4,
+    });
+  });
+
+  describe('sub-cent ladder prices (TAT-3713)', () => {
+    const renderSubCentLadder = () => {
+      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+        orderBook: subCentOrderBook,
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: mockReconnect,
+      }));
+
+      return renderWithProvider(
+        <PerpsProOrderBookPanel symbol="kPEPE" marketPrice={0.002652} />,
+        { state: { engine: { backgroundState } } },
+      );
+    };
+
+    it('renders all six decimals of a ladder price on one line', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const priceCell = getByTestId(`${testID}-bid-row-0-price`);
+
+      expect(priceCell).toHaveTextContent('$0.002651');
+      expect(priceCell).toHaveProp('numberOfLines', 1);
+    });
+
+    it('gives the price cell the width the value cell does not need', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const priceStyle = StyleSheet.flatten(
+        getByTestId(`${testID}-bid-row-0-price`).props.style,
+      );
+      const valueStyle = StyleSheet.flatten(
+        getByTestId(`${testID}-bid-row-0-value`).props.style,
+      );
+
+      // An even split leaves each side 62px of the 132px order-book column,
+      // which cuts a nine-character price down to "$0.0026…".
+      expect(priceStyle).toMatchObject({ flexGrow: 1, flexBasis: '0%' });
+      expect(valueStyle).toMatchObject({ flexShrink: 0 });
+      expect(valueStyle.flexGrow).toBeUndefined();
+    });
+
+    it('gives the column headers the same width split as the rows', () => {
+      const { getByTestId } = renderSubCentLadder();
+
+      const headerValue = getByTestId(`${testID}-column-header-value`);
+      const headerValueStyle = StyleSheet.flatten(headerValue.props.style);
+
+      // The value header is also wider than half the column.
+      expect(headerValue).toHaveTextContent(
+        `${strings('perps.order_book.total')} (USD)`,
+      );
+      expect(headerValueStyle).toMatchObject({ flexShrink: 0 });
+      expect(headerValueStyle.flexGrow).toBeUndefined();
     });
   });
 });

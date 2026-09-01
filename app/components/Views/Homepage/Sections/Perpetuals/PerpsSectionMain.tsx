@@ -14,6 +14,7 @@ import {
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
+import { useIsFocused } from '@react-navigation/native';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
   type PerpsMarketData,
@@ -29,6 +30,7 @@ import {
   usePerpsLiveOrders,
   usePerpsLiveAccount,
 } from '../../../../UI/Perps/hooks';
+
 import {
   formatPnl,
   formatPercentage,
@@ -48,6 +50,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
@@ -58,9 +61,38 @@ import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
 import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import {
+  finishPerpsLoadingSession,
+  resolvePerpsMarketSource,
+} from '../../../../UI/Perps/utils/perpsLoadingSession';
+import { usePerpsHomepageLoadingSession } from './hooks/usePerpsHomepageLoadingSession';
+import { useHomepagePerpsSurfaceMetrics } from './hooks/useHomepagePerpsSurfaceMetrics';
+
+type HomepagePerpsContentVariant =
+  | 'positions_and_orders'
+  | 'positions'
+  | 'orders'
+  | 'pills'
+  | 'trending';
+
+const resolveContentVariant = (
+  positionCount: number,
+  orderCount: number,
+  showPills: boolean,
+): HomepagePerpsContentVariant => {
+  if (positionCount > 0 && orderCount > 0) return 'positions_and_orders';
+  if (positionCount > 0) return 'positions';
+  if (orderCount > 0) return 'orders';
+  return showPills ? 'pills' : 'trending';
+};
+
+const resolveContentState = (hasError: boolean, hasItems: boolean) => {
+  if (hasError) return 'error';
+  return hasItems ? 'filled' : 'empty';
+};
 
 /**
- * PerpsSection — single "Perpetuals" section on the homepage.
+ * PerpsSection — single "Perps" section on the homepage.
  *
  * Shows open positions + limit orders when the user has any,
  * otherwise shows the configured empty state content.
@@ -77,8 +109,11 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     },
     ref,
   ) => {
+    const isHomepageFocused = useIsFocused();
+    const { proposedLifecycle, sessionContext, sessionReady } =
+      usePerpsHomepageLoadingSession(isHomepageFocused);
     const sectionViewRef = useRef<View>(null);
-    const baseTitle = strings('homepage.sections.perpetuals');
+    const baseTitle = strings('homepage.sections.perps');
     const usesPillsEmptyState = emptyStateContent === 'pills';
     const { error: connectionError, reconnectWithNewContext } =
       usePerpsConnection();
@@ -97,7 +132,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
-      throttleMs: HOMEPAGE_THROTTLE_MS,
+      // Orders are low-frequency user state and should render immediately.
+      throttleMs: 0,
     });
 
     const hookLoading = positionsLoading || ordersLoading;
@@ -132,10 +168,16 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usesPillsEmptyState && !showSkeleton && !hasItems;
     const shouldLoadMarkets = !shouldShowPillsEmptyState;
 
-    const { markets, marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
-      usePerpsTrendingCarouselData({
-        skipInitialFetch: !shouldLoadMarkets,
-      });
+    const {
+      markets,
+      marketsLoading,
+      hasResolvedInitialData,
+      allCarouselMarkets,
+      watchlistSymbolSet,
+      refreshMarkets,
+    } = usePerpsTrendingCarouselData({
+      skipInitialFetch: !shouldLoadMarkets,
+    });
     const title =
       shouldShowPillsEmptyState && !connectionError
         ? (emptyStateTitleOverride ?? baseTitle)
@@ -189,18 +231,19 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       !showSkeleton &&
       !hasItems &&
       !shouldShowPillsEmptyState &&
-      marketsLoading;
+      (marketsLoading || !hasResolvedInitialData);
     const showTrending =
       !showSkeleton &&
       !hasItems &&
       !shouldShowPillsEmptyState &&
+      hasResolvedInitialData &&
       !marketsLoading;
-    const carouselSymbols = useMemo(
-      () => (showTrending ? allCarouselMarkets.map((m) => m.symbol) : []),
+    const sparklineMarkets = useMemo(
+      () => (showTrending ? allCarouselMarkets : []),
       [allCarouselMarkets, showTrending],
     );
-    const { sparklines, refresh: refreshSparklines } =
-      useHomepageSparklines(carouselSymbols);
+    const { refresh: refreshSparklines, sparklines } =
+      useHomepageSparklines(sparklineMarkets);
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
@@ -230,13 +273,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             await refetchPerpsPills();
             return;
           }
-          refreshSparklines();
+          await Promise.all([refreshMarkets(), refreshSparklines()]);
         },
       }),
       [
         connectionError,
         refetchPerpsPills,
         reconnectWithNewContext,
+        refreshMarkets,
         refreshSparklines,
         shouldShowPillsEmptyState,
       ],
@@ -269,10 +313,20 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
+    const contentVariant = resolveContentVariant(
+      displayPositions.length,
+      displayOrders.length,
+      shouldShowPillsEmptyState,
+    );
+    const isAccountBackedContent =
+      contentVariant === 'positions' ||
+      contentVariant === 'orders' ||
+      contentVariant === 'positions_and_orders';
     const isLoadingSection =
       hookLoading ||
       deferredLoading ||
       pendingTrending ||
+      (isAccountBackedContent && perpsAccountLoading) ||
       (shouldShowPillsEmptyState && isPerpsPillsLoading);
 
     const isEmpty = !hasItems;
@@ -289,7 +343,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       ? displayPositions.length + displayOrders.length
       : 0;
 
-    const { onLayout } = useHomeViewedEvent({
+    const { isVisible: isSectionVisible, onLayout: handleSectionLayout } =
+      useSectionViewportVisible(sectionViewRef);
+
+    useHomeViewedEvent({
       sectionRef: willRender && !pillsEmptyFeedHidden ? sectionViewRef : null,
       isLoading: isLoadingSection,
       sectionName: HomeSectionNames.PERPS,
@@ -297,22 +354,126 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       isEmpty,
       itemCount,
+      isVisible: isSectionVisible,
       fireImmediateWhenNoView: !pillsEmptyFeedHidden,
     });
 
+    const lifecycle = sessionContext?.lifecycle ?? proposedLifecycle;
+    const sessionId = sessionContext?.id;
+    const surfaceContentVariant = connectionError ? 'error' : contentVariant;
+    const completionCountData = useMemo<Record<string, number>>(() => {
+      const counts: Record<string, number> = {};
+      if (surfaceContentVariant === 'pills') {
+        counts.pill_count = perpsPillsData.length;
+      } else if (surfaceContentVariant === 'trending') {
+        counts.market_count = allCarouselMarkets.length;
+      } else if (surfaceContentVariant !== 'error') {
+        counts.item_count = displayPositions.length + displayOrders.length;
+      }
+      return counts;
+    }, [
+      allCarouselMarkets.length,
+      displayOrders.length,
+      displayPositions.length,
+      perpsPillsData.length,
+      surfaceContentVariant,
+    ]);
+    const hasSurfaceContent =
+      contentVariant === 'trending'
+        ? allCarouselMarkets.length > 0
+        : contentVariant === 'pills'
+          ? perpsPillsData.length > 0
+          : hasItems;
+    const marketSource = resolvePerpsMarketSource(sessionContext?.marketSource);
+    const accountSource = sessionContext?.accountSource ?? 'unknown';
+    const cohortTags = useMemo(
+      () => ({
+        content_variant: surfaceContentVariant,
+        lifecycle,
+        surface: 'homepage',
+        ...(marketSource === 'unknown' ? {} : { market_source: marketSource }),
+        ...(accountSource === 'unknown'
+          ? {}
+          : { account_source: accountSource }),
+      }),
+      [accountSource, lifecycle, marketSource, surfaceContentVariant],
+    );
+    const contentReady =
+      sessionReady && (Boolean(connectionError) || !isLoadingSection);
+    useHomepagePerpsSurfaceMetrics({
+      isVisible: isSectionVisible,
+      isRendered: !pillsEmptyFeedHidden,
+      isFocused: isHomepageFocused,
+      sessionId,
+      lifecycle,
+      contentVariant: surfaceContentVariant,
+      contentReady,
+      hasError: Boolean(connectionError),
+      marketSource,
+      resolvedSource: isAccountBackedContent ? accountSource : marketSource,
+    });
     useSectionPerformance({
       sectionId: HomeSectionNames.PERPS,
-      contentReady: !isLoadingSection,
+      enabled: Boolean(sessionId),
+      generationKey: sessionId,
+      acceptReadyContentOnGenerationStart:
+        lifecycle !== 'account_switch' &&
+        lifecycle !== 'network_switch' &&
+        lifecycle !== 'background_reconnect',
+      contentReady,
       isEmpty: !hasItems,
       contentStateForTrace: connectionError ? 'error' : undefined,
       isLoading: isLoadingSection,
+      tags: cohortTags,
+      data: sessionContext
+        ? { perps_session_id: sessionContext.id }
+        : undefined,
     });
+
+    useEffect(() => {
+      if (!sessionReady || !sessionId) return;
+      if (pillsEmptyFeedHidden) {
+        finishPerpsLoadingSession(
+          {
+            success: true,
+            content_state: 'empty',
+            ...completionCountData,
+            ...cohortTags,
+            content_variant: 'hidden',
+          },
+          sessionId,
+        );
+        return;
+      }
+      if (isLoadingSection && !connectionError) return;
+      finishPerpsLoadingSession(
+        {
+          success: !connectionError,
+          content_state: resolveContentState(
+            Boolean(connectionError),
+            hasSurfaceContent,
+          ),
+          ...completionCountData,
+          ...cohortTags,
+        },
+        sessionId,
+      );
+    }, [
+      cohortTags,
+      completionCountData,
+      connectionError,
+      hasSurfaceContent,
+      isLoadingSection,
+      pillsEmptyFeedHidden,
+      sessionId,
+      sessionReady,
+    ]);
 
     const showsVerticalPositions = showSkeleton || pendingTrending || hasItems;
 
     if (connectionError) {
       return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
+        <View ref={sectionViewRef} onLayout={handleSectionLayout}>
           <Box paddingBottom={3}>
             <SectionDivider />
             <SectionHeader
@@ -364,7 +525,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                 <PerpsPositionSkeleton />
               </SectionRow>
             ) : (
-              <Box testID="homepage-perps-positions">
+              <Box testID="homepage-perps-positions" collapsable={false}>
                 {displayPositions.map((position) => (
                   <PerpsCard
                     key={position.symbol}
@@ -402,7 +563,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     );
 
     return (
-      <View ref={sectionViewRef} onLayout={onLayout}>
+      <View ref={sectionViewRef} onLayout={handleSectionLayout}>
         {showsVerticalPositions ? (
           sectionContent
         ) : (

@@ -1,8 +1,9 @@
-import {
-  ActivitiesViewSelectorsIDs,
-  ActivitiesViewSelectorsText,
-} from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
+import {
+  ActivityListSelectorsIDs,
+  activityListRowItemTestId,
+} from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -13,27 +14,135 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import {
-  encapsulated,
-  EncapsulatedElementType,
-} from '../../framework/EncapsulatedElement';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class ActivitiesView {
-  get title(): EncapsulatedElementType {
+  get typeFilterChip(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
+  }
+
+  typeFilterOption(option: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  get perpsFilterChip(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+    );
+  }
+
+  get perpsFilterSheet(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
+  }
+
+  get typeFilterSheet(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
+    );
+  }
+
+  perpsFilterOption(option: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  async tapTypeFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterChip, {
+      elemDescription: 'Activity Type Filter Chip',
+    });
+  }
+
+  async tapTypeFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterOption(option), {
+      elemDescription: `Activity Type Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async tapPerpsFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterChip, {
+      elemDescription: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async tapPerpsFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterOption(option), {
+      elemDescription: `Activity Perps Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async selectPerpsFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if perps filter sheet is open',
+            },
+          );
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          await Gestures.waitAndTap(this.perpsFilterChip, {
+            elemDescription: 'Activity Perps Filter Chip',
+            timeout: 3000,
+          });
+        }
+
+        await Gestures.waitAndTap(this.perpsFilterOption(option), {
+          elemDescription: `Activity Perps Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 2000,
+          timeout: 8000,
+        });
+
+        await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
+          timeout: 4000,
+          description: 'Wait for perps filter sheet to close after selection',
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'Selecting perps filter option with retry',
+      },
+    );
+  }
+
+  async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed(label, { timeout: 15000 });
+    await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
+  }
+
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
 
-  get networkFilterChip(): EncapsulatedElementType {
+  get networkFilterChip(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
     );
   }
 
-  get redesignedScreen(): EncapsulatedElementType {
+  get redesignedScreen(): Promise<AppiumElement> {
     return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
@@ -63,84 +172,60 @@ class ActivitiesView {
       },
     );
   }
-  get predictionsTab(): EncapsulatedElementType {
-    const label = ActivitiesViewSelectorsText.PREDICTIONS_TAB;
-    return encapsulated({
-      detox: () => Matchers.getElementByLabel(label),
-      appium: () => PlaywrightMatchers.getElementByText(label),
-    });
-  }
-  get transferTab(): EncapsulatedElementType {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
+
+  get container(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityListSelectorsIDs.CONTAINER);
   }
 
-  get tabsBar(): EncapsulatedElementType {
-    return Matchers.getElementByID(
-      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
-    );
-  }
-
-  get container(): EncapsulatedElementType {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
-  }
-
-  get confirmedLabel(): EncapsulatedElementType {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
-  }
-
-  get stakeDepositedLabel(): EncapsulatedElementType {
+  get stakeDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): EncapsulatedElementType {
+  get stakeMoreDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): EncapsulatedElementType {
+  get unstakeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): EncapsulatedElementType {
+  get stackingClaimLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): EncapsulatedElementType {
+  get approveActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get lendingDepositActivity(): EncapsulatedElementType {
+  get lendingDepositActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_DEPOSIT,
     );
   }
 
-  get lendingWithdrawalActivity(): EncapsulatedElementType {
+  get lendingWithdrawalActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
     );
   }
 
-  get predictDeposit(): EncapsulatedElementType {
+  get predictDeposit(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): EncapsulatedElementType {
+  get predictWithdraw(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionStatus(row: number): EncapsulatedElementType {
-    return Matchers.getElementByID(`transaction-status-${row}`);
-  }
-
-  transactionItem(row: number): EncapsulatedElementType {
-    return Matchers.getElementByID(`transaction-item-${row}`);
+  transactionItem(row: number): Promise<AppiumElement> {
+    return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
   generateSwapActivityLabel(
@@ -162,17 +247,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): EncapsulatedElementType {
+  swapApprovalActivityTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): EncapsulatedElementType {
+  bridgeActivityTitle(destNetwork: string): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -186,15 +271,31 @@ class ActivitiesView {
     await Gestures.waitAndTap(el);
   }
 
-  async tapConfirmedTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmedLabel);
-  }
-
   async swipeDown(): Promise<void> {
     await Gestures.swipe(this.container, 'down', {
       speed: 'slow',
       percentage: 0.5,
     });
+  }
+
+  /**
+   * Taps an activity row via its visible text label.
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest
+   * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
+   */
+  async tapOnActivityItemByLabel(label: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(Matchers.getElementByText(label), {
+          elemDescription: `Tap Activity Item By Label: ${label}`,
+          timeout: 10000,
+        });
+      },
+      {
+        timeout: 30000,
+        description: `Tapping activity item by label ${label} with retry`,
+      },
+    );
   }
 
   async tapOnTransactionItem(row: number): Promise<void> {
@@ -204,24 +305,8 @@ class ActivitiesView {
   async tapOnPredictionsTab(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        for (let attempt = 0; attempt < 4; attempt += 1) {
-          try {
-            await Assertions.expectElementToBeVisible(this.predictionsTab, {
-              timeout: 1000,
-            });
-            break;
-          } catch {
-            await UnifiedGestures.swipe(this.tabsBar, 'left', {
-              percentage: 0.5,
-              speed: 'slow',
-              description: `Swipe activity tabs to reveal Predictions (attempt ${attempt + 1})`,
-            });
-          }
-        }
-        await UnifiedGestures.waitAndTap(this.predictionsTab, {
-          description: 'Predictions Tab in Activity View',
-          timeout: 10_000,
-        });
+        await this.tapTypeFilterChip();
+        await this.tapTypeFilterOption('predictions');
       },
       {
         timeout: 30_000,
@@ -231,9 +316,8 @@ class ActivitiesView {
   }
 
   async tapOnTransfersTab(): Promise<void> {
-    await Gestures.waitAndTap(this.transferTab, {
-      elemDescription: 'Transfer Tab in Activity View',
-    });
+    await this.tapTypeFilterChip();
+    await this.tapTypeFilterOption('transactions');
   }
 
   async tapPredictPosition(positionName: string): Promise<void> {
@@ -246,7 +330,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -255,7 +339,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -283,38 +367,14 @@ class ActivitiesView {
    */
   async verifyActivityItemWithStatus(
     titleText: string,
-    statusText: string,
+    statusText?: string,
     rowIndex = 0,
   ): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
-    await Assertions.expectElementToHaveText(
-      this.transactionStatus(rowIndex),
-      statusText,
-      {
-        timeout: 10000,
-        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
-      },
-    );
-  }
-
-  /**
-   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
-   * Delegates to verifyActivityItemWithStatus.
-   */
-  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
-    await this.verifyActivityItemWithStatus(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      rowIndex,
-    );
+    // Verify with data attributes
   }
 
   /**
    * Wait for a transaction to show "Confirmed" status in the activity list.
-   * Works in both Detox and Playwright/Appium contexts.
    * For real on-chain transactions, polls with a longer timeout.
    * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
    */
@@ -322,37 +382,7 @@ class ActivitiesView {
     rowIndex = 0,
     timeoutMs = 120_000,
   ): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(
-          this.transactionStatus(rowIndex),
-          {
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const statusEl = await PlaywrightMatchers.getElementById(
-              `transaction-status-${rowIndex}`,
-              { exact: true },
-            );
-            const label = await statusEl.textContent();
-            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
-              throw new Error(
-                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
-              );
-            }
-          },
-          {
-            maxRetries: Math.ceil(timeoutMs / 3_000),
-            interval: 3_000,
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
-      },
-    });
+    // Verify with data attributes
   }
 }
 

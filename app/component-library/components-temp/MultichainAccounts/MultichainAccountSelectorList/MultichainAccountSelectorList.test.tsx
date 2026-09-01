@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 
 // FlashList v2 mock – see app/util/test/mockFlashList.ts
@@ -35,6 +36,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
+  MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID,
@@ -49,6 +51,7 @@ import {
 } from '../test-utils';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
 import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell/AccountListCell.testIds';
+import { endTrace, TraceName } from '../../../../util/trace';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -71,10 +74,21 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 const mockNavigate = jest.fn();
+let mockFocusCleanup: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: jest.fn((callback) => {
+    const cleanup = callback();
+    mockFocusCleanup = typeof cleanup === 'function' ? cleanup : undefined;
+  }),
+}));
+
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
 }));
 
 // Mock whenEngineReady to prevent Engine access after Jest teardown
@@ -102,6 +116,7 @@ describe('MultichainAccountSelectorList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusCleanup = undefined;
   });
 
   // Helper function to perform search and wait for results
@@ -180,6 +195,46 @@ describe('MultichainAccountSelectorList', () => {
 
     expect(getByText('Wallet 1')).toBeTruthy();
     expect(getByText('Wallet 2')).toBeTruthy();
+  });
+
+  it('renders the search field by default', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the search field when hideSearch is set, keeping the accounts', () => {
+    const account1 = createMockAccountGroup(
+      'keyring:wallet1/group1',
+      'Account 1',
+    );
+    const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+    const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+    const { queryByTestId, getByText } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      [],
+      { hideSearch: true },
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+    ).not.toBeOnTheScreen();
+    expect(getByText('Account 1')).toBeTruthy();
   });
 
   it('shows accounts correctly when there are multiple accounts with different categories', () => {
@@ -667,6 +722,59 @@ describe('MultichainAccountSelectorList', () => {
       );
     });
 
+    it('keeps the list testID in the empty state', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'My Account',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+
+      const { getByTestId } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        [account1],
+      );
+
+      await act(async () => {
+        fireEvent.changeText(
+          getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID),
+          'NoSuchAccount',
+        );
+      });
+
+      await waitFor(
+        () => {
+          expect(
+            getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+          ).toBeOnTheScreen();
+        },
+        { timeout: SEARCH_WAIT_TIMEOUT_MS },
+      );
+
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders header and footer slots in the empty state', () => {
+      const { getByTestId, getByText } = renderComponentWithMockState(
+        [],
+        {},
+        [],
+        {
+          ListHeaderComponent: <Text>Header slot</Text>,
+          ListFooterComponent: <Text>Footer slot</Text>,
+        },
+      );
+
+      expect(getByText('Header slot')).toBeOnTheScreen();
+      expect(getByText('Footer slot')).toBeOnTheScreen();
+      expect(
+        getByTestId(MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID),
+      ).toBeOnTheScreen();
+    });
+
     it('shows empty state when no accounts match search', async () => {
       const account1 = createMockAccountGroup(
         'keyring:wallet1/group1',
@@ -950,6 +1058,32 @@ describe('MultichainAccountSelectorList', () => {
   });
 
   describe('Account Creation and Scrolling', () => {
+    it('ends the create account trace when the hosting screen loses focus', () => {
+      const account1 = createMockAccountGroup(
+        'entropy:wallet1/group1',
+        'Account 1',
+      );
+      const wallet1 = createMockEntropyWallet('wallet1', 'Wallet 1', [
+        account1,
+      ]);
+      const internalAccounts = createMockInternalAccountsFromGroups([account1]);
+      const mockState = createMockState([wallet1], internalAccounts);
+
+      renderWithProvider(
+        <MultichainAccountSelectorList
+          onSelectAccount={mockOnSelectAccount}
+          selectedAccountGroups={[account1]}
+        />,
+        { state: mockState },
+      );
+
+      mockFocusCleanup?.();
+
+      expect(endTrace).toHaveBeenCalledWith({
+        name: TraceName.CreateMultichainAccount,
+      });
+    });
+
     it('renders AccountListFooter with correct props', () => {
       const account1 = createMockAccountGroup(
         'entropy:wallet1/group1',

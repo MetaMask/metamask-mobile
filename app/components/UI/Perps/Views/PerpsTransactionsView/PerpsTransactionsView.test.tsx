@@ -47,6 +47,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTransactionHistory: jest.fn(),
   usePerpsEventTracking: jest.fn(),
+  usePerpsNetwork: jest.fn(() => 'mainnet'),
 }));
 
 // Mock the asset metadata hook to avoid network calls

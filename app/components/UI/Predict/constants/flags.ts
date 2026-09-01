@@ -3,6 +3,7 @@ import type {
   PredictFeedBannerConfig,
   PredictFeedCarouselConfig,
   PredictFeeCollection,
+  PredictHiddenMarketsFlag,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
@@ -21,6 +22,7 @@ export const DEFAULT_PREDICT_FEED_CAROUSEL_FLAG: PredictFeedCarouselConfig = {
   enabled: false,
   minimumVersion: '',
   mode: 'live',
+  priorityOrder: [],
   contentSource: {
     composition: 'query-results',
     queryParams: '',
@@ -77,6 +79,12 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     leagues: [],
     enabledSportsMarketTypes: [],
   };
+
+export const DEFAULT_HIDDEN_MARKETS_FLAG: PredictHiddenMarketsFlag = {
+  enabled: false,
+  minimumVersion: '',
+  hidden: [],
+};
 
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,

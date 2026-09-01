@@ -1,6 +1,7 @@
 import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -25,8 +26,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../constants/on-ramp';
-import decodeTransaction from '../../UI/TransactionElement/utils';
-import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -94,20 +93,8 @@ jest.mock('../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
 
-jest.mock('../../UI/TransactionElement/utils', () => ({
-  __esModule: true,
-  default: jest.fn(async () => [
-    { actionKey: 'Sent ETH' },
-    { hash: '0xconfirmed', renderFrom: '0xfrom', renderTo: '0xto' },
-  ]),
-}));
-
 jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn((state) => state.bridgeHistory),
-}));
-
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsTransactionsRedesignEnabled: jest.fn((state) => state.isTxRedesign),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -555,6 +542,10 @@ let mockPerpsSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
+let mockDeferPerpsSourceReport = false;
+let mockPerpsSourceOnChange:
+  | ((state: typeof mockPerpsSourceState) => void)
+  | undefined;
 
 jest.mock('./hooks/PerpsActivitySource', () => {
   const ReactActual = jest.requireActual('react');
@@ -570,8 +561,11 @@ jest.mock('./hooks/PerpsActivitySource', () => {
     }: {
       onChange: (state: unknown) => void;
     }) => {
+      mockPerpsSourceOnChange = onChange;
       ReactActual.useEffect(() => {
-        onChange(mockPerpsSourceState);
+        if (!mockDeferPerpsSourceReport) {
+          onChange(mockPerpsSourceState);
+        }
       }, [onChange]);
       return ReactActual.createElement(View, {
         testID: 'perps-source-mounted',
@@ -579,6 +573,12 @@ jest.mock('./hooks/PerpsActivitySource', () => {
     },
   };
 });
+
+const mockUseActivityScreenViewed = jest.fn();
+jest.mock('../ActivityScreen/hooks/useActivityScreenViewed', () => ({
+  useActivityScreenViewed: (params: unknown) =>
+    mockUseActivityScreenViewed(params),
+}));
 
 let mockPredictSourceState: {
   items: unknown[];
@@ -589,6 +589,10 @@ let mockPredictSourceState: {
   hasMore?: boolean;
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
+let mockDeferPredictSourceReport = false;
+let mockPredictSourceOnChange:
+  | ((state: typeof mockPredictSourceState) => void)
+  | undefined;
 
 jest.mock('./hooks/PredictActivitySource', () => {
   const ReactActual = jest.requireActual('react');
@@ -604,8 +608,11 @@ jest.mock('./hooks/PredictActivitySource', () => {
     }: {
       onChange: (state: unknown) => void;
     }) => {
+      mockPredictSourceOnChange = onChange;
       ReactActual.useEffect(() => {
-        onChange(mockPredictSourceState);
+        if (!mockDeferPredictSourceReport) {
+          onChange(mockPredictSourceState);
+        }
       }, [onChange]);
       return ReactActual.createElement(View, {
         testID: 'predict-source-mounted',
@@ -638,7 +645,6 @@ const selectorValues = {
   related: new Map(),
   selectedAccount: { address: '0xselected' },
   selectedGroupAccounts: [{ address: '0xevm', type: 'eip155:eoa' }],
-  isTxRedesign: false,
 };
 
 const confirmedItem = {
@@ -707,10 +713,13 @@ describe('ActivityList', () => {
     selectorValues.predictEnabled = false;
     mockPerpsSourceState = { items: [], isLoading: false, error: null };
     mockPredictSourceState = { items: [], isLoading: false, error: null };
+    mockDeferPerpsSourceReport = false;
+    mockDeferPredictSourceReport = false;
+    mockPerpsSourceOnChange = undefined;
+    mockPredictSourceOnChange = undefined;
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
-    selectorValues.isTxRedesign = false;
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [confirmedItem] }] },
@@ -739,6 +748,58 @@ describe('ActivityList', () => {
     (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
       selector(selectorValues),
     );
+  });
+
+  describe('Activity Screen Viewed settling', () => {
+    it('does not report the Perps list as settled before its source has loaded', () => {
+      selectorValues.perpsEnabled = true;
+      mockPerpsSourceState = { items: [], isLoading: false, error: null };
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Perps}
+        />,
+      );
+
+      const [firstCall] = mockUseActivityScreenViewed.mock.calls;
+      expect(firstCall[0].isSettled).toBe(false);
+    });
+
+    it('reports the Perps list as settled once its source has loaded', () => {
+      selectorValues.perpsEnabled = true;
+      mockPerpsSourceState = { items: [], isLoading: false, error: null };
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Perps}
+        />,
+      );
+
+      const lastCall =
+        mockUseActivityScreenViewed.mock.calls[
+          mockUseActivityScreenViewed.mock.calls.length - 1
+        ];
+      expect(lastCall[0].isSettled).toBe(true);
+    });
+
+    it('reports EVM-backed filters as settled without waiting on Perps or Predict', () => {
+      selectorValues.perpsEnabled = true;
+
+      render(
+        <ActivityList
+          header={<></>}
+          trackScreenViewed
+          typeFilter={ActivityTypeFilter.Transactions}
+        />,
+      );
+
+      const [firstCall] = mockUseActivityScreenViewed.mock.calls;
+      expect(firstCall[0].isSettled).toBe(true);
+    });
   });
 
   it('renders local pending and confirmed rows, refreshes, paginates, and opens the EVM explorer', async () => {
@@ -1160,24 +1221,7 @@ describe('ActivityList', () => {
     );
   });
 
-  it('navigates to transaction details when a confirmed row is pressed', async () => {
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
-
-    // The press handler decodes the tx (async) before navigating.
-    await waitFor(() =>
-      expect(mockNavigate).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          screen: expect.any(String),
-        }),
-      ),
-    );
-  });
-
-  it('navigates to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
-    selectorValues.isTxRedesign = true;
+  it('navigates to transaction details when a confirmed row is pressed', () => {
     render(<ActivityList header={<></>} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
@@ -1186,15 +1230,9 @@ describe('ActivityList', () => {
       chainId: 'eip155:1',
       txIdentifier: '0xconfirmed',
     });
-    // Must not also open the legacy sheet.
-    const legacyCalls = mockNavigate.mock.calls.filter(
-      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
-    );
-    expect(legacyCalls).toHaveLength(0);
   });
 
-  it('routes Ramp sell rows to legacy OrderDetails even when the redesign flag is on', () => {
-    selectorValues.isTxRedesign = true;
+  it('routes Ramp sell rows to legacy OrderDetails', () => {
     (useRampActivityItems as jest.Mock).mockReturnValue([
       {
         ...rampItem,
@@ -1225,7 +1263,6 @@ describe('ActivityList', () => {
   });
 
   it('routes Ramp rows to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
-    selectorValues.isTxRedesign = true;
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
 
     render(<ActivityList header={<></>} />);
@@ -1238,51 +1275,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('routes Ramp rows to the legacy Ramp details screen when the transactions redesign flag is off', () => {
-    selectorValues.isTxRedesign = false;
-    (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xramp'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.ORDER_DETAILS, {
-      orderId: 'ramp-order-id',
-    });
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.ACTIVITY_DETAILS,
-      expect.anything(),
-    );
-  });
-
-  it('routes RAMPS_V2 rows to the V2 Ramp details screen when the transactions redesign flag is off', () => {
-    selectorValues.isTxRedesign = false;
-    (useRampActivityItems as jest.Mock).mockReturnValue([
-      {
-        ...rampItem,
-        hash: '0xramps-v2',
-        raw: {
-          ...rampItem.raw,
-          data: {
-            ...rampItem.raw.data,
-            id: 'ramps-v2-order-id',
-            provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
-          },
-        },
-      },
-    ]);
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xramps-v2'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-      orderId: 'ramps-v2-order-id',
-    });
-  });
-
-  it('routes deposit CREATED rows to goToBuy when the redesign flag is off', () => {
-    selectorValues.isTxRedesign = false;
+  it('routes deposit CREATED rows to goToBuy', () => {
     (useRampActivityItems as jest.Mock).mockReturnValue([
       {
         ...rampItem,
@@ -1305,149 +1298,6 @@ describe('ActivityList', () => {
 
     expect(mockGoToBuy).toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
-  });
-
-  it('routes deposit rows to the deposit details screen when the transactions redesign flag is off', () => {
-    selectorValues.isTxRedesign = false;
-    (useRampActivityItems as jest.Mock).mockReturnValue([
-      {
-        ...rampItem,
-        hash: '0xdeposit',
-        raw: {
-          ...rampItem.raw,
-          data: {
-            ...rampItem.raw.data,
-            id: 'deposit-order-id',
-            provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
-            state: FIAT_ORDER_STATES.COMPLETED,
-          },
-        },
-      },
-    ]);
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xdeposit'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ORDER_DETAILS, {
-      orderId: 'deposit-order-id',
-    });
-  });
-
-  it('uses bridge history keyed by actionId for local bridge transaction taps', () => {
-    const bridgeHistoryItem = { id: 'bridge-history-item' };
-    selectorValues.bridgeHistory = {
-      bridgeAction: bridgeHistoryItem,
-    };
-    (useLocalActivityItems as jest.Mock).mockReturnValue([
-      {
-        ...localPendingItem,
-        type: 'bridge',
-        hash: '0xbridge',
-        raw: {
-          type: 'localTransaction',
-          data: {
-            primaryTransaction: {
-              chainId: '0x1',
-              hash: '0xbridge',
-              id: 'bridge-tx-id',
-              // Older persisted bridge history can be keyed only by actionId.
-              actionId: 'bridgeAction',
-              type: 'bridge',
-              txParams: { from: '0xevm', nonce: '0x8' },
-            },
-          },
-        },
-      },
-    ]);
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xbridge'));
-
-    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
-      expect.objectContaining({
-        bridgeTxHistoryItem: bridgeHistoryItem,
-        evmTxMeta: expect.objectContaining({
-          id: 'bridge-tx-id',
-          actionId: 'bridgeAction',
-        }),
-      }),
-    );
-  });
-
-  it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {
-    const decodeMock = jest.mocked(decodeTransaction);
-    type DecodeResult = Awaited<ReturnType<typeof decodeTransaction>>;
-    let resolveFirst: (value: DecodeResult) => void = () => undefined;
-    let resolveSecond: (value: DecodeResult) => void = () => undefined;
-    decodeMock
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveFirst = resolve;
-          }),
-      )
-      .mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveSecond = resolve;
-          }),
-      );
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
-    fireEvent.press(screen.getByTestId('row-0xlocal'));
-
-    resolveSecond([{ actionKey: 'Approve' }, { hash: '0xlocal' }]);
-    resolveFirst([{ actionKey: 'Sent' }, { hash: '0xconfirmed' }]);
-
-    await waitFor(() => {
-      const detailCalls = mockNavigate.mock.calls.filter(
-        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
-      );
-      expect(detailCalls).toHaveLength(1);
-    });
-
-    const detailCalls = mockNavigate.mock.calls.filter(
-      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
-    );
-    expect(detailCalls[0][1].params.tx.hash).toBe('0xlocal');
-  });
-
-  it('falls back to a minimal details view when decoding throws', async () => {
-    jest
-      .mocked(decodeTransaction)
-      .mockRejectedValueOnce(new Error('decode failed'));
-
-    render(<ActivityList header={<></>} />);
-
-    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
-
-    await waitFor(() => {
-      const detailCalls = mockNavigate.mock.calls.filter(
-        (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
-      );
-      expect(detailCalls).toHaveLength(1);
-    });
-
-    const call = mockNavigate.mock.calls.find(
-      (c) => c[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
-    );
-    // Minimal transactionDetails are built from the item (addresses via
-    // getActivityFromTo) rather than the decoded data.
-    expect(call?.[1].params.transactionDetails).toEqual(
-      expect.objectContaining({
-        hash: '0xconfirmed',
-        renderFrom: '0xevm',
-        renderTo: '0xto',
-        transactionType: 'send',
-      }),
-    );
-    expect(call?.[1].params.transactionElement).toEqual(
-      expect.objectContaining({ actionKey: expect.any(String) }),
-    );
   });
 
   it('uses unique chain-aware fallback keys for rows without hashes', () => {
@@ -1724,6 +1574,97 @@ describe('ActivityList', () => {
     ).toBeNull();
   });
 
+  it('keeps All loading until every enabled domain source reports', () => {
+    selectorValues.perpsEnabled = true;
+    selectorValues.predictEnabled = true;
+    mockDeferPerpsSourceReport = true;
+    mockDeferPredictSourceReport = true;
+    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
+
+    act(() => mockPerpsSourceOnChange?.(mockPerpsSourceState));
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('row-0xconfirmed')).not.toBeOnTheScreen();
+
+    act(() => mockPredictSourceOnChange?.(mockPredictSourceState));
+
+    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not auto-scroll when All settles after initial domain reports', async () => {
+    selectorValues.perpsEnabled = true;
+    selectorValues.predictEnabled = true;
+    mockDeferPerpsSourceReport = true;
+    mockDeferPredictSourceReport = true;
+    render(<ActivityList typeFilter={ActivityTypeFilter.All} />);
+
+    act(() => {
+      mockPerpsSourceOnChange?.(mockPerpsSourceState);
+      mockPredictSourceOnChange?.(mockPredictSourceState);
+    });
+    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
+
+    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
+  it('keeps partial local activity hidden while the initial EVM query loads', () => {
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: true,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+
+    expect(
+      screen.getByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('row-0xlocal')).not.toBeOnTheScreen();
+  });
+
+  it('does not auto-scroll when initial API activity replaces partial local activity', async () => {
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: true,
+      refetch: mockRefetch,
+    });
+    const { rerender } = render(
+      <ActivityList typeFilter={ActivityTypeFilter.Transactions} />,
+    );
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedItem] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+    (useLocalActivityItems as jest.Mock).mockReturnValue([]);
+
+    rerender(<ActivityList typeFilter={ActivityTypeFilter.Transactions} />);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
+
+    expect(screen.getByTestId('row-0xconfirmed')).toBeOnTheScreen();
+    expect(mockScrollToOffset).not.toHaveBeenCalled();
+  });
+
   it('shows the loading indicator (not the empty state) while Perps is still loading after the EVM query settles', () => {
     selectorValues.perpsEnabled = true;
     // Perps source still loading with nothing yet...
@@ -1888,36 +1829,8 @@ describe('ActivityList', () => {
     expect(screen.queryByTestId('row-predict-1')).toBeNull();
   });
 
-  it('navigates a perps trade row to the position transaction detail screen', () => {
+  it('routes perps rows to ActivityDetails', () => {
     selectorValues.perpsEnabled = true;
-    const perpsTx = { id: 'fill-1', type: 'trade' };
-    mockPerpsSourceState = {
-      items: [
-        {
-          type: 'perpsOpenLong',
-          chainId: 'eip155:42161',
-          status: 'success',
-          timestamp: 5,
-          raw: { type: 'perpsTransaction', data: perpsTx },
-          hash: 'perps-fill-1',
-          data: { token: { symbol: 'USD' } },
-        },
-      ],
-      isLoading: false,
-      error: null,
-    };
-
-    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
-    fireEvent.press(screen.getByTestId('row-perps-fill-1'));
-
-    expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
-      transaction: perpsTx,
-    });
-  });
-
-  it('routes perps rows to ActivityDetails when the transactions redesign flag is on', () => {
-    selectorValues.perpsEnabled = true;
-    selectorValues.isTxRedesign = true;
     const perpsTx = { id: 'fill-2', type: 'trade' };
     const perpsRedesignItem = {
       type: 'perpsOpenLong',
@@ -1958,34 +1871,7 @@ describe('ActivityList', () => {
     );
   });
 
-  it('navigates a perps funding row to the funding transaction detail screen', () => {
-    selectorValues.perpsEnabled = true;
-    const perpsTx = { id: 'funding-1', type: 'funding' };
-    mockPerpsSourceState = {
-      items: [
-        {
-          type: 'perpsPaidFundingFees',
-          chainId: 'eip155:42161',
-          status: 'success',
-          timestamp: 5,
-          raw: { type: 'perpsTransaction', data: perpsTx },
-          hash: 'perps-funding-1',
-          data: { token: { symbol: 'USD' } },
-        },
-      ],
-      isLoading: false,
-      error: null,
-    };
-
-    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
-    fireEvent.press(screen.getByTestId('row-perps-funding-1'));
-
-    expect(mockNavigate).toHaveBeenCalledWith('PerpsFundingTransaction', {
-      transaction: perpsTx,
-    });
-  });
-
-  it('navigates a predict row to the predict activity detail screen', () => {
+  it('routes predict rows to ActivityDetails', () => {
     selectorValues.predictEnabled = true;
     const predictActivity = {
       id: 'p1',
@@ -1994,18 +1880,17 @@ describe('ActivityList', () => {
       outcome: 'Yes',
       entry: { type: 'buy', timestamp: 1_700_000_000, amount: 3, price: 0.42 },
     };
+    const predictListItem = {
+      type: 'predictionPlaced',
+      chainId: 'eip155:137',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      raw: { type: 'predictActivity', data: predictActivity },
+      hash: 'predict-1',
+      data: { token: { symbol: 'USDC' } },
+    };
     mockPredictSourceState = {
-      items: [
-        {
-          type: 'predictionPlaced',
-          chainId: 'eip155:137',
-          status: 'success',
-          timestamp: 1_700_000_000_000,
-          raw: { type: 'predictActivity', data: predictActivity },
-          hash: 'predict-1',
-          data: { token: { symbol: 'USDC' } },
-        },
-      ],
+      items: [predictListItem],
       isLoading: false,
       error: null,
     };
@@ -2013,18 +1898,20 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
     fireEvent.press(screen.getByTestId('row-predict-1'));
 
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictActivityDetail',
-      params: {
-        activity: expect.objectContaining({
-          id: 'p1',
-          type: 'BUY',
-          marketTitle: 'Will Spain win the 2026 FIFA World Cup?',
-          amountUsd: 3,
-          outcome: 'Yes',
-        }),
-      },
+    const call = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.ACTIVITY_DETAILS,
+    );
+    const params = call?.[1] as
+      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | undefined;
+    expect(params).toEqual({
+      chainId: 'eip155:137',
+      txIdentifier: 'predict-1',
+      preloadKey: expect.any(String),
     });
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(
+      predictListItem,
+    );
   });
 
   it('renders non-EVM swap/bridge rows through ActivityListItemRow', () => {
@@ -2058,7 +1945,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('routes non-EVM cross-chain bridge taps to the unified swaps detail screen', () => {
+  it('routes non-EVM cross-chain bridge taps to ActivityDetails', () => {
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
       transactions: [
@@ -2070,20 +1957,13 @@ describe('ActivityList', () => {
 
     fireEvent.press(screen.getByTestId('row-solanaCross'));
 
-    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith({
-      navigation: expect.any(Object),
-      multiChainTx: expect.objectContaining({
-        chain: 'solana:mainnet',
-        id: 'solanaCross',
-      }),
-      bridgeTxHistoryItem: expect.objectContaining({
-        title: 'solana-cross-bridge',
-      }),
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'solana:mainnet',
+      txIdentifier: 'solanaCross',
     });
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('opens the multichain details sheet for non-EVM same-chain swaps with bridge history', () => {
+  it('routes non-EVM same-chain swaps with bridge history to ActivityDetails', () => {
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
       transactions: [
@@ -2095,13 +1975,10 @@ describe('ActivityList', () => {
 
     fireEvent.press(screen.getByTestId('row-solanaBridge'));
 
-    expect(handleUnifiedSwapsTxHistoryItemClick).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'solana:mainnet',
+      txIdentifier: 'solanaBridge',
+    });
   });
 
   it('presents in-flight non-EVM cross-chain bridges as pending bridge rows', () => {

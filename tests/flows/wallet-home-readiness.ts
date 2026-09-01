@@ -1,11 +1,17 @@
-import PlaywrightMatchers from '../framework/PlaywrightMatchers';
-import { withImplicitWait } from '../framework/PlaywrightUtilities';
+import Matchers from '../framework/Matchers';
+import { withImplicitWait } from '../framework/AppiumUtilities';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { sleep } from '../framework/Utilities';
+import { isUiAutomator2SessionDeadError } from '../framework/Constants';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 
 const READINESS_STABILITY_MS = 500;
+
+interface AppiumElement {
+  isVisible: () => Promise<boolean>;
+  unwrap: () => { isExisting: () => Promise<boolean> };
+}
 
 const IOS_WALLET_HOME_INDICATOR_IDS = [
   WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
@@ -19,12 +25,15 @@ const IOS_WALLET_HOME_INDICATOR_IDS = [
 export const isTestIdDisplayed = async (testId: string): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
       return await el.isVisible();
     });
-  } catch {
+  } catch (error) {
+    // UiAutomator2 crashes cannot recover via polling — surface immediately so
+    // waitForAppReady / login can fail fast and request session recreate.
+    if (isUiAutomator2SessionDeadError(error)) {
+      throw error;
+    }
     return false;
   }
 };
@@ -64,17 +73,15 @@ const isAnyWalletHomeIndicatorDisplayedOnIOS = async (): Promise<boolean> => {
 const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
-      const walletScreen = await PlaywrightMatchers.getElementById(
+      const walletScreen = (await Matchers.getElementByID(
         WalletViewSelectorsIDs.WALLET_CONTAINER,
-        { exact: true },
-      );
+      )) as AppiumElement;
       if (!(await walletScreen.unwrap().isExisting())) {
         return false;
       }
-      const loginContainer = await PlaywrightMatchers.getElementById(
+      const loginContainer = (await Matchers.getElementByID(
         LoginViewSelectors.CONTAINER,
-        { exact: true },
-      );
+      )) as AppiumElement;
       return !(await loginContainer.isVisible());
     });
   } catch {

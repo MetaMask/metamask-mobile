@@ -25,10 +25,10 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
-import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
+import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -46,14 +46,13 @@ export function useTransactionConfirm() {
   const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
     useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
-  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
-    useMusdConfirmNavigation();
   const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
@@ -64,12 +63,18 @@ export function useTransactionConfirm() {
 
   const { isSupported: isGaslessSupported } = useIsGaslessSupported();
 
-  const isHardwareWallet = isHardwareAccount(
+  // Signer of the confirmed transaction; gates signing-related paths.
+  const isSignerHardwareWallet = isHardwareAccount(
     transactionMetadata?.txParams?.from ?? '',
   );
 
+  // Payer may differ from the signer (MM Pay funding account); a hardware
+  // payer signs funding transactions on-device after approval, so keep the
+  // confirmation waiting to drive the awaiting UI and surface errors.
+  const isPayerHardwareWallet = isHardwareAccount(payingAccount ?? '');
+
   const waitForResult =
-    isHardwareWallet ||
+    isPayerHardwareWallet ||
     (!isSmartTransaction && !quotes?.length && !selectedGasFeeToken);
 
   const handleSmartTransaction = useCallback(
@@ -138,7 +143,7 @@ export function useTransactionConfirm() {
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
-      } else if (selectedGasFeeToken && !isHardwareWallet) {
+      } else if (selectedGasFeeToken && !isSignerHardwareWallet) {
         handleGasless7702(updatedMetadata);
       }
 
@@ -169,33 +174,43 @@ export function useTransactionConfirm() {
         return;
       } else if (type === TransactionType.perpsDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(Routes.HOME_TABS, {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          });
+          navigation.navigate(
+            Routes.HOME_TABS,
+            {
+              screen: Routes.MONEY.ROOT,
+              params: { screen: Routes.MONEY.HOME },
+            },
+            { pop: true },
+          );
         } else {
           navigateToPerpsHome();
         }
       } else if (type === TransactionType.predictDeposit) {
         if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(Routes.HOME_TABS, {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          });
+          navigation.navigate(
+            Routes.HOME_TABS,
+            {
+              screen: Routes.MONEY.ROOT,
+              params: { screen: Routes.MONEY.HOME },
+            },
+            { pop: true },
+          );
         } else {
           navigation.goBack();
         }
-      } else if (type === TransactionType.musdConversion) {
-        musdConversionNavigateOnConfirm();
       } else if (
         hasTransactionType(transactionMetadata, [
           TransactionType.moneyAccountDeposit,
         ])
       ) {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
       } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
@@ -219,7 +234,6 @@ export function useTransactionConfirm() {
       isGaslessSupportedSTX,
       navigation,
       navigateToPerpsHome,
-      musdConversionNavigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,
@@ -229,7 +243,7 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork,
       type,
       waitForResult,
-      isHardwareWallet,
+      isSignerHardwareWallet,
     ],
   );
 

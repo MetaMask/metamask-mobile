@@ -9,6 +9,7 @@ import { ExploreFeed } from '../../../app/components/Views/TrendingView/Trending
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
 import TrendingTokensFullView from '../../../app/components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../../app/components/UI/Trending/Views/RWATokensFullView/RWATokensFullView';
+import { TrendingQuickBuySheetProvider } from '../../../app/components/UI/Trending/contexts';
 import { initialStateTrending } from '../presets/trending';
 
 interface RenderTrendingViewOptions {
@@ -24,7 +25,7 @@ function withQueryClient(
     const queryClient = React.useMemo(
       () =>
         new QueryClient({
-          defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+          defaultOptions: { queries: { retry: false, gcTime: 0 } },
         }),
       [],
     );
@@ -33,6 +34,24 @@ function withQueryClient(
       QueryClientProvider,
       { client: queryClient },
       React.createElement(Component, props as Record<string, unknown>),
+    );
+  };
+}
+
+/**
+ * Mirrors HomeTabs: Crypto/RWAs tabs call `useTrendingQuickBuySheet()` and
+ * require the provider that hosts the shared Explore Quick Buy sheet.
+ */
+function withExploreFeedProviders(
+  Component: React.ComponentType<unknown>,
+): React.ComponentType<unknown> {
+  const WithQueryClient = withQueryClient(Component);
+
+  return function WrappedWithExploreFeedProviders(props: unknown) {
+    return React.createElement(
+      TrendingQuickBuySheetProvider,
+      null,
+      React.createElement(WithQueryClient, props as Record<string, unknown>),
     );
   };
 }
@@ -49,7 +68,9 @@ export function renderTrendingViewWithRoutes(
   const state = builder.build();
 
   return renderScreenWithRoutes(
-    withQueryClient(ExploreFeed as unknown as React.ComponentType<unknown>),
+    withExploreFeedProviders(
+      ExploreFeed as unknown as React.ComponentType<unknown>,
+    ),
     { name: Routes.TRENDING_FEED },
     [
       {

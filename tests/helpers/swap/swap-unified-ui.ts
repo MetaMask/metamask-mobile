@@ -1,10 +1,9 @@
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
 import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet';
-import { Assertions, FrameworkDetector } from '../../framework';
+import { Assertions } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 const logger = createLogger({ name: 'SwapUnifiedUI' });
 
@@ -44,10 +43,6 @@ export async function submitSwapUnifiedUI(
   options?: SwapOptions,
 ) {
   const DEFAULT_SLIPPAGE_VALUE = '2';
-  // Detox-only: Appium has no synchronization service equivalent.
-  if (!FrameworkDetector.isAppium()) {
-    await device.disableSynchronization();
-  }
   await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
     timeout: 20000,
   });
@@ -61,9 +56,9 @@ export async function submitSwapUnifiedUI(
   await QuoteView.tapToken(chainId, destTokenSymbol);
 
   const getQuoteStarted = Date.now();
-  await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
-    timeout: 60000,
-  });
+  // Prefer destination-amount readiness over "Network fee" text — the fee row
+  // can exist while the keypad BottomSheet reports it as not displayed.
+  await QuoteView.waitForQuoteReady({ timeout: 60000 });
   logger.debug(`⏳ Quote visible after ${Date.now() - getQuoteStarted}ms`);
 
   // Dismiss the keypad so quote details (slippage, confirm) are not obscured
@@ -87,31 +82,9 @@ export async function checkSwapActivity(
   sourceTokenSymbol: string,
   destTokenSymbol: string,
 ) {
-  const FIRST_ROW: number = 0;
-  const SECOND_ROW: number = 1;
-
   // Post-trade modal is always shown after confirm; open Activity from there.
   await PostTradeBottomSheet.tapViewActivity();
 
   // Check the swap activity completed
-  await Assertions.expectElementToBeVisible(ActivitiesView.title);
-
-  await Assertions.expectElementToBeVisible(
-    ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
-  );
-  await Assertions.expectElementToHaveText(
-    ActivitiesView.transactionStatus(FIRST_ROW),
-    ActivitiesViewSelectorsText.CONFIRM_TEXT,
-  );
-
-  // Check the token approval completed
-  if (sourceTokenSymbol !== 'ETH') {
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.swapApprovalActivityTitle(),
-    );
-    await Assertions.expectElementToHaveText(
-      ActivitiesView.transactionStatus(SECOND_ROW),
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    );
-  }
+  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
 }

@@ -1,12 +1,13 @@
 import {
   formatPerpsFiat,
   formatPercentage,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../../UI/Perps/utils/formatUtils';
 import {
   formatAmountWithThreshold,
   localizeLargeNumber,
 } from '../../../../util/number';
-import { DAY, HOUR, MINUTE, SECOND } from '../../../../constants/time';
+import { DAY, HOUR, MINUTE } from '../../../../constants/time';
 import { toDateFormat, formatTimestampToYYYYMMDD } from '../../../../util/date';
 import { strings } from '../../../../../locales/i18n';
 import { tradeTimestampToMs } from './tradeTimestamp';
@@ -23,6 +24,16 @@ export function formatUsd(value: number | null | undefined): string {
   if (value == null) return EM_DASH;
   const sign = value < 0 ? '-' : '';
   return sign + formatPerpsFiat(Math.abs(value), { stripTrailingZeros: false });
+}
+
+/**
+ * Per-unit trade price for feed sub-headers and similar copy. Uses the same
+ * tiered precision as Perps ({@link PRICE_RANGES_UNIVERSAL}) and the social
+ * API formatter so sub-cent assets (e.g. PUMP) don't collapse to `$0.00`.
+ */
+export function formatTradeUnitPrice(value: number | null | undefined): string {
+  if (value == null) return EM_DASH;
+  return formatPerpsFiat(Math.abs(value), { ranges: PRICE_RANGES_UNIVERSAL });
 }
 
 /**
@@ -195,8 +206,14 @@ export function formatTradeDayLabel(timestamp: number): string {
 /**
  * Formats a feed item timestamp.
  *
- * - Within the last 24 hours: compact relative time ("21s", "4m", "2h").
+ * - Within the last minute: "Just now".
+ * - Within the last 24 hours: compact relative time ("4m", "2h").
  * - Older than 24 hours: absolute clock time via `formatTradeTime` (e.g. `8:27 pm`).
+ *
+ * The whole sub-minute range collapses to one label because a second-by-second
+ * age reads as stale unless it ticks live, and this feed is a paginated snapshot
+ * rather than a stream. It also absorbs timestamps slightly in the future (clock
+ * skew), which are genuinely "now".
  *
  * Uses manual formatting (not `toLocaleTimeString`) so output is deterministic on
  * Hermes, which ignores locale options and falls back to strings like
@@ -207,14 +224,14 @@ export function formatFeedTimestamp(
   now: number = Date.now(),
 ): string {
   const ms = tradeTimestampToMs(timestamp);
-  const diff = Math.max(0, now - ms);
+  const diff = now - ms;
 
   if (diff >= DAY) {
     return formatTradeTime(timestamp);
   }
 
   if (diff < MINUTE) {
-    return `${Math.floor(diff / SECOND)}s`;
+    return strings('social_leaderboard.feed.just_now');
   }
 
   if (diff < HOUR) {

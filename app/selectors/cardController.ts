@@ -10,6 +10,7 @@ import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
+  type CardHomeDataError,
   type CardHomeDataStatus,
 } from '../core/Engine/controllers/card-controller/types';
 import {
@@ -197,13 +198,26 @@ export const selectCardHomeDataStatus = createSelector(
     cardState?.cardHomeDataStatus ?? 'idle',
 );
 
+export const selectCardHomeDataError = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardHomeDataError | null =>
+    (cardState?.cardHomeDataError as CardHomeDataError | null) ?? null,
+);
+
+export const selectCardHomeDataFetchedThisSession = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): boolean =>
+    cardState?.cardHomeDataFetchedThisSession ?? false,
+);
+
 export const selectIsCardStateResolved = createSelector(
   selectCardHomeDataStatus,
+  selectCardHomeData,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
   selectIsCardholder,
-  (status, verificationStatus, isAuthenticated, isCardholder) =>
-    (status === 'success' &&
+  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
+    ((status === 'success' || cardHomeData !== null) &&
       (!isAuthenticated || verificationStatus !== null)) ||
     (!isAuthenticated && !isCardholder),
 );

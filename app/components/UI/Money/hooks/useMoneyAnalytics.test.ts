@@ -316,7 +316,7 @@ describe('useMoneyAnalytics', () => {
     describe('is_money_balance_loading', () => {
       it('sets is_money_balance_loading to true and is_account_funded to null during initial fetch', () => {
         mockGetQueryState.mockReturnValue({
-          status: 'loading',
+          status: 'pending',
           fetchStatus: 'fetching',
           data: undefined,
         });
@@ -716,6 +716,21 @@ describe('useMoneyAnalytics', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
+          surface_type: MONEY_SURFACE_TYPES.SCREEN,
+        }),
+      );
+    });
+
+    it('includes the entry point on screen views', () => {
+      const { result } = renderHook(() => useMoneyAnalytics());
+
+      result.current.trackScreenViewed({
+        entry_point: 'homescreen_balance_breakdown',
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entry_point: 'homescreen_balance_breakdown',
           surface_type: MONEY_SURFACE_TYPES.SCREEN,
         }),
       );

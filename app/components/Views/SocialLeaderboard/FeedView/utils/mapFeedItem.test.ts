@@ -39,7 +39,7 @@ describe('mapFeedItem', () => {
         tokenImageUrl: null,
         tokenSymbol: 'PEPE',
       },
-      action: 'bought',
+      action: 'opened',
       tokenSymbol: 'PEPE',
       tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
       chain: 'eip155:1',
@@ -84,6 +84,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 5,
             usdCost: 88000,
             timestamp: 1_700_000_500,
@@ -107,6 +108,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 5,
             usdCost: 88000,
             timestamp: 1_700_000_500,
@@ -135,13 +137,16 @@ describe('mapFeedItem', () => {
     });
   });
 
-  it('derives "sold" for a spot exit trade', () => {
+  it('uses the server "closed" action for a spot exit', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
+        positionAmount: 0,
+        soldUsd: 90_000,
         trades: [
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 1000,
             usdCost: 90000,
             timestamp: 1_700_000_000,
@@ -152,17 +157,43 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    expect(result?.action).toBe('sold');
+    expect(result?.action).toBe('closed');
   });
 
-  it('falls back to the most recent trade when none matches the feed timestamp', () => {
+  it('uses the server "reduced" action for a partial spot exit', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        positionAmount: 600,
+        soldUsd: 40_000,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            action: 'reduced',
+            tokenAmount: 400,
+            usdCost: 40000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('reduced');
+  });
+
+  it('uses the most recent trade action when no timestamp matches the feed', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
         timestamp: 9_999_999_999,
+        positionAmount: 0,
+        soldUsd: 200,
         trades: [
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 10,
             usdCost: 100,
             timestamp: 1_700_000_000,
@@ -172,6 +203,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: 10,
             usdCost: 200,
             timestamp: 1_700_000_900,
@@ -182,20 +214,20 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    // Latest trade (timestamp 1_700_000_900) is an exit -> "sold".
-    expect(result?.action).toBe('sold');
+    // Latest trade (timestamp 1_700_000_900) is the exit that empties the
+    // position, so the row announces the close rather than the earlier buy.
+    expect(result?.action).toBe('closed');
   });
 
-  it('keeps a perp enter fill as "opened" even when the snapshot looks closed', () => {
+  it('uses the server "opened" action for a perp entry', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
-        // A closed-looking snapshot (Clicker reports currentValueUSD === 0) must
-        // not override the triggering trade's `enter` intent.
         currentValueUSD: 0,
         trades: [
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 5,
             usdCost: 50600,
             timestamp: 1_700_000_500,
@@ -211,13 +243,32 @@ describe('mapFeedItem', () => {
     expect(result?.action).toBe('opened');
   });
 
-  it('keeps a spot enter fill as "bought" even when the snapshot looks closed', () => {
+  it('uses the server "opened" action for a spot entry', () => {
     const result = mapFeedItem(
       mockSpotFeedItem({
-        // Closed-looking spot snapshot (fully sold out) must still defer to the
-        // triggering trade's `enter` intent.
         positionAmount: 0,
         soldUsd: 100_000,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBe('opened');
+  });
+
+  it('keeps the action undefined when the API omits lifecycle metadata', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
         trades: [
           {
             direction: 'buy',
@@ -232,7 +283,31 @@ describe('mapFeedItem', () => {
       }),
     );
 
-    expect(result?.action).toBe('bought');
+    expect(result?.action).toBeUndefined();
+    expect(result?.isClosed).toBe(false);
+  });
+
+  it('uses the snapshot closure state when the API omits lifecycle metadata', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        positionAmount: 0,
+        soldUsd: 120_000,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            tokenAmount: 1000,
+            usdCost: 120000,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.action).toBeUndefined();
+    expect(result?.isClosed).toBe(true);
   });
 
   it('returns null for a spot trade on an unsupported chain', () => {
@@ -260,6 +335,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 1000,
             usdCost: 103_000,
             marketCap: 73_500_000,
@@ -281,6 +357,123 @@ describe('mapFeedItem', () => {
     );
   });
 
+  it('derives sub-header price from negative tokenAmount on a short enter fill', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpPositionType: 'short',
+        perpLeverage: 5,
+        currentValueUSD: 36_300,
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: -0.568,
+            usdCost: -36_300,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'short',
+            perpLeverage: 5,
+          },
+        ],
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$36.3K',
+      contextValueLabel: '$63,908',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price from negative tokenAmount on a perp exit fill', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        trades: [
+          {
+            direction: 'sell',
+            intent: 'exit',
+            action: 'closed',
+            tokenAmount: -250,
+            usdCost: -40_429,
+            timestamp: 1_700_000_500,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 8,
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$40.4K',
+      contextValueLabel: '$161.72',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price for sub-cent perp fills', () => {
+    const result = mapFeedItem(
+      mockPerpFeedItem({
+        perpPositionType: 'long',
+        perpLeverage: 10,
+        currentValueUSD: 92_234,
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: 1_451_472,
+            usdCost: 4_004.61,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'perp',
+            perpPositionType: 'long',
+            perpLeverage: 10,
+          },
+        ],
+        tokenSymbol: 'PUMP',
+        timestamp: 1_700_000_000,
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$4K',
+      contextValueLabel: '$0.002759',
+      contextKind: 'price',
+    });
+  });
+
+  it('derives sub-header price for sub-cent spot fills without market cap', () => {
+    const result = mapFeedItem(
+      mockSpotFeedItem({
+        tokenSymbol: 'PEPE',
+        trades: [
+          {
+            direction: 'buy',
+            intent: 'enter',
+            action: 'opened',
+            tokenAmount: 1_000_000,
+            usdCost: 2_759,
+            marketCap: null,
+            timestamp: 1_700_000_000,
+            transactionHash: '0xhash',
+            classification: 'spot',
+          },
+        ],
+      }),
+    );
+
+    expect(result?.subHeader).toEqual({
+      sizeLabel: '$2.8K',
+      contextValueLabel: '$0.002759',
+      contextKind: 'price',
+    });
+  });
+
   it('omits market cap on perp trades even when Clicker provides it', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
@@ -288,6 +481,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 5,
             usdCost: 50_000,
             marketCap: 73_500_000,
@@ -352,6 +546,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'buy',
             intent: 'enter',
+            action: 'opened',
             tokenAmount: 26.785,
             usdCost: 4351.49,
             timestamp: 1_700_000_000,
@@ -385,6 +580,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: -250,
             usdCost: -40_429,
             timestamp: 1_700_000_500,
@@ -407,6 +603,9 @@ describe('mapFeedItem', () => {
     const result = mapFeedItem(
       mockPerpFeedItem({
         tokenSymbol: 'BTC',
+        // Stale non-zero margin makes the snapshot look open; the API's own
+        // verdict settles it.
+        isOpen: false,
         currentValueUSD: undefined,
         pnlValueUsd: undefined,
         pnlPercent: undefined,
@@ -419,6 +618,7 @@ describe('mapFeedItem', () => {
           {
             direction: 'sell',
             intent: 'exit',
+            action: 'closed',
             tokenAmount: -2.5,
             usdCost: -151_400,
             timestamp: 1_700_000_500,

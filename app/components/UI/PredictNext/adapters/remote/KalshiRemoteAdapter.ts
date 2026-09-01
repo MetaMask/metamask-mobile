@@ -1,6 +1,7 @@
 import {
   parsePredictEvent,
-  parsePredictEventsPage,
+  parsePredictFeed,
+  parsePredictMarketHistory,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
@@ -19,6 +20,10 @@ const mapError = (error: unknown): never => {
     throw error;
   }
 
+  if (error instanceof TypeError) {
+    throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+  }
+
   if (error instanceof PredictHttpError) {
     if (error.status === 429) {
       throw PredictError.from(PredictErrorCode.RATE_LIMITED);
@@ -26,9 +31,12 @@ const mapError = (error: unknown): never => {
     if (error.status === 503) {
       throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE);
     }
+    if (error.status >= 500) {
+      throw PredictError.from(PredictErrorCode.NETWORK_ERROR);
+    }
   }
 
-  throw PredictError.from(PredictErrorCode.UNKNOWN);
+  throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
 };
 
 export class KalshiRemoteAdapter {
@@ -42,19 +50,28 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchVenueStatus(this.venueId, options);
           const result = parsePredictVenueStatus(value);
           if (result.venueId !== this.venueId) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {
           return mapError(error);
         }
       },
-      fetchEvents: async (params, options) => {
+      fetchFeed: async (feedId, params, options) => {
         try {
-          const value = await client.fetchEvents(this.venueId, params, options);
-          const result = parsePredictEventsPage(value);
-          if (result.items.some((event) => event.venueId !== this.venueId)) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+          const value = await client.fetchFeed(
+            this.venueId,
+            feedId,
+            params,
+            options,
+          );
+          const result = parsePredictFeed(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.id !== feedId ||
+            result.events.some((event) => event.venueId !== this.venueId)
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {
@@ -66,7 +83,28 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchEvent(this.venueId, eventId, options);
           const result = parsePredictEvent(value);
           if (result.venueId !== this.venueId || result.id !== eventId) {
-            throw PredictError.from(PredictErrorCode.UNKNOWN);
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchMarketHistory: async (marketId, range, options) => {
+        try {
+          const value = await client.fetchMarketHistory(
+            this.venueId,
+            marketId,
+            range,
+            options,
+          );
+          const result = parsePredictMarketHistory(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.marketId !== marketId ||
+            result.range !== range
+          ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
         } catch (error) {

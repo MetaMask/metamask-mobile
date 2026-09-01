@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { OrdinaryOrderType } from '@metamask/perps-controller';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
@@ -9,8 +10,16 @@ import {
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../UI/Perps/types/transactionHistory';
+import { usePerpsRecordedOrderFees } from '../../../UI/Perps/hooks';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { PerpsDetails } from './PerpsDetails';
+
+const mockPerpsConnectionProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
+const mockPerpsStreamProvider = jest.fn(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+);
 
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
@@ -28,16 +37,31 @@ jest.mock(
   },
 );
 
+jest.mock('../../../UI/Perps/providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsConnectionProvider({ children }),
+}));
+
+jest.mock('../../../UI/Perps/providers/PerpsStreamManager', () => ({
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    mockPerpsStreamProvider({ children }),
+}));
+
 jest.mock('../../../UI/Perps/hooks', () => ({
   usePerpsBlockExplorerUrl: () => ({
     getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
   }),
-  usePerpsOrderFees: () => ({
+  usePerpsRecordedOrderFees: jest.fn(() => ({
     totalFee: 2.345,
-    protocolFee: 0.005,
-    metamaskFee: 1.229,
-  }),
+    isLoading: false,
+    hasError: false,
+  })),
 }));
+
+const mockUsePerpsRecordedOrderFees =
+  usePerpsRecordedOrderFees as jest.MockedFunction<
+    typeof usePerpsRecordedOrderFees
+  >;
 
 const baseTransaction: Pick<
   PerpsTransaction,
@@ -50,6 +74,73 @@ const baseTransaction: Pick<
   timestamp: 1_765_361_640_000,
   asset: 'BTC',
 };
+
+const orderRowCases = [
+  {
+    orderType: 'market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'limit',
+    executionType: 'limit',
+    limitPrice: '98023',
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'stop_market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: '99000',
+  },
+  {
+    orderType: 'stop_limit',
+    executionType: 'limit',
+    limitPrice: '98023',
+    triggerPrice: '99000',
+  },
+  {
+    orderType: 'take_profit_market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: '101000',
+  },
+  {
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: '102000',
+    triggerPrice: '101000',
+  },
+] as const satisfies readonly {
+  orderType: OrdinaryOrderType;
+  executionType: 'market' | 'limit';
+  limitPrice?: string;
+  triggerPrice?: string;
+}[];
+
+const createOrderTransaction = ({
+  orderType,
+  executionType,
+  limitPrice,
+  triggerPrice,
+}: (typeof orderRowCases)[number]): PerpsTransaction => ({
+  ...baseTransaction,
+  type: 'order',
+  category: 'limit_order',
+  title: `${orderType} order`,
+  order: {
+    orderId: `${orderType}-order`,
+    text: PerpsOrderTransactionStatus.Filled,
+    statusType: PerpsOrderTransactionStatusType.Filled,
+    type: executionType,
+    orderType,
+    size: '10',
+    limitPrice,
+    triggerPrice,
+    filled: '100%',
+  },
+});
 
 /**
  * @param type - Activity kind the row maps to.
@@ -150,6 +241,70 @@ function localPerpsFundsItem(
 }
 
 describe('PerpsDetails', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it.each(orderRowCases)('renders the $orderType price rows', (orderCase) => {
+    const transaction = createOrderTransaction(orderCase);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    const triggerPriceRow = queryByTestId(
+      ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW,
+    );
+    const limitPriceRow = queryByTestId(
+      ActivityDetailsSelectorsIDs.LIMIT_PRICE_ROW,
+    );
+
+    if (orderCase.triggerPrice) {
+      expect(triggerPriceRow).toBeOnTheScreen();
+    } else {
+      expect(triggerPriceRow).not.toBeOnTheScreen();
+    }
+
+    if (orderCase.limitPrice) {
+      expect(limitPriceRow).toBeOnTheScreen();
+    } else {
+      expect(limitPriceRow).not.toBeOnTheScreen();
+    }
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.FILLED_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders a trigger price row for a legacy stop-market transaction', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      type: 'order',
+      category: 'limit_order',
+      title: 'Stop market order',
+      order: {
+        orderId: 'legacy-stop-market-order',
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        orderType: 'market',
+        size: '10',
+        triggerPrice: '99000',
+        filled: '100%',
+        isTrigger: true,
+        detailedOrderType: 'Stop Market',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW),
+    ).toBeOnTheScreen();
+  });
+
   it('renders trade rows and trade-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -186,6 +341,34 @@ describe('PerpsDetails', () => {
     ).toHaveTextContent('Confirmed');
   });
 
+  it('renders trade details without Perps provider contexts', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      type: 'trade',
+      fill: {
+        shortTitle: 'Closed short',
+        amount: '-$0.02',
+        amountNumber: -0.02,
+        isPositive: false,
+        size: '0.0001',
+        entryPrice: '92113',
+        points: '0',
+        pnl: '-$0.02',
+        fee: '0.02',
+        action: 'Closed',
+        feeToken: 'USDC',
+        fillType: FillType.Standard,
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('perpsCloseShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).not.toHaveBeenCalled();
+    expect(mockPerpsStreamProvider).not.toHaveBeenCalled();
+  });
+
   it('renders canceled order rows and try-again CTA', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -194,6 +377,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Take profit close short',
       order: {
+        orderId: 'order-1',
         text: PerpsOrderTransactionStatus.Canceled,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'limit',
@@ -210,10 +394,70 @@ describe('PerpsDetails', () => {
     );
 
     expect(getByText('Limit price')).toBeOnTheScreen();
-    expect(getByText('MetaMask fee')).toBeOnTheScreen();
+    expect(getByText('0%')).toBeOnTheScreen();
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('provides connection and stream contexts for order details', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'provider-backed-order',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Limit order',
+      order: {
+        orderId: 'provider-backed-order',
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'limit',
+        size: '10',
+        limitPrice: '98023',
+        filled: '100%',
+      },
+    };
+
+    renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
+    expect(mockPerpsStreamProvider).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the recorded fee for a partially filled canceled order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-partially-filled',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Take profit close short',
+      order: {
+        orderId: 'order-partially-filled',
+        text: PerpsOrderTransactionStatus.Canceled,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'limit',
+        size: '10.23',
+        limitPrice: '98023',
+        filled: '45%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails
+        item={perpsItem('marketCloseShort', transaction, 'cancelled')}
+      />,
+    );
+
+    expect(getByText('45%')).toBeOnTheScreen();
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenLastCalledWith(
+      'order-partially-filled',
+      'BTC',
+      1_765_361_640_000,
+    );
   });
 
   it('renders funding rate and signed funding fee', () => {
@@ -250,6 +494,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-2',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'limit',
@@ -259,15 +504,15 @@ describe('PerpsDetails', () => {
       },
     };
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <PerpsDetails item={perpsItem('marketShort', transaction)} />,
     );
 
     expect(getByText('$10.239')).toBeOnTheScreen();
     expect(getByText('$98,023')).toBeOnTheScreen();
-    expect(getByText('$1.229')).toBeOnTheScreen();
     expect(getByText('$2.345')).toBeOnTheScreen();
-    expect(getByText('$0.005')).toBeOnTheScreen();
+    expect(queryByText('MetaMask fee')).toBeNull();
+    expect(queryByText('Hyperliquid fee')).toBeNull();
   });
 
   it('shows a filled order as "Filled" in the status row, not "Confirmed"', () => {
@@ -278,6 +523,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-filled',
         text: PerpsOrderTransactionStatus.Filled,
         statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'market',
@@ -296,6 +542,32 @@ describe('PerpsDetails', () => {
     expect(statusPill).not.toHaveTextContent('Confirmed');
   });
 
+  it('renders the recorded fee for a triggered order', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-triggered',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Stop market close short',
+      order: {
+        orderId: 'order-triggered',
+        text: PerpsOrderTransactionStatus.Triggered,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        size: '10',
+        limitPrice: '90000',
+        filled: '100%',
+      },
+    };
+
+    const { getByText } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketCloseShort', transaction)} />,
+    );
+
+    expect(getByText('Total fee')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+  });
+
   it('labels a rejected order "Rejected" in the status row (not "Failed")', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
@@ -304,6 +576,7 @@ describe('PerpsDetails', () => {
       category: 'limit_order',
       title: 'Market short',
       order: {
+        orderId: 'order-rejected',
         text: PerpsOrderTransactionStatus.Rejected,
         statusType: PerpsOrderTransactionStatusType.Canceled,
         type: 'market',

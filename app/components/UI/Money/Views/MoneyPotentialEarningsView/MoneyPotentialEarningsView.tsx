@@ -26,13 +26,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
-import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { Hex } from '@metamask/utils';
 import PotentialEarningsTokenRow from '../../components/MoneyPotentialEarnings/PotentialEarningsTokenRow';
 import { isPositiveNumber } from '../../utils/number';
@@ -41,6 +40,7 @@ import { MoneyPotentialEarningsViewTestIds } from './MoneyPotentialEarningsView.
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -61,7 +61,7 @@ const MoneyPotentialEarningsView = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { apyDecimal } = useMoneyAccountBalance();
+  const { apyDecimal } = useMoneyVaultApy();
   const apyDecimalForProjection = apyDecimal ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount, currency } =
@@ -130,7 +130,7 @@ const MoneyPotentialEarningsView = () => {
   }, [eligibleTokens, initiateDeposit, trackTokenButtonClicked]);
 
   const handleTokenButtonPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenButtonClicked({
           button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -161,7 +161,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const handleTokenCardPress = useCallback(
-    (token: AssetType, tokenIndex: number) => async () => {
+    (token: MoneyDepositAsset, tokenIndex: number) => async () => {
       try {
         trackTokenSurfaceClicked({
           component_name: COMPONENT_NAMES.MONEY_POTENTIAL_EARNINGS_TOKEN_ROW,
@@ -191,7 +191,7 @@ const MoneyPotentialEarningsView = () => {
   const listHeader = useMemo(
     () => (
       <Box twClassName="px-4 py-3 gap-3">
-        <Text variant={TextVariant.HeadingMd}>
+        <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
 
@@ -249,7 +249,7 @@ const MoneyPotentialEarningsView = () => {
   );
 
   const renderTokenRow = useCallback(
-    ({ item, index }: { item: AssetType; index: number }) => (
+    ({ item, index }: { item: MoneyDepositAsset; index: number }) => (
       <PotentialEarningsTokenRow
         token={item}
         hasSubsidizedFee={isNoFeeToken(item)}

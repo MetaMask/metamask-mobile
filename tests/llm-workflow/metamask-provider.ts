@@ -1,6 +1,4 @@
 /* eslint-disable import-x/no-extraneous-dependencies, import-x/no-nodejs-modules */
-import { randomUUID } from 'node:crypto';
-
 import type { BrowserContext, Page } from '@playwright/test';
 import {
   type BuildCapability,
@@ -21,6 +19,8 @@ import {
   type TabRole,
   type TrackedPage,
   type WorkflowContext,
+  generateSessionId,
+  knowledgeStore,
 } from '@metamask/client-mcp-core';
 
 import { AndroidPlatformAdapter } from './android/platform-adapter';
@@ -116,7 +116,7 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
       const { driver: mobileDriver, state } = await adapter.launch(resolved);
       this.platformDriver = mobileDriver;
 
-      const sessionId = randomUUID();
+      const sessionId = generateSessionId();
       const startedAt = new Date().toISOString();
       this.sessionId = sessionId;
       this.sessionState = {
@@ -140,6 +140,12 @@ export class MetaMaskMobileSessionManager implements ISessionManager {
           ports: undefined,
         },
       };
+
+      try {
+        await knowledgeStore.writeSessionMetadata(this.sessionMetadata);
+      } catch {
+        // Non-blocking: launch succeeds even when metadata persistence fails.
+      }
 
       return { sessionId, extensionId: resolved.appId, state };
     } catch (error) {

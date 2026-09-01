@@ -19,6 +19,7 @@ import {
   StackActions,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type { RootState } from '../../../../../reducers';
 import { useSelector, useDispatch } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -35,10 +36,13 @@ import {
   selectAllowedChainRanking,
   selectBridgeFeatureFlags,
   selectTokenSelectorNetworkFilter,
+  setDestToken,
   setIsSelectingToken,
+  setSourceToken,
   setTokenSelectorNetworkFilter,
 } from '../../../../../core/redux/slices/bridge';
 import {
+  assetIdsMatch,
   FeatureId,
   formatChainIdToCaip,
   UnifiedSwapBridgeEventName,
@@ -66,14 +70,17 @@ import { usePopularTokens } from '../../hooks/usePopularTokens';
 import { useSearchTokens } from '../../hooks/useSearchTokens';
 import { useTokensWithBalances } from '../../hooks/useTokensWithBalances';
 import { useTokenSelection } from '../../hooks/useTokenSelection';
+import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
 import { createStyles } from './BridgeTokenSelector.styles';
 import Engine from '../../../../../core/Engine';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import { useABTest } from '../../../../../hooks';
-import { ARC_NATIVE_ASSET_ID } from '../../../../hooks/useArcDefaultTokens';
+import {
+  ARC_NATIVE_ASSET_ID,
+  ARC_NATIVE_ASSET_ID_LEGACY,
+} from '../../../../hooks/useArcDefaultTokens';
 import { selectTokenWatchlistEnabled } from '../../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../Assets/watchlist/hooks/useTokenWatchlistQuery';
 import WatchlistEmptyCTA from '../../../Assets/watchlist/components/WatchlistEmptyCTA';
@@ -82,20 +89,25 @@ import {
   mapWatchlistTokenToBridgeToken,
 } from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
+import { filterOutRwaTokens } from '../../utils/filterOutRwaTokens';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToSearchResults';
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutConfig,
-  TokenSelectorBalanceLayoutVariant,
-} from '../TokenSelectorItem.abTestConfig';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
+  /**
+   * When true, real-world asset tokens are hidden from every list this
+   * picker renders (popular, search, and watchlist results).
+   */
+  excludeRwaTokens?: boolean;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -107,7 +119,6 @@ interface BridgeTokenSelectorRowProps {
   isSelected: boolean;
   isNoFeeAsset: boolean;
   showStockBadge: boolean;
-  balanceLayoutConfig: TokenSelectorBalanceLayoutConfig;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -118,7 +129,6 @@ const BridgeTokenSelectorRow = React.memo(
     isSelected,
     isNoFeeAsset,
     showStockBadge,
-    balanceLayoutConfig,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -142,7 +152,6 @@ const BridgeTokenSelectorRow = React.memo(
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
         showStockBadge={showStockBadge}
-        balanceLayoutConfigOverride={balanceLayoutConfig}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -159,6 +168,15 @@ interface BridgeTokenSelectorSearchEmptyStateProps {
   containerStyle: StyleProp<ViewStyle>;
   NoSearchResultsIcon: React.ComponentType<{ width: number; height: number }>;
 }
+
+const useRwaFilteredTokens = (
+  tokens: BridgeToken[],
+  excludeRwaTokens: boolean,
+) =>
+  useMemo(
+    () => (excludeRwaTokens ? filterOutRwaTokens(tokens) : tokens),
+    [tokens, excludeRwaTokens],
+  );
 
 const BridgeTokenSelectorSearchEmptyState = React.memo(
   ({
@@ -226,18 +244,13 @@ export const BridgeTokenSelector: React.FC = () => {
     [searchString],
   );
 
-  const enabledChainRanking = useSelector(selectAllowedChainRanking);
+  const enabledChainIds = route.params?.enabledChainIds;
+  const excludeRwaTokens = route.params?.excludeRwaTokens ?? false;
+  const enabledChainRanking = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
+  );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-  const { variant: balanceLayoutConfig } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
-  const tokenBalanceLayoutConfig =
-    balanceLayoutConfig ??
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-      TokenSelectorBalanceLayoutVariant.Control
-    ];
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -341,21 +354,74 @@ export const BridgeTokenSelector: React.FC = () => {
     });
   }, [dispatch, selectedChainId]);
 
+  // A selectedChainId can come from sources (initialFilter, stale Redux
+  // filter) that predate/ignore this picker's enabledChainIds override, so
+  // it must be validated against enabledChainRanking before being trusted.
+  const isSelectedChainInEnabledRanking = useMemo(
+    () =>
+      Boolean(selectedChainId) &&
+      enabledChainRanking.some(
+        (chain: { chainId: CaipChainId }) => chain.chainId === selectedChainId,
+      ),
+    [selectedChainId, enabledChainRanking],
+  );
+
+  // If the current filter falls outside this picker's allowed chain set,
+  // clear it in Redux so pills, the network modal, and the fetched token
+  // list all agree on "All networks" instead of silently diverging (token
+  // list matching an all-chains fetch while no pill appears selected).
+  // The stale selection also means the actual source/dest pair is no longer
+  // valid for this picker's chain scope (e.g. a Limit Order flow scoped to
+  // Ethereum with a dest token left over from a broader Polygon session), so
+  // re-anchor both tokens to a sane default pair on the fallback chain.
+  useEffect(() => {
+    if (
+      !selectedChainId ||
+      enabledChainRanking.length === 0 ||
+      isSelectedChainInEnabledRanking
+    ) {
+      return;
+    }
+
+    dispatch(setTokenSelectorNetworkFilter(undefined));
+
+    const defaultPair = getDefaultTokenPairForChains(
+      enabledChainRanking.map(
+        (chain: { chainId: CaipChainId }) => chain.chainId,
+      ),
+    );
+    if (!defaultPair) {
+      return;
+    }
+
+    dispatch(setSourceToken(defaultPair.sourceToken));
+    if (defaultPair.destToken) {
+      dispatch(setDestToken(defaultPair.destToken));
+    }
+  }, [
+    selectedChainId,
+    enabledChainRanking,
+    isSelectedChainInEnabledRanking,
+    dispatch,
+  ]);
+
   const chainIdsToFetch = useMemo(() => {
     if (!enabledChainRanking || enabledChainRanking.length === 0) {
       return [];
     }
 
-    // If a specific chain is selected, use only that chain
-    if (selectedChainId) {
+    // If a specific chain is selected and it's part of the allowed chain
+    // set, use only that chain.
+    if (selectedChainId && isSelectedChainInEnabledRanking) {
       return [selectedChainId];
     }
 
-    // If "All" is selected, use all chains from filtered chainRanking
+    // If "All" is selected, or the selected chain isn't part of the
+    // allowed chain set, use all chains from filtered chainRanking.
     return enabledChainRanking.map(
       (chain: { chainId: CaipChainId }) => chain.chainId,
     );
-  }, [selectedChainId, enabledChainRanking]);
+  }, [selectedChainId, enabledChainRanking, isSelectedChainInEnabledRanking]);
 
   const {
     includeAssets,
@@ -450,13 +516,13 @@ export const BridgeTokenSelector: React.FC = () => {
   ]);
 
   // Use custom hook for merging balances
-  const popularTokensWithBalance = useTokensWithBalances(
-    popularTokens,
-    balancesByAssetId,
+  const popularTokensWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(popularTokens, balancesByAssetId),
+    excludeRwaTokens,
   );
-  const searchResultsWithBalance = useTokensWithBalances(
-    searchResults,
-    balancesByAssetId,
+  const searchResultsWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(searchResults, balancesByAssetId),
+    excludeRwaTokens,
   );
 
   const watchlistBridgeTokens = useMemo(() => {
@@ -475,12 +541,19 @@ export const BridgeTokenSelector: React.FC = () => {
       .map((token) =>
         applyWatchlistBridgeTokenFiatDisplay(token, currentCurrency),
       )
-      .filter((token) => token.assetId !== ARC_NATIVE_ASSET_ID);
+      .filter(
+        (token) =>
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID) &&
+          !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
+      );
 
-    return filterWatchlistBridgeTokens(mappedTokens, {
-      selectedChainId,
-      searchQuery: isValidSearch ? searchString : undefined,
-    });
+    return filterWatchlistBridgeTokens(
+      excludeRwaTokens ? filterOutRwaTokens(mappedTokens) : mappedTokens,
+      {
+        selectedChainId,
+        searchQuery: isValidSearch ? searchString : undefined,
+      },
+    );
   }, [
     isWatchlistListMode,
     isValidSearch,
@@ -489,6 +562,7 @@ export const BridgeTokenSelector: React.FC = () => {
     watchlistData,
     balancesByAssetId,
     currentCurrency,
+    excludeRwaTokens,
   ]);
 
   const watchlistMergedSearchResults = useMemo(() => {
@@ -641,8 +715,11 @@ export const BridgeTokenSelector: React.FC = () => {
       searchCursor &&
       flatListHeight > 0
     ) {
+      // Measure the rows actually rendered, not the raw API page. A page whose
+      // results are all filtered out (e.g. RWAs) would otherwise look full and
+      // never fetch the next one.
       const estimatedContentHeight =
-        searchResults.length * ESTIMATED_ITEM_HEIGHT;
+        searchResultsWithBalance.length * ESTIMATED_ITEM_HEIGHT;
 
       // If estimated content doesn't fill the view, load more
       if (estimatedContentHeight < flatListHeight) {
@@ -652,6 +729,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [
     isValidSearch,
     searchResults.length,
+    searchResultsWithBalance.length,
     isSearchLoading,
     isLoadingMore,
     searchCursor,
@@ -787,7 +865,6 @@ export const BridgeTokenSelector: React.FC = () => {
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
           showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
-          balanceLayoutConfig={tokenBalanceLayoutConfig}
         />
       );
     },
@@ -797,7 +874,6 @@ export const BridgeTokenSelector: React.FC = () => {
       handleInfoButtonPress,
       getIsNoFeeAsset,
       isRWAEnabled,
-      tokenBalanceLayoutConfig,
     ],
   );
 
@@ -853,9 +929,23 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
+  // A page whose results are all filtered out (e.g. RWAs) leaves the
+  // filtered results empty while a cursor for the next page still exists.
+  // The auto-load effect will keep fetching in that case, so the empty
+  // state must stay hidden until either results appear or the cursor is
+  // exhausted, otherwise "no tokens found" flashes/sticks mid-fetch.
+  const isAwaitingMoreSearchResults =
+    searchResultsWithBalance.length === 0 && Boolean(searchCursor);
+
   const renderEmptyState = useCallback(() => {
     if (isWatchlistListMode && hasWatchlistItems) {
-      if (isWatchlistLoading || !isValidSearch || isSearchLoading) {
+      if (
+        isWatchlistLoading ||
+        !isValidSearch ||
+        isSearchLoading ||
+        isLoadingMore ||
+        isAwaitingMoreSearchResults
+      ) {
         return null;
       }
 
@@ -867,8 +957,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
     }
 
-    // Only show empty state when search is active and not loading
-    if (!isValidSearch || isSearchLoading) {
+    // Only show empty state when search is active, not loading, and not
+    // waiting on additional pages to fill in filtered-out results.
+    if (
+      !isValidSearch ||
+      isSearchLoading ||
+      isLoadingMore ||
+      isAwaitingMoreSearchResults
+    ) {
       return null;
     }
 
@@ -884,6 +980,8 @@ export const BridgeTokenSelector: React.FC = () => {
     isWatchlistLoading,
     isValidSearch,
     isSearchLoading,
+    isLoadingMore,
+    isAwaitingMoreSearchResults,
     styles.emptyStateContainer,
     NoSearchResultsIcon,
   ]);
@@ -914,9 +1012,11 @@ export const BridgeTokenSelector: React.FC = () => {
           showWatchlistFilter={isWatchlistEnabled}
           isWatchlistFilterActive={isWatchlistFilterActive}
           onWatchlistFilterPress={handleWatchlistFilterPress}
+          enabledChainIds={enabledChainIds}
           onMorePress={() =>
             navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
               screen: Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL,
+              params: { enabledChainIds },
             })
           }
         />
