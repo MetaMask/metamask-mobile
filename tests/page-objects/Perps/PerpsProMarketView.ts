@@ -296,6 +296,20 @@ class PerpsProMarketView {
     await this.dismissOrderFormKeyboard();
   }
 
+  async enterLimitPrice(price: string): Promise<void> {
+    await Gestures.waitAndTap(this.limitPriceInput, {
+      elemDescription: 'Pro order form limit price input',
+      checkForDisplayed: true,
+      timeout: 10000,
+    });
+    await Gestures.typeText(this.limitPriceInput, price, {
+      elemDescription: 'Pro order form limit price value',
+      clearFirst: true,
+      hideKeyboard: true,
+    });
+    await this.dismissOrderFormKeyboard();
+  }
+
   async tapTpslSection(): Promise<void> {
     await Gestures.waitAndTap(this.tpslButton, {
       elemDescription: 'Pro order form TPSL section',
@@ -410,6 +424,7 @@ class PerpsProMarketView {
   }
 
   async expectPositionRowNotVisible(symbol: string): Promise<void> {
+    await this.tapPositionsTab();
     await Assertions.expectElementToNotBeVisible(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} should not be visible`,
       timeout: 10000,

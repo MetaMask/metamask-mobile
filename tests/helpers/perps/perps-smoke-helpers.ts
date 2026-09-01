@@ -10,6 +10,18 @@ import { Mockttp } from 'mockttp';
 
 export const PERPS_SMOKE_MARKET_SYMBOL = 'ETH';
 
+/** ETH mark price from `PERPS_ARBITRUM_MOCKS` — keep in sync with `perps-arbitrum-mocks.ts`. */
+export const PERPS_SMOKE_ETH_MARK_PRICE = 2500;
+
+/** Pro inline limit price has no percent chips; mirror bottom-sheet math for E2E presets. */
+export const computeProLimitPriceForPercentPreset = (
+  percentage: number,
+  markPrice = PERPS_SMOKE_ETH_MARK_PRICE,
+): string => {
+  const multiplier = 1 + percentage / 100;
+  return (markPrice * multiplier).toFixed(2);
+};
+
 /** Pre-grant notifications so the post-order tooltip does not block navigation (Detox + Appium). */
 export const PERPS_SMOKE_PERMISSIONS = { notifications: 'YES' as const };
 

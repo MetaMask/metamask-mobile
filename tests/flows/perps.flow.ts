@@ -1,4 +1,5 @@
 import { Assertions, Gestures, Matchers, Utilities } from '../framework';
+import { computeProLimitPriceForPercentPreset } from '../helpers/perps/perps-smoke-helpers';
 import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
@@ -279,13 +280,9 @@ export const placeLimitOrderInPro = async (
   if (preset === 'Mid') {
     await PerpsProMarketView.tapMidPriceButton();
   } else if (typeof preset === 'number') {
-    await Gestures.waitAndTap(
-      Matchers.getElementByID(
-        `perps-limit-price-bottom-sheet-preset-percent${preset}`,
-      ),
-      { elemDescription: `Pro limit price preset ${preset}%` },
+    await PerpsProMarketView.enterLimitPrice(
+      computeProLimitPriceForPercentPreset(preset),
     );
-    await PerpsProMarketView.dismissOrderFormKeyboard();
   }
 
   await PerpsProMarketView.tapPlaceOrderButton();
