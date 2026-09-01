@@ -1,9 +1,10 @@
-import type { Order, Position } from '@metamask/perps-controller';
+import type { Order, Position, TwapOrder } from '@metamask/perps-controller';
 import {
   DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
+  filterProTwapOrdersBySide,
 } from './proPositionSideFilter';
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
@@ -155,5 +156,72 @@ describe('filterProOrdersBySide', () => {
     const result = filterProOrdersBySide(orders, DEFAULT_PRO_ORDER_SIDE_FILTER);
 
     expect(result).toEqual(orders);
+  });
+});
+
+describe('filterProTwapOrdersBySide', () => {
+  const makeTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
+    orderId: 'twap-1',
+    symbol: 'BTC',
+    side: 'buy',
+    size: '10',
+    executedSize: '4',
+    remainingSize: '6',
+    executedNotional: '400',
+    fillProgressBps: 4000,
+    timeProgressBps: 5000,
+    elapsedTimeMilliseconds: 60_000,
+    durationMinutes: 30,
+    randomize: false,
+    reduceOnly: false,
+    status: 'active',
+    startedAt: 1_000,
+    lastUpdated: 2_000,
+    fills: [],
+    ...overrides,
+  });
+
+  it('groups a buy schedule under long', () => {
+    const buySchedule = makeTwapOrder({ orderId: 'buy', side: 'buy' });
+
+    const result = filterProTwapOrdersBySide([buySchedule], 'long');
+
+    expect(result).toEqual([buySchedule]);
+  });
+
+  it('groups a sell schedule under short', () => {
+    const sellSchedule = makeTwapOrder({ orderId: 'sell', side: 'sell' });
+
+    const result = filterProTwapOrdersBySide([sellSchedule], 'short');
+
+    expect(result).toEqual([sellSchedule]);
+  });
+
+  it('does not invert a reduce-only schedule', () => {
+    const reduceOnlySell = makeTwapOrder({
+      orderId: 'reduce-only',
+      side: 'sell',
+      reduceOnly: true,
+    });
+
+    const longResult = filterProTwapOrdersBySide([reduceOnlySell], 'long');
+    const shortResult = filterProTwapOrdersBySide([reduceOnlySell], 'short');
+
+    expect(longResult).toEqual([]);
+    expect(shortResult).toEqual([reduceOnlySell]);
+  });
+
+  it('returns every schedule when the filter is all', () => {
+    const schedules = [
+      makeTwapOrder({ orderId: 'buy', side: 'buy' }),
+      makeTwapOrder({ orderId: 'sell', side: 'sell' }),
+    ];
+
+    const result = filterProTwapOrdersBySide(
+      schedules,
+      DEFAULT_PRO_ORDER_SIDE_FILTER,
+    );
+
+    expect(result).toEqual(schedules);
   });
 });
