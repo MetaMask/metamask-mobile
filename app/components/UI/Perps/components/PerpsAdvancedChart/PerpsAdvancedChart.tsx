@@ -52,10 +52,16 @@ export interface PerpsAdvancedChartProps {
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
+  /** Fires when the initial chart or its Lightweight fallback has resolved. */
+  onResolved?: (seriesKey: string, state: 'content' | 'empty') => void;
+  /** Fires after this chart's exact consumer accepts a fresh delivery. */
+  onFreshDelivery?: () => void;
   /** Identifies which Perps chart surface is being measured. */
   surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
   fallbackCandleData: CandleData | null;
+  /** Fresh-delivery revision for the Lightweight fallback consumer. */
+  fallbackDeliveryRevision?: number;
   /** Fallback fetch-more-history for the Lightweight chart fallback. */
   fallbackFetchMoreHistory?: () => void;
   /** Duration used for RN-backed older-bar pagination. */
@@ -71,39 +77,67 @@ export function mapTpslToPositionLines(
   tpslLines: TPSLLines | undefined,
   positionSize: string | undefined,
 ): PositionLines | undefined {
-  if (!tpslLines?.entryPrice) return undefined;
+  const limitOrders = (tpslLines?.limitOrders ?? [])
+    .map((order) => {
+      const price = Number.parseFloat(order.price);
+      if (!Number.isFinite(price)) {
+        return undefined;
+      }
+      const side: PositionLines['side'] =
+        order.side === 'sell' ? 'short' : 'long';
+      return {
+        price,
+        side,
+      };
+    })
+    .filter((order): order is { price: number; side: PositionLines['side'] } =>
+      Boolean(order),
+    );
+
+  const entry = tpslLines?.entryPrice
+    ? Number.parseFloat(tpslLines.entryPrice)
+    : undefined;
+  const hasFiniteEntry = Number.isFinite(entry);
+  if (!hasFiniteEntry && limitOrders.length === 0) {
+    return undefined;
+  }
+
   let side: PositionLines['side'] = 'long';
   if (positionSize !== undefined && Number.parseFloat(positionSize) < 0) {
     side = 'short';
   }
 
-  const entry = Number.parseFloat(tpslLines.entryPrice);
-  if (!Number.isFinite(entry)) return undefined;
-
   const result: PositionLines = {
     side,
-    entryPrice: entry,
   };
 
-  const takeProfitPrice = tpslLines.takeProfitPrice
-    ? Number.parseFloat(tpslLines.takeProfitPrice)
-    : undefined;
-  if (Number.isFinite(takeProfitPrice)) {
-    result.takeProfitPrice = takeProfitPrice;
+  if (hasFiniteEntry && entry !== undefined) {
+    result.entryPrice = entry;
+
+    const takeProfitPrice = tpslLines?.takeProfitPrice
+      ? Number.parseFloat(tpslLines.takeProfitPrice)
+      : undefined;
+    if (Number.isFinite(takeProfitPrice)) {
+      result.takeProfitPrice = takeProfitPrice;
+    }
+
+    const stopLossPrice = tpslLines?.stopLossPrice
+      ? Number.parseFloat(tpslLines.stopLossPrice)
+      : undefined;
+    if (Number.isFinite(stopLossPrice)) {
+      result.stopLossPrice = stopLossPrice;
+    }
+
+    const liquidationPrice = tpslLines?.liquidationPrice
+      ? Number.parseFloat(tpslLines.liquidationPrice)
+      : undefined;
+    if (Number.isFinite(liquidationPrice)) {
+      result.liquidationPrice = liquidationPrice;
+    }
   }
 
-  const stopLossPrice = tpslLines.stopLossPrice
-    ? Number.parseFloat(tpslLines.stopLossPrice)
-    : undefined;
-  if (Number.isFinite(stopLossPrice)) {
-    result.stopLossPrice = stopLossPrice;
-  }
-
-  const liquidationPrice = tpslLines.liquidationPrice
-    ? Number.parseFloat(tpslLines.liquidationPrice)
-    : undefined;
-  if (Number.isFinite(liquidationPrice)) {
-    result.liquidationPrice = liquidationPrice;
+  if (limitOrders.length > 0) {
+    result.limitOrders = limitOrders;
   }
 
   return result;
@@ -121,6 +155,8 @@ export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
     takeProfit: colors.success.default,
     stopLoss: colors.warning.default,
     liquidation: colors.error.default,
+    limitBuy: colors.success.default,
+    limitSell: colors.error.default,
   };
 }
 
@@ -184,8 +220,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onLatestPriceChange,
   onError,
   onSkeletonHidden,
+  onResolved,
+  onFreshDelivery,
   surface = 'market_detail',
   fallbackCandleData,
+  fallbackDeliveryRevision = 0,
   fallbackFetchMoreHistory,
   paginationDuration,
 }) => {
@@ -197,6 +236,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     visibleFromMs,
     visibleToMs,
     isLoading,
+    hasCurrentSeriesData = false,
+    deliveryRevision,
+    hasFreshCurrentSeriesDelivery,
     handleFetchOlderBarsRequest,
   } = usePerpsAdvancedChartAdapter({
     symbol,
@@ -207,6 +249,28 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   // Per-mount error fallback: once errored, stay on Lightweight until unmount.
   const [hasFailed, setHasFailed] = useState(false);
+  const reportedResolutionRef = useRef<string | null>(null);
+  const reportedFallbackResolutionRef = useRef<string | null>(null);
+  const reportedFallbackFreshResolutionRef = useRef<string | null>(null);
+  const previousDeliveryRevisionRef = useRef(deliveryRevision);
+  const fallbackSeriesKey = `${symbol}|${interval}`;
+  const fallbackDeliveryBaselineRef = useRef({
+    key: fallbackSeriesKey,
+    revision: fallbackDeliveryRevision,
+  });
+  if (fallbackDeliveryBaselineRef.current.key !== fallbackSeriesKey) {
+    fallbackDeliveryBaselineRef.current = {
+      key: fallbackSeriesKey,
+      revision: fallbackDeliveryRevision,
+    };
+  }
+
+  useEffect(() => {
+    if (!hasFailed && deliveryRevision > previousDeliveryRevisionRef.current) {
+      onFreshDelivery?.();
+    }
+    previousDeliveryRevisionRef.current = deliveryRevision;
+  }, [deliveryRevision, hasFailed, onFreshDelivery]);
 
   const { colors } = useTheme();
 
@@ -214,6 +278,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   const tpslTakeProfitPrice = tpslLines?.takeProfitPrice;
   const tpslStopLossPrice = tpslLines?.stopLossPrice;
   const tpslLiquidationPrice = tpslLines?.liquidationPrice;
+  const tpslLimitOrders = tpslLines?.limitOrders;
 
   const positionLines = useMemo(
     () =>
@@ -223,6 +288,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
           takeProfitPrice: tpslTakeProfitPrice,
           stopLossPrice: tpslStopLossPrice,
           liquidationPrice: tpslLiquidationPrice,
+          limitOrders: tpslLimitOrders,
         },
         positionSize,
       ),
@@ -231,6 +297,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       tpslTakeProfitPrice,
       tpslStopLossPrice,
       tpslLiquidationPrice,
+      tpslLimitOrders,
       positionSize,
     ],
   );
@@ -248,7 +315,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   }, [szDecimals]);
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
-  const webViewInstanceKey = useMemo(() => `${symbol}|perps`, [symbol]);
+  const webViewInstanceKey = useMemo(
+    () => `${symbol}|${interval}|perps`,
+    [interval, symbol],
+  );
 
   useEffect(() => {
     onLatestPriceChange?.(
@@ -301,6 +371,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     traceName: TraceName;
     startedAt: number;
     transition: PerpsChartTransitionType;
+  } | null>(null);
+  const settleSignalRef = useRef<{
+    seriesKey: string;
+    payload?: ChartRangeSettlePayload;
   } | null>(null);
 
   useEffect(() => {
@@ -363,8 +437,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     [],
   );
 
-  const handleSkeletonHidden = useCallback(
+  const settleSeries = useCallback(
     (payload?: ChartRangeSettlePayload) => {
+      if (isLoading || !hasCurrentSeriesData) return;
+
       const open = activeVisibilityTraceRef.current;
       if (open) {
         const completedAt = performance.now();
@@ -391,10 +467,75 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         endTrace({ name: open.traceName, id: open.seriesKey, data });
         activeVisibilityTraceRef.current = null;
       }
+      const state = ohlcvData.length > 0 ? 'content' : 'empty';
+      const resolutionKey = `${ohlcvSeriesKey}|${state}`;
+      if (reportedResolutionRef.current !== resolutionKey) {
+        reportedResolutionRef.current = resolutionKey;
+        onResolved?.(ohlcvSeriesKey, state);
+      }
+    },
+    [
+      isLoading,
+      hasCurrentSeriesData,
+      symbol,
+      interval,
+      surface,
+      ohlcvData.length,
+      ohlcvSeriesKey,
+      onResolved,
+    ],
+  );
+
+  useEffect(() => {
+    if (
+      !isLoading &&
+      hasCurrentSeriesData &&
+      hasFreshCurrentSeriesDelivery &&
+      ohlcvData.length === 0
+    ) {
+      settleSeries();
+    }
+  }, [
+    hasFreshCurrentSeriesDelivery,
+    hasCurrentSeriesData,
+    isLoading,
+    ohlcvData.length,
+    settleSeries,
+  ]);
+
+  const markSeriesSettled = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      const previousSignal = settleSignalRef.current;
+      settleSignalRef.current = {
+        seriesKey: ohlcvSeriesKey,
+        payload:
+          payload ??
+          (previousSignal?.seriesKey === ohlcvSeriesKey
+            ? previousSignal.payload
+            : undefined),
+      };
+      settleSeries(settleSignalRef.current.payload);
+    },
+    [ohlcvSeriesKey, settleSeries],
+  );
+
+  useEffect(() => {
+    const settleSignal = settleSignalRef.current;
+    if (settleSignal?.seriesKey !== ohlcvSeriesKey) return;
+    settleSeries(settleSignal.payload);
+  }, [ohlcvSeriesKey, settleSeries]);
+
+  const handleSkeletonHidden = useCallback(
+    (payload?: ChartRangeSettlePayload) => {
+      markSeriesSettled(payload);
       onSkeletonHidden?.(payload);
     },
-    [symbol, interval, surface, ohlcvData.length, onSkeletonHidden],
+    [markSeriesSettled, onSkeletonHidden],
   );
+
+  const handleChartLayoutSettled = useCallback(() => {
+    markSeriesSettled();
+  }, [markSeriesSettled]);
 
   // ---- Error fallback ----
 
@@ -421,6 +562,38 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     },
     [symbol, interval, surface, onError],
   );
+
+  useEffect(() => {
+    if (
+      hasFailed &&
+      fallbackCandleData?.symbol === symbol &&
+      fallbackCandleData.interval === interval
+    ) {
+      const state = fallbackCandleData.candles.length > 0 ? 'content' : 'empty';
+      const resolutionKey = `${ohlcvSeriesKey}|${state}`;
+      if (reportedFallbackResolutionRef.current !== resolutionKey) {
+        reportedFallbackResolutionRef.current = resolutionKey;
+        onResolved?.(ohlcvSeriesKey, state);
+      }
+      if (
+        fallbackDeliveryRevision >
+          fallbackDeliveryBaselineRef.current.revision &&
+        reportedFallbackFreshResolutionRef.current !== resolutionKey
+      ) {
+        reportedFallbackFreshResolutionRef.current = resolutionKey;
+        onFreshDelivery?.();
+      }
+    }
+  }, [
+    fallbackCandleData,
+    fallbackDeliveryRevision,
+    hasFailed,
+    interval,
+    ohlcvSeriesKey,
+    onFreshDelivery,
+    onResolved,
+    symbol,
+  ]);
 
   if (hasFailed) {
     return (
@@ -459,6 +632,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onCrosshairMove={handleCrosshairMove}
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
+      onChartLayoutSettled={handleChartLayoutSettled}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}

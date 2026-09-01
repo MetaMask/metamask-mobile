@@ -2,34 +2,34 @@ import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/Cho
 import { ChangePasswordViewSelectorsText } from '../../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
-import { EncapsulatedElementType } from '../../../framework';
+import { type AppiumElement } from '../../../framework';
 
 class ChangePasswordView {
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ChangePasswordViewSelectorsText.CHANGE_PASSWORD,
     );
   }
 
-  get passwordInput(): EncapsulatedElementType {
+  get passwordInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
-  get confirmPasswordInput(): EncapsulatedElementType {
+  get confirmPasswordInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
   }
 
-  get iUnderstandCheckBox(): EncapsulatedElementType {
+  get iUnderstandCheckBox(): Promise<AppiumElement> {
     return Matchers.getElementByLabel(
       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
     );
   }
 
-  get submitButton(): EncapsulatedElementType {
+  get submitButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ChoosePasswordSelectorsIDs.SAVE_PASSWORD_BUTTON_TEXT,
     );

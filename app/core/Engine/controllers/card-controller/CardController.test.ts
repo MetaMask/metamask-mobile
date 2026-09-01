@@ -335,6 +335,7 @@ describe('CardController', () => {
       cardHomeData: null,
       cardHomeDataAddress: null,
       cardHomeDataStatus: 'idle',
+      cardHomeDataError: null,
       cardHomeDataFetchedThisSession: false,
       moneyAccountCardLinkInProgress: false,
     });
@@ -813,12 +814,19 @@ describe('CardController — auth methods', () => {
         isAuthenticated: true,
         cardHomeData: mockCardHomeData as unknown as Record<string, null>,
         cardHomeDataStatus: 'success',
+        cardHomeDataError: {
+          reason: 'network',
+          code: null,
+          statusCode: null,
+          at: 1,
+        },
       });
 
       await controller.logout();
 
       expect(controller.state.cardHomeData).toBeNull();
       expect(controller.state.cardHomeDataStatus).toBe('idle');
+      expect(controller.state.cardHomeDataError).toBeNull();
     });
   });
 
@@ -1540,6 +1548,35 @@ describe('CardController — event subscriptions', () => {
     );
   });
 
+  it('includes selectedAccountGroup in the AccountTreeController subscription key', () => {
+    const mockMessenger = buildMockMessenger();
+    new CardController({
+      cardService: buildMockCardService(),
+      messenger: mockMessenger,
+      providers: {},
+    });
+
+    const selector = (mockMessenger.subscribe as jest.Mock).mock.calls.find(
+      ([event]: [string]) => event === 'AccountTreeController:stateChange',
+    )?.[2] as (state: {
+      selectedAccountGroup?: string;
+      accountTree?: { wallets?: Record<string, unknown> };
+    }) => string;
+
+    expect(
+      selector({
+        selectedAccountGroup: 'entropy:wallet1/0',
+        accountTree: { wallets: {} },
+      }),
+    ).toBe('entropy:wallet1/0|');
+    expect(
+      selector({
+        selectedAccountGroup: 'entropy:wallet1/1',
+        accountTree: { wallets: {} },
+      }),
+    ).toBe('entropy:wallet1/1|');
+  });
+
   it('subscribes to RemoteFeatureFlagController:stateChange on construction', () => {
     const mockMessenger = buildMockMessenger();
     new CardController({
@@ -1876,6 +1913,7 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('success');
     expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+    expect(controller.state.cardHomeDataError).toBeNull();
   });
 
   it('marks the session as fetched so persisted data is revalidated only once', async () => {
@@ -1946,6 +1984,30 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('success');
     expect(controller.state.cardHomeData).toStrictEqual(mockCardHomeData);
+  });
+
+  it('leaves the freshness window open when a silent revalidation fails, so the retry is not throttled', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(new Error('API error'));
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      cardHomeData: mockCardHomeData as unknown as Record<string, Json>,
+      cardHomeDataStatus: 'success',
+      cardHomeDataAddress: '0xabc',
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeDataError).toBeNull();
+
+    provider.getCardHomeData.mockClear();
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    await controller.fetchCardHomeData();
+
+    expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
+    expect(controller.state.cardHomeDataStatus).toBe('success');
   });
 
   it('shows the loading state for a forced refresh even when data was restored', async () => {
@@ -2043,6 +2105,9 @@ describe('CardController — fetchCardHomeData', () => {
 
     expect(controller.state.cardHomeDataStatus).toBe('error');
     expect(controller.state.cardHomeData).toBeNull();
+    expect(controller.state.cardHomeDataError).toEqual(
+      expect.objectContaining({ reason: 'unknown' }),
+    );
   });
 
   it('traces the request and marks the span successful on the happy path', async () => {
@@ -2079,6 +2144,7 @@ describe('CardController — fetchCardHomeData', () => {
     expect(mockAnnotateTrace).toHaveBeenCalledWith(undefined, {
       success: false,
       error_name: 'TypeError',
+      reason: 'unknown',
     });
   });
 
@@ -2149,7 +2215,214 @@ describe('CardController — fetchCardHomeData', () => {
     await controller.fetchCardHomeData();
 
     expect(controller.state.cardHomeDataStatus).toBe('error');
+    expect(controller.state.cardHomeDataError).toEqual(
+      expect.objectContaining({ reason: 'no_evm_address' }),
+    );
     expect(provider.getCardHomeData).not.toHaveBeenCalled();
+  });
+
+  it('uses the EVM account from the selected account group when selectedAccount is Solana', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const messenger = buildMockMessenger();
+    const evmAddress = '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d';
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'evm-id': {
+                address: evmAddress,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+              'sol-id': {
+                address: 'BHpoGWekgQM7pbBhvKPWedk3FnSSsk3NG7tTXEqzrVSN',
+                type: 'solana:data-account',
+                scopes: ['solana:mainnet'],
+              },
+            },
+            selectedAccount: 'sol-id',
+          },
+        };
+      }
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
+        return {
+          address: evmAddress,
+          type: 'eip155:eoa',
+          scopes: ['eip155:0'],
+        };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeDataError).toBeNull();
+    expect(provider.getCardHomeData).toHaveBeenCalledWith(
+      evmAddress,
+      expect.anything(),
+    );
+  });
+
+  it('uses the group EVM account even when selectedAccount points at a Solana account in a different group', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(null);
+    (provider.getOnChainAssets as jest.Mock).mockResolvedValue(
+      mockCardHomeData,
+    );
+    const messenger = buildMockMessenger();
+    const cardholderAddress = '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d';
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'cardholder-evm': {
+                address: cardholderAddress,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+              'other-sol': {
+                address: '4jMp7YS35raCdfn84tLh64TKzGYpXLd1afwQZnb1rbzU',
+                type: 'solana:data-account',
+                scopes: ['solana:mainnet'],
+              },
+              'other-evm': {
+                address: '0x6e8e411de25a3cf040330a9916cdf8653cec86ce',
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+            },
+            selectedAccount: 'other-sol',
+          },
+        };
+      }
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
+        return {
+          address: cardholderAddress,
+          type: 'eip155:eoa',
+          scopes: ['eip155:0'],
+        };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: { baanx: provider },
+      state: {
+        activeProviderId: 'baanx',
+        cardholderAccounts: [`eip155:59144:${cardholderAddress}`],
+      },
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(controller.state.cardHomeDataError).toBeNull();
+    expect(provider.getOnChainAssets).toHaveBeenCalledWith(cardholderAddress);
+  });
+
+  it('falls back to the legacy selectedAccount when the group action returns a non-EVM account', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const messenger = buildMockMessenger();
+    const legacyEvmAddress = '0x6e8e411de25a3cf040330a9916cdf8653cec86ce';
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'legacy-evm': {
+                address: legacyEvmAddress,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+              'group-sol': {
+                address: '4jMp7YS35raCdfn84tLh64TKzGYpXLd1afwQZnb1rbzU',
+                type: 'solana:data-account',
+                scopes: ['solana:mainnet'],
+              },
+            },
+            selectedAccount: 'legacy-evm',
+          },
+        };
+      }
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
+        return {
+          address: '4jMp7YS35raCdfn84tLh64TKzGYpXLd1afwQZnb1rbzU',
+          type: 'solana:data-account',
+          scopes: ['solana:mainnet'],
+        };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(provider.getCardHomeData).toHaveBeenCalledWith(
+      legacyEvmAddress,
+      expect.anything(),
+    );
+  });
+
+  it('classifies auth failures with reason auth_expired', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'Not authenticated',
+        401,
+      ),
+    );
+    const { controller } = buildControllerWithMockMessenger(provider);
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('error');
+    expect(controller.state.cardHomeDataError).toEqual(
+      expect.objectContaining({
+        reason: 'auth_expired',
+        statusCode: 401,
+        code: CardProviderErrorCode.InvalidCredentials,
+      }),
+    );
   });
 
   it('skips a second fetch within the freshness window', async () => {

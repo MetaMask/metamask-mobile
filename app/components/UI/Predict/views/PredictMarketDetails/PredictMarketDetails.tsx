@@ -112,7 +112,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const {
     data: marketData,
-    isLoading: isMarketLoading,
+    isPending: isMarketPending,
     isFetching: isMarketFetching,
     error: marketError,
     refetch: refetchMarket,
@@ -126,7 +126,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     !resolvedMarketId &&
     isCurrentSeriesMarketLoading;
   const isResolvedMarketLoading =
-    isMarketLoading || isResolvingMarketFromSeries;
+    isMarketPending || isResolvingMarketFromSeries;
   const isResolvedMarketFetching =
     isMarketFetching || isCurrentSeriesMarketFetching;
 

@@ -48,7 +48,9 @@ import reducer, {
   setRecurringEveryValue,
   setRecurringRepeatCount,
   setRecurringEveryUnit,
+  setRecurringPriceRange,
   selectRecurring,
+  selectRecurringPriceRange,
   selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
@@ -153,6 +155,7 @@ describe('bridge slice', () => {
           everyValue: '1',
           everyUnit: 'hour',
           repeatCount: '10',
+          priceRange: undefined,
         },
         ordersNetworkFilter: undefined,
       });
@@ -1592,6 +1595,109 @@ describe('bridge slice', () => {
       expect(newState.recurring.repeatCount).toBe('20');
     });
 
+    it('sets the price range', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+
+      const newState = reducer(
+        initialState,
+        setRecurringPriceRange(priceRange),
+      );
+
+      expect(newState.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('selects the price range from state', () => {
+      const priceRange = {
+        tokenSide: 'source' as const,
+        currency: 'usd',
+        min: '0.9',
+        max: '1.1',
+      };
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringPriceRange(mockState);
+
+      expect(result).toEqual(priceRange);
+    });
+
+    it('clears the price range when the source token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setSourceToken(mockDestToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
+    it('keeps the price range when the source token identity is unchanged', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('clears the price range when the dest token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          destToken: mockDestToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setDestToken(mockToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
     it('resets the every value to 1 when the unit changes', () => {
       const state = reducer(initialState, setRecurringEveryValue('2'));
 
@@ -1601,6 +1707,7 @@ describe('bridge slice', () => {
         everyValue: '1',
         everyUnit: 'day',
         repeatCount: '10',
+        priceRange: undefined,
       });
     });
 

@@ -356,3 +356,58 @@ export const HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyti
       },
     },
   };
+
+// ─── Wallet header & bottom NavBar refresh (TMCU-1276) ───────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `home`, ticket TMCU-1276).
+ */
+export const HEADER_NAV_BAR_AB_KEY = 'homeTMCU1276AbtestHeaderNavBar';
+
+export enum HeaderNavBarVariant {
+  Control = 'control',
+  TreatmentA = 'treatmentA',
+  TreatmentB = 'treatmentB',
+}
+
+export type HeaderNavBarLayout = 'a' | 'b';
+
+interface HeaderNavBarVariantConfig {
+  isCompactHeaderEnabled: boolean;
+  layout: HeaderNavBarLayout | null;
+}
+
+export const HEADER_NAV_BAR_VARIANTS: Record<
+  HeaderNavBarVariant,
+  HeaderNavBarVariantConfig
+> = {
+  [HeaderNavBarVariant.Control]: {
+    isCompactHeaderEnabled: false,
+    layout: null,
+  },
+  [HeaderNavBarVariant.TreatmentA]: {
+    isCompactHeaderEnabled: true,
+    layout: 'a',
+  },
+  [HeaderNavBarVariant.TreatmentB]: {
+    isCompactHeaderEnabled: true,
+    layout: 'b',
+  },
+};
+
+export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Header and Nav Bar refresh',
+  variationNames: {
+    control: 'Current header and NavBar',
+    treatmentA: 'Refreshed header and NavBar, design A',
+    treatmentB: 'Refreshed header and NavBar, design B',
+  },
+} as const;
+
+export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HEADER_NAV_BAR_AB_KEY,
+    validVariants: Object.values(HeaderNavBarVariant),
+    eventNames: [EVENT_NAME.HOME_VIEWED],
+  };
