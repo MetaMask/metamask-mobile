@@ -265,7 +265,7 @@ describe('PerpsCompactOrderRow', () => {
 
     render(<PerpsCompactOrderRow order={reduceOnlySellOrder} />);
 
-    expect(screen.getByText('Take profit limit close long')).toBeOnTheScreen();
+    expect(screen.getByText('Take limit close long')).toBeOnTheScreen();
   });
 
   it('shows close short for reduce-only buy orders', () => {

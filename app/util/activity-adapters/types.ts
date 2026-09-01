@@ -92,6 +92,8 @@ type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
     : T;
 
 interface MobileDataExtras {
+  /** Domain-specific title prepared by the adapter for direct display. */
+  displayTitle?: string;
   fees?: ActivityFee[];
 }
 

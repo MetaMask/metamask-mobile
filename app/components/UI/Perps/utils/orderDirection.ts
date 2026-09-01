@@ -1,18 +1,17 @@
 import type { Order } from '@metamask/perps-controller';
 
 /**
- * Shared open/close + direction classification for perps orders, so the UI's
- * `formatOrderLabel` and the Activity adapter's `mapOrderKind` never disagree.
- * No runtime imports.
+ * Shared open/close + direction classification for perps order labels and
+ * Activity kinds. No runtime imports.
  */
 
 /**
  * Whether an order is restricted to reducing an existing position.
  *
  * Provider data with an explicit `reduceOnly` value is authoritative because
- * trigger orders can also open or increase a position. Older provider records
- * may omit that value, so triggers retain their legacy closing classification
- * only when `reduceOnly` is absent.
+ * trigger orders can also open or increase a position. Some provider payloads
+ * omit that value, so triggers retain the legacy closing classification only
+ * when `reduceOnly` is absent.
  */
 export const isClosingOrder = ({
   reduceOnly,

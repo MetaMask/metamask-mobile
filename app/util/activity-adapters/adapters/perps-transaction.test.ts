@@ -602,7 +602,7 @@ describe('mapPerpsTransaction', () => {
         'limitCloseLong',
       ],
       [
-        'Take profit market close long',
+        'Take market close long',
         {
           orderType: 'market',
           side: 'sell',
@@ -612,7 +612,7 @@ describe('mapPerpsTransaction', () => {
         'marketCloseLong',
       ],
       [
-        'Take profit limit close short',
+        'Take limit close short',
         {
           orderType: 'limit',
           side: 'buy',
@@ -641,22 +641,15 @@ describe('mapPerpsTransaction', () => {
       );
 
       expect(result?.type).toBe('marketLong');
-      expect(result?.raw).toMatchObject({
-        type: 'perpsTransaction',
-        data: {
-          title: 'Stop market',
-          order: { type: 'market' },
-        },
-      });
     });
 
     it.each([
-      ['Stop Limit', 'limit', false, 'Stop limit'],
-      ['Stop Market', 'market', true, 'Stop market'],
-      ['Take Profit Limit', 'limit', true, 'Take limit'],
-      ['Take Profit Market', 'market', false, 'Take market'],
+      ['Stop Limit', 'limit', false, 'Stop limit short'],
+      ['Stop Market', 'market', true, 'Stop market — close long'],
+      ['Take Profit Limit', 'limit', true, 'Take limit — close long'],
+      ['Take Profit Market', 'market', false, 'Take market short'],
     ] as const)(
-      'preserves the canonical %s title in the raw Activity transaction',
+      'preserves the canonical %s title and direction in Activity data',
       (detailedOrderType, orderType, reduceOnly, expectedTitle) => {
         const result = mapFromOrder(
           makeOrder({
@@ -667,13 +660,7 @@ describe('mapPerpsTransaction', () => {
           }),
         );
 
-        expect(result?.raw).toMatchObject({
-          type: 'perpsTransaction',
-          data: {
-            title: expectedTitle,
-            order: { isTrigger: true, reduceOnly },
-          },
-        });
+        expect(result?.data.displayTitle).toBe(expectedTitle);
       },
     );
 

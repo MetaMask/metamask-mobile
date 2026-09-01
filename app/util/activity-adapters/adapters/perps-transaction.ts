@@ -182,6 +182,23 @@ function mapOrderKind(
   return direction === 'long' ? 'marketLong' : 'marketShort';
 }
 
+function getActivityTriggerDisplayTitle(
+  transaction: PerpsTransaction,
+  order: NonNullable<PerpsTransaction['order']>,
+): string | undefined {
+  if (!order.isTrigger || !transaction.title) {
+    return undefined;
+  }
+
+  if (!isClosingOrder(order)) {
+    return transaction.title;
+  }
+
+  // Activity historically separates a closing direction with an em dash,
+  // while Perps history uses the same words without one.
+  return transaction.title.replace(/ close (long|short)$/, ' — close $1');
+}
+
 /**
  * Returns `null` for source entries that don't belong in the activity feed
  * (e.g. open `order` entries, unrecognized trades).
@@ -285,6 +302,7 @@ export function mapPerpsTransaction({
     if (!status || !kind) {
       return null;
     }
+    const displayTitle = getActivityTriggerDisplayTitle(transaction, order);
 
     // The perps domain formats the position size into the subtitle as
     // "<size> <symbol>", so reuse that asset quantity for the row's size leg.
@@ -309,6 +327,7 @@ export function mapPerpsTransaction({
       hash: id,
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
+        ...(displayTitle ? { displayTitle } : {}),
         token: toToken(Number(order.size), 'out', quoteAsset),
         sourceToken: {
           ...(assetSize ? { amount: assetSize } : {}),

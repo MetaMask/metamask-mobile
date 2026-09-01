@@ -207,7 +207,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Limit close short');
     });
 
-    it('should use detailedOrderType when available for Stop Market', () => {
+    it('uses the canonical Stop Market type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -228,7 +228,7 @@ describe('orderUtils', () => {
       expect(formatOrderLabel(order)).toBe('Stop market close long');
     });
 
-    it('should use detailedOrderType for Take Profit Limit', () => {
+    it('uses the canonical Take Limit type with closing direction', () => {
       const order: Order = {
         orderId: '1',
         symbol: 'BTC',
@@ -246,7 +246,7 @@ describe('orderUtils', () => {
         isTrigger: true,
       };
 
-      expect(formatOrderLabel(order)).toBe('Take profit limit close long');
+      expect(formatOrderLabel(order)).toBe('Take limit close long');
     });
 
     it.each([

@@ -668,9 +668,10 @@ export const willFlipPosition = (
 /**
  * Returns the position direction ('long' | 'short') an order corresponds to.
  *
- * For closing orders (reduce-only or trigger) the order side is the inverse of
- * the position it acts on: a sell closes a long, a buy closes a short. For
- * opening orders the side maps directly (buy = long, sell = short).
+ * For orders classified as closing, the order side is the inverse of the
+ * position it acts on: a sell closes a long, a buy closes a short. Explicit
+ * `reduceOnly` metadata is authoritative; trigger status is only a fallback
+ * when that metadata is absent. Opening order sides map directly.
  *
  * @param order - The order object
  * @returns The position direction the order corresponds to
@@ -729,7 +730,7 @@ const formatOrderTypeString = (typeString: string): string => {
  * - Limit Short
  * - Limit Close Short
  * - Stop Market Close Long
- * - Take Profit Limit Close Short
+ * - Take Limit Close Short
  *
  * @param order - The order object
  * @returns Formatted order label string
@@ -739,14 +740,19 @@ export const formatOrderLabel = (order: Order): string => {
 
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
-  const typeString = resolveOrderTypeString(order);
+  const resolvedTypeString = resolveOrderTypeString(order);
+  const isTrigger = isTriggerOrder(order);
+  const typeString = isTrigger
+    ? formatOrderTypeString(resolvedTypeString)
+    : resolvedTypeString;
 
   // Build the label: [Type] [Close?] [Direction]
-  if (isClosing) {
-    return capitalize(`${typeString} close ${direction}`);
-  }
+  const label = isClosing
+    ? `${typeString} close ${direction}`
+    : `${typeString} ${direction}`;
 
-  return capitalize(`${typeString} ${direction}`);
+  // Preserve the legacy Lite label path for ordinary market/limit orders.
+  return isTrigger ? label : capitalize(label);
 };
 
 /**

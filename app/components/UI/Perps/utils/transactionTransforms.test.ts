@@ -1338,14 +1338,14 @@ describe('transactionTransforms', () => {
     });
 
     it.each([
-      ['Stop Limit', 'limit', false, 'Stop limit'],
-      ['Stop Limit', 'limit', true, 'Stop limit'],
-      ['Stop Market', 'market', false, 'Stop market'],
-      ['Stop Market', 'market', true, 'Stop market'],
-      ['Take Profit Limit', 'limit', false, 'Take limit'],
-      ['Take Profit Limit', 'limit', true, 'Take limit'],
-      ['Take Profit Market', 'market', false, 'Take market'],
-      ['Take Profit Market', 'market', true, 'Take market'],
+      ['Stop Limit', 'limit', false, 'Stop limit long'],
+      ['Stop Limit', 'limit', true, 'Stop limit close short'],
+      ['Stop Market', 'market', false, 'Stop market long'],
+      ['Stop Market', 'market', true, 'Stop market close short'],
+      ['Take Profit Limit', 'limit', false, 'Take limit long'],
+      ['Take Profit Limit', 'limit', true, 'Take limit close short'],
+      ['Take Profit Market', 'market', false, 'Take market long'],
+      ['Take Profit Market', 'market', true, 'Take market close short'],
     ] as const)(
       'formats %s (%s) with reduceOnly=%s as %s',
       (detailedOrderType, orderType, reduceOnly, expectedTitle) => {
@@ -1364,14 +1364,20 @@ describe('transactionTransforms', () => {
     );
 
     it.each([
-      ['Stop Market', 'limit', undefined, 'Stop market', 'market'],
-      ['Take Profit Market', 'limit', undefined, 'Take market', 'market'],
-      ['Stop Limit', 'market', undefined, 'Stop limit', 'limit'],
+      ['Stop Market', 'limit', undefined, 'Stop market close short', 'market'],
+      [
+        'Take Profit Market',
+        'limit',
+        undefined,
+        'Take market close short',
+        'market',
+      ],
+      ['Stop Limit', 'market', undefined, 'Stop limit close short', 'limit'],
       [
         'Take Profit Limit',
         'limit',
         'take_profit_market',
-        'Take market',
+        'Take market close short',
         'market',
       ],
     ] as const)(

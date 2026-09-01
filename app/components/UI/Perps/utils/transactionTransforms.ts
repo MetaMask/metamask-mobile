@@ -22,6 +22,7 @@ import {
 } from '../types/transactionHistory';
 import {
   formatOrderLabel,
+  getOrderLabelDirection,
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
 } from './orderUtils';
@@ -460,32 +461,34 @@ function resolveOrderExecutionType(
 }
 
 /**
- * Restores the user-facing conditional order type from provider terminology.
+ * Restores the user-facing conditional order type from provider terminology
+ * and preserves the order's opening/closing direction.
  */
-function formatTriggeredOrderTypeLabel(
+function formatTriggeredOrderLabel(
   order: Order,
   executionType: NonNullable<PerpsTransaction['order']>['type'],
 ): string {
   const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
   const isLimit = executionType === 'limit';
+  let typeLabel: string;
 
   if (detailedOrderType.includes('take')) {
-    return strings(
+    typeLabel = strings(
       isLimit
         ? 'perps.order.type.take_profit_limit.title'
         : 'perps.order.type.take_profit_market.title',
     );
-  }
-
-  if (detailedOrderType.includes('stop')) {
-    return strings(
+  } else if (detailedOrderType.includes('stop')) {
+    typeLabel = strings(
       isLimit
         ? 'perps.order.type.stop_limit.title'
         : 'perps.order.type.stop_market.title',
     );
+  } else {
+    typeLabel = strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
   }
 
-  return strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
+  return `${typeLabel} ${getOrderLabelDirection(order).toLowerCase()}`;
 }
 
 /**
@@ -543,7 +546,7 @@ export function transformOrdersToTransactions(
         : undefined;
 
     const title = isTrigger
-      ? formatTriggeredOrderTypeLabel(order, executionType)
+      ? formatTriggeredOrderLabel(order, executionType)
       : formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
@@ -635,7 +638,7 @@ export function transformOrdersToTransactions(
         filled: `${filledPercent}%`,
         side,
         reduceOnly,
-        isTrigger: sourceIsTrigger || isTriggerType,
+        isTrigger,
         detailedOrderType,
       },
     };
