@@ -1,4 +1,8 @@
 import { getGaslessBridgeWith7702EnabledForChain } from '../smartTransactionsController';
+import * as bridgeController from '@metamask/bridge-controller';
+import * as accountsController from '../accountsController';
+import * as multichainAccounts from '../multichainAccounts/accounts';
+import * as stellarAssets from '../stellar/stellar-assets';
 
 jest.mock('../smartTransactionsController', () => ({
   getGaslessBridgeWith7702EnabledForChain: jest.fn().mockReturnValue(false),
@@ -8,6 +12,8 @@ import { initialState as bridgeInitialState } from '../../core/redux/slices/brid
 import {
   selectBatchSellSourceWalletAddress,
   selectGasIncludedQuoteParams,
+  selectIsDestAssetRequireActivate,
+  selectIsDestSameAsActiveAccount,
   selectIsGasIncluded7702BridgeEnabled,
   selectSourceWalletAddress,
   selectValidDestInternalAccountIds,
@@ -23,7 +29,8 @@ import {
   solanaAccountId,
   solanaNativeTokenAddress,
 } from '../../components/UI/Bridge/_mocks_/initialState';
-import { SolScope } from '@metamask/keyring-api';
+import { SolScope, XlmScope } from '@metamask/keyring-api';
+import { createMockToken } from '../../components/UI/Bridge/testUtils';
 
 const mockToken: BridgeToken = {
   address: '0x123',
@@ -490,6 +497,103 @@ describe('bridge selectors', () => {
       const result = selectGasIncludedQuoteParams(mockState);
 
       expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+  });
+
+  describe('selectIsDestAssetRequireActivate', () => {
+    const STELLAR_USDC =
+      'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+    const DEST_ACCOUNT = {
+      id: 'stellar-dest-id',
+      address: 'GADESTACCOUNT0000000000000000000000000000000000000000000',
+    };
+    const ACTIVE_ACCOUNT = {
+      id: 'stellar-active-id',
+      address: 'GAACTIVEACCOUNT00000000000000000000000000000000000000000',
+    };
+    const mockSelectedByScope = jest.fn();
+
+    const createDestActivateState = (
+      bridgeOverrides: Partial<RootState['bridge']> = {},
+    ) =>
+      createSelectorState({
+        sourceToken: createMockToken({
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          chainId: '0x1',
+        }),
+        destToken: createMockToken({
+          address: STELLAR_USDC,
+          symbol: 'USDC',
+          chainId: XlmScope.Pubnet,
+        }),
+        destAddress: DEST_ACCOUNT.address,
+        ...bridgeOverrides,
+      });
+
+    beforeEach(() => {
+      jest.spyOn(bridgeController, 'isCrossChain').mockReturnValue(true);
+      jest
+        .spyOn(stellarAssets, 'getIsAssetRequireActivate')
+        .mockReturnValue(true);
+      jest
+        .spyOn(accountsController, 'getMemoizedInternalAccountByAddress')
+        .mockReturnValue(DEST_ACCOUNT as never);
+      mockSelectedByScope.mockReturnValue(DEST_ACCOUNT);
+      jest
+        .spyOn(multichainAccounts, 'selectSelectedInternalAccountByScope')
+        .mockReturnValue(mockSelectedByScope);
+      selectIsDestAssetRequireActivate.clearCache();
+      selectIsDestSameAsActiveAccount.clearCache();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('returns true when cross-chain dest requires activation on the dest account', () => {
+      const state = createDestActivateState();
+
+      expect(selectIsDestAssetRequireActivate(state)).toBe(true);
+      expect(selectIsDestSameAsActiveAccount(state)).toBe(true);
+      expect(stellarAssets.getIsAssetRequireActivate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          assetId: STELLAR_USDC,
+          accountId: DEST_ACCOUNT.id,
+        }),
+      );
+    });
+
+    it('returns isDestSameAsActiveAccount false when dest differs from active dest-chain account', () => {
+      mockSelectedByScope.mockReturnValue(ACTIVE_ACCOUNT);
+      const state = createDestActivateState();
+
+      expect(selectIsDestAssetRequireActivate(state)).toBe(true);
+      expect(selectIsDestSameAsActiveAccount(state)).toBe(false);
+    });
+
+    it('returns false when destAddress has no matching internal account', () => {
+      jest
+        .spyOn(accountsController, 'getMemoizedInternalAccountByAddress')
+        .mockReturnValue(undefined);
+      const state = createDestActivateState({ destAddress: 'GEXTERNAL' });
+
+      expect(selectIsDestAssetRequireActivate(state)).toBe(false);
+      expect(stellarAssets.getIsAssetRequireActivate).not.toHaveBeenCalled();
+    });
+
+    it('returns false for same-chain swaps', () => {
+      jest.spyOn(bridgeController, 'isCrossChain').mockReturnValue(false);
+      const state = createDestActivateState();
+
+      expect(selectIsDestAssetRequireActivate(state)).toBe(false);
+    });
+
+    it('returns false when destAddress is missing', () => {
+      const state = createDestActivateState({ destAddress: undefined });
+
+      expect(selectIsDestAssetRequireActivate(state)).toBe(false);
     });
   });
 });

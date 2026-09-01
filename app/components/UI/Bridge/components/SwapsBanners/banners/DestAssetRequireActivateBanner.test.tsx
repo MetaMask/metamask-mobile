@@ -3,8 +3,11 @@ import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { XlmScope } from '@metamask/keyring-api';
 import { strings } from '../../../../../../../locales/i18n';
+import {
+  selectIsDestAssetRequireActivate,
+  selectIsDestSameAsActiveAccount,
+} from '../../../../../../selectors/bridge';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
-import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
 import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
 import { createMockToken } from '../../../testUtils';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
@@ -20,8 +23,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/useDestAssetRequireActivate', () => ({
-  useDestAssetRequireActivate: jest.fn(),
+jest.mock('../../../../../../selectors/bridge', () => ({
+  ...jest.requireActual('../../../../../../selectors/bridge'),
+  selectIsDestAssetRequireActivate: jest.fn(),
+  selectIsDestSameAsActiveAccount: jest.fn(),
 }));
 
 jest.mock(
@@ -59,10 +64,8 @@ const mockStellarXlm = createMockToken({
 describe('DestAssetRequireActivateBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
-      isDestAssetRequireActivate: true,
-      isDestSameAsActiveAccount: true,
-    });
+    jest.mocked(selectIsDestAssetRequireActivate).mockReturnValue(true);
+    jest.mocked(selectIsDestSameAsActiveAccount).mockReturnValue(true);
     jest.mocked(useRecipientDisplayData).mockReturnValue({
       destinationDisplayName: 'Account 1',
       destinationWalletName: undefined,
@@ -134,10 +137,7 @@ describe('DestAssetRequireActivateBanner', () => {
   });
 
   it('uses different-account copy and omits the Activate CTA when dest differs from the active account', () => {
-    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
-      isDestAssetRequireActivate: true,
-      isDestSameAsActiveAccount: false,
-    });
+    jest.mocked(selectIsDestSameAsActiveAccount).mockReturnValue(false);
     jest.mocked(useRecipientDisplayData).mockReturnValue({
       destinationDisplayName: 'Account 2',
       destinationWalletName: undefined,
@@ -179,10 +179,7 @@ describe('DestAssetRequireActivateBanner', () => {
   });
 
   it('renders nothing when the destination asset does not require activation', () => {
-    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
-      isDestAssetRequireActivate: false,
-      isDestSameAsActiveAccount: true,
-    });
+    jest.mocked(selectIsDestAssetRequireActivate).mockReturnValue(false);
 
     const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
@@ -197,10 +194,7 @@ describe('DestAssetRequireActivateBanner', () => {
   });
 
   it('renders nothing for same-chain destination swaps', () => {
-    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
-      isDestAssetRequireActivate: false,
-      isDestSameAsActiveAccount: true,
-    });
+    jest.mocked(selectIsDestAssetRequireActivate).mockReturnValue(false);
 
     const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({
@@ -215,10 +209,7 @@ describe('DestAssetRequireActivateBanner', () => {
   });
 
   it('renders nothing for destinations that do not require activation', () => {
-    jest.mocked(useDestAssetRequireActivate).mockReturnValue({
-      isDestAssetRequireActivate: false,
-      isDestSameAsActiveAccount: true,
-    });
+    jest.mocked(selectIsDestAssetRequireActivate).mockReturnValue(false);
 
     const { queryByTestId } = renderBanner(<DestAssetRequireActivateBanner />, {
       state: createBannerState({

@@ -74,11 +74,11 @@ import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas/index.ts
 import { useRecipientInitialization } from '../../../hooks/useRecipientInitialization';
 import {
   selectGasIncludedQuoteParams,
+  selectIsDestAssetRequireActivate,
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../../hooks/useBridgeQuoteEvents/index.ts';
-import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
 import { useSwapBridgePageLoadTrace } from '../../../hooks/useSwapBridgePageLoadTrace';
 import { SwapsKeypad } from '../../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
@@ -404,7 +404,9 @@ const BridgeMarketViewContent = ({
     hasInsufficientGas ||
     !walletAddress;
 
-  const { isDestAssetRequireActivate } = useDestAssetRequireActivate();
+  const isDestAssetRequireActivate = useSelector(
+    selectIsDestAssetRequireActivate,
+  );
 
   useBridgeQuoteEvents({
     hasInsufficientBalance,

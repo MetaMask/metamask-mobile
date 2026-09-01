@@ -10,12 +10,14 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import {
+  selectIsDestAssetRequireActivate,
+  selectIsDestSameAsActiveAccount,
+} from '../../../../../../selectors/bridge';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
-import { useDestAssetRequireActivate } from '../../../hooks/useDestAssetRequireActivate';
 import { useRecipientDisplayData } from '../../../hooks/useRecipientDisplayData/useRecipientDisplayData';
 import { WARNING_BANNER_TW_CLASSNAME } from '../SwapsBanners.constants';
 import { SwapsBannersSelectorsIDs } from '../SwapsBanners.testIds';
@@ -29,8 +31,12 @@ import { useSwapsBannersContext } from '../SwapsBannersContext';
 export const DestAssetRequireActivateBanner = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { destToken } = useSwapsBannersContext();
-  const { isDestAssetRequireActivate, isDestSameAsActiveAccount } =
-    useDestAssetRequireActivate();
+  const isDestAssetRequireActivate = useSelector(
+    selectIsDestAssetRequireActivate,
+  );
+  const isDestSameAsActiveAccount = useSelector(
+    selectIsDestSameAsActiveAccount,
+  );
   const { destinationDisplayName } = useRecipientDisplayData();
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -40,10 +46,8 @@ export const DestAssetRequireActivateBanner = () => {
     if (!destToken?.chainId) {
       return '';
     }
-    const caipChainId = isCaipChainId(destToken.chainId)
-      ? destToken.chainId
-      : formatChainIdToCaip(destToken.chainId);
-    return networkConfigurations[caipChainId]?.name ?? caipChainId;
+    const chainId = formatChainIdToCaip(destToken.chainId);
+    return networkConfigurations[chainId]?.name ?? chainId;
   }, [destToken?.chainId, networkConfigurations]);
 
   const handleActivatePress = useCallback(() => {
