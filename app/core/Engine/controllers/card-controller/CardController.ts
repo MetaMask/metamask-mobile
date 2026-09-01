@@ -1,11 +1,6 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import { ethers } from 'ethers';
-import {
-  numberToHex,
-  type CaipChainId,
-  type Hex,
-  type Json,
-} from '@metamask/utils';
+import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
   type TransactionMeta,
@@ -76,7 +71,6 @@ import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
-import { findInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
 import {
@@ -113,7 +107,6 @@ import {
 import { CardService } from './services/CardService';
 import { CardApiError } from './services/BaanxService';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
-import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
@@ -868,20 +861,11 @@ export class CardController extends BaseController<
     );
 
     try {
-      const accountTreeState = this.messenger.call(
-        'AccountTreeController:getState',
-      ) as AccountTreeControllerState;
-      const selectedAccountGroup = accountTreeState?.selectedAccountGroup;
-      if (selectedAccountGroup) {
-        const groupEvmAccount = findInternalAccountByScope(
-          accountTreeState,
-          internalAccounts.accounts,
-          selectedAccountGroup,
-          'eip155:0' as CaipChainId,
-        );
-        if (groupEvmAccount && isEthAccount(groupEvmAccount)) {
-          return groupEvmAccount.address;
-        }
+      const groupAccount = this.messenger.call(
+        'AccountTreeController:getAccountFromSelectedAccountGroup',
+      );
+      if (groupAccount && isEthAccount(groupAccount)) {
+        return groupAccount.address;
       }
     } catch {
       // Fall through to the legacy selectedAccount pointer.

@@ -2227,7 +2227,6 @@ describe('CardController — fetchCardHomeData', () => {
     provider.validateTokens.mockReturnValue('valid');
     provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
     const messenger = buildMockMessenger();
-    const groupId = 'entropy:wallet1/0';
     const evmAddress = '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d';
     (messenger.call as jest.Mock).mockImplementation((action: string) => {
       if (action === 'AccountsController:getState') {
@@ -2249,21 +2248,13 @@ describe('CardController — fetchCardHomeData', () => {
           },
         };
       }
-      if (action === 'AccountTreeController:getState') {
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
         return {
-          selectedAccountGroup: groupId,
-          accountTree: {
-            wallets: {
-              'entropy:wallet1': {
-                id: 'entropy:wallet1',
-                groups: {
-                  [groupId]: {
-                    accounts: ['evm-id', 'sol-id'],
-                  },
-                },
-              },
-            },
-          },
+          address: evmAddress,
+          type: 'eip155:eoa',
+          scopes: ['eip155:0'],
         };
       }
       if (action === 'RemoteFeatureFlagController:getState') {
@@ -2295,8 +2286,6 @@ describe('CardController — fetchCardHomeData', () => {
       mockCardHomeData,
     );
     const messenger = buildMockMessenger();
-    const selectedGroupId = 'entropy:wallet1/1';
-    const otherGroupId = 'entropy:wallet1/0';
     const cardholderAddress = '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d';
     (messenger.call as jest.Mock).mockImplementation((action: string) => {
       if (action === 'AccountsController:getState') {
@@ -2323,24 +2312,13 @@ describe('CardController — fetchCardHomeData', () => {
           },
         };
       }
-      if (action === 'AccountTreeController:getState') {
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
         return {
-          selectedAccountGroup: selectedGroupId,
-          accountTree: {
-            wallets: {
-              'entropy:wallet1': {
-                id: 'entropy:wallet1',
-                groups: {
-                  [otherGroupId]: {
-                    accounts: ['other-evm', 'other-sol'],
-                  },
-                  [selectedGroupId]: {
-                    accounts: ['cardholder-evm'],
-                  },
-                },
-              },
-            },
-          },
+          address: cardholderAddress,
+          type: 'eip155:eoa',
+          scopes: ['eip155:0'],
         };
       }
       if (action === 'RemoteFeatureFlagController:getState') {
@@ -2363,6 +2341,63 @@ describe('CardController — fetchCardHomeData', () => {
     expect(controller.state.cardHomeDataStatus).toBe('success');
     expect(controller.state.cardHomeDataError).toBeNull();
     expect(provider.getOnChainAssets).toHaveBeenCalledWith(cardholderAddress);
+  });
+
+  it('falls back to the legacy selectedAccount when the group action returns a non-EVM account', async () => {
+    const provider = buildMockProvider();
+    mockTokenStore.get.mockResolvedValue(mockTokenSet);
+    provider.validateTokens.mockReturnValue('valid');
+    provider.getCardHomeData.mockResolvedValue(mockCardHomeData);
+    const messenger = buildMockMessenger();
+    const legacyEvmAddress = '0x6e8e411de25a3cf040330a9916cdf8653cec86ce';
+    (messenger.call as jest.Mock).mockImplementation((action: string) => {
+      if (action === 'AccountsController:getState') {
+        return {
+          internalAccounts: {
+            accounts: {
+              'legacy-evm': {
+                address: legacyEvmAddress,
+                type: 'eip155:eoa',
+                scopes: ['eip155:0'],
+              },
+              'group-sol': {
+                address: '4jMp7YS35raCdfn84tLh64TKzGYpXLd1afwQZnb1rbzU',
+                type: 'solana:data-account',
+                scopes: ['solana:mainnet'],
+              },
+            },
+            selectedAccount: 'legacy-evm',
+          },
+        };
+      }
+      if (
+        action === 'AccountTreeController:getAccountFromSelectedAccountGroup'
+      ) {
+        return {
+          address: '4jMp7YS35raCdfn84tLh64TKzGYpXLd1afwQZnb1rbzU',
+          type: 'solana:data-account',
+          scopes: ['solana:mainnet'],
+        };
+      }
+      if (action === 'RemoteFeatureFlagController:getState') {
+        return { remoteFeatureFlags: {} };
+      }
+      return undefined;
+    });
+    const controller = new CardController({
+      cardService: buildMockCardService(),
+      messenger,
+      providers: { baanx: provider },
+      state: { activeProviderId: 'baanx' },
+    });
+
+    await controller.fetchCardHomeData();
+
+    expect(controller.state.cardHomeDataStatus).toBe('success');
+    expect(provider.getCardHomeData).toHaveBeenCalledWith(
+      legacyEvmAddress,
+      expect.anything(),
+    );
   });
 
   it('classifies auth failures with reason auth_expired', async () => {

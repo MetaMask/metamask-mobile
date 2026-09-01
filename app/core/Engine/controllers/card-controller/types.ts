@@ -5,7 +5,7 @@ import type {
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
 import type {
-  AccountTreeControllerGetStateAction,
+  AccountTreeControllerGetAccountFromSelectedAccountGroupAction,
   AccountTreeControllerStateChangeEvent,
 } from '@metamask/account-tree-controller';
 import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
@@ -115,7 +115,7 @@ export type CardControllerEvents = ControllerStateChangeEvent<
 
 type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
-  | AccountTreeControllerGetStateAction
+  | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
