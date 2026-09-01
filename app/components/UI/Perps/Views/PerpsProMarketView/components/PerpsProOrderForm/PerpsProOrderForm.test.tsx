@@ -1375,6 +1375,17 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
+    // The order type card was the only bordered surface in the form (TAT-3780).
+    it('draws the order type card borderless, like the other muted surfaces', () => {
+      renderForm();
+
+      const cardStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.ORDER_TYPE_CARD).props.style,
+      );
+
+      expect(cardStyle.borderWidth).toBeFalsy();
+    });
+
     it('left-aligns margin mode and leverage with 8-point spacing', () => {
       renderForm();
 
