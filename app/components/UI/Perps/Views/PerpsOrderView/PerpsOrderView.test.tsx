@@ -103,6 +103,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.market.long': 'Long',
       'perps.market.short': 'Short',
       'perps.order.validation.insufficient_funds': 'Insufficient funds',
+      'perps.order.validation.insufficient_funds_to_cover_trade':
+        'Insufficient funds to cover the trade',
       'perps.deposit.max_button': 'Max',
       'perps.deposit.done_button': 'Done',
       'perps.errors.orderValidation.sizePositive':
@@ -5100,6 +5102,7 @@ describe('PerpsOrderView', () => {
       (usePerpsOrderValidation as jest.Mock).mockReturnValue({
         isValid: false,
         errors: [transientError],
+        insufficientBalanceErrors: [transientError],
         isValidating: false,
       });
       const { useInsufficientPayTokenBalanceAlert: mockAlert } =
@@ -5125,6 +5128,9 @@ describe('PerpsOrderView', () => {
       await screen.findByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON);
       expect(screen.queryByText(transientError)).toBeNull();
       expect(screen.queryByText(transientAlert)).toBeNull();
+      expect(
+        screen.queryByText('Insufficient funds to cover the trade'),
+      ).toBeNull();
     });
 
     it('defers to the Perps balance when the Perps account is the payment method', async () => {
