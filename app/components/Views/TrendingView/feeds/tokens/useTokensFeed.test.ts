@@ -99,6 +99,7 @@ describe('useTokensFeed', () => {
     renderHook(() => useTokensFeed({ query: 'sol' }));
 
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      chainIds: undefined,
       searchQuery: 'sol',
       enableDebounce: false,
       filterLowQuality: true,
@@ -115,6 +116,7 @@ describe('useTokensFeed', () => {
     );
 
     expect(mockUseTrendingSearch).toHaveBeenCalledWith({
+      chainIds: undefined,
       searchQuery: undefined,
       enableDebounce: false,
       filterLowQuality: true,
@@ -125,6 +127,20 @@ describe('useTokensFeed', () => {
         timeOption: TimeOption.OneHour,
       },
     });
+  });
+
+  it('limits the feed to requested chain IDs', () => {
+    renderHook(() =>
+      useTokensFeed({
+        chainIds: ['eip155:4663'],
+      }),
+    );
+
+    expect(mockUseTrendingSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chainIds: ['eip155:4663'],
+      }),
+    );
   });
 
   describe('pagination', () => {

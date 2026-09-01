@@ -16,6 +16,7 @@ export const WalletActionsBottomSheetSelectorsIDs = {
   PERPS_BUTTON: 'wallet-perps-action',
   PERPS_MODE_BADGE: 'wallet-perps-mode-badge',
   PREDICT_BUTTON: 'wallet-predict-action',
+  WALLET_ASSISTANT_BUTTON: 'wallet-assistant-action',
 };
 
 export const WalletActionsBottomSheetSelectorsText = {

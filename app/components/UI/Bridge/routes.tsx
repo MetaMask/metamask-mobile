@@ -32,6 +32,7 @@ import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModa
 import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
+import WalletAssistant from './Views/WalletAssistant';
 import type {
   BridgeModalsNavigationParamList,
   BridgeScreensStackParamList,
@@ -44,6 +45,10 @@ const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
 export const BridgeScreenStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
+    <Stack.Screen
+      name={Routes.BRIDGE.WALLET_ASSISTANT}
+      component={WalletAssistant}
+    />
     <Stack.Screen
       name={Routes.BRIDGE.TOKEN_SELECTOR}
       component={BridgeTokenSelector}
