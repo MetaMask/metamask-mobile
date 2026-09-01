@@ -74,7 +74,8 @@ on:
 permissions:
   contents: read
   checks: write
-  actions: read
+  # write: nested prime workflow saves golden AVD via actions/cache.
+  actions: write
   pull-requests: read
 
 jobs:

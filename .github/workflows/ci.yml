@@ -1609,7 +1609,8 @@ jobs:
       checks: write
       id-token: write
       # Nested smoke workflows need these; callers cannot inherit from this job alone.
-      actions: read
+      # write: prime job persists golden AVD with actions/cache (nested cannot elevate).
+      actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
     needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]

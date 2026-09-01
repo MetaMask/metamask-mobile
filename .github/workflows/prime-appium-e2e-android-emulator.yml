@@ -149,6 +149,7 @@ jobs:
 
       # Persist for later runs / other PRs (via main or same-branch cache hits).
       # Skip save on exact-key restore hit — actions/cache rejects duplicate keys.
+      # continue-on-error: persist is an optimization — shards can still cold-boot.
       - name: Save golden AVD cache
         if: >-
           ${{
@@ -156,6 +157,7 @@ jobs:
             env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != '' &&
             (steps.restore-golden-avd.outputs.cache-hit != 'true' || inputs.force_reprime)
           }}
+        continue-on-error: true
         uses: actions/cache/save@v4
         with:
           path: ~/.android/avd
@@ -163,8 +165,10 @@ jobs:
 
       # Within-run handoff to shards. Namespace-only — the AVD is large and no
       # GitHub API consumer needs it.
+      # continue-on-error: same as prime — missing artifact → shards cold-boot.
       - name: Upload golden AVD artifact
         if: ${{ env.ANDROID_GOLDEN_SNAPSHOT_VALID == 'true' }}
+        continue-on-error: true
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: android-e2e-golden-avd
