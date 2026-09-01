@@ -2,7 +2,8 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
-import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
+import { getDriver } from '../../framework/AppiumUtilities';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -21,6 +22,10 @@ class PerpsProMarketView {
   }
 
   // ── Mode toggle ────────────────────────────────────────────────────────────
+
+  get liteModeSegment(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsModeToggleSelectorsIDs.LITE_SEGMENT);
+  }
 
   get proModeSegment(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsModeToggleSelectorsIDs.PRO_SEGMENT);
@@ -104,6 +109,12 @@ class PerpsProMarketView {
     );
   }
 
+  get positionsTab(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+    );
+  }
+
   positionRow(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(getPerpsProPositionRowSelector(symbol));
   }
@@ -127,15 +138,43 @@ class PerpsProMarketView {
   // ── Mode switching ─────────────────────────────────────────────────────────
 
   /**
-   * Switches to Pro mode. Taps the Pro segment of the mode toggle and confirms
-   * in the mode selection bottom sheet when it appears.
+   * Switches to Pro mode.
+   *
+   * Perps home uses `variant="active"`: only the current-mode pill is mounted
+   * (Lite → `LITE_SEGMENT`, and tapping it requests Pro). Market headers may
+   * use the two-segment control where both segments exist — tap `PRO_SEGMENT`.
+   * If only `PRO_SEGMENT` is present, we are already on the Pro active pill.
    */
   async switchToProMode(): Promise<void> {
-    await Gestures.waitAndTap(this.proModeSegment, {
-      elemDescription: 'Pro mode toggle segment',
-      timeout: 15000,
-      checkForDisplayed: true,
-    });
+    const liteSegmentVisible = await Utilities.isElementVisible(
+      this.liteModeSegment,
+      3000,
+    );
+    const proSegmentVisible = await Utilities.isElementVisible(
+      this.proModeSegment,
+      3000,
+    );
+
+    if (liteSegmentVisible && !proSegmentVisible) {
+      // Active pill on Lite (home / market header) — tap to request Pro.
+      await Gestures.waitAndTap(this.liteModeSegment, {
+        elemDescription: 'Lite mode pill (switch to Pro)',
+        timeout: 15000,
+        checkForDisplayed: true,
+      });
+    } else if (liteSegmentVisible && proSegmentVisible) {
+      // Two-segment toggle — tap Pro.
+      await Gestures.waitAndTap(this.proModeSegment, {
+        elemDescription: 'Pro mode toggle segment',
+        timeout: 15000,
+        checkForDisplayed: true,
+      });
+    } else if (!proSegmentVisible) {
+      throw new Error(
+        'Perps mode toggle not found (expected Lite pill or Pro segment)',
+      );
+    }
+    // else: only Pro pill visible → already in Pro; continue to assert Pro view.
 
     const sheetVisible = await Utilities.isElementVisible(
       this.modeSelectionSheet,
@@ -180,6 +219,10 @@ class PerpsProMarketView {
 
   // ── Order form actions ─────────────────────────────────────────────────────
 
+  get scrollView(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW);
+  }
+
   async selectDirection(direction: 'long' | 'short'): Promise<void> {
     const button =
       direction === 'long' ? this.directionLong : this.directionShort;
@@ -188,6 +231,29 @@ class PerpsProMarketView {
       checkForDisplayed: true,
       timeout: 10000,
     });
+  }
+
+  /**
+   * Dismisses the Android/iOS soft keyboard after Pro decimal-pad inputs.
+   * Avoid tapping the chart: it is often absent from the hierarchy while the
+   * order form is focused. On Android, fall back to BACK if still shown.
+   */
+  async dismissOrderFormKeyboard(): Promise<void> {
+    await Gestures.hideKeyboard();
+    if (!PlatformDetector.isAndroid()) {
+      return;
+    }
+    const drv = getDriver();
+    if (!drv) {
+      return;
+    }
+    try {
+      if (await drv.isKeyboardShown()) {
+        await drv.pressKeyCode(4); // KEYCODE_BACK
+      }
+    } catch {
+      // Keyboard already dismissed or BACK not applicable
+    }
   }
 
   async enterSize(size: string): Promise<void> {
@@ -199,10 +265,13 @@ class PerpsProMarketView {
     await Gestures.typeText(this.sizeInput, size, {
       elemDescription: 'Pro order form size value',
       clearFirst: true,
+      hideKeyboard: true,
     });
+    await this.dismissOrderFormKeyboard();
   }
 
   async tapOrderTypeButton(): Promise<void> {
+    await this.dismissOrderFormKeyboard();
     await Gestures.waitAndTap(this.orderTypeButton, {
       elemDescription: 'Pro order type selector',
       checkForDisplayed: true,
@@ -224,6 +293,7 @@ class PerpsProMarketView {
       checkForDisplayed: true,
       timeout: 10000,
     });
+    await this.dismissOrderFormKeyboard();
   }
 
   async tapTpslSection(): Promise<void> {
@@ -235,23 +305,72 @@ class PerpsProMarketView {
   }
 
   async tapPlaceOrderButton(): Promise<void> {
-    await Utilities.waitForReadyState(this.placeOrderButton, {
-      checkStability: true,
-      timeout: 8000,
-      elemDescription: 'Pro place order button',
-    });
-    await waitForStableEnabledIOS(this.placeOrderButton, {
-      timeout: 22000,
-      pollIntervalMs: 120,
-      consecutiveSuccess: 5,
-    });
+    await this.dismissOrderFormKeyboard();
+    // Ensure Place order is on-screen (form can sit under the keypad area).
+    if (!(await Utilities.isElementVisible(this.placeOrderButton, 2000))) {
+      await Gestures.swipe(this.scrollView, 'up', {
+        speed: 'fast',
+        percentage: 0.4,
+        elemDescription: 'Swipe Pro market view to Place order',
+      });
+    }
+    // WDIO waitForEnabled often passes while RN still has isDisabled=true.
+    // waitForInteractive polls native enabled/clickable until stably tappable.
     await Gestures.waitAndTap(this.placeOrderButton, {
-      timeout: 35000,
+      timeout: 45000,
       elemDescription: 'Pro place order button',
       checkForDisplayed: true,
       checkEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 6,
+      postEnabledSettleMs: 500,
       checkStability: true,
-      delay: 1000,
+      delay: 300,
+    });
+  }
+
+  /**
+   * Android often omits off-screen ScrollView children from the hierarchy, so
+   * scrollToElement cannot find the tab. Swipe until it appears, then tap.
+   * Same Gestures.swipe pattern as PerpsMarketDetailsView.scrollToBottom.
+   */
+  private async scrollUntilVisible(
+    target: Promise<AppiumElement>,
+    elemDescription: string,
+    timeout = 45000,
+  ): Promise<void> {
+    await this.dismissOrderFormKeyboard();
+    await Utilities.executeWithRetry(
+      async () => {
+        if (await Utilities.isElementVisible(target, 1500)) {
+          return;
+        }
+        await Gestures.swipe(this.scrollView, 'up', {
+          speed: 'fast',
+          percentage: 0.55,
+          elemDescription: `Swipe Pro market view toward ${elemDescription}`,
+        });
+        if (!(await Utilities.isElementVisible(target, 1500))) {
+          throw new Error(`${elemDescription} not visible after swipe`);
+        }
+      },
+      {
+        interval: 400,
+        timeout,
+        description: `scroll until ${elemDescription} visible`,
+      },
+    );
+  }
+
+  private async swipeUntilVisibleThenTap(
+    target: Promise<AppiumElement>,
+    elemDescription: string,
+  ): Promise<void> {
+    await this.scrollUntilVisible(target, elemDescription);
+    await Gestures.waitAndTap(target, {
+      elemDescription,
+      checkForDisplayed: true,
+      timeout: 5000,
     });
   }
 
@@ -260,6 +379,12 @@ class PerpsProMarketView {
   async waitForPositionRow(symbol: string, timeout = 60000): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
+        await this.tapPositionsTab();
+        await this.scrollUntilVisible(
+          this.positionRow(symbol),
+          `Pro position row for ${symbol}`,
+          8000,
+        );
         await Assertions.expectElementToBeVisible(this.positionRow(symbol), {
           description: `Pro position row for ${symbol}`,
           timeout: 3000,
@@ -270,6 +395,14 @@ class PerpsProMarketView {
   }
 
   async expectPositionRowVisible(symbol: string): Promise<void> {
+    // After Orders-tab verification the panel may be off-screen again (form
+    // re-layout / toast). Scroll to the Positions tab, select it, then scroll
+    // until the position row itself is on screen.
+    await this.tapPositionsTab();
+    await this.scrollUntilVisible(
+      this.positionRow(symbol),
+      `Pro position row for ${symbol}`,
+    );
     await Assertions.expectElementToBeVisible(this.positionRow(symbol), {
       description: `Pro position row for ${symbol}`,
       timeout: 10000,
@@ -317,11 +450,17 @@ class PerpsProMarketView {
   // ── Orders tab actions ─────────────────────────────────────────────────────
 
   async tapOrdersTab(): Promise<void> {
-    await Gestures.waitAndTap(this.ordersTab, {
-      elemDescription: 'Orders tab in Pro positions panel',
-      checkForDisplayed: true,
-      timeout: 10000,
-    });
+    await this.swipeUntilVisibleThenTap(
+      this.ordersTab,
+      'Orders tab in Pro positions panel',
+    );
+  }
+
+  async tapPositionsTab(): Promise<void> {
+    await this.swipeUntilVisibleThenTap(
+      this.positionsTab,
+      'Positions tab in Pro positions panel',
+    );
   }
 
   async waitForOrderRow(

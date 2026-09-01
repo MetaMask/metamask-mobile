@@ -232,18 +232,17 @@ export const switchToPerpsProMode = async (): Promise<void> => {
 };
 
 /**
- * Opens Perps from the wallet home and switches to Pro mode, landing on the
- * Pro Market View for the given symbol.
+ * Opens Perps from the wallet home, selects the market in Lite, then switches
+ * to Pro. Selecting first avoids landing on the default Pro market (BTC) and
+ * trying to tap a list row that is not on screen.
  */
 export const navigateToPerpsProEntry = async (
   symbol: string,
 ): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
   await dismissPerpsOnboardingTutorialIfPresent();
-  await switchToPerpsProMode();
-  // After switching to Pro mode the default market loads; select the desired one
-  // if the Pro header's market is not already symbol.
   await PerpsMarketListView.selectMarket(symbol);
+  await switchToPerpsProMode();
   await PerpsProMarketView.waitForProViewReady();
 };
 
@@ -286,6 +285,7 @@ export const placeLimitOrderInPro = async (
       ),
       { elemDescription: `Pro limit price preset ${preset}%` },
     );
+    await PerpsProMarketView.dismissOrderFormKeyboard();
   }
 
   await PerpsProMarketView.tapPlaceOrderButton();

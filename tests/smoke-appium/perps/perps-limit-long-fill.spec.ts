@@ -104,20 +104,13 @@ appiumTest.describe(SmokePerps('Perps Pro - ETH limit long fill'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
             '2125.00',
           );
+          // Drain the queue so the mock push-price (and limit fill) is applied
+          // before we assert on the Positions tab.
+          commandQueueServer.requestStateExport();
+          await commandQueueServer.getExportedState();
 
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsProMarketView.expectPositionRowVisible(
-                PERPS_SMOKE_MARKET_SYMBOL,
-              );
-            },
-            {
-              interval: 1000,
-              timeout: 60000,
-              description:
-                'wait for Pro limit long to fill into an open position',
-            },
-          );
+          // Scrolls to Positions panel and waits for the filled position row.
+          await PerpsProMarketView.waitForPositionRow(PERPS_SMOKE_MARKET_SYMBOL);
         },
       );
     },

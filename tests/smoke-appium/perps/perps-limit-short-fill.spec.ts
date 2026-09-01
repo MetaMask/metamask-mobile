@@ -104,20 +104,10 @@ appiumTest.describe(SmokePerps('Perps Pro - ETH limit short fill'), () => {
             PERPS_SMOKE_MARKET_SYMBOL,
             '2875.00',
           );
+          commandQueueServer.requestStateExport();
+          await commandQueueServer.getExportedState();
 
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsProMarketView.expectPositionRowVisible(
-                PERPS_SMOKE_MARKET_SYMBOL,
-              );
-            },
-            {
-              interval: 1000,
-              timeout: 60000,
-              description:
-                'wait for Pro limit short to fill into an open position',
-            },
-          );
+          await PerpsProMarketView.waitForPositionRow(PERPS_SMOKE_MARKET_SYMBOL);
         },
       );
     },

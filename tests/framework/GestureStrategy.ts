@@ -2,8 +2,6 @@ import AppiumGestures from './AppiumGestures.ts';
 import Matchers from './Matchers.ts';
 import { AppiumElement } from './AppiumElement.ts';
 import type { ScrollContainer } from './types.ts';
-import { getDriver } from './AppiumUtilities.ts';
-import { PlatformDetector } from './PlatformLocator.ts';
 
 export type { ScrollContainer } from './types.ts';
 
@@ -268,57 +266,38 @@ export class AppiumGestureStrategy implements GestureStrategy {
     swipeDirection: 'up' | 'down' | 'left' | 'right',
     percent = 0.6,
   ): Promise<void> {
-    // XCUITest does not implement `mobile: scrollGesture` (Android-only).
-    if (PlatformDetector.isIOS()) {
-      const container = await scrollView;
-      const location = await container.unwrap().getLocation();
-      const size = await container.unwrap().getSize();
-      const centerX = Math.floor(location.x + size.width / 2);
-      const travel = Math.floor(
-        size.height * Math.min(Math.max(percent, 0.1), 0.9),
-      );
+    // Coordinate drag works on both platforms. Prefer it over Android
+    // `mobile: scrollGesture`, which returns false for RN ScrollViews
+    // (same approach as WalletHomeScroll.scrollWalletHomeAndroid).
+    const container = await scrollView;
+    const location = await container.unwrap().getLocation();
+    const size = await container.unwrap().getSize();
+    const centerX = Math.floor(location.x + size.width / 2);
+    const travel = Math.floor(
+      size.height * Math.min(Math.max(percent, 0.1), 0.9),
+    );
 
-      if (swipeDirection === 'up' || swipeDirection === 'down') {
-        const fromY =
-          swipeDirection === 'up'
-            ? location.y + Math.floor(size.height * 0.8)
-            : location.y + Math.floor(size.height * 0.2);
-        const toY = swipeDirection === 'up' ? fromY - travel : fromY + travel;
-
-        await AppiumGestures.swipe({
-          scrollParams: { direction: swipeDirection },
-          percent,
-          duration: 600,
-          from: { x: centerX, y: fromY },
-          to: { x: centerX, y: toY },
-        });
-        return;
-      }
+    if (swipeDirection === 'up' || swipeDirection === 'down') {
+      const fromY =
+        swipeDirection === 'up'
+          ? location.y + Math.floor(size.height * 0.8)
+          : location.y + Math.floor(size.height * 0.2);
+      const toY = swipeDirection === 'up' ? fromY - travel : fromY + travel;
 
       await AppiumGestures.swipe({
         scrollParams: { direction: swipeDirection },
         percent,
         duration: 600,
+        from: { x: centerX, y: fromY },
+        to: { x: centerX, y: toY },
       });
       return;
     }
 
-    const drv = getDriver();
-    if (!drv) {
-      throw new Error('Driver is not available');
-    }
-
-    const container = await scrollView;
-    const location = await container.unwrap().getLocation();
-    const size = await container.unwrap().getSize();
-
-    await drv.execute('mobile: scrollGesture', {
-      left: location.x,
-      top: location.y,
-      width: size.width,
-      height: size.height,
-      direction: swipeDirection,
+    await AppiumGestures.swipe({
+      scrollParams: { direction: swipeDirection },
       percent,
+      duration: 600,
     });
   }
 

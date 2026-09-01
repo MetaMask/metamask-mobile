@@ -55,6 +55,8 @@ export default class Gestures {
       checkForDisplayed: options.checkForDisplayed,
       checkForEnabled: options.checkEnabled,
       waitForInteractive: options.waitForInteractive,
+      enabledStableReads: options.enabledStableReads,
+      postEnabledSettleMs: options.postEnabledSettleMs,
       // Detox checkStability ≈ Appium position-stable wait
       checkForStable: options.checkStability,
     });

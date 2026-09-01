@@ -36,6 +36,17 @@ const CHANNELS_REQUIRING_GET_SNAPSHOT = [
   'positions',
 ] as const;
 
+/**
+ * Channels that expose `getLastDeliveredAt()` like production `StreamChannel`.
+ * `usePerpsOrderExecution` calls this after a successful resting limit submit;
+ * missing it throws and surfaces the "Order failed" toast in E2E.
+ */
+const CHANNELS_REQUIRING_GET_LAST_DELIVERED_AT = [
+  'account',
+  'orders',
+  'positions',
+] as const;
+
 describe('createE2EMockStreamManager', () => {
   let mockConsoleLog: jest.SpyInstance;
 
@@ -73,6 +84,23 @@ describe('createE2EMockStreamManager', () => {
       expect(typeof snap).toBe('function');
 
       expect(() => (snap as () => unknown)()).not.toThrow();
+    },
+  );
+
+  it.each(CHANNELS_REQUIRING_GET_LAST_DELIVERED_AT)(
+    'channel %s exposes getLastDeliveredAt callable without throwing',
+    (channel) => {
+      const manager = createE2EMockStreamManager() as Record<
+        string,
+        { getLastDeliveredAt?: unknown }
+      >;
+
+      const getLastDeliveredAt = manager[channel]?.getLastDeliveredAt;
+
+      expect(typeof getLastDeliveredAt).toBe('function');
+      expect(() =>
+        (getLastDeliveredAt as () => number | null)(),
+      ).not.toThrow();
     },
   );
 
