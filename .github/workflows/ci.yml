@@ -1524,7 +1524,7 @@ jobs:
       - name: Fetch and freeze E2E timings
         id: fetch
         continue-on-error: true
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
@@ -1555,7 +1555,7 @@ jobs:
     # PRs into main do not build iOS from path filters alone — it has to be
     # requested with run-appium-ios-tests, or with skip-smart-e2e-selection when
     # path filters already require iOS. Both opt-ins are resolved into
-    # ios_e2e_needed by .github/scripts/compute-e2e-platform-flags.cjs, which also
+    # ios_e2e_needed by .github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs, which also
     # keeps ios_e2e_needed and run_appium_ios equal on those PRs so the app is
     # only built when iOS E2E will actually run. Pushes to main/release/*, the
     # nightly schedule, and PRs into release/* are unaffected.
@@ -1592,8 +1592,7 @@ jobs:
       - name: iOS build complete
         run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
 
-  # Detox iOS E2E smoke workflow removed — tags fully migrated to Appium
-  # (run-appium-smoke-tests-ios.yml).
+
 
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
@@ -1695,16 +1694,18 @@ jobs:
     secrets: inherit
 
   # Fixture validation — ensures committed E2E fixtures match the live app state schema
-  # Runs on iOS only, so on PRs into main it runs only when iOS was requested via
-  # run-appium-ios-tests or skip-smart-e2e-selection. It still runs on PRs into
-  # release/* that build iOS. Moving this to Android would make it unconditional
-  # on PRs again — tracked separately.
+  # Runs on Android only, so on PRs into main it runs only when Android was requested via
+  # run-appium-android-tests or skip-smart-e2e-selection. It still runs on PRs into
+  # release/* that build Android.
   validate-e2e-fixtures:
     name: 'Validate E2E Fixtures'
     if: >-
       ${{
-        needs.ios-tests-ready.result == 'success' &&
-        github.event_name == 'pull_request'
+        !cancelled() &&
+        needs.build-android-apks.result == 'success' &&
+        (needs.prepare-e2e-timings.result == 'success' ||
+          needs.prepare-e2e-timings.result == 'skipped' ||
+          needs.prepare-e2e-timings.result == 'failure')
       }}
     permissions:
       contents: read
@@ -1713,23 +1714,24 @@ jobs:
       # Nested run-appium-e2e-workflow requires these; missing grants → ci startup_failure.
       actions: read
       pull-requests: read
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection]
+    # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
-      platform: ios
+      platform: android
       test_suite_tag: FixtureValidation
       split_number: 1
       total_splits: 1
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Mirrors build-ios-apps' resolution chain so this consumer always matches
+      # Mirrors build-android-apps' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
         }}
     secrets: inherit
 
@@ -1775,7 +1777,7 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node .github/scripts/e2e-report-fixture-validation.mjs
+        run: node .github/scripts/qa-automation/reporting/e2e-report-fixture-validation.mjs
 
   sonar-cloud:
     name: SonarCloud analysis

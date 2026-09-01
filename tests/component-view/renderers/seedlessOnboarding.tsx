@@ -6,6 +6,7 @@ import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import { createMockRouteMessenger } from '../../../app/util/test/mock-route-messenger';
 import AccountStatus from '../../../app/components/Views/AccountStatus';
 import SocialLoginIosUser from '../../../app/components/Views/SocialLoginIosUser';
 import ChoosePassword from '../../../app/components/Views/ChoosePassword';
@@ -208,6 +209,19 @@ interface ChoosePasswordRendererOptions {
   routeParams?: Record<string, unknown>;
 }
 
+function choosePasswordProviderValues(
+  options: ChoosePasswordRendererOptions = {},
+) {
+  return {
+    state: buildSeedlessOnboardingState(options),
+    routeMessenger: createMockRouteMessenger({
+      'GeolocationController:refreshGeolocation': jest
+        .fn()
+        .mockResolvedValue('US'),
+    }),
+  };
+}
+
 export function renderChoosePasswordForSocialLogin(
   options: ChoosePasswordRendererOptions = {},
 ) {
@@ -226,7 +240,7 @@ export function renderChoosePasswordForSocialLogin(
       { name: Routes.ONBOARDING.INTEREST_QUESTIONNAIRE },
       { name: Routes.ONBOARDING.SUCCESS_FLOW },
     ],
-    { state: buildSeedlessOnboardingState(options) },
+    choosePasswordProviderValues(options),
     { ...defaultParams, ...options.routeParams },
   );
 }
@@ -266,7 +280,7 @@ export function renderChoosePasswordScreen(
   return renderComponentViewScreen(
     ChoosePassword as unknown as React.ComponentType,
     { name: Routes.ONBOARDING.CHOOSE_PASSWORD },
-    { state: buildSeedlessOnboardingState(options) },
+    choosePasswordProviderValues(options),
     options.routeParams,
   );
 }

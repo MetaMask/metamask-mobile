@@ -98,6 +98,20 @@ describe('limitOrderPriceAdjustReducer', () => {
     });
   });
 
+  describe('exitCustom', () => {
+    it('clears custom mode without changing the limit price', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'exitCustom',
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        isCustomActive: false,
+        customValue: undefined,
+      });
+    });
+  });
+
   describe('setCustomValue', () => {
     it('stores the custom percent value', () => {
       const result = limitOrderPriceAdjustReducer(

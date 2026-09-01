@@ -81,11 +81,18 @@ jobs:
     # iOS Appium smoke is not put on low-priority: those runners are often
     # preempted around ~15m wall-clock, which kills the Playwright step before
     # reports/logs upload (and before shards that no longer fail-fast can finish).
+    #
+    # Android moves to `android-e2e`, off the `android-build` profile it used to
+    # share with Gradle. Both are ubuntu-24.04 / 16x32 with the same 90 GB cache
+    # volume, so this is a no-op on shape — the point is to be able to size the
+    # two workloads apart. They are not the same workload: Gradle sits at 100%
+    # CPU-saturated and wants more, while Appium peaks at 57% of 16 vCPU and 37%
+    # of 32 GB and wants less. Right-sizing this profile is a follow-up.
     runs-on: >-
       ${{
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
-         'namespace-profile-metamask-android-build') ||
+         'namespace-profile-metamask-android-e2e') ||
         (inputs.platform == 'ios' &&
           fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]')) ||
         (startsWith(github.base_ref, 'release/') &&
@@ -117,13 +124,12 @@ jobs:
 
       - name: Fetch qa-stats timings fallback
         if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
+        run: node .github/scripts/qa-automation/stats/e2e-freeze-timings.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || '' }}
           OUTPUT_PATH: ./e2e-timings.json
-
       # On re-run, reuse prior Playwright JSON / shard-status to skip passed specs.
       - name: Download previous Playwright results (on re-run)
         if: ${{ github.run_attempt > 1 }}
@@ -137,7 +143,7 @@ jobs:
 
       - name: Select specs for this shard (timing bin-pack)
         id: select-specs
-        run: node .github/scripts/e2e-split-tags-shards.mjs
+        run: node .github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs
         env:
           PLATFORM: ${{ inputs.platform }}
           TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
@@ -418,6 +424,8 @@ jobs:
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
           read -r -a specs <<< "${SPEC_FILES}"
@@ -452,6 +460,8 @@ jobs:
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
+          APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
           read -r -a specs <<< "${SPEC_FILES}"
@@ -474,7 +484,7 @@ jobs:
           if [[ -d ./previous-playwright-json ]]; then
             previous=./previous-playwright-json
           fi
-          node .github/scripts/e2e-split-tags-shards.mjs --write-shard-status \
+          node .github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs --write-shard-status \
             "${previous}" \
             "$report" \
             tests/test-reports/playwright-json/shard-status.json
@@ -537,7 +547,7 @@ jobs:
 
       - name: Upload fixture validation reports
         if: ${{ always() && inputs.test_suite_tag == 'FixtureValidation' && steps.select-specs.outputs.spec_count != '0' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: fixture-validation-results-${{ inputs.test-suite-name }}
           path: |

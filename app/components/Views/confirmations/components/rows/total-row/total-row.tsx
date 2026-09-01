@@ -4,10 +4,6 @@ import { strings } from '../../../../../../../locales/i18n';
 import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
-import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
   useTransactionPayTotals,
@@ -24,8 +20,6 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-
-const HIDE_TYPES = [TransactionType.musdConversion];
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -59,16 +53,11 @@ function TotalFeesRow() {
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
-  const transactionMetadata = useTransactionMetadataRequest();
 
   const totalUsd = useMemo(() => {
     if (!totals?.total) return '';
     return formatFiat(new BigNumber(totals.total.usd));
   }, [totals, formatFiat]);
-
-  if (hasTransactionType(transactionMetadata, HIDE_TYPES)) {
-    return null;
-  }
 
   if (isLoading) {
     return <InfoRowSkeleton testId="total-row-skeleton" />;
