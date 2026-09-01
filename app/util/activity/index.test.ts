@@ -4,7 +4,6 @@ import {
 } from '@metamask/transaction-controller';
 import {
   isFromOrToSelectedAddress,
-  isFromCurrentChain,
   sortTransactions,
   filterByAddress as filterByAddressOriginal,
   filterByAddressAndNetwork as filterByAddressAndNetworkOriginal,
@@ -109,35 +108,6 @@ describe('Activity utils :: isFromOrToSelectedAddress', () => {
     const selectedAddress = '';
     const result = isFromOrToSelectedAddress(from, to, selectedAddress);
     expect(result).toEqual(false);
-  });
-});
-
-describe('Activity utils :: isFromCurrentChain', () => {
-  const txWithChainId = {
-    chainId: '4',
-    networkID: '4',
-  };
-
-  it('should return true if the chain ids match', () => {
-    expect(isFromCurrentChain(txWithChainId, '4', '4')).toEqual(true);
-  });
-
-  it('should return true if the network ids match and chain id is missing', () => {
-    const txWithoutChainId = {
-      networkID: '4',
-    };
-    expect(isFromCurrentChain(txWithoutChainId, '4', '4')).toEqual(true);
-  });
-
-  it('should return false if the chain ids do not match', () => {
-    expect(isFromCurrentChain(txWithChainId, '1', '1')).toEqual(false);
-  });
-
-  it('should return false if the network ids do not match and chain id is missing', () => {
-    const txWithoutChainId = {
-      networkID: '4',
-    };
-    expect(isFromCurrentChain(txWithoutChainId, '1', '1')).toEqual(false);
   });
 });
 

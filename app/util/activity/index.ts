@@ -166,22 +166,6 @@ function shouldShowIncomingNativeByAddress(
 }
 
 /**
- * Determines if a transaction was executed in the current chain/network
- * @param tx - Transaction to evaluate
- * @param networkId - Current network id
- * @param chainId - Current chain id
- * @returns Boolean indicating if the transaction was executed in current chain
- */
-export const isFromCurrentChain = (
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tx: any,
-  networkId: string,
-  chainId: string,
-): boolean =>
-  chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
-
-/**
  * Sorts an array of transaction based on the timestamp
  * @param transactions Array of transactions
  * @returns Sorted array
