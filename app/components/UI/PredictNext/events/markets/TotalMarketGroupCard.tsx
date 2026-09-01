@@ -7,11 +7,11 @@ import {
 
 export type TotalMarketGroupCardProps = Omit<MarketGroupCardProps, 'title'>;
 
-export const TotalMarketGroupCard = React.memo((
-  props: TotalMarketGroupCardProps,
-): React.JSX.Element => (
+export const TotalMarketGroupCard = React.memo(
+  (props: TotalMarketGroupCardProps): React.JSX.Element => (
     <MarketGroupCard
       {...props}
       title={strings('predict.market_groups.total_points')}
     />
-  ));
+  ),
+);
