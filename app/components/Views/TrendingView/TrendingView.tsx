@@ -17,8 +17,6 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
   IconName,
   Icon,
   IconSize,
@@ -37,6 +35,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import BasicFunctionalityEmptyState from '../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
+import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
 import NowTab from './tabs/NowTab';
@@ -331,18 +330,20 @@ export const ExploreFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          <TouchableOpacity
-            onPress={handleBrowserPress}
-            testID="trending-view-browser-button"
-          >
-            {browserTabsCount > 0 ? (
-              <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
-                <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
-              </Box>
-            ) : (
+          {browserTabsCount > 0 ? (
+            <BrowserTabsButton
+              tabCount={browserTabsCount}
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            />
+          ) : (
+            <TouchableOpacity
+              onPress={handleBrowserPress}
+              testID="trending-view-browser-button"
+            >
               <Icon name={IconName.Explore} size={IconSize.Xl} />
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+          )}
         </Box>
 
         {!isBasicFunctionalityEnabled ? (

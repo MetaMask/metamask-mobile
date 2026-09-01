@@ -51,10 +51,10 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           await TrendingView.tapSearchButton();
 
           await Assertions.expectElementToBeVisible(
-            TrendingView.searchCancelButton,
+            TrendingView.searchBackButton,
             {
               description:
-                'Search cancel button should be visible (search mode active)',
+                'Search back button should be visible (search mode active)',
             },
           );
 
@@ -65,13 +65,13 @@ appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
           await TrendingView.verifySearchResultsListVisible();
 
           await Assertions.expectElementToBeVisible(
-            TrendingView.searchCancelButton,
+            TrendingView.searchBackButton,
             {
-              description: 'Cancel button should be visible',
+              description: 'Back button should be visible',
             },
           );
 
-          await TrendingView.tapSearchCancelButton();
+          await TrendingView.tapSearchBackButton();
 
           await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
             description: 'Search button should be visible again',
