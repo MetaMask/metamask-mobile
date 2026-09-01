@@ -1826,6 +1826,22 @@ describe('MainNavigator', () => {
 
         expect(tabScreenNames).not.toContain(Routes.MONEY.ROOT);
       });
+
+      it('gives the Money slot to Activity in regions without Money', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).toContain(Routes.TRANSACTIONS_VIEW);
+      });
+
+      it('keeps Activity out of the tab set when Money is available', () => {
+        mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+
+        const tabScreenNames = getHomeTabsScreenNames();
+
+        expect(tabScreenNames).not.toContain(Routes.TRANSACTIONS_VIEW);
+      });
     });
   });
 });

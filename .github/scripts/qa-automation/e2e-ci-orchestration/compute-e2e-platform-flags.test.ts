@@ -1,8 +1,8 @@
-const {
+import {
   computeE2EPlatformFlags,
   applyE2ELabelOverrides,
   resolveE2EPlatformRequirements,
-} = require('./compute-e2e-platform-flags.cjs');
+} from './compute-e2e-platform-flags.mjs';
 
 describe('computeE2EPlatformFlags', () => {
   const baseInput = {

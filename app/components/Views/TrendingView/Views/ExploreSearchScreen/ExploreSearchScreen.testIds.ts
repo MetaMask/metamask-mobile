@@ -8,6 +8,8 @@
 export const ExploreSearchScreenSelectorsIDs = {
   /** FlashList in ExploreSearchResults (testID set directly on the component) */
   SEARCH_RESULTS_LIST: 'trending-search-results-list',
+  /** Clears the interactive search input */
+  SEARCH_CLEAR_BUTTON: 'explore-search-clear-button',
   /** Horizontal ScrollView wrapping all pills */
   PILL_ROW: 'explore-search-pills',
   /** "All" pill */

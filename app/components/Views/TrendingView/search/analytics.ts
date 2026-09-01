@@ -43,8 +43,8 @@ export type SearchInteractionType =
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
 
-/** Surface the user tapped to open search. Only set on `opened`. */
-export type SearchEntryPoint = 'home' | 'explore' | 'nav_bar';
+/** Surface that opened search. Only set on `opened`. */
+export type SearchEntryPoint = 'home' | 'explore' | 'deeplink';
 
 export interface ExploreSearchInteractedProperties {
   interaction_type: SearchInteractionType;
@@ -178,11 +178,12 @@ export const trackExploreSearchEvent = (
 
 /**
  * Fired when the user opens the search screen, so opens can be attributed to
- * the surface they came from. Called from the tap handler rather than on screen
- * mount, so a remount (or a deeplink into search) never duplicates the event.
+ * the surface they came from. In-app entry points call this from their tap
+ * handlers; deeplinks call it when their route params are consumed.
  *
- * `search_query` is sent as an empty string: the schema requires the property
- * and the user has not typed anything yet.
+ * `search_query` is sent as an empty string because the opened-event schema
+ * requires it. A deeplink's prefilled query is reported by the settled
+ * `searched` event.
  */
 export const trackExploreSearchOpened = (
   entryPoint: SearchEntryPoint,

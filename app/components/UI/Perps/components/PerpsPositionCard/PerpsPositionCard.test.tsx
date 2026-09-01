@@ -373,6 +373,23 @@ describe('PerpsPositionCard', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders the take profit order count in the auto close row when several take profit orders exist', () => {
+      const litPosition: Position = {
+        ...mockPosition,
+        symbol: 'LIT',
+        takeProfitPrice: '2.1946',
+        takeProfitCount: 3,
+        stopLossPrice: '2.1234',
+        stopLossCount: 1,
+      };
+
+      render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
+
+      expect(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE),
+      ).toHaveTextContent('perps.order.tp 3 orders, perps.order.sl $2.1234');
+    });
+
     it('renders SHORT position correctly', () => {
       // Arrange
       const shortPosition = {
