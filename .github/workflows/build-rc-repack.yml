@@ -187,14 +187,8 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ inputs.donor_run_id }}
 
-      # The donor's filename still carries the donor build's number
-      # (scripts/rename-artifacts.js baked it in as ...-<buildNumber>.<ext>), but the
-      # artifact this job publishes carries the NEW build number patched in below by
-      # repack-build-version.sh. Without this rewrite the filename would silently lie
-      # about the build number burnt into the binary — see the incident this fixed,
-      # where every repack sharing a donor kept the donor's filename forever. Only the
-      # trailing build-number segment is rewritten; the rest (environment/build
-      # type/version) is unaffected by a repack and stays exactly as the donor named it.
+      # Rewrite the donor filename's trailing build-number segment to this build's
+      # number, so it doesn't lie about the version patched into the binary below.
       - name: Locate donor artifact
         id: donor
         env:
