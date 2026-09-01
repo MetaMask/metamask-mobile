@@ -21,13 +21,15 @@ name: Dependency Audit Escalation
 # got created, threaded off the first message. See .github/audit-owners.yml
 # (owner/SLA) and .github/audit-accepted.yml (accepting a risk instead of
 # fixing it).
+#
+# No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
+# on every push/PR/hourly-schedule run ci.yml itself has, so re-running the
+# same check again on a separate cron would just be redundant. Instead,
+# ci.yml calls this workflow (via workflow_call) only on runs where that job
+# actually found advisories.
 
 on:
-  schedule:
-    # Advisory data changes independently of code changes, so this runs on a
-    # fixed cadence rather than per-push. 06:00 UTC: after the 02:00-06:00 UTC
-    # nightly CI suite in ci.yml, before EU/US working hours.
-    - cron: '0 6 * * *'
+  workflow_call:
   workflow_dispatch:
 
 permissions:

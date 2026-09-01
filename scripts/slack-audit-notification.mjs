@@ -1,7 +1,7 @@
 /**
  * Dependency Audit Escalation Slack Notification
  *
- * Posts a Slack message when the daily dependency-audit-escalation workflow
+ * Posts a Slack message when the dependency-audit-escalation workflow
  * finds new production advisories, tagging the audit owner and, if
  * configured, their manager (see .github/audit-owners.yml).
  *

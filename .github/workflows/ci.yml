@@ -388,9 +388,12 @@ jobs:
             echo "No changes detected"
           fi
 
-  # Advisory only: never fails, never gates merges. A daily scheduled job
-  # (dependency-audit-escalation.yml) owns the actual fix/PR/Slack escalation
-  # loop and follow-up SLA — see .github/audit-owners.yml.
+  # Advisory only: never fails, never gates merges. dependency-audit-escalation.yml
+  # owns the actual fix/PR/Slack escalation loop and follow-up SLA — see
+  # .github/audit-owners.yml. It has no schedule of its own; the
+  # dependency-audit-escalation job below calls it only when this job
+  # actually finds advisories, on whatever cadence ci.yml itself already
+  # runs (push/PR/hourly schedule) — no separate cron needed.
   dependency-audit:
     name: Dependency audit (advisory)
     runs-on: >-
@@ -398,6 +401,8 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
         'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
       }}
+    outputs:
+      has-advisories: ${{ steps.audit.outputs.has-advisories }}
     env:
       # Effective provider for this job. Steps must test this, never inputs.runner_provider
       # directly, or a provider set through the repo variables would be ignored.
@@ -434,22 +439,41 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
       - name: Dependency audit (advisory only, never fails this job)
+        id: audit
         shell: bash
         run: |
           set -uo pipefail
           if yarn audit:ci; then
             echo "No production advisories at moderate severity or above."
+            echo "has-advisories=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is notified by the daily dependency-audit-escalation workflow."
+          echo "has-advisories=true" >> "$GITHUB_OUTPUT"
+          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is being notified by the dependency-audit-escalation workflow."
           {
             echo '### Dependency audit'
             echo
             echo 'Advisories found at moderate severity or above. This check is advisory only and does not block merge.'
             echo
-            echo "The daily [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage, auto-fix attempts, and Slack escalation to the audit owner."
+            echo "The [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage, auto-fix attempts, and Slack escalation to the audit owner."
           } >> "$GITHUB_STEP_SUMMARY"
           exit 0
+
+  # Only runs when the job above actually found something — most ci.yml runs
+  # (the overwhelming majority) skip this entirely, so there's no fixed cron
+  # spinning up a fresh checkout+install+audit for nothing.
+  dependency-audit-escalation:
+    name: Dependency audit escalation
+    needs:
+      - dependency-audit
+    if: ${{ needs.dependency-audit.outputs.has-advisories == 'true' }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
+    uses: ./.github/workflows/dependency-audit-escalation.yml
+    secrets: inherit
 
   js-bundle-size-check:
     # Stays on 8x16 (MCWP-813). It is the thinnest margin on the profile — 14.3 GB
