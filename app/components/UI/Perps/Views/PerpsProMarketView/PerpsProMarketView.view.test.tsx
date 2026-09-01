@@ -445,7 +445,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'removes a terminated Chase when the controller omits its session',
+    'retains canceled History when the controller omits the terminated session',
     async () => {
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
@@ -488,9 +488,45 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       fireEvent.press(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
       );
+      const canceledStatusSelector = getPerpsProChaseStatusSelector(
+        'canceled',
+        'ETH',
+        activeChase.handle,
+        true,
+      );
       expect(
-        screen.queryByText(strings('perps.order.chase.status.canceled')),
-      ).not.toBeOnTheScreen();
+        await screen.findByTestId(canceledStatusSelector),
+      ).toHaveTextContent(strings('perps.order.chase.status.canceled'));
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY),
+      );
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(canceledStatusSelector),
+        ).not.toBeOnTheScreen(),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY),
+      );
+      expect(
+        await screen.findByTestId(canceledStatusSelector),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(canceledStatusSelector),
+      ).toBeOnTheScreen();
     },
   );
 

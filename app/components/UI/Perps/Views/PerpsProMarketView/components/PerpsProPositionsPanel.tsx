@@ -215,7 +215,7 @@ const PerpsProPositionsPanel = ({
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
-  const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
+  const { chaseOrders, reconcileCanceledChaseOrder } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
     enableDiscovery: false,
   });
@@ -714,7 +714,9 @@ const PerpsProPositionsPanel = ({
           return;
         }
         try {
-          await getChaseOrders();
+          // Controller v15 removes a successfully canceled Chase. Any returned
+          // row remains authoritative, including a child that filled first.
+          await reconcileCanceledChaseOrder(order);
         } catch (error) {
           // The exchange already accepted cancellation. A failed follow-up read
           // must not tell the user to retry the completed financial action.
@@ -782,9 +784,9 @@ const PerpsProPositionsPanel = ({
     [
       activeProvider,
       cancelOrder,
-      getChaseOrders,
       perpsNetwork,
       PerpsToastOptions.orderManagement.shared.cancellationFailed,
+      reconcileCanceledChaseOrder,
       showToast,
       terminatingChaseHandle,
       track,

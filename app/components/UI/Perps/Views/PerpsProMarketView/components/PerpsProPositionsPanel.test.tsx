@@ -209,7 +209,7 @@ describe('PerpsProPositionsPanel', () => {
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsChaseOrders.mockReturnValue({
       chaseOrders: [],
-      getChaseOrders: jest.fn().mockResolvedValue([]),
+      reconcileCanceledChaseOrder: jest.fn().mockResolvedValue([]),
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,

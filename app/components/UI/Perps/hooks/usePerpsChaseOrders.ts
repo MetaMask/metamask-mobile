@@ -6,6 +6,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
+  CHASE_ORDER_STATUS,
   ChaseOrderSuspensionError,
   InitializationState,
   PERPS_CONSTANTS,
@@ -177,6 +178,40 @@ const mergeWithCachedHistory = (
   ];
 };
 
+const mergeAfterSuccessfulCancellation = (
+  orders: ChaseOrder[],
+  canceledOrder: ChaseOrder,
+) => {
+  const mergedOrders = mergeWithCachedHistory(orders);
+  if (
+    !CHASE_RETAINED_STATUSES.has(canceledOrder.status) ||
+    orders.some((order) => isSameChaseOrder(order, canceledOrder))
+  ) {
+    return mergedOrders;
+  }
+  aggregatedOmissionCounts.delete(getChaseOrderIdentity(canceledOrder));
+  if (canceledOrder.providerId !== undefined) {
+    aggregatedOmissionCounts.delete(`unknown:${canceledOrder.handle}`);
+  }
+  const withoutCanceledOrder = mergedOrders.filter(
+    (order) => !isSameChaseOrder(order, canceledOrder),
+  );
+  const withCanceledOrder = [
+    ...withoutCanceledOrder,
+    {
+      ...canceledOrder,
+      status: CHASE_ORDER_STATUS.Canceled,
+      restingOrderId: null,
+    },
+  ];
+  return [
+    ...withCanceledOrder.filter(
+      (order) => !CHASE_HISTORY_STATUSES.has(order.status),
+    ),
+    ...getBoundedTerminalHistory(withCanceledOrder),
+  ];
+};
+
 const emitChange = () => {
   storeSnapshot = {
     orders: cachedOrders,
@@ -269,7 +304,9 @@ function syncRefreshLifecycle() {
   }, CHASE_ORDER_UI_CONFIG.RefreshIntervalMs);
 }
 
-async function refreshChaseOrders(): Promise<ChaseOrder[]> {
+async function refreshChaseOrders(
+  canceledOrder?: ChaseOrder,
+): Promise<ChaseOrder[]> {
   const route = getRouteKey();
   if (!canRefreshCurrentRoute()) return EMPTY_ORDERS;
   const generation = requestGeneration;
@@ -307,7 +344,11 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
       }
       refreshFailureLogged = false;
       cachedRoute = route;
-      const ordersChanged = setCachedOrders(mergeWithCachedHistory(orders));
+      const ordersChanged = setCachedOrders(
+        canceledOrder
+          ? mergeAfterSuccessfulCancellation(orders, canceledOrder)
+          : mergeWithCachedHistory(orders),
+      );
       if (ordersChanged) emitChange();
       syncRefreshLifecycle();
       return cachedOrders;
@@ -690,19 +731,32 @@ const suspendAndCacheChaseOrders = async (
   return await operation;
 };
 
-const getFreshChaseOrders = async (): Promise<ChaseOrder[]> => {
+const getFreshChaseOrders = async ({
+  canceledOrder,
+  expectedRoute,
+}: {
+  canceledOrder?: ChaseOrder;
+  expectedRoute?: string;
+} = {}): Promise<ChaseOrder[]> => {
   if (!canRefreshCurrentRoute()) {
     throw new ChaseOrderRequestError('context_not_ready');
+  }
+  if (expectedRoute !== undefined && expectedRoute !== getRouteKey()) {
+    throw new ChaseOrderRequestError('stale_request');
   }
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
   const operation = mutationQueue.then(async () => {
-    if (epoch !== mutationQueueEpoch || !canRefreshCurrentRoute()) {
+    if (
+      epoch !== mutationQueueEpoch ||
+      !canRefreshCurrentRoute() ||
+      (expectedRoute !== undefined && expectedRoute !== getRouteKey())
+    ) {
       throw new ChaseOrderRequestError('stale_request');
     }
     requestGeneration += 1;
     refreshPromise = undefined;
-    result = await refreshChaseOrders();
+    result = await refreshChaseOrders(canceledOrder);
   });
   mutationQueue = operation.catch(() => undefined);
   await operation;
@@ -821,6 +875,12 @@ export function usePerpsChaseOrders({
     [],
   );
 
+  const reconcileCanceledChaseOrder = useCallback(
+    async (order: ChaseOrder): Promise<ChaseOrder[]> =>
+      await getFreshChaseOrders({ canceledOrder: order, expectedRoute: route }),
+    [route],
+  );
+
   const suspendChaseOrders = useCallback(
     async (
       isCurrentLifecycle: () => boolean = () => true,
@@ -837,6 +897,7 @@ export function usePerpsChaseOrders({
     ),
     isChaseOrderDiscoveryResolved:
       !isEnabledFallingEdge && chaseSnapshot.discoveryResolvedRoute === route,
+    reconcileCanceledChaseOrder,
     suspendChaseOrders,
   };
 }

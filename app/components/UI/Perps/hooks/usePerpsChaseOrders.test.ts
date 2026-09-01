@@ -1775,6 +1775,135 @@ describe('usePerpsChaseOrders', () => {
     unmount();
   });
 
+  it('retains a route-bound canceled snapshot after authoritative omission', async () => {
+    const canceledOrder = {
+      ...activeOrder,
+      restingOrderId: null,
+      status: 'canceled' as const,
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(activeOrder),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([canceledOrder]);
+
+    await act(async () => hook.result.current.getChaseOrders());
+
+    expect(hook.result.current.chaseOrders).toEqual([canceledOrder]);
+    hook.unmount();
+  });
+
+  it('records canceled immediately for an aggregated authoritative omission', async () => {
+    mockPerpsProvider = 'aggregated';
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(activeOrder),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([
+      {
+        ...activeOrder,
+        restingOrderId: null,
+        status: 'canceled',
+      },
+    ]);
+    hook.unmount();
+  });
+
+  it('keeps controller terminal truth after cancellation reconciliation', async () => {
+    const filledOrder = {
+      ...activeOrder,
+      remainingSize: '0',
+      restingOrderId: null,
+      status: 'filled' as const,
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([filledOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(activeOrder),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([filledOrder]);
+    hook.unmount();
+  });
+
+  it.each([
+    {
+      routePart: 'account',
+      changeRoute: () => {
+        mockSelectedAddress = '0xaccount-b';
+      },
+    },
+    {
+      routePart: 'provider',
+      changeRoute: () => {
+        mockPerpsProvider = 'aggregated';
+      },
+    },
+    {
+      routePart: 'network',
+      changeRoute: () => {
+        mockPerpsNetwork = 'testnet';
+      },
+    },
+  ])(
+    'hides canceled history after the Chase $routePart route changes',
+    async ({ changeRoute }) => {
+      mockGetChaseOrders
+        .mockResolvedValueOnce([activeOrder])
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([]);
+      const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+      await waitFor(() =>
+        expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+      );
+      await act(async () =>
+        hook.result.current.reconcileCanceledChaseOrder(activeOrder),
+      );
+      const reconcileForOldRoute =
+        hook.result.current.reconcileCanceledChaseOrder;
+      expect(hook.result.current.chaseOrders[0]?.status).toBe('canceled');
+
+      changeRoute();
+      hook.rerender({});
+      let routeError: unknown;
+      await act(async () => {
+        try {
+          await reconcileForOldRoute(activeOrder);
+        } catch (error) {
+          routeError = error;
+        }
+      });
+
+      expect(routeError).toMatchObject({ code: 'stale_request' });
+      expect(hook.result.current.chaseOrders).toEqual([]);
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(3));
+      hook.unmount();
+    },
+  );
+
   it('preserves the last snapshot when a same-account refresh fails', async () => {
     mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
     const { result, unmount } = renderHook(() =>
