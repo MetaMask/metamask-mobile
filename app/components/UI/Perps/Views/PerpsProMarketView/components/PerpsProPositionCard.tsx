@@ -75,8 +75,6 @@ interface KeyValueItemProps {
   isValuePressDisabled?: boolean;
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
-  /** Sits on the text that holds the value, so recipes can read it without a press target. */
-  valueTestID?: string;
   showEditIcon?: boolean;
   /** Test ID for the value row, so agentic recipes can read the rendered value. */
   valueTestID?: string;
@@ -92,7 +90,6 @@ const KeyValueItem = ({
   isValuePressDisabled = false,
   valuePressTestID,
   valuePressAccessibilityLabel,
-  valueTestID,
   showEditIcon = false,
   valueTestID,
 }: KeyValueItemProps) => {
@@ -104,7 +101,6 @@ const KeyValueItem = ({
         color={isHidden ? TextColor.TextDefault : valueColor}
         isHidden={isHidden}
         length={SensitiveTextLength.Short}
-        testID={valueTestID}
       >
         {value}
       </SensitiveText>
@@ -136,6 +132,7 @@ const KeyValueItem = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
+            testID={valueTestID}
           >
             {valueContent}
           </Box>
