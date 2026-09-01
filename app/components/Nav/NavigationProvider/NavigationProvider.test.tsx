@@ -69,12 +69,12 @@ jest.mock('@react-navigation/native', () => {
   const NavigationContainer = ReactActual.forwardRef(
     (
       props: {
-        children?: ReactActual.ReactNode;
+        children?: React.ReactNode;
         onReady?: () => void;
         onStateChange?: (state?: NavigationState) => void;
         theme?: typeof actual.DefaultTheme;
       },
-      ref: ReactActual.ForwardedRef<{ navigate: jest.Mock }>,
+      ref: React.ForwardedRef<{ navigate: jest.Mock }>,
     ) => {
       mockCapturedNavContainerProps.onStateChange = props.onStateChange;
       mockCapturedNavContainerProps.theme = props.theme;
@@ -96,21 +96,17 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('@react-navigation/native-stack', () => {
-  const ReactActual = jest.requireActual('react') as typeof import('react');
-
-  return {
-    createNativeStackNavigator: () => ({
-      Navigator: ({ children }: { children?: ReactActual.ReactNode }) =>
-        children ?? null,
-      Screen: ({
-        children,
-      }: {
-        children?: ReactActual.ReactNode | (() => ReactActual.ReactNode);
-      }) => (typeof children === 'function' ? children() : (children ?? null)),
-    }),
-  };
-});
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
+    Navigator: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    Screen: ({
+      children,
+    }: {
+      children?: React.ReactNode | (() => React.ReactNode);
+    }) => (typeof children === 'function' ? children() : (children ?? null)),
+  }),
+}));
 
 describe('NavigationProvider', () => {
   const mockDispatch = jest.fn();
@@ -238,6 +234,7 @@ describe('NavigationProvider', () => {
       (functionName: string) =>
       ({ name }: { name: string }) => {
         traceCalls.push({ functionName, name });
+        return undefined;
       };
     jest.mocked(trace).mockImplementation(mockTraceCall('trace'));
     jest.mocked(endTrace).mockImplementation(mockTraceCall('endTrace'));
