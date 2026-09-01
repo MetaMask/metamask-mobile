@@ -129,7 +129,11 @@ const EventScreenLayout = ({
   const tw = useTailwind();
 
   return (
-    <EventScreenChrome onBack={onBack} title={title} onRulesPress={onRulesPress}>
+    <EventScreenChrome
+      onBack={onBack}
+      title={title}
+      onRulesPress={onRulesPress}
+    >
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
