@@ -17,6 +17,10 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from '../../core/QrSync/qrSyncTelemetry';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { store } from '../../store';
+import { setBasicFunctionalityConsolidatedEnabled } from '../../actions/settings';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from './walletHomeOnboardingStepsEligibility';
 
 export interface FinalizeOnboardingCompletionParams {
@@ -51,6 +55,11 @@ export function finalizeOnboardingCompletion({
 }: FinalizeOnboardingCompletionParams): void {
   if (!successFlow) {
     return;
+  }
+
+  if (selectMobileUxBftcConsolidationFlagEnabled(store.getState())) {
+    dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    syncConsolidatedBasicFunctionalityPreferences(isBasicFunctionalityEnabled);
   }
 
   if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {

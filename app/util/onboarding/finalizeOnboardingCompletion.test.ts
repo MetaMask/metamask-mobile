@@ -5,9 +5,39 @@ import {
 } from '../../constants/onboarding';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
+import { setBasicFunctionalityConsolidatedEnabled } from '../../actions/settings';
+import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
+import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
+
+jest.mock(
+  '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences',
+  () => ({
+    syncConsolidatedBasicFunctionalityPreferences: jest.fn(),
+  }),
+);
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({})),
+  },
+}));
+
+jest.mock(
+  '../../selectors/featureFlagController/basicFunctionalityConsolidation',
+  () => ({
+    selectMobileUxBftcConsolidationFlagEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock('../../actions/settings', () => ({
+  setBasicFunctionalityConsolidatedEnabled: jest.fn(() => ({
+    type: 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+    isBasicFunctionalityConsolidatedEnabled: true,
+  })),
+}));
 
 jest.mock('../analytics/analytics', () => ({
   analytics: {
@@ -213,5 +243,24 @@ describe('finalizeOnboardingCompletion', () => {
 
     loggerSpy.mockRestore();
     mockDiscoverAccounts.mockResolvedValue(0);
+  });
+
+  it('marks consolidated Basic Functionality cohort when remote flag is enabled', () => {
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(true);
+
+    finalizeOnboardingCompletion({
+      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      accountType: AccountType.Metamask,
+      isBasicFunctionalityEnabled: true,
+      walletSetupAttributionProps: {},
+      dispatch: mockDispatch,
+    });
+
+    expect(setBasicFunctionalityConsolidatedEnabled).toHaveBeenCalledWith(true);
+    expect(syncConsolidatedBasicFunctionalityPreferences).toHaveBeenCalledWith(
+      true,
+    );
   });
 });
