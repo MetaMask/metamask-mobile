@@ -3534,6 +3534,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -4115,6 +4116,11 @@
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
+  },
+  "account_hub": {
+    "info": "Info",
+    "scan": "Scan",
+    "activity": "Activity"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -8786,6 +8792,16 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "preview_order": "Preview Order",
+      "confirm_title": "Confirm recurring order",
+      "paying_all_orders": "Paying (all orders)",
+      "paying_per_order": "Paying (per order)",
+      "receiving": "Receiving",
+      "est_receiving_per_order": "Est. receiving (per order)",
+      "est_receiving_all_orders": "Est. receiving (all orders)",
+      "expires_after": "Expires after",
+      "slippage_all_orders": "Slippage (all orders)",
+      "est_network_fee_per_order": "Est. network fee (per order)",
       "repeat_info_title": "Repeat orders",
       "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
       "max_is": "Max is {{max}}",
@@ -9454,6 +9470,17 @@
       "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
       "learn_more": "Learn more",
       "got_it": "Got it"
+    },
+    "uk_migration_bottom_sheet": {
+      "title": "Update your MetaMask Card",
+      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "steps": {
+        "reverify_identity": "Re-verify your identity",
+        "get_new_card_number": "Get your new card number",
+        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+      },
+      "get_started": "Get started",
+      "remind_me_later": "Remind me later"
     },
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",

@@ -15,6 +15,7 @@ import { ChainId } from '@metamask/controller-utils';
 import AddBookmark from '../../Views/AddBookmark';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AccountsMenu from '../../Views/AccountsMenu';
+import AccountHub from '../../Views/AccountHub';
 import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
@@ -57,7 +58,7 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
-import ActivityView from '../../Views/ActivityView';
+import ActivityScreen from '../../Views/ActivityScreen';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuard';
@@ -296,7 +297,7 @@ const TransactionsHome = () => {
     >
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
-        component={ActivityView}
+        component={ActivityScreen}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -1106,6 +1107,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.SETTINGS_VIEW}
         component={SettingsFlow}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.ACCOUNT_HUB_VIEW}
+        component={AccountHub}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen

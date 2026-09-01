@@ -138,6 +138,7 @@ export type CardModalsNavigationParamList = {
   CardCreditBalanceTooltipModal: CreditBalanceTooltipParams | undefined;
   CardCreditRefundTooltipModal: { isMoneyAccount?: boolean } | undefined;
   CardUnlinkMoneyAccountSheet: MoneyUnlinkCardSheetRouteParams | undefined;
+  CardUkMigrationModal: undefined;
 };
 
 /**
