@@ -108,6 +108,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
             sortBy={sortBy}
             onMarketPress={handleMarketPress}
             showBadge={false}
+            {...(testID ? { testID: `${testID}-list` } : {})}
           />
         )}
       </View>
