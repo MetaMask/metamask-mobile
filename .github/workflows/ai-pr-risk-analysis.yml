@@ -31,7 +31,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Integration test: MetaMask/ai-analyzer#46 (feat/metamask-skills-plumbing)
+      # Integration test: MetaMask/ai-analyzer#46 @ feat/metamask-skills-plumbing (npm-only skills, no vendored/)
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
