@@ -943,21 +943,13 @@ export const loginAndOpenAccountList = async (
     accountListDescription?: string;
   } = {},
 ): Promise<void> => {
-  const {
-    accountListDescription = 'Account list should be visible',
-    ...loginOptions
-  } = options;
+  const { ...loginOptions } = options;
 
   await loginToAppPlaywright(loginOptions);
 
-  await WalletView.tapIdenticon();
-
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: accountListDescription,
-    },
-  );
+  // After skipping post-login modal probes, wallet chrome can still be settling
+  // when the first identicon tap lands as a no-op — retry until the list opens.
+  await ensureAccountListOpenPlaywright();
 };
 
 /**
@@ -986,8 +978,7 @@ export const selectAccountByDevice = async (
 
   logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
 
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);

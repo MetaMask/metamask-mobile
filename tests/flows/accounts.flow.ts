@@ -20,6 +20,7 @@ import Utilities from '../framework/Utilities';
 import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
 import {
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -33,8 +34,7 @@ export const openImportSrpFromAccountList = async (): Promise<void> => {
 };
 
 export const goToImportSrp = async () => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openImportSrpFromAccountList();
 };
 
@@ -86,8 +86,7 @@ export const openAccountActionsFromAccountList = async (
 };
 
 export const goToAccountActions = async (accountIndex: number) => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openAccountActionsFromAccountList(accountIndex);
 };
 
