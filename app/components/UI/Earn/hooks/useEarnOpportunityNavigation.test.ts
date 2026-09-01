@@ -326,6 +326,7 @@ describe('useEarnOpportunityNavigation', () => {
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       preferredPaymentToken,
       intent: 'convert',
+      onDepositSetupFailure: expect.any(Function),
     });
   });
 
@@ -375,6 +376,33 @@ describe('useEarnOpportunityNavigation', () => {
       await Promise.resolve();
     });
 
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      '[useEarnOpportunityNavigation] Failed to initiate Money deposit',
+    );
+    expect(showToast).not.toHaveBeenCalled();
+  });
+
+  it('shows an Earn toast when Money deposit setup fails', async () => {
+    const error = new Error('Money deposit setup failed');
+    mockInitiateDeposit.mockImplementationOnce(
+      async ({ onDepositSetupFailure }) => {
+        onDepositSetupFailure?.(error);
+        throw error;
+      },
+    );
+    const earnAsset = createEarnAsset(1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      result.current.navigateFromEarnAsset(earnAsset);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
     expect(mockLoggerError).toHaveBeenCalledWith(
       error,
       '[useEarnOpportunityNavigation] Failed to initiate Money deposit',
@@ -431,9 +459,6 @@ describe('useEarnOpportunityNavigation', () => {
 
   it('logs and stops stablecoin lending navigation without a network client', async () => {
     mockEngineFindNetworkClientIdByChainId.mockReturnValue(undefined);
-    const consoleErrorSpy = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => undefined);
     const earnAsset = createEarnAsset(1, [
       createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
     ]);
@@ -444,12 +469,16 @@ describe('useEarnOpportunityNavigation', () => {
       await Promise.resolve();
     });
 
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      'Stablecoin lending redirect failed: could not retrieve networkClientId for chainId: 0x1',
+    expect(mockLoggerError).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        message:
+          'Stablecoin lending redirect failed: could not retrieve networkClientId for chainId: 0x1',
+      }),
     );
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
     expect(mockEngineSetActiveNetwork).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
   });
 
   it('navigates to staking for pooled staking on a supported chain', async () => {

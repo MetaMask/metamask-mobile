@@ -73,10 +73,9 @@ const useEarnOpportunityNavigation = () => {
         );
 
       if (!networkClientId) {
-        console.error(
-          `Stablecoin lending redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`,
-        );
-        return;
+        const errorMessage = `Stablecoin lending redirect failed: could not retrieve networkClientId for chainId: ${asset.chainId}`;
+        Logger.error(new Error(errorMessage));
+        throw new Error(errorMessage);
       }
 
       await Engine.context.NetworkController.setActiveNetwork(networkClientId);
@@ -118,6 +117,10 @@ const useEarnOpportunityNavigation = () => {
         await initiateDeposit({
           preferredPaymentToken,
           intent: 'convert',
+          onDepositSetupFailure: () =>
+            showToast(
+              EarnToastOptions.earnStrategySelection.navigationToDeposit,
+            ),
         });
       } catch (error) {
         Logger.error(
@@ -126,7 +129,12 @@ const useEarnOpportunityNavigation = () => {
         );
       }
     },
-    [initiateDeposit, redirectToOnboardingIfNeeded],
+    [
+      EarnToastOptions.earnStrategySelection.navigationToDeposit,
+      initiateDeposit,
+      redirectToOnboardingIfNeeded,
+      showToast,
+    ],
   );
 
   const navigateToDepositForExperience = useCallback(
