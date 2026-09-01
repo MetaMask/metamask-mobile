@@ -19,6 +19,11 @@
  * structured proposal — { advisory_id, package, action, target, reasoning }
  * per advisory. This script is the only thing that ever writes to
  * package.json/yarn.lock.
+ * - The AI has no shell access, so it can't run `yarn why` itself to see
+ * which packages actually depend on a given advisory's package (crucial for
+ * judging whether a `resolutions` pin is safe for every consumer). This
+ * script runs it beforehand instead and folds a summarized dependents list
+ * into the advisory context file — see getDependents() below.
  * - The AI's proposal is never trusted at face value. For each proposed
  * fix, this script applies it itself, then re-runs the same
  * isAdvisoryCleared / verifyTreeIsClean checks a plain `yarn up`/resolutions
@@ -169,6 +174,53 @@ function revertLockfileChanges(): void {
   tryShQuiet('git', ['checkout', '--', 'package.json', 'yarn.lock']);
 }
 
+interface Dependent {
+  via: string;
+  range: string;
+}
+
+/**
+ * `yarn why <pkg> --json`, summarized into "who requires this and what range
+ * did they ask for" — the AI otherwise has no visibility into the dependency
+ * tree at all (see task-prompt.md's file access rules), so for a transitive
+ * package it has no way to judge whether a `resolutions` pin would land
+ * outside some consumer's declared range. Deduped by consumer package name
+ * (the same consumer can appear multiple times as different virtual/peer
+ * instances) and capped so a widely-used package like `bn.js` doesn't blow
+ * up the advisory context file.
+ */
+function getDependents(pkg: string, limit = 12): { list: Dependent[]; truncated: number } {
+  const result = tryShQuiet('yarn', ['why', pkg, '--json']);
+  if (!result.ok) return { list: [], truncated: 0 };
+
+  const rangesByConsumer = new Map<string, Set<string>>();
+  for (const line of result.output.split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line);
+      const value = String(entry.value || '');
+      const consumerMatch = /^(.+?)@(?:npm|virtual|workspace):/.exec(value);
+      const consumer = consumerMatch ? consumerMatch[1] : value;
+      if (!consumer) continue;
+      const children = (entry.children || {}) as Record<string, { descriptor?: string }>;
+      for (const child of Object.values(children)) {
+        const rangeMatch = /@npm:(.+)$/.exec(child.descriptor || '');
+        const range = rangeMatch ? rangeMatch[1] : '';
+        if (!range) continue;
+        if (!rangesByConsumer.has(consumer)) rangesByConsumer.set(consumer, new Set());
+        rangesByConsumer.get(consumer)?.add(range);
+      }
+    } catch {
+      // ignore unparsable lines
+    }
+  }
+
+  const all = [...rangesByConsumer.entries()]
+    .map(([via, ranges]) => ({ via, range: [...ranges].join(' | ') }))
+    .sort((a, b) => a.via.localeCompare(b.via));
+  return { list: all.slice(0, limit), truncated: Math.max(0, all.length - limit) };
+}
+
 /**
  * Runs MetaMask/ai-analyzer's dependency-audit-fix mode against the current
  * batch of manual advisories and returns its structured proposal, or null if
@@ -185,13 +237,18 @@ function runAnalyzer(manual: ManualEntry[]): AiProposedFix[] | null {
     return null;
   }
 
-  const contextEntries = manual.map((entry) => ({
-    package: entry.pkg,
-    advisory_id: entry.id,
-    severity: entry.severity,
-    title: entry.title,
-    url: entry.url || '',
-  }));
+  const contextEntries = manual.map((entry) => {
+    const { list, truncated } = getDependents(entry.pkg);
+    return {
+      package: entry.pkg,
+      advisory_id: entry.id,
+      severity: entry.severity,
+      title: entry.title,
+      url: entry.url || '',
+      dependents: list,
+      ...(truncated > 0 ? { dependents_truncated_count: truncated } : {}),
+    };
+  });
   writeFileSync(ADVISORY_CONTEXT_PATH, `${JSON.stringify(contextEntries, null, 2)}\n`);
 
   // Whitespace-separated, not comma-separated — see resolveChangedFilesList

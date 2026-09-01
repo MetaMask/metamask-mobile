@@ -27,10 +27,16 @@ The AI never edits any file — it only investigates (`read_file` on package.jso
     "advisory_id": "TEST-0002",
     "severity": "high",
     "title": "...",
-    "url": "..."
+    "url": "...",
+    "dependents": [
+      { "via": "@metamask/controller-utils", "range": "^2.1.2" },
+      { "via": "express", "range": "^2.0.0" }
+    ]
   }
 ]
 ```
+
+`dependents` is a `yarn why <package> --json` summary computed by `attempt-audit-fix.ts` itself (the AI has no shell access to run this, and `yarn.lock` is too large/un-greppable for it to read directly) — every package that actually depends on the advisory's package, deduped, with the semver range each one declared. This is what lets the AI judge whether an `add-resolution` pin would actually be safe for every consumer, not just whichever one it happened to guess about; a package with more distinct consumers than the cap (12) also gets a `dependents_truncated_count`.
 
 This file (plus `package.json` and `yarn.lock`) is passed via `--changed-files` so the analyzer treats it as in-scope, and the task prompt tells the AI to `read_file` it directly — the advisory data is per-run and dynamic, so it can't live in a static prompt template.
 
