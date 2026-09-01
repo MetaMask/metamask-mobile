@@ -31,12 +31,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      # https://github.com/MetaMask/ai-analyzer/releases
+      # Integration test: MetaMask/ai-analyzer#46 (feat/metamask-skills-plumbing)
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: 68870b76360431110ae00b27a0072d3011e6238c
+          ref: feat/metamask-skills-plumbing
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
@@ -44,6 +44,8 @@ jobs:
         uses: ./.ai-analyzer-action
         with:
           mode: pr-risk-analysis
+          include-metamask-skills: auto
+          target-repo: metamask-mobile
           add-comment: false
           add-label: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
