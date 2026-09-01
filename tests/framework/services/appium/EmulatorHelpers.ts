@@ -42,6 +42,7 @@ const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
 const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
+const ANDROID_NETWORK_PING_HOST = '8.8.8.8';
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
 export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
@@ -470,13 +471,13 @@ async function waitForAndroidNetworkReady(serial: string): Promise<void> {
   while (Date.now() < deadline) {
     try {
       const { stdout } = await execAsync(
-        `adb -s ${serial} shell ping -c 1 -W 3 ${ANDROID_EMULATOR_CI_DNS_SERVER}`,
+        `adb -s ${serial} shell ping -c 1 -W 3 ${ANDROID_NETWORK_PING_HOST}`,
       );
       if (isAndroidPingSuccessful(stdout)) {
         consecutiveSuccesses += 1;
         if (consecutiveSuccesses >= requiredSuccesses) {
           logger.info(
-            `Android emulator network ready (${consecutiveSuccesses} consecutive pings to ${ANDROID_EMULATOR_CI_DNS_SERVER}).`,
+            `Android emulator network ready (${consecutiveSuccesses} consecutive pings to ${ANDROID_NETWORK_PING_HOST}).`,
           );
           return;
         }
