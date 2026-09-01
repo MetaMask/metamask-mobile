@@ -388,8 +388,7 @@ const HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
 };
 
 /** Non-App-Store environments that opt into the override below. */
-const TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
-
+const HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS = ['dev', 'exp', 'beta', 'rc'];
 /**
  * TEMPORARY — forces the trade-focused arm for internal team testing (TMCU-1276).
  * Remove this override and restore control's real config once testing wraps up.
@@ -406,7 +405,7 @@ const TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
  */
 const FORCE_TRADE_FOCUSED_FOR_TESTFLIGHT =
   __DEV__ ||
-  TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS.includes(
+  HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS.includes(
     process.env.METAMASK_ENVIRONMENT ?? '',
   );
 
