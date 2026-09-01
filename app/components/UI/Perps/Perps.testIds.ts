@@ -575,6 +575,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_TERMINATE_SHEET: 'perps-pro-market-twap-terminate-sheet',
   TWAP_TERMINATE_CONFIRM: 'perps-pro-market-twap-terminate-confirm',
   TWAP_TERMINATE_CANCEL: 'perps-pro-market-twap-terminate-cancel',
+  TWAP_TERMINATE_CLOSE: 'perps-pro-market-twap-terminate-close',
 };
 
 // Helper for dynamic Pro position row test IDs

@@ -74,7 +74,12 @@ const PerpsProTwapTerminateSheet = ({
       onClose={onClose}
       testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET}
     >
-      <BottomSheetHeader onClose={onClose}>
+      <BottomSheetHeader
+        onClose={onClose}
+        closeButtonProps={{
+          testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE,
+        }}
+      >
         {strings('perps.pro_positions_panel.twap_terminate.title', {
           symbol: getPerpsDisplaySymbol(twapOrder.symbol),
         })}
