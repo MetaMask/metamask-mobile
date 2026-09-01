@@ -32,6 +32,12 @@ export const FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY: Partial<
   [TabBarIconKey.Money]: IconName.MusdFilled,
 };
 
+/** Trimmed off the bottom safe-area inset so the pill sits closer to the edge. */
+export const TAB_BAR_FLOATING_INSET_REDUCTION = 10;
+
+/** Floor for the bottom gap, for devices reporting little or no bottom inset. */
+export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
+
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
   SCRIM: 'tab-bar-floating-scrim',

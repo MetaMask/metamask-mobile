@@ -34,6 +34,8 @@ import TabBarFloatingItem from './TabBarFloatingItem';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
+  TAB_BAR_FLOATING_INSET_REDUCTION,
+  TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
 
@@ -60,6 +62,14 @@ const TabBarFloating = ({
 }: TabBarFloatingProps) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
+
+  // Tightens the gap against iOS's generous home-indicator inset, but Android
+  // reports much smaller insets (0 on some emulators), where subtracting alone
+  // left the pill flush against the system navigation bar.
+  const bottomPadding = Math.max(
+    bottomInset - TAB_BAR_FLOATING_INSET_REDUCTION,
+    TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  );
   const { navigateToMoneyHome } = useMoneyNavigation();
 
   const handleLayout = useCallback(
@@ -172,9 +182,10 @@ const TabBarFloating = ({
 
   return (
     <View
-      style={tw.style(
-        `absolute bottom-0 left-0 right-0 px-4 pb-[${bottomInset - 10}px]`,
-      )}
+      style={[
+        tw.style('absolute bottom-0 left-0 right-0 px-4'),
+        { paddingBottom: bottomPadding },
+      ]}
       testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
       onLayout={handleLayout}
     >

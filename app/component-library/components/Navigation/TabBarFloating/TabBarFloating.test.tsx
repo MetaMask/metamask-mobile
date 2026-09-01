@@ -13,7 +13,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import TabBarFloating from './TabBarFloating';
-import { TAB_BAR_FLOATING_TEST_IDS } from './TabBarFloating.constants';
+import {
+  TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
+  TAB_BAR_FLOATING_TEST_IDS,
+} from './TabBarFloating.constants';
 import {
   TabBarIconKey,
   ExtendedBottomTabDescriptor,
@@ -164,6 +167,18 @@ describe('TabBarFloating', () => {
       position: 'absolute',
       bottom: 0,
     });
+  });
+
+  // Devices reporting no bottom inset (Android emulators, gesture nav) once
+  // produced negative padding, dropping the pill onto the system nav bar.
+  it('keeps a positive bottom gap when the device reports no bottom inset', () => {
+    const { getByTestId } = renderBar();
+
+    const { paddingBottom } = StyleSheet.flatten(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER).props.style,
+    );
+
+    expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
   });
 
   it('fades content out behind the bar with a transparent-to-background scrim', () => {
