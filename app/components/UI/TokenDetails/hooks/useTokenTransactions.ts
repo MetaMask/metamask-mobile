@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex, isHexAddress } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { assetIdsMatch, formatChainIdToCaip } from '@metamask/bridge-controller';
 import {
   TX_CONFIRMED,
   TX_PENDING,
@@ -98,7 +98,7 @@ const SWAP_LIKE_TRANSACTION_TYPES: string[] = [
 export const getSwapLegTokenIdentifiers = (
   tx: Transaction,
   bridgeHistoryItem?: { quote?: Record<string, Transaction> },
-): { addresses: string[]; symbols: string[] } => {
+): { addresses: string[]; symbols: string[]; assetIds: string[] } => {
   const quote = bridgeHistoryItem?.quote;
 
   const normalize = (values: (string | undefined)[]) => [
@@ -107,6 +107,10 @@ export const getSwapLegTokenIdentifiers = (
         .filter((value): value is string => Boolean(value))
         .map((value) => value.toLowerCase()),
     ),
+  ];
+
+  const normalizeAssetIds = (values: (string | undefined)[]) => [
+    ...new Set(values.filter((value): value is string => Boolean(value))),
   ];
 
   return {
@@ -123,6 +127,10 @@ export const getSwapLegTokenIdentifiers = (
       tx.destinationTokenSymbol,
       tx.swapMetaData?.token_from,
       tx.swapMetaData?.token_to,
+    ]),
+    assetIds: normalizeAssetIds([
+      quote?.srcAsset?.assetId,
+      quote?.destAsset?.assetId,
     ]),
   };
 };
@@ -336,7 +344,10 @@ export const useTokenTransactions = (
       }
 
       return Boolean(
-        assetAddress && destAssetId && destAssetId.includes(assetAddress),
+        assetAddress &&
+          destAssetId &&
+          (assetIdsMatch(destAssetId, assetAddress) ||
+            destAssetId.toLowerCase().includes(assetAddress)),
       );
     });
   }, [
@@ -382,10 +393,16 @@ export const useTokenTransactions = (
         transactionHash: tx.hash,
       });
 
-      const { addresses, symbols } = getSwapLegTokenIdentifiers(
+      const { addresses, symbols, assetIds } = getSwapLegTokenIdentifiers(
         tx,
         bridgeHistoryItem,
       );
+
+      if (navAddress && assetIds.length > 0) {
+        if (assetIds.some((assetId) => assetIdsMatch(assetId, navAddress))) {
+          return true;
+        }
+      }
 
       if (addresses.length > 0) {
         return Boolean(navAddress) && addresses.includes(navAddress);
@@ -434,6 +451,11 @@ export const useTokenTransactions = (
         destChainId.toLowerCase() !== chainId?.toLowerCase()
       ) {
         return false;
+      }
+
+      const destAssetId = quote.destAsset?.assetId;
+      if (destAssetId && navAddress && assetIdsMatch(destAssetId, navAddress)) {
+        return true;
       }
 
       const destAddress = quote.destAsset?.address?.toLowerCase();
