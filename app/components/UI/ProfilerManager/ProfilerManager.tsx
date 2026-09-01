@@ -122,8 +122,22 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
               path,
               `${RNFS.DocumentDirectoryPath}/${fileName}`,
             );
+            setLastProfilePath(path);
+          } else if (
+            Platform.OS === 'android' &&
+            process.env.METAMASK_ENVIRONMENT === 'e2e'
+          ) {
+            const fileName = path.split('/').pop() || 'profile.cpuprofile';
+            const downloadPath = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+            try {
+              await RNFS.copyFile(path, downloadPath);
+              setLastProfilePath(downloadPath);
+            } catch {
+              setLastProfilePath(path);
+            }
+          } else {
+            setLastProfilePath(path);
           }
-          setLastProfilePath(path);
         }
       }
     } catch (error) {
@@ -135,7 +149,6 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
     setSessionId(null);
   }, [sessionId]);
 
-  // For iOS only. We can find the file in the Downloads folder on Android.
   const exportTrace = useCallback(async () => {
     if (!lastProfilePath) return;
     try {
