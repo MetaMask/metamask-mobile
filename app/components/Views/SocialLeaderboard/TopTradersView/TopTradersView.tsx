@@ -37,6 +37,7 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import Routes from '../../../../constants/navigation/Routes';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectSocialLeaderboardEnabled,
@@ -177,6 +178,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -540,7 +542,7 @@ const TopTradersView: React.FC<TopTradersViewProps> = ({
     ],
   );
 
-  const contentContainerStyle = tw.style('pb-6');
+  const contentContainerStyle = tw.style(`pb-[${24 + floatingTabBarInset}px]`);
 
   return (
     <Box twClassName="flex-1">
