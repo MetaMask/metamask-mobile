@@ -300,12 +300,71 @@ class BitcoinTestDapp {
     );
   }
 
-  async connect(): Promise<void> {
-    await this.openWalletSelectionModal();
+  /**
+   * Poll for Connected without throwing — used by the connect recovery loop.
+   */
+  private async isConnectionStatus(
+    expected: string,
+    timeoutMs: number,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const actual = await this.getConnectionStatus();
+      if (actual === expected) {
+        return true;
+      }
+      await wait(POLL_MS);
+    }
+    return false;
+  }
+
+  /**
+   * Single approve attempt after the wallet-selection modal is ready: pick the
+   * MetaMask Bitcoin option, confirm the standard path, and tap the native
+   * connect sheet.
+   */
+  private async attemptApproveConnection(): Promise<void> {
     await this.click(`button${sel(walletSelectionModal.walletOption)}`);
     await this.click(`button${sel(walletSelectionModal.standardButton)}`);
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
-    await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
+  }
+
+  /**
+   * Connect to MetaMask via the Bitcoin wallet-standard test dapp.
+   *
+   * Provider-ready remount (openWalletSelectionModal) covers wallets=[] on
+   * mount. Separately, iOS CI still flakes when the native `connect-button`
+   * sheet never appears after wallet selection, or approve leaves status on
+   * "Not connected". Retry the full open + approve path (reload is inside
+   * openWalletSelectionModal) — same recovery shape as SolanaTestDApp.
+   */
+  async connect(): Promise<void> {
+    const maxAttempts = 3;
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.openWalletSelectionModal();
+        await this.attemptApproveConnection();
+        const waitMs =
+          attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 15_000;
+        if (await this.isConnectionStatus('Connected', waitMs)) {
+          return;
+        }
+        lastError = new Error(
+          `Timed out: expected "Connected" after native approve (attempt ${attempt}/${maxAttempts})`,
+        );
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    if (lastError instanceof Error) {
+      throw lastError;
+    }
+    throw new Error(
+      `Bitcoin connect failed after ${maxAttempts} provider-ready open + approve attempt(s)`,
+    );
   }
 
   async disconnect(): Promise<void> {
