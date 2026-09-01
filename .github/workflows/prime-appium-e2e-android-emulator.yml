@@ -1,15 +1,10 @@
 # Prime Appium Android Emulator Snapshot
 #
 # Boots the Appium smoke AVD once per system image, stabilizes it, and saves a
-# named quick-boot snapshot ("e2e_golden").
-#
-# Persistence (two layers — both needed):
-# - actions/cache: cross-run restore (main / base / same PR). Avoids re-priming
-#   every pipeline. Do NOT put ~/.android/avd on the Namespace volume (fork +
-#   last-write-wins clobber).
-# - dual-upload artifact (Namespace-only): within-run handoff to ~30 shards.
-#   Concurrent actions/cache restores of a multi-GB AVD are slower/riskier than
-#   one upload + N downloads from the artifact store.
+# named quick-boot snapshot ("e2e_golden") to actions/cache (fingerprint key).
+# Shards restore that same key themselves — no within-run artifact handoff
+# (upload was ~2 min on the critical path). Do NOT put ~/.android/avd on the
+# Namespace volume (fork + last-write-wins clobber).
 #
 # Helper: e2e-android-emulator-snapshot-ci.ts
 
@@ -130,19 +125,3 @@ jobs:
         with:
           path: ~/.android/avd
           key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
-
-      - name: Upload golden AVD artifact
-        if: >-
-          ${{
-            steps.golden-snapshot-check.outputs.ready == 'true' ||
-            steps.prime-golden-snapshot.outputs.ready == 'true'
-          }}
-        continue-on-error: true
-        uses: ./.github/actions/dual-upload-e2e-artifact
-        with:
-          name: android-e2e-golden-avd
-          path: ~/.android/avd
-          if-no-files-found: error
-          retention-days: 1
-          runner-provider: ${{ inputs.runner_provider }}
-          skip-github: 'true'

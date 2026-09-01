@@ -39,6 +39,8 @@ const ANDROID_ANR_STABILIZE_TIMEOUT_MS = 90_000;
 const ANDROID_NETWORK_READY_POLL_MS = 2_000;
 const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
 const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
+/** Snapshot resume already has network config in state — fail open quickly. */
+const ANDROID_SNAPSHOT_NETWORK_READY_TIMEOUT_MS = 15_000;
 const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
@@ -444,16 +446,20 @@ async function ensureAndroidNetworkEnabled(serial: string): Promise<void> {
  * Waits until the emulator has stable outbound network before E2E tests start.
  * Reduces NetInfo false-offline flips during cold boot on CI.
  */
-async function waitForAndroidNetworkReady(serial: string): Promise<void> {
+async function waitForAndroidNetworkReady(
+  serial: string,
+  options?: { timeoutMs?: number },
+): Promise<void> {
   if (process.env.CI !== 'true') {
     return;
   }
 
-  const timeoutMs = Number.parseInt(
-    process.env.ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS ??
-      String(ANDROID_NETWORK_READY_TIMEOUT_MS),
-    10,
-  );
+  const timeoutMs =
+    options?.timeoutMs ??
+    resolvePositiveIntEnv(
+      'ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS',
+      ANDROID_NETWORK_READY_TIMEOUT_MS,
+    );
   const requiredSuccesses = Number.parseInt(
     process.env.ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS ??
       String(ANDROID_NETWORK_READY_CONSECUTIVE_PINGS),
@@ -461,7 +467,7 @@ async function waitForAndroidNetworkReady(serial: string): Promise<void> {
   );
 
   logger.info(
-    `Waiting for Android emulator network (${requiredSuccesses} consecutive pings)...`,
+    `Waiting for Android emulator network (${requiredSuccesses} consecutive pings, timeout ${timeoutMs / 1000}s)...`,
   );
   await ensureAndroidNetworkEnabled(serial);
 
@@ -566,10 +572,13 @@ async function waitForEmulatorBoot(
   });
 
   if (options?.postBoot === 'light') {
-    // Golden-snapshot resume already carries the stabilized state (system
-    // packages disabled, animations off, setup wizard done) — only the
-    // network needs to be up before Appium session creation.
-    await waitForAndroidNetworkReady(serial);
+    // Snapshot resume already has stabilized state; only probe network briefly.
+    await waitForAndroidNetworkReady(serial, {
+      timeoutMs: resolvePositiveIntEnv(
+        'ANDROID_EMULATOR_SNAPSHOT_NETWORK_READY_TIMEOUT_MS',
+        ANDROID_SNAPSHOT_NETWORK_READY_TIMEOUT_MS,
+      ),
+    });
     return;
   }
 

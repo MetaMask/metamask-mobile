@@ -77,8 +77,8 @@ on:
         default: 'auto'
       cache-android-golden-snapshot:
         description: >-
-          Download the primed golden AVD artifact from the prime job and
-          attempt snapshot resume. Set false for jobs that always cold-boot
+          Restore the primed golden AVD from actions/cache (fingerprint key)
+          and attempt snapshot resume. Set false for jobs that always cold-boot
           (e.g. fixture validation).
         required: false
         type: boolean
@@ -215,23 +215,6 @@ jobs:
             .metamask
             .yarn/cache
 
-      # Restore the primed AVD before setup-e2e-env so Create AVD can skip
-      # recreation when e2e_golden/snapshot.pb is present. Artifact is produced
-      # by the prime job (Namespace-only via dual-upload skip-github).
-      - name: Download golden AVD artifact
-        if: >-
-          ${{
-            inputs.platform == 'android' &&
-            inputs.cache-android-golden-snapshot &&
-            steps.select-specs.outputs.spec_count != '0'
-          }}
-        continue-on-error: true
-        uses: ./.github/actions/download-e2e-artifact
-        with:
-          name: android-e2e-golden-avd
-          path: ~/.android/avd
-          runner-provider: ${{ inputs.runner_provider }}
-
       - name: Setup E2E environment (Android)
         if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/setup-e2e-env
@@ -247,8 +230,32 @@ jobs:
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
 
-      # Fingerprint → GITHUB_ENV for isGoldenSnapshotUsable; clears on error.
-      - name: Check Android golden snapshot
+      # Fingerprint for cache key + isGoldenSnapshotUsable (clears on error).
+      - name: Resolve Android golden snapshot fingerprint
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
+        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
+
+      # Same key the prime job saves. Overwrites any AVD created during setup.
+      - name: Restore golden AVD cache
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0' &&
+            env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != ''
+          }}
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.android/avd
+          key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
+
+      - name: Re-check Android golden snapshot after cache restore
         if: >-
           ${{
             inputs.platform == 'android' &&
