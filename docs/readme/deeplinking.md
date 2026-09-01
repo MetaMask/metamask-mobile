@@ -413,9 +413,11 @@ MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` a
 - Signature validation results
 - Interstitial modal interactions
 - UTM parameters for attribution
-- Route-specific sensitive properties
+- Route-specific sensitive properties (deprecated leftover; see [Deep Link Analytics](./deeplink-analytics.md))
 
-For comprehensive analytics documentation, see [Deep Link Analytics](./deeplink-analytics.md).
+`DEEP_LINK_USED` still attaches those sensitive fields today, which triggers dual anonymous / non-anonymous emission. `addSensitiveProperties` is deprecated. New tracking, including new deep link routes, uses `addProperties` only. When you edit this event, review each sensitive field and drop it or move it to `addProperties` when that is safe.
+
+For the full property list and extraction, see [Deep Link Analytics](./deeplink-analytics.md).
 
 ### Quick Overview
 
@@ -423,7 +425,7 @@ The analytics system:
 
 - Fetches Branch.io parameters once per deep link to detect deferred deep links
 - Creates analytics contexts with all relevant information
-- Tracks a single `DEEP_LINK_USED` event with both standard and sensitive properties
+- Tracks a single `DEEP_LINK_USED` event. Standard fields go through `addProperties`; leftover route-specific fields still go through deprecated `addSensitiveProperties`
 - Handles errors gracefully without blocking deep link processing
 
 ## Testing Links
