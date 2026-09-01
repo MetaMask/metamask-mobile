@@ -1,6 +1,7 @@
 {
   "asyncState": {
     "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:PUSH_PRE_PROMPT_SHOWN": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
@@ -153,6 +154,7 @@
           "cardHomeDataAddress": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardHomeDataError": null,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -992,6 +994,7 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,

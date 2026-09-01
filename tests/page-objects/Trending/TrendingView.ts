@@ -36,9 +36,13 @@ class TrendingView {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
-  get searchCancelButton(): Promise<AppiumElement> {
+  get searchBackButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BACK_BUTTON);
+  }
+
+  get searchBrowserTabsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
+      TrendingViewSelectorsIDs.SEARCH_BROWSER_TABS_BUTTON,
     );
   }
 
@@ -157,9 +161,9 @@ class TrendingView {
     });
   }
 
-  async tapSearchCancelButton(): Promise<void> {
-    await Gestures.tap(this.searchCancelButton, {
-      elemDescription: 'Tap Search Cancel button',
+  async tapSearchBackButton(): Promise<void> {
+    await Gestures.tap(this.searchBackButton, {
+      elemDescription: 'Tap Search Back button',
     });
   }
 
