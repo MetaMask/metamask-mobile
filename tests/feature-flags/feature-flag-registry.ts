@@ -5180,6 +5180,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  mobileUxBftcConsolidation: {
+    name: 'mobileUxBftcConsolidation',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsDefaultPayTokenWhenNoBalanceEnabled: {
     name: 'perpsDefaultPayTokenWhenNoBalanceEnabled',
     type: FeatureFlagType.Remote,

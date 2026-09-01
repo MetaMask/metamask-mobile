@@ -57,7 +57,16 @@ export function finalizeOnboardingCompletion({
     return;
   }
 
-  if (selectMobileUxBftcConsolidationFlagEnabled(store.getState())) {
+  const state = store.getState();
+  // Skip when engine/RFF state is unavailable (e.g. partial test stores);
+  // defaults to OFF, matching the production kill-switch default.
+  const canReadRemoteFeatureFlags = Boolean(
+    state?.engine?.backgroundState?.RemoteFeatureFlagController,
+  );
+  if (
+    canReadRemoteFeatureFlags &&
+    selectMobileUxBftcConsolidationFlagEnabled(state)
+  ) {
     dispatch(setBasicFunctionalityConsolidatedEnabled(true));
     syncConsolidatedBasicFunctionalityPreferences(isBasicFunctionalityEnabled);
   }

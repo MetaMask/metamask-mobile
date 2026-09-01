@@ -8,6 +8,7 @@ import { setWalletHomeOnboardingStepsEligible } from '../../actions/onboarding';
 import { setBasicFunctionalityConsolidatedEnabled } from '../../actions/settings';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
 import { selectMobileUxBftcConsolidationFlagEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import { store } from '../../store';
 import { analytics } from '../analytics/analytics';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import Logger from '../Logger';
@@ -75,6 +76,12 @@ describe('finalizeOnboardingCompletion', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockProvisionFromMetadata.mockResolvedValue(undefined);
+    jest
+      .mocked(store.getState)
+      .mockReturnValue({} as ReturnType<typeof store.getState>);
+    jest
+      .mocked(selectMobileUxBftcConsolidationFlagEnabled)
+      .mockReturnValue(false);
   });
 
   it('tracks ONBOARDING_COMPLETED via analytics.trackEvent for eligible flows', () => {
@@ -246,6 +253,13 @@ describe('finalizeOnboardingCompletion', () => {
   });
 
   it('marks consolidated Basic Functionality cohort when remote flag is enabled', () => {
+    jest.mocked(store.getState).mockReturnValue({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: { remoteFeatureFlags: {} },
+        },
+      },
+    } as ReturnType<typeof store.getState>);
     jest
       .mocked(selectMobileUxBftcConsolidationFlagEnabled)
       .mockReturnValue(true);
