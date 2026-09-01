@@ -1,5 +1,10 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { InitializationState } from '@metamask/perps-controller';
+import {
+  ChaseOrderSuspensionError,
+  InitializationState,
+  type ChaseOrder,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
@@ -74,6 +79,8 @@ const activeOrder = {
   startedAt: 1,
   status: 'active' as const,
 };
+const primaryProvider = 'primary-provider' as PerpsProviderType;
+const secondaryProvider = 'secondary-provider' as PerpsProviderType;
 
 const exhaustDiscoveryRetries = async () => {
   for (
@@ -465,6 +472,172 @@ describe('usePerpsChaseOrders', () => {
 
     expect(result.current.chaseOrders).toEqual([activeOrder]);
     unmount();
+  });
+
+  it('reconciles a partial suspension and retries failed providers', async () => {
+    const primaryActive = { ...activeOrder, providerId: primaryProvider };
+    const secondaryActive = {
+      ...activeOrder,
+      handle: 'chase-secondary',
+      providerId: secondaryProvider,
+    };
+    const primarySuspended = {
+      ...primaryActive,
+      status: 'backgrounded' as const,
+    };
+    const secondarySuspended = {
+      ...secondaryActive,
+      status: 'backgrounded' as const,
+    };
+    mockGetChaseOrders.mockResolvedValueOnce([primaryActive, secondaryActive]);
+    mockSuspendChaseOrders
+      .mockRejectedValueOnce(
+        new ChaseOrderSuspensionError({
+          suspendedOrders: [primarySuspended],
+          failures: [
+            {
+              providerId: secondaryProvider,
+              reason: new Error('secondary provider failed'),
+            },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce([primarySuspended, secondarySuspended]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([
+        primaryActive,
+        secondaryActive,
+      ]),
+    );
+
+    let suspendedOrders: ChaseOrder[] = [];
+    await act(async () => {
+      suspendedOrders = await hook.result.current.suspendChaseOrders();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(2);
+    expect(suspendedOrders).toEqual([primarySuspended, secondarySuspended]);
+    expect(hook.result.current.chaseOrders).toEqual([
+      expect.objectContaining(primarySuspended),
+      expect.objectContaining(secondarySuspended),
+    ]);
+    hook.unmount();
+  });
+
+  it('preserves partial suspension details after a generic retry failure', async () => {
+    const suspendedOrder = {
+      ...activeOrder,
+      providerId: primaryProvider,
+      status: 'backgrounded' as const,
+    };
+    const retryError = new Error('retry failed');
+    mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
+    mockSuspendChaseOrders
+      .mockRejectedValueOnce(
+        new ChaseOrderSuspensionError({
+          suspendedOrders: [suspendedOrder],
+          failures: [
+            {
+              providerId: secondaryProvider,
+              reason: new Error('secondary provider failed'),
+            },
+          ],
+        }),
+      )
+      .mockRejectedValueOnce(retryError);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    let result: unknown;
+    await act(async () => {
+      result = await hook.result.current
+        .suspendChaseOrders()
+        .catch((error) => error);
+    });
+
+    expect(result).toBeInstanceOf(ChaseOrderSuspensionError);
+    expect((result as ChaseOrderSuspensionError).suspendedOrders).toEqual([
+      suspendedOrder,
+    ]);
+    expect((result as ChaseOrderSuspensionError).failures[0].reason).toBe(
+      retryError,
+    );
+    expect(hook.result.current.chaseOrders).toEqual([
+      expect.objectContaining(suspendedOrder),
+    ]);
+    hook.unmount();
+  });
+
+  it('reconciles a late retry after a partial suspension times out', async () => {
+    let currentAppState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => currentAppState,
+    });
+    const partialOrder = {
+      ...activeOrder,
+      providerId: primaryProvider,
+      status: 'backgrounded' as const,
+    };
+    const freshOrder = {
+      ...activeOrder,
+      handle: 'chase-fresh-after-partial-timeout',
+      providerId: secondaryProvider,
+      status: 'backgrounded' as const,
+    };
+    let resolveRetry: ((orders: (typeof freshOrder)[]) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([freshOrder]);
+    mockSuspendChaseOrders
+      .mockRejectedValueOnce(
+        new ChaseOrderSuspensionError({
+          suspendedOrders: [partialOrder],
+          failures: [
+            {
+              providerId: secondaryProvider,
+              reason: new Error('secondary provider failed'),
+            },
+          ],
+        }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveRetry = resolve;
+          }),
+      );
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    currentAppState = 'background';
+
+    const suspensionResult = hook.result.current
+      .suspendChaseOrders()
+      .catch((error) => error);
+    await act(async () => Promise.resolve());
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+      );
+    });
+
+    const timeoutResult = await suspensionResult;
+    expect(timeoutResult).toBeInstanceOf(ChaseOrderSuspensionError);
+    expect(timeoutResult.suspendedOrders).toEqual([partialOrder]);
+    await act(async () => resolveRetry?.([freshOrder]));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([
+        partialOrder,
+        freshOrder,
+      ]),
+    );
+    hook.unmount();
   });
 
   it('skips a queued suspension after its lifecycle becomes stale', async () => {
@@ -1318,7 +1491,6 @@ describe('usePerpsChaseOrders', () => {
     hook.rerender({});
 
     expect(hook.result.current.chaseOrders).toEqual([]);
-    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
     hook.unmount();
   });
 
@@ -1458,7 +1630,6 @@ describe('usePerpsChaseOrders', () => {
       hook.rerender({});
 
       expect(hook.result.current.chaseOrders).toEqual([]);
-      expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
       hook.unmount();
     },

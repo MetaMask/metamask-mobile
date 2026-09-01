@@ -37,9 +37,6 @@ const ChaseNotificationPreference = ({
   const { isPushEnabled } = useFeatureNotificationsStatus('perps');
   useLayoutEffect(() => {
     onChange(isPushEnabled);
-    return () => {
-      onChange(false);
-    };
   }, [isPushEnabled, onChange]);
   return null;
 };
@@ -164,6 +161,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const reportSuspendedChaseOrders = (
       orders: Awaited<ReturnType<typeof suspendChaseOrders>>,
+      allowAfterUnmount = false,
     ) => {
       const backgroundedOrders = orders.filter(
         (order) => order.status === CHASE_ORDER_STATUS.Backgrounded,
@@ -209,7 +207,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         if (
           !(await isPushPermissionGranted()) ||
-          !isActive ||
+          (!isActive && !allowAfterUnmount) ||
           !chaseLifecycleRef.current.isPushNotificationsEnabled ||
           !isPerpsPushNotificationsEnabledRef.current
         ) {
@@ -459,10 +457,10 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         ? chaseLifecycle.suspendChaseOrders()
         : chaseLifecycle.suspendChaseOrders(() => !isPerpsEnabledRef.current);
       suspension
-        .then(reportSuspendedChaseOrders)
+        .then((orders) => reportSuspendedChaseOrders(orders, true))
         .catch((error) => {
           if (error instanceof ChaseOrderSuspensionError) {
-            reportSuspendedChaseOrders(error.suspendedOrders);
+            reportSuspendedChaseOrders(error.suspendedOrders, true);
           }
           DevLogger.log(
             'PerpsAlwaysOnProvider: Chase suspension before disconnect failed',
@@ -485,7 +483,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   return (
     <>
       {children}
-      {isPerpsEnabled && isChaseEnabled ? (
+      {isPerpsEnabled && (isChaseEnabled || hasLiveChaseOrders) ? (
         <ChaseNotificationPreference
           onChange={handlePerpsPushNotificationsEnabledChange}
         />

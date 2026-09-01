@@ -613,27 +613,6 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
   // Reset route-scoped state first so the initialization effect below can run
   // exactly one discovery read for the new route.
   useLayoutEffect(() => {
-    const previousRoute = selectedRoute;
-    if (
-      previousRoute &&
-      previousRoute !== route &&
-      cachedRoute === previousRoute &&
-      hasLiveRetainedOrders()
-    ) {
-      Engine.context.PerpsController.suspendChaseOrders().catch((error) => {
-        Logger.error(ensureError(error, 'usePerpsChaseOrders.routeChange'), {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsChaseOrders',
-            action: 'suspend_before_route_change',
-          },
-          context: {
-            name: 'usePerpsChaseOrders.routeChange',
-            data: { previousRoute, nextRoute: route },
-          },
-        });
-      });
-    }
     selectedRoute = route;
     if (cachedRoute === route) {
       syncRefreshLifecycle();

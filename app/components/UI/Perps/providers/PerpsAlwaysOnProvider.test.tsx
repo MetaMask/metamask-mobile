@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
+import {
+  ChaseOrderSuspensionError,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
@@ -158,6 +162,7 @@ jest.mock(
 );
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const secondaryProvider = 'secondary-provider' as PerpsProviderType;
 const mockResumeFromForeground =
   PerpsConnectionManager.resumeFromForeground as jest.Mock;
 const mockDisconnect = PerpsConnectionManager.disconnect as jest.Mock;
@@ -630,6 +635,62 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockUseFeatureNotificationsStatus).not.toHaveBeenCalled();
   });
 
+  it('keeps notification preferences for a retained Chase after rollout turns off', async () => {
+    let isChaseEnabled = true;
+    mockHasLiveChaseOrders = true;
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) {
+        return isChaseEnabled;
+      }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
+      return undefined;
+    });
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'retained-chase', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    isChaseEnabled = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the wallet-root suspension notification after parent unmount', async () => {
+    mockHasLiveChaseOrders = true;
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'unmount-chase', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      view.unmount();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('does not start market data preload when perps is disabled', () => {
     mockUseSelector.mockReturnValue(false);
 
@@ -714,7 +775,11 @@ describe('PerpsAlwaysOnProvider', () => {
         asset: 'ETH',
       }),
     );
-    expect(mockDisplayNotification).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { notification_type: 'chase_backgrounded' },
+      }),
+    );
     expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
       mockDisconnect.mock.invocationCallOrder[0],
     );
@@ -1476,6 +1541,45 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a successful partial suspension before disconnecting', async () => {
+    const suspendedOrder = {
+      handle: 'chase-partial',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    };
+    mockSuspendChaseOrders.mockRejectedValueOnce(
+      new ChaseOrderSuspensionError({
+        suspendedOrders: [suspendedOrder] as never[],
+        failures: [
+          {
+            providerId: secondaryProvider,
+            reason: new Error('secondary provider failed'),
+          },
+        ],
+      }),
+    );
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'ETH' }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockDisconnect.mock.invocationCallOrder[0],
+    );
   });
 
   it('calls resumeFromForeground after delay when app returns to foreground', () => {

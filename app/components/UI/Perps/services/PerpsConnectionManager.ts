@@ -133,6 +133,8 @@ class PerpsConnectionManagerClass {
   private wasOffline = false;
   private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private networkRestoreRetryCount = 0;
+  private contextChangePreparationPromise: Promise<void> | null = null;
+  private isContextChangePrepared = false;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -155,6 +157,49 @@ class PerpsConnectionManagerClass {
         'eip155:1',
       )?.address.toLowerCase() ?? '';
     return `${this.getSelectedMarketContextKey()}|${address}`;
+  }
+
+  private prepareForContextChange(): Promise<void> {
+    if (this.isContextChangePrepared) {
+      return Promise.resolve();
+    }
+    if (this.contextChangePreparationPromise) {
+      return this.contextChangePreparationPromise;
+    }
+    const preparation = Engine.context.PerpsController.suspendChaseOrders()
+      .then(() => {
+        this.isContextChangePrepared = true;
+      })
+      .catch((error) => {
+        this.isContextChangePrepared = true;
+        Logger.error(
+          ensureError(error, 'PerpsConnectionManager.prepareForContextChange'),
+          {
+            tags: { feature: PERPS_CONSTANTS.FeatureName },
+            context: {
+              name: 'PerpsConnectionManager.prepareForContextChange',
+            },
+          },
+        );
+      })
+      .finally(() => {
+        if (this.contextChangePreparationPromise === preparation) {
+          this.contextChangePreparationPromise = null;
+        }
+      });
+    this.contextChangePreparationPromise = preparation;
+    return preparation;
+  }
+
+  async runWithContextChangePreparation<TResult>(
+    transition: () => Promise<TResult>,
+  ): Promise<TResult> {
+    await this.prepareForContextChange();
+    try {
+      return await transition();
+    } finally {
+      this.isContextChangePrepared = false;
+    }
   }
 
   private setInitializedUserContextKey(key: string | null): void {
@@ -249,6 +294,7 @@ class PerpsConnectionManagerClass {
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (hasContextChanged && this.isConnected) {
+        const contextChangePreparation = this.prepareForContextChange();
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
@@ -346,9 +392,13 @@ class PerpsConnectionManagerClass {
         if (this.stateChangeDebounceTimer !== null) {
           clearTimeout(this.stateChangeDebounceTimer);
         }
-        this.stateChangeDebounceTimer = setTimeout(() => {
+        this.stateChangeDebounceTimer = setTimeout(async () => {
           this.stateChangeDebounceTimer = null;
-          this.reconnectWithNewContext().catch((error) => {
+          await contextChangePreparation;
+          this.isContextChangePrepared = false;
+          try {
+            await this.reconnectWithNewContext();
+          } catch (error) {
             Logger.error(
               ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
               {
@@ -362,7 +412,7 @@ class PerpsConnectionManagerClass {
                 },
               },
             );
-          });
+          }
         }, 50);
       }
 
@@ -536,6 +586,8 @@ class PerpsConnectionManagerClass {
       this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
+    this.contextChangePreparationPromise = null;
+    this.isContextChangePrepared = false;
   }
 
   /**

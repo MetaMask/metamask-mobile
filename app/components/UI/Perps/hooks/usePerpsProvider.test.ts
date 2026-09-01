@@ -8,6 +8,7 @@ import {
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import { usePerpsProvider } from './usePerpsProvider';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -19,6 +20,14 @@ jest.mock('../../../../core/Engine', () => ({
       getOrderCapabilities: jest.fn(),
       switchProvider: jest.fn(),
     },
+  },
+}));
+
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    runWithContextChangePreparation: jest.fn(
+      (transition: () => Promise<unknown>) => transition(),
+    ),
   },
 }));
 
@@ -118,6 +127,22 @@ describe('usePerpsProvider', () => {
   });
 
   describe('switchProvider', () => {
+    it('uses context preparation before switching provider', async () => {
+      mockUseSelector
+        .mockReturnValueOnce('hyperliquid')
+        .mockReturnValueOnce(false);
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockResolvedValue({ success: true });
+      const { result } = renderHook(() => usePerpsProvider());
+
+      await result.current.switchProvider('hyperliquid');
+
+      expect(
+        PerpsConnectionManager.runWithContextChangePreparation,
+      ).toHaveBeenCalledTimes(1);
+    });
+
     it('calls PerpsController.switchProvider with the given providerId', async () => {
       mockUseSelector
         .mockReturnValueOnce('hyperliquid')
