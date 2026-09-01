@@ -1826,6 +1826,45 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('preserves canceled history when invalidation races reconciliation', async () => {
+    let resolveCancellationRefresh:
+      | ((orders: ChaseOrder[]) => void)
+      | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCancellationRefresh = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    const reconciliation =
+      hook.result.current.reconcileCanceledChaseOrder(activeOrder);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      resolveCancellationRefresh?.([]);
+      await reconciliation;
+    });
+
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(3));
+    expect(hook.result.current.chaseOrders).toEqual([
+      {
+        ...activeOrder,
+        restingOrderId: null,
+        status: 'canceled',
+      },
+    ]);
+    hook.unmount();
+  });
+
   it('keeps controller terminal truth after cancellation reconciliation', async () => {
     const filledOrder = {
       ...activeOrder,

@@ -75,6 +75,8 @@ let refreshPromise:
   | undefined;
 let mutationQueue: Promise<void> = Promise.resolve();
 let mutationQueueEpoch = 0;
+let cancellationReconciliationCount = 0;
+let deferredCancellationRefreshRoute: string | undefined;
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 let invalidationUnsubscribe: (() => void) | undefined;
 let storeReconciliationUnsubscribe: (() => void) | undefined;
@@ -285,6 +287,10 @@ function syncRefreshLifecycle() {
   invalidationUnsubscribe ??= PerpsCacheInvalidator.subscribe(
     'accountState',
     () => {
+      if (cancellationReconciliationCount > 0) {
+        deferredCancellationRefreshRoute = getRouteKey();
+        return;
+      }
       requestGeneration += 1;
       refreshPromise = undefined;
       if (canRefreshCurrentRoute()) {
@@ -517,6 +523,8 @@ function resetChaseOrdersStore() {
   refreshPromise = undefined;
   mutationQueue = Promise.resolve();
   mutationQueueEpoch += 1;
+  cancellationReconciliationCount = 0;
+  deferredCancellationRefreshRoute = undefined;
   cachedRoute = '';
   cachedOrders = [];
   selectedRoute = '';
@@ -746,6 +754,8 @@ const getFreshChaseOrders = async ({
   }
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
+  const isCancellationReconciliation = canceledOrder !== undefined;
+  if (isCancellationReconciliation) cancellationReconciliationCount += 1;
   const operation = mutationQueue.then(async () => {
     if (
       epoch !== mutationQueueEpoch ||
@@ -759,7 +769,25 @@ const getFreshChaseOrders = async ({
     result = await refreshChaseOrders(canceledOrder);
   });
   mutationQueue = operation.catch(() => undefined);
-  await operation;
+  try {
+    await operation;
+  } finally {
+    if (isCancellationReconciliation) {
+      cancellationReconciliationCount = Math.max(
+        0,
+        cancellationReconciliationCount - 1,
+      );
+      const deferredRoute = deferredCancellationRefreshRoute;
+      if (cancellationReconciliationCount === 0 && deferredRoute) {
+        deferredCancellationRefreshRoute = undefined;
+        if (deferredRoute === getRouteKey() && canRefreshCurrentRoute()) {
+          requestGeneration += 1;
+          refreshPromise = undefined;
+          refreshChaseOrders().catch(() => undefined);
+        }
+      }
+    }
+  }
   return result;
 };
 
