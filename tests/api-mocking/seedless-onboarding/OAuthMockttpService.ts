@@ -3,6 +3,7 @@
  */
 
 import { Mockttp } from 'mockttp';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 
 import {
   AuthServer,
@@ -16,7 +17,11 @@ import {
   SSSNodeKeyPairs,
 } from './constants';
 
-import { OAuthMockttpServiceOptions, SecretType } from './types';
+import {
+  EncAccountDataGetMockPayload,
+  OAuthMockttpServiceOptions,
+  SecretType,
+} from './types';
 
 const DEFAULT_MOCK_APPLE_OAUTH_CLIENT_ID = 'io.metamask.appleloginclient.dev';
 const DEFAULT_MOCK_GOOGLE_OAUTH_CLIENT_ID =
@@ -653,8 +658,6 @@ export class OAuthMockttpService {
    * Setup Metadata Service mocks
    */
   private async setupMetadataServiceMocks(server: Mockttp): Promise<void> {
-    const encryptedSecretData = this.generateMockEncryptedSecretData();
-
     // Set metadata
     await server
       .forPost('/proxy')
@@ -677,8 +680,7 @@ export class OAuthMockttpService {
       .asPriority(1000)
       .thenJson(200, {
         success: true,
-        data: this.isExistingUser() ? encryptedSecretData : [],
-        ids: this.isExistingUser() ? ['', PasswordChangeItemId] : [],
+        ...this.getMetadataEncAccountDataGetPayload(),
       });
 
     await server
@@ -1084,10 +1086,28 @@ export class OAuthMockttpService {
   }
 
   /**
-   * Generate mock encrypted secret data for existing user flow
-   * This simulates the encrypted seed phrase response from metadata service
+   * Builds `/metadata/enc_account_data/get` mock payload aligned with
+   * `@metamask/toprf-secure-backup` MetadataStore parsing (parallel `data`,
+   * `ids`, `versions`; optional `dataTypes` / `createdAt`).
    */
-  private generateMockEncryptedSecretData(): string[] {
+  private getMetadataEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
+    if (this.isExistingUser()) {
+      return this.buildExistingUserEncAccountDataGetPayload();
+    }
+    return {
+      data: [],
+      ids: [],
+      versions: [],
+      dataTypes: [],
+      createdAt: [],
+    };
+  }
+
+  /**
+   * Existing-user metadata: encrypted SRP + password-change items with
+   * aligned versions / dataTypes / createdAt arrays.
+   */
+  private buildExistingUserEncAccountDataGetPayload(): EncAccountDataGetMockPayload {
     const mockEncryptedSrp = Buffer.from(
       JSON.stringify({
         data: Buffer.from(E2E_SRP).toString('base64'),
@@ -1103,7 +1123,13 @@ export class OAuthMockttpService {
       }),
     ).toString('base64');
 
-    return [mockEncryptedSrp, mockPasswordChangeItem];
+    return {
+      data: [mockEncryptedSrp, mockPasswordChangeItem],
+      ids: ['', PasswordChangeItemId],
+      versions: ['v2', 'v2'],
+      dataTypes: [EncAccountDataType.PrimarySrp, null],
+      createdAt: [null, null],
+    };
   }
 }
 
