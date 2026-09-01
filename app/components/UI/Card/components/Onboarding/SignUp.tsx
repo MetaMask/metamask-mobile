@@ -86,6 +86,33 @@ const buildWaitlistUrl = (countryName: string, email?: string): string => {
 const normalizeCallingCode = (code: string | null | undefined): string =>
   (code ?? '').replace(/\D/g, '');
 
+const matchPhoneRegionByCallingCode = (
+  callingCode: string,
+  allRegions: Region[],
+  getRegionByCode: (code: string | null | undefined) => Region | null,
+  options: {
+    fromMigration: boolean;
+    selectedCountryKey?: string;
+  },
+): Region | null => {
+  if (!callingCode) {
+    return null;
+  }
+
+  const preferredCountryKey = options.fromMigration
+    ? UK_MIGRATION_COUNTRY_CODE
+    : options.selectedCountryKey;
+
+  if (preferredCountryKey) {
+    const preferredRegion = getRegionByCode(preferredCountryKey);
+    if (preferredRegion?.areaCode === callingCode) {
+      return preferredRegion;
+    }
+  }
+
+  return allRegions.find((region) => region.areaCode === callingCode) ?? null;
+};
+
 const SignUp = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -237,9 +264,15 @@ const SignUp = () => {
           callingCode &&
           allRegions.length
         ) {
-          const matchedPhoneRegion =
-            allRegions.find((region) => region.areaCode === callingCode) ??
-            null;
+          const matchedPhoneRegion = matchPhoneRegionByCallingCode(
+            callingCode,
+            allRegions,
+            getRegionByCode,
+            {
+              fromMigration,
+              selectedCountryKey: selectedCountry?.key,
+            },
+          );
           if (matchedPhoneRegion) {
             setPhoneRegion(matchedPhoneRegion);
           }
@@ -262,7 +295,7 @@ const SignUp = () => {
     return () => {
       cancelled = true;
     };
-  }, [allRegions, fromMigration, sdk]);
+  }, [allRegions, fromMigration, sdk, getRegionByCode, selectedCountry?.key]);
 
   useEffect(() => {
     if (!debouncedEmail) {
