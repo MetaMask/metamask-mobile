@@ -3,6 +3,8 @@
  * outputs or other local files.
  */
 
+import { appendFileSync } from 'node:fs';
+
 /** BrowserStack app URLs use the bs:// scheme with an opaque app hash. */
 const BROWSERSTACK_APP_URL_PATTERN = /^bs:\/\/[A-Za-z0-9]+$/;
 
@@ -96,10 +98,10 @@ function writeGithubOutputs(path, outputs) {
     }
     lines.push(`${key}=${value}`);
   }
-  require('node:fs').appendFileSync(path, `${lines.join('\n')}\n`);
+  appendFileSync(path, `${lines.join('\n')}\n`);
 }
 
-module.exports = {
+export {
   BROWSERSTACK_APP_URL_PATTERN,
   WITH_SRP_CUSTOM_ID_PATTERN,
   WITHOUT_SRP_CUSTOM_ID_PATTERN,

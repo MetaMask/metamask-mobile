@@ -503,6 +503,20 @@ describe('enrichTokenFromApi', () => {
     expect(result?.decimals).toBe(8);
   });
 
+  it('preserves the amount while enriching missing token metadata', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '50',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)).toStrictEqual({
+      ...token,
+      decimals: 6,
+      symbol: 'USDT',
+    });
+  });
+
   it('preserves a zero-decimals value rather than treating it as missing', () => {
     const token: TokenAmount = {
       direction: 'out',
