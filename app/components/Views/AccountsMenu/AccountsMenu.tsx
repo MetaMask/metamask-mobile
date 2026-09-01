@@ -24,12 +24,10 @@ import { Authentication } from '../../../core/';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
-import { navigateWithDetails } from '../../../util/navigation/navUtils';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
+import { useQRScanner } from '../../hooks/useQRScanner';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -51,6 +49,7 @@ const AccountsMenu = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
+  const { openQRScanner } = useQRScanner();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
@@ -250,63 +249,6 @@ const AccountsMenu = () => {
 
     return title;
   }, []);
-
-  const onScanSuccess = useCallback(
-    (data: { private_key?: string; seed?: string }, content?: string) => {
-      if (data.private_key) {
-        const privateKey = data.private_key;
-        Alert.alert(
-          strings('wallet.private_key_detected'),
-          strings('wallet.do_you_want_to_import_this_account'),
-          [
-            {
-              text: strings('wallet.cancel'),
-              onPress: () => false,
-              style: 'cancel',
-            },
-            {
-              text: strings('wallet.yes'),
-              onPress: async () => {
-                try {
-                  await Authentication.importAccountFromPrivateKey(privateKey);
-                  navigation.navigate('ImportPrivateKeyView', {
-                    screen: 'ImportPrivateKeySuccess',
-                  });
-                } catch {
-                  Alert.alert(
-                    strings('import_private_key.error_title'),
-                    strings('import_private_key.error_message'),
-                  );
-                }
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      } else if (data.seed) {
-        Alert.alert(
-          strings('wallet.error'),
-          strings('wallet.logout_to_import_seed'),
-        );
-      } else {
-        setTimeout(() => {
-          DeeplinkManager.parse(content ?? '', {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          });
-        }, 500);
-      }
-    },
-    [navigation],
-  );
-
-  const openQRScanner = useCallback(() => {
-    // Broader ScanSuccess param; avoid cross-route type import (ADR-0020).
-    navigateWithDetails(navigation, [
-      Routes.QR_TAB_SWITCHER,
-      { onScanSuccess },
-    ]);
-    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
-  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
 
   const isNotificationsEnabled = useMemo(
     () => isNotificationsFeatureEnabled() && isNotificationEnabled,

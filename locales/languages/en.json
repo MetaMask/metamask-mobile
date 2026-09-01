@@ -1360,8 +1360,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "selection_title": "Choose how you trade",
+      "selection_subtitle": "Change this anytime on the top right menu.",
       "lite_description": "One-tap longs or shorts. Simple by design.",
-      "pro_description": "Order book, advanced order types, and leverage.",
+      "pro_description": "Professional workstation with advanced controls.",
       "lite_transition_title": "Lite Mode",
       "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",
@@ -3534,6 +3535,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -4115,6 +4117,11 @@
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
+  },
+  "account_hub": {
+    "info": "Info",
+    "scan": "Scan",
+    "activity": "Activity"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -8778,7 +8785,18 @@
       "from_market": "(-{{percent}}% from market)",
       "from_market_above": "(+{{percent}}% from market)",
       "market": "Market",
-      "custom": "Custom"
+      "custom": "Custom",
+      "expires": "Expires",
+      "expiration": "Expiration",
+      "expiration_option": {
+        "minutes": "{{count}} minutes",
+        "hour": "{{count}} hour",
+        "day": "{{count}} day",
+        "days": "{{count}} days",
+        "week": "{{count}} week",
+        "month": "{{count}} month"
+      },
+      "est_network_fee": "Est. network fee"
     },
     "recurring": {
       "you_get": "You get",
@@ -9464,6 +9482,17 @@
       "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
       "learn_more": "Learn more",
       "got_it": "Got it"
+    },
+    "uk_migration_bottom_sheet": {
+      "title": "Update your MetaMask Card",
+      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "steps": {
+        "reverify_identity": "Re-verify your identity",
+        "get_new_card_number": "Get your new card number",
+        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+      },
+      "get_started": "Get started",
+      "remind_me_later": "Remind me later"
     },
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",
