@@ -320,6 +320,15 @@ function resolveFallbackTitle(item: ActivityListItem): string {
     strings('transactions.interaction');
 
   if (isPerpsOrderKind(item.type)) {
+    const transaction =
+      item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
+    if (
+      transaction?.type === 'order' &&
+      transaction.order?.isTrigger &&
+      transaction.title
+    ) {
+      return transaction.title;
+    }
     return base;
   }
   return withDomainStatusSuffix(base, item.status);

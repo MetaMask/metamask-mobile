@@ -1016,6 +1016,56 @@ describe('ActivityListItemRow — row content', () => {
     return StyleSheet.flatten(node.props.style).color;
   };
 
+  it.each([
+    ['limitLong', 'Stop Limit', false, 'Stop limit', '0xstop-limit'],
+    [
+      'stopMarketCloseLong',
+      'Stop Market',
+      true,
+      'Stop market',
+      '0xstop-market',
+    ],
+    ['limitCloseLong', 'Take Profit Limit', true, 'Take limit', '0xtake-limit'],
+    ['marketLong', 'Take Profit Market', false, 'Take market', '0xtake-market'],
+  ] as const)(
+    'renders %s triggered orders with their canonical title',
+    (type, detailedOrderType, reduceOnly, title, hash) => {
+      const item = {
+        type,
+        chainId: 'eip155:42161',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        raw: {
+          type: 'perpsTransaction',
+          data: {
+            type: 'order',
+            title,
+            order: {
+              isTrigger: true,
+              reduceOnly,
+              detailedOrderType,
+            },
+          },
+        },
+        data: {
+          token: { amount: '14', symbol: 'USD', direction: 'out' },
+          sourceToken: {
+            amount: '0.0002',
+            symbol: 'BTC',
+            direction: 'out',
+          },
+        },
+      } as unknown as ActivityListItem;
+
+      const { getByTestId } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(getByTestId(`activity-title-${hash}`).props.children).toBe(title);
+    },
+  );
+
   it('keeps a cancelled order title neutral while still marking a failed one red', () => {
     const neutral = render(
       <ActivityListItemRow

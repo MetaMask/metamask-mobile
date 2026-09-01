@@ -436,6 +436,35 @@ export function transformFillsToTransactions(
 }
 
 /**
+ * Restores the user-facing conditional order type from provider terminology.
+ * The execution type remains normalized to limit/market on the transaction.
+ */
+function formatTriggeredOrderTypeLabel(order: Order): string {
+  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
+  const isLimit =
+    order.orderType.toLowerCase().includes('limit') ||
+    detailedOrderType.includes('limit');
+
+  if (detailedOrderType.includes('take')) {
+    return strings(
+      isLimit
+        ? 'perps.order.type.take_profit_limit.title'
+        : 'perps.order.type.take_profit_market.title',
+    );
+  }
+
+  if (detailedOrderType.includes('stop')) {
+    return strings(
+      isLimit
+        ? 'perps.order.type.stop_limit.title'
+        : 'perps.order.type.stop_market.title',
+    );
+  }
+
+  return strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
+}
+
+/**
  * Transform abstract Order objects to PerpsTransaction format
  * @param orders - Array of abstract Order objects
  * @param fillSizeByOrderId - Optional map of orderId to total filled size (from actual fills).
@@ -472,8 +501,9 @@ export function transformOrdersToTransactions(
     const isRejected = status === 'rejected';
     const isTriggered = status === 'triggered';
 
-    // Use centralized order label formatting
-    const title = formatOrderLabel(order);
+    const title = isTrigger
+      ? formatTriggeredOrderTypeLabel(order)
+      : formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
     const executionType = isLimitExecutionOrderType(orderType)

@@ -1337,33 +1337,31 @@ describe('transactionTransforms', () => {
       expect(result[0].title).toBe('Limit close short');
     });
 
-    it('formats trigger orders as closing orders', () => {
-      const triggerOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        detailedOrderType: 'Stop Market',
-        orderType: 'market' as const,
-      };
+    it.each([
+      ['Stop Limit', 'limit', false, 'Stop limit'],
+      ['Stop Limit', 'limit', true, 'Stop limit'],
+      ['Stop Market', 'market', false, 'Stop market'],
+      ['Stop Market', 'market', true, 'Stop market'],
+      ['Take Profit Limit', 'limit', false, 'Take limit'],
+      ['Take Profit Limit', 'limit', true, 'Take limit'],
+      ['Take Profit Market', 'market', false, 'Take market'],
+      ['Take Profit Market', 'market', true, 'Take market'],
+    ] as const)(
+      'formats %s (%s) with reduceOnly=%s as %s',
+      (detailedOrderType, orderType, reduceOnly, expectedTitle) => {
+        const triggerOrder = {
+          ...mockOrder,
+          orderType,
+          reduceOnly,
+          isTrigger: true,
+          detailedOrderType,
+        };
 
-      const result = transformOrdersToTransactions([triggerOrder]);
+        const result = transformOrdersToTransactions([triggerOrder]);
 
-      expect(result[0].title).toBe('Stop market close long');
-    });
-
-    it('uses detailedOrderType for Take Profit orders', () => {
-      const takeProfitOrder = {
-        ...mockOrder,
-        side: 'sell' as const,
-        isTrigger: true,
-        reduceOnly: true,
-        detailedOrderType: 'Take Profit Limit',
-      };
-
-      const result = transformOrdersToTransactions([takeProfitOrder]);
-
-      expect(result[0].title).toBe('Take profit limit close long');
-    });
+        expect(result[0].title).toBe(expectedTitle);
+      },
+    );
 
     it('handles market orders correctly', () => {
       const marketOrder = {

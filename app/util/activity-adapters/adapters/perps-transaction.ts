@@ -156,8 +156,8 @@ function mapOrderKind(
     return null;
   }
 
-  // Open/close + direction come from the same helpers that build the perps
-  // order title (formatOrderLabel), so title and kind can't disagree.
+  // Keep semantic classification independent from the Activity display title,
+  // which preserves the user-selected conditional order type.
   const isClosing = isClosingOrder(order);
   const direction = resolveOrderDirection(side, isClosing);
   const isLimit = type === 'limit';

@@ -629,6 +629,33 @@ describe('mapPerpsTransaction', () => {
       },
     );
 
+    it.each([
+      ['Stop Limit', 'limit', false, 'Stop limit'],
+      ['Stop Market', 'market', true, 'Stop market'],
+      ['Take Profit Limit', 'limit', true, 'Take limit'],
+      ['Take Profit Market', 'market', false, 'Take market'],
+    ] as const)(
+      'preserves the canonical %s title in the raw Activity transaction',
+      (detailedOrderType, orderType, reduceOnly, expectedTitle) => {
+        const result = mapFromOrder(
+          makeOrder({
+            detailedOrderType,
+            orderType,
+            reduceOnly,
+            isTrigger: true,
+          }),
+        );
+
+        expect(result?.raw).toMatchObject({
+          type: 'perpsTransaction',
+          data: {
+            title: expectedTitle,
+            order: { isTrigger: true, reduceOnly },
+          },
+        });
+      },
+    );
+
     it('carries the transform subtitle position size into sourceToken.amount', () => {
       const result = mapFromOrder(
         makeOrder({ orderType: 'limit', side: 'sell', originalSize: '2.01' }),
