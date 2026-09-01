@@ -1,6 +1,9 @@
 import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  renderBridgeView,
+  BridgeViewWithProviders,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
@@ -11,7 +14,6 @@ import {
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
-import BridgeView from './index';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -205,7 +207,7 @@ describeForPlatforms('BridgeView', () => {
         .build();
 
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeViewWithProviders as unknown as React.ComponentType,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -295,7 +297,7 @@ describeForPlatforms('BridgeView', () => {
         .build();
 
       const { getByTestId, store } = renderComponentViewScreen(
-        BridgeView as unknown as React.ComponentType,
+        BridgeViewWithProviders as unknown as React.ComponentType,
         { name: Routes.BRIDGE.BRIDGE_VIEW },
         { state },
         {
@@ -562,7 +564,7 @@ describeForPlatforms('BridgeView', () => {
     }
 
     const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
-      BridgeView as unknown as React.ComponentType,
+      BridgeViewWithProviders as unknown as React.ComponentType,
       { name: Routes.BRIDGE.BRIDGE_VIEW },
       { state },
     );
@@ -830,7 +832,7 @@ describeForPlatforms('BridgeView', () => {
       } as unknown as Record<string, unknown>)
       .build() as unknown as Record<string, unknown>;
     const { findByText } = renderScreenWithRoutes(
-      BridgeView as unknown as React.ComponentType,
+      BridgeViewWithProviders as unknown as React.ComponentType,
       { name: Routes.BRIDGE.ROOT },
       [
         {
@@ -1053,7 +1055,7 @@ describeForPlatforms('BridgeView', () => {
 
       const { getByTestId, getByText, findByText, getAllByText } =
         renderScreenWithRoutes(
-          BridgeView as unknown as React.ComponentType,
+          BridgeViewWithProviders as unknown as React.ComponentType,
           { name: Routes.BRIDGE.BRIDGE_VIEW },
           [
             {

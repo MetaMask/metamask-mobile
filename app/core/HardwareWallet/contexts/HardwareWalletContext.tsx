@@ -4,7 +4,7 @@ import {
   HardwareWalletType,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
-import { DeviceSelectionState } from '../types';
+import { DeviceSelectionState, EnsureDeviceReadyOptions } from '../types';
 
 export interface HardwareWalletQRState {
   /** The pending QR scan request from the keyring, if any. */
@@ -32,9 +32,13 @@ export interface HardwareWalletContextValue {
    * Ensure the device is ready for any kind of operation. BLOCKING: shows bottom sheet if needed.
    * Wallet type from current account; for "Add Hardware Wallet" flows, use setTargetWalletType() first.
    * @param deviceId - Optional. If not provided, shows device selection for hardware wallets.
+   * @param options - Adapter-specific readiness options forwarded to the active adapter (e.g. `requireBlindSigning` for contract interactions and dapp transactions).
    * @returns true if device is ready, false if user cancelled
    */
-  ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
+  ensureDeviceReady: (
+    deviceId?: string | null,
+    options?: EnsureDeviceReadyOptions,
+  ) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
   setTargetWalletType: (walletType: HardwareWalletType) => void;
   /** Set the pending operation address so the provider can auto-derive the wallet type during signing. */

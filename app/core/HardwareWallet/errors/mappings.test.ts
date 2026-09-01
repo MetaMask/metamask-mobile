@@ -405,10 +405,6 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
         MOBILE_ERROR_EXTENSIONS[ErrorCode.UserCancelled]?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
       expect(
-        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateBlindSignNotSupported]
-          ?.recoveryAction,
-      ).toBe(RecoveryAction.ACKNOWLEDGE);
-      expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.MobileNotSupported]?.recoveryAction,
       ).toBe(RecoveryAction.ACKNOWLEDGE);
       expect(
@@ -430,6 +426,10 @@ describe('MOBILE_ERROR_EXTENSIONS', () => {
       ).toBe(RecoveryAction.RETRY);
       expect(
         MOBILE_ERROR_EXTENSIONS[ErrorCode.AuthenticationDeviceLocked]
+          ?.recoveryAction,
+      ).toBe(RecoveryAction.RETRY);
+      expect(
+        MOBILE_ERROR_EXTENSIONS[ErrorCode.DeviceStateBlindSignNotSupported]
           ?.recoveryAction,
       ).toBe(RecoveryAction.RETRY);
     });
