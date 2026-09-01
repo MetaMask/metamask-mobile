@@ -1,4 +1,5 @@
 import {
+  applyChartScrub,
   createChartModel,
   getScrubTimeLabelPosition,
   getScaledChartLayout,
@@ -149,6 +150,64 @@ describe('createChartModel', () => {
       100, 200, 300,
     ]);
     expect(result?.series[0].endpoint.value).toBe(0.3);
+  });
+});
+
+describe('applyChartScrub', () => {
+  const createBaseModel = () =>
+    createChartModel({
+      series: [
+        {
+          id: 'home',
+          label: 'Vikings',
+          color: 'blue',
+          data: [
+            { time: 100, value: 0.6 },
+            { time: 300, value: 0.5 },
+          ],
+        },
+        {
+          id: 'away',
+          label: 'Ravens',
+          color: 'red',
+          data: [
+            { time: 200, value: 0.4 },
+            { time: 300, value: 0.5 },
+          ],
+        },
+      ],
+      width: 300,
+      height: 150,
+      labelGutter: 100,
+      continuationWidth: 0,
+      lineWidth: 2,
+      fontScale: 1,
+    });
+
+  it('reuses prepared series and paths when overlaying a scrub', () => {
+    const base = createBaseModel();
+    if (!base) {
+      throw new Error('expected a chart model');
+    }
+
+    const result = applyChartScrub(base, { time: 150, x: 50 });
+
+    expect(result.series).toBe(base.series);
+    expect(result.series[0].linePath).toBe(base.series[0].linePath);
+    expect(result.series[1].areaPath).toBe(base.series[1].areaPath);
+    expect(result.displayedSeries.map((entry) => entry.id)).toEqual(['home']);
+    expect(result.displayedSeries[0].endpoint.value).toBe(0.6);
+  });
+
+  it('returns the same model when no scrub is applied', () => {
+    const base = createBaseModel();
+    if (!base) {
+      throw new Error('expected a chart model');
+    }
+
+    const result = applyChartScrub(base);
+
+    expect(result).toBe(base);
   });
 });
 

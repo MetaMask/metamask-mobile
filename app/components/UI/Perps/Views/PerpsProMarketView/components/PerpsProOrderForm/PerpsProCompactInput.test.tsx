@@ -1,14 +1,17 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Pressable, Text } from 'react-native';
+import { Keyboard, Pressable, Text } from 'react-native';
+import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
+  PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
 // design system's real `forwardRef<TextInput>` contract.
 const mockInputFocus = jest.fn();
 const mockInputBlur = jest.fn();
+const mockInputUnmount = jest.fn();
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const MockReact = jest.requireActual('react');
@@ -18,9 +21,15 @@ jest.mock('@metamask/design-system-react-native', () => {
     Input: MockReact.forwardRef(
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
         MockReact.useImperativeHandle(ref, () => ({
-          focus: mockInputFocus,
+          focus: () => mockInputFocus(props),
           blur: mockInputBlur,
         }));
+        MockReact.useEffect(
+          () => () => {
+            mockInputUnmount();
+          },
+          [],
+        );
         return MockReact.createElement(TextInput, props);
       },
     ),
@@ -33,6 +42,7 @@ const defaultProps = {
   onChangeText: jest.fn(),
   testID: 'size-input',
 };
+const ids = PerpsProOrderFormSelectorsIDs;
 
 describe('PerpsProCompactInput', () => {
   beforeEach(() => {
@@ -41,6 +51,10 @@ describe('PerpsProCompactInput', () => {
     // constant — not just `mockInputFocus`, so stale call counts can't bleed
     // between tests.
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('focuses the input when the label is pressed', () => {
@@ -91,11 +105,12 @@ describe('PerpsProCompactInput', () => {
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
     });
 
-    it('reports taps on the inline variant, which has no label to press', () => {
+    it('reports a tap that a visible inline input consumes', () => {
       const onFieldPress = jest.fn();
       render(
         <PerpsProCompactInput
           {...defaultProps}
+          value="1"
           variant="inline"
           onFieldPress={onFieldPress}
         />,
@@ -108,6 +123,96 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
+    it.each(['inline', 'inline-labeled'] as const)(
+      'uses the shared 54px compact-row height and 4px vertical padding for %s fields',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
+
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-container`),
+        ).toHaveStyle({ height: 54, paddingTop: 4, paddingBottom: 4 });
+      },
+    );
+
+    it('hides the inline-labeled decorative label from assistive technology', () => {
+      render(
+        <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
+      );
+
+      const label = screen.getByText(defaultProps.label);
+      const input = screen.getByTestId(defaultProps.testID);
+
+      expect(label).toHaveProp('accessible', false);
+      expect(label).toHaveProp('importantForAccessibility', 'no');
+      expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
+    });
+
+    it('shrinks the label and reveals the input when the row is pressed', () => {
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          variant="inline"
+          placeholder="0.00"
+          startAccessory={<Text>$</Text>}
+        />,
+      );
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const input = screen.getByTestId(defaultProps.testID, {
+        includeHiddenElements: true,
+      });
+      const inactiveLabelStyle = label.props.style;
+
+      expect(input).toHaveProp('placeholder', '');
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+      expect(label.props.style).not.toEqual(inactiveLabelStyle);
+      expect(input).toHaveProp('placeholder', '0.00');
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+      expect(mockInputFocus).toHaveBeenCalledWith(
+        expect.objectContaining({
+          placeholder: '0.00',
+          twClassName: 'flex-1 border-0 bg-transparent p-0',
+        }),
+      );
+      expect(mockInputUnmount).not.toHaveBeenCalled();
+    });
+
+    it('restores the full label after an empty inline field blurs', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const inactiveLabelStyle = label.props.style;
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+      expect(label.props.style).toEqual(inactiveLabelStyle);
+      expect(
+        screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('placeholder', '');
+    });
+
+    it('keeps the compact label after a populated inline field blurs', () => {
+      render(
+        <PerpsProCompactInput
+          {...defaultProps}
+          value="123.45"
+          variant="inline"
+        />,
+      );
+
+      const label = screen.getByTestId(`${defaultProps.testID}-label`);
+      const compactLabelStyle = label.props.style;
+
+      fireEvent(screen.getByTestId(defaultProps.testID), 'blur');
+
+      expect(label.props.style).toEqual(compactLabelStyle);
+    });
+
     it('focuses from a tap anywhere in the row, not just the ~20px of text', () => {
       const onFieldPress = jest.fn();
       render(
@@ -124,6 +229,46 @@ describe('PerpsProCompactInput', () => {
 
       expect(mockInputFocus).toHaveBeenCalledTimes(1);
       expect(onFieldPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('exposes an empty inline field as an activatable control instead of a static label', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      const field = screen.getByRole('button', { name: defaultProps.label });
+
+      expect(field).toHaveProp('testID', `${defaultProps.testID}-field`);
+      expect(
+        screen.getByTestId(defaultProps.testID, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('accessibilityElementsHidden', true);
+    });
+
+    it('focuses the hidden inline input when assistive tech activates the label', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      fireEvent.press(screen.getByRole('button', { name: defaultProps.label }));
+
+      expect(mockInputFocus).toHaveBeenCalledTimes(1);
+    });
+
+    it('hands accessibility to the input after the empty inline field activates', () => {
+      render(<PerpsProCompactInput {...defaultProps} variant="inline" />);
+
+      fireEvent.press(screen.getByTestId(`${defaultProps.testID}-field`));
+
+      expect(screen.getByTestId(`${defaultProps.testID}-field`)).toHaveProp(
+        'accessible',
+        false,
+      );
+      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+        'accessibilityElementsHidden',
+        false,
+      );
+      expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+        'accessibilityLabel',
+        defaultProps.label,
+      );
     });
 
     it('keeps the end accessory outside the press target so its own press wins', () => {
@@ -160,6 +305,73 @@ describe('PerpsProCompactInput', () => {
     expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
       'onSubmitEditing',
     );
+  });
+
+  describe('keyboard accessory', () => {
+    it('routes Up and Down while disabling missing boundaries', () => {
+      const onNext = jest.fn();
+      const { rerender } = render(
+        <PerpsProInputKeyboardAccessory inputTestID="start" onNext={onNext} />,
+      );
+
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-start`),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_DONE}-start`),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_NEXT}-start`));
+      expect(onNext).toHaveBeenCalledTimes(1);
+
+      const onPrevious = jest.fn();
+      rerender(
+        <PerpsProInputKeyboardAccessory
+          inputTestID="end"
+          onPrevious={onPrevious}
+        />,
+      );
+
+      expect(screen.getByTestId(`${ids.KEYBOARD_NEXT}-end`)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-end`));
+      expect(onPrevious).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses the keyboard from Done', () => {
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(jest.fn());
+      render(<PerpsProInputKeyboardAccessory inputTestID="size" />);
+
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_DONE}-size`));
+
+      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_PREVIOUS}-size`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_NEXT}-size`),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('delegates disabled field events to the design-system input', () => {
+    const onFieldPress = jest.fn();
+    render(
+      <PerpsProCompactInput
+        {...defaultProps}
+        onFieldPress={onFieldPress}
+        isDisabled
+      />,
+    );
+
+    fireEvent.press(screen.getByText(defaultProps.label));
+
+    expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+      'isDisabled',
+      true,
+    );
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
   });
 
   it('adds top spacing above the footer to match the Figma slider row', () => {

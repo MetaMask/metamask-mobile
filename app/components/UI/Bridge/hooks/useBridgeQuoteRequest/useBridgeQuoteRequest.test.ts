@@ -39,6 +39,7 @@ jest.mock('../../../../../util/trace', () => ({
 }));
 
 runQuoteRequestCases({
+  name: 'useBridgeQuoteRequest',
   debounceMs: DEBOUNCE_WAIT,
   renderHook: (options) => renderHook(() => useBridgeQuoteRequest(options)),
 });

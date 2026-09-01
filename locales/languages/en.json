@@ -1170,15 +1170,19 @@
       "following": "Following",
       "all": "All",
       "trade": "Trade",
+      "just_now": "Just now",
       "action": {
-        "bought": "bought",
-        "sold": "sold",
-        "opened": "opened",
-        "closed": "closed"
+        "perps_opened": "opened",
+        "perps_added": "added",
+        "perps_reduced": "reduced",
+        "perps_closed": "closed",
+        "spot_bought": "bought",
+        "spot_sold": "sold",
+        "traded": "traded"
       },
       "new_position": {
-        "bought": "Holding",
-        "opened": "Open"
+        "spot": "Holding",
+        "perps": "Open"
       },
       "empty_following": {
         "title": "No activity yet",
@@ -1281,8 +1285,15 @@
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
-      "bought": "Bought",
-      "sold": "Sold",
+      "action": {
+        "perps_opened": "Opened",
+        "perps_added": "Added",
+        "perps_reduced": "Reduced",
+        "perps_closed": "Closed",
+        "spot_bought": "Bought",
+        "spot_sold": "Sold",
+        "traded": "Traded"
+      },
       "no_trades": "No trades yet",
       "closed_position": "Closed position",
       "fallback_title": "Position not available",
@@ -1291,9 +1302,7 @@
       "fallback_back_to_leaderboard": "Back to leaderboard",
       "sell": "Sell",
       "long": "Long",
-      "short": "Short",
-      "opened": "Opened",
-      "closed_action": "Closed"
+      "short": "Short"
     },
     "quick_buy": {
       "title": "Buy {{symbol}}",
@@ -1351,8 +1360,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "selection_title": "Choose how you trade",
+      "selection_subtitle": "Change this anytime on the top right menu.",
       "lite_description": "One-tap longs or shorts. Simple by design.",
-      "pro_description": "Order book, advanced order types, and leverage.",
+      "pro_description": "Professional workstation with advanced controls.",
       "lite_transition_title": "Lite Mode",
       "pro_transition_title": "Pro Mode",
       "active_pill_accessibility_label": "Currently {{mode}} mode",
@@ -1579,7 +1589,48 @@
       "est_liquidation": "Est Liquidation",
       "tpsl": "TP / SL",
       "place_order": "Place order",
-      "close_keyboard": "Close keyboard"
+      "keyboard_previous": "Previous field",
+      "keyboard_next": "Next field",
+      "keyboard_done": "Done",
+      "price_unavailable": "Market price is unavailable. Please wait for price data before placing an order.",
+      "scale": {
+        "start_price": "Start (USD)",
+        "end_price": "End (USD)",
+        "total_orders": "Order count",
+        "size_skew": "Size skew",
+        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
+        "range": "{{start}} → {{end}}",
+        "start": "Start",
+        "end": "End",
+        "margin": "Margin",
+        "orders_submitted": "Scale orders submitted",
+        "orders_placed": "Scale orders placed",
+        "orders_partially_placed": "Scale orders partially placed",
+        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
+        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "Enter both Scale range prices",
+          "size_required": "Enter a Scale order size",
+          "invalid_range": "Start price must be lower than end price",
+          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
+          "invalid_skew": "Size skew must be greater than 0",
+          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+        }
+      },
+      "twap": {
+        "running_time": "Running time",
+        "runtime_label": "Runtime ({{minDurationMinutes}}m – {{maxDurationHours}}h)",
+        "valid_range": "{{minDurationMinutes}} minutes–{{maxDurationHours}} hours",
+        "days_short": "d",
+        "hours_short": "h",
+        "minutes_short": "m",
+        "randomize": "Randomize",
+        "randomize_description": "Vary each suborder size by up to ±{{randomizeVariancePercent}}%.",
+        "minimum_size": "TWAP total size must be at least ${{minNotionalUsd}}.",
+        "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours."
+      }
     },
     "pro_positions_panel": {
       "order_history": "Order history",
@@ -1700,7 +1751,8 @@
         "oi_cap_reached": "Open interest cap reached. New positions cannot be opened at this time.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",
-        "reduce_only_too_large": "Reduce only order is larger than your open position"
+        "reduce_only_too_large": "Reduce only order is larger than your open position",
+        "twap_unavailable": "TWAP placement is not available for this provider."
       },
       "error": {
         "placement_failed": "Order placement failed",
@@ -1771,6 +1823,7 @@
         "title": "Order type",
         "basic": "Basic",
         "triggered": "Triggered",
+        "advanced": "Advanced",
         "market": {
           "title": "Market",
           "description": "Execute instantly at best available price"
@@ -1779,21 +1832,29 @@
           "title": "Limit",
           "description": "Execute at your specified price or better"
         },
+        "scale": {
+          "title": "Scale",
+          "description": "Multiple limit orders spread across a price range"
+        },
         "stop_limit": {
           "title": "Stop limit",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Limit fills at trigger price"
         },
         "stop_market": {
           "title": "Stop market",
-          "description": "Place a market order if trigger price hits"
+          "description": "Market fills at trigger price"
         },
         "take_profit_limit": {
           "title": "Take limit",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Limit take-profit at trigger price"
         },
         "take_profit_market": {
           "title": "Take market",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Market take-profit at trigger price"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "Split orders to execute at regular time interval"
         }
       },
       "payment_token": "Payment token",
@@ -1832,7 +1893,15 @@
       "submitting_your_trade": "Submitting your trade",
       "order_filled": "Order filled",
       "order_placed": "Order placed",
+      "twap_started": "TWAP started",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} over {{duration}}",
+      "twap_duration_day": "{{count}} day",
+      "twap_duration_days": "{{count}} days",
+      "twap_duration_hour": "{{count}} hour",
+      "twap_duration_hours": "{{count}} hours",
+      "twap_duration_minute": "{{count}} minute",
+      "twap_duration_minutes": "{{count}} minutes",
       "order_failed": "Order failed",
       "your_funds_have_been_returned_to_you": "Your funds have been returned to you",
       "order_cancelled_success": "{{detailedOrderType}} order cancelled",
@@ -2283,6 +2352,10 @@
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP."
       },
+      "size_skew": {
+        "title": "Size skew",
+        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
       "closing_fees": {
         "title": "Closing fees",
         "metamask_fee": "MetaMask fee",
@@ -2553,6 +2626,7 @@
       "added": "Added {{symbol}} to watchlist",
       "removed": "Removed {{symbol}} from watchlist",
       "add_error": "Failed to add market to watchlist",
+      "remove_error": "Failed to remove market from watchlist",
       "limit_reached": "Watchlist limit reached ({{limit}} markets max)",
       "filter_badge_label": "Watchlist",
       "suggested": "Suggested"
@@ -2663,6 +2737,9 @@
       "listed_by": "Listed by",
       "value_type": "Value type",
       "group_by": "Group by",
+      "layout": "Order book layout",
+      "layout_left": "Left",
+      "layout_right": "Right",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -2825,7 +2902,18 @@
     "prediction_markets": "Prediction markets",
     "market_list": "Market list",
     "market": {
-      "volume": "{{value}} Vol."
+      "volume": "{{value}} Vol.",
+      "draw": "Draw",
+      "footer_price_unavailable": "price unavailable"
+    },
+    "market_groups": {
+      "total_points": "Total points",
+      "spread": "Spreads",
+      "market_option": "Market option",
+      "line_unavailable": "line unavailable",
+      "price_unavailable": "price unavailable",
+      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
     },
     "rules": {
       "event_accessibility_label": "View event rules",
@@ -3447,6 +3535,7 @@
   "wallet": {
     "title": "Wallet",
     "search_accessibility_label": "Search",
+    "rewards_accessibility_label": "Rewards",
     "tokens": "Tokens",
     "view_all_nfts": "View all NFTs",
     "view_all_tokens": "View all tokens",
@@ -4028,6 +4117,11 @@
     "notifications": "Notifications",
     "buy": "Buy",
     "scan": "Scan"
+  },
+  "account_hub": {
+    "info": "Info",
+    "scan": "Scan",
+    "activity": "Activity"
   },
   "app_settings": {
     "enabling_notifications": "Enabling notifications...",
@@ -7564,6 +7658,64 @@
     "error_description": "Installation of {{snap}} failed."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Choose how to earn",
+      "subtitle": "Choose an earning strategy for your {{asset}}.",
+      "tags": {
+        "recommended": "Recommended",
+        "low_risk": "Low risk",
+        "medium_risk": "Medium risk",
+        "high_risk": "High risk"
+      },
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "Failed to navigate to deposit screen for selected strategy"
+        } 
+      },
+      "strategies": {
+        "money": {
+          "subtitle": "Money account",
+          "tertiary_text": "Variable yield · auto-earning"
+        },
+        "lending": {
+          "subtitle": "Lend {{asset}}",
+          "tertiary_text": "Variable yield"
+        },
+        "pooled_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "Pooled staking · variable yield"
+        },
+        "trx_staking": {
+          "subtitle": "Stake {{asset}}",
+          "tertiary_text": "TRON staking · variable yield"
+        }
+      },
+      "info_rows": {
+        "money_account": {
+          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
+          "row_1_unavailable": "Rate unavailable — auto-earning, compounding yield",
+          "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
+          "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
+        },
+        "lending": {
+          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
+          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
+          "row_3": "Rates can change with market demand, and smart contract risks apply."
+        },
+        "pooled_staking": {
+          "row_1": "Earn variable staking rewards on your ETH.",
+          "row_2": "Your ETH is pooled with other MetaMask users.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        },
+        "trx_staking": {
+          "row_1": "Earn variable rewards by staking TRX.",
+          "row_2": "Staked TRX supports the TRON network.",
+          "row_3": "Staking rewards and withdrawal times can vary."
+        }
+      },
+      "get_started": "Get started",
+      "learn_more": "Learn more"
+    },
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
     "percentage_bonus": "{{percentage}}% bonus",
@@ -7746,6 +7898,10 @@
     "asset_unavailable": "Asset unavailable",
     "assets_unavailable": "Some earning opportunities couldn’t be loaded.",
     "retry": "Retry",
+    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
+    "money_fallback_description": "Add assets to your Money account to start earning",
+    "more_ways_to_earn": "More ways to earn",
+    "empty_state_description": "No earning opportunities are available right now.",
     "view_more": "View more"
   },
   "money": {
@@ -7847,8 +8003,8 @@
     "potential_earnings": {
       "title": "Earn on your crypto",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "description_with_amounts_prefix": "Convert your",
-      "description_with_amounts_middle": "in assets and you could earn up to",
+      "description_with_amounts_prefix": "Add your",
+      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
       "description_with_amounts_suffix": "in one year.",
       "add": "Add",
       "convert_cta": "Convert your crypto",
@@ -8619,7 +8775,17 @@
       "filled": "Filled",
       "filled_at": "Filled at {{date}}",
       "expired": "Expired",
-      "expired_after": "Expired after {{duration}}"
+      "expired_after": "Expired after {{duration}}",
+      "buy_when": "Buy when",
+      "sell_when": "Sell when",
+      "is_at_or_below": "is at or below",
+      "is_at_or_above": "is at or above",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% from market)",
+      "from_market_above": "(+{{percent}}% from market)",
+      "market": "Market",
+      "custom": "Custom"
     },
     "recurring": {
       "you_get": "You get",
@@ -8627,20 +8793,57 @@
       "repeat": "Repeat",
       "times": "times",
       "confirm": "Confirm",
+      "preview_order": "Preview Order",
+      "confirm_title": "Confirm recurring order",
+      "paying_all_orders": "Paying (all orders)",
+      "paying_per_order": "Paying (per order)",
+      "receiving": "Receiving",
+      "est_receiving_per_order": "Est. receiving (per order)",
+      "est_receiving_all_orders": "Est. receiving (all orders)",
+      "expires_after": "Expires after",
+      "slippage_all_orders": "Slippage (all orders)",
+      "est_network_fee_per_order": "Est. network fee (per order)",
+      "repeat_info_title": "Repeat orders",
+      "repeat_info_body": "We randomize your orders in timing and size, so your swaps don't follow a predictable pattern.",
+      "max_is": "Max is {{max}}",
+      "price_range": {
+        "label": "Price range",
+        "not_set": "Not set",
+        "token": "Token",
+        "price": "Price",
+        "exchange_rate": "Exchange rate",
+        "min_token_price": "Min {{symbol}} price",
+        "max_token_price": "Max {{symbol}} price",
+        "min_placeholder": "Min price",
+        "max_placeholder": "Max price",
+        "clear_all": "Clear all",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
       "unit": {
         "minute": "minute",
         "hour": "hour",
         "day": "day",
-        "week": "week"
+        "week": "week",
+        "month": "month"
+      },
+      "unit_plural": {
+        "minute": "minutes",
+        "hour": "hours",
+        "day": "days",
+        "week": "weeks",
+        "month": "months"
       },
       "unit_option": {
         "minute": "Minute",
         "hour": "Hour",
         "day": "Day",
-        "week": "Week"
+        "week": "Week",
+        "month": "Month"
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} orders",
+      "spend_summary": "You spend {{amount}} {{symbol}} every {{everyValue}} {{unit}} over {{repeatCount}} times",
       "percent_filled": "{{percent}}% filled",
       "filled": "Filled"
     },
@@ -9268,6 +9471,17 @@
       "description": "A recurring $199 fee will be transferred from your stablecoin balance each year. Make sure you have enough funds to keep your card active.",
       "learn_more": "Learn more",
       "got_it": "Got it"
+    },
+    "uk_migration_bottom_sheet": {
+      "title": "Update your MetaMask Card",
+      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "steps": {
+        "reverify_identity": "Re-verify your identity",
+        "get_new_card_number": "Get your new card number",
+        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+      },
+      "get_started": "Get started",
+      "remind_me_later": "Remind me later"
     },
     "daimo_pay_modal": {
       "load_error": "Failed to load payment page. Please try again.",
@@ -10840,6 +11054,7 @@
       "all": "All",
       "crypto": "Crypto",
       "perps": "Perps",
+      "earn": "Earn",
       "stocks": "Stocks",
       "predictions": "Predictions",
       "sites": "Sites"
@@ -11157,7 +11372,8 @@
       },
       "atm_fees": {
         "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "subtitle": "Physical card included",
+        "subtitle_monthly": "Physical card available separately"
       },
       "protection": {
         "title": "Up to $10,000 in protection",
@@ -11202,7 +11418,8 @@
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask.",
+        "description_monthly": "MetaMask Card is available separately for monthly members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
       },
       "protection": {
         "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",

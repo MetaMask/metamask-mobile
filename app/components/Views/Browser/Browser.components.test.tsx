@@ -400,6 +400,57 @@ describe('Browser - Component Rendering', () => {
       );
     });
 
+    it('passes Earn strategy selection return params to BrowserTab', () => {
+      const tabs = [
+        { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
+      ];
+      const BrowserTabMock = jest.mocked(BrowserTab);
+      BrowserTabMock.mockClear();
+
+      renderWithProvider(
+        <Provider store={mockStore(mockInitialState)}>
+          <IndependentNavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => (
+                  <Browser
+                    route={{
+                      params: {
+                        fromEarnStrategySelection: true,
+                      },
+                    }}
+                    tabs={tabs}
+                    activeTab={1}
+                    navigation={mockNavigation}
+                    createNewTab={jest.fn()}
+                    closeTab={jest.fn()}
+                    setActiveTab={jest.fn()}
+                    updateTab={jest.fn()}
+                  />
+                )}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </IndependentNavigationContainer>
+        </Provider>,
+        {
+          state: {
+            ...mockInitialState,
+            browser: {
+              tabs,
+              activeTab: 1,
+            },
+          },
+        },
+      );
+
+      expect(BrowserTabMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fromEarnStrategySelection: true,
+        }),
+        undefined,
+      );
+    });
+
     it('passes linkType param to BrowserTab', () => {
       const tabs = [
         {
