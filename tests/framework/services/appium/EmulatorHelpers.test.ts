@@ -4,19 +4,21 @@ import os from 'os';
 import path from 'path';
 import {
   ANDROID_E2E_PACKAGES_TO_DISABLE,
-  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
-  buildAndroidEmulatorArgs,
-  computeAndroidSystemImageFingerprint,
   findAnrDialogRecoveryTapPoint,
   findAnrDialogWaitTapPoint,
-  getGoldenSnapshotDir,
-  hasGoldenSnapshot,
   isAndroidPingSuccessful,
-  isGoldenSnapshotUsable,
-  resolveAndroidBootMode,
   shouldWaitForOfflineEmulator,
   shouldWaitForUnidentifiedOfflineEmulator,
 } from './EmulatorHelpers.ts';
+import {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  computeAndroidSystemImageFingerprint,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  resolveAndroidBootMode,
+} from './AndroidGoldenSnapshot.ts';
 
 describe('EmulatorHelpers', () => {
   describe('shouldWaitForOfflineEmulator', () => {
@@ -174,12 +176,12 @@ describe('EmulatorHelpers', () => {
         '8192',
         '-no-snapshot-save',
         '-no-snapshot-load',
+        '-wipe-data',
+        '-read-only',
         '-cache-size',
         '2048',
         '-accel',
         'on',
-        '-wipe-data',
-        '-read-only',
         '-no-window',
       ]);
     });
@@ -323,19 +325,6 @@ describe('EmulatorHelpers', () => {
           CI: 'true',
         }),
       ).toBe(false);
-    });
-
-    it('isGoldenSnapshotUsable ignores ANDROID_GOLDEN_SNAPSHOT_VALID', () => {
-      // VALID is GITHUB_ENV logging only — a stale false from an earlier check
-      // step must not block a restored/primed snapshot in the same job.
-      writeSnapshot('fp-1');
-      expect(
-        isGoldenSnapshotUsable(avdName, {
-          ANDROID_AVD_HOME: avdHome,
-          ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
-          ANDROID_GOLDEN_SNAPSHOT_VALID: 'false',
-        }),
-      ).toBe(true);
     });
 
     it('isGoldenSnapshotUsable enforces the fingerprint when set', () => {

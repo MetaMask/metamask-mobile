@@ -1,21 +1,17 @@
 # Prime Appium Android Emulator Snapshot
 #
 # Boots the Appium smoke AVD once per system image, stabilizes it, and saves a
-# named quick-boot snapshot ("e2e_golden"). Persistence has two layers:
+# named quick-boot snapshot ("e2e_golden").
 #
-# 1. Cross-run: actions/cache keyed by the system-image fingerprint (image
-#    metadata + emulator version + snapshot-prime args). PRs can restore caches
-#    created on main / the base branch; the same branch reuses its own cache.
-#    Do NOT put ~/.android/avd on the Namespace volume — volumes fork per job
-#    and commit last-write-wins, so concurrent jobs clobber the snapshot.
+# Persistence (two layers — both needed):
+# - actions/cache: cross-run restore (main / base / same PR). Avoids re-priming
+#   every pipeline. Do NOT put ~/.android/avd on the Namespace volume (fork +
+#   last-write-wins clobber).
+# - dual-upload artifact (Namespace-only): within-run handoff to ~30 shards.
+#   Concurrent actions/cache restores of a multi-GB AVD are slower/riskier than
+#   one upload + N downloads from the artifact store.
 #
-# 2. Within-run: dual-upload-e2e-artifact (Namespace-only via skip-github) so
-#    shard jobs can download the AVD before they boot.
-#
-# Fingerprint helper:
-# .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts
-#
-# Called from run-appium-smoke-tests-android.yml before the shard jobs fan out.
+# Helper: e2e-android-emulator-snapshot-ci.ts
 
 name: Prime Appium Android Emulator Snapshot
 
@@ -32,11 +28,6 @@ on:
         required: false
         type: string
         default: 'default'
-      force_reprime:
-        description: 'Re-prime even when a valid golden snapshot is already present'
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -51,6 +42,12 @@ jobs:
         'namespace-profile-metamask-android-e2e' ||
         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]')
       }}
+    env:
+      ANDROID_AVD_NAME: appium_smoke_avd
+      ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+      ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+      ANDROID_SYSTEM_IMAGE_ABI: x86_64
+      ANDROID_EMULATOR_CI_CORES: '8'
     steps:
       - name: Checkout (Namespace)
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
@@ -85,19 +82,12 @@ jobs:
           install-foundry: 'false'
           runner_provider: ${{ inputs.runner_provider }}
 
-      # Computes ANDROID_EMULATOR_IMAGE_FINGERPRINT (needed for the cache key)
-      # even when no local snapshot exists yet.
       - name: Resolve Android golden snapshot fingerprint
-        env:
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
-          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
-          ANDROID_SYSTEM_IMAGE_ABI: x86_64
         run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
 
       - name: Restore golden AVD cache
         id: restore-golden-avd
-        if: ${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != '' && !inputs.force_reprime }}
+        if: ${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != '' }}
         uses: actions/cache/restore@v4
         with:
           path: ~/.android/avd
@@ -105,57 +95,35 @@ jobs:
 
       - name: Re-check Android golden snapshot after cache restore
         id: golden-snapshot-check
-        env:
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
-          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
-          ANDROID_SYSTEM_IMAGE_ABI: x86_64
         run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
 
-      # continue-on-error: priming is an optimization — a failed prime must not
-      # fail this job when shards can cold-boot.
       - name: Prime Android golden snapshot
         id: prime-golden-snapshot
         continue-on-error: true
-        if: >-
-          ${{
-            env.ANDROID_GOLDEN_SNAPSHOT_VALID != 'true' || inputs.force_reprime
-          }}
+        if: ${{ steps.golden-snapshot-check.outputs.ready != 'true' }}
         timeout-minutes: 12
         env:
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
-          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
-          ANDROID_SYSTEM_IMAGE_ABI: x86_64
           ANDROID_BOOT_TIMEOUT_MS: '300000'
-          ANDROID_EMULATOR_CI_CORES: '8'
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
         run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts prime
 
-      - name: Re-check Android golden snapshot after prime
-        id: golden-snapshot-recheck
-        env:
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
-          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
-          ANDROID_SYSTEM_IMAGE_ABI: x86_64
-        run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
-
       - name: Warn when no valid snapshot is available
-        if: ${{ env.ANDROID_GOLDEN_SNAPSHOT_VALID != 'true' }}
+        if: >-
+          ${{
+            steps.golden-snapshot-check.outputs.ready != 'true' &&
+            steps.prime-golden-snapshot.outputs.ready != 'true'
+          }}
         run: |
           echo "::warning::No valid golden emulator snapshot after prime step — shards will cold boot (pre-snapshot behavior)."
 
-      # Persist for later runs / other PRs (via main or same-branch cache hits).
-      # Skip save on exact-key restore hit — actions/cache rejects duplicate keys.
-      # continue-on-error: persist is an optimization — shards can still cold-boot.
       - name: Save golden AVD cache
         if: >-
           ${{
-            env.ANDROID_GOLDEN_SNAPSHOT_VALID == 'true' &&
+            (steps.golden-snapshot-check.outputs.ready == 'true' ||
+              steps.prime-golden-snapshot.outputs.ready == 'true') &&
             env.ANDROID_EMULATOR_IMAGE_FINGERPRINT != '' &&
-            (steps.restore-golden-avd.outputs.cache-hit != 'true' || inputs.force_reprime)
+            steps.restore-golden-avd.outputs.cache-hit != 'true'
           }}
         continue-on-error: true
         uses: actions/cache/save@v4
@@ -163,11 +131,12 @@ jobs:
           path: ~/.android/avd
           key: android-e2e-golden-avd-v1-${{ env.ANDROID_EMULATOR_IMAGE_FINGERPRINT }}
 
-      # Within-run handoff to shards. Namespace-only — the AVD is large and no
-      # GitHub API consumer needs it.
-      # continue-on-error: same as prime — missing artifact → shards cold-boot.
       - name: Upload golden AVD artifact
-        if: ${{ env.ANDROID_GOLDEN_SNAPSHOT_VALID == 'true' }}
+        if: >-
+          ${{
+            steps.golden-snapshot-check.outputs.ready == 'true' ||
+            steps.prime-golden-snapshot.outputs.ready == 'true'
+          }}
         continue-on-error: true
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:

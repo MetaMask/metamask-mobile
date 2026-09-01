@@ -1,11 +1,32 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { exec, spawn } from 'child_process';
-import { createHash } from 'crypto';
-import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { Platform } from '../../types.ts';
 import { createLogger } from '../../logger.ts';
+import {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  removeGoldenSnapshot,
+  resolveAndroidBootMode,
+  writeGoldenSnapshotFingerprint,
+} from './AndroidGoldenSnapshot.ts';
+
+export {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  computeAndroidSystemImageFingerprint,
+  getAndroidAvdHome,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  readGoldenSnapshotFingerprint,
+  resolveAndroidBootMode,
+  type AndroidEmulatorArgMode,
+  type AndroidEmulatorBootMode,
+} from './AndroidGoldenSnapshot.ts';
 
 const logger = createLogger({ name: 'EmulatorHelpers' });
 
@@ -18,18 +39,9 @@ const ANDROID_ANR_STABILIZE_TIMEOUT_MS = 90_000;
 const ANDROID_NETWORK_READY_POLL_MS = 2_000;
 const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
 const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
-const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
-const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
-const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
 const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
-
-/**
- * Named quick-boot snapshot primed once per system image and reused by CI
- * shards, so shards skip the wiped cold boot (see ANDROID_EMULATOR_BOOT_MODE).
- */
-export const ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME = 'e2e_golden';
 
 /** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
 export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
@@ -72,29 +84,34 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function resolveAndroidBootTimeoutMs(): number {
-  const raw = process.env.ANDROID_BOOT_TIMEOUT_MS?.trim();
+function resolvePositiveIntEnv(
+  envKey: string,
+  fallbackMs: number,
+  env: Record<string, string | undefined> = process.env,
+): number {
+  const raw = env[envKey]?.trim();
   if (!raw) {
-    return DEFAULT_ANDROID_BOOT_TIMEOUT_MS;
+    return fallbackMs;
   }
   const parsed = Number.parseInt(raw, 10);
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    return DEFAULT_ANDROID_BOOT_TIMEOUT_MS;
+    return fallbackMs;
   }
   return parsed;
 }
 
-/** Snapshot resume should take seconds; fail fast so `auto` can fall back to cold. */
+function resolveAndroidBootTimeoutMs(): number {
+  return resolvePositiveIntEnv(
+    'ANDROID_BOOT_TIMEOUT_MS',
+    DEFAULT_ANDROID_BOOT_TIMEOUT_MS,
+  );
+}
+
 function resolveSnapshotBootTimeoutMs(): number {
-  const raw = process.env.ANDROID_EMULATOR_SNAPSHOT_BOOT_TIMEOUT_MS?.trim();
-  if (!raw) {
-    return DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS;
-  }
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS;
-  }
-  return parsed;
+  return resolvePositiveIntEnv(
+    'ANDROID_EMULATOR_SNAPSHOT_BOOT_TIMEOUT_MS',
+    DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS,
+  );
 }
 
 async function killEmulatorSerialBestEffort(serial?: string): Promise<void> {
@@ -104,11 +121,6 @@ async function killEmulatorSerialBestEffort(serial?: string): Promise<void> {
   await execAsync(`adb -s ${serial} emu kill`).catch(() => undefined);
 }
 
-/**
- * Spawns the emulator detached and polls adb for its serial. Returns undefined
- * when the process exits early (e.g. unsupported flag combination) or never
- * registers within the timeout, so callers can fall back to another boot mode.
- */
 async function spawnEmulatorAndAwaitSerial(options: {
   emulatorBin: string;
   args: string[];
@@ -230,280 +242,6 @@ export function shouldWaitForUnidentifiedOfflineEmulator(options: {
   offlineOrAuthorizingCount: number;
 }): boolean {
   return options.isCI && options.offlineOrAuthorizingCount === 1;
-}
-
-export type AndroidEmulatorBootMode = 'auto' | 'snapshot' | 'cold';
-
-/** How the CI emulator process is spawned. */
-export type AndroidEmulatorArgMode =
-  | 'cold'
-  | 'snapshot-prime'
-  | 'snapshot-resume';
-
-/**
- * ANDROID_EMULATOR_BOOT_MODE: `auto` (default) resumes from the golden
- * snapshot when one is cached and matches the current system image, otherwise
- * cold boots (pre-snapshot behavior); `snapshot` requires the golden snapshot
- * and fails loudly when it is missing, stale, or cannot be booted — surfaces
- * CI misconfiguration instead of silently cold-booting every shard; `cold`
- * always cold boots with `-wipe-data` (escape hatch / kill switch).
- */
-export function resolveAndroidBootMode(
-  env: Record<string, string | undefined> = process.env,
-): AndroidEmulatorBootMode {
-  const raw = env.ANDROID_EMULATOR_BOOT_MODE?.trim().toLowerCase();
-  if (raw === 'snapshot' || raw === 'cold') {
-    return raw;
-  }
-  return 'auto';
-}
-
-export function getAndroidAvdHome(
-  env: Record<string, string | undefined> = process.env,
-): string {
-  return (
-    env.ANDROID_AVD_HOME?.trim() || path.join(os.homedir(), '.android', 'avd')
-  );
-}
-
-export function getGoldenSnapshotDir(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): string {
-  return path.join(
-    getAndroidAvdHome(env),
-    `${avdName}.avd`,
-    'snapshots',
-    ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
-  );
-}
-
-function getGoldenSnapshotFingerprintPath(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): string {
-  return path.join(
-    getAndroidAvdHome(env),
-    `${avdName}.avd`,
-    'snapshots',
-    `${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}.fingerprint.txt`,
-  );
-}
-
-export function hasGoldenSnapshot(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): boolean {
-  return fs.existsSync(
-    path.join(getGoldenSnapshotDir(avdName, env), 'snapshot.pb'),
-  );
-}
-
-export function readGoldenSnapshotFingerprint(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): string | undefined {
-  try {
-    return fs
-      .readFileSync(getGoldenSnapshotFingerprintPath(avdName, env), 'utf8')
-      .trim();
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * True when a golden snapshot exists and — when ANDROID_EMULATOR_IMAGE_FINGERPRINT
- * is set — was primed against the same system image / emulator / boot args.
- *
- * In CI, a missing fingerprint is unusable (do not resume an unvalidated
- * snapshot). Existence-only acceptance is for local experimentation only.
- *
- * Do not gate on ANDROID_GOLDEN_SNAPSHOT_VALID: that flag is written to
- * GITHUB_ENV by an earlier check step and sticks across restore/prime in the
- * same job, which would permanently block a later valid snapshot.
- */
-export function isGoldenSnapshotUsable(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): boolean {
-  if (!hasGoldenSnapshot(avdName, env)) {
-    return false;
-  }
-  const expected = env.ANDROID_EMULATOR_IMAGE_FINGERPRINT?.trim();
-  if (!expected) {
-    if (env.CI === 'true') {
-      logger.warn(
-        'ANDROID_EMULATOR_IMAGE_FINGERPRINT not set in CI — treating golden snapshot as unusable.',
-      );
-      return false;
-    }
-    logger.warn(
-      'ANDROID_EMULATOR_IMAGE_FINGERPRINT not set — accepting golden snapshot on existence only.',
-    );
-    return true;
-  }
-  const actual = readGoldenSnapshotFingerprint(avdName, env);
-  if (actual !== expected) {
-    logger.warn(
-      `Golden snapshot fingerprint mismatch (snapshot=${actual ?? 'missing'}, image=${expected}) — treating as unusable.`,
-    );
-    return false;
-  }
-  return true;
-}
-
-/**
- * Builds emulator CLI args. Appium smoke CI uses AOSP (`default` image) —
- * lighter boot than google_apis. Skin overrides AVD profile resolution;
- * cores via env.
- *
- * Modes: `cold` is the historical CI behavior — hermetic full boot, snapshots
- * disabled, wiped userdata, read-only system image. `snapshot-prime` is a
- * writable clean base boot (snapshot save requires a writable image, so no
- * `-read-only`/`-no-snapshot-save`), still `-wipe-data` so the golden snapshot
- * captures a pristine, fully stabilized system. `snapshot-resume` quick-boots
- * from the golden snapshot: `-no-snapshot-save` keeps the golden snapshot
- * pristine and `-read-only` redirects the run's disk writes to a throwaway
- * overlay so cached userdata stays byte-identical and concurrent shards can
- * share the same AVD without lock contention.
- */
-export function buildAndroidEmulatorArgs(options: {
-  avdName: string;
-  isCI: boolean;
-  bootMode?: AndroidEmulatorArgMode;
-  cores?: string;
-  skin?: string;
-  snapshotName?: string;
-  snapshotReadOnly?: boolean;
-}): string[] {
-  const { avdName, isCI, bootMode = 'cold' } = options;
-  const args = ['-avd', avdName];
-  if (!isCI) {
-    args.push('-no-snapshot-load');
-    return args;
-  }
-
-  const cores = options.cores?.trim() || ANDROID_EMULATOR_CI_CORES_DEFAULT;
-  const skin = options.skin?.trim() || ANDROID_EMULATOR_CI_SKIN;
-  args.push(
-    '-skin',
-    skin,
-    '-memory',
-    '12288',
-    '-cores',
-    cores,
-    '-dns-server',
-    ANDROID_EMULATOR_CI_DNS_SERVER,
-    '-gpu',
-    'swiftshader_indirect',
-    '-no-audio',
-    '-no-boot-anim',
-  );
-
-  if (bootMode === 'snapshot-prime') {
-    args.push(
-      '-partition-size',
-      '8192',
-      '-cache-size',
-      '2048',
-      '-accel',
-      'on',
-      '-wipe-data',
-      '-no-snapshot-load',
-      '-no-window',
-    );
-    return args;
-  }
-
-  if (bootMode === 'snapshot-resume') {
-    args.push(
-      '-cache-size',
-      '2048',
-      '-accel',
-      'on',
-      '-no-snapshot-save',
-      '-snapshot',
-      options.snapshotName?.trim() || ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
-    );
-    if (options.snapshotReadOnly ?? true) {
-      args.push('-read-only');
-    }
-    args.push('-no-window');
-    return args;
-  }
-
-  args.push(
-    '-partition-size',
-    '8192',
-    '-no-snapshot-save',
-    '-no-snapshot-load',
-    '-cache-size',
-    '2048',
-    '-accel',
-    'on',
-    '-wipe-data',
-    '-read-only',
-    '-no-window',
-  );
-  return args;
-}
-
-/**
- * Fingerprint of the host-side inputs a golden snapshot depends on: system
- * image metadata, emulator binary version, and the CI boot args (RAM, cores,
- * skin — baked into a snapshot, so any arg change must invalidate caches).
- * Pass cores/skin via `env` (not only process.env) so the hash matches what
- * prime and shards actually spawn. Shard boots reject mismatched fingerprints.
- */
-export async function computeAndroidSystemImageFingerprint(
-  env: Record<string, string | undefined> = process.env,
-): Promise<string> {
-  const androidHome = env.ANDROID_HOME;
-  if (!androidHome) {
-    throw new Error(
-      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
-    );
-  }
-  const apiLevel = env.ANDROID_SYSTEM_IMAGE_API_LEVEL?.trim() || '36';
-  const tag = env.ANDROID_SYSTEM_IMAGE_TAG?.trim() || 'default';
-  const abi = env.ANDROID_SYSTEM_IMAGE_ABI?.trim() || 'x86_64';
-  const imageDir = path.join(
-    androidHome,
-    'system-images',
-    `android-${apiLevel}`,
-    tag,
-    abi,
-  );
-
-  const hash = createHash('sha256');
-  for (const file of ['source.properties', 'build.props']) {
-    try {
-      hash.update(fs.readFileSync(path.join(imageDir, file)));
-    } catch {
-      // Tolerate missing metadata — the fingerprint still pins the emulator build.
-    }
-  }
-  try {
-    const { stdout } = await execAsync(
-      `"${path.join(androidHome, 'emulator', 'emulator')}" -version`,
-    );
-    hash.update(stdout);
-  } catch {
-    // Tolerate — image metadata still distinguishes snapshots.
-  }
-  hash.update(
-    JSON.stringify(
-      buildAndroidEmulatorArgs({
-        avdName: '',
-        isCI: true,
-        bootMode: 'snapshot-prime',
-        cores: env.ANDROID_EMULATOR_CI_CORES,
-        skin: env.ANDROID_EMULATOR_CI_SKIN,
-      }),
-    ),
-  );
-  return hash.digest('hex');
 }
 
 interface TapPoint {
@@ -1005,8 +743,6 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
       if (serial) {
         return serial;
       }
-      // Local artifact only (per-shard download) — drop a resume-failed snapshot
-      // so a job retry does not pay ANDROID_EMULATOR_SNAPSHOT_BOOT_TIMEOUT_MS again.
       removeGoldenSnapshot(avdName);
       if (bootMode === 'snapshot') {
         throw new Error(
@@ -1059,21 +795,6 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   return serial;
 }
 
-function removeGoldenSnapshot(
-  avdName: string,
-  env: Record<string, string | undefined> = process.env,
-): void {
-  const snapshotDir = getGoldenSnapshotDir(avdName, env);
-  if (fs.existsSync(snapshotDir)) {
-    fs.rmSync(snapshotDir, { recursive: true, force: true });
-  }
-  try {
-    fs.unlinkSync(getGoldenSnapshotFingerprintPath(avdName, env));
-  } catch {
-    // No fingerprint file yet.
-  }
-}
-
 async function assertGoldenSnapshotSaved(
   serial: string,
   snapshotName: string,
@@ -1089,11 +810,7 @@ async function assertGoldenSnapshotSaved(
   }
 }
 
-/**
- * Quick-boot the emulator from the golden snapshot. Returns undefined when the
- * snapshot cannot be resumed (process exited, never registered in adb, or boot
- * never completed) so the caller can fall back to a cold boot.
- */
+/** Resume from golden snapshot; returns undefined so callers can cold-boot. */
 async function tryBootFromGoldenSnapshot(
   emulatorBin: string,
   avdName: string,
@@ -1104,9 +821,6 @@ async function tryBootFromGoldenSnapshot(
     bootMode: 'snapshot-resume',
     cores: process.env.ANDROID_EMULATOR_CI_CORES,
     skin: process.env.ANDROID_EMULATOR_CI_SKIN,
-    // `-read-only` keeps cached userdata byte-identical across shards; set
-    // ANDROID_EMULATOR_SNAPSHOT_READ_ONLY=false if an emulator build rejects
-    // snapshot resume with a read-only image.
     snapshotReadOnly:
       process.env.ANDROID_EMULATOR_SNAPSHOT_READ_ONLY?.trim().toLowerCase() !==
       'false',
@@ -1132,8 +846,6 @@ async function tryBootFromGoldenSnapshot(
   try {
     await waitForEmulatorBoot(serial, {
       postBoot: 'light',
-      // Fail fast on a stuck resume so auto mode falls back to cold boot
-      // instead of burning the full cold-boot timeout on a dead snapshot.
       bootTimeoutMs: timeoutMs,
     });
     logger.info(
@@ -1149,18 +861,7 @@ async function tryBootFromGoldenSnapshot(
   }
 }
 
-/**
- * Prime the golden snapshot for Appium E2E shards: clean cold boot with full
- * post-boot stabilization (system trimming, animations off, network up), then
- * save a named quick-boot snapshot. Shards resume from it in seconds instead
- * of paying a wiped cold boot (~171s) per run.
- *
- * `fingerprint` should identify the system image + emulator build (see
- * computeAndroidSystemImageFingerprint); it is stored next to the snapshot so
- * shard boots can reject snapshots primed against a different image.
- * @param avdName - AVD to prime.
- * @param options - Optional fingerprint to store alongside the snapshot.
- */
+/** Cold-boot, stabilize, save, and resume-verify the golden snapshot. */
 export async function primeAndroidGoldenSnapshot(
   avdName: string,
   options?: { fingerprint?: string },
@@ -1209,8 +910,6 @@ export async function primeAndroidGoldenSnapshot(
   }
 
   try {
-    // Full stabilization — trimming, animations off, setup wizard skipped — is
-    // captured in the snapshot, so shards never pay for it per boot.
     await waitForEmulatorBoot(serial);
     logger.info(
       `Saving golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}"...`,
@@ -1221,7 +920,6 @@ export async function primeAndroidGoldenSnapshot(
     );
   } finally {
     await killEmulatorSerialBestEffort(serial);
-    // Give qemu a moment to flush snapshot files and release the AVD dir.
     await sleep(2000);
   }
 
@@ -1231,9 +929,6 @@ export async function primeAndroidGoldenSnapshot(
     );
   }
 
-  // Prove the snapshot resumes before publishing the fingerprint. Existence of
-  // snapshot.pb alone does not guarantee load; a resume-fail would tax every
-  // shard with the fail-fast timeout before cold boot.
   logger.info(
     `Verifying golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" can resume...`,
   );
@@ -1248,11 +943,7 @@ export async function primeAndroidGoldenSnapshot(
   await sleep(2000);
 
   const fingerprint = options?.fingerprint?.trim() || 'unknown';
-  fs.writeFileSync(
-    getGoldenSnapshotFingerprintPath(avdName),
-    `${fingerprint}\n`,
-    'utf8',
-  );
+  writeGoldenSnapshotFingerprint(avdName, fingerprint);
   logger.info(
     `Golden snapshot primed for "${avdName}" (fingerprint: ${fingerprint}).`,
   );

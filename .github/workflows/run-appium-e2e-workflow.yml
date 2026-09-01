@@ -116,6 +116,12 @@ jobs:
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
       }}
+    env:
+      ANDROID_AVD_NAME: appium_smoke_avd
+      ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
+      ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
+      ANDROID_SYSTEM_IMAGE_ABI: x86_64
+      ANDROID_EMULATOR_CI_CORES: '8'
 
     steps:
       - name: Checkout (Namespace)
@@ -241,10 +247,7 @@ jobs:
           install-foundry: 'true'
           runner_provider: ${{ inputs.runner_provider }}
 
-      # Resolves the system-image fingerprint and validates the downloaded golden
-      # snapshot; exports ANDROID_EMULATOR_IMAGE_FINGERPRINT (boot gate) and
-      # ANDROID_GOLDEN_SNAPSHOT_VALID (logging). Never fails the step — on error
-      # fingerprint is cleared so shards cold-boot.
+      # Fingerprint → GITHUB_ENV for isGoldenSnapshotUsable; clears on error.
       - name: Check Android golden snapshot
         if: >-
           ${{
@@ -252,12 +255,6 @@ jobs:
             inputs.cache-android-golden-snapshot &&
             steps.select-specs.outputs.spec_count != '0'
           }}
-        id: android-golden-snapshot
-        env:
-          ANDROID_AVD_NAME: appium_smoke_avd
-          ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
-          ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
-          ANDROID_SYSTEM_IMAGE_ABI: x86_64
         run: yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check
 
       - name: Setup E2E environment (iOS)
@@ -472,10 +469,8 @@ jobs:
           APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
           SKIP_APPIUM_STOP: 'true'
           ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
-          ANDROID_AVD_NAME: appium_smoke_avd
           ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
           ANDROID_BOOT_TIMEOUT_MS: '300000'
-          ANDROID_EMULATOR_CI_CORES: '8'
           ANDROID_EMULATOR_BOOT_MODE: ${{ inputs.android-emulator-boot-mode }}
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'

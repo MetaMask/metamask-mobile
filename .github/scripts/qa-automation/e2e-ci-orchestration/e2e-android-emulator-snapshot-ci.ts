@@ -1,27 +1,10 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /* eslint-disable no-console */
 /**
- * CI helper for the Android golden-snapshot boot flow.
+ * CI helper for Android golden-snapshot prime/check.
  *
- * The Appium smoke CI historically cold-booted every shard with
- * `-no-snapshot-save -no-snapshot-load -wipe-data -read-only` (~171s of boot +
- * stabilization per shard). The golden-snapshot flow pays that cost once per
- * system image: a prime step cold-boots, stabilizes (system trimming,
- * animations off, network up), and saves a named quick-boot snapshot
- * (`e2e_golden`). Shards then resume from it in seconds.
- *
- * Usage: `yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check` computes
- * the system-image fingerprint and exports ANDROID_EMULATOR_IMAGE_FINGERPRINT
- * and ANDROID_GOLDEN_SNAPSHOT_VALID (true|false) to $GITHUB_ENV (logging /
- * workflow `if`s). It always exits 0 — on any error it reports valid=false.
- * Boot decisions use `isGoldenSnapshotUsable` with the fingerprint (in CI a
- * missing fingerprint is unusable). `... prime` cold-boots, saves, and
- * resume-verifies the golden snapshot, exiting non-zero on failure.
- *
- * Relevant env: ANDROID_AVD_NAME (default appium_smoke_avd),
- * ANDROID_SYSTEM_IMAGE_API_LEVEL (default 36), ANDROID_SYSTEM_IMAGE_TAG
- * (default "default", AOSP), ANDROID_SYSTEM_IMAGE_ABI (default x86_64).
- * Shard boots use ANDROID_EMULATOR_BOOT_MODE (auto|snapshot|cold).
+ * check — fingerprint + usability → GITHUB_ENV fingerprint, GITHUB_OUTPUT ready
+ * prime — cold-boot, save, resume-verify; sets ready=true on success
  */
 import fs from 'fs';
 import {
@@ -33,41 +16,45 @@ import {
 
 const avdName = process.env.ANDROID_AVD_NAME?.trim() || 'appium_smoke_avd';
 
-function exportToGithubEnv(key: string, value: string): void {
-  const envFile = process.env.GITHUB_ENV;
+function appendEnvFile(
+  envFile: string | undefined,
+  key: string,
+  value: string,
+): void {
   if (!envFile) {
     return;
   }
   fs.appendFileSync(envFile, `${key}=${value}\n`);
 }
 
+function exportFingerprint(fingerprint: string): void {
+  appendEnvFile(process.env.GITHUB_ENV, 'ANDROID_EMULATOR_IMAGE_FINGERPRINT', fingerprint);
+}
+
+function exportReady(ready: boolean): void {
+  appendEnvFile(process.env.GITHUB_OUTPUT, 'ready', ready ? 'true' : 'false');
+}
+
 async function check(): Promise<void> {
   try {
     const fingerprint = await computeAndroidSystemImageFingerprint();
-    exportToGithubEnv('ANDROID_EMULATOR_IMAGE_FINGERPRINT', fingerprint);
+    exportFingerprint(fingerprint);
     const usable = isGoldenSnapshotUsable(avdName, {
       ...process.env,
       ANDROID_EMULATOR_IMAGE_FINGERPRINT: fingerprint,
     });
-    exportToGithubEnv(
-      'ANDROID_GOLDEN_SNAPSHOT_VALID',
-      usable ? 'true' : 'false',
-    );
+    exportReady(usable);
     console.log(
       usable
-        ? `Golden snapshot for "${avdName}" is valid (fingerprint ${fingerprint}) — shards will quick-boot.`
+        ? `Golden snapshot for "${avdName}" is ready (fingerprint ${fingerprint}).`
         : `No usable golden snapshot for "${avdName}" at ${getGoldenSnapshotDir(
             avdName,
-          )} (fingerprint ${fingerprint}) — shards will cold boot.`,
+          )} (fingerprint ${fingerprint}).`,
     );
   } catch (error) {
-    console.warn(
-      `Golden snapshot check failed (${error}) — shards will cold boot.`,
-    );
-    // Do not leave a prior fingerprint in GITHUB_ENV: a failed check must not
-    // resume an unvalidated snapshot (isGoldenSnapshotUsable requires CI fp).
-    exportToGithubEnv('ANDROID_EMULATOR_IMAGE_FINGERPRINT', '');
-    exportToGithubEnv('ANDROID_GOLDEN_SNAPSHOT_VALID', 'false');
+    console.warn(`Golden snapshot check failed (${error}) — cold boot.`);
+    exportFingerprint('');
+    exportReady(false);
   }
 }
 
@@ -85,6 +72,8 @@ async function prime(): Promise<void> {
       'Golden snapshot was saved but failed post-prime validation.',
     );
   }
+  exportFingerprint(fingerprint);
+  exportReady(true);
   console.log(`Golden snapshot primed and validated for "${avdName}".`);
 }
 
