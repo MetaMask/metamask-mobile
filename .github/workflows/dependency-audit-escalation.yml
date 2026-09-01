@@ -81,6 +81,20 @@ jobs:
             echo "has-advisories=false" >> "$GITHUB_OUTPUT"
           fi
 
+      # Idempotent: `gh label create --force` edits the label in place if it
+      # already exists instead of erroring, so this is safe to run every time
+      # rather than only on first setup.
+      - name: Ensure dependency-audit labels exist
+        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create dependency-audit --repo "$GITHUB_REPOSITORY" --color '0e8a16' \
+            --description 'Auto-fix PR opened by dependency-audit-escalation.yml' --force
+          gh label create dependency-audit-manual --repo "$GITHUB_REPOSITORY" --color 'd93f0b' \
+            --description 'Tracking issue for an advisory dependency-audit-escalation.yml could not auto-fix' --force
+
       - name: Build skip-list from open PRs/issues and accepted advisories
         id: skip-list
         if: ${{ steps.audit.outputs.has-advisories == 'true' }}
