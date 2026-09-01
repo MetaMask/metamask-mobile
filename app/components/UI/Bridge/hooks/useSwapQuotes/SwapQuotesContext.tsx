@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { BigNumber as EthersBigNumber } from 'ethers';
 
 import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 import { useValidQuotes } from '../useValidQuotes';
@@ -11,7 +12,6 @@ import {
   useUpdateQuoteParams,
   type UseDebouncedUpdateParams,
 } from '../useUpdateQuoteParams';
-import type { UseSwapQuotesParams } from './types';
 import { useLatestBalance } from '../useLatestBalance';
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
@@ -31,11 +31,16 @@ interface SwapQuotesProviderProps
   children: React.ReactNode;
 }
 
+interface UseSwapQuotesParams {
+  latestSourceAtomicBalance?: EthersBigNumber;
+  quoteParams: Parameters<typeof buildGenericQuoteRequest>[0]['quoteParams'];
+}
+
 interface UseQuoteDataParams extends UseSwapQuotesParams {}
 
 interface UseQuoteRequestParams
   extends UseSwapQuotesParams,
-    Omit<UseDebouncedUpdateParams, 'genericQuoteRequest'> {}
+    UseDebouncedUpdateParams {}
 
 /**
  * Hook for handling bridge quote request updates
@@ -110,8 +115,8 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     debounceWait: params.debounceWait,
     quoteRequestIndex: params.quoteRequestIndex,
     quoteRequestCount: params.quoteRequestCount,
-    quoteParams: params.quoteParams,
     genericQuoteRequest,
+    rawSrcAmount: srcAmount,
   });
 
   const refreshQuotes = useCallback(() => {
