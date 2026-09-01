@@ -194,7 +194,7 @@ const EarnStrategySelectionModal = () => {
         throw new Error('Selected strategy or earn asset is not available');
       }
 
-      navigateToDepositForExperience(earnAsset, selectedStrategy);
+      await navigateToDepositForExperience(earnAsset, selectedStrategy);
     } catch (error) {
       showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
       Logger.error(

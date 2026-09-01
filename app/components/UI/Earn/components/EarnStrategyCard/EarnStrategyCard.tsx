@@ -166,7 +166,7 @@ const EarnStrategyCard = ({
                 ))}
               </Box>
             )
-          : subtitle && (
+          : Boolean(subtitle) && (
               <Box twClassName="mt-3">
                 {subtitle && (
                   <Text

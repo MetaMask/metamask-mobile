@@ -21,13 +21,19 @@ export const getEarnAssetHighestRateCopy = ({
   }
 
   const isApr = asset.highestRateExperience?.rate.type === 'APR';
-  const key = hasMinDepositAmount
-    ? isApr
-      ? 'earn_module.get_rate_apr'
-      : 'earn_module.get_rate_apy'
-    : isApr
-      ? 'earn_module.rate_apr'
-      : 'earn_module.rate_apy';
+  let key = 'earn_module.rate_apy';
+
+  if (isApr) {
+    key = 'earn_module.rate_apr';
+  }
+
+  if (hasMinDepositAmount) {
+    key = 'earn_module.get_rate_apy';
+  }
+
+  if (hasMinDepositAmount && isApr) {
+    key = 'earn_module.get_rate_apr';
+  }
 
   return strings(key, {
     percentage: truncateNumber(asset.highestRatePercent),

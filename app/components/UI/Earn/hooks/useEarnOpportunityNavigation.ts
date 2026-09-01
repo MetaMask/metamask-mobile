@@ -128,7 +128,7 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateToDepositForExperience = useCallback(
-    (earnAsset: EarnAsset, experience: EarnExperience) => {
+    async (earnAsset: EarnAsset, experience: EarnExperience) => {
       if (earnAsset.kind !== 'held') {
         throw new Error(
           `${LOG_PREFIX} Deposit redirect is only supported for held assets`,
@@ -137,17 +137,21 @@ const useEarnOpportunityNavigation = () => {
 
       switch (experience.type) {
         case 'MONEY_ACCOUNT_DEPOSIT':
-          navigateToMoneyDeposit(earnAsset);
+          await navigateToMoneyDeposit(earnAsset);
           break;
         case EARN_EXPERIENCES.STABLECOIN_LENDING:
-          navigateToStablecoinLending(earnAsset);
+          await navigateToStablecoinLending(earnAsset);
           break;
         case EARN_EXPERIENCES.POOLED_STAKING:
-          navigateToPooledStaking(earnAsset);
+          await navigateToPooledStaking(earnAsset);
           break;
         case EARN_EXPERIENCES.TRX_STAKING:
           navigateToLegacyEarnDeposit(earnAsset);
           break;
+        default:
+          throw new Error(
+            `${LOG_PREFIX} Unsupported Earn experience: ${experience.type}`,
+          );
       }
     },
     [
@@ -176,7 +180,14 @@ const useEarnOpportunityNavigation = () => {
       const hasSingleStrategy = asset.experiences.length === 1;
 
       if (hasSingleStrategy) {
-        navigateToDepositForExperience(asset, asset.experiences[0]);
+        navigateToDepositForExperience(asset, asset.experiences[0]).catch(
+          (error: Error) => {
+            Logger.error(
+              error,
+              `${LOG_PREFIX} Failed to navigate to deposit screen`,
+            );
+          },
+        );
         return;
       }
 

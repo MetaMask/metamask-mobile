@@ -1,6 +1,5 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type {
-  EarnAsset,
   EarnExperience,
   EarnExperienceType,
 } from '../../types/earnAssets';
