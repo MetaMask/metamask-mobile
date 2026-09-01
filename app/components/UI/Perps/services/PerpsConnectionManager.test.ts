@@ -154,6 +154,10 @@ import {
   setPerpsLoadingSessionLifecycle,
   startPerpsLoadingSession,
 } from '../utils/perpsLoadingSession';
+import {
+  resetSuspendedChaseOrderBufferForTests,
+  subscribeToSuspendedChaseOrders,
+} from './ChaseOrderSuspensionEvents';
 
 const mockClearPendingPerpsCufTraces =
   clearPendingPerpsCufTraces as jest.MockedFunction<
@@ -360,6 +364,68 @@ describe('PerpsConnectionManager', () => {
         );
         expect(transition).not.toHaveBeenCalled();
       } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('reports a partial suspension that rejects after the context deadline', async () => {
+      jest.useFakeTimers();
+      resetSuspendedChaseOrderBufferForTests();
+      const listener = jest.fn();
+      const unsubscribe = subscribeToSuspendedChaseOrders(listener);
+      const partialOrder = {
+        handle: 'late-context-partial',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      let rejectSuspension: ((error: Error) => void) | undefined;
+      mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+        new Promise((_resolve, reject) => {
+          rejectSuspension = reject;
+        }),
+      );
+      const transition = jest.fn().mockResolvedValue({ success: true });
+      const loggerError = jest.spyOn(Logger, 'error').mockImplementation();
+      try {
+        const result =
+          PerpsConnectionManager.runWithContextChangePreparation(transition);
+        const rejection = result.catch((error) => error);
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+        expect(await rejection).toEqual(
+          new Error('Chase context suspension timed out'),
+        );
+
+        rejectSuspension?.(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [partialOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('late provider failure'),
+              },
+            ],
+          }),
+        );
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(listener).toHaveBeenCalledWith([partialOrder]);
+        expect(transition).not.toHaveBeenCalled();
+        expect(loggerError).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'PerpsConnectionManager.lateContextSuspension',
+            }),
+          }),
+        );
+      } finally {
+        unsubscribe();
+        loggerError.mockRestore();
+        resetSuspendedChaseOrderBufferForTests();
         jest.useRealTimers();
       }
     });

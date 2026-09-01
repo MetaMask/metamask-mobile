@@ -109,6 +109,10 @@ const mockUpdateOrderForm = jest.fn();
 const mockSetMaxPossibleAmountOverride = jest.fn();
 const mockGetChaseOrders = jest.fn();
 let mockChaseOrders: { status: string }[] = [];
+const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
+  chaseOrders: mockChaseOrders,
+  getChaseOrders: mockGetChaseOrders,
+}));
 const mockRefreshChaseCapability = jest.fn().mockResolvedValue(null);
 
 const mockContextValue = {
@@ -362,10 +366,8 @@ jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
 
   return {
     ChaseOrderRequestError: MockChaseOrderRequestError,
-    usePerpsChaseOrders: () => ({
-      chaseOrders: mockChaseOrders,
-      getChaseOrders: mockGetChaseOrders,
-    }),
+    usePerpsChaseOrders: (options: { isEnabled: boolean }) =>
+      mockUsePerpsChaseOrders(options),
   };
 });
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
@@ -427,6 +429,7 @@ const renderProForm = (
     isPending?: boolean;
     refresh?: () => Promise<PerpsProviderType | null>;
     providerId?: PerpsProviderType;
+    isScreenFocused?: boolean;
   } = {},
 ) => {
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
@@ -452,6 +455,7 @@ const renderProForm = (
         chaseGate.isEnabled === false
           ? null
           : (chaseGate.providerId ?? 'hyperliquid'),
+      isScreenFocused: chaseGate.isScreenFocused ?? true,
     }),
   );
 };
@@ -1545,6 +1549,57 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).not.toHaveBeenCalledWith(
         strings('perps.order.validation.chase_route_changed'),
       );
+    });
+
+    it('abandons deferred Chase compliance after the symbol-keyed form unmounts', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+
+      form.unmount();
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the Chase form active while disabling its blurred polling consumer', () => {
+      mockOrderForm.type = 'chase';
+      const chaseGate = { isScreenFocused: true };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+        isEnabled: true,
+      });
+
+      chaseGate.isScreenFocused = false;
+      form.rerender({});
+
+      expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+        isEnabled: false,
+      });
+      expect(form.result.current.orderType).toBe('chase');
     });
 
     it('aborts Chase when the provider changes during compliance', async () => {

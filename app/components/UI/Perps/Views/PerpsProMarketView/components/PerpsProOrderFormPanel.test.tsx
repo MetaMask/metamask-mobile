@@ -358,6 +358,17 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
+  it('forwards blurred focus without hiding the order form', () => {
+    renderPanel({ isScreenFocused: false });
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({ isScreenFocused: false }),
+    );
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
   it('rechecks Chase support against the shared concrete provider route', async () => {
     renderPanel();
     const params = mockUsePerpsProOrderForm.mock.calls[0][0] as {

@@ -18,6 +18,7 @@ import {
   type UsePerpsProPositionsPanelActionsReturn,
 } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
+import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -27,6 +28,10 @@ import { playSelection } from '../../../../../../util/haptics';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 
 jest.mock('../../../../../../util/haptics');
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
@@ -85,12 +90,18 @@ jest.mock('../../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePerpsChaseOrders', () => ({
+  isExpectedChaseOrderRequestError: () => false,
+  usePerpsChaseOrders: jest.fn(),
+}));
+
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
 const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
 const mockUsePerpsProPositionsPanelActions = jest.mocked(
   usePerpsProPositionsPanelActions,
 );
 const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
+const mockUsePerpsChaseOrders = jest.mocked(usePerpsChaseOrders);
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
@@ -196,6 +207,10 @@ describe('PerpsProPositionsPanel', () => {
       positions: [],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [],
+      getChaseOrders: jest.fn().mockResolvedValue([]),
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
       handleReversePosition,
@@ -222,6 +237,42 @@ describe('PerpsProPositionsPanel', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+  });
+
+  it('disables only the Chase polling consumer while the Pro panel is blurred', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused />,
+      { state },
+    );
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+    });
+
+    view.rerender(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused={false} />,
+    );
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: false,
+    });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
+    ).toBeOnTheScreen();
   });
 
   it('reports loading while the market context reconnects', () => {

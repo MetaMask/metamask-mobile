@@ -10,6 +10,7 @@ import {
   InitializationState,
   PERPS_CONSTANTS,
   type ChaseOrder,
+  type PerpsActiveProviderMode,
 } from '@metamask/perps-controller';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -60,6 +61,7 @@ export const isExpectedChaseOrderRequestError = (
 let cachedOrders: ChaseOrder[] = [];
 let cachedRoute = '';
 let selectedRoute = '';
+let selectedProvider: PerpsActiveProviderMode | undefined;
 let initialRefreshRoute = '';
 let isControllerInitialized = false;
 let requestGeneration = 0;
@@ -82,6 +84,7 @@ let discoveryExhausted = false;
 let discoveryPausedForBackground = false;
 let refreshFailureLogged = false;
 let enabledConsumerCount = 0;
+const aggregatedOmissionCounts = new Map<string, number>();
 const listeners = new Set<() => void>();
 const EMPTY_ORDERS: ChaseOrder[] = [];
 let storeSnapshot: ChaseOrdersSnapshot = {
@@ -103,24 +106,62 @@ const getBoundedTerminalHistory = (orders: ChaseOrder[]) =>
         left.handle.localeCompare(right.handle),
     )
     .slice(0, CHASE_ORDER_UI_CONFIG.TerminalHistoryLimit);
+const getChaseOrderIdentity = (order: ChaseOrder) =>
+  `${order.providerId ?? 'unknown'}:${order.handle}`;
+const isSameChaseOrder = (left: ChaseOrder, right: ChaseOrder) =>
+  left.handle === right.handle &&
+  (left.providerId === right.providerId ||
+    left.providerId === undefined ||
+    right.providerId === undefined);
 const mergeWithCachedHistory = (
   orders: ChaseOrder[],
   preserveMissingRetainedOrders = false,
 ): ChaseOrder[] => {
-  const controllerHandles = new Set(orders.map((order) => order.handle));
+  orders.forEach((order) => {
+    aggregatedOmissionCounts.delete(getChaseOrderIdentity(order));
+    if (order.providerId !== undefined) {
+      aggregatedOmissionCounts.delete(`unknown:${order.handle}`);
+    } else {
+      for (const identity of aggregatedOmissionCounts.keys()) {
+        if (identity.endsWith(`:${order.handle}`)) {
+          aggregatedOmissionCounts.delete(identity);
+        }
+      }
+    }
+  });
+  const missingRetainedOrders = cachedOrders.filter(
+    (order) =>
+      CHASE_RETAINED_STATUSES.has(order.status) &&
+      !orders.some((controllerOrder) =>
+        isSameChaseOrder(order, controllerOrder),
+      ),
+  );
+  const retainedOrders = preserveMissingRetainedOrders
+    ? missingRetainedOrders
+    : selectedProvider === 'aggregated'
+      ? missingRetainedOrders.filter((order) => {
+          const identity = getChaseOrderIdentity(order);
+          const misses = (aggregatedOmissionCounts.get(identity) ?? 0) + 1;
+          if (misses > CHASE_ORDER_UI_CONFIG.AggregatedOmissionGraceReads) {
+            aggregatedOmissionCounts.delete(identity);
+            return false;
+          }
+          aggregatedOmissionCounts.set(identity, misses);
+          return true;
+        })
+      : [];
+  if (selectedProvider !== 'aggregated') {
+    aggregatedOmissionCounts.clear();
+  }
   const mergedOrders = [
     ...orders,
-    ...(preserveMissingRetainedOrders
-      ? cachedOrders.filter(
-          (order) =>
-            CHASE_RETAINED_STATUSES.has(order.status) &&
-            !controllerHandles.has(order.handle),
-        )
-      : []),
+    ...retainedOrders,
     ...cachedOrders.filter(
       (order) =>
         CHASE_HISTORY_STATUSES.has(order.status) &&
-        !controllerHandles.has(order.handle),
+        !orders.some((controllerOrder) =>
+          isSameChaseOrder(order, controllerOrder),
+        ),
     ),
   ];
   return [
@@ -408,10 +449,12 @@ function resetChaseOrdersStore() {
   cachedRoute = '';
   cachedOrders = [];
   selectedRoute = '';
+  selectedProvider = undefined;
   initialRefreshRoute = '';
   isControllerInitialized = false;
   refreshFailureLogged = false;
   enabledConsumerCount = 0;
+  aggregatedOmissionCounts.clear();
   storeSnapshot = {
     orders: cachedOrders,
     discoveryResolvedRoute: initialRefreshRoute,
@@ -444,19 +487,39 @@ const suspendAndCacheChaseOrders = async (
     let controllerSuspension =
       Engine.context.PerpsController.suspendChaseOrders();
     const reconcileLateSuspension = (suspension: Promise<ChaseOrder[]>) => {
-      suspension
-        .then((orders) => {
-          reportSuspendedChaseOrders(orders);
-          if (route !== getRouteKey()) return;
-          requestGeneration += 1;
-          refreshPromise = undefined;
-          setDiscoveryResolvedRoute('');
-          if (!canRefreshCurrentRoute()) return;
-          refreshChaseOrders()
-            .then(() => setDiscoveryResolvedRoute(route))
-            .catch(() => undefined);
-        })
-        .catch(() => undefined);
+      const reconcileOrders = (orders: ChaseOrder[]) => {
+        reportSuspendedChaseOrders(orders);
+        if (route !== getRouteKey()) return;
+        requestGeneration += 1;
+        refreshPromise = undefined;
+        setDiscoveryResolvedRoute('');
+        if (!canRefreshCurrentRoute()) return;
+        refreshChaseOrders()
+          .then(() => setDiscoveryResolvedRoute(route))
+          .catch(() => undefined);
+      };
+      suspension.then(reconcileOrders).catch((error) => {
+        if (error instanceof ChaseOrderSuspensionError) {
+          reconcileOrders(error.suspendedOrders);
+        }
+        Logger.error(ensureError(error, 'usePerpsChaseOrders.lateSuspension'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsChaseOrders',
+            action: 'late_chase_suspension',
+          },
+          context: {
+            name: 'usePerpsChaseOrders.lateSuspension',
+            data: {
+              route,
+              partialCount:
+                error instanceof ChaseOrderSuspensionError
+                  ? error.suspendedOrders.length
+                  : 0,
+            },
+          },
+        });
+      });
     };
     let result: ChaseOrder[];
     try {
@@ -618,6 +681,7 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
   // exactly one discovery read for the new route.
   useLayoutEffect(() => {
     selectedRoute = route;
+    selectedProvider = activeProvider;
     if (cachedRoute === route) {
       syncRefreshLifecycle();
       return;
@@ -628,8 +692,9 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     resetDiscoveryState(route);
     cachedRoute = route;
     cachedOrders = [];
+    aggregatedOmissionCounts.clear();
     setDiscoveryResolvedRoute('');
-  }, [route]);
+  }, [activeProvider, route]);
   useEffect(() => {
     if (!connectionIdentityReady) {
       requestGeneration += 1;

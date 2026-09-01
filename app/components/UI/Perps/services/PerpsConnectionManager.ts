@@ -180,7 +180,30 @@ class PerpsConnectionManagerClass {
       });
       let suspension = Engine.context.PerpsController.suspendChaseOrders();
       const reportLateSuccess = (pending: typeof suspension) => {
-        pending.then(reportSuspendedChaseOrders).catch(() => undefined);
+        pending.then(reportSuspendedChaseOrders).catch((error) => {
+          if (error instanceof ChaseOrderSuspensionError) {
+            reportSuspendedChaseOrders(error.suspendedOrders);
+          }
+          Logger.error(
+            ensureError(error, 'PerpsConnectionManager.lateContextSuspension'),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+                component: 'PerpsConnectionManager',
+                action: 'late_chase_context_suspension',
+              },
+              context: {
+                name: 'PerpsConnectionManager.lateContextSuspension',
+                data: {
+                  partialCount:
+                    error instanceof ChaseOrderSuspensionError
+                      ? error.suspendedOrders.length
+                      : 0,
+                },
+              },
+            },
+          );
+        });
       };
       try {
         try {

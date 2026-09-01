@@ -50,6 +50,7 @@ const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
+  isScreenFocused?: boolean;
   isOrderBookCollapsed?: boolean;
   onExpandOrderBook?: () => void;
   onRequestScrollBy?: (delta: number) => void;
@@ -65,6 +66,7 @@ export interface PerpsProOrderFormPanelProps {
  */
 const PerpsProOrderFormPanel = ({
   market,
+  isScreenFocused = true,
   isOrderBookCollapsed,
   onExpandOrderBook,
   onRequestScrollBy,
@@ -238,6 +240,7 @@ const PerpsProOrderFormPanel = ({
     isChaseAvailabilityPending,
     refreshChaseCapability,
     chaseProviderId,
+    isScreenFocused,
   });
 
   const { styles } = useStyles(createStyles, {});

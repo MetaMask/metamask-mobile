@@ -154,6 +154,43 @@ describe('usePerpsChaseOrders', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
+  it('stops polling while blurred and restores one interval on refocus', async () => {
+    mockGetChaseOrders.mockResolvedValue([activeOrder]);
+    const hook = renderHook(
+      ({ isFocused }: { isFocused: boolean }) =>
+        usePerpsChaseOrders({ isEnabled: isFocused }),
+      { initialProps: { isFocused: true } },
+    );
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+
+    hook.rerender({ isFocused: false });
+
+    expect(jest.getTimerCount()).toBe(0);
+    const callsWhileBlurred = mockGetChaseOrders.mock.calls.length;
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.RefreshIntervalMs * 2,
+      );
+    });
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(callsWhileBlurred);
+
+    hook.rerender({ isFocused: true });
+    await waitFor(() =>
+      expect(mockGetChaseOrders.mock.calls.length).toBeGreaterThan(
+        callsWhileBlurred,
+      ),
+    );
+    const callsAfterRefocus = mockGetChaseOrders.mock.calls.length;
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.RefreshIntervalMs,
+      );
+    });
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(callsAfterRefocus + 1);
+    hook.unmount();
+  });
+
   it.each(['context_not_ready', 'stale_request'] as const)(
     'recognizes %s as an expected Chase request race',
     (code) => {
@@ -166,12 +203,13 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
-  it('removes an aggregated Chase after authoritative termination omission', async () => {
+  it('evicts an aggregated Chase after consecutive authoritative omissions', async () => {
     mockPerpsProvider = 'aggregated';
     mockGetChaseOrders
       .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([]);
-    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: false }));
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
     await waitFor(() => {
       expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
       expect(hook.result.current.isChaseOrderDiscoveryResolved).toBe(true);
@@ -179,6 +217,10 @@ describe('usePerpsChaseOrders', () => {
 
     await act(async () => hook.result.current.getChaseOrders());
     expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
+
+    await act(async () => hook.result.current.getChaseOrders());
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(3);
     await waitFor(() => expect(hook.result.current.chaseOrders).toEqual([]));
 
     const orders = hook.result.current.chaseOrders;
@@ -188,6 +230,33 @@ describe('usePerpsChaseOrders', () => {
 
     expect(orders).toEqual([]);
     expect(isDiscoveryResolved).toBe(true);
+  });
+
+  it('clears an aggregated omission miss when the provider recovers', async () => {
+    const providerOrder = {
+      ...activeOrder,
+      providerId: primaryProvider,
+    };
+    mockPerpsProvider = 'aggregated';
+    mockGetChaseOrders
+      .mockResolvedValueOnce([providerOrder])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([providerOrder])
+      .mockResolvedValueOnce([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([providerOrder]),
+    );
+
+    await act(async () => hook.result.current.getChaseOrders());
+    expect(hook.result.current.chaseOrders).toEqual([providerOrder]);
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    await act(async () => hook.result.current.getChaseOrders());
+    expect(hook.result.current.chaseOrders).toEqual([providerOrder]);
+    await act(async () => hook.result.current.getChaseOrders());
+
+    expect(hook.result.current.chaseOrders).toEqual([providerOrder]);
+    hook.unmount();
   });
 
   it('shares one refresh request and polling interval across consumers', async () => {
@@ -996,6 +1065,73 @@ describe('usePerpsChaseOrders', () => {
       readsBeforeRecovery,
     );
     unmount();
+  });
+
+  it('reports a partial suspension that rejects after the hook timeout', async () => {
+    let currentAppState = 'active';
+    Object.defineProperty(AppState, 'currentState', {
+      configurable: true,
+      get: () => currentAppState,
+    });
+    const partialOrder = {
+      ...activeOrder,
+      handle: 'chase-late-partial',
+      status: 'backgrounded' as const,
+    };
+    let rejectSuspension: ((error: Error) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([partialOrder]);
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectSuspension = reject;
+        }),
+    );
+    const loggerError = jest.spyOn(Logger, 'error').mockImplementation();
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+    currentAppState = 'background';
+    const suspensionResult = hook.result.current
+      .suspendChaseOrders()
+      .catch((error) => error);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+      );
+    });
+    expect(await suspensionResult).toEqual(
+      new Error('Chase mutation timed out'),
+    );
+
+    await act(async () => {
+      rejectSuspension?.(
+        new ChaseOrderSuspensionError({
+          suspendedOrders: [partialOrder],
+          failures: [
+            {
+              providerId: secondaryProvider,
+              reason: new Error('late provider failure'),
+            },
+          ],
+        }),
+      );
+      await Promise.resolve();
+    });
+
+    expect(reportSuspendedChaseOrders).toHaveBeenCalledTimes(1);
+    expect(reportSuspendedChaseOrders).toHaveBeenCalledWith([partialOrder]);
+    expect(loggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        context: expect.objectContaining({
+          name: 'usePerpsChaseOrders.lateSuspension',
+        }),
+      }),
+    );
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    hook.unmount();
+    loggerError.mockRestore();
   });
 
   it('reconciles a late suspension with a fresh identity-checked read', async () => {

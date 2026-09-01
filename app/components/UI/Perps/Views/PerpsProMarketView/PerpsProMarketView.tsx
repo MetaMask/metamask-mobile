@@ -613,6 +613,7 @@ const PerpsProMarketView = ({
                 // required field at runtime.
                 <PerpsProOrderFormPanel
                   market={market as PerpsMarketData}
+                  isScreenFocused={isScreenFocused}
                   isOrderBookCollapsed={isOrderBookCollapsed}
                   onExpandOrderBook={handleExpandOrderBook}
                   onRequestScrollBy={handleRequestScrollBy}

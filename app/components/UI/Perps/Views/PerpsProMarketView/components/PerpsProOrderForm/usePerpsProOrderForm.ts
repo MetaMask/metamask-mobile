@@ -451,6 +451,8 @@ export interface UsePerpsProOrderFormParams {
   refreshChaseCapability: () => Promise<PerpsProviderType | null>;
   /** Concrete controller-resolved route used by validation and placement. */
   chaseProviderId: PerpsProviderType | null;
+  /** Whether this Pro market screen is currently focused. */
+  isScreenFocused?: boolean;
 }
 
 export interface UsePerpsProOrderFormResult {
@@ -551,6 +553,7 @@ export const usePerpsProOrderForm = ({
   isChaseAvailabilityPending,
   refreshChaseCapability,
   chaseProviderId,
+  isScreenFocused = true,
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
@@ -625,7 +628,7 @@ export const usePerpsProOrderForm = ({
     useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
-    isEnabled: isChaseEnabled,
+    isEnabled: isChaseEnabled && isScreenFocused,
   });
   const [chaseMaxDistance, setChaseMaxDistance] = useState('');
   const [chaseMaxDistanceUnit, setChaseMaxDistanceUnit] = useState<
@@ -677,6 +680,13 @@ export const usePerpsProOrderForm = ({
     ScaleOrderValidationCode | undefined
   >(undefined);
   const submissionStateRef = useRef('');
+  const lifecycleGenerationRef = useRef(0);
+  useLayoutEffect(
+    () => () => {
+      lifecycleGenerationRef.current += 1;
+    },
+    [],
+  );
   useEffect(() => {
     if (
       orderForm.type === 'chase' &&
@@ -1859,6 +1869,7 @@ export const usePerpsProOrderForm = ({
     isChaseSubmission: boolean,
     expectedChaseProviderId: PerpsProviderType | null,
     expectedNetwork: typeof network,
+    expectedLifecycleGeneration: number,
   ) => {
     if (isSubmittingRef.current) {
       return;
@@ -1899,10 +1910,14 @@ export const usePerpsProOrderForm = ({
               : 'perps.order.validation.chase_details_changed',
         ),
       );
+    const isCurrentLifecycle = () =>
+      lifecycleGenerationRef.current === expectedLifecycleGeneration;
     const isCurrentSubmission = () =>
-      submissionStateRef.current === expectedState;
+      isCurrentLifecycle() && submissionStateRef.current === expectedState;
     if (!isCurrentSubmission()) {
-      if (isChaseSubmission) reportChaseSubmissionChanged();
+      if (isCurrentLifecycle() && isChaseSubmission) {
+        reportChaseSubmissionChanged();
+      }
       return;
     }
 
@@ -2046,6 +2061,7 @@ export const usePerpsProOrderForm = ({
           networkRef.current === expectedNetwork &&
           refreshChaseCapabilityRef.current === refreshCapability;
         const refreshedProviderId = await refreshCapability();
+        if (!isCurrentLifecycle()) return;
         // A route change during the async refresh invalidates this submission.
         // The new route becomes available on the next user submit.
         if (!isCurrentChaseRoute()) {
@@ -2065,6 +2081,7 @@ export const usePerpsProOrderForm = ({
         try {
           latestChases = await getChaseOrders();
         } catch (error) {
+          if (!isCurrentLifecycle()) return;
           if (
             error instanceof ChaseOrderRequestError &&
             error.code === 'stale_request'
@@ -2108,6 +2125,7 @@ export const usePerpsProOrderForm = ({
       const initialScaleValidation = isScaleOrder
         ? await validateLatestScalePlacement()
         : undefined;
+      if (!isCurrentLifecycle()) return;
       if (isScaleOrder && !initialScaleValidation) {
         reportValidationFailure(strings('perps.order.validation.error'));
         return;
@@ -2116,6 +2134,7 @@ export const usePerpsProOrderForm = ({
         orderForm.type === 'chase'
           ? await validateLatestChasePlacement()
           : undefined;
+      if (!isCurrentLifecycle()) return;
       if (orderForm.type === 'chase' && !latestChaseValidation) {
         reportChaseSubmissionChanged();
         return;
@@ -2126,6 +2145,7 @@ export const usePerpsProOrderForm = ({
         : latestChaseValidation
           ? latestChaseValidation.validationResult
           : await validateNow();
+      if (!isCurrentLifecycle()) return;
       if (!isCurrentSubmission()) {
         if (isChaseSubmission) reportChaseSubmissionChanged();
         return;
@@ -3329,6 +3349,7 @@ export const usePerpsProOrderForm = ({
     const isChaseSubmission = orderForm.type === 'chase';
     const expectedChaseProviderId = chaseProviderIdRef.current;
     const expectedNetwork = networkRef.current;
+    const expectedLifecycleGeneration = lifecycleGenerationRef.current;
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -3344,6 +3365,9 @@ export const usePerpsProOrderForm = ({
       // Compliance first, then geographic eligibility — matches Lite trade entry
       // and the canonical compliance gate ordering (docs/compliance.md).
       await gate(async () => {
+        if (lifecycleGenerationRef.current !== expectedLifecycleGeneration) {
+          return;
+        }
         if (submissionStateRef.current !== expectedSubmissionState) {
           if (isChaseSubmission) {
             showToast(
@@ -3371,6 +3395,7 @@ export const usePerpsProOrderForm = ({
           isChaseSubmission,
           expectedChaseProviderId,
           expectedNetwork,
+          expectedLifecycleGeneration,
         );
       });
     } finally {
