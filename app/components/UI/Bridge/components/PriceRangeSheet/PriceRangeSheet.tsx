@@ -8,7 +8,6 @@ import React, {
 import { Pressable } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
-  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
@@ -46,6 +45,7 @@ import {
   FIAT_INPUT_DECIMALS,
   FIAT_KEYPAD_CURRENCY,
 } from '../../utils/sourceAmountInputMode';
+import RecurringBottomSheet from '../RecurringBottomSheet';
 import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
@@ -329,7 +329,7 @@ const PriceRangeSheet = ({
   }
 
   return (
-    <BottomSheet
+    <RecurringBottomSheet
       ref={sheetRef}
       testID={PriceRangeSheetSelectorsIDs.SHEET}
       onClose={handleSheetClosed}
@@ -513,7 +513,7 @@ const PriceRangeSheet = ({
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}
       />
-    </BottomSheet>
+    </RecurringBottomSheet>
   );
 };
 
