@@ -81,6 +81,7 @@ export const PerpsPositionCardSelectorsIDs = {
   MARGIN_VALUE: 'position-card-margin-value',
   MARGIN_CHEVRON: 'position-card-margin-chevron',
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
+  AUTO_CLOSE_VALUE: 'position-card-auto-close-value',
   DETAILS_SECTION: 'position-card-details',
   DIRECTION_VALUE: 'position-card-direction-value',
   ENTRY_VALUE: 'position-card-entry-value',
@@ -530,6 +531,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_REVERSE: 'perps-pro-market-position-reverse',
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
+  POSITION_TPSL_VALUE: 'perps-pro-market-position-tpsl-value',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_LIQ_PRICE: 'perps-pro-market-position-liq-price',
@@ -688,6 +690,8 @@ export const PerpsTransactionSelectorsIDs = {
 
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
+  LIMIT_PRICE_ROW: 'perps-order-transaction-limit-price-row',
+  TRIGGER_PRICE_ROW: 'perps-order-transaction-trigger-price-row',
 };
 
 export const PerpsChartGridLinesSelectorsIDs = {
