@@ -55,6 +55,18 @@ export const IDOS_TERMS_URL = 'https://www.idos.network/legal/user-agreement';
 export const SUMSUB_PRIVACY_POLICY_URL = 'https://sumsub.com/privacy-notice/';
 export const SUMSUB_TERMS_URL = 'https://sumsub.com/terms-and-conditions/';
 
+/**
+ * Demo T&C2 consent records passed to `acceptTermsAndStartSession` after the
+ * user taps through Verify Identity. Keys and versions must match the UKYC
+ * session disclaimer catalog returned for the local demo API.
+ */
+export const DEMO_IDOS_DISCLAIMERS_ACCEPTED: KycConsentRecord[] = [
+  { key: 'idos-tos', version: '1' },
+];
+export const DEMO_PROVIDER_DISCLAIMERS_ACCEPTED: KycConsentRecord[] = [
+  { key: 'sumsub-tos', version: '1' },
+];
+
 // Demo-only mock KYC flow (not production). Prefills so the teammate can
 // tap through without typing.
 export const MOCK_KYC_PREFILLED_EMAIL = 'demo@metamask.io';

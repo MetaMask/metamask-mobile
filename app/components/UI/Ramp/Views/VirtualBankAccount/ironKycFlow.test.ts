@@ -1,10 +1,14 @@
 import Engine from '../../../../../core/Engine';
+import {
+  DEMO_IDOS_DISCLAIMERS_ACCEPTED,
+  DEMO_PROVIDER_DISCLAIMERS_ACCEPTED,
+} from './constants';
 import { startIronKycFlow, startIronKycVerification } from './ironKycFlow';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      state: { error: null, disclaimers: [] },
+      state: { error: null, vendorDisclaimers: [] },
       initialize: jest.fn(),
       createVendorCustomer: jest.fn(),
       acceptTermsAndStartSession: jest.fn(),
@@ -13,7 +17,7 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 
 const mockKycController = Engine.context.KycController as unknown as {
-  state: { error: string | null; disclaimers: { id: string }[] };
+  state: { error: string | null; vendorDisclaimers: { id: string }[] };
   initialize: jest.Mock<Promise<void>, [unknown?]>;
   createVendorCustomer: jest.Mock<Promise<void>, [unknown?]>;
   acceptTermsAndStartSession: jest.Mock<Promise<void>, [unknown?]>;
@@ -21,13 +25,13 @@ const mockKycController = Engine.context.KycController as unknown as {
 
 const resetControllerState = ({
   error = null,
-  disclaimers = [{ id: 'disclaimer-1' }],
+  vendorDisclaimers = [{ id: 'disclaimer-1' }],
 }: {
   error?: string | null;
-  disclaimers?: { id: string }[];
+  vendorDisclaimers?: { id: string }[];
 } = {}) => {
   mockKycController.state.error = error;
-  mockKycController.state.disclaimers = disclaimers;
+  mockKycController.state.vendorDisclaimers = vendorDisclaimers;
 };
 
 describe('startIronKycFlow', () => {
@@ -96,8 +100,8 @@ describe('startIronKycVerification', () => {
     expect(mockKycController.acceptTermsAndStartSession).toHaveBeenCalledWith({
       email: 'user@example.com',
       product: 'money',
-      sumsubTncSigned: true,
-      idosTncSigned: true,
+      providerDisclaimersAccepted: DEMO_PROVIDER_DISCLAIMERS_ACCEPTED,
+      idosDisclaimersAccepted: DEMO_IDOS_DISCLAIMERS_ACCEPTED,
     });
   });
 
@@ -113,7 +117,7 @@ describe('startIronKycVerification', () => {
   });
 
   it('throws without starting a session when no disclaimers are loaded', async () => {
-    resetControllerState({ disclaimers: [] });
+    resetControllerState({ vendorDisclaimers: [] });
 
     await expect(startIronKycVerification('user@example.com')).rejects.toThrow(
       'Terms are not loaded yet.',

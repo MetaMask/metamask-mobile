@@ -75,8 +75,10 @@ describe('kycControllerInit', () => {
   it('hydrates state from persistedState', () => {
     const persistedState = {
       KycController: {
-        termsAcceptedAt: '2025-01-01T00:00:00Z',
-        acceptedDisclaimerIds: ['disclaimer-1'],
+        vendorDisclaimersAccepted: {
+          moonpay: { termsAcceptedAt: '2025-01-01T00:00:00Z' },
+          iron: { disclaimerIds: ['disclaimer-1'] },
+        },
         kycRequiredByProduct: { ramps: true },
       },
     };

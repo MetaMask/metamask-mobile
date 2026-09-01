@@ -1,5 +1,9 @@
 import Engine from '../../../../../core/Engine';
 import {
+  DEMO_IDOS_DISCLAIMERS_ACCEPTED,
+  DEMO_PROVIDER_DISCLAIMERS_ACCEPTED,
+} from './constants';
+import {
   describeError,
   traceWhilePending,
   vbaTrace,
@@ -123,7 +127,7 @@ export async function startIronKycVerification(email: string): Promise<void> {
 
   // Consents are submitted against the loaded disclaimers, so without them the
   // Iron session fails server-side instead of reaching SumSub.
-  if (Engine.context.KycController.state.disclaimers.length === 0) {
+  if (Engine.context.KycController.state.vendorDisclaimers.length === 0) {
     vbaTrace('kyc.disclaimers.missing', kycStateSummary());
     throw new Error(
       'Terms are not loaded yet. Go back to Get your Pix Key and try again.',
@@ -134,8 +138,8 @@ export async function startIronKycVerification(email: string): Promise<void> {
     Engine.context.KycController.acceptTermsAndStartSession({
       email,
       product: VBA_KYC_PRODUCT,
-      sumsubTncSigned: true,
-      idosTncSigned: true,
+      providerDisclaimersAccepted: DEMO_PROVIDER_DISCLAIMERS_ACCEPTED,
+      idosDisclaimersAccepted: DEMO_IDOS_DISCLAIMERS_ACCEPTED,
     }),
   );
 }
