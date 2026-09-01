@@ -1645,6 +1645,8 @@
       "positions_with_count": "Positions ({{count}})",
       "orders": "Orders",
       "orders_with_count": "Orders ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} only",
       "view_market_accessibility": "Switch to the {{symbol}} market",
       "positions_empty": "Your open positions will appear here.",
@@ -1655,6 +1657,12 @@
       "orders_empty_filtered": "No open {{ticker}} orders.",
       "orders_empty_long": "No long orders.",
       "orders_empty_short": "No short orders.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
       "side_filter": {
         "all_sides": "All sides",
         "long": "Long",
@@ -1695,6 +1703,37 @@
         "edit": "Edit",
         "edit_price": "Edit limit price",
         "edit_size": "Edit size"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "duration": "Duration",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "created_at": "Created",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed",
+        "fill_price": "Fill price",
+        "fill_size": "Size",
+        "fill_fee": "Fee"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -7733,7 +7772,7 @@
       "toasts": {
         "deposit_navigation": {
           "failed": "Failed to navigate to deposit screen for selected asset"
-        } 
+        }
       },
       "strategies": {
         "rate_unavailable_subtitle": "Earn on your balance",

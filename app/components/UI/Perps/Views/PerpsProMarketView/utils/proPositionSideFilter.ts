@@ -4,6 +4,7 @@ import {
   type Position,
   type ProOrdersSideFilter,
   type ProPositionsSideFilter,
+  type TwapOrder,
 } from '@metamask/perps-controller';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
@@ -79,6 +80,23 @@ export const filterProOrdersBySide = (
   sideFilter: ProOrderSideFilter,
 ): Order[] => filterProItemsBySide(orders, sideFilter, getOrderSide);
 
+const getTwapOrderSide = (twapOrder: TwapOrder): 'long' | 'short' =>
+  twapOrder.side === 'buy' ? 'long' : 'short';
+
+/**
+ * Filters TWAP schedules by their own side, matching `filterProOrdersBySide`: a
+ * buy schedule is long, a sell schedule is short, and a reduce-only schedule is
+ * not inverted. Returns the original array when filter is `all`.
+ *
+ * TWAP has no persisted preference field on `ProLayoutPreferences`, so the
+ * caller owns this filter's state rather than reading it from the controller.
+ */
+export const filterProTwapOrdersBySide = (
+  twapOrders: TwapOrder[],
+  sideFilter: ProOrderSideFilter,
+): TwapOrder[] =>
+  filterProItemsBySide(twapOrders, sideFilter, getTwapOrderSide);
+
 export const getProPositionSideFilterButtonLabelKey = (
   sideFilter: ProPositionSideFilter,
 ): string => {
@@ -100,6 +118,10 @@ const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
   orders: {
     long: 'perps.pro_positions_panel.orders_empty_long',
     short: 'perps.pro_positions_panel.orders_empty_short',
+  },
+  twap: {
+    long: 'perps.pro_positions_panel.twap_empty_long',
+    short: 'perps.pro_positions_panel.twap_empty_short',
   },
 } as const;
 
@@ -123,3 +145,8 @@ export const getProOrderSideFilterEmptyDescriptionKey = (
   sideFilter: ProOrderSideFilter,
 ): string | undefined =>
   getProSideFilterEmptyDescriptionKey(sideFilter, 'orders');
+
+export const getProTwapSideFilterEmptyDescriptionKey = (
+  sideFilter: ProOrderSideFilter,
+): string | undefined =>
+  getProSideFilterEmptyDescriptionKey(sideFilter, 'twap');

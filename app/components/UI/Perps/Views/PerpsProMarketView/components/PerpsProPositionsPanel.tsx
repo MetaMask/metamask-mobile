@@ -1,4 +1,5 @@
 import {
+  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -28,6 +29,7 @@ import {
   type Order,
   type PerpsMarketData,
   type Position,
+  type TwapOrder,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import BigNumber from 'bignumber.js';
@@ -103,18 +105,30 @@ import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProTabEmptyState from './PerpsProTabEmptyState';
+import PerpsProTwapPanel from './PerpsProTwapPanel';
+import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
   DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
+  filterProTwapOrdersBySide,
   getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
+  getProTwapSideFilterEmptyDescriptionKey,
+  type ProOrderSideFilter,
 } from '../utils/proPositionSideFilter';
 import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
+import {
+  selectActiveTwapOrders,
+  selectHistoricalTwapOrders,
+} from '../utils/proTwapViews';
+import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
+import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
+import { selectPerpsProTwapEnabledFlag } from '../../../selectors/featureFlags';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -165,6 +179,12 @@ const ChaseKeyValueItem = ({
     </Text>
   </Box>
 );
+
+/**
+ * Poll cadence for TWAP. Slower than the 1s streamed panels because each tick
+ * is two venue REST calls; TWAP has no push channel to subscribe to.
+ */
+const TWAP_POLL_INTERVAL_MS = 5000;
 
 /** Which Pro panel tab a market-switch row tap came from. */
 export type ProPositionsPanelSourceSection =
@@ -238,11 +258,19 @@ const PerpsProPositionsPanel = ({
   >(null);
   const reportedTerminatedChaseKeysRef = useRef(new Set<string>());
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
+  // Chase occupies index 2 when visible. TWAP follows it, or sits at 2 when
+  // Chase is hidden, so TabsBar activeIndex stays aligned with the tab list.
+  const twapTabIndex = shouldShowChaseTab ? CHASE_TAB_INDEX + 1 : CHASE_TAB_INDEX;
   useEffect(() => {
     if (!shouldShowChaseTab && activeIndex === CHASE_TAB_INDEX) {
       setActiveIndex(ORDERS_TAB_INDEX);
     }
   }, [activeIndex, shouldShowChaseTab]);
+  // Positions and Orders persist their side filter on the controller; TWAP has
+  // no such field on `ProLayoutPreferences`, so it stays local for now.
+  const [twapSideFilter, setTwapSideFilter] = useState<ProOrderSideFilter>(
+    DEFAULT_PRO_ORDER_SIDE_FILTER,
+  );
   const {
     sideFilter: positionsSideFilter,
     sortConfig,
@@ -353,6 +381,30 @@ const PerpsProPositionsPanel = ({
   );
   const { markets } = usePerpsMarkets();
 
+  const isTwapTabEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const [terminatingTwapOrder, setTerminatingTwapOrder] =
+    useState<TwapOrder | null>(null);
+  const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
+  // Only the active view needs to track a running schedule, and the tab has to
+  // be both enabled and selected before it is worth spending venue calls.
+  const isTwapTabActive = isTwapTabEnabled && activeIndex === twapTabIndex;
+  const {
+    twapOrders,
+    isLoading: areTwapOrdersInitiallyLoading,
+    refresh: refreshTwapOrders,
+  } = usePerpsTwapOrders({
+    enablePolling: isTwapTabActive,
+    pollingInterval: TWAP_POLL_INTERVAL_MS,
+    skipInitialFetch: !isTwapTabEnabled,
+  });
+  const { terminatingOrderId, terminateTwap } = usePerpsTerminateTwap({
+    onSuccess: () => {
+      setTerminatingTwapOrder(null);
+      refreshTwapOrders();
+    },
+    onError: () => setTerminatingTwapOrder(null),
+  });
+
   useEffect(() => {
     const deliveryRevisions = {
       positions: positionsDeliveryRevision,
@@ -383,6 +435,12 @@ const PerpsProPositionsPanel = ({
     positionsDeliveryRevision,
     symbol,
   ]);
+
+  useEffect(() => {
+    if (terminatingTwapOrder) {
+      twapTerminateSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [terminatingTwapOrder]);
 
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 
@@ -418,6 +476,15 @@ const PerpsProPositionsPanel = ({
     [selectMarketBySymbol],
   );
 
+  const handleSelectTwapMarket = useCallback(
+    (twapOrder: TwapOrder) =>
+      selectMarketBySymbol(
+        twapOrder.symbol,
+        PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+      ),
+    [selectMarketBySymbol],
+  );
+
   const fundingRatesBySymbol = useMemo(
     () =>
       Object.fromEntries(
@@ -448,18 +515,47 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, orders, symbol],
   );
 
+  // Same pipeline the other two tabs use: ticker-only, then side, then the
+  // view split. The TWAP filter is component state because
+  // `ProLayoutPreferences` carries no TWAP field to persist it in.
+  const visibleTwapOrders = useMemo(
+    () =>
+      isTickerOnly
+        ? twapOrders.filter((twapOrder) => twapOrder.symbol === symbol)
+        : twapOrders,
+    [isTickerOnly, twapOrders, symbol],
+  );
+
+  const sideFilteredTwapOrders = useMemo(
+    () => filterProTwapOrdersBySide(visibleTwapOrders, twapSideFilter),
+    [twapSideFilter, visibleTwapOrders],
+  );
+
+  const activeTwapOrders = useMemo(
+    () => selectActiveTwapOrders(sideFilteredTwapOrders),
+    [sideFilteredTwapOrders],
+  );
+
+  const historicalTwapOrders = useMemo(
+    () => selectHistoricalTwapOrders(sideFilteredTwapOrders),
+    [sideFilteredTwapOrders],
+  );
+
   const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
-  const isChaseTab = activeIndex === CHASE_TAB_INDEX;
-  const activeSideFilter = isChaseTab
-    ? chaseSideFilter
-    : isOrdersTab
-      ? ordersSideFilter
-      : positionsSideFilter;
-  const setActiveSideFilter = isChaseTab
-    ? setChaseSideFilter
-    : isOrdersTab
-      ? setOrdersSideFilter
-      : setPositionsSideFilter;
+  const isChaseTab = activeIndex === CHASE_TAB_INDEX && shouldShowChaseTab;
+  const isTwapTab = activeIndex === twapTabIndex && isTwapTabEnabled;
+  let activeSideFilter = positionsSideFilter;
+  let setActiveSideFilter = setPositionsSideFilter;
+  if (isTwapTab) {
+    activeSideFilter = twapSideFilter;
+    setActiveSideFilter = setTwapSideFilter;
+  } else if (isChaseTab) {
+    activeSideFilter = chaseSideFilter;
+    setActiveSideFilter = setChaseSideFilter;
+  } else if (isOrdersTab) {
+    activeSideFilter = ordersSideFilter;
+    setActiveSideFilter = setOrdersSideFilter;
+  }
 
   const sideFilteredPositions = useMemo(
     () => filterProPositionsBySide(visiblePositions, positionsSideFilter),
@@ -580,6 +676,17 @@ const PerpsProPositionsPanel = ({
         })
       : strings('perps.pro_positions_panel.orders');
 
+  // Counts the schedules still running: a terminal TWAP is history, not
+  // something to monitor. Like the other two tabs it reads from the filtered
+  // list, so the badge follows the active filters rather than the whole book.
+  const activeTwapCount = activeTwapOrders.length;
+  const twapTabLabel =
+    activeTwapCount > 0
+      ? strings('perps.pro_positions_panel.twap_with_count', {
+          count: activeTwapCount,
+        })
+      : strings('perps.pro_positions_panel.twap');
+
   const tabs: TabItem[] = [
     {
       key: 'positions',
@@ -605,6 +712,16 @@ const PerpsProPositionsPanel = ({
                 : strings('perps.order.chase.tab'),
             content: null,
             testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+          },
+        ]
+      : []),
+    ...(isTwapTabEnabled
+      ? [
+          {
+            key: 'twap',
+            label: twapTabLabel,
+            content: null,
+            testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
           },
         ]
       : []),
@@ -640,6 +757,22 @@ const PerpsProPositionsPanel = ({
     hasAnyOrders &&
     visibleOrders.length === 0 &&
     !isOrderSideFilterEmpty
+      ? displaySymbol
+      : undefined;
+
+  const hasAnyTwapOrders = twapOrders.length > 0;
+  const isTwapSideFilterEmpty =
+    twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
+    sideFilteredTwapOrders.length === 0 &&
+    visibleTwapOrders.length > 0;
+  const twapSideFilterEmptyDescriptionKey = isTwapSideFilterEmpty
+    ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
+    : undefined;
+  const filteredTwapTicker =
+    isTickerOnly &&
+    hasAnyTwapOrders &&
+    visibleTwapOrders.length === 0 &&
+    !isTwapSideFilterEmpty
       ? displaySymbol
       : undefined;
 
@@ -737,6 +870,32 @@ const PerpsProPositionsPanel = ({
         />
       </Box>
     );
+  };
+
+  const renderTwapTab = () => (
+    <PerpsProTwapPanel
+      activeTwapOrders={activeTwapOrders}
+      historicalTwapOrders={historicalTwapOrders}
+      isInitialLoading={areTwapOrdersInitiallyLoading}
+      onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
+      onTerminate={setTerminatingTwapOrder}
+      terminatingOrderId={terminatingOrderId}
+      filteredTicker={filteredTwapTicker}
+      filteredSideDescriptionKey={twapSideFilterEmptyDescriptionKey}
+    />
+  );
+
+  const renderActiveTab = () => {
+    if (isTwapTab) {
+      return renderTwapTab();
+    }
+    if (isChaseTab) {
+      return renderChaseTab();
+    }
+    if (isOrdersTab) {
+      return renderOrdersTab();
+    }
+    return renderPositionsTab();
   };
 
   const renderTickerOnlyCheckbox = () => (
@@ -1146,7 +1305,7 @@ const PerpsProPositionsPanel = ({
         twClassName="gap-2 px-2 pt-3"
         accessible={false}
       >
-        {!isChaseTab ? (
+        {!isChaseTab && !isTwapTab ? (
           <Box twClassName="bg-muted rounded-lg">
             <ButtonIcon
               iconName={IconName.Customize}
@@ -1189,11 +1348,7 @@ const PerpsProPositionsPanel = ({
           </Box>
         ) : null}
       </Box>
-      {activeIndex === CHASE_TAB_INDEX
-        ? renderChaseTab()
-        : activeIndex === ORDERS_TAB_INDEX
-          ? renderOrdersTab()
-          : renderPositionsTab()}
+      {renderActiveTab()}
       {renderActionSheets(
         sideFilteredPositions,
         isPositionsFiltered,
@@ -1215,6 +1370,15 @@ const PerpsProPositionsPanel = ({
           onApply={setSortConfig}
           onClose={() => setIsSortSheetOpen(false)}
           testID={PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}
+        />
+      ) : null}
+      {terminatingTwapOrder ? (
+        <PerpsProTwapTerminateSheet
+          twapOrder={terminatingTwapOrder}
+          sheetRef={twapTerminateSheetRef}
+          onClose={() => setTerminatingTwapOrder(null)}
+          onConfirm={terminateTwap}
+          isTerminating={terminatingOrderId !== null}
         />
       ) : null}
       <PerpsProPositionsSideFilterSheet

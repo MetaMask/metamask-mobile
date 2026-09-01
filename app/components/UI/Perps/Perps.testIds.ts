@@ -553,6 +553,28 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
   GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
+  POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
+  TWAP_LIST: 'perps-pro-market-twap-list',
+  TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
+  TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
+  TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
+  TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
+  TWAP_ROW: 'perps-pro-market-twap-row',
+  TWAP_FILL_ROW: 'perps-pro-market-twap-fill-row',
+  TWAP_MARKET: 'perps-pro-market-twap-market',
+  TWAP_DIRECTION_TAG: 'perps-pro-market-twap-direction-tag',
+  TWAP_SIZE: 'perps-pro-market-twap-size',
+  TWAP_FILLED_SIZE: 'perps-pro-market-twap-filled-size',
+  TWAP_AVERAGE_PRICE: 'perps-pro-market-twap-average-price',
+  TWAP_PROGRESS: 'perps-pro-market-twap-progress',
+  TWAP_ELAPSED: 'perps-pro-market-twap-elapsed',
+  TWAP_REDUCE_ONLY_TAG: 'perps-pro-market-twap-reduce-only-tag',
+  TWAP_CREATED_AT: 'perps-pro-market-twap-created-at',
+  TWAP_STATUS_TAG: 'perps-pro-market-twap-status-tag',
+  TWAP_TERMINATE: 'perps-pro-market-twap-terminate',
+  TWAP_TERMINATE_SHEET: 'perps-pro-market-twap-terminate-sheet',
+  TWAP_TERMINATE_CONFIRM: 'perps-pro-market-twap-terminate-confirm',
+  TWAP_TERMINATE_CANCEL: 'perps-pro-market-twap-terminate-cancel',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -604,6 +626,14 @@ export const getPerpsProChaseTerminateSelector = (
   isPrimary = false,
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+// A TWAP schedule's venue order ID is unique, so it keys the row directly
+// rather than needing the symbol-plus-index pairing open orders require.
+export const getPerpsProTwapRowSelector = (orderId: string) =>
+  `${PerpsProMarketViewSelectorsIDs.TWAP_ROW}-${orderId}`;
+
+export const getPerpsProTwapFillRowSelector = (fillId: string) =>
+  `${PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW}-${fillId}`;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
