@@ -15,7 +15,7 @@ flowchart TD
     L2 -->|ignorable-only changes| NoBlock[🟢 Merge allowed]
     L2 -->|non-ignorable changes| Skip2[⛔️ Merge blocked]
     GR -->|PR ignorable-only changes| Ignorable[ ❌ No E2E]
-    GR -->|Scheduled or Push to main and release/*| Full[🧪 Run all E2E for Android and iOS]
+    GR -->|Scheduled or Push to main and release/*| Full[🧪 Run all E2E for Android and iOS] 
 
     GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
     PRToValidate -->|Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
@@ -37,9 +37,9 @@ After the global checks, path filters determine whether a non-ignorable PR
 requires Android, iOS, or both. An ignorable-only PR stops before this stage;
 labels cannot revive it.
 
-| Request                          | Effect                                                                                                                                   |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `run-appium-ios-tests` label     | Includes iOS in the final platforms and runs Appium iOS, even when path filters selected Android only.                                   |
+| Request | Effect |
+| --- | --- |
+| `run-appium-ios-tests` label | Includes iOS in the final platforms and runs Appium iOS, even when path filters selected Android only. |
 | `skip-smart-e2e-selection` label | Bypasses Smart E2E and runs the full `ALL` tag set on **both Android and iOS**, once path filters establish that the PR is E2E-eligible. |
 
 The same platform and label policy applies to PRs targeting `main` and
