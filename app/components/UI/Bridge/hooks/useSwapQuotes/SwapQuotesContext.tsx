@@ -52,23 +52,6 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
     slippage,
   } = quoteParams;
 
-  // Presence (not truthiness): parent may pass undefined while its own
-  // useLatestBalance is still loading. That must not start a second fetch.
-  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in params;
-  const latestSourceBalance = useLatestBalance(
-    hasLatestSourceBalanceOverride
-      ? {}
-      : {
-          address: srcToken?.address,
-          decimals: srcToken?.decimals,
-          chainId: srcToken?.chainId,
-          balance: srcToken?.balance,
-        },
-  );
-  const latestAtomicBalance = hasLatestSourceBalanceOverride
-    ? latestSourceAtomicBalance
-    : latestSourceBalance?.atomicBalance;
-
   // Use simple balance check (ignoring gas fees) for quote requests to avoid circular dependencies.
   // The full balance check with gas fees is used separately within the BridgeView to block user from executing
   // the swap in insufficient balance.
@@ -76,7 +59,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const insufficientBalance = useIsInsufficientBalance({
     amount: srcAmount,
     token: srcToken,
-    latestAtomicBalance,
+    latestAtomicBalance: latestSourceAtomicBalance,
     ignoreGasFees: true,
   });
 
@@ -84,7 +67,7 @@ const useQuoteRequest = (params: UseQuoteRequestParams) => {
   const insufficientNativeReserveError = useInsufficientNativeReserveError({
     amount: srcAmount,
     token: srcToken,
-    latestAtomicBalance,
+    latestAtomicBalance: latestSourceAtomicBalance,
     walletAddress,
   });
 
@@ -218,8 +201,32 @@ export function SwapQuotesProvider({
   children,
   ...params
 }: SwapQuotesProviderProps) {
-  const requestData = useQuoteRequest(params);
-  const quoteData = useQuoteData(params);
+  const { quoteParams, latestSourceAtomicBalance } = params;
+  // Presence (not truthiness): parent may pass undefined while its own
+  // useLatestBalance is still loading. That must not start a second fetch.
+  const hasLatestSourceBalanceOverride = 'latestSourceAtomicBalance' in params;
+
+  // Fetch balance here and pass it to the request/response hooks
+  const latestSourceBalance = useLatestBalance(
+    hasLatestSourceBalanceOverride
+      ? {}
+      : {
+          address: quoteParams.srcToken?.address,
+          decimals: quoteParams.srcToken?.decimals,
+          chainId: quoteParams.srcToken?.chainId,
+          balance: quoteParams.srcToken?.balance,
+        },
+  );
+  const latestAtomicBalance = hasLatestSourceBalanceOverride
+    ? latestSourceAtomicBalance
+    : latestSourceBalance?.atomicBalance;
+  const resolvedParams = {
+    ...params,
+    latestSourceAtomicBalance: latestAtomicBalance,
+  };
+
+  const requestData = useQuoteRequest(resolvedParams);
+  const quoteData = useQuoteData(resolvedParams);
 
   const value = useMemo(
     () => ({ ...requestData, ...quoteData }),
