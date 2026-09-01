@@ -38,7 +38,13 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 // Capture setOnValueChange so tests can simulate country picks from the modal.
 let capturedOnValueChange:
-  | ((region: { key: string; name: string; canSignUp?: boolean }) => void)
+  | ((region: {
+      key: string;
+      name: string;
+      emoji?: string;
+      areaCode?: string;
+      canSignUp?: boolean;
+    }) => void)
   | null = null;
 jest.mock('./RegionSelectorModal', () => ({
   setOnValueChange: jest.fn((cb) => {
@@ -97,7 +103,10 @@ jest.mock('../../hooks/useImmersveSupportedRegions', () => ({
 }));
 
 // Mock navigation
-const mockUseRoute = jest.fn(() => ({ params: undefined }));
+const mockUseRoute = jest.fn<
+  { params: { fromMigration?: boolean } | undefined },
+  []
+>(() => ({ params: undefined }));
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
   useRoute: () => mockUseRoute(),
