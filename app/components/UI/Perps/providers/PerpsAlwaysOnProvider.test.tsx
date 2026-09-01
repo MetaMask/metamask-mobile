@@ -647,6 +647,60 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it('suspends before disconnecting when mounted while already inactive', async () => {
+    Object.defineProperty(AppState, 'currentState', {
+      get: () => 'inactive',
+      configurable: true,
+    });
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('upgrades a false inactive latch when retained Chase appears before background', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) return false;
+      return undefined;
+    });
+    mockIsChaseOrderDiscoveryResolved = true;
+    mockHasLiveChaseOrders = false;
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    act(() => mockAppStateListener?.('inactive'));
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+
+    mockHasLiveChaseOrders = true;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('suspends Chase orders once when iOS transitions through inactive to background', async () => {
     render(
       <PerpsAlwaysOnProvider>
@@ -799,11 +853,16 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
-  it('skips the local notification without OS permission', async () => {
-    mockIsPushPermissionGranted.mockResolvedValueOnce(false);
-    mockSuspendChaseOrders.mockResolvedValueOnce([
-      { handle: 'chase-no-permission', symbol: 'ETH', status: 'backgrounded' },
-    ]);
+  it('notifies a previously denied batch after permission is granted', async () => {
+    mockIsPushPermissionGranted
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const backgroundedOrder = {
+      handle: 'chase-permission-retry',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    };
+    mockSuspendChaseOrders.mockResolvedValue([backgroundedOrder]);
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -814,10 +873,25 @@ describe('PerpsAlwaysOnProvider', () => {
       mockAppStateListener?.('background');
       await Promise.resolve();
       await Promise.resolve();
+      await Promise.resolve();
     });
 
     expect(mockDisplayNotification).not.toHaveBeenCalled();
-    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    act(() => mockAppStateListener?.('active'));
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'perps-chase-backgrounded-chase-permission-retry',
+      }),
+    );
+    expect(mockDisconnect).toHaveBeenCalledTimes(2);
   });
 
   it('reports each backgrounded Chase handle only on its first transition', async () => {

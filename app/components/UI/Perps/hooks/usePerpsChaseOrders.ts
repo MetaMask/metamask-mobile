@@ -424,6 +424,20 @@ const suspendAndCacheChaseOrders = async (
     const timeout = createMutationTimeout();
     let controllerSuspension =
       Engine.context.PerpsController.suspendChaseOrders();
+    const reconcileLateSuspension = (suspension: Promise<ChaseOrder[]>) => {
+      suspension
+        .then(() => {
+          if (route !== getRouteKey()) return;
+          requestGeneration += 1;
+          refreshPromise = undefined;
+          setDiscoveryResolvedRoute('');
+          if (!canRefreshCurrentRoute()) return;
+          refreshChaseOrders()
+            .then(() => setDiscoveryResolvedRoute(route))
+            .catch(() => undefined);
+        })
+        .catch(() => undefined);
+    };
     let result: ChaseOrder[];
     try {
       try {
@@ -468,25 +482,23 @@ const suspendAndCacheChaseOrders = async (
               failures: retryError.failures,
             });
           }
-          throw retryError;
+          if (retryError === timeout.error) {
+            reconcileLateSuspension(controllerSuspension);
+          }
+          throw new ChaseOrderSuspensionError({
+            suspendedOrders: error.suspendedOrders,
+            failures: error.failures.map((failure) => ({
+              ...failure,
+              reason: retryError,
+            })),
+          });
         }
       }
     } catch (error) {
       if (error === timeout.error) {
         // Keep the caller bound while the fail-safe suspension finishes, then reconcile
         // through a fresh authoritative read. Never cache the late result.
-        controllerSuspension
-          .then(() => {
-            if (route !== getRouteKey()) return;
-            requestGeneration += 1;
-            refreshPromise = undefined;
-            setDiscoveryResolvedRoute('');
-            if (!canRefreshCurrentRoute()) return;
-            refreshChaseOrders()
-              .then(() => setDiscoveryResolvedRoute(route))
-              .catch(() => undefined);
-          })
-          .catch(() => undefined);
+        reconcileLateSuspension(controllerSuspension);
       }
       throw error;
     } finally {

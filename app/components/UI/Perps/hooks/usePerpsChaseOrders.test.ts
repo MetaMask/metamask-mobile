@@ -497,7 +497,13 @@ describe('usePerpsChaseOrders', () => {
     const cachedOrders = hook.result.current.chaseOrders;
     hook.unmount();
 
-    expect(result).toBe(retryError);
+    expect(result).toBeInstanceOf(ChaseOrderSuspensionError);
+    expect((result as ChaseOrderSuspensionError).suspendedOrders).toEqual([
+      suspendedOrder,
+    ]);
+    expect((result as ChaseOrderSuspensionError).failures[0].reason).toBe(
+      retryError,
+    );
     expect(cachedOrders).toEqual([expect.objectContaining(suspendedOrder)]);
   });
 
@@ -550,7 +556,10 @@ describe('usePerpsChaseOrders', () => {
         CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
       );
     });
-    expect(await suspensionResult).toEqual(
+    const timeoutResult = await suspensionResult;
+    expect(timeoutResult).toBeInstanceOf(ChaseOrderSuspensionError);
+    expect(timeoutResult.suspendedOrders).toEqual([partialOrder]);
+    expect(timeoutResult.failures[0].reason).toEqual(
       new Error('Chase mutation timed out'),
     );
 

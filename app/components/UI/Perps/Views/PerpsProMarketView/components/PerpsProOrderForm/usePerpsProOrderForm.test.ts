@@ -475,6 +475,7 @@ describe('usePerpsProOrderForm', () => {
     mockContextValue.hasBlurredLimitPrice = false;
     mockContextValue.hasBlurredTriggerPrice = false;
     mockContextValue.pendingReduceOnly = undefined;
+    mockContextValue.maxPossibleAmount = 1000;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
     mockContextValue.orderForm = mockOrderForm;
@@ -1716,7 +1717,6 @@ describe('usePerpsProOrderForm', () => {
           }),
       );
       mockOrderForm.type = 'chase';
-      mockOrderForm.balancePercent = 100;
       const refresh = jest.fn().mockResolvedValue('hyperliquid');
       const form = renderProForm(
         true,
@@ -1726,23 +1726,43 @@ describe('usePerpsProOrderForm', () => {
         {},
         { refresh },
       );
+      act(() => {
+        form.result.current.sizeSlider.onDragEnd(
+          form.result.current.sizeSlider.maximumValue,
+        );
+      });
+      const committedMaxAmount = String(mockSetAmount.mock.calls.at(-1)?.[0]);
+      const maxOrderForm = {
+        ...mockOrderForm,
+        amount: committedMaxAmount,
+      };
+      mockContextValue.orderForm = maxOrderForm;
+      form.rerender({});
       let submitPromise: Promise<void> | undefined;
       act(() => {
         submitPromise = form.result.current.onPlaceOrderPress();
       });
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
-      mockContextValue.orderForm = {
-        ...mockOrderForm,
-        amount: '99',
-      };
+      mockContextValue.maxPossibleAmount = 900;
+      mockContextValue.orderForm = { ...maxOrderForm, amount: '900' };
       form.rerender({});
       await act(async () => {
         resolveOrders?.([]);
         await submitPromise;
       });
 
-      await waitFor(() => expect(mockExecuteOrder).toHaveBeenCalledTimes(1));
+      await waitFor(() =>
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            usdAmount: '900',
+            leverage: 5,
+          }),
+        ),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
     });
 
     it('abandons Chase submit when an explicit size changes during session refresh', async () => {
@@ -1754,7 +1774,6 @@ describe('usePerpsProOrderForm', () => {
           }),
       );
       mockOrderForm.type = 'chase';
-      mockOrderForm.balancePercent = 0;
       const refresh = jest.fn().mockResolvedValue('hyperliquid');
       const form = renderProForm(
         true,
@@ -1770,10 +1789,9 @@ describe('usePerpsProOrderForm', () => {
       });
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
-      mockContextValue.orderForm = {
-        ...mockOrderForm,
-        amount: '99',
-      };
+      act(() => form.result.current.sizeInput.onChange('99'));
+      expect(mockSetAmount).toHaveBeenCalledWith('99');
+      mockContextValue.orderForm = { ...mockOrderForm, amount: '99' };
       form.rerender({});
       await act(async () => {
         resolveOrders?.([]);
@@ -1781,6 +1799,9 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
     });
 
     it('abandons Chase submit when leverage changes during session refresh', async () => {
@@ -1807,10 +1828,9 @@ describe('usePerpsProOrderForm', () => {
       });
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
-      mockContextValue.orderForm = {
-        ...mockOrderForm,
-        leverage: 10,
-      };
+      act(() => form.result.current.onLeverageConfirm(10, 'slider'));
+      expect(mockSetLeverage).toHaveBeenCalledWith(10);
+      mockContextValue.orderForm = { ...mockOrderForm, leverage: 10 };
       form.rerender({});
       await act(async () => {
         resolveOrders?.([]);
@@ -1818,6 +1838,9 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
     });
 
     it('uses the latest reference price for Chase USD distance', async () => {

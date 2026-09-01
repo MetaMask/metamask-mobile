@@ -238,8 +238,17 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
+    const preservesMaxIntent =
+      sliderAtMaxRef.current &&
+      new BigNumber(usdAmount || 0).eq(
+        new BigNumber(
+          clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
+        ),
+      );
     clearSliderPreview();
-    clearSliderMaxIntent();
+    if (!preservesMaxIntent) {
+      clearSliderMaxIntent();
+    }
     setUsdDraft(usdAmount);
     if (canToggleDenomination) {
       setAssetDraftState({
@@ -255,6 +264,7 @@ export const usePerpsProSizeInput = ({
     activeDenominationUnit,
     effectivePrice,
     isSizeFocused,
+    maxPossibleAmount,
     szDecimals,
     usdAmount,
   ]);

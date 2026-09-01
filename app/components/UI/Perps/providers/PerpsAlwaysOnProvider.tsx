@@ -62,6 +62,8 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const shouldSuspendChaseOrders =
     isChaseEnabled || hasLiveChaseOrders || !isChaseOrderDiscoveryResolved;
   const reportedBackgroundedChaseHandlesRef = useRef(new Set<string>());
+  const notifiedBackgroundedChaseHandlesRef = useRef(new Set<string>());
+  const notifyingBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const chaseLifecycleRef = useRef({
     shouldSuspendChaseOrders,
     suspendChaseOrders,
@@ -94,6 +96,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     let lifecycleQueue: Promise<void> = Promise.resolve();
     let lifecycleGeneration = 0;
     let didDeferDisconnectForChase = false;
+    let didDisconnectThisCycle = false;
 
     const scheduleSilentEnsureConnected = (source: string, delayMs: number) => {
       if (reconnectTimer) {
@@ -121,13 +124,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     const reportSuspendedChaseOrders = (
       orders: Awaited<ReturnType<typeof suspendChaseOrders>>,
     ) => {
-      const suspendedOrders = orders.filter(
+      const backgroundedOrders = orders.filter(
+        (order) => order.status === CHASE_ORDER_STATUS.Backgrounded,
+      );
+      const unreportedOrders = backgroundedOrders.filter(
         (order) =>
-          order.status === CHASE_ORDER_STATUS.Backgrounded &&
           !reportedBackgroundedChaseHandlesRef.current.has(order.handle),
       );
-      if (suspendedOrders.length === 0) return;
-      suspendedOrders.forEach((order) => {
+      unreportedOrders.forEach((order) => {
         const reportedHandles = reportedBackgroundedChaseHandlesRef.current;
         reportedHandles.add(order.handle);
         while (reportedHandles.size > MAX_REPORTED_CHASE_HANDLES) {
@@ -136,7 +140,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           reportedHandles.delete(oldestHandle);
         }
       });
-      suspendedOrders.forEach((order) => {
+      unreportedOrders.forEach((order) => {
         chaseLifecycleRef.current.track(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           {
@@ -146,23 +150,34 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           },
         );
       });
+      const notificationOrders = backgroundedOrders.filter(
+        (order) =>
+          !notifiedBackgroundedChaseHandlesRef.current.has(order.handle) &&
+          !notifyingBackgroundedChaseHandlesRef.current.has(order.handle),
+      );
+      if (notificationOrders.length === 0) return;
+      notificationOrders.forEach((order) =>
+        notifyingBackgroundedChaseHandlesRef.current.add(order.handle),
+      );
       (async () => {
         if (!(await isPushPermissionGranted())) return;
-        const handles = suspendedOrders
+        const handles = notificationOrders
           .map((order) => order.handle)
           .sort()
           .join('-');
+        // Pending/notified handle sets make reported batches disjoint, so the
+        // sorted-handle ID is stable and safe for notification deduplication.
         await NotificationsService.displayNotification({
           id: `perps-chase-backgrounded-${handles}`,
           pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
           title: strings('perps.order.chase.backgrounded_title'),
           body:
-            suspendedOrders.length === 1
+            notificationOrders.length === 1
               ? strings('perps.order.chase.backgrounded_notification')
               : strings(
                   'perps.order.chase.backgrounded_notification_multiple',
                   {
-                    count: suspendedOrders.length,
+                    count: notificationOrders.length,
                   },
                 ),
           data: {
@@ -170,12 +185,29 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
               PERPS_EVENT_VALUE.NOTIFICATION_TYPE.CHASE_BACKGROUNDED,
           },
         });
-      })().catch((error) => {
-        DevLogger.log('PerpsAlwaysOnProvider: Chase notification failed', {
-          error: ensureError(error, 'PerpsAlwaysOnProvider.displayNotification')
-            .message,
+        notificationOrders.forEach((order) => {
+          const notifiedHandles = notifiedBackgroundedChaseHandlesRef.current;
+          notifiedHandles.add(order.handle);
+          while (notifiedHandles.size > MAX_REPORTED_CHASE_HANDLES) {
+            const oldestHandle = notifiedHandles.values().next().value;
+            if (oldestHandle === undefined) break;
+            notifiedHandles.delete(oldestHandle);
+          }
         });
-      });
+      })()
+        .catch((error) => {
+          DevLogger.log('PerpsAlwaysOnProvider: Chase notification failed', {
+            error: ensureError(
+              error,
+              'PerpsAlwaysOnProvider.displayNotification',
+            ).message,
+          });
+        })
+        .finally(() => {
+          notificationOrders.forEach((order) =>
+            notifyingBackgroundedChaseHandlesRef.current.delete(order.handle),
+          );
+        });
     };
 
     PerpsConnectionManager.resumeFromForeground({
@@ -209,10 +241,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           chaseLifecycleRef.current.shouldSuspendChaseOrders;
         if (!didDeferDisconnectForChase) {
           PerpsConnectionManager.disconnect();
+          didDisconnectThisCycle = true;
         }
       }
+      const shouldSuspendAtBackground =
+        didDeferDisconnectForChase ||
+        chaseLifecycleRef.current.shouldSuspendChaseOrders;
       if (
-        didDeferDisconnectForChase &&
+        shouldSuspendAtBackground &&
         nextState === 'background' &&
         prevState !== 'background'
       ) {
@@ -253,14 +289,24 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
             if (
               isActive &&
               suspensionGeneration === lifecycleGeneration &&
-              lastAppState === 'background'
+              lastAppState === 'background' &&
+              !didDisconnectThisCycle
             ) {
               PerpsConnectionManager.disconnect();
+              didDisconnectThisCycle = true;
             }
           }
         });
+      } else if (
+        nextState === 'background' &&
+        prevState !== 'background' &&
+        !didDisconnectThisCycle
+      ) {
+        PerpsConnectionManager.disconnect();
+        didDisconnectThisCycle = true;
       } else if (nextState === 'active') {
         didDeferDisconnectForChase = false;
+        didDisconnectThisCycle = false;
         lifecycleGeneration += 1;
         // Small delay to allow system to stabilize after background
         scheduleSilentEnsureConnected(
