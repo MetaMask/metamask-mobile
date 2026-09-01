@@ -36,9 +36,9 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPercentage,
   formatPerpsFiat,
-  formatPerpsPrice,
   formatPnl,
   formatPositionSize,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -209,18 +209,16 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
-  const hasTakeProfit =
-    Boolean(position.takeProfitPrice) &&
-    parseFloat(position.takeProfitPrice as string) > 0;
-  const hasStopLoss =
-    Boolean(position.stopLossPrice) &&
-    parseFloat(position.stopLossPrice as string) > 0;
-  const tpDisplay = hasTakeProfit
-    ? formatPerpsPrice(position.takeProfitPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
-  const slDisplay = hasStopLoss
-    ? formatPerpsPrice(position.stopLossPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const tpDisplay =
+    formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: position.takeProfitPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+  const slDisplay =
+    formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: position.stopLossPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).

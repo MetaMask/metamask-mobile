@@ -202,6 +202,92 @@ describe('PerpsProPositionCard', () => {
     expect(onEditMargin).toHaveBeenCalledWith(position);
   });
 
+  it('renders the take profit order count when the position carries several take profit orders', () => {
+    render(
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 3 }} />,
+    );
+
+    expect(screen.getByText('3 orders / $2,000')).toBeOnTheScreen();
+    expect(screen.queryByText(/\$3,500/)).toBeNull();
+  });
+
+  it('renders the trigger price for a single take profit order that closes the position partially', () => {
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          takeProfitCount: 1,
+          takeProfitOrders: [
+            {
+              orderId: '1',
+              direction: 'take_profit',
+              triggerPrice: '3500',
+              size: '0.5',
+              isPartial: true,
+              reduceOnly: true,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('$3,500 / $2,000')).toBeOnTheScreen();
+  });
+
+  it('counts every reduce only trigger order type reported by the controller', () => {
+    render(
+      <PerpsProPositionCard
+        position={{
+          ...position,
+          takeProfitCount: 2,
+          stopLossCount: 2,
+          takeProfitOrders: [
+            {
+              orderId: '1',
+              direction: 'take_profit',
+              orderType: 'take_profit_market',
+              triggerPrice: '3500',
+              size: '0.75',
+              isPartial: true,
+              reduceOnly: true,
+            },
+            {
+              orderId: '2',
+              direction: 'take_profit',
+              orderType: 'take_profit_limit',
+              triggerPrice: '3600',
+              size: '0.75',
+              isPartial: true,
+              reduceOnly: true,
+            },
+          ],
+          stopLossOrders: [
+            {
+              orderId: '3',
+              direction: 'stop',
+              orderType: 'stop_market',
+              triggerPrice: '2000',
+              size: '0.75',
+              isPartial: true,
+              reduceOnly: true,
+            },
+            {
+              orderId: '4',
+              direction: 'stop',
+              orderType: 'stop_limit',
+              triggerPrice: '1900',
+              size: '0.75',
+              isPartial: true,
+              reduceOnly: true,
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText('2 orders / 2 orders')).toBeOnTheScreen();
+  });
+
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
 
