@@ -237,12 +237,12 @@ describe('EmulatorHelpers', () => {
         bootMode: 'snapshot-prime',
       });
       expect(args).toContain('-wipe-data');
+      expect(args).toContain('-no-snapshot-load');
       expect(args).toContain('-partition-size');
       expect(args).toContain('-no-window');
       // Snapshot save requires a writable image.
       expect(args).not.toContain('-read-only');
       expect(args).not.toContain('-no-snapshot-save');
-      expect(args).not.toContain('-no-snapshot-load');
       expect(args).not.toContain('-snapshot');
     });
 

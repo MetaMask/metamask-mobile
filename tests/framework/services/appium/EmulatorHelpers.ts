@@ -399,6 +399,7 @@ export function buildAndroidEmulatorArgs(options: {
       '-accel',
       'on',
       '-wipe-data',
+      '-no-snapshot-load',
       '-no-window',
     );
     return args;
@@ -771,15 +772,15 @@ async function waitForEmulatorBoot(
   options?: { postBoot?: 'full' | 'light'; bootTimeoutMs?: number },
 ): Promise<void> {
   const bootTimeoutMs = options?.bootTimeoutMs ?? resolveAndroidBootTimeoutMs();
+  const deadline = Date.now() + bootTimeoutMs;
 
   // Bound the blocking adb wait so a stuck boot falls back instead of hanging.
   await execAsync(`adb -s ${serial} wait-for-device`, {
-    timeoutMs: bootTimeoutMs,
+    timeoutMs: Math.max(0, deadline - Date.now()),
   }).catch(() => {
     /* the bounded poll loop below delivers the verdict */
   });
 
-  const deadline = Date.now() + bootTimeoutMs;
   let booted = false;
 
   while (Date.now() < deadline) {
@@ -1041,6 +1042,36 @@ export async function startAndroidEmulator(avdName: string): Promise<string> {
   return serial;
 }
 
+function removeGoldenSnapshot(
+  avdName: string,
+  env: Record<string, string | undefined> = process.env,
+): void {
+  const snapshotDir = getGoldenSnapshotDir(avdName, env);
+  if (fs.existsSync(snapshotDir)) {
+    fs.rmSync(snapshotDir, { recursive: true, force: true });
+  }
+  try {
+    fs.unlinkSync(getGoldenSnapshotFingerprintPath(avdName, env));
+  } catch {
+    // No fingerprint file yet.
+  }
+}
+
+async function assertGoldenSnapshotSaved(
+  serial: string,
+  snapshotName: string,
+): Promise<void> {
+  const { stdout, stderr } = await execAsync(
+    `adb -s ${serial} emu avd snapshot save ${snapshotName}`,
+  );
+  const combined = `${stdout}\n${stderr}`.trim();
+  if (/\bKO\b/i.test(combined)) {
+    throw new Error(
+      `Golden snapshot save returned KO${combined ? `: ${combined}` : ''}`,
+    );
+  }
+}
+
 /**
  * Quick-boot the emulator from the golden snapshot. Returns undefined when the
  * snapshot cannot be resumed (process exited, never registered in adb, or boot
@@ -1138,6 +1169,7 @@ export async function primeAndroidGoldenSnapshot(
   const isCI = process.env.CI === 'true';
 
   logger.info(`Priming golden snapshot for Android emulator: ${avdName}`);
+  removeGoldenSnapshot(avdName);
   const args = buildAndroidEmulatorArgs({
     avdName,
     isCI,
@@ -1166,8 +1198,9 @@ export async function primeAndroidGoldenSnapshot(
     logger.info(
       `Saving golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}"...`,
     );
-    await execAsync(
-      `adb -s ${serial} emu avd snapshot save ${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}`,
+    await assertGoldenSnapshotSaved(
+      serial,
+      ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
     );
   } finally {
     await killEmulatorSerialBestEffort(serial);

@@ -1726,6 +1726,9 @@ jobs:
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
+      # Runner-local AVD only — avoid racing the prime job on ~/.android/avd.
+      cache-android-golden-snapshot: false
+      android-emulator-boot-mode: cold
       # Mirrors build-android-apps' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-

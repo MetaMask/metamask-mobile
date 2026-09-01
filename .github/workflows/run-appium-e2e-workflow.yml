@@ -75,6 +75,16 @@ on:
         required: false
         type: string
         default: 'auto'
+      cache-android-golden-snapshot:
+        description: >-
+          Mount `~/.android/avd` on the Namespace cache volume (carries the
+          primed golden emulator snapshot between the prime job and smoke
+          shards). Set false for jobs that cold-boot on a runner-local AVD
+          (e.g. fixture validation) so they do not race with the prime job on
+          the shared volume.
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -180,11 +190,23 @@ jobs:
       # mount time. setup-e2e-env creates the AVD dir later, which would be a
       # runner-local dir — the golden snapshot would never reach the volume.
       - name: Create AVD host dir before cache mount (Android)
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
+        if: >-
+          ${{
+            inputs.runner_provider == 'namespace' &&
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
         run: mkdir -p "$HOME/.android/avd"
 
-      - name: Configure Namespace cache (Android)
-        if: ${{ inputs.runner_provider == 'namespace' && inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
+      - name: Configure Namespace cache (Android, with golden snapshot)
+        if: >-
+          ${{
+            inputs.runner_provider == 'namespace' &&
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           # ~/.android/avd carries the primed golden emulator snapshot between
@@ -197,6 +219,22 @@ jobs:
             node_modules
             .yarn/cache
             ~/.android/avd
+
+      - name: Configure Namespace cache (Android, without golden snapshot)
+        if: >-
+          ${{
+            inputs.runner_provider == 'namespace' &&
+            inputs.platform == 'android' &&
+            !inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
 
       # No `cache: cocoapods`: this job passes skip-pod-install=true, so it
       # never runs pod install.
@@ -229,7 +267,12 @@ jobs:
       # helper and ANDROID_GOLDEN_SNAPSHOT_VALID for logging. Never fails — on
       # error shards fall back to cold boot.
       - name: Check Android golden snapshot
-        if: ${{ inputs.platform == 'android' && steps.select-specs.outputs.spec_count != '0' }}
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.cache-android-golden-snapshot &&
+            steps.select-specs.outputs.spec_count != '0'
+          }}
         id: android-golden-snapshot
         env:
           ANDROID_AVD_NAME: appium_smoke_avd
