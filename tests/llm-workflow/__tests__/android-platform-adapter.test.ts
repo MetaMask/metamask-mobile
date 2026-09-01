@@ -10,8 +10,9 @@ import {
   restoreAndroidAnimations,
 } from '../android/animations';
 import {
-  attachAndroidMetro,
   cleanupAndroidMetro,
+  openAndroidMetroDeepLink,
+  prepareAndroidMetro,
 } from '../android/metro-watch-attach';
 import {
   AndroidPlatformAdapter,
@@ -35,8 +36,12 @@ jest.mock('../android/prerequisites', () => ({
   validateAndroidPrerequisites: jest.fn(),
 }));
 jest.mock('../android/metro-watch-attach', () => ({
-  attachAndroidMetro: jest.fn(),
+  prepareAndroidMetro: jest.fn(),
+  openAndroidMetroDeepLink: jest.fn(),
   cleanupAndroidMetro: jest.fn(),
+}));
+jest.mock('../android/snapshot-backend', () => ({
+  wrapAndroidSnapshotBackend: jest.fn((backend: DeviceBackend) => backend),
 }));
 
 const mockValidate = jest.mocked(validateAndroidPrerequisites);
@@ -112,6 +117,14 @@ describe('AndroidPlatformAdapter', () => {
       serial: 'emulator-5554',
       previous: new Map([['animator_duration_scale', '1']]),
     });
+    jest.mocked(prepareAndroidMetro).mockResolvedValue({
+      serial: 'emulator-5554',
+      metroPort: 8081,
+      ownsReverse: true,
+    });
+    jest
+      .mocked(openAndroidMetroDeepLink)
+      .mockImplementation((_attachment, beforeOpen) => beforeOpen?.());
   });
 
   function createAdapter(expectedAdbBackend = true): AndroidPlatformAdapter {
@@ -127,6 +140,8 @@ describe('AndroidPlatformAdapter', () => {
       }),
       readinessTimeoutMs: 10,
       readinessIntervalMs: 5,
+      pureAttachTimeoutMs: 5,
+      pureAttachIntervalMs: 5,
     });
   }
 
@@ -162,7 +177,7 @@ describe('AndroidPlatformAdapter', () => {
     await adapter.launch(resolved);
     await adapter.cleanup();
 
-    expect(wrapBackend).toHaveBeenCalledWith(backend);
+    expect(wrapBackend).toHaveBeenCalledWith(backend, 'emulator-5554');
     expect(createDriver).toHaveBeenCalledWith(wrappedBackend, 'io.metamask');
     expect(wrappedBackend.closeApp).toHaveBeenCalledWith('io.metamask');
   });
@@ -411,12 +426,6 @@ describe('AndroidPlatformAdapter', () => {
       metroPort: 8081,
     });
     jest.mocked(mobileDriver.hermesTargets).mockResolvedValue(result);
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return { serial: 'emulator-5554', metroPort: 8081, ownsReverse: true };
-      });
     const adapter = createAdapter();
     const resolved = await adapter.resolve({ platform: 'android' }, 8081);
 
@@ -433,12 +442,6 @@ describe('AndroidPlatformAdapter', () => {
       mainActivity: 'io.metamask/io.metamask.MainActivity',
       metroPort: 8081,
     });
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return { serial: 'emulator-5554', metroPort: 8081, ownsReverse: true };
-      });
     const adapter = createAdapter();
     const resolved = await adapter.resolve({ platform: 'android' }, 8081);
 
@@ -449,6 +452,103 @@ describe('AndroidPlatformAdapter', () => {
       metroPort: 8081,
       appId: 'io.metamask',
     });
+  });
+
+  it('pure-attaches to a healthy running app without the reloading deep-link', async () => {
+    mockValidate.mockReturnValue({
+      serial: 'emulator-5554',
+      appId: 'io.metamask',
+      mainActivity: 'io.metamask/io.metamask.MainActivity',
+      metroPort: 8081,
+    });
+    const adapter = createAdapter();
+    const resolved = await adapter.resolve({ platform: 'android' }, 8081);
+
+    await expect(adapter.launch(resolved)).resolves.toMatchObject({
+      state: { isLoaded: true },
+    });
+    expect(prepareAndroidMetro).toHaveBeenCalledWith('emulator-5554', 8081);
+    expect(openAndroidMetroDeepLink).not.toHaveBeenCalled();
+  });
+
+  it('adopts the pure-attached app for cleanup force-stop', async () => {
+    mockValidate.mockReturnValue({
+      serial: 'emulator-5554',
+      appId: 'io.metamask',
+      mainActivity: 'io.metamask/io.metamask.MainActivity',
+      metroPort: 8081,
+    });
+    const adapter = createAdapter();
+    const resolved = await adapter.resolve({ platform: 'android' }, 8081);
+    await adapter.launch(resolved);
+
+    await adapter.cleanup();
+
+    expect(backend.closeApp).toHaveBeenCalledWith('io.metamask');
+  });
+
+  it('deep-links when the app is not the resumed activity', async () => {
+    mockValidate.mockReturnValue({
+      serial: 'emulator-5554',
+      appId: 'io.metamask',
+      mainActivity: 'io.metamask/io.metamask.MainActivity',
+      metroPort: 8081,
+    });
+    runReadinessAdb
+      .mockReturnValueOnce('mResumedActivity: other/other.MainActivity')
+      .mockReturnValue(resumedActivity);
+    const adapter = createAdapter();
+    const resolved = await adapter.resolve({ platform: 'android' }, 8081);
+
+    await expect(adapter.launch(resolved)).resolves.toMatchObject({
+      state: { isLoaded: true },
+    });
+    expect(openAndroidMetroDeepLink).toHaveBeenCalledTimes(1);
+  });
+
+  it('deep-links when the pure-attach probe finds no healthy Hermes target', async () => {
+    mockValidate.mockReturnValue({
+      serial: 'emulator-5554',
+      appId: 'io.metamask',
+      mainActivity: 'io.metamask/io.metamask.MainActivity',
+      metroPort: 8081,
+    });
+    const healthyTarget = {
+      metroPort: 8081,
+      expectedAppId: 'io.metamask',
+      filterBypassed: false,
+      metroDown: false,
+      targetsDiscovered: 1,
+      candidates: [
+        {
+          id: 'target-1',
+          appId: 'io.metamask',
+          logicalDeviceId: 'metro-device-a',
+        },
+      ],
+      chosen: { id: 'target-1', logicalDeviceId: 'metro-device-a' },
+    };
+    // Metro is down for the whole pure-attach window (clock advances to 5 via
+    // the injected delay), then recovers so the post-deep-link wait succeeds.
+    jest.mocked(mobileDriver.hermesTargets).mockImplementation(async () =>
+      clock <= 5
+        ? {
+            metroPort: 8081,
+            expectedAppId: 'io.metamask',
+            filterBypassed: false,
+            metroDown: true,
+            targetsDiscovered: 0,
+            candidates: [],
+          }
+        : healthyTarget,
+    );
+    const adapter = createAdapter();
+    const resolved = await adapter.resolve({ platform: 'android' }, 8081);
+
+    await expect(adapter.launch(resolved)).resolves.toMatchObject({
+      state: { isLoaded: true },
+    });
+    expect(openAndroidMetroDeepLink).toHaveBeenCalledTimes(1);
   });
 
   it('accepts multiple stale/fresh io.metamask Hermes targets on one logical device with an unambiguous chosen', async () => {
@@ -479,12 +579,6 @@ describe('AndroidPlatformAdapter', () => {
       ],
       chosen: { id: 'fresh', logicalDeviceId: 'metro-device-a' },
     });
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return { serial: 'emulator-5554', metroPort: 8081, ownsReverse: true };
-      });
     const adapter = createAdapter();
     const resolved = await adapter.resolve({ platform: 'android' }, 8081);
 
@@ -543,7 +637,7 @@ describe('AndroidPlatformAdapter', () => {
       metroPort: 8081,
     });
     jest
-      .mocked(attachAndroidMetro)
+      .mocked(prepareAndroidMetro)
       .mockRejectedValueOnce(new Error('Metro not recognized'));
     const adapter = createAdapter();
     const resolved = await adapter.resolve({ platform: 'android' }, 8081);
@@ -568,12 +662,7 @@ describe('AndroidPlatformAdapter', () => {
       mainActivity: 'io.metamask/io.metamask.MainActivity',
       metroPort: 8081,
     });
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return attachment;
-      });
+    jest.mocked(prepareAndroidMetro).mockResolvedValue(attachment);
     jest
       .mocked(backend.closeApp)
       .mockRejectedValueOnce(new Error('close failed'));
@@ -605,12 +694,7 @@ describe('AndroidPlatformAdapter', () => {
       mainActivity: 'io.metamask/io.metamask.MainActivity',
       metroPort: 8081,
     });
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return attachment;
-      });
+    jest.mocked(prepareAndroidMetro).mockResolvedValue(attachment);
     jest.mocked(cleanupAndroidMetro).mockImplementationOnce(() => {
       throw new Error('reverse cleanup failed');
     });
@@ -635,12 +719,7 @@ describe('AndroidPlatformAdapter', () => {
       mainActivity: 'io.metamask/io.metamask.MainActivity',
       metroPort: 8081,
     });
-    jest
-      .mocked(attachAndroidMetro)
-      .mockImplementation(async (_serial, _port, _fetch, beforeOpen) => {
-        beforeOpen?.();
-        return attachment;
-      });
+    jest.mocked(prepareAndroidMetro).mockResolvedValue(attachment);
     jest
       .mocked(backend.closeApp)
       .mockRejectedValueOnce(new Error('close failed'));

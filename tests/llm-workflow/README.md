@@ -38,9 +38,9 @@ Run `yarn mm:doctor` to verify the iOS toolchain. `mm launch` does not search bu
 - `io.metamask/io.metamask.MainActivity` available as the launcher activity
 - No worktree/current-directory `.device-session` override, because Android requires the ADB backend rather than Appium
 
-The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears app data. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.8.0 launch flags.
+The Android workflow never starts, stops, restarts, clears, wipes, or deletes an emulator. It never installs, uninstalls, replaces, or clears MetaMask or its app data. Snapshot capture installs or updates only the bundled `agent-device` snapshot-helper instrumentation APK when it is missing or outdated. The core CLI launch option `--extension-path` is rejected on Android because this workflow has no MetaMask APK lifecycle. Programmatic iOS lifecycle fields such as `reinstall`, `resetAppData`, `appBundlePath`, and `allowFoxCodeMismatch` are also rejected by the Android adapter; they are not core 0.8.0 launch flags.
 
-During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to make UiAutomator idle-state snapshots more reliable. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
+During an active Android session, the workflow temporarily sets the emulator's three global system animation scales to zero to reduce transition churn around interactions. Snapshot capture does not depend on those scales because the helper bypasses raw UiAutomator's fixed idle-state gate. Cleanup restores every value changed by the session, including after partial-launch and cleanup failures.
 
 ## Basic Workflow
 
@@ -154,7 +154,7 @@ Android launch readiness is verified rather than inferred from process liveness.
 
 - Emulator-only; no physical-device support.
 - No emulator lifecycle management, APK discovery/build/install, app-data reset, Appium fallback, clipboard, WebView switching, Flask-specific handling, or CI support.
-- Android UI snapshots are locally serialized because `@metamask/device-mcp` 0.3.3 uses a shared `/sdcard/window_dump.xml`. One retry is performed only for recognized transient UiAutomator idle-state, killed/exit-137, or missing-dump failures. The upstream package should eventually provide unique dump paths and single-snapshot composite discovery.
+- Android UI snapshots are locally serialized and captured through the bundled `agent-device` snapshot-helper instrumentation APK, avoiding raw `uiautomator dump` and its idle-state gate. The helper installation is cached by its public API and refreshed only when missing or outdated; helper failures propagate without a raw-dump fallback.
 - Live validation was completed on AVD `Medium_Phone_API_36.1` (`emulator-5554`) with installed package `io.metamask`. Explicit Android launch succeeded and returned a loaded state with `extensionId: io.metamask` after activity resolution was updated to normalize Android's `io.metamask/.MainActivity` shorthand exactly.
 - The live unlock-screen session validated `describe-screen`, `list-testids`, `get-state`, screenshots, `type --testid`, `get-text --testid`, `wait-for`, valid `run-steps`, and `click --testid`. A screenshot path was returned. An intentionally invalid credential was used only to exercise typing and clicking; successful wallet unlock and home-screen navigation were not attempted.
 - Android resource IDs and app test IDs were observable and usable. Test IDs including `login`, `login-password-input`, and `log-in-button` worked without changes to `SCREEN_DETECTION_MAP`.

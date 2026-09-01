@@ -5,6 +5,8 @@ import {
   attachAndroidMetro,
   buildAndroidMetroDeepLink,
   cleanupAndroidMetro,
+  openAndroidMetroDeepLink,
+  prepareAndroidMetro,
 } from '../android/metro-watch-attach';
 
 jest.mock('node:child_process', () => ({ execFileSync: jest.fn() }));
@@ -71,6 +73,45 @@ describe('Android Metro attachment', () => {
       ],
       expect.anything(),
     );
+  });
+
+  it('prepares the reverse mapping without opening the deep link', async () => {
+    const attachment = await prepareAndroidMetro(
+      'emulator-5554',
+      8081,
+      fetchImpl,
+    );
+
+    expect(attachment.ownsReverse).toBe(true);
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'adb',
+      ['-s', 'emulator-5554', 'reverse', '--no-rebind', 'tcp:8081', 'tcp:8081'],
+      expect.anything(),
+    );
+    expect(mockExecFileSync).not.toHaveBeenCalledWith(
+      'adb',
+      expect.arrayContaining(['shell', 'am', 'start']),
+      expect.anything(),
+    );
+  });
+
+  it('opens the deep link for a prepared attachment and signals before launch', () => {
+    const onBeforeOpenApp = jest.fn();
+    openAndroidMetroDeepLink(
+      { serial: 'emulator-5554', metroPort: 8081, ownsReverse: true },
+      onBeforeOpenApp,
+    );
+
+    expect(onBeforeOpenApp).toHaveBeenCalledTimes(1);
+    expect(onBeforeOpenApp.mock.invocationCallOrder[0]).toBeLessThan(
+      mockExecFileSync.mock.invocationCallOrder[0],
+    );
+    expect(mockExecFileSync).toHaveBeenCalledWith(
+      'adb',
+      expect.arrayContaining(['shell', 'am', 'start']),
+      expect.anything(),
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it('reuses an identical mapping without ownership', async () => {
