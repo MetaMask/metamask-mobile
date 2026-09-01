@@ -20,12 +20,12 @@ describe('KeyValueRow', () => {
         const { getByText } = render(
           <KeyValueRow
             field={{ label: { text: 'Sample Key Text' } }}
-            value={{ label: { text: 'Sample Value Text' } }}
+            value={{ label: { text: 'Sample value text' } }}
           />,
         );
 
         expect(getByText('Sample Key Text')).toBeOnTheScreen();
-        expect(getByText('Sample Value Text')).toBeOnTheScreen();
+        expect(getByText('Sample value text')).toBeOnTheScreen();
       });
 
       it('renders field and value labels with tooltips', () => {
@@ -34,14 +34,14 @@ describe('KeyValueRow', () => {
             field={{
               label: { text: 'Key Text' },
               tooltip: {
-                title: 'Sample Tooltip 1',
+                title: 'Sample tooltip 1',
                 content: 'Tooltip 1 text',
               },
             }}
             value={{
               label: { text: 'Value Text' },
               tooltip: {
-                title: 'Sample Tooltip 2',
+                title: 'Sample tooltip 2',
                 content: 'Tooltip 2 text',
               },
             }}
@@ -83,7 +83,7 @@ describe('KeyValueRow', () => {
                 name: IconName.Activity,
               },
               tooltip: {
-                title: 'Sample Tooltip 2',
+                title: 'Sample tooltip 2',
                 content: 'Tooltip 2 text',
               },
             }}
@@ -93,7 +93,7 @@ describe('KeyValueRow', () => {
                 name: IconName.Add,
               },
               tooltip: {
-                title: 'Sample Tooltip 2',
+                title: 'Sample tooltip 2',
                 content: 'Tooltip 2 text',
               },
             }}
