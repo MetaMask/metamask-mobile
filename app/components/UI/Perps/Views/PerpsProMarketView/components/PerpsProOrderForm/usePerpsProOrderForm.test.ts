@@ -3630,6 +3630,31 @@ describe('usePerpsProOrderForm', () => {
       expect(creationFailed).not.toHaveBeenCalled();
     });
 
+    it('uses Scale failure copy after a Chase placement', async () => {
+      mockOrderForm.type = 'chase';
+      mockExecuteOrder
+        .mockResolvedValueOnce({ success: true })
+        .mockImplementationOnce(async () => {
+          mockExecutionOptions.onError?.('Scale order rejected');
+          return { success: false, error: 'Scale order rejected' };
+        });
+      const hook = renderProForm();
+      await act(async () => {
+        await hook.result.current.onPlaceOrderPress();
+      });
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      hook.rerender({});
+      configureScaleOrder(hook.result);
+
+      await act(async () => {
+        await hook.result.current.onPlaceOrderPress();
+      });
+
+      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(chaseCreationFailed).not.toHaveBeenCalled();
+    });
+
     it('does not submit a duplicate Scale request while placement is pending', async () => {
       let resolveOrder:
         | ((value: { success: boolean; error?: string }) => void)

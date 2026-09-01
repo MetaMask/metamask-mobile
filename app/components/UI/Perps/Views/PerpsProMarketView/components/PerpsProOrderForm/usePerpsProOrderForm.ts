@@ -2310,6 +2310,7 @@ export const usePerpsProOrderForm = ({
           ),
         });
 
+        isChaseExecutionRef.current = false;
         const orderResult = await executeOrder(scaleOrderParams);
         if (!orderResult?.success) {
           return;
