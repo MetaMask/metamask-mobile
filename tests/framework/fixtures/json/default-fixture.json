@@ -993,6 +993,7 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
