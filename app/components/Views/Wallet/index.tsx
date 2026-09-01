@@ -766,6 +766,7 @@ const Wallet = ({
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
   const isCompactHeader = headerNavBarVariant.isCompactHeaderEnabled;
+  const isHeaderSearchEnabled = headerNavBarVariant.isHeaderSearchEnabled;
   const avatarAccountType = useSelector(selectAvatarAccountType);
 
   const homepageScrollY = useSharedValue(0);
@@ -1181,6 +1182,9 @@ const Wallet = ({
                   displayName={displayName}
                   handleRewardsPress={handleRewardsPress}
                   handleAccountHubPress={handleAccountHubPress}
+                  handleSearchPress={
+                    isHeaderSearchEnabled ? handleSearchPress : undefined
+                  }
                   touchAreaSlop={touchAreaSlop}
                   scrollY={homepageScrollY}
                   titleSectionHeight={accountNameSectionBottom}
