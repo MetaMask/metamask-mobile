@@ -153,7 +153,13 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           node scripts/slack-audit-notification.mjs
-          if [[ -f slack-message-ts.txt ]]; then
+          # slack-audit-notification.mjs already only ever writes this file
+          # when Slack's response matched its own `<digits>.<digits>`
+          # timestamp shape (see SLACK_TS_PATTERN), but re-validate here too
+          # before trusting it as a step output: an unescaped value with a
+          # newline in it could otherwise inject extra lines into
+          # $GITHUB_OUTPUT.
+          if [[ -f slack-message-ts.txt ]] && grep -Eq '^[0-9]+\.[0-9]+$' slack-message-ts.txt; then
             echo "thread-ts=$(cat slack-message-ts.txt)" >> "$GITHUB_OUTPUT"
           fi
 

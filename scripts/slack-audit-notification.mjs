@@ -42,6 +42,11 @@ import yaml from 'js-yaml';
 
 const DEFAULT_OWNERS_PATH = '.github/audit-owners.yml';
 
+// Slack message timestamps are always `<seconds>.<microseconds>`, e.g.
+// "1503435956.000247". This is the only shape of `chat.postMessage`'s
+// response we ever trust enough to write to disk — see postToSlack() below.
+const SLACK_TS_PATTERN = /^\d+\.\d+$/;
+
 /**
  * @param {string} path
  * @returns {{slack_channel: string, owner: {github: string, slack_id: string}, manager?: {slack_id: string}}}
@@ -258,7 +263,14 @@ async function postToSlack(botToken, channelId, payload, threadTs) {
       throw new Error(`Slack API error: ${data.error}`);
     }
     console.log('✅ Slack notification sent successfully');
-    return { success: true, ts: data.ts };
+    // `data.ts` is caller-written to disk (see SLACK_MESSAGE_TS_PATH in
+    // main()) and later shell-read back into a GitHub Actions output, so it
+    // must never be trusted as-is (flagged by CodeQL as js/http-to-file-access
+    // — writing raw network response data to a file). Only hand back a `ts`
+    // that matches Slack's own timestamp shape; anything else is dropped
+    // rather than persisted, same as if Slack hadn't returned one at all.
+    const ts = typeof data.ts === 'string' && SLACK_TS_PATTERN.test(data.ts) ? data.ts : undefined;
+    return { success: true, ts };
   } catch (error) {
     console.error(`❌ Failed to post to Slack: ${error.message}`);
     return { success: false };
