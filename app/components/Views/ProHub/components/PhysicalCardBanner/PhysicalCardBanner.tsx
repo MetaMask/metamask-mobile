@@ -34,9 +34,9 @@ const PhysicalCardBanner = ({ onPress }: PhysicalCardBannerProps) => (
         alignItems={BoxAlignItems.Center}
         twClassName="gap-x-3"
       >
-        <Box twClassName="w-14 h-9 rounded-lg border border-border-default bg-background-default shrink-0" />
+        <Box twClassName="w-14 h-10 rounded-md bg-background-muted shrink-0" />
 
-        <Box twClassName="flex-1 gap-y-1">
+        <Box twClassName="flex-1 gap-y-0.5">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
