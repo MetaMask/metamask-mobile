@@ -159,6 +159,8 @@ let mockOrderValidationParams:
 let mockValidateCalculatedMargin = false;
 
 let mockExistingPosition: {
+  symbol?: string;
+  providerId?: PerpsProviderType;
   leverage?: { type?: string; value?: number };
   size?: string;
 } | null = null;
@@ -1706,6 +1708,255 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_account_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('revalidates Chase when spendable balance drops during validation', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      const balanceError = 'Balance dropped below required margin';
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValueOnce({
+          ...validResult,
+          errors: [balanceError],
+          isValid: false,
+        });
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockContextValue.balanceForValidation = 0;
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(validationError).toHaveBeenCalledWith(balanceError);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('revalidates Chase when an existing position becomes cross margin', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '1',
+        leverage: { type: 'cross', value: 5 },
+      };
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+      });
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('revalidates Chase when reduce-only position loading starts', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      mockContextValue.pendingReduceOnly = true;
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockPositionStreamLoading = true;
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('keeps Chase validation stable across a live price tick', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveValidation: ((value: typeof validResult) => void) | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockLivePrice = '45000';
+      mockLiveMarkPrice = '45000';
+      form.rerender({});
+      await act(async () => {
+        resolveValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentPrice: 90000,
+          size: '0.002',
+        }),
+      );
+    });
+
+    it('uses the latest validated Chase size in confirmation copy', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      const initiatingConfirmation = mockExecutionOptions.onSuccess;
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockContextValue.balanceForValidation = 400;
+      mockLivePrice = '45000';
+      mockLiveMarkPrice = '45000';
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+      act(() => {
+        initiatingConfirmation?.();
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ size: '0.003' }),
+      );
+      expect(limitConfirmed).toHaveBeenCalledWith('long', '0.003', 'BTC');
     });
 
     it('continues Chase submit when a MAX amount updates during session refresh', async () => {

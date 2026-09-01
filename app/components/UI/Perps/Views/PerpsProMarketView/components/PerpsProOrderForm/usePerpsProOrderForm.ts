@@ -551,6 +551,11 @@ export const usePerpsProOrderForm = ({
 }: UsePerpsProOrderFormParams): UsePerpsProOrderFormResult => {
   const symbol = market.symbol;
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
+  const selectedAddressRef = useRef(normalizedSelectedAddress);
+  useLayoutEffect(() => {
+    selectedAddressRef.current = normalizedSelectedAddress;
+  }, [normalizedSelectedAddress]);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -924,7 +929,7 @@ export const usePerpsProOrderForm = ({
           reduceOnly,
           chaseMaxDistance,
           chaseMaxDistanceUnit,
-          selectedAddress: selectedAddress?.toLowerCase() ?? '',
+          selectedAddress: normalizedSelectedAddress,
         })
       : '';
   submissionStateRef.current = currentSubmissionState;
@@ -1611,11 +1616,23 @@ export const usePerpsProOrderForm = ({
     direction: orderForm.direction,
     amount: effectiveUsdAmount,
     leverage: orderForm.leverage,
-    positionSize: submissionPositionSize,
-    effectivePrice,
+    spendableBalance,
+    currentPositionIdentity: currentMarketPosition
+      ? {
+          symbol: currentMarketPosition.symbol,
+          size: currentMarketPosition.size,
+          providerId: currentMarketPosition.providerId ?? null,
+        }
+      : null,
+    existingPositionLeverage: currentMarketPosition
+      ? {
+          type: currentMarketPosition.leverage.type,
+          value: currentMarketPosition.leverage.value,
+        }
+      : null,
     reduceOnly,
+    isReduceOnlyPositionLoading,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
-    marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
     providerId: chaseProviderId,
   });
   const currentChasePlacementSnapshot = useMemo(
@@ -1628,6 +1645,7 @@ export const usePerpsProOrderForm = ({
       effectiveUsdAmount,
       feeResults,
       isExactFullClose,
+      isReduceOnlyPositionLoading,
       orderForm,
       reduceOnly,
       reduceOnlyValidation,
@@ -1643,6 +1661,7 @@ export const usePerpsProOrderForm = ({
       effectiveUsdAmount,
       feeResults,
       isExactFullClose,
+      isReduceOnlyPositionLoading,
       orderForm,
       reduceOnly,
       reduceOnlyValidation,
@@ -1667,7 +1686,7 @@ export const usePerpsProOrderForm = ({
         snapshot.chaseValidationInputKey ===
         latestSnapshot.chaseValidationInputKey
       ) {
-        return { snapshot: latestSnapshot, validationResult };
+        return { snapshot, validationResult };
       }
     }
     return undefined;
@@ -1749,22 +1768,27 @@ export const usePerpsProOrderForm = ({
     isTriggerOrderType(orderForm.type)
       ? PerpsToastOptions.orderManagement.limit
       : PerpsToastOptions.orderManagement.market;
+  const chaseConfirmationPositionSizeRef = useRef(submissionPositionSize);
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
       if (isScaleOrder) {
         return;
       }
+      const confirmationPositionSize =
+        orderForm.type === 'chase'
+          ? chaseConfirmationPositionSizeRef.current
+          : submissionPositionSize;
       const toast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.confirmed(
             orderForm.direction,
-            submissionPositionSize,
+            confirmationPositionSize,
             orderForm.asset,
             twapDuration,
           )
         : standardOrderToastOptions.confirmed(
             orderForm.direction,
-            submissionPositionSize,
+            confirmationPositionSize,
             orderForm.asset,
           );
       showToast(toast);
@@ -1810,7 +1834,10 @@ export const usePerpsProOrderForm = ({
     [navigation, track],
   );
 
-  const handlePlaceOrder = async (expectedState: string) => {
+  const handlePlaceOrder = async (
+    expectedState: string,
+    expectedSelectedAddress: string,
+  ) => {
     if (isSubmittingRef.current) {
       return;
     }
@@ -1831,7 +1858,11 @@ export const usePerpsProOrderForm = ({
     };
     const reportChaseSubmissionChanged = () =>
       reportValidationFailure(
-        strings('perps.order.validation.chase_details_changed'),
+        strings(
+          selectedAddressRef.current !== expectedSelectedAddress
+            ? 'perps.order.validation.chase_account_changed'
+            : 'perps.order.validation.chase_details_changed',
+        ),
       );
     const isCurrentSubmission = () =>
       submissionStateRef.current === expectedState;
@@ -2110,8 +2141,26 @@ export const usePerpsProOrderForm = ({
         return;
       }
 
-      if (!isScaleOrder && rejectCrossMarginPosition(currentMarketPosition)) {
-        return;
+      if (!isScaleOrder) {
+        const validatedIsReduceOnlyPositionLoading =
+          submissionChaseSnapshot?.isReduceOnlyPositionLoading ??
+          isReduceOnlyPositionLoading;
+        const validatedReduceOnly =
+          submissionChaseSnapshot?.reduceOnly ?? reduceOnly;
+        const validatedReduceOnlyValidation =
+          submissionChaseSnapshot?.reduceOnlyValidation ?? reduceOnlyValidation;
+        const validatedCurrentMarketPosition =
+          submissionChaseSnapshot?.currentMarketPosition ??
+          currentMarketPosition;
+        if (
+          validatedIsReduceOnlyPositionLoading ||
+          (validatedReduceOnly && !validatedReduceOnlyValidation.isValid)
+        ) {
+          return;
+        }
+        if (rejectCrossMarginPosition(validatedCurrentMarketPosition)) {
+          return;
+        }
       }
 
       if (isScaleOrder) {
@@ -2366,6 +2415,9 @@ export const usePerpsProOrderForm = ({
       const placementPositionSize =
         submissionChaseSnapshot?.submissionPositionSize ??
         submissionPositionSize;
+      if (placementOrderForm.type === 'chase') {
+        chaseConfirmationPositionSizeRef.current = placementPositionSize;
+      }
       const placementEffectivePrice =
         submissionChaseSnapshot?.effectivePrice ?? effectivePrice;
       const placementUsdAmount =
@@ -3214,6 +3266,7 @@ export const usePerpsProOrderForm = ({
     }
 
     const expectedSubmissionState = submissionStateRef.current;
+    const expectedSelectedAddress = selectedAddressRef.current;
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -3233,7 +3286,11 @@ export const usePerpsProOrderForm = ({
           if (orderForm.type === 'chase') {
             showToast(
               PerpsToastOptions.formValidation.orderForm.validationError(
-                strings('perps.order.validation.chase_details_changed'),
+                strings(
+                  selectedAddressRef.current !== expectedSelectedAddress
+                    ? 'perps.order.validation.chase_account_changed'
+                    : 'perps.order.validation.chase_details_changed',
+                ),
               ),
             );
           }
@@ -3243,7 +3300,10 @@ export const usePerpsProOrderForm = ({
           showEligibilityModal(PERPS_EVENT_VALUE.SOURCE.TRADE_ACTION);
           return;
         }
-        await handlePlaceOrderRef.current(expectedSubmissionState);
+        await handlePlaceOrderRef.current(
+          expectedSubmissionState,
+          expectedSelectedAddress,
+        );
       });
     } finally {
       if (locksScalePlacement) {

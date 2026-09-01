@@ -238,13 +238,14 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
+    const clampedMaximum = new BigNumber(
+      clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
+    );
     const preservesMaxIntent =
       sliderAtMaxRef.current &&
-      new BigNumber(usdAmount || 0).eq(
-        new BigNumber(
-          clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
-        ),
-      );
+      maxPossibleAmount > 0 &&
+      clampedMaximum.gt(0) &&
+      new BigNumber(usdAmount || 0).eq(clampedMaximum);
     clearSliderPreview();
     if (!preservesMaxIntent) {
       clearSliderMaxIntent();
