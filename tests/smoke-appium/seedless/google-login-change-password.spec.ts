@@ -9,6 +9,7 @@ import SecurityAndPrivacy from '../../page-objects/Settings/SecurityAndPrivacy/S
 import ChangePasswordView from '../../page-objects/Settings/SecurityAndPrivacy/ChangePasswordView.js';
 import ToastModal from '../../page-objects/wallet/ToastModal.js';
 import { ChangePasswordViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/ChangePasswordView.selectors.js';
+import { dismissToWalletHomePlaywright } from '../../flows/wallet.flow.js';
 import {
   TEST_PASSWORD,
   completeGoogleNewUserOnboarding,
@@ -77,6 +78,7 @@ appiumTest.describe(
               },
             );
 
+            await dismissToWalletHomePlaywright();
             await lockApp();
             await unlockApp(NEW_PASSWORD);
           },
