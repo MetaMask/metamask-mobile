@@ -42,13 +42,19 @@ export function applyBridgeQuote(
 
   const isBridge = isCrossChain(quote.srcChainId, quote.destChainId);
   const fees = 'fees' in activity.data ? activity.data.fees : undefined;
-  const bridgeStatus =
-    activity.status === 'failed'
-      ? 'failed'
-      : getBridgeActivityStatus(bridgeHistory);
   // A same-chain swap is settled as soon as its keyring transaction confirms,
-  // so only bridges take their status from the bridge history.
-  const status = isBridge ? bridgeStatus : undefined;
+  // so only bridges read status and destination amount from the bridge history.
+  let status;
+  let destinationAmount = quote.destTokenAmount;
+
+  if (isBridge) {
+    status =
+      activity.status === 'failed'
+        ? 'failed'
+        : getBridgeActivityStatus(bridgeHistory);
+    destinationAmount =
+      bridgeHistory.status.destChain?.amount ?? destinationAmount;
+  }
 
   return {
     ...activity,
@@ -64,7 +70,7 @@ export function applyBridgeQuote(
         symbol: quote.srcAsset.symbol,
       },
       destinationToken: {
-        amount: bridgeHistory.status.destChain?.amount ?? quote.destTokenAmount,
+        amount: destinationAmount,
         assetId: quote.destAsset.assetId,
         decimals: quote.destAsset.decimals,
         direction: 'in',

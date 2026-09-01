@@ -83,14 +83,16 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   );
   // Keep API decimals for Swap again, but keyring amounts are already
   // human-readable so display/fiat must not run formatUnits on them.
-  const amountIsHumanReadable = isNonEvmChainId(item.chainId);
+  // Quote-backed same-chain swaps already carry atomic amounts + decimals,
+  // so those must stay convertible.
+  const isNonEvm = isNonEvmChainId(item.chainId);
   const sourceToken = markAmountHumanReadable(
     enrichTokenFromApi(rawSourceToken, tokenData),
-    amountIsHumanReadable,
+    isNonEvm && rawSourceToken?.decimals == null,
   );
   const destinationToken = markAmountHumanReadable(
     enrichTokenFromApi(rawDestinationToken, tokenData),
-    amountIsHumanReadable,
+    isNonEvm && rawDestinationToken?.decimals == null,
   );
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
