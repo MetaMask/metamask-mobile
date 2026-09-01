@@ -665,6 +665,24 @@ describe('QrSyncController', () => {
       expect(walletClient.client.disconnect).toHaveBeenCalled();
     });
 
+    it('hasPendingSecretImports is true only while secrets are in memory', async () => {
+      const controller = buildController();
+      const walletClient = buildMockWalletClient();
+
+      expect(controller.hasPendingSecretImports()).toBe(false);
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      expect(controller.hasPendingSecretImports()).toBe(true);
+
+      controller.resetState();
+      await flushPromises();
+
+      expect(controller.hasPendingSecretImports()).toBe(false);
+    });
+
     it('marks the connection errored and failed when the wallet client emits error', async () => {
       const controller = buildController();
       const walletClient = buildMockWalletClient();

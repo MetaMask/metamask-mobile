@@ -201,6 +201,17 @@ export class QrSyncController extends BaseController<
   }
 
   /**
+   * Whether ephemeral secrets are waiting for vault import.
+   * UI callers should use this instead of reading `pendingPayload` directly.
+   */
+  public hasPendingSecretImports(): boolean {
+    // TODO: pendingPayload always includes the primary wallet, so this returns
+    // true for any non-null payload. Old model only counted non-primary wallets.
+    // Revisit if we need to skip provisionFromMetadata when only a primary is present.
+    return this.state.pendingPayload !== null;
+  }
+
+  /**
    * E2E-only: apply an SRP sync-ready payload without MWP pairing.
    *
    * Constructs a minimal `AccountTreePayload` from the test parameters and

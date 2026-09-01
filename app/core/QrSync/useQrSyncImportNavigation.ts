@@ -7,7 +7,9 @@ import { selectCompletedOnboarding } from '../../selectors/onboarding';
 import { selectQrSyncShouldNavigateToImport } from '../../selectors/qrSyncController';
 import type { AppNavigationProp } from '../NavigationService/types';
 import Engine from '../Engine';
+import { useMessenger } from '../../hooks/useMessenger';
 import { QrSyncSyncFlows } from './constants';
+import type { RouteMessengerInstance } from './route-messenger';
 import { navigateToQrSyncImport } from './navigateToQrSyncImport';
 import { showAlreadySyncedSheet } from '../../components/Views/AddDeviceToWallet/showAlreadySyncedSheet';
 import { showImportFailedSheet } from '../../components/Views/AddDeviceToWallet/showImportFailedSheet';
@@ -38,11 +40,13 @@ let inFlightImportNavigation: Promise<void> | null = null;
  */
 const finishExistingUserSyncWithoutMnemonic = async (
   navigation: AppNavigationProp,
+  messenger: RouteMessengerInstance,
 ): Promise<void> => {
-  const accountsBefore = await Engine.context.KeyringController.getAccounts();
+  const accountsBefore = await messenger.call('KeyringController:getAccounts');
   let importFailed = false;
 
   try {
+    // TODO: Use messenger instead:
     await Engine.context.QrSyncProvisioningService.provisionFromMetadata();
   } catch (error) {
     importFailed = true;
@@ -54,18 +58,18 @@ const finishExistingUserSyncWithoutMnemonic = async (
     });
   }
 
-  const accountsAfter = await Engine.context.KeyringController.getAccounts();
+  const accountsAfter = await messenger.call('KeyringController:getAccounts');
   const addedNewAccounts = accountsAfter.length > accountsBefore.length;
 
   if (importFailed && !addedNewAccounts) {
-    Engine.context.QrSyncController.resetState();
+    await messenger.call('QrSyncController:resetState');
     navigation.navigate(Routes.WALLET_VIEW);
     showImportFailedSheet(navigation);
     return;
   }
 
   if (!addedNewAccounts) {
-    Engine.context.QrSyncController.resetState();
+    await messenger.call('QrSyncController:resetState');
     navigation.navigate(Routes.WALLET_VIEW);
     showAlreadySyncedSheet(navigation);
     return;
@@ -85,6 +89,7 @@ export const useQrSyncImportNavigation = ({
   isScannerOpen: _isScannerOpen = false,
 }: UseQrSyncImportNavigationOptions): void => {
   const navigation = useNavigation<AppNavigationProp>();
+  const messenger = useMessenger<RouteMessengerInstance>();
   const completedOnboarding = useSelector(selectCompletedOnboarding);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -102,41 +107,60 @@ export const useQrSyncImportNavigation = ({
     }
 
     if (completedOnboarding) {
-      // Prefer live controller state — Redux can lag/strip ephemeral secrets.
-      const pendingPayload =
-        Engine.context.QrSyncController.state?.pendingPayload;
-
       hasHandledImportNavigationRef.current = true;
 
-      if (!pendingPayload?.wallets.length) {
-        Logger.log(
-          'QR sync existing-user import: no pending payload in sync data',
-        );
-        Engine.context.QrSyncController.resetState();
-        navigation.navigate(Routes.WALLET_VIEW);
-        return;
-      }
-
-      inFlightImportNavigation = finishExistingUserSyncWithoutMnemonic(
-        navigation,
-      )
-        .catch((error: unknown) => {
+      inFlightImportNavigation = (async () => {
+        let hasPendingSecretImports: boolean;
+        try {
+          // Live controller check — Redux can lag/strip ephemeral secrets.
+          hasPendingSecretImports = await messenger.call(
+            'QrSyncController:hasPendingSecretImports',
+          );
+        } catch (error: unknown) {
           hasHandledImportNavigationRef.current = false;
-          Engine.context.QrSyncController.resetState();
           reportQrSyncFailure(error, {
             surface: QrSyncSurfaces.IMPORT,
             operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
             source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
             syncFlow: QrSyncSyncFlows.EXISTING_USER,
           });
-        })
-        .finally(() => {
-          inFlightImportNavigation = null;
-        });
+          return;
+        }
+
+        if (!hasPendingSecretImports) {
+          Logger.log(
+            'QR sync existing-user import: no pending secrets in sync data',
+          );
+          await messenger.call('QrSyncController:resetState');
+          navigation.navigate(Routes.WALLET_VIEW);
+          return;
+        }
+
+        try {
+          await finishExistingUserSyncWithoutMnemonic(navigation, messenger);
+        } catch (error: unknown) {
+          hasHandledImportNavigationRef.current = false;
+          await messenger.call('QrSyncController:resetState');
+          reportQrSyncFailure(error, {
+            surface: QrSyncSurfaces.IMPORT,
+            operation: QrSyncOperations.EXISTING_USER_IMPORT_NAVIGATION,
+            source: QrSyncTelemetrySources.USE_QR_SYNC_IMPORT_NAVIGATION,
+            syncFlow: QrSyncSyncFlows.EXISTING_USER,
+          });
+        }
+      })().finally(() => {
+        inFlightImportNavigation = null;
+      });
       return;
     }
 
     hasHandledImportNavigationRef.current = true;
     navigateToQrSyncImport(navigation);
-  }, [completedOnboarding, enabled, navigation, shouldNavigateToImport]);
+  }, [
+    completedOnboarding,
+    enabled,
+    messenger,
+    navigation,
+    shouldNavigateToImport,
+  ]);
 };

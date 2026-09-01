@@ -75,6 +75,8 @@ export enum TraceName {
   TokenOverviewAdvancedChartInitialVisible = 'Token Overview Advanced Chart Initial Visible',
   /** Token overview advanced chart: skeleton cleared after time range selector change only. */
   TokenOverviewAdvancedChartTimeRangeVisible = 'Token Overview Advanced Chart Time Range Visible',
+  /** Transaction creation to the confirmation body's first paint. */
+  TransactionConfirmationLoad = 'Transaction Confirmation Load',
   TransactionConfirmed = 'Transaction Confirmed',
   LoadCollectibles = 'Load Collectibles',
   DetectNfts = 'Detect Nfts',
@@ -116,6 +118,7 @@ export enum TraceName {
   OnboardingSRPAccountImportTime = 'Onboarding SRP Account Import Time',
   // Onboarding screen / Rive / navigation performance
   OnboardingScreenTimeToContent = 'Onboarding Screen Time To Content',
+  OnboardingScreenFullyDisplayed = 'Onboarding Screen Fully Displayed',
   OnboardingScreenDataFetch = 'Onboarding Screen Data Fetch',
   OnboardingRiveReady = 'Onboarding Rive Ready',
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
@@ -191,6 +194,9 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  PerpsLoadingSession = 'Perps Loading Session',
+  /** Market-detail mount to section resolution offsets for one mode/context generation. */
+  PerpsMarketDetailSession = 'Perps Market Detail Session',
   // Perps chart: first visible candle after the market detail chart mounts.
   PerpsChartFirstCandle = 'perps.chart.first_candle',
   // Perps chart: fullscreen chart visible after open.
@@ -202,7 +208,7 @@ export enum TraceName {
   // Perps user-perceived CUF spans: gesture/open -> render with live data
   /** Tap/open -> Perps market list rendered with live prices. */
   PerpsEntryToLiveMarketList = 'Perps Entry To Live Market List',
-  /** Market route open -> stats + chart + top-of-book live. */
+  /** Market detail mount -> metadata + stats + price + account resolved. */
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
@@ -334,6 +340,7 @@ export enum TraceOperation {
   AccountUi = 'account.ui',
   // Perps
   PerpsOperation = 'perps.operation',
+  PerpsLoading = 'perps.loading',
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
@@ -515,6 +522,9 @@ export interface TraceRequest {
 
   /**
    * Override the start time of the trace.
+   * Must come from {@link getPerformanceTimestamp} so start and end share one
+   * clock. `Date.now()` mixed with the performance stamp used by `endTrace`
+   * can produce invalid durations that Sentry silently drops.
    */
   startTime?: number;
 
@@ -1346,8 +1356,11 @@ function initSpan(_span: Span, request: TraceRequest) {
  * `timeOrigin + now` is only a few million (uptime ms) and gets misread as
  * "seconds since 1970" — Sentry then silently drops the transaction. Fall back
  * to `Date.now()` whenever the performance clock is not a plausible epoch ms.
+ *
+ * Callers that pass `startTime` into {@link trace} must use this function so
+ * start and end share one clock.
  */
-function getPerformanceTimestamp(): number {
+export function getPerformanceTimestamp(): number {
   const performanceMs = performance.timeOrigin + performance.now();
   // Any real epoch-ms timestamp for MetaMask is well above 1e11 (≈ 1973).
   if (!Number.isFinite(performanceMs) || performanceMs < 1e11) {

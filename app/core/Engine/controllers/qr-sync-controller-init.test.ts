@@ -123,6 +123,18 @@ describe('qrSyncControllerInit', () => {
       'QrSyncController:completeProvisioning',
       expect.any(Function),
     );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:resetState',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:handleScannedQrPayload',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:hasPendingSecretImports',
+      expect.any(Function),
+    );
   });
 
   it('registers the E2E deep-link handler when test overrides are enabled', () => {

@@ -44,6 +44,19 @@ describe('Feature Flag Registry', () => {
       }
     });
 
+    it('uses the version-gated default shape for Perps Scale', () => {
+      expect(FEATURE_FLAG_REGISTRY.perpsMobileScale).toMatchObject({
+        name: 'perpsMobileScale',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '8.10.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('enables curated event pages for the extended sports leagues', () => {
       const extendedSportsLeagues = [
         'nba',
@@ -110,6 +123,13 @@ describe('Feature Flag Registry', () => {
       expect(getRegistryEntry('predictSportsFeed')?.productionDefault).toEqual(
         expect.objectContaining({ enabled: true }),
       );
+    });
+
+    it('keeps Perps Mobile TWAP default-off and version-gated', () => {
+      expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
     });
   });
 

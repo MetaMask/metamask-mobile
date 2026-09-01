@@ -603,7 +603,12 @@ export default class AndroidWebViewCdpHelpers {
         return el.value;
       }
       const text = (el.innerText ?? el.textContent ?? '').trim();
-      return text.length > 0 ? text : (el.value ?? null);
+      // Empty string when the node exists but has no text yet — callers poll via
+      // executeWithRetry. Returning null here forced a UiAutomator fallback that
+      // flakes on stale WebView a11y nodes (BIP-44 result spans, etc.).
+      if (text.length > 0) return text;
+      if ('value' in el && typeof el.value === 'string') return el.value;
+      return '';
     })()`,
     );
     return text == null ? undefined : text;

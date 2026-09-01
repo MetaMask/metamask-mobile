@@ -52,6 +52,18 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     'QrSyncController:completeProvisioning',
     controller.completeProvisioning.bind(controller),
   );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:resetState',
+    controller.resetState.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:handleScannedQrPayload',
+    controller.handleScannedQrPayload.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:hasPendingSecretImports',
+    controller.hasPendingSecretImports.bind(controller),
+  );
 
   if (hasTestOverrides) {
     registerE2EQrSyncDeepLinkHandler(() => controller);
