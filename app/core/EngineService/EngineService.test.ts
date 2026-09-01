@@ -1065,6 +1065,45 @@ describe('EngineService', () => {
       expect(mockRunAfterInteractions).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ['null', 'null'],
+      ['array', '[]'],
+      ['string', '"not-an-object"'],
+      ['number', '42'],
+    ])(
+      'falls back to existing-user path when KeyringController JSON parses to %s',
+      async (_label, payload) => {
+        // Arrange — parseable but not a KeyringController object
+        mockRunAfterInteractions.mockClear();
+        const mockGetState = jest.fn().mockReturnValue({
+          user: { existingUser: false },
+        });
+
+        Object.defineProperty(ReduxService.store, 'getState', {
+          value: mockGetState,
+          writable: true,
+          configurable: true,
+        });
+
+        (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(
+          payload,
+        );
+
+        // Act
+        await engineService.start();
+
+        // Assert — malformed-but-valid JSON → full read to avoid skipping
+        // other controller files that may still hold real state
+        expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
+        expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+        expect(Logger.log).toHaveBeenCalledWith(
+          expect.stringContaining(
+            'KeyringController file is not a valid object',
+          ),
+        );
+      },
+    );
+
     it('stays on new-user path when KeyringController exists on disk but has no vault', async () => {
       // Arrange — KeyringController file exists but with no vault (e.g. partially initialized)
       const mockGetState = jest.fn().mockReturnValue({

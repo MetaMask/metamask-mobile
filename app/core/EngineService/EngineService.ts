@@ -219,13 +219,31 @@ export class EngineService {
         );
         if (keyringData) {
           try {
-            const parsed = JSON.parse(keyringData);
-            if (parsed?.vault) {
+            const parsed: unknown = JSON.parse(keyringData);
+            // JSON.parse can succeed for non-objects (`null`, arrays, strings,
+            // numbers). Those are not a valid KeyringController snapshot — fall
+            // back to a full read so we never skip past other controller files
+            // that may still hold real state.
+            if (
+              !parsed ||
+              typeof parsed !== 'object' ||
+              Array.isArray(parsed)
+            ) {
+              Logger.log(
+                `${LOG_TAG}: KeyringController file is not a valid object — falling back to existing-user path to prevent data loss`,
+              );
+              isNewUser = false;
+            } else if (
+              'vault' in parsed &&
+              (parsed as { vault?: unknown }).vault
+            ) {
               Logger.log(
                 `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing user to prevent data loss`,
               );
               isNewUser = false;
             }
+            // Valid object without a vault (e.g. partially initialized keyring)
+            // → stay on the new-user optimization path.
           } catch {
             // Corrupted JSON — fall back to full read to be safe.
             isNewUser = false;
