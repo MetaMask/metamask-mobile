@@ -234,54 +234,15 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('$3,500 / $2,000')).toBeOnTheScreen();
   });
 
-  it('counts every reduce only trigger order type reported by the controller', () => {
+  // Which orders belong in the tally is the controller's decision: it counts every
+  // `isTrigger && reduceOnly` order, which spans take profit market/limit and stop
+  // market/limit (@metamask/perps-controller `collectPositionTriggerOrders`). The card
+  // renders that tally verbatim rather than re-deriving it, so trigger-type coverage is
+  // asserted there, not here.
+  it('renders the controller trigger tally for both sides without recounting orders', () => {
     render(
       <PerpsProPositionCard
-        position={{
-          ...position,
-          takeProfitCount: 2,
-          stopLossCount: 2,
-          takeProfitOrders: [
-            {
-              orderId: '1',
-              direction: 'take_profit',
-              orderType: 'take_profit_market',
-              triggerPrice: '3500',
-              size: '0.75',
-              isPartial: true,
-              reduceOnly: true,
-            },
-            {
-              orderId: '2',
-              direction: 'take_profit',
-              orderType: 'take_profit_limit',
-              triggerPrice: '3600',
-              size: '0.75',
-              isPartial: true,
-              reduceOnly: true,
-            },
-          ],
-          stopLossOrders: [
-            {
-              orderId: '3',
-              direction: 'stop',
-              orderType: 'stop_market',
-              triggerPrice: '2000',
-              size: '0.75',
-              isPartial: true,
-              reduceOnly: true,
-            },
-            {
-              orderId: '4',
-              direction: 'stop',
-              orderType: 'stop_limit',
-              triggerPrice: '1900',
-              size: '0.75',
-              isPartial: true,
-              reduceOnly: true,
-            },
-          ],
-        }}
+        position={{ ...position, takeProfitCount: 2, stopLossCount: 2 }}
       />,
     );
 

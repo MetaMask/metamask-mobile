@@ -386,8 +386,8 @@ describe('PerpsPositionCard', () => {
       render(<PerpsPositionCard position={litPosition} szDecimals={2} />);
 
       expect(
-        screen.getByText('perps.order.tp 3 orders, perps.order.sl $2.1234'),
-      ).toBeOnTheScreen();
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE),
+      ).toHaveTextContent('perps.order.tp 3 orders, perps.order.sl $2.1234');
     });
 
     it('renders SHORT position correctly', () => {

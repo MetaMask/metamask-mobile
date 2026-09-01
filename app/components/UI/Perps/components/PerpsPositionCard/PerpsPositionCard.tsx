@@ -248,6 +248,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           color={TextColor.TextDefault}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
+          testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE}
         >
           {parts.join(', ')}
         </SensitiveText>
