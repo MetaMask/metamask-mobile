@@ -603,13 +603,6 @@ describe('PerpsSection', () => {
       positions: [makePosition()],
       isInitialLoading: false,
     });
-    usePerpsLiveAccount.mockReturnValue({
-      account: {
-        unrealizedPnl: '95.39',
-        returnOnEquity: '9.4',
-      },
-      isInitialLoading: false,
-    });
 
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -633,6 +626,27 @@ describe('PerpsSection', () => {
         returnOnEquity: '42.0',
       },
       isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('homepage-perps-unrealized-pnl-value'),
+    ).toHaveTextContent('+$9.40 (+9.4%)');
+  });
+
+  it('renders the aggregate unrealized P&L while the account channel is still loading', () => {
+    // Positions and account are independent stream channels. The row's value comes
+    // from positions, so a lagging account channel must not skeleton over it.
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    usePerpsLiveAccount.mockReturnValue({
+      account: undefined,
+      isInitialLoading: true,
     });
 
     renderWithProvider(
@@ -947,9 +961,10 @@ describe('PerpsSection', () => {
         useLivePnl: true,
       }),
     );
+    // The account value is not rendered, so its channel stays on the slower cadence.
     expect(usePerpsLiveAccount).toHaveBeenCalledWith(
       expect.objectContaining({
-        throttleMs: 1000,
+        throttleMs: 5000,
       }),
     );
     expect(usePerpsLiveOrders).toHaveBeenCalledWith(

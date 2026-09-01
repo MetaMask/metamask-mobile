@@ -61,7 +61,11 @@ import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { usePerpsFeed } from '../../../TrendingView/feeds/perps/usePerpsFeed';
-import { HOMEPAGE_THROTTLE_MS, MAX_ITEMS } from './constants';
+import {
+  HOMEPAGE_ACCOUNT_THROTTLE_MS,
+  HOMEPAGE_THROTTLE_MS,
+  MAX_ITEMS,
+} from './constants';
 import {
   finishPerpsLoadingSession,
   resolvePerpsMarketSource,
@@ -129,8 +133,10 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         useLivePnl: true,
       });
 
+    // Only the initial-load flag is consumed here; the account value itself is not
+    // rendered, so this channel does not need the positions cadence.
     const { isInitialLoading: perpsAccountLoading } = usePerpsLiveAccount({
-      throttleMs: HOMEPAGE_THROTTLE_MS,
+      throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
     });
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
@@ -251,11 +257,12 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
 
-    // Derived from the same live-enriched positions the rows below render, so the
-    // summary and the rows it summarises always move on the same signal. Reading
-    // the account snapshot instead would leave this row frozen between server
-    // pushes while the rows tick on every price update (see PerpsProPositionsPanel,
-    // which derives its summary from its visible positions for the same reason).
+    // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
+    // below display, so this stays the account-wide total it has always been. It
+    // reads the same live source as those rows: taking the account snapshot instead
+    // would leave this row frozen between server pushes while the rows tick on every
+    // price update (see PerpsProPositionsPanel, which derives its summary from its
+    // positions array for the same reason).
     const homepageUnrealizedPnl = useMemo(() => {
       if (!showHomepageUnrealizedPnl) {
         return null;
@@ -520,7 +527,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
           {showHomepageUnrealizedPnl && (
             <HomepageSectionUnrealizedPnlRow
-              isLoading={perpsAccountLoading}
               valueText={homepageUnrealizedPnl?.valueText}
               tone={homepageUnrealizedPnl?.tone ?? 'neutral'}
               label={strings('perps.unrealized_pnl')}
