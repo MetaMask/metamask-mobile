@@ -1371,6 +1371,65 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('keeps a non-Chase fingerprint out of Chase analytics', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: expect.anything(),
+        }),
+      );
+      expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockContextValue.orderForm = { ...mockOrderForm, type: 'limit' };
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_account_changed'),
+      );
+    });
+
     it('executes order for an eligible compliant user', async () => {
       const { result } = renderProForm();
 
@@ -2816,11 +2875,16 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(confirmed).toHaveBeenCalled();
+      expect(chaseConfirmed).not.toHaveBeenCalled();
     });
 
-    it('shows Chase confirmation when Chase starts', () => {
+    it('shows Chase confirmation when Chase starts', async () => {
       mockOrderForm.type = 'chase';
-      renderProForm();
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
 
       act(() => {
         mockExecutionOptions.onSuccess?.();

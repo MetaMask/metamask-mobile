@@ -1487,7 +1487,7 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
-  it('rejects preflight reads while account and provider context reconnects', async () => {
+  it('rejects preflight reads before refresh while context reconnects', async () => {
     mockGetChaseOrders
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([activeOrder]);
@@ -1526,7 +1526,7 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
-  it('rejects a read that settles after the account route changes', async () => {
+  it('rejects a refresh result as stale after the account route changes', async () => {
     let resolveRead: ((orders: (typeof activeOrder)[]) => void) | undefined;
     mockGetChaseOrders
       .mockResolvedValueOnce([])
@@ -1547,9 +1547,9 @@ describe('usePerpsChaseOrders', () => {
     hook.rerender({});
     await act(async () => resolveRead?.([activeOrder]));
 
-    expect(await staleReadResult).toEqual(
-      new Error('Chase order request became stale'),
-    );
+    const staleError = await staleReadResult;
+    expect(staleError).toBeInstanceOf(ChaseOrderRequestError);
+    expect(staleError).toMatchObject({ code: 'stale_request' });
     expect(hook.result.current.chaseOrders).toEqual([]);
     hook.unmount();
   });

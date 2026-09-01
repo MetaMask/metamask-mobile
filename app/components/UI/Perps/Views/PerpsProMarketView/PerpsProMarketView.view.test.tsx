@@ -24,10 +24,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
-import {
-  ChaseOrderRequestError,
-  resetPerpsChaseOrdersStoreForTests,
-} from '../../hooks/usePerpsChaseOrders';
+import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
@@ -1188,21 +1185,18 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'logs an expected Chase refresh race without reporting an error',
+    'reports an unexpected controller refresh failure after Chase cancellation',
     async () => {
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
       const cancelOrder = Engine.context.PerpsController
         .cancelOrder as jest.Mock;
-      const loggerLog = jest
-        .spyOn(Logger, 'log')
-        .mockImplementation(() => undefined);
       const loggerError = jest
         .spyOn(Logger, 'error')
         .mockImplementation(() => undefined);
       getChaseOrders
         .mockResolvedValueOnce([activeChase])
-        .mockRejectedValueOnce(new ChaseOrderRequestError('context_not_ready'));
+        .mockRejectedValueOnce(new Error('refresh failed'));
       cancelOrder.mockClear();
 
       try {
@@ -1212,7 +1206,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
             PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
           ),
         );
-        loggerLog.mockClear();
         loggerError.mockClear();
         fireEvent.press(
           screen.getByTestId(
@@ -1227,14 +1220,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
 
         await waitFor(() => {
           expect(cancelOrder).toHaveBeenCalledTimes(1);
-          expect(loggerLog).toHaveBeenCalledWith(
-            'Chase refresh skipped after accepted cancellation',
-            { code: 'context_not_ready' },
+          expect(loggerError).toHaveBeenCalledWith(
+            expect.any(Error),
+            expect.objectContaining({
+              context: expect.objectContaining({
+                name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+              }),
+            }),
           );
         });
-        expect(loggerError).not.toHaveBeenCalled();
       } finally {
-        loggerLog.mockRestore();
         loggerError.mockRestore();
       }
     },

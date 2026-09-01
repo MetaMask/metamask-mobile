@@ -13,7 +13,7 @@ import {
 } from '@metamask/perps-controller';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
-import { isEqual } from 'lodash';
+import isEqual from 'lodash/isEqual';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -218,13 +218,6 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
   }
   const promise = Engine.context.PerpsController.getChaseOrders()
     .catch((error) => {
-      if (
-        error instanceof ChaseOrderRequestError &&
-        error.code === 'context_not_ready'
-      ) {
-        Logger.log('Chase order refresh skipped', { code: error.code });
-        throw error;
-      }
       if (!refreshFailureLogged) {
         refreshFailureLogged = true;
         Logger.error(ensureError(error, 'usePerpsChaseOrders.refresh'), {

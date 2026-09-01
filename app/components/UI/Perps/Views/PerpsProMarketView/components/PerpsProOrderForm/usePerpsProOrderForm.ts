@@ -932,7 +932,7 @@ export const usePerpsProOrderForm = ({
           chaseMaxDistanceUnit,
           selectedAddress: normalizedSelectedAddress,
         })
-      : '';
+      : orderForm.type;
   useLayoutEffect(() => {
     submissionStateRef.current = currentSubmissionState;
   }, [currentSubmissionState]);
@@ -1765,24 +1765,22 @@ export const usePerpsProOrderForm = ({
     marketPrice: assetData.price,
   });
   const standardOrderToastOptions =
-    orderForm.type === 'chase'
-      ? PerpsToastOptions.orderManagement.chase
-      : isScaleOrder ||
-          isLimitExecutionOrderType(orderForm.type) ||
-          isTriggerOrderType(orderForm.type)
-        ? PerpsToastOptions.orderManagement.limit
-        : PerpsToastOptions.orderManagement.market;
+    isScaleOrder ||
+    isLimitExecutionOrderType(orderForm.type) ||
+    isTriggerOrderType(orderForm.type)
+      ? PerpsToastOptions.orderManagement.limit
+      : PerpsToastOptions.orderManagement.market;
   const chaseConfirmationPositionSizeRef = useRef(submissionPositionSize);
+  const isChaseExecutionRef = useRef(false);
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
     onSuccess: () => {
       if (isScaleOrder) {
         return;
       }
-      const confirmationPositionSize =
-        orderForm.type === 'chase'
-          ? chaseConfirmationPositionSizeRef.current
-          : submissionPositionSize;
+      const confirmationPositionSize = isChaseExecutionRef.current
+        ? chaseConfirmationPositionSizeRef.current
+        : submissionPositionSize;
       const toast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.confirmed(
             orderForm.direction,
@@ -1790,17 +1788,25 @@ export const usePerpsProOrderForm = ({
             orderForm.asset,
             twapDuration,
           )
-        : standardOrderToastOptions.confirmed(
-            orderForm.direction,
-            confirmationPositionSize,
-            orderForm.asset,
-          );
+        : isChaseExecutionRef.current
+          ? PerpsToastOptions.orderManagement.chase.confirmed(
+              orderForm.direction,
+              confirmationPositionSize,
+              orderForm.asset,
+            )
+          : standardOrderToastOptions.confirmed(
+              orderForm.direction,
+              confirmationPositionSize,
+              orderForm.asset,
+            );
       showToast(toast);
     },
     onError: (error) => {
       const toast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.creationFailed(error)
-        : standardOrderToastOptions.creationFailed(error);
+        : isChaseExecutionRef.current
+          ? PerpsToastOptions.orderManagement.chase.creationFailed(error)
+          : standardOrderToastOptions.creationFailed(error);
       showToast(toast);
     },
   });
@@ -1841,6 +1847,7 @@ export const usePerpsProOrderForm = ({
   const handlePlaceOrder = async (
     expectedState: string,
     expectedSelectedAddress: string,
+    isChaseSubmission: boolean,
   ) => {
     if (isSubmittingRef.current) {
       return;
@@ -1871,7 +1878,7 @@ export const usePerpsProOrderForm = ({
     const isCurrentSubmission = () =>
       submissionStateRef.current === expectedState;
     if (!isCurrentSubmission()) {
-      if (expectedState) reportChaseSubmissionChanged();
+      if (isChaseSubmission) reportChaseSubmissionChanged();
       return;
     }
 
@@ -1882,7 +1889,7 @@ export const usePerpsProOrderForm = ({
         PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
       [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
-      ...(expectedState
+      ...(isChaseSubmission
         ? {
             [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
               PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
@@ -2091,7 +2098,7 @@ export const usePerpsProOrderForm = ({
           ? latestChaseValidation.validationResult
           : await validateNow();
       if (!isCurrentSubmission()) {
-        if (expectedState) reportChaseSubmissionChanged();
+        if (isChaseSubmission) reportChaseSubmissionChanged();
         return;
       }
       if (!validationResult.isValid) {
@@ -2391,7 +2398,7 @@ export const usePerpsProOrderForm = ({
         }
       }
       if (!isCurrentSubmission()) {
-        if (expectedState) reportChaseSubmissionChanged();
+        if (isChaseSubmission) reportChaseSubmissionChanged();
         return;
       }
       const finalizedLimitPrice = orderForm.limitPrice
@@ -2493,6 +2500,7 @@ export const usePerpsProOrderForm = ({
       });
 
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+      isChaseExecutionRef.current = isChaseSubmission;
       const submittedToast = isTwapOrder
         ? PerpsToastOptions.orderManagement.twap.submitted(
             placementOrderForm.direction,
@@ -2500,11 +2508,17 @@ export const usePerpsProOrderForm = ({
             placementOrderForm.asset,
             twapDuration,
           )
-        : standardOrderToastOptions.submitted(
-            placementOrderForm.direction,
-            placementPositionSize,
-            placementOrderForm.asset,
-          );
+        : isChaseSubmission
+          ? PerpsToastOptions.orderManagement.chase.submitted(
+              placementOrderForm.direction,
+              placementPositionSize,
+              placementOrderForm.asset,
+            )
+          : standardOrderToastOptions.submitted(
+              placementOrderForm.direction,
+              placementPositionSize,
+              placementOrderForm.asset,
+            );
       showToast(submittedToast);
 
       const shouldHandleTPSLSeparately =
@@ -3280,6 +3294,7 @@ export const usePerpsProOrderForm = ({
 
     const expectedSubmissionState = submissionStateRef.current;
     const expectedSelectedAddress = selectedAddressRef.current;
+    const isChaseSubmission = orderForm.type === 'chase';
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -3296,7 +3311,7 @@ export const usePerpsProOrderForm = ({
       // and the canonical compliance gate ordering (docs/compliance.md).
       await gate(async () => {
         if (submissionStateRef.current !== expectedSubmissionState) {
-          if (expectedSubmissionState) {
+          if (isChaseSubmission) {
             showToast(
               PerpsToastOptions.formValidation.orderForm.validationError(
                 strings(
@@ -3316,6 +3331,7 @@ export const usePerpsProOrderForm = ({
         await handlePlaceOrderRef.current(
           expectedSubmissionState,
           expectedSelectedAddress,
+          isChaseSubmission,
         );
       });
     } finally {
@@ -3329,6 +3345,7 @@ export const usePerpsProOrderForm = ({
     commitPendingSliderPreview,
     gate,
     isEligible,
+    orderForm.type,
     PerpsToastOptions.formValidation.orderForm,
     isScaleOrder,
     showToast,

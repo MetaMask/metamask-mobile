@@ -148,6 +148,21 @@ describe('createSubscribeToPushNotifications', () => {
     });
   });
 
+  it('displays notifications without an invalid data field', async () => {
+    const handler = await getForegroundHandler();
+    const payload = createRemoteMessage();
+
+    await handler(payload);
+
+    expect(mockDisplay).toHaveBeenCalledWith({
+      pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+      id: undefined,
+      title: 'You received ETH',
+      body: '0.05 ETH',
+    });
+    expect(mockDisplay.mock.calls[0][0]).not.toHaveProperty('data');
+  });
+
   it('does not display notifications without a title', async () => {
     const handler = await getForegroundHandler();
     const payload = {
