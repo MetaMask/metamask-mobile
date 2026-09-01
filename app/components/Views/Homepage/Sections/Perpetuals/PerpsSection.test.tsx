@@ -620,6 +620,30 @@ describe('PerpsSection', () => {
     ).toBeOnTheScreen();
   });
 
+  it('derives the aggregate unrealized P&L row from live positions, not the account snapshot', () => {
+    // Position aggregate: +$9.40 / +9.4%. Account snapshot deliberately differs on
+    // both halves so the assertion fails if the row reads the account again.
+    usePerpsLivePositions.mockReturnValue({
+      positions: [makePosition()],
+      isInitialLoading: false,
+    });
+    usePerpsLiveAccount.mockReturnValue({
+      account: {
+        unrealizedPnl: '95.39',
+        returnOnEquity: '42.0',
+      },
+      isInitialLoading: false,
+    });
+
+    renderWithProvider(
+      <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(
+      screen.getByTestId('homepage-perps-unrealized-pnl-value'),
+    ).toHaveTextContent('+$9.40 (+9.4%)');
+  });
+
   it('does not show unrealized P&L row when user has only open orders', () => {
     usePerpsLivePositions.mockReturnValue({
       positions: [],

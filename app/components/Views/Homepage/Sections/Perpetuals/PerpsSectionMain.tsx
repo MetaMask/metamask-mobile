@@ -35,6 +35,7 @@ import {
   formatPnl,
   formatPercentage,
 } from '../../../../UI/Perps/utils/formatUtils';
+import { calculatePositionAggregateTotals } from '../../../../UI/Perps/utils/pnlCalculations';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
@@ -128,10 +129,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
         useLivePnl: true,
       });
 
-    const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =
-      usePerpsLiveAccount({
-        throttleMs: HOMEPAGE_THROTTLE_MS,
-      });
+    const { isInitialLoading: perpsAccountLoading } = usePerpsLiveAccount({
+      throttleMs: HOMEPAGE_THROTTLE_MS,
+    });
 
     const { orders, isInitialLoading: ordersLoading } = usePerpsLiveOrders({
       hideTpSl: true,
@@ -251,18 +251,23 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
 
+    // Derived from the same live-enriched positions the rows below render, so the
+    // summary and the rows it summarises always move on the same signal. Reading
+    // the account snapshot instead would leave this row frozen between server
+    // pushes while the rows tick on every price update (see PerpsProPositionsPanel,
+    // which derives its summary from its visible positions for the same reason).
     const homepageUnrealizedPnl = useMemo(() => {
       if (!showHomepageUnrealizedPnl) {
         return null;
       }
-      const unrealizedPnl = perpsAccount?.unrealizedPnl ?? '0';
-      const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
-      const pnlNum = parseFloat(unrealizedPnl);
+      const totals = calculatePositionAggregateTotals(positions);
+      const roe = parseFloat(totals.returnOnEquity);
+      const pnlNum = parseFloat(totals.unrealizedPnl);
       const valueText = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const tone: HomepageUnrealizedPnlTone =
         pnlNum > 0 ? 'positive' : pnlNum < 0 ? 'negative' : 'neutral';
       return { valueText, tone };
-    }, [perpsAccount, showHomepageUnrealizedPnl]);
+    }, [positions, showHomepageUnrealizedPnl]);
 
     useImperativeHandle(
       ref,
