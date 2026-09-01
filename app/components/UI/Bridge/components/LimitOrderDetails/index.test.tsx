@@ -47,9 +47,9 @@ const setQuoteData = (overrides: Partial<QuoteContextValue> = {}) => {
 };
 
 function renderLimitOrderDetails(
-  bridgeReducerOverrides: Parameters<
-    typeof createBridgeTestState
-  >[0]['bridgeReducerOverrides'] = {},
+  bridgeReducerOverrides: NonNullable<
+    Parameters<typeof createBridgeTestState>[0]
+  >['bridgeReducerOverrides'] = {},
   props: Partial<LimitOrderDetailsProps> = {},
 ) {
   return renderWithProvider(
