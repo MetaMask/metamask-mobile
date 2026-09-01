@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { BigNumber } from 'ethers';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -8,6 +9,7 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BRIDGE_MM_FEE_RATE } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import { createBridgeTestState } from '../../testUtils';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
@@ -74,6 +76,10 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   };
 });
 
+jest.mock('../../hooks/useHasSufficientGas', () => ({
+  useHasSufficientGas: jest.fn(() => true),
+}));
+
 function buildState(
   bridgeReducerOverrides: Record<string, unknown> = {},
 ): DeepPartial<RootState> {
@@ -101,17 +107,35 @@ function buildState(
   });
 }
 
+const SUFFICIENT_SOURCE_BALANCE = {
+  displayBalance: '1000',
+  atomicBalance: BigNumber.from('1000000000000000000000'),
+};
+
+const INSUFFICIENT_SOURCE_BALANCE = {
+  displayBalance: '1',
+  atomicBalance: BigNumber.from('1000000000000000000'),
+};
+
 function renderSheet({
   isVisible = true,
   onClose = jest.fn(),
   state = buildState(),
+  latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
 }: {
   isVisible?: boolean;
   onClose?: () => void;
   state?: DeepPartial<RootState>;
+  latestSourceBalance?:
+    | { displayBalance: string; atomicBalance: BigNumber }
+    | undefined;
 } = {}) {
   return renderWithProvider(
-    <RecurringConfirmOrderSheet isVisible={isVisible} onClose={onClose} />,
+    <RecurringConfirmOrderSheet
+      isVisible={isVisible}
+      onClose={onClose}
+      latestSourceBalance={latestSourceBalance}
+    />,
     { state },
   );
 }
@@ -129,6 +153,7 @@ describe('RecurringConfirmOrderSheet', () => {
           networkFee: '$1.23',
         },
       }));
+    jest.mocked(useHasSufficientGas).mockReturnValue(true);
   });
 
   it('renders nothing when the sheet is hidden', () => {
@@ -527,5 +552,86 @@ describe('RecurringConfirmOrderSheet', () => {
     );
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Confirm and shows Insufficient funds when source balance is below the per-order amount', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+      onClose,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.insufficient_funds'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('shows Confirm when source balance covers the per-order amount', () => {
+    const { getByTestId } = renderSheet();
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.recurring.confirm'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it('closes from the header when Confirm is disabled for insufficient funds', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+      onClose,
+    });
+
+    fireEvent.press(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables Confirm and shows Insufficient gas when native gas is short', () => {
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: SUFFICIENT_SOURCE_BALANCE,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.insufficient_gas'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+  });
+
+  it('shows Insufficient funds when source balance and gas are both short', () => {
+    jest.mocked(useHasSufficientGas).mockReturnValue(false);
+
+    const { getByTestId } = renderSheet({
+      latestSourceBalance: INSUFFICIENT_SOURCE_BALANCE,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveTextContent(
+      strings('bridge.insufficient_funds'),
+    );
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
   });
 });
