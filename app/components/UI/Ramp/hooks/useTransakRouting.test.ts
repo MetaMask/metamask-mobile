@@ -649,7 +649,46 @@ describe('useTransakRouting', () => {
         'test-ott',
         mockQuote,
         MOCK_WALLET_ADDRESS,
-        { theme: 'light' },
+        { theme: 'light', isFeeExcludedFromFiat: 'true' },
+      );
+    });
+
+    it('excludes the fee from the widget fiat amount on the headless proxy path', async () => {
+      mockIsTransakWidgetUrlProxyEnabled = true;
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockCreateWidgetUrl.mockResolvedValue('https://proxy-widget.example.com');
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-fee-excluded' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
+        mockQuote,
+        MOCK_WALLET_ADDRESS,
+        { widgetTheme: 'light', isFeeExcludedFromFiat: 'true' },
       );
     });
 

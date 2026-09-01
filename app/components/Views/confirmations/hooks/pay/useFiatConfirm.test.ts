@@ -402,7 +402,7 @@ describe('useFiatConfirm', () => {
       );
     });
 
-    it('requests the full total as the buy amount', () => {
+    it('requests the full total for an aggregator widget quote', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue({
         total: { fiat: '100.00', usd: '100.00' },
         fees: {
@@ -420,7 +420,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', providerInfo: { type: 'aggregator' } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -432,6 +432,40 @@ describe('useFiatConfirm', () => {
 
       expect(startHeadlessBuyMock).toHaveBeenCalledWith(
         expect.objectContaining({ amount: 100 }),
+        expect.any(Object),
+      );
+    });
+
+    it('requests the typed amount for a native provider quote', () => {
+      jest.mocked(useTransactionPayTotals).mockReturnValue({
+        total: { fiat: '100.00', usd: '100.00' },
+        fees: {
+          metaMask: { fiat: '0', usd: '0' },
+          provider: { fiat: '0', usd: '0' },
+          providerFiat: { fiat: '15.00', usd: '15.00' },
+          sourceNetwork: {
+            estimate: { fiat: '0', usd: '0', raw: '0', human: '0' },
+            max: { fiat: '0', usd: '0', raw: '0', human: '0' },
+          },
+          targetNetwork: { fiat: '0', usd: '0' },
+        },
+      } as never);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: { id: 'quote-1', providerInfo: { type: 'native' } },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 50 }),
         expect.any(Object),
       );
     });

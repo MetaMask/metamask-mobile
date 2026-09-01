@@ -7,7 +7,10 @@ import {
   useHeadlessBuy,
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
-import type { Quote } from '../../../../UI/Ramp/types';
+import {
+  isNativeProvider,
+  type Quote,
+} from '../../../../UI/Ramp/types';
 import {
   RAMP_SURFACE,
   type RampSurface,
@@ -87,9 +90,11 @@ export function useFiatConfirm() {
 
     setIsHeadlessBuyInProgress(true);
 
-    // The on-ramp treats this amount as the total charge and takes its fee
-    // from it, so request the full total shown to the user.
-    const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0).toNumber();
+    // Native Transak quotes add fees on top of the requested amount. Widget
+    // providers continue to receive the full total shown to the user.
+    const totalAmountToBuy = isNativeProvider(rampsQuote)
+      ? amountFiat
+      : new BigNumber(totals?.total?.usd ?? 0).toNumber();
 
     // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type

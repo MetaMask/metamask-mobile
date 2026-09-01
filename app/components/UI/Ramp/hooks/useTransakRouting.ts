@@ -887,12 +887,21 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 });
               } else {
                 let paymentUrl: string;
+                const headlessWidgetParams = headlessSessionId
+                  ? { isFeeExcludedFromFiat: 'true' }
+                  : {};
 
                 if (isTransakWidgetUrlProxyEnabled) {
                   paymentUrl = await createWidgetUrl(
                     quote,
                     walletAddress || '',
-                    generateWidgetThemeParameters(themeAppearance, colors),
+                    {
+                      ...generateWidgetThemeParameters(
+                        themeAppearance,
+                        colors,
+                      ),
+                      ...headlessWidgetParams,
+                    },
                   );
                 } else {
                   const ottResponse = await requestOtt();
@@ -905,7 +914,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                     ottResponse.ott,
                     quote,
                     walletAddress || '',
-                    generateThemeParameters(themeAppearance, colors),
+                    {
+                      ...generateThemeParameters(themeAppearance, colors),
+                      ...headlessWidgetParams,
+                    },
                   );
                 }
 
