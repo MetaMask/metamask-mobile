@@ -273,7 +273,13 @@ jobs:
           echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack (result)
-        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        # Deliberately excludes a fix/Get token failure: "Notify Slack
+        # (failure)" below covers that case with its own dedicated alert,
+        # and this step's own audit-fix-result.json would otherwise still
+        # look like a normal (if unhelpful) "needs manual review" result —
+        # misleadingly implying the run finished, when it actually means the
+        # fix attempt and tracking issue never ran at all.
+        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' && steps.fix.outcome != 'failure' && steps.get-token.outcome != 'failure' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -287,14 +293,11 @@ jobs:
           SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
         run: node scripts/slack-audit-notification.mjs
 
-      # GitHub Actions skips every later step by default once one fails,
-      # unless that step's own `if:` opts back in with always() — which the
-      # "Notify Slack (result)" step above does, but its own condition still
-      # references steps.fix's outputs, which never got set if the job never
-      # reached that step. Net effect: a Get token (or AI-fix) failure used
-      # to leave the owner with only the "detected" message and no
-      # indication anything went wrong afterward. This step exists purely to
-      # close that gap with an explicit, unambiguous check.
+      # "Notify Slack (result)" above deliberately skips itself on a fix/Get
+      # token failure (see its own comment), so without this step the owner
+      # would be left with only the "detected" message and no indication
+      # anything went wrong afterward. This step exists purely to close that
+      # gap with its own explicit, unambiguous check.
       - name: Notify Slack (failure)
         if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' && (steps.fix.outcome == 'failure' || steps.get-token.outcome == 'failure') }}
         shell: bash
