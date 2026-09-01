@@ -381,6 +381,18 @@ interface HeaderNavBarVariantConfig {
   isHeaderSearchEnabled: boolean;
 }
 
+const HEADER_NAV_BAR_CONTROL_CONFIG: HeaderNavBarVariantConfig = {
+  isCompactHeaderEnabled: false,
+  trailingNavBarAction: 'none',
+  isHeaderSearchEnabled: false,
+};
+
+const HEADER_NAV_BAR_SEARCH_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
+  isCompactHeaderEnabled: true,
+  trailingNavBarAction: 'search',
+  isHeaderSearchEnabled: false,
+};
+
 const HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
   isCompactHeaderEnabled: true,
   trailingNavBarAction: 'trade',
@@ -388,44 +400,38 @@ const HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
 };
 
 /** Non-App-Store environments that opt into the override below. */
-const TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
+const HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
 
 /**
- * TEMPORARY — forces the trade-focused arm for internal team testing (TMCU-1276).
- * Remove this override and restore control's real config once testing wraps up.
+ * TEMPORARY — forces one treatment arm for internal team testing (TMCU-1276).
+ * Remove this override and give control its own config back once testing wraps up.
  *
  * LaunchDarkly still serves only `control`, so instead of re-cutting the flag we
- * point control at the trade-focused config in dev and TestFlight builds.
- * `production` is deliberately absent and the check is an allow-list, so an
- * App Store build — or any environment we failed to anticipate — gets the real
- * control experience.
+ * point control at a treatment config in dev and TestFlight builds. `production`
+ * is deliberately absent and the check is an allow-list, so an App Store build —
+ * or any environment we failed to anticipate — gets the real control experience.
  *
  * Note: the assignment stays unresolved, so `isActive` is `false` — no
  * `Experiment Viewed` and no `active_ab_tests` enrichment. These builds show the
  * UI but produce no experiment data.
  */
-const FORCE_TRADE_FOCUSED_FOR_TESTFLIGHT =
+const IS_HEADER_NAV_BAR_OVERRIDE_ENABLED =
   __DEV__ ||
-  TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS.includes(
+  HEADER_NAV_BAR_OVERRIDE_ENVIRONMENTS.includes(
     process.env.METAMASK_ENVIRONMENT ?? '',
   );
+
+/** The arm the override serves. Swap this one line to test a different arm. */
+const FORCED_HEADER_NAV_BAR_CONFIG = HEADER_NAV_BAR_SEARCH_FOCUSED_CONFIG;
 
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: FORCE_TRADE_FOCUSED_FOR_TESTFLIGHT
-    ? HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG
-    : {
-        isCompactHeaderEnabled: false,
-        trailingNavBarAction: 'none',
-        isHeaderSearchEnabled: false,
-      },
-  [HeaderNavBarVariant.SearchFocused]: {
-    isCompactHeaderEnabled: true,
-    trailingNavBarAction: 'search',
-    isHeaderSearchEnabled: false,
-  },
+  [HeaderNavBarVariant.Control]: IS_HEADER_NAV_BAR_OVERRIDE_ENABLED
+    ? FORCED_HEADER_NAV_BAR_CONFIG
+    : HEADER_NAV_BAR_CONTROL_CONFIG,
+  [HeaderNavBarVariant.SearchFocused]: HEADER_NAV_BAR_SEARCH_FOCUSED_CONFIG,
   [HeaderNavBarVariant.TradeFocused]: HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG,
 };
 
