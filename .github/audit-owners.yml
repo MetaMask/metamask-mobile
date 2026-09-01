@@ -21,7 +21,7 @@ owner:
   github: 'tommasini'
   # TODO: fill in the owner's Slack member ID so the escalation Slack
   # message actually notifies them (see comment above).
-  slack_id: 'U0XXXXXXXXX'
+  slack_id: 'U03770ZA84A'
 # Manager escalation is disabled for now — uncomment and fill in a
 # manager.slack_id to re-enable the second @-mention in the Slack message.
 # manager:

@@ -10,6 +10,7 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
 patches/                                                    @MetaMask/mobile-platform
 .github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
+.ai-pr-analyzer/modes/dependency-audit-fix/                  @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
 app/core/Analytics/MetaMetrics.types.ts                     @MetaMask/mobile-platform
 app/util/analytics/                                         @MetaMask/mobile-platform
