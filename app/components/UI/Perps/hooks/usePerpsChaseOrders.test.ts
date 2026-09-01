@@ -1865,6 +1865,128 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('keeps a newer suspension authoritative over deferred invalidation', async () => {
+    const suspendedOrder = {
+      ...activeOrder,
+      restingOrderId: null,
+      status: 'backgrounded' as const,
+    };
+    let resolveCancellationRefresh:
+      | ((orders: ChaseOrder[]) => void)
+      | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCancellationRefresh = resolve;
+          }),
+      );
+    mockSuspendChaseOrders.mockResolvedValueOnce([suspendedOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    const reconciliation = hook.result.current
+      .reconcileCanceledChaseOrder(activeOrder)
+      .catch((error) => error);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    let suspensionResult: ChaseOrder[] = [];
+    await act(async () => {
+      suspensionResult = await hook.result.current.suspendChaseOrders();
+    });
+    await act(async () => resolveCancellationRefresh?.([]));
+
+    expect(await reconciliation).toMatchObject({ code: 'stale_request' });
+    expect(suspensionResult).toEqual([suspendedOrder]);
+    expect(hook.result.current.chaseOrders).toEqual([suspendedOrder]);
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    hook.unmount();
+  });
+
+  it('refreshes a new route while old-route cancellation is pending', async () => {
+    const newRouteOrder = {
+      ...activeOrder,
+      handle: 'chase-new-route',
+    };
+    const refreshedNewRouteOrder = {
+      ...newRouteOrder,
+      restingPrice: '102',
+    };
+    let resolveOldRouteRefresh: ((orders: ChaseOrder[]) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOldRouteRefresh = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([newRouteOrder])
+      .mockResolvedValueOnce([refreshedNewRouteOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    const oldRouteReconciliation = hook.result.current
+      .reconcileCanceledChaseOrder(activeOrder)
+      .catch((error) => error);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+
+    mockSelectedAddress = '0xaccount-b';
+    hook.rerender({});
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([newRouteOrder]),
+    );
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+
+    await waitFor(() => {
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(4);
+      expect(hook.result.current.chaseOrders).toEqual([refreshedNewRouteOrder]);
+    });
+    await act(async () => resolveOldRouteRefresh?.([]));
+    expect(await oldRouteReconciliation).toMatchObject({
+      code: 'stale_request',
+    });
+    hook.unmount();
+  });
+
+  it('releases route-local invalidation after reconciliation fails', async () => {
+    let rejectCancellationRefresh: ((error: Error) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectCancellationRefresh = reject;
+          }),
+      )
+      .mockResolvedValue([activeOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    const reconciliation = hook.result.current
+      .reconcileCanceledChaseOrder(activeOrder)
+      .catch((error) => error);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    await act(async () =>
+      rejectCancellationRefresh?.(new Error('refresh failed')),
+    );
+    expect(await reconciliation).toEqual(new Error('refresh failed'));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(3));
+
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(4));
+    expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
+    hook.unmount();
+  });
+
   it('keeps controller terminal truth after cancellation reconciliation', async () => {
     const filledOrder = {
       ...activeOrder,

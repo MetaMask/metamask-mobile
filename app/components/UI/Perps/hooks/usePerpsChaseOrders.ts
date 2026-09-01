@@ -75,8 +75,8 @@ let refreshPromise:
   | undefined;
 let mutationQueue: Promise<void> = Promise.resolve();
 let mutationQueueEpoch = 0;
-let cancellationReconciliationCount = 0;
-let deferredCancellationRefreshRoute: string | undefined;
+const cancellationReconciliationCounts = new Map<string, number>();
+const deferredCancellationRefreshEpochs = new Map<string, number>();
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 let invalidationUnsubscribe: (() => void) | undefined;
 let storeReconciliationUnsubscribe: (() => void) | undefined;
@@ -287,8 +287,9 @@ function syncRefreshLifecycle() {
   invalidationUnsubscribe ??= PerpsCacheInvalidator.subscribe(
     'accountState',
     () => {
-      if (cancellationReconciliationCount > 0) {
-        deferredCancellationRefreshRoute = getRouteKey();
+      const route = getRouteKey();
+      if ((cancellationReconciliationCounts.get(route) ?? 0) > 0) {
+        deferredCancellationRefreshEpochs.set(route, mutationQueueEpoch);
         return;
       }
       requestGeneration += 1;
@@ -523,8 +524,8 @@ function resetChaseOrdersStore() {
   refreshPromise = undefined;
   mutationQueue = Promise.resolve();
   mutationQueueEpoch += 1;
-  cancellationReconciliationCount = 0;
-  deferredCancellationRefreshRoute = undefined;
+  cancellationReconciliationCounts.clear();
+  deferredCancellationRefreshEpochs.clear();
   cachedRoute = '';
   cachedOrders = [];
   selectedRoute = '';
@@ -754,8 +755,13 @@ const getFreshChaseOrders = async ({
   }
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
-  const isCancellationReconciliation = canceledOrder !== undefined;
-  if (isCancellationReconciliation) cancellationReconciliationCount += 1;
+  const cancellationRoute = canceledOrder ? expectedRoute : undefined;
+  if (cancellationRoute) {
+    cancellationReconciliationCounts.set(
+      cancellationRoute,
+      (cancellationReconciliationCounts.get(cancellationRoute) ?? 0) + 1,
+    );
+  }
   const operation = mutationQueue.then(async () => {
     if (
       epoch !== mutationQueueEpoch ||
@@ -772,18 +778,36 @@ const getFreshChaseOrders = async ({
   try {
     await operation;
   } finally {
-    if (isCancellationReconciliation) {
-      cancellationReconciliationCount = Math.max(
+    if (cancellationRoute) {
+      const remainingReconciliations = Math.max(
         0,
-        cancellationReconciliationCount - 1,
+        (cancellationReconciliationCounts.get(cancellationRoute) ?? 0) - 1,
       );
-      const deferredRoute = deferredCancellationRefreshRoute;
-      if (cancellationReconciliationCount === 0 && deferredRoute) {
-        deferredCancellationRefreshRoute = undefined;
-        if (deferredRoute === getRouteKey() && canRefreshCurrentRoute()) {
-          requestGeneration += 1;
-          refreshPromise = undefined;
-          refreshChaseOrders().catch(() => undefined);
+      if (remainingReconciliations > 0) {
+        cancellationReconciliationCounts.set(
+          cancellationRoute,
+          remainingReconciliations,
+        );
+      } else {
+        cancellationReconciliationCounts.delete(cancellationRoute);
+        const deferredEpoch =
+          deferredCancellationRefreshEpochs.get(cancellationRoute);
+        deferredCancellationRefreshEpochs.delete(cancellationRoute);
+        if (deferredEpoch !== undefined) {
+          const previousMutationQueue = mutationQueue;
+          const deferredRefresh = previousMutationQueue.then(async () => {
+            if (
+              deferredEpoch !== mutationQueueEpoch ||
+              cancellationRoute !== getRouteKey() ||
+              !canRefreshCurrentRoute()
+            ) {
+              return;
+            }
+            requestGeneration += 1;
+            refreshPromise = undefined;
+            await refreshChaseOrders();
+          });
+          mutationQueue = deferredRefresh.catch(() => undefined);
         }
       }
     }
