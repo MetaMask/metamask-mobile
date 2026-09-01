@@ -896,10 +896,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                     quote,
                     walletAddress || '',
                     {
-                      ...generateWidgetThemeParameters(
-                        themeAppearance,
-                        colors,
-                      ),
+                      ...generateWidgetThemeParameters(themeAppearance, colors),
                       ...headlessWidgetParams,
                     },
                   );

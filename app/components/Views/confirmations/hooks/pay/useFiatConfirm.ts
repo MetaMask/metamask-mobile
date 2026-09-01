@@ -7,10 +7,7 @@ import {
   useHeadlessBuy,
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
-import {
-  isNativeProvider,
-  type Quote,
-} from '../../../../UI/Ramp/types';
+import { isNativeProvider, type Quote } from '../../../../UI/Ramp/types';
 import {
   RAMP_SURFACE,
   type RampSurface,
