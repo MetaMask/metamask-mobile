@@ -136,11 +136,125 @@ class SolanaTestDApp {
     await this.click(SolanaTestDappSelectorsWebIDs.WALLET_BUTTON);
   }
 
-  async connect(): Promise<void> {
+  /**
+   * Detect whether MetaMask's Solana wallet-standard provider has registered
+   * in the page via the app-ready / register-wallet handshake.
+   */
+  private async isSolanaWalletRegistered(): Promise<boolean> {
+    const count = await this.evaluate<number>(
+      `(() => {
+        let n = 0;
+        const handler = (event) => {
+          try {
+            event.detail.callback({ register() { n += 1; } });
+          } catch (_) {}
+        };
+        window.addEventListener('wallet-standard:register-wallet', handler);
+        try {
+          window.dispatchEvent(new Event('wallet-standard:app-ready'));
+        } catch (_) {}
+        window.removeEventListener('wallet-standard:register-wallet', handler);
+        return n;
+      })()`,
+    );
+    return (count ?? 0) > 0;
+  }
+
+  /**
+   * Poll until the Solana wallet-standard provider registers, or the timeout
+   * elapses. Returns whether registration was observed (does not throw — the
+   * Connect recovery loop still retries after reload).
+   */
+  private async waitForSolanaWalletRegistered(
+    timeoutMs = 10_000,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (await this.isSolanaWalletRegistered()) {
+        return true;
+      }
+      await wait(POLL_MS);
+    }
+    return false;
+  }
+
+  /**
+   * Reload the Solana test dapp and wait for the header. Does not require
+   * Connected — used between connect recovery attempts.
+   */
+  private async reloadDapp(): Promise<void> {
+    await this.evaluate('(() => { location.reload(); return true; })()');
+    ChromeCdpHelpers.resetMetaMaskWebViewCache();
+    await this.waitForDappLoaded();
+  }
+
+  /**
+   * Single connect attempt: open wallet adapter, pick MetaMask, approve the
+   * native permission sheet.
+   */
+  private async attemptConnect(): Promise<void> {
     await this.clickConnectButton();
     await this.selectMetaMaskWallet();
     await DappConnectionModal.tapConnectButton({ timeout: 15_000 });
-    await this.verifyConnectionStatus('Connected', CONNECT_TIMEOUT_MS);
+  }
+
+  /**
+   * Poll for Connected without throwing — used by the connect recovery loop.
+   */
+  private async isConnectionStatus(
+    expected: string,
+    timeoutMs: number,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      const actual = await this.evaluate<string>(
+        `document.querySelector(${JSON.stringify(
+          sel(header.connectionStatus),
+        )})?.textContent?.trim() || null`,
+      ).catch(() => null);
+      if (actual === expected) {
+        return true;
+      }
+      await wait(POLL_MS);
+    }
+    return false;
+  }
+
+  /**
+   * Connect to MetaMask via the Solana wallet adapter.
+   *
+   * On iOS CI the wallet-standard provider can register after the adapter
+   * modal is opened (or the first approve can leave status stuck on
+   * "Not connected"). Wait for provider registration, then retry with a dapp
+   * reload when Connected is not observed — same recovery shape as BitcoinTestDapp.
+   */
+  async connect(): Promise<void> {
+    const maxAttempts = 3;
+    let lastStatus: string | null = null;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      if (attempt > 1) {
+        await this.reloadDapp();
+      }
+
+      await this.waitForSolanaWalletRegistered(attempt === 1 ? 15_000 : 8_000);
+      await this.attemptConnect();
+
+      const waitMs = attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 15_000;
+      if (await this.isConnectionStatus('Connected', waitMs)) {
+        return;
+      }
+
+      lastStatus = await this.evaluate<string>(
+        `document.querySelector(${JSON.stringify(
+          sel(header.connectionStatus),
+        )})?.textContent?.trim() || null`,
+      ).catch(() => null);
+    }
+
+    throw new Error(
+      `Timed out: expected "Connected", got "${lastStatus}" after ${maxAttempts} provider-ready connect attempt(s)`,
+    );
   }
 
   async disconnect(): Promise<void> {
@@ -171,6 +285,7 @@ class SolanaTestDApp {
   }
 
   async connectWithAllAccounts(): Promise<void> {
+    await this.waitForSolanaWalletRegistered(15_000);
     await this.clickConnectButton();
     await this.selectMetaMaskWallet();
     // DappConnectionModal.editAccountsButton handles platform differences:
@@ -241,10 +356,7 @@ class SolanaTestDApp {
   }
 
   async reload(): Promise<void> {
-    // IIFE: iOS evaluateInWebView wraps as `return (${expression})`.
-    await this.evaluate('(() => { location.reload(); return true; })()');
-    ChromeCdpHelpers.resetMetaMaskWebViewCache();
-    await this.waitForDappLoaded();
+    await this.reloadDapp();
     await this.pollForText(sel(header.connectionStatus), 'Connected');
   }
 }
