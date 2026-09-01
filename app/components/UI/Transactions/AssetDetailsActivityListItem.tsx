@@ -42,6 +42,7 @@ interface AssetDetailsActivityListItemProps {
   assetSymbol?: string;
   chainId?: Hex;
   tokenChainId?: Hex;
+  contextAssetId?: string;
   navigation: AppNavigationProp;
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
   onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
@@ -66,6 +67,7 @@ export const AssetDetailsActivityListItem = ({
   networkConfigurations = EMPTY_NETWORK_CONFIGURATIONS,
   allTokens = EMPTY_ASSET_TOKENS,
   bridgeHistory = EMPTY_BRIDGE_HISTORY,
+  contextAssetId,
 }: AssetDetailsActivityListItemProps) => {
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
   const { actionId } = tx;
@@ -123,7 +125,9 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
-      const detailsRoute = getActivityDetailsRoute(item);
+      const detailsRoute = getActivityDetailsRoute(item, {
+        contextAssetId,
+      });
       if (detailsRoute) {
         navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         return;
@@ -136,7 +140,8 @@ export const AssetDetailsActivityListItem = ({
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.TRANSACTION_DETAILS,
         params: getTransactionDetailsParams({
-          item,
+          contextAssetId,
+      item,
           selectedTx: tx,
           actionKey,
           value,
@@ -185,6 +190,7 @@ export const AssetDetailsActivityListItem = ({
       {shouldShowImportTimeBeforeRow && importTimeRow}
       <ActivityListItemRow
         bridgeHistoryItem={bridgeHistoryItem}
+        contextAssetId={contextAssetId}
         item={activityItem}
         index={index}
         onPress={handlePress}

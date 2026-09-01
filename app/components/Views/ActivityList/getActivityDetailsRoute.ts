@@ -22,6 +22,7 @@ function getLocalTransactionMetaId(item: ActivityListItem): string | undefined {
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,
+  options?: { contextAssetId?: string },
 ): ActivityDetailsParams | null {
   const localMetaId = getLocalTransactionMetaId(item);
   const txIdentifier = localMetaId ?? item.hash;
@@ -42,5 +43,8 @@ export function getActivityDetailsRoute(
     chainId: item.chainId,
     txIdentifier,
     ...(preloadKey ? { preloadKey } : {}),
+    ...(options?.contextAssetId
+      ? { contextAssetId: options.contextAssetId }
+      : {}),
   };
 }

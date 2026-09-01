@@ -31,6 +31,8 @@ export interface ActivityListItemRowProps
    */
   title?: string;
   bridgeHistoryItem?: BridgeHistoryItem;
+  /** When set (token detail pages), bridge rows use source/dest perspective. */
+  contextAssetId?: string;
 }
 
 export interface ActivityListItemRowContent {

@@ -48,7 +48,7 @@ const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const isFocused = useIsFocused();
-  const { chainId, txIdentifier, preloadKey } =
+  const { chainId, txIdentifier, preloadKey, contextAssetId } =
     useParams<ActivityDetailsParams>();
   // Provider-backed rows (Perps / Predict) are handed off via a transient store
   // keyed by `preloadKey` (params stay serializable). Capture the row once per
@@ -74,7 +74,11 @@ const ActivityDetails = () => {
     item?.hash,
   );
   const title = item
-    ? resolveActivityListItemTitle(item, bridgeHistoryItem)
+    ? resolveActivityListItemTitle(
+        item,
+        bridgeHistoryItem,
+        contextAssetId,
+      )
     : strings('activity_details.not_found');
 
   // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the

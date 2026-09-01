@@ -1,5 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
+import { assetIdsMatch } from '@metamask/bridge-controller';
 import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
@@ -216,13 +217,57 @@ function shortAddress(address?: string): string | undefined {
 function bridgeAmountTokens(
   sourceToken?: TokenAmount,
   destinationToken?: TokenAmount,
+  perspective?: 'source' | 'destination',
 ): { primaryToken?: TokenAmount; secondaryToken?: TokenAmount } {
+  if (perspective === 'source') {
+    return {
+      primaryToken: sourceToken ?? destinationToken,
+      secondaryToken: destinationToken,
+    };
+  }
+
+  if (perspective === 'destination') {
+    return {
+      primaryToken: destinationToken ?? sourceToken,
+      secondaryToken: sourceToken,
+    };
+  }
+
   const primaryToken = destinationToken?.amount
     ? destinationToken
     : sourceToken;
   const secondaryToken =
     primaryToken === destinationToken ? sourceToken : destinationToken;
   return { primaryToken, secondaryToken };
+}
+
+function resolveBridgeRowPerspective(
+  contextAssetId: string | undefined,
+  sourceToken?: TokenAmount,
+  destinationToken?: TokenAmount,
+): 'source' | 'destination' | undefined {
+  if (!contextAssetId) {
+    return undefined;
+  }
+
+  const matchesSource = Boolean(
+    sourceToken?.assetId &&
+      assetIdsMatch(contextAssetId, sourceToken.assetId),
+  );
+  const matchesDestination = Boolean(
+    destinationToken?.assetId &&
+      assetIdsMatch(contextAssetId, destinationToken.assetId),
+  );
+
+  if (matchesDestination && !matchesSource) {
+    return 'destination';
+  }
+
+  if (matchesSource && !matchesDestination) {
+    return 'source';
+  }
+
+  return undefined;
 }
 
 function formatProtocolName(protocol: string): string {
@@ -506,6 +551,7 @@ function resolveCoreContent(
   formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
+  contextAssetId?: string,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -618,33 +664,55 @@ function resolveCoreContent(
       const destinationSymbol = destinationToken?.symbol;
       const isSourceOnlyApiBridge =
         !bridgeHistoryItem && sourceToken && !destinationToken;
+      const perspective = resolveBridgeRowPerspective(
+        contextAssetId,
+        sourceToken,
+        destinationToken,
+      );
       const subtitle =
         bridgeRouteSubtitle(bridgeHistoryItem) ??
         tokenPairSubtitle(sourceToken, destinationToken);
+      const bridgedLabel = strings('transactions.activity_bridged');
+      const bridgingLabel = strings('transactions.activity_bridging');
+      const receivedLabel = strings('transactions.received');
+      const receivingLabel = 'Receiving';
+
+      const successTitle =
+        perspective === 'destination'
+          ? withOptionalSymbol(receivedLabel, destinationSymbol)
+          : perspective === 'source'
+            ? withOptionalSymbol(bridgedLabel, sourceSymbol)
+            : isSourceOnlyApiBridge
+              ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
+              : withOptionalSymbol(
+                  bridgedLabel,
+                  destinationSymbol ?? sourceSymbol,
+                );
+      const pendingTitle =
+        perspective === 'destination'
+          ? withOptionalSymbol(receivingLabel, destinationSymbol)
+          : perspective === 'source'
+            ? withOptionalSymbol(bridgingLabel, sourceSymbol)
+            : isSourceOnlyApiBridge
+              ? withOptionalSymbol(
+                  strings('transactions.activity_sending'),
+                  sourceSymbol,
+                )
+              : withOptionalSymbol(
+                  bridgingLabel,
+                  destinationSymbol ?? sourceSymbol,
+                );
 
       return {
         title: statusTitle(item, {
-          success: isSourceOnlyApiBridge
-            ? withOptionalSymbol(strings('transactions.sent'), sourceSymbol)
-            : withOptionalSymbol(
-                strings('transactions.activity_bridged'),
-                destinationSymbol ?? sourceSymbol,
-              ),
-          pending: isSourceOnlyApiBridge
-            ? withOptionalSymbol(
-                strings('transactions.activity_sending'),
-                sourceSymbol,
-              )
-            : withOptionalSymbol(
-                strings('transactions.activity_bridging'),
-                destinationSymbol ?? sourceSymbol,
-              ),
+          success: successTitle,
+          pending: pendingTitle,
           failed: isSourceOnlyApiBridge
             ? strings('transactions.activity_send_failed')
             : strings('transactions.activity_bridge_failed'),
         }),
         subtitle,
-        ...bridgeAmountTokens(sourceToken, destinationToken),
+        ...bridgeAmountTokens(sourceToken, destinationToken, perspective),
       };
     }
     case 'buy':
@@ -885,8 +953,15 @@ function resolveCoreContent(
 export function resolveActivityListItemTitle(
   item: ActivityListItem,
   bridgeHistoryItem?: BridgeHistoryItem,
+  contextAssetId?: string,
 ): string {
-  return resolveCoreContent(item, getFormatters(), bridgeHistoryItem).title;
+  return resolveCoreContent(
+    item,
+    getFormatters(),
+    bridgeHistoryItem,
+    undefined,
+    contextAssetId,
+  ).title;
 }
 
 function resolveAmount(
@@ -1064,6 +1139,7 @@ export function useActivityListItemRowContent(
   item: ActivityListItem,
   chainId?: string,
   bridgeHistoryItem?: BridgeHistoryItem,
+  contextAssetId?: string,
 ): ActivityListItemRowContent {
   const networkChainId = chainId ?? item.chainId;
   const hexChainId = getHexChainId(networkChainId);
@@ -1144,6 +1220,7 @@ export function useActivityListItemRowContent(
     formatters,
     bridgeHistoryItem,
     counterpartyName,
+    contextAssetId,
   );
 
   let basePrimaryToken: TokenAmount | undefined;

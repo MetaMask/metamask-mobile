@@ -592,6 +592,7 @@ const TokenDetails: React.FC<{
           selectedAddress={selectedAddress}
           chainId={token.chainId as SupportedCaipChainId}
           bridgeArrivalTransactions={bridgeArrivalTxs}
+          pageAssetId={token.address}
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
@@ -600,6 +601,7 @@ const TokenDetails: React.FC<{
         <Transactions
           header={renderHeader()}
           assetSymbol={token.symbol}
+          pageAssetId={token.address}
           navigation={navigation}
           transactions={transactions}
           submittedTransactions={submittedTxs}

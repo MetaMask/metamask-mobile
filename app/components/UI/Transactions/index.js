@@ -189,6 +189,7 @@ const Transactions = (props) => {
     networkConfigurationsByChainId,
     allTokens,
     bridgeHistory,
+    pageAssetId,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
@@ -731,6 +732,7 @@ const Transactions = (props) => {
         networkConfigurations={networkConfigurationsByChainId}
         allTokens={allTokens}
         bridgeHistory={bridgeHistory}
+        contextAssetId={pageAssetId}
       />
     ) : null;
   };
@@ -927,6 +929,7 @@ Transactions.propTypes = {
    * Chain ID of the token
    */
   tokenChainId: PropTypes.string,
+  pageAssetId: PropTypes.string,
   /**
    * (optional) Skip automatic scrolling when a transaction is clicked/expanded.
    * Useful in views like Asset Details scrolling inside modals will cause issues (such as closing the stacked tx modal)

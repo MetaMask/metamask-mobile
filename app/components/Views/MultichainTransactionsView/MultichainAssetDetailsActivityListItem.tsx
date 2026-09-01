@@ -26,6 +26,7 @@ interface MultichainAssetDetailsActivityListItemProps {
   transaction?: Transaction;
   chainId: SupportedCaipChainId;
   bridgeHistoryItem?: BridgeHistoryItem;
+  contextAssetId?: string;
   navigation: AppNavigationProp;
   index: number;
   location?: TransactionDetailLocation;
@@ -36,6 +37,7 @@ export const MultichainAssetDetailsActivityListItem = ({
   transaction,
   chainId,
   bridgeHistoryItem,
+  contextAssetId,
   navigation,
   index,
   location,
@@ -59,7 +61,9 @@ export const MultichainAssetDetailsActivityListItem = ({
       );
     }
 
-    const detailsRoute = getActivityDetailsRoute(item);
+    const detailsRoute = getActivityDetailsRoute(item, {
+      contextAssetId,
+    });
     if (detailsRoute) {
       navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
       return;
@@ -83,6 +87,7 @@ export const MultichainAssetDetailsActivityListItem = ({
       params: { displayData, transaction },
     });
   }, [
+    contextAssetId,
     item,
     bridgeHistoryItem,
     chainId,
@@ -98,6 +103,7 @@ export const MultichainAssetDetailsActivityListItem = ({
     <Box twClassName="px-4">
       <ActivityListItemRow
         bridgeHistoryItem={bridgeHistoryItem}
+        contextAssetId={contextAssetId}
         item={item}
         index={index}
         onPress={handlePress}

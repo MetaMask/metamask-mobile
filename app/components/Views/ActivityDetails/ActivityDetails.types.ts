@@ -22,6 +22,11 @@ export interface ActivityDetailsParams {
    * row object itself is held out-of-band in the store.
    */
   preloadKey?: string;
+  /**
+   * Optional page asset id when navigating from a token detail screen so bridge
+   * rows use source/destination perspective in details as well as the list.
+   */
+  contextAssetId?: string;
 }
 
 /** Props shared by every per-type details template. */

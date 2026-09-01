@@ -25,6 +25,7 @@ import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
 export function PendingActivityListItemRow({
   bridgeHistoryItem,
+  contextAssetId,
   item,
   index,
   onPress,
@@ -35,6 +36,7 @@ export function PendingActivityListItemRow({
     item,
     undefined,
     bridgeHistoryItem,
+    contextAssetId,
   );
   const styles = createStyles(colors, typography);
   const fallbackIconName = resolveTransactionIconName(item.type);

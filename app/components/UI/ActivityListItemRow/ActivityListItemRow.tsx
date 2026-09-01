@@ -55,6 +55,7 @@ function resolveTitleSeverity(
 
 function ResolvedActivityListItemRow({
   bridgeHistoryItem,
+  contextAssetId,
   item,
   index,
   onPress,
@@ -65,6 +66,7 @@ function ResolvedActivityListItemRow({
     item,
     undefined,
     bridgeHistoryItem,
+    contextAssetId,
   );
 
   const nftImageUrl = useNftActivityImage(item);

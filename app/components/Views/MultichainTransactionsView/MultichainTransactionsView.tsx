@@ -102,6 +102,8 @@ interface MultichainTransactionsViewProps {
    * EVM bridge transactions
    */
   bridgeArrivalTransactions?: TransactionMeta[];
+  /** CAIP asset id of the token detail page for bridge row perspective. */
+  pageAssetId?: string;
 }
 
 const getMultichainTransactionItemType = (
@@ -142,6 +144,7 @@ const MultichainTransactionsView = ({
   onScroll,
   location,
   bridgeArrivalTransactions,
+  pageAssetId,
 }: MultichainTransactionsViewProps) => {
   const { colors } = useTheme();
   const style = styles();
@@ -400,6 +403,7 @@ const MultichainTransactionsView = ({
       return (
         <Box twClassName="px-4">
           <ActivityListItemRow
+            contextAssetId={pageAssetId}
             item={item.item}
             index={index}
             onPress={handleBridgeArrivalPress}
@@ -419,6 +423,7 @@ const MultichainTransactionsView = ({
               bridgeHistoryItemsByDestTxHash[srcTxHash])
             : undefined
         }
+        contextAssetId={pageAssetId}
         navigation={nav}
         index={index}
         chainId={chainId}
