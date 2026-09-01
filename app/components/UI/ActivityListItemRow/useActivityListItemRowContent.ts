@@ -507,6 +507,7 @@ function resolveCoreContent(
   formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
+  isMoneyAccountCounterparty = false,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -517,10 +518,22 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol ?? '';
       const address = item.type === 'receive' ? item.data.from : item.data.to;
-      const label = item.type === 'receive' ? 'Received' : 'Sent';
-      const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
-      const failedLabel =
-        item.type === 'receive' ? 'Receive failed' : 'Send failed';
+      const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
+      const label = isMoneyDeposit
+        ? strings('money.transaction.deposited')
+        : item.type === 'receive'
+          ? 'Received'
+          : 'Sent';
+      const pendingLabel = isMoneyDeposit
+        ? strings('money.transaction.depositing')
+        : item.type === 'receive'
+          ? 'Receiving'
+          : 'Sending';
+      const failedLabel = isMoneyDeposit
+        ? strings('money.transaction.deposit_failed')
+        : item.type === 'receive'
+          ? 'Receive failed'
+          : 'Send failed';
       const cancelledLabel =
         item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
@@ -1140,18 +1153,21 @@ export function useActivityListItemRowContent(
       : [],
   )[0];
   const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
-  const counterpartyName =
+  const isMoneyAccountCounterparty = Boolean(
     counterpartyAddress &&
-    moneyAccountAddress &&
-    areAddressesEqual(counterpartyAddress, moneyAccountAddress)
-      ? strings('transaction_details.label.money_account')
-      : accountGroupName;
+      moneyAccountAddress &&
+      areAddressesEqual(counterpartyAddress, moneyAccountAddress),
+  );
+  const counterpartyName = isMoneyAccountCounterparty
+    ? strings('transaction_details.label.money_account')
+    : accountGroupName;
 
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
+    isMoneyAccountCounterparty,
   );
 
   let basePrimaryToken: TokenAmount | undefined;

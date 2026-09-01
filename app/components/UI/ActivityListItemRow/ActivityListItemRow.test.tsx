@@ -686,7 +686,7 @@ describe('ActivityListItemRow — row content', () => {
     );
   });
 
-  it('renders a Money Account deposit as a sent transfer with Money account counterparty', () => {
+  it('renders an EOA transfer to Money as a deposit with Money account counterparty', () => {
     const item = makeItem({
       type: 'send',
       from: OWNED_ACCOUNT_ADDRESS,
@@ -703,7 +703,7 @@ describe('ActivityListItemRow — row content', () => {
     );
 
     expect(getByTestId('activity-title-0xabc').props.children).toBe(
-      'Sent mUSD',
+      'Deposited mUSD',
     );
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       `To: ${strings('transaction_details.label.money_account')}`,
