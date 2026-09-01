@@ -1,6 +1,9 @@
 import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useBridgeHistoryItemBySrcTxHash } from '.';
+import {
+  findBridgeHistoryItemByTxHash,
+  useBridgeHistoryItemBySrcTxHash,
+} from '.';
 import { cloneDeep } from 'lodash';
 
 describe('useBridgeHistoryItemBySrcTxHash', () => {
@@ -32,5 +35,22 @@ describe('useBridgeHistoryItemBySrcTxHash', () => {
         'test-tx-id'
       ],
     );
+  });
+
+  it('resolves bridge history by destination transaction hash', () => {
+    const { result } = renderHookWithProvider(
+      () => useBridgeHistoryItemBySrcTxHash(),
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      findBridgeHistoryItemByTxHash(
+        result.current.bridgeHistoryItemsBySrcTxHash,
+        result.current.bridgeHistoryItemsByDestTxHash,
+        '0x456',
+      )?.txMetaId,
+    ).toBe('test-tx-id');
   });
 });

@@ -15,6 +15,7 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
 /* eslint-enable import-x/no-restricted-paths */
 import {
   findBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemByTxHash,
   useBridgeHistoryItemBySrcTxHash,
 } from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 
@@ -162,7 +163,8 @@ export function useActivityDetailsItem(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
   const accounts = useSelector(selectSelectedAccountGroupInternalAccounts);
-  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+  const { bridgeHistoryItemsBySrcTxHash, bridgeHistoryItemsByDestTxHash } =
+    useBridgeHistoryItemBySrcTxHash();
 
   const confirmedEvmItems = useMemo<ActivityListItem[]>(
     () => evmTransactions?.pages.flatMap((page) => page.data) ?? [],
@@ -174,12 +176,16 @@ export function useActivityDetailsItem(
       mapNonEvmTransactions(
         nonEvmState?.transactions ?? [],
         (txId) =>
-          findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, txId),
+          findBridgeHistoryItemByTxHash(
+            bridgeHistoryItemsBySrcTxHash,
+            bridgeHistoryItemsByDestTxHash,
+            txId,
+          ),
         (transaction) =>
           accounts.find((account) => account.id === transaction.account)
             ?.address,
       ),
-    [nonEvmState?.transactions, bridgeHistoryItemsBySrcTxHash, accounts],
+    [nonEvmState?.transactions, bridgeHistoryItemsByDestTxHash, bridgeHistoryItemsBySrcTxHash, accounts],
   );
 
   const chainedLocalItems = useMemo(

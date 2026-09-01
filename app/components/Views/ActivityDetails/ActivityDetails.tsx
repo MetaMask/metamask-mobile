@@ -18,7 +18,7 @@ import { selectTransactionMetadataById } from '../../../selectors/transactionCon
 // eslint-disable-next-line import-x/no-restricted-paths
 import {
   useBridgeHistoryItemBySrcTxHash,
-  findBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemByTxHash,
 } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
@@ -68,9 +68,11 @@ const ActivityDetails = () => {
   const preloadedItem = preloadedRef.current.item;
 
   const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
-  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
-  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
+  const { bridgeHistoryItemsBySrcTxHash, bridgeHistoryItemsByDestTxHash } =
+    useBridgeHistoryItemBySrcTxHash();
+  const bridgeHistoryItem = findBridgeHistoryItemByTxHash(
     bridgeHistoryItemsBySrcTxHash,
+    bridgeHistoryItemsByDestTxHash,
     item?.hash,
   );
   const title = item

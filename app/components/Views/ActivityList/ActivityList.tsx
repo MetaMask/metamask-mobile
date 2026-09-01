@@ -63,6 +63,7 @@ import PriceChartContext, {
 import {
   useBridgeHistoryItemBySrcTxHash,
   findBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemByTxHash,
 } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import {
   handleUnifiedSwapsTxHistoryItemClick,
@@ -217,12 +218,17 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const { colors } = useTheme();
     const tw = useTailwind();
     const { styles } = useStyles(styleSheet, {});
-    const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
+    const { bridgeHistoryItemsBySrcTxHash, bridgeHistoryItemsByDestTxHash } =
+      useBridgeHistoryItemBySrcTxHash();
 
     const getBridgeHistoryItemByHash = useCallback(
       (hash?: string) =>
-        findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, hash),
-      [bridgeHistoryItemsBySrcTxHash],
+        findBridgeHistoryItemByTxHash(
+          bridgeHistoryItemsBySrcTxHash,
+          bridgeHistoryItemsByDestTxHash,
+          hash,
+        ),
+      [bridgeHistoryItemsByDestTxHash, bridgeHistoryItemsBySrcTxHash],
     );
 
     const {

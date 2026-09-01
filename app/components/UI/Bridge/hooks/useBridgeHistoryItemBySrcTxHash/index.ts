@@ -24,6 +24,18 @@ export const findBridgeHistoryItemBySrcTxHash = (
 };
 
 /**
+ * Resolves bridge history by source or destination on-chain tx hash.
+ * Mirrors MultichainTransactionsView and extension selectBridgeHistoryItemForTxHash.
+ */
+export const findBridgeHistoryItemByTxHash = (
+  bridgeHistoryItemsBySrcTxHash: Record<string, BridgeHistoryItem>,
+  bridgeHistoryItemsByDestTxHash: Record<string, BridgeHistoryItem>,
+  hash?: string,
+): BridgeHistoryItem | undefined =>
+  findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsBySrcTxHash, hash) ??
+  findBridgeHistoryItemBySrcTxHash(bridgeHistoryItemsByDestTxHash, hash);
+
+/**
  * This hook is used to get the bridge history item by source transaction hash.
  * It is used to get the bridge history item for the non EVM transactions.
  *

@@ -16,7 +16,7 @@ import { useNftActivityImage } from '../../../UI/ActivityListItemRow/useNftActiv
 // eslint-disable-next-line import-x/no-restricted-paths
 import {
   useBridgeHistoryItemBySrcTxHash,
-  findBridgeHistoryItemBySrcTxHash,
+  findBridgeHistoryItemByTxHash,
 } from '../../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from './ActivityDetailsAvatar';
@@ -32,9 +32,11 @@ export function ActivityDetailsAmountHeader({
 }: {
   item: ActivityListItem;
 }) {
-  const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
-  const bridgeHistoryItem = findBridgeHistoryItemBySrcTxHash(
+  const { bridgeHistoryItemsBySrcTxHash, bridgeHistoryItemsByDestTxHash } =
+    useBridgeHistoryItemBySrcTxHash();
+  const bridgeHistoryItem = findBridgeHistoryItemByTxHash(
     bridgeHistoryItemsBySrcTxHash,
+    bridgeHistoryItemsByDestTxHash,
     item.hash,
   );
   const content = useActivityListItemRowContent(
