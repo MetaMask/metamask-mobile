@@ -5699,7 +5699,7 @@
     "status_submitting_description": "Estimated completion {{timeLeft}}",
     "status_success_header": "Your transaction is complete",
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
-    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
+    "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged a network fee.",
     "status_cancelled_header": "Your transaction was canceled",
     "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
     "status_failed_header": "Your transaction failed",
