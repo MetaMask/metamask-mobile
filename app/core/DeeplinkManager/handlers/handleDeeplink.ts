@@ -14,6 +14,7 @@ import {
 } from '../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../Performance/DeeplinkPerformance';
+import Engine from '../../Engine';
 
 /**
  * Time window during which an identical deeplink is treated as a duplicate and
@@ -76,7 +77,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       // Start the Navigated clock only if the wallet is already unlocked.
       // If it is locked, this function returns without starting anything;
       // the Login screen starts the clock when the user confirms unlock.
-      if (ReduxService.store.getState().user.userLoggedIn) {
+      if (Engine.context.KeyringController.isUnlocked()) {
         startDeeplinkNavigatedTrace({
           url: uri,
           source: 'intake',

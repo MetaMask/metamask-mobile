@@ -15,6 +15,7 @@ import {
 } from '../../types/deepLinkAnalytics.types';
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../../Performance/DeeplinkPerformance';
+import Engine from '../../../Engine';
 
 jest.mock('../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
@@ -27,8 +28,15 @@ jest.mock('../../../redux', () => ({
       dispatch: jest.fn(),
       getState: jest.fn(() => ({
         security: { dataCollectionForMarketing: true },
-        user: { userLoggedIn: false },
       })),
+    },
+  },
+}));
+
+jest.mock('../../../Engine', () => ({
+  context: {
+    KeyringController: {
+      isUnlocked: jest.fn(),
     },
   },
 }));
@@ -91,13 +99,17 @@ describe('handleDeeplink', () => {
   const mockHandleMwpDeeplink = SDKConnectV2.handleMwpDeeplink as jest.Mock;
   const mockTrackEvent = analytics.trackEvent as jest.Mock;
   const mockDetectAppInstallation = detectAppInstallation as jest.Mock;
+  const mockIsUnlocked = jest.mocked(
+    Engine.context.KeyringController.isUnlocked,
+  );
+
   beforeEach(() => {
     jest.clearAllMocks();
     resetDeeplinkDeduplication();
     mockIsMwpDeeplink.mockReturnValue(false);
+    mockIsUnlocked.mockReturnValue(false);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: true },
-      user: { userLoggedIn: false },
     });
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
@@ -115,9 +127,9 @@ describe('handleDeeplink', () => {
   });
 
   it('starts a Deeplink Navigated trace at intake when the app is already unlocked', () => {
+    mockIsUnlocked.mockReturnValue(true);
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: false },
-      user: { userLoggedIn: true },
     });
     const testUri = 'https://link.metamask.io/trending';
 
@@ -130,7 +142,12 @@ describe('handleDeeplink', () => {
     });
   });
 
-  it('does not start Deeplink Navigated while locked — unlock submit owns that start', () => {
+  it('does not start Deeplink Navigated when Redux login state is stale after locking', () => {
+    mockGetState.mockReturnValue({
+      security: { dataCollectionForMarketing: false },
+      user: { userLoggedIn: true },
+    });
+
     handleDeeplink({ uri: 'https://link.metamask.io/trending' });
 
     expect(startDeeplinkNavigatedTrace).not.toHaveBeenCalled();
@@ -155,7 +172,6 @@ describe('handleDeeplink', () => {
   it('does not dispatch saveAttribution when marketing consent is off', () => {
     mockGetState.mockReturnValue({
       security: { dataCollectionForMarketing: false },
-      user: { userLoggedIn: false },
     });
     const testUri = 'metamask://open?utm_source=email';
 
