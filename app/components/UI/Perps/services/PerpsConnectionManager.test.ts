@@ -163,21 +163,28 @@ const mockEndPerpsCufTrace = endPerpsCufTrace as jest.MockedFunction<
   typeof endPerpsCufTrace
 >;
 import {
+  ChaseOrderSuspensionError,
   PERPS_CONSTANTS,
   TradingReadinessCache,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 
 // Import PerpsConnectionManager after mocks are set up
 // This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
 import { AppState } from 'react-native';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 import { PerpsConnectionManager } from './PerpsConnectionManager';
-import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
+import {
+  CHASE_ORDER_UI_CONFIG,
+  PERPS_CONNECTION_SOURCE,
+} from '../constants/perpsConfig';
 
 // Get reference to the mocked TradingReadinessCache
 const mockTradingReadinessCache = TradingReadinessCache as jest.Mocked<
   typeof TradingReadinessCache
 >;
+const secondaryProvider = 'secondary-provider' as PerpsProviderType;
 
 // Helper to reset private properties for testing
 const resetManager = (manager: unknown) => {
@@ -329,6 +336,87 @@ describe('PerpsConnectionManager', () => {
       const instance2 = PerpsConnectionManager;
 
       expect(instance1).toBe(instance2);
+    });
+  });
+
+  describe('context change preparation', () => {
+    it('rejects a provider transition when suspension exceeds the deadline', async () => {
+      jest.useFakeTimers();
+      try {
+        mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+          new Promise(() => undefined),
+        );
+        const transition = jest.fn().mockResolvedValue({ success: true });
+
+        const result =
+          PerpsConnectionManager.runWithContextChangePreparation(transition);
+        const rejection = result.catch((error) => error);
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+
+        await expect(rejection).resolves.toEqual(
+          new Error('Chase context suspension timed out'),
+        );
+        expect(transition).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('retries partial suspension within the deadline before transition', async () => {
+      const suspendedOrder = {
+        handle: 'partial-order',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      mockPerpsController.suspendChaseOrders
+        .mockRejectedValueOnce(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [suspendedOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('partial failure'),
+              },
+            ],
+          }),
+        )
+        .mockResolvedValueOnce([]);
+      const transition = jest.fn().mockResolvedValue({ success: true });
+
+      await PerpsConnectionManager.runWithContextChangePreparation(transition);
+
+      expect(mockPerpsController.suspendChaseOrders).toHaveBeenCalledTimes(2);
+      expect(transition).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects transition when partial suspension retry fails', async () => {
+      const suspendedOrder = {
+        handle: 'partial-order',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      } as never;
+      mockPerpsController.suspendChaseOrders
+        .mockRejectedValueOnce(
+          new ChaseOrderSuspensionError({
+            suspendedOrders: [suspendedOrder],
+            failures: [
+              {
+                providerId: secondaryProvider,
+                reason: new Error('partial failure'),
+              },
+            ],
+          }),
+        )
+        .mockRejectedValueOnce(new Error('retry failed'));
+      const transition = jest.fn().mockResolvedValue({ success: true });
+
+      const result =
+        PerpsConnectionManager.runWithContextChangePreparation(transition);
+
+      await expect(result).rejects.toBeInstanceOf(ChaseOrderSuspensionError);
+      expect(transition).not.toHaveBeenCalled();
     });
   });
 
@@ -873,6 +961,47 @@ describe('PerpsConnectionManager', () => {
 
         expect(reconnectSpy).toHaveBeenCalledTimes(1);
       } finally {
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
+      }
+    });
+
+    it('logs suspension timeout and continues required account reconnect', async () => {
+      mockPerpsController.init.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+      const latestStoreCallback = storeCallbacks[storeCallbacks.length - 1];
+      mockPerpsController.suspendChaseOrders.mockReturnValueOnce(
+        new Promise(() => undefined),
+      );
+      const reconnectSpy = jest
+        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
+        .mockResolvedValue();
+      const loggerErrorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      jest.useFakeTimers();
+      try {
+        (
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
+
+        latestStoreCallback();
+        await jest.advanceTimersByTimeAsync(
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs + 60,
+        );
+
+        expect(loggerErrorSpy).toHaveBeenCalledWith(
+          expect.any(Error),
+          expect.objectContaining({
+            context: expect.objectContaining({
+              name: 'PerpsConnectionManager.accountContextPreparation',
+            }),
+          }),
+        );
+        expect(reconnectSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        loggerErrorSpy.mockRestore();
         reconnectSpy.mockRestore();
         jest.useRealTimers();
       }

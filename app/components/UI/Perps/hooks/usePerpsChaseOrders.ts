@@ -25,6 +25,7 @@ import {
 } from '../constants/perpsConfig';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { reportSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
 import {
   selectPerpsInitializationState,
   selectPerpsNetwork,
@@ -194,7 +195,8 @@ function syncRefreshLifecycle() {
   const shouldRefresh =
     listeners.size > 0 &&
     canRefreshCurrentRoute() &&
-    (enabledConsumerCount > 0 || hasLiveRetainedOrders());
+    enabledConsumerCount > 0 &&
+    cachedOrders.length > 0;
   if (!shouldRefresh) {
     stopRefreshLifecycle();
     return;
@@ -442,7 +444,8 @@ const suspendAndCacheChaseOrders = async (
       Engine.context.PerpsController.suspendChaseOrders();
     const reconcileLateSuspension = (suspension: Promise<ChaseOrder[]>) => {
       suspension
-        .then(() => {
+        .then((orders) => {
+          reportSuspendedChaseOrders(orders);
           if (route !== getRouteKey()) return;
           requestGeneration += 1;
           refreshPromise = undefined;

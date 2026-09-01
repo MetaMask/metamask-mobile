@@ -32,6 +32,7 @@ import {
 } from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
 import {
+  ChaseOrderSuspensionError,
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   PerpsMeasurementName,
@@ -45,8 +46,10 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
+  CHASE_ORDER_UI_CONFIG,
   PERPS_CONNECTION_SOURCE,
 } from '../constants/perpsConfig';
+import { reportSuspendedChaseOrders } from './ChaseOrderSuspensionEvents';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -166,27 +169,68 @@ class PerpsConnectionManagerClass {
     if (this.contextChangePreparationPromise) {
       return this.contextChangePreparationPromise;
     }
-    const preparation = Engine.context.PerpsController.suspendChaseOrders()
-      .then(() => {
-        this.isContextChangePrepared = true;
-      })
-      .catch((error) => {
-        this.isContextChangePrepared = true;
-        Logger.error(
-          ensureError(error, 'PerpsConnectionManager.prepareForContextChange'),
-          {
-            tags: { feature: PERPS_CONSTANTS.FeatureName },
-            context: {
-              name: 'PerpsConnectionManager.prepareForContextChange',
-            },
-          },
+    const preparation = (async () => {
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutError = new Error('Chase context suspension timed out');
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(timeoutError),
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
         );
-      })
-      .finally(() => {
-        if (this.contextChangePreparationPromise === preparation) {
-          this.contextChangePreparationPromise = null;
-        }
       });
+      let suspension = Engine.context.PerpsController.suspendChaseOrders();
+      const reportLateSuccess = (pending: typeof suspension) => {
+        pending.then(reportSuspendedChaseOrders).catch(() => undefined);
+      };
+      try {
+        try {
+          const orders = await Promise.race([suspension, timeout]);
+          reportSuspendedChaseOrders(orders);
+        } catch (error) {
+          if (!(error instanceof ChaseOrderSuspensionError)) {
+            if (error === timeoutError) reportLateSuccess(suspension);
+            throw error;
+          }
+          reportSuspendedChaseOrders(error.suspendedOrders);
+          suspension = Engine.context.PerpsController.suspendChaseOrders();
+          try {
+            const retryOrders = await Promise.race([suspension, timeout]);
+            reportSuspendedChaseOrders(retryOrders);
+          } catch (retryError) {
+            if (retryError === timeoutError) reportLateSuccess(suspension);
+            const retryPartialOrders =
+              retryError instanceof ChaseOrderSuspensionError
+                ? retryError.suspendedOrders
+                : [];
+            reportSuspendedChaseOrders(retryPartialOrders);
+            const suspendedOrders = [
+              ...new Map(
+                [...error.suspendedOrders, ...retryPartialOrders].map(
+                  (order) => [order.handle, order],
+                ),
+              ).values(),
+            ];
+            throw new ChaseOrderSuspensionError({
+              suspendedOrders,
+              failures:
+                retryError instanceof ChaseOrderSuspensionError
+                  ? retryError.failures
+                  : error.failures.map((failure) => ({
+                      ...failure,
+                      reason: retryError,
+                    })),
+            });
+          }
+        }
+        this.isContextChangePrepared = true;
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    })().finally(() => {
+      if (this.contextChangePreparationPromise === preparation) {
+        this.contextChangePreparationPromise = null;
+      }
+    });
     this.contextChangePreparationPromise = preparation;
     return preparation;
   }
@@ -394,7 +438,23 @@ class PerpsConnectionManagerClass {
         }
         this.stateChangeDebounceTimer = setTimeout(async () => {
           this.stateChangeDebounceTimer = null;
-          await contextChangePreparation;
+          try {
+            await contextChangePreparation;
+          } catch (error) {
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.accountContextPreparation',
+              ),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                context: {
+                  name: 'PerpsConnectionManager.accountContextPreparation',
+                  data: { recovery: 'continue_reconnect' },
+                },
+              },
+            );
+          }
           this.isContextChangePrepared = false;
           try {
             await this.reconnectWithNewContext();

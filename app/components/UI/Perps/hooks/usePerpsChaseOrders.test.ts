@@ -12,6 +12,7 @@ import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { reportSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
 import { CHASE_ORDER_UI_CONFIG } from '../constants/perpsConfig';
 import {
   selectPerpsInitializationState,
@@ -55,6 +56,10 @@ jest.mock('../services/PerpsConnectionManager', () => ({
       return () => mockConnectionIdentityListeners.delete(listener);
     }),
   },
+}));
+
+jest.mock('../services/ChaseOrderSuspensionEvents', () => ({
+  reportSuspendedChaseOrders: jest.fn(),
 }));
 
 const mockGetChaseOrders = Engine.context.PerpsController
@@ -139,6 +144,7 @@ describe('usePerpsChaseOrders', () => {
   });
 
   it('clears polling when the last Chase consumer unmounts', async () => {
+    mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
     const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
     expect(jest.getTimerCount()).toBeGreaterThan(0);
@@ -171,8 +177,8 @@ describe('usePerpsChaseOrders', () => {
       expect(hook.result.current.isChaseOrderDiscoveryResolved).toBe(true);
     });
 
-    act(() => PerpsCacheInvalidator.invalidate('accountState'));
-    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+    await act(async () => hook.result.current.getChaseOrders());
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
     await waitFor(() => expect(hook.result.current.chaseOrders).toEqual([]));
 
     const orders = hook.result.current.chaseOrders;
@@ -404,6 +410,48 @@ describe('usePerpsChaseOrders', () => {
     });
     expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
     unmount();
+    setIntervalSpy.mockRestore();
+  });
+
+  it('does not poll retained wallet-root sessions without a screen consumer', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: false }));
+
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+    hook.unmount();
+    setIntervalSpy.mockRestore();
+  });
+
+  it('does not poll a Pro screen with zero Chase orders', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+    expect(hook.result.current.chaseOrders).toEqual([]);
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+    hook.unmount();
+    setIntervalSpy.mockRestore();
+  });
+
+  it('arms screen polling after a fresh placement read returns an order', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    mockGetChaseOrders
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([activeOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+    await act(async () => hook.result.current.getChaseOrders());
+
+    expect(hook.result.current.chaseOrders).toEqual([activeOrder]);
+    expect(setIntervalSpy).toHaveBeenCalledTimes(1);
+    hook.unmount();
     setIntervalSpy.mockRestore();
   });
 
@@ -978,6 +1026,7 @@ describe('usePerpsChaseOrders', () => {
     await act(async () => resolveSuspension?.([lateOrder]));
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
 
+    expect(reportSuspendedChaseOrders).toHaveBeenCalledWith([lateOrder]);
     expect(await suspensionResult).toEqual(
       new Error('Chase mutation timed out'),
     );
@@ -1429,7 +1478,7 @@ describe('usePerpsChaseOrders', () => {
     unmount();
   });
 
-  it('ignores an old-account refresh that settles after invalidation', async () => {
+  it('ignores an old-account refresh that settles after route change', async () => {
     let resolveOld: ((orders: (typeof activeOrder)[]) => void) | undefined;
     mockGetChaseOrders.mockImplementationOnce(
       () =>
@@ -1437,15 +1486,14 @@ describe('usePerpsChaseOrders', () => {
           resolveOld = resolve;
         }),
     );
-    const { result, unmount } = renderHook(() =>
-      usePerpsChaseOrders({ isEnabled: true }),
-    );
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
 
-    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    mockSelectedAddress = '0xaccount-b';
+    hook.rerender({});
     await act(async () => resolveOld?.([activeOrder]));
 
-    expect(result.current.chaseOrders).toEqual([]);
-    unmount();
+    expect(hook.result.current.chaseOrders).toEqual([]);
+    hook.unmount();
   });
 
   it('preserves same-route history while connection identity reconnects', async () => {
