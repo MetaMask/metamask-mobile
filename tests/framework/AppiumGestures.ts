@@ -601,9 +601,27 @@ export default class AppiumGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    const key = await drv.$(`~${keyName}`);
-    await key.waitForExist({ timeout: 5000 });
-    await key.click();
+    // Scope the lookup to the keyboard window first: inputs like CodeField
+    // render typed digits as accessible text, so a bare `~0` lookup can match
+    // an input cell instead of the number-pad key. Fall back to the bare
+    // accessibility id only if the keyboard-scoped locator finds nothing.
+    const locators = [
+      `//XCUIElementTypeKeyboard//*[@name="${keyName}"]`,
+      `~${keyName}`,
+    ];
+
+    for (const locator of locators) {
+      const key = await drv.$(locator);
+      try {
+        await key.waitForExist({ timeout: 5000 });
+        await key.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
   }
 
   /**
