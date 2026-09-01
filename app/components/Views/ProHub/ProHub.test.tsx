@@ -65,9 +65,9 @@ describe('ProHub', () => {
     it('renders the title from i18n', () => {
       const { getByTestId } = renderProHub();
 
-      const title = getByTestId(ProHubTestIds.TITLE);
+      const header = getByTestId(ProHubTestIds.HEADER_ROOT);
 
-      expect(title).toHaveTextContent(strings('pro_hub.title'));
+      expect(header).toHaveTextContent(strings('pro_hub.title'));
     });
 
     it('renders the header bar', () => {

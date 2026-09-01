@@ -134,22 +134,14 @@ const ProHub = () => {
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
         }
-      />
+      >
+        {strings('pro_hub.title')}
+      </HeaderBase>
 
       <ScrollView
         contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="mb-6"
-          testID={ProHubTestIds.TITLE}
-        >
-          {strings('pro_hub.title')}
-        </Text>
-
         <Box
           flexDirection={BoxFlexDirection.Row}
           gap={3}

@@ -1,7 +1,6 @@
 export const ProHubTestIds = {
   CONTAINER: 'pro-hub-container',
   BACK_BUTTON: 'pro-hub-back-button',
-  TITLE: 'pro-hub-title',
   HEADER_ROOT: 'pro-hub-header-root',
   MANAGE_PLANS_BUTTON: 'pro-hub-manage-plans-button',
   EARNED_CARD: 'pro-hub-earned-card',
