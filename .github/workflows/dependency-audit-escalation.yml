@@ -4,11 +4,14 @@ name: Dependency Audit Escalation
 # blocks a PR. This workflow is the actual triage loop, in two fix tiers:
 #   1. scripts/attempt-audit-fix.ts — deterministic: yarn up / a resolutions
 #      pin, verified and reverted on failure. Bundled into one PR.
-#   2. scripts/attempt-audit-fix-ai.ts — a Cursor Cloud Agent attempts
-#      whatever tier 1 couldn't clear (dropping a stale resolutions override,
-#      bumping a parent package, etc). Its own PR is independently
-#      re-verified against the actual resulting lockfile before this workflow
-#      trusts it — see the trust-model comment at the top of that script.
+#   2. scripts/attempt-audit-fix-ai.ts — MetaMask/ai-analyzer's
+#      dependency-audit-fix mode (routed through the org's LiteLLM proxy)
+#      proposes a fix for whatever tier 1 couldn't clear (dropping a stale
+#      resolutions override, bumping a parent package, etc). The AI never
+#      edits a file itself — this script applies each proposal and
+#      independently re-verifies it against the actual resulting lockfile
+#      before trusting it and opening its own PR — see the trust-model
+#      comment at the top of that script.
 # Both PRs are titled with a cp-<next-release> token so the existing
 # add-release-label automation tags them for release. Whatever neither tier
 # can fix gets filed/updated as a tracking issue. The audit owner (and their
@@ -233,22 +236,42 @@ jobs:
             --reviewer "$OWNER_GH")
           echo "pr-url=$PR_URL" >> "$GITHUB_OUTPUT"
 
+      # https://github.com/MetaMask/ai-analyzer/releases — same private repo
+      # and secrets ai-pr-risk-analysis.yml / flaky-unit-test-detection.yml
+      # already use. Only checked out when there's something for tier 2 to
+      # look at, so a clean audit never pays for it.
+      - name: Checkout AI Analyzer
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
+        uses: actions/checkout@v6
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: v1
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+
+      - name: Install AI Analyzer dependencies
+        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
+        working-directory: .ai-analyzer-action
+        run: npm ci
+
       - name: Attempt AI-assisted fix for advisories tier 1 couldn't clear
         id: ai-fix
         # Always runs whenever tier 1 finished (even with zero manual items,
-        # or with no CURSOR_API_KEY configured yet) so its manual-count
-        # output is always set — never rely on an unset step output here,
-        # see the has-advisories/fixed-count empty-string bug fixed above.
+        # or with no AI_ANALYZER_LITELLM_KEY configured yet) so its
+        # manual-count output is always set — never rely on an unset step
+        # output here, see the has-advisories/fixed-count empty-string bug
+        # fixed above.
         if: ${{ steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
-          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
           GH_TOKEN: ${{ steps.get-token.outputs.token }}
           OWNER_GH: ${{ steps.owner.outputs.github }}
         run: |
           yarn ts-node --transpile-only scripts/attempt-audit-fix-ai.ts audit-fix-result.json
           MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
-          AI_FIXED_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.filter((e) => e.method === 'ai-cloud-agent').length)")
+          AI_FIXED_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).fixed.filter((e) => e.method === 'ai-analyzer').length)")
           AI_PR_URL=$(cat audit-ai-pr-url.txt 2>/dev/null || echo '')
           {
             echo "manual-count=$MANUAL_COUNT"

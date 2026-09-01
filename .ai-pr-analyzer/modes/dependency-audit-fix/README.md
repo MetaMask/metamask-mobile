@@ -1,0 +1,61 @@
+# `dependency-audit-fix` mode
+
+Custom [`MetaMask/ai-analyzer`](https://github.com/MetaMask/ai-analyzer) mode that proposes a fix for `yarn audit` advisories that [`scripts/attempt-audit-fix.ts`](../../../scripts/attempt-audit-fix.ts) (tier 1, deterministic: plain `yarn up` or a `resolutions` pin) could not clear.
+
+Consumed by [`scripts/attempt-audit-fix-ai.ts`](../../../scripts/attempt-audit-fix-ai.ts), invoked from [`.github/workflows/dependency-audit-escalation.yml`](../../../.github/workflows/dependency-audit-escalation.yml). Not a shipped built-in — this is a Tier 3 fully-custom mode defined entirely in this repo.
+
+## Files
+
+| File                   | Purpose                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `mode.yaml`            | Mode identity — `id`, `finalizeToolName`, `outputFile`                       |
+| `system-prompt.md`     | AI role, untrusted-input handling, and the four allowed proposal actions     |
+| `task-prompt.md`       | Per-run instructions and file-access allowlist, receives `{{changed_files}}` |
+| `finalize-schema.json` | JSON Schema the AI must satisfy when calling `finalize_dependency_audit_fix` |
+| `fallback.json`        | Deterministic `conservative` / `empty` results when the AI can't complete    |
+
+The AI never edits any file — it only investigates (`read_file` on package.json and the advisory context file, `grep_codebase` on yarn.lock) and returns a structured proposal. `scripts/attempt-audit-fix-ai.ts` applies each proposed change itself, then re-runs the same `yarn dedupe` / `yarn constraints` / re-audit checks tier 1 uses before trusting that a given advisory is actually fixed. A proposal that doesn't independently verify is discarded — the advisory stays in `manual`.
+
+## Input artifact
+
+`scripts/attempt-audit-fix-ai.ts` writes `.ai-pr-analyzer/dependency-audit-advisories.json` before invoking the analyzer — a JSON array of the still-`manual` advisories, e.g.:
+
+```json
+[
+  {
+    "package": "ms",
+    "advisory_id": "TEST-0002",
+    "severity": "high",
+    "title": "...",
+    "url": "...",
+    "tier_1_failure_reason": "Could not determine a published version outside the vulnerable range."
+  }
+]
+```
+
+This file (plus `package.json` and `yarn.lock`) is passed via `--changed-files` so the analyzer treats it as in-scope, and the task prompt tells the AI to `read_file` it directly — the advisory data is per-run and dynamic, so it can't live in a static prompt template.
+
+## Output artifact
+
+Written to `.ai-pr-analyzer/dependency-audit-fix.json` (per `outputFile` in `mode.yaml`). Shape (matches `finalize-schema.json`):
+
+```json
+{
+  "fixes": [
+    {
+      "advisory_id": "TEST-0002",
+      "package": "ms",
+      "action": "no-safe-fix",
+      "target": "",
+      "reasoning": "Vulnerable Versions is '*' — every published version matches, so no version bump or resolutions pin can clear this advisory."
+    }
+  ],
+  "confidence": 80,
+  "reasoning": "Investigated 1 advisory: 1 direct dependency check via package.json."
+}
+```
+
+## Editing the mode
+
+- **Prompt tweaks**: edit `system-prompt.md` / `task-prompt.md`. See [MetaMask/ai-analyzer docs/adding-a-new-mode.md](https://github.com/MetaMask/ai-analyzer/blob/v1/docs/adding-a-new-mode.md) for the full template-variable reference.
+- **Schema changes**: keep `finalize-schema.json` and `fallback.json` in sync (both must satisfy the same shape), and update the apply/verify logic in `scripts/attempt-audit-fix-ai.ts` to match.

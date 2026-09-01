@@ -620,7 +620,6 @@
     "@babel/preset-env": "^7.25.3",
     "@babel/register": "^7.24.6",
     "@babel/runtime": "^7.25.0",
-    "@cursor/sdk": "^1.0.30",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@expo/metro-config": "~55.0.23",

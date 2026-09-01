@@ -1838,13 +1838,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bufbuild/protobuf@npm:1.10.0":
-  version: 1.10.0
-  resolution: "@bufbuild/protobuf@npm:1.10.0"
-  checksum: 10/1f120f72bbb40dd3d0f8c73f1474b001cfb9be09c38b7b0292e35fec98c5184a3db380a6feff7626fb3fff108c8a8aa7fc8cfea14904dc0a1174a01c8e637cc6
-  languageName: node
-  linkType: hard
-
 "@callstack/reassure-cli@npm:1.4.0":
   version: 1.4.0
   resolution: "@callstack/reassure-cli@npm:1.4.0"
@@ -1908,37 +1901,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@connectrpc/connect-node@npm:^1.6.1":
-  version: 1.7.0
-  resolution: "@connectrpc/connect-node@npm:1.7.0"
-  dependencies:
-    undici: "npm:^5.28.4"
-  peerDependencies:
-    "@bufbuild/protobuf": ^1.10.0
-    "@connectrpc/connect": 1.7.0
-  checksum: 10/fbfd908e3b2f529feb2de14940c0d5b58618c844f4ae9701201c5cda516cd21900a2e173d24b267fe1567608e37f5313c8c32e2488379397cd05f4893c4087eb
-  languageName: node
-  linkType: hard
-
-"@connectrpc/connect-web@npm:^1.6.1":
-  version: 1.7.0
-  resolution: "@connectrpc/connect-web@npm:1.7.0"
-  peerDependencies:
-    "@bufbuild/protobuf": ^1.10.0
-    "@connectrpc/connect": 1.7.0
-  checksum: 10/4a257ea73e0a97160b1520277aa500516bf4a5043275650d2cbba10f3eafe0a1ca7d34d90e9c8ac5bf49deb973cd16c5feb7c1bd7f7b828ec0b50016f52cde71
-  languageName: node
-  linkType: hard
-
-"@connectrpc/connect@npm:^1.6.1":
-  version: 1.7.0
-  resolution: "@connectrpc/connect@npm:1.7.0"
-  peerDependencies:
-    "@bufbuild/protobuf": ^1.10.0
-  checksum: 10/9ed242b23f7c5b27a49c17274fe43ec99243659a7df241f170b9a7a852e235d3c3fe15a3e877060a1661b6d60fd07a59b99a418181eaefdf740b74d89688d9f0
-  languageName: node
-  linkType: hard
-
 "@consensys/on-ramp-sdk@npm:2.1.12":
   version: 2.1.12
   resolution: "@consensys/on-ramp-sdk@npm:2.1.12"
@@ -1996,81 +1958,6 @@ __metadata:
   dependencies:
     "@jridgewell/trace-mapping": "npm:0.3.9"
   checksum: 10/b6e38a1712fab242c86a241c229cf562195aad985d0564bd352ac404be583029e89e93028ffd2c251d2c407ecac5fb0cbdca94a2d5c10f29ac806ede0508b3ff
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk-darwin-arm64@npm:1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk-darwin-arm64@npm:1.0.30"
-  bin:
-    rg: bin/rg
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk-darwin-x64@npm:1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk-darwin-x64@npm:1.0.30"
-  bin:
-    rg: bin/rg
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk-linux-arm64@npm:1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk-linux-arm64@npm:1.0.30"
-  bin:
-    rg: bin/rg
-  conditions: os=linux & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk-linux-x64@npm:1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk-linux-x64@npm:1.0.30"
-  bin:
-    rg: bin/rg
-  conditions: os=linux & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk-win32-x64@npm:1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk-win32-x64@npm:1.0.30"
-  bin:
-    rg: bin/rg.exe
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@cursor/sdk@npm:^1.0.30":
-  version: 1.0.30
-  resolution: "@cursor/sdk@npm:1.0.30"
-  dependencies:
-    "@bufbuild/protobuf": "npm:1.10.0"
-    "@connectrpc/connect": "npm:^1.6.1"
-    "@connectrpc/connect-node": "npm:^1.6.1"
-    "@connectrpc/connect-web": "npm:^1.6.1"
-    "@cursor/sdk-darwin-arm64": "npm:1.0.30"
-    "@cursor/sdk-darwin-x64": "npm:1.0.30"
-    "@cursor/sdk-linux-arm64": "npm:1.0.30"
-    "@cursor/sdk-linux-x64": "npm:1.0.30"
-    "@cursor/sdk-win32-x64": "npm:1.0.30"
-    "@statsig/js-client": "npm:3.31.0"
-    zod: "npm:^3.25.0"
-  dependenciesMeta:
-    "@cursor/sdk-darwin-arm64":
-      optional: true
-    "@cursor/sdk-darwin-x64":
-      optional: true
-    "@cursor/sdk-linux-arm64":
-      optional: true
-    "@cursor/sdk-linux-x64":
-      optional: true
-    "@cursor/sdk-win32-x64":
-      optional: true
-  checksum: 10/2f8b0febb0ef0b8cb97536199fdf08055d19320e205f52b3fde185f5b6a44a9c9c027b804c4793e2193d32ad6f2b0a5bc168767942a8f727a8db2cd7efff6dc8
   languageName: node
   linkType: hard
 
@@ -16257,22 +16144,6 @@ __metadata:
   version: 1.0.1
   resolution: "@stablelib/wipe@npm:1.0.1"
   checksum: 10/287802eb146810a46ba72af70b82022caf83a8aeebde23605f5ee0decf64fe2b97a60c856e43b6617b5801287c30cfa863cfb0469e7fcde6f02d143cf0c6cbf4
-  languageName: node
-  linkType: hard
-
-"@statsig/client-core@npm:3.31.0":
-  version: 3.31.0
-  resolution: "@statsig/client-core@npm:3.31.0"
-  checksum: 10/0b411431d83caeb5c6150baf93f3fcd7f0fb569bc94006f9fff436e7510324941a54907b44f7a1300c8bc1a861a6918f20a86b0ded5ff48552a98e19f87c19b2
-  languageName: node
-  linkType: hard
-
-"@statsig/js-client@npm:3.31.0":
-  version: 3.31.0
-  resolution: "@statsig/js-client@npm:3.31.0"
-  dependencies:
-    "@statsig/client-core": "npm:3.31.0"
-  checksum: 10/6e8aa7def160a0d955eae016efdadd9146cd9b1a306f895e8c434963d15f4fbebe82911fade4bc3a0d8af6d47966d75b9cc865288ba21fcc76a3675ea9b33ce4
   languageName: node
   linkType: hard
 
@@ -35839,7 +35710,6 @@ __metadata:
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
-    "@cursor/sdk": "npm:^1.0.30"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.2"
@@ -45867,15 +45737,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici@npm:^5.28.4":
-  version: 5.29.0
-  resolution: "undici@npm:5.29.0"
-  dependencies:
-    "@fastify/busboy": "npm:^2.0.0"
-  checksum: 10/0ceca8924a32acdcc0cfb8dd2d368c217840970aa3f5e314fc169608474be6341c5b8e50cad7bd257dbe3b4e432bc5d0a0d000f83644b54fa11a48735ec52b93
-  languageName: node
-  linkType: hard
-
 "undici@npm:^6.21.3":
   version: 6.22.0
   resolution: "undici@npm:6.22.0"
@@ -48051,7 +47912,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.22.4, zod@npm:^3.23.8, zod@npm:^3.24.2, zod@npm:^3.25.0, zod@npm:^3.25.76":
+"zod@npm:^3.22.4, zod@npm:^3.23.8, zod@npm:^3.24.2, zod@npm:^3.25.76":
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
