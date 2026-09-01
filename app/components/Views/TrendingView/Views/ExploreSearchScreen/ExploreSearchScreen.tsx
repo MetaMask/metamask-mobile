@@ -52,6 +52,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 import { MAX_ITEMS_PER_SECTION } from '../../search/viewMoreLabel';
 import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors';
+import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import type { ExploreSearchRouteParams } from './ExploreSearchScreen.types';
@@ -331,7 +332,9 @@ const ExploreSearchScreen: React.FC = () => {
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
   const isTransitionComplete = useScreenTransitionComplete();
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const browserTabsCount = useSelector(selectBrowserTabCount);
+  const showBrowserTabsButton = isHeaderRefreshEnabled && browserTabsCount > 0;
 
   useEffect(() => {
     if (!routeParams?.entryPoint) {
@@ -377,11 +380,11 @@ const ExploreSearchScreen: React.FC = () => {
             onSearchChange={setSearchQuery}
             onCancel={handleSearchCancel}
             autoFocus={isTransitionComplete}
-            dismissVariant="back"
+            dismissVariant={isHeaderRefreshEnabled ? 'back' : 'cancel'}
           />
         </Box>
 
-        {browserTabsCount > 0 ? (
+        {showBrowserTabsButton ? (
           <BrowserTabsButton
             tabCount={browserTabsCount}
             onPress={handleBrowserTabsPress}

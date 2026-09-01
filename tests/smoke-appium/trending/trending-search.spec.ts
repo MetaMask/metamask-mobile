@@ -9,15 +9,18 @@ import Assertions from '../../framework/Assertions.js';
 import TrendingView from '../../page-objects/Trending/TrendingView.js';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks.js';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers.js';
-import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks.js';
+import {
+  remoteFeatureFlagHeaderNavBar,
+  remoteFeatureFlagTrendingTokensEnabled,
+} from '../../api-mocking/mock-responses/feature-flags-mocks.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 
 appiumTest.describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    await setupRemoteFeatureFlagsMock(
-      mockServer,
-      remoteFeatureFlagTrendingTokensEnabled(),
-    );
+    await setupRemoteFeatureFlagsMock(mockServer, {
+      ...remoteFeatureFlagTrendingTokensEnabled(),
+      ...remoteFeatureFlagHeaderNavBar(),
+    });
 
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
   };

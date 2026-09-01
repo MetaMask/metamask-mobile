@@ -1,6 +1,9 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import {
+  HeaderNavBarVariant,
+  renderTrendingViewWithRoutes,
+} from '../../../../tests/component-view/renderers/trending';
 import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import { EXPLORE_TAB_INDEX } from './TrendingView';
@@ -318,7 +321,9 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
 
   it('exits search mode when the inline back button is pressed and restores the search button', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
-      renderTrendingViewWithRoutes();
+      renderTrendingViewWithRoutes({
+        headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+      });
 
     await waitFor(() => {
       expect(

@@ -1,6 +1,9 @@
 import '../../../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { renderExploreSearchScreenWithRoutes } from '../../../../../../tests/component-view/renderers/trending';
+import {
+  HeaderNavBarVariant,
+  renderExploreSearchScreenWithRoutes,
+} from '../../../../../../tests/component-view/renderers/trending';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -304,15 +307,30 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).toBe(true);
   });
 
-  it('renders the inline back button instead of a cancel button', async () => {
-    const { findByTestId, queryByTestId } =
-      renderExploreSearchScreenWithRoutes();
+  it('renders the inline back button instead of a cancel button on a treatment arm', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+      },
+    );
 
     expect(
       await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the cancel button on the control arm', async () => {
+    const { findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes();
+
+    expect(
+      await findByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
@@ -329,6 +347,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
   it('shows the open-tabs count and opens the browser when tabs are open', async () => {
     const { findByTestId, getByText } = renderExploreSearchScreenWithRoutes({
+      headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
       overrides: {
         browser: {
           tabs: [
@@ -349,6 +368,27 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     expect(
       await findByTestId(getRouteProbeTestId(Routes.BROWSER.HOME)),
     ).toBeOnTheScreen();
+  });
+
+  it('hides the open-tabs button on the control arm even with tabs open', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        overrides: {
+          browser: {
+            tabs: [
+              { id: 1, url: 'https://app.uniswap.org' },
+              { id: 2, url: 'https://metamask.io' },
+            ],
+          },
+        },
+      },
+    );
+
+    await findByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT);
+
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {

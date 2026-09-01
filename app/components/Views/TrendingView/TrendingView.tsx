@@ -17,6 +17,8 @@ import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  Text,
+  TextVariant,
   IconName,
   Icon,
   IconSize,
@@ -38,6 +40,7 @@ import ExploreSearchBar from './components/ExploreSearchBar/ExploreSearchBar';
 import BrowserTabsButton from './components/BrowserTabsButton/BrowserTabsButton';
 import { ExploreActiveTabProvider } from './ExploreActiveTabContext';
 import { useExploreRefresh } from './hooks/useExploreRefresh';
+import { useIsExploreHeaderRefreshEnabled } from './hooks/useIsExploreHeaderRefreshEnabled';
 import NowTab from './tabs/NowTab';
 import MacroTab from './tabs/MacroTab';
 import RwasTab from './tabs/RwasTab';
@@ -229,6 +232,7 @@ export const ExploreFeed: React.FC = () => {
   const browserTabsCount = useSelector(
     (state: { browser: { tabs: unknown[] } }) => state.browser.tabs.length,
   );
+  const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -330,7 +334,7 @@ export const ExploreFeed: React.FC = () => {
             <ExploreSearchBar type="button" onPress={handleSearchPress} />
           </Box>
 
-          {browserTabsCount > 0 ? (
+          {isHeaderRefreshEnabled && browserTabsCount > 0 ? (
             <BrowserTabsButton
               tabCount={browserTabsCount}
               onPress={handleBrowserPress}
@@ -341,7 +345,13 @@ export const ExploreFeed: React.FC = () => {
               onPress={handleBrowserPress}
               testID="trending-view-browser-button"
             >
-              <Icon name={IconName.Explore} size={IconSize.Xl} />
+              {browserTabsCount > 0 ? (
+                <Box twClassName="rounded-lg items-center justify-center h-8 w-8 border border-muted bg-section">
+                  <Text variant={TextVariant.BodyMd}>{browserTabsCount}</Text>
+                </Box>
+              ) : (
+                <Icon name={IconName.Explore} size={IconSize.Xl} />
+              )}
             </TouchableOpacity>
           )}
         </Box>
