@@ -18,16 +18,16 @@ export interface UsePerpsTwapOrdersResult {
 
 export interface UsePerpsTwapOrdersOptions {
   /**
-   * Poll for updates. TWAP has no push channel, so the active view opts in
-   * while the history views refresh on focus only.
+   * Keep the list current. Prefers the controller's TWAP subscription and
+   * falls back to polling when the active provider has no push channel.
    *
    * @default false
    */
   enablePolling?: boolean;
   /**
-   * Poll interval in milliseconds. Each tick is two venue REST calls
-   * (`twapHistory` + `userTwapSliceFills`), so this is deliberately slower
-   * than the 1s cadence the streamed positions and orders panels use.
+   * Poll interval in milliseconds, used only on the fallback path. Each tick
+   * is two venue REST calls (`twapHistory` + `userTwapSliceFills`), so this is
+   * deliberately slower than the 1s cadence the streamed panels use.
    *
    * @default 5000
    */
@@ -43,6 +43,12 @@ export interface UsePerpsTwapOrdersOptions {
  * fills in one call, so the Active, History, and Fill History views all derive
  * from this single source. Providers without native TWAP history return an
  * empty list rather than throwing, so an empty result is a normal state.
+ *
+ * Live updates prefer `subscribeToTwapOrders`. The venue streams schedule
+ * state without slice fills, so a pushed schedule keeps the fills the last
+ * read supplied rather than blanking Fill History between refreshes.
+ * Providers without a push channel return a no-op cleanup, and the polling
+ * fallback takes over.
  */
 export const usePerpsTwapOrders = (
   options: UsePerpsTwapOrdersOptions = {},
@@ -105,11 +111,38 @@ export const usePerpsTwapOrders = (
       return undefined;
     }
 
+    let isStreaming = false;
+    const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
+      callback: (streamedOrders) => {
+        isStreaming = true;
+        // The stream omits slice fills, so carry forward the ones the last
+        // read resolved for each schedule.
+        setTwapOrders((previousOrders) => {
+          const fillsByOrderId = new Map(
+            previousOrders.map((order) => [order.orderId, order.fills]),
+          );
+          return streamedOrders.map((order) =>
+            order.fills.length > 0
+              ? order
+              : { ...order, fills: fillsByOrderId.get(order.orderId) ?? [] },
+          );
+        });
+        setIsLoading(false);
+      },
+    });
+
+    // A provider without a push channel returns a no-op cleanup and never
+    // calls back, so poll until the first streamed update proves otherwise.
     const intervalId = setInterval(() => {
-      fetchTwapOrders(true);
+      if (!isStreaming) {
+        fetchTwapOrders(true);
+      }
     }, pollingInterval);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      unsubscribe();
+      clearInterval(intervalId);
+    };
   }, [enablePolling, pollingInterval, fetchTwapOrders]);
 
   return { twapOrders, isLoading, error, refresh, isRefreshing };
