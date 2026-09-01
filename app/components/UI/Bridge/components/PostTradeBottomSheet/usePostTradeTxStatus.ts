@@ -96,6 +96,7 @@ export const usePostTradeTxStatus = ({
   const shouldResolveFromMultichain = Boolean(
     !isBridgeTx && quote && isNonEvmChainId(quote.srcChainId),
   );
+
   const multichainStatus = useSelector((state: RootState) =>
     getMultichainPostTradeStatus(
       state,

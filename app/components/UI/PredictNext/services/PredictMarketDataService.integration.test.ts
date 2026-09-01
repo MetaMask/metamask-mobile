@@ -31,6 +31,36 @@ const event = {
   ],
 };
 
+const marketHistory = {
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range: 'LIVE',
+  observedAt: '2026-03-01T00:00:00.000Z',
+  points: [
+    {
+      timestamp: '2026-03-01T00:00:00.000Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
+};
+
+const groupedEvent = {
+  ...event,
+  markets: [
+    {
+      ...event.markets[0],
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: 220.5 },
+        displayOrder: 0,
+      },
+    },
+  ],
+};
+
 describe('PredictNext public market data', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -58,6 +88,25 @@ describe('PredictNext public market data', () => {
 
     expect(result).toEqual(status);
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('reads Market history through the real controller-to-transport chain', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: marketHistory,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getMarketHistory',
+      KALSHI_VENUE_ID,
+      marketHistory.marketId as PredictEntityId,
+      'LIVE',
+    );
+
+    expect(result).toEqual(marketHistory);
+    expect(harness.fetchMock.mock.calls[0][0]).toBe(
+      'https://predict.example/v1/venues/kalshi/markets/market-1/history?range=LIVE',
+    );
     harness.destroy();
   });
 
@@ -124,6 +173,28 @@ describe('PredictNext public market data', () => {
       event.id as PredictEntityId,
     );
 
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('preserves grouped Market metadata through the cached Event read path', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: groupedEvent,
+    }));
+
+    const first = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+    const cached = await harness.messenger.call(
+      'PredictMarketDataService:getEvent',
+      KALSHI_VENUE_ID,
+      event.id as PredictEntityId,
+    );
+
+    expect(first.markets[0].group).toEqual(groupedEvent.markets[0].group);
+    expect(cached.markets[0].group).toEqual(groupedEvent.markets[0].group);
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
     harness.destroy();
   });

@@ -26,35 +26,44 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import {
+  PERPS_CONSTANTS,
   isLimitExecutionOrderType,
   isTriggerOrderType,
 } from '@metamask/perps-controller';
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
-  InputAccessoryView,
-  Keyboard,
-  Platform,
   Pressable,
+  type KeyboardTypeOptions,
+  type TextInput,
+  type View,
 } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
 import { useHaptics } from '../../../../../../../util/haptics';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../../utils/formatUtils';
 import {
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
 import PerpsProCompactInput, {
-  getPerpsProInputAccessoryID,
+  PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
 import PerpsProSizeInput from './PerpsProSizeInput';
+import PerpsProTwapFields from './PerpsProTwapFields';
 import type {
   PerpsProOrderDirection,
   PerpsProOrderFormProps,
   PerpsProOrderNotice,
   PerpsProOrderSummaryProps,
+  PerpsProScaleOrderModel,
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const formatScalePrice = (price: string) =>
+  formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
 
 const buttonIcon = (iconName: IconName, testID: string, onPress?: () => void) =>
   ({
@@ -111,23 +120,6 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
     </Pressable>
   );
 };
-
-const KeyboardAccessory = ({ inputTestID }: { inputTestID: string }) => (
-  <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
-    <Box
-      twClassName="border-t border-muted bg-default px-3 py-2"
-      alignItems={BoxAlignItems.End}
-    >
-      <ButtonIcon
-        iconName={IconName.ArrowDown}
-        size={ButtonIconSize.Sm}
-        onPress={Keyboard.dismiss}
-        testID={`${ids.KEYBOARD_CLOSE}-${inputTestID}`}
-        accessibilityLabel={strings('perps.pro_order_form.close_keyboard')}
-      />
-    </Box>
-  </InputAccessoryView>
-);
 
 interface PriceFieldProps {
   label: string;
@@ -226,39 +218,10 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
+const summaryRangeRowClassName = 'min-h-10 h-auto px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
-
-interface SlippageValueProps {
-  value: string;
-  onPress?: () => void;
-}
-
-const SlippageValue = ({ value, onPress }: SlippageValueProps) => (
-  <Pressable
-    accessibilityRole="button"
-    accessibilityState={{ disabled: !onPress }}
-    disabled={!onPress}
-    onPress={onPress}
-    testID={ids.SUMMARY_SLIPPAGE_BUTTON}
-  >
-    <Box twClassName="min-w-0 flex-1 flex-row items-center justify-end gap-1">
-      <Text
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        ellipsizeMode="tail"
-      >
-        {value}
-      </Text>
-      <Icon
-        name={IconName.Edit}
-        size={IconSize.Sm}
-        color={IconColor.IconDefault}
-      />
-    </Box>
-  </Pressable>
-);
+const SLIPPAGE_EDIT_HIT_SLOP = 12;
 
 const OrderSummary = ({
   margin,
@@ -292,7 +255,19 @@ const OrderSummary = ({
     {slippage !== undefined ? (
       <KeyValueRow
         keyLabel={strings('perps.slippage.slippage')}
-        value={<SlippageValue value={slippage} onPress={onSlippagePress} />}
+        value={slippage}
+        valueEndButtonIconProps={{
+          ...buttonIcon(
+            IconName.Edit,
+            ids.SUMMARY_SLIPPAGE_BUTTON,
+            onSlippagePress,
+          ),
+          accessibilityRole: 'button',
+          accessibilityLabel: strings('perps.slippage.config_title'),
+          // ButtonIconSize.Xs renders a 20pt box; 12pt of slop on each side
+          // brings the tap target back to the 44pt minimum.
+          hitSlop: SLIPPAGE_EDIT_HIT_SLOP,
+        }}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={summaryValueTextProps}
         twClassName={summaryRowClassName}
@@ -327,6 +302,146 @@ const OrderSummary = ({
   </Box>
 );
 
+interface ScaleInputConfig {
+  inputTestID: string;
+  inputRef: React.RefObject<TextInput | null>;
+  containerRef?: React.Ref<View>;
+  label: string;
+  value: string;
+  onChangeText: (value: string) => void;
+  onFocus?: () => void;
+  onBlur: () => void;
+  onFieldPress?: () => void;
+  startAccessory?: React.ReactNode;
+  endAccessory?: React.ReactNode;
+  placeholder?: string;
+  keyboardType?: KeyboardTypeOptions;
+}
+
+const ScaleFields = ({
+  inputs,
+  isDisabled,
+  isHidden,
+}: {
+  inputs: readonly ScaleInputConfig[];
+  isDisabled: boolean;
+  isHidden: boolean;
+}) => (
+  <Box
+    testID={ids.SCALE_FIELDS}
+    pointerEvents={isHidden ? 'none' : undefined}
+    accessibilityElementsHidden={isHidden}
+    importantForAccessibility={isHidden ? 'no-hide-descendants' : undefined}
+    twClassName={isHidden ? 'h-0 overflow-hidden opacity-0' : undefined}
+  >
+    {inputs.map((input) => (
+      <PerpsProCompactInput
+        key={input.inputTestID}
+        ref={input.inputRef}
+        containerRef={input.containerRef}
+        variant="inline-labeled"
+        label={input.label}
+        value={input.value}
+        onChangeText={input.onChangeText}
+        onFocus={input.onFocus}
+        onBlur={input.onBlur}
+        onFieldPress={input.onFieldPress}
+        testID={input.inputTestID}
+        startAccessory={input.startAccessory}
+        endAccessory={input.endAccessory}
+        placeholder={input.placeholder}
+        keyboardType={input.keyboardType}
+        isDisabled={isDisabled}
+        isHidden={isHidden}
+      />
+    ))}
+  </Box>
+);
+
+const ScalePreview = ({
+  model,
+  summary,
+}: {
+  model: PerpsProScaleOrderModel;
+  summary: PerpsProOrderSummaryProps;
+}) => {
+  const first = model.rungs[0];
+  const last = model.rungs[model.rungs.length - 1];
+  return (
+    <Box twClassName="gap-1" testID={ids.SCALE_PREVIEW}>
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.start')}
+        value={
+          first
+            ? formatScalePrice(first.price)
+            : PERPS_CONSTANTS.FallbackPriceDisplay
+        }
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_START_VALUE,
+        }}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.end')}
+        value={
+          last
+            ? formatScalePrice(last.price)
+            : PERPS_CONSTANTS.FallbackPriceDisplay
+        }
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_END_VALUE,
+        }}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.scale.margin')}
+        value={model.marginRange}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_MARGIN_VALUE,
+        }}
+        twClassName={summaryRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.pro_order_form.est_liquidation')}
+        value={model.liquidationRange}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          numberOfLines: 0,
+          testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
+        }}
+        twClassName={summaryRangeRowClassName}
+        style={summaryRowStyle}
+      />
+      <KeyValueRow
+        keyLabel={strings('perps.order.fees')}
+        value={model.fees}
+        keyEndButtonIconProps={buttonIcon(
+          IconName.Info,
+          ids.SUMMARY_FEES_BUTTON,
+          summary.onFeesInfoPress,
+        )}
+        keyTextProps={summaryKeyTextProps}
+        valueTextProps={{
+          ...summaryValueTextProps,
+          testID: ids.SCALE_PREVIEW_FEES_VALUE,
+        }}
+        twClassName={summaryFeesRowClassName}
+        style={summaryRowStyle}
+      />
+    </Box>
+  );
+};
+
 const PerpsProOrderForm = ({
   direction,
   onDirectionChange,
@@ -337,6 +452,8 @@ const PerpsProOrderForm = ({
   leverageLabel,
   onLeveragePress,
   orderType,
+  scaleOrder,
+  scaleKeyboardScroll,
   onOrderTypeButtonPress,
   limitPrice,
   onLimitPriceChange,
@@ -359,6 +476,8 @@ const PerpsProOrderForm = ({
   onAddFundsPress,
   reduceOnly,
   onReduceOnlyChange,
+  twap,
+  onTwapDurationPress,
   onTPSLPress,
   notices,
   summary,
@@ -369,12 +488,105 @@ const PerpsProOrderForm = ({
   onPlaceOrderPress,
 }: PerpsProOrderFormProps) => {
   const { playSelection } = useHaptics();
+  const scaleStartPriceRef = useRef<TextInput>(null);
+  const scaleEndPriceRef = useRef<TextInput>(null);
+  const scaleTotalOrdersRef = useRef<TextInput>(null);
+  const scaleSizeSkewRef = useRef<TextInput>(null);
   const isLong = direction === 'long';
+  const isScaleOrder = orderType === 'scale';
+  const isScaleFormLocked = isScaleOrder && isPlaceOrderLoading;
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
-  const showsTpSl = !reduceOnly && !showsTriggerPrice;
+  const isTwap = orderType === 'twap';
+  const showsTpSl =
+    !reduceOnly && !showsTriggerPrice && !isTwap && !isScaleOrder;
   const orderTypeTitle = strings(`perps.order.type.${orderType}.title`);
   const summaryOnSlippagePress = summary.onSlippagePress;
+  const scaleInputs: readonly ScaleInputConfig[] = [
+    {
+      inputTestID: ids.SCALE_START_PRICE,
+      inputRef: scaleStartPriceRef,
+      containerRef: scaleKeyboardScroll?.startPrice.cardRef,
+      label: strings('perps.pro_order_form.scale.start_price'),
+      value: scaleOrder.startPrice,
+      onChangeText: scaleOrder.onStartPriceChange,
+      onFocus: scaleKeyboardScroll?.startPrice.onFocus,
+      onBlur: () => {
+        scaleOrder.onStartPriceBlur();
+        scaleKeyboardScroll?.startPrice.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.startPrice.realign,
+      startAccessory: scaleOrder.startPrice ? (
+        <Text variant={TextVariant.BodySm}>
+          {strings('perps.tpsl.usd_label')}
+        </Text>
+      ) : undefined,
+      placeholder: '',
+    },
+    {
+      inputTestID: ids.SCALE_END_PRICE,
+      inputRef: scaleEndPriceRef,
+      containerRef: scaleKeyboardScroll?.endPrice.cardRef,
+      label: strings('perps.pro_order_form.scale.end_price'),
+      value: scaleOrder.endPrice,
+      onChangeText: scaleOrder.onEndPriceChange,
+      onFocus: scaleKeyboardScroll?.endPrice.onFocus,
+      onBlur: () => {
+        scaleOrder.onEndPriceBlur();
+        scaleKeyboardScroll?.endPrice.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.endPrice.realign,
+      startAccessory: scaleOrder.endPrice ? (
+        <Text variant={TextVariant.BodySm}>
+          {strings('perps.tpsl.usd_label')}
+        </Text>
+      ) : undefined,
+      placeholder: '',
+    },
+    {
+      inputTestID: ids.SCALE_TOTAL_ORDERS,
+      inputRef: scaleTotalOrdersRef,
+      containerRef: scaleKeyboardScroll?.totalOrders.cardRef,
+      label: strings('perps.pro_order_form.scale.total_orders'),
+      value: scaleOrder.totalOrders,
+      onChangeText: scaleOrder.onTotalOrdersChange,
+      onFocus: scaleKeyboardScroll?.totalOrders.onFocus,
+      onBlur: () => {
+        scaleOrder.onTotalOrdersBlur();
+        scaleKeyboardScroll?.totalOrders.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.totalOrders.realign,
+      placeholder: '',
+      keyboardType: 'number-pad',
+    },
+    {
+      inputTestID: ids.SCALE_SIZE_SKEW,
+      inputRef: scaleSizeSkewRef,
+      containerRef: scaleKeyboardScroll?.sizeSkew.cardRef,
+      label: strings('perps.pro_order_form.scale.size_skew'),
+      value: scaleOrder.sizeSkew,
+      onChangeText: scaleOrder.onSizeSkewChange,
+      onFocus: scaleKeyboardScroll?.sizeSkew.onFocus,
+      onBlur: () => {
+        scaleOrder.onSizeSkewBlur();
+        scaleKeyboardScroll?.sizeSkew.onBlur();
+      },
+      onFieldPress: scaleKeyboardScroll?.sizeSkew.realign,
+      endAccessory: (
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Xs}
+          isDisabled={isScaleFormLocked}
+          onPress={scaleOrder.onSizeSkewInfoPress}
+          testID={ids.SCALE_SKEW_INFO}
+          accessibilityLabel={strings('perps.pro_order_form.scale.size_skew')}
+          accessibilityHint={strings(
+            'perps.pro_order_form.scale.size_skew_hint',
+          )}
+        />
+      ),
+    },
+  ];
 
   const handleDirectionChange = useCallback(
     (value: string) => {
@@ -464,6 +676,7 @@ const PerpsProOrderForm = ({
             >
               <FilterButton
                 value="long"
+                disabled={isScaleFormLocked}
                 twClassName={isLong ? 'bg-success-muted' : ''}
                 testID={ids.DIRECTION_LONG}
               >
@@ -481,6 +694,7 @@ const PerpsProOrderForm = ({
               </FilterButton>
               <FilterButton
                 value="short"
+                disabled={isScaleFormLocked}
                 twClassName={!isLong ? 'bg-error-muted' : ''}
                 testID={ids.DIRECTION_SHORT}
               >
@@ -512,7 +726,7 @@ const PerpsProOrderForm = ({
             <ButtonBase
               size={ButtonBaseSize.Sm}
               onPress={handleMarginModePress}
-              isDisabled={!onMarginModePress}
+              isDisabled={isScaleFormLocked || !onMarginModePress}
               twClassName="h-8 rounded-lg bg-muted px-2"
               testID={ids.MARGIN_MODE_BUTTON}
             >
@@ -521,7 +735,7 @@ const PerpsProOrderForm = ({
             <ButtonBase
               size={ButtonBaseSize.Sm}
               onPress={handleLeveragePress}
-              isDisabled={!onLeveragePress}
+              isDisabled={isScaleFormLocked || !onLeveragePress}
               twClassName="rounded-lg bg-muted px-2"
               testID={ids.LEVERAGE_BUTTON}
             >
@@ -531,10 +745,12 @@ const PerpsProOrderForm = ({
           <Box
             ref={orderTypeCardRef}
             twClassName="overflow-hidden rounded-xl border border-muted bg-muted"
+            testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
-              twClassName="h-12 w-full bg-transparent px-3"
+              isDisabled={isScaleFormLocked}
+              twClassName="h-[54px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
@@ -564,11 +780,26 @@ const PerpsProOrderForm = ({
               onFocus={onLimitPriceFocus}
               onBlur={onLimitPriceBlur}
               onFieldPress={onLimitPriceFieldPress}
-              onUseMidPress={showsLimitPrice ? onUseMidPricePress : undefined}
+              onUseMidPress={
+                showsLimitPrice && onUseMidPricePress
+                  ? handleUseMidPricePress
+                  : undefined
+              }
               testID={ids.LIMIT_PRICE_INPUT}
               prefixTestID={ids.LIMIT_PRICE_PREFIX}
               midButtonTestID={ids.MID_PRICE_BUTTON}
               isHidden={!showsLimitPrice}
+            />
+            {isTwap ? (
+              <PerpsProTwapFields
+                twap={twap}
+                onDurationPress={onTwapDurationPress}
+              />
+            ) : null}
+            <ScaleFields
+              inputs={scaleInputs}
+              isDisabled={isScaleFormLocked}
+              isHidden={!isScaleOrder}
             />
           </Box>
           {priceCardMessage ? (
@@ -596,8 +827,12 @@ const PerpsProOrderForm = ({
             sizeSlider={sizeSlider}
             availableBalance={availableBalance}
             onAddFundsPress={onAddFundsPress}
+            isDisabled={isScaleFormLocked}
           />
-          <Box twClassName="h-12 justify-center rounded-xl bg-muted px-3">
+          <Box
+            testID={ids.REDUCE_ONLY_CONTAINER}
+            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
+          >
             <Checkbox
               label={strings('perps.order.reduce_only')}
               labelProps={{
@@ -606,6 +841,7 @@ const PerpsProOrderForm = ({
                 style: { marginLeft: 0, flex: 1 },
               }}
               isSelected={reduceOnly}
+              isDisabled={isScaleFormLocked}
               onChange={handleReduceOnlyChange}
               testID={ids.REDUCE_ONLY}
               twClassName="w-full flex-row-reverse justify-between"
@@ -634,21 +870,38 @@ const PerpsProOrderForm = ({
           >
             {placeOrderLabel}
           </ButtonSemantic>
+          {isScaleOrder ? (
+            <ScalePreview model={scaleOrder} summary={summary} />
+          ) : null}
         </Box>
-        <OrderSummary
-          {...summary}
-          onSlippagePress={
-            summaryOnSlippagePress ? handleSlippagePress : undefined
+        {!isScaleOrder ? (
+          <OrderSummary
+            {...summary}
+            onSlippagePress={
+              summaryOnSlippagePress ? handleSlippagePress : undefined
+            }
+          />
+        ) : null}
+      </Box>
+      <PerpsProInputKeyboardAccessory inputTestID={ids.SIZE_INPUT} />
+      <PerpsProInputKeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
+      <PerpsProInputKeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
+      {scaleInputs.map((input, index) => (
+        <PerpsProInputKeyboardAccessory
+          key={input.inputTestID}
+          inputTestID={input.inputTestID}
+          onPrevious={
+            index > 0
+              ? () => scaleInputs[index - 1].inputRef.current?.focus()
+              : undefined
+          }
+          onNext={
+            index < scaleInputs.length - 1
+              ? () => scaleInputs[index + 1].inputRef.current?.focus()
+              : undefined
           }
         />
-      </Box>
-      {Platform.OS === 'ios' ? (
-        <>
-          <KeyboardAccessory inputTestID={ids.SIZE_INPUT} />
-          <KeyboardAccessory inputTestID={ids.TRIGGER_PRICE_INPUT} />
-          <KeyboardAccessory inputTestID={ids.LIMIT_PRICE_INPUT} />
-        </>
-      ) : null}
+      ))}
     </>
   );
 };

@@ -274,10 +274,35 @@ describe('BrowserTab', () => {
 
       fireEvent.press(screen.getByTestId('browser-tab-close-button'));
 
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
+    it('goes back when close button is pressed from Earn strategy selection', async () => {
+      renderWithProvider(
+        <BrowserTab {...mockProps} fromEarnStrategySelection />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
         expect.anything(),

@@ -3,8 +3,9 @@ import { renderPredictNext } from '../../../../../../tests/component-view/render
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
+import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
-import { PredictEventDetailTestIds } from '../PredictEventDetail/PredictEventDetail.testIds';
+import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import type { PredictFeedId } from '../../types';
 import { PredictEventValues } from '../../../Predict/constants/eventNames';
@@ -45,14 +46,12 @@ describe('PredictHome', () => {
         'kalshi',
         'sports-football-nfl-games',
         { limit: 2 },
-        undefined,
       );
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         'sports-football-ncaa-games',
         { limit: 2 },
-        undefined,
       );
     });
 
@@ -162,14 +161,12 @@ describe('PredictHome', () => {
         'kalshi',
         feedId,
         { limit: 20 },
-        undefined,
       );
       expect(messengerCall).not.toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         feedId,
         { limit: 2 },
-        undefined,
       );
     },
   );
@@ -284,7 +281,20 @@ describe('PredictHome', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens immutable Event detail from a card', async () => {
+  it('returns to Home after opening the immutable Event from a card', async () => {
+    messengerCall.mockImplementation(
+      (action: string, _venueId: string, id: string) => {
+        if (action === 'PredictMarketDataService:getEvent') {
+          return Promise.resolve(nflEvents.find((event) => event.id === id));
+        }
+        return Promise.resolve({
+          venueId: 'kalshi',
+          id,
+          title: 'Games',
+          events: id === 'sports-football-nfl-games' ? nflEvents : ncaaEvents,
+        });
+      },
+    );
     const view = renderPredictNext();
 
     fireEvent.press(
@@ -294,14 +304,24 @@ describe('PredictHome', () => {
     );
 
     expect(
-      await view.findByTestId(PredictEventDetailTestIds.VIEW),
+      await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
-    expect(view.getByText('Packers vs Steelers')).toBeOnTheScreen();
-    expect(messengerCall).not.toHaveBeenCalledWith(
-      'PredictMarketDataService:getEvent',
-      expect.anything(),
-      expect.anything(),
+    expect(
+      await view.findByTestId(MarketFooterCardTestIds.ROOT),
+    ).toBeOnTheScreen();
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([
+          'PredictMarketDataService:getEvent',
+          'kalshi',
+          'nfl-1',
+        ]),
+      ]),
     );
+
+    fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));
+
+    expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
   it('does not navigate when a disabled Outcome is pressed', async () => {
@@ -316,7 +336,7 @@ describe('PredictHome', () => {
 
     expect(view.getByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictEventDetailTestIds.VIEW),
+      view.queryByTestId(PredictEventScreenTestIds.VIEW),
     ).not.toBeOnTheScreen();
   });
 

@@ -17,7 +17,13 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
@@ -30,6 +36,7 @@ import {
   usePerpsLiveOrders,
   usePerpsLivePositions,
 } from '../../../hooks/stream';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import {
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
@@ -39,6 +46,7 @@ import { calculatePositionAggregateTotals } from '../../../utils/pnlCalculations
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
+import PerpsProOrdersSummary from './PerpsProOrdersSummary';
 import PerpsProPositionCard from './PerpsProPositionCard';
 import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
@@ -74,6 +82,13 @@ interface PerpsProPositionsPanelProps {
   ) => void;
   /** Navigates to the order history screen. */
   onHistoryPress?: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+    deliveryRevisions: { positions: number; orders: number },
+  ) => void;
+  isMarketContextReady?: boolean;
+  marketContextKey?: string;
 }
 
 /**
@@ -93,6 +108,9 @@ const PerpsProPositionsPanel = ({
   symbol,
   onSelectMarket,
   onHistoryPress,
+  onResolvedStateChange,
+  isMarketContextReady = true,
+  marketContextKey = '',
 }: PerpsProPositionsPanelProps) => {
   const { playSelection } = useHaptics();
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -121,12 +139,16 @@ const PerpsProPositionsPanel = ({
     },
     [isTickerOnly, playSelection],
   );
-  const { positions, isInitialLoading } = usePerpsLivePositions({
-    throttleMs: 1000,
-    useLivePnl: true,
-  });
-  const { orders, isInitialLoading: areOrdersInitiallyLoading } =
-    usePerpsLiveOrders({ throttleMs: 1000 });
+  const {
+    positions,
+    isInitialLoading,
+    deliveryRevision: positionsDeliveryRevision = 0,
+  } = usePerpsLivePositions({ throttleMs: 1000, useLivePnl: true });
+  const {
+    orders,
+    isInitialLoading: areOrdersInitiallyLoading,
+    deliveryRevision: ordersDeliveryRevision = 0,
+  } = usePerpsLiveOrders({ throttleMs: 1000 });
   const {
     handleClosePosition,
     handleReversePosition,
@@ -137,6 +159,7 @@ const PerpsProPositionsPanel = ({
     handleEditOrderPrice,
     handleEditOrderSize,
     handleCloseAllPress,
+    handleCancelAllPress,
     cancelingOrderId,
     editingOrderId,
     isOrderCancelable,
@@ -146,6 +169,37 @@ const PerpsProPositionsPanel = ({
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
   const { markets } = usePerpsMarkets();
+
+  useEffect(() => {
+    const deliveryRevisions = {
+      positions: positionsDeliveryRevision,
+      orders: ordersDeliveryRevision,
+    };
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+      return;
+    }
+    if (isInitialLoading || areOrdersInitiallyLoading) {
+      onResolvedStateChange?.(symbol, 'loading', deliveryRevisions);
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      positions.length > 0 || orders.length > 0 ? 'content' : 'empty',
+      deliveryRevisions,
+    );
+  }, [
+    areOrdersInitiallyLoading,
+    isInitialLoading,
+    isMarketContextReady,
+    marketContextKey,
+    onResolvedStateChange,
+    orders.length,
+    ordersDeliveryRevision,
+    positions.length,
+    positionsDeliveryRevision,
+    symbol,
+  ]);
 
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 
@@ -221,6 +275,9 @@ const PerpsProPositionsPanel = ({
     () => filterProOrdersBySide(visibleOrders, ordersSideFilter),
     [ordersSideFilter, visibleOrders],
   );
+
+  const areOrdersFiltered =
+    isTickerOnly || ordersSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER;
 
   const sortedVisiblePositions = useMemo(
     () =>
@@ -350,6 +407,10 @@ const PerpsProPositionsPanel = ({
     if (sortedVisibleOrders.length > 0) {
       return (
         <Box testID={PerpsProMarketViewSelectorsIDs.ORDERS_LIST}>
+          <PerpsProOrdersSummary
+            orderCount={sideFilteredOrders.length}
+            onCancelAll={handleCancelAllPress}
+          />
           {sortedVisibleOrders.map((order, index) => (
             <PerpsProOrderCard
               key={order.orderId}
@@ -476,7 +537,12 @@ const PerpsProPositionsPanel = ({
       {activeIndex === ORDERS_TAB_INDEX
         ? renderOrdersTab()
         : renderPositionsTab()}
-      {renderActionSheets(sideFilteredPositions, isPositionsFiltered)}
+      {renderActionSheets(
+        sideFilteredPositions,
+        isPositionsFiltered,
+        sideFilteredOrders,
+        areOrdersFiltered,
+      )}
       {activeIndex === ORDERS_TAB_INDEX ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}

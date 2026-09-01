@@ -2,29 +2,26 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import LendingMaxWithdrawalModal from './index';
 
-// Mock the BottomSheet component
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const MockBottomSheet = ({
-      children,
-      ref,
-    }: {
-      children: React.ReactNode;
-      ref: { current: { onCloseBottomSheet: () => void } | null };
-    }) => {
-      if (ref) {
-        ref.current = {
-          onCloseBottomSheet: jest.fn(),
-        };
-      }
-      return <>{children}</>;
-    };
-    return MockBottomSheet;
-  },
-);
+const mockGoBack = jest.fn();
+const mockIsFocused = jest.fn(() => true);
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      isFocused: mockIsFocused,
+    }),
+  };
+});
 
 describe('LendingMaxWithdrawalModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsFocused.mockReturnValue(true);
+  });
+
   it('should render correctly', () => {
     const { getByText } = render(<LendingMaxWithdrawalModal />);
 
@@ -33,15 +30,21 @@ describe('LendingMaxWithdrawalModal', () => {
     ).toBeOnTheScreen();
   });
 
-  it('should handle close action', () => {
-    const { getByText } = render(<LendingMaxWithdrawalModal />);
+  it('navigates back when the close button is pressed', () => {
+    const { getByTestId } = render(<LendingMaxWithdrawalModal />);
 
-    // Find and click the close button
-    const closeButton = getByText("Why can't I withdraw my full balance?");
-    fireEvent.press(closeButton);
+    fireEvent.press(getByTestId('button-icon'));
 
-    // The close functionality is handled by the BottomSheet component
-    // which is mocked, so we just verify the component renders without errors
-    expect(closeButton).toBeOnTheScreen();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not navigate back when the screen is not focused', () => {
+    mockIsFocused.mockReturnValue(false);
+
+    const { getByTestId } = render(<LendingMaxWithdrawalModal />);
+
+    fireEvent.press(getByTestId('button-icon'));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

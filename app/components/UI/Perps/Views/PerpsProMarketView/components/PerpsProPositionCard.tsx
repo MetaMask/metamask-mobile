@@ -4,6 +4,9 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -29,6 +32,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPercentage,
@@ -55,7 +59,11 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-const ACTION_BUTTON_CLASS_NAME = 'flex-1 border-muted bg-background-default';
+const ACTION_BUTTON_CLASS_NAME = 'flex-1';
+const ACTION_BUTTON_TEXT_PROPS = {
+  variant: TextVariant.BodySm,
+  fontWeight: FontWeight.Medium,
+};
 
 interface KeyValueItemProps {
   label: string;
@@ -68,6 +76,8 @@ interface KeyValueItemProps {
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
   showEditIcon?: boolean;
+  /** Test ID for the value row, so agentic recipes can read the rendered value. */
+  valueTestID?: string;
 }
 
 const KeyValueItem = ({
@@ -81,6 +91,7 @@ const KeyValueItem = ({
   valuePressTestID,
   valuePressAccessibilityLabel,
   showEditIcon = false,
+  valueTestID,
 }: KeyValueItemProps) => {
   const valueContent = (
     <>
@@ -130,6 +141,7 @@ const KeyValueItem = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
+          testID={valueTestID}
         >
           {valueContent}
         </Box>
@@ -192,11 +204,27 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
+  // How far the live mark price sits from liquidation. Same formula and
+  // precision as the Lite card, so both modes report the same percentage for
+  // the same position.
+  const liqPriceNum =
+    position.liquidationPrice != null
+      ? parseFloat(String(position.liquidationPrice))
+      : NaN;
+  const canShowDistance =
+    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
+  const liquidationDistanceSuffix = canShowDistance
+    ? ` (${(
+        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
+        100
+      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
+    : '';
+
   const liqPriceDisplay =
     position.liquidationPrice != null
-      ? formatPerpsFiat(position.liquidationPrice, {
+      ? `${formatPerpsFiat(position.liquidationPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
-        })
+        })}${liquidationDistanceSuffix}`
       : PERPS_CONSTANTS.FallbackPriceDisplay;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -320,7 +348,7 @@ const PerpsProPositionCard = ({
                 }
                 isHidden={privacyMode}
                 length={SensitiveTextLength.Short}
-                testID="pnl-text"
+                testID={PerpsProMarketViewSelectorsIDs.POSITION_PNL_TEXT}
               >
                 {formatPnl(pnlNum)}
               </SensitiveText>
@@ -342,19 +370,32 @@ const PerpsProPositionCard = ({
           </Box>
         </Pressable>
 
-        {/* Summary: key figures in three columns */}
+        {/* Summary: key figures in two columns so translated labels can wrap */}
         <Box twClassName="px-4">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box twClassName="flex-1 gap-6">
+            <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.entry_price')}
                 value={entryPriceDisplay}
                 isHidden={privacyMode}
               />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.mark_price')}
+                value={markPriceDisplay}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.card.liq_price')}
+                value={liqPriceDisplay}
+                isHidden={privacyMode}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
+              />
+            </Box>
+            <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
@@ -374,11 +415,10 @@ const PerpsProPositionCard = ({
                 )}
                 showEditIcon={canEditMargin}
               />
-            </Box>
-            <Box twClassName="min-w-[128px] gap-6">
               <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.mark_price')}
-                value={markPriceDisplay}
+                label={strings('perps.pro_positions_panel.card.funding')}
+                value={fundingDisplay}
+                valueColor={fundingColor}
                 isHidden={privacyMode}
               />
               <KeyValueItem
@@ -398,19 +438,6 @@ const PerpsProPositionCard = ({
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>
-            <Box twClassName="gap-6">
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.liq_price')}
-                value={liqPriceDisplay}
-                isHidden={privacyMode}
-              />
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.card.funding')}
-                value={fundingDisplay}
-                valueColor={fundingColor}
-                isHidden={privacyMode}
-              />
-            </Box>
           </Box>
         </Box>
 
@@ -423,6 +450,7 @@ const PerpsProPositionCard = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
+            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Close}
             twClassName={ACTION_BUTTON_CLASS_NAME}
             onPress={() => onClose?.(position)}
@@ -433,6 +461,7 @@ const PerpsProPositionCard = ({
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
+            textProps={ACTION_BUTTON_TEXT_PROPS}
             startIconName={IconName.Refresh}
             twClassName={ACTION_BUTTON_CLASS_NAME}
             onPress={() => onReverse?.(position)}
@@ -440,16 +469,16 @@ const PerpsProPositionCard = ({
           >
             {strings('perps.pro_positions_panel.card.reverse')}
           </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Sm}
-            startIconName={IconName.Share}
-            twClassName={ACTION_BUTTON_CLASS_NAME}
+          <ButtonIcon
+            iconName={IconName.Share}
+            size={ButtonIconSize.Md}
+            variant={ButtonIconVariant.Filled}
+            iconProps={{ size: IconSize.Md }}
+            twClassName="rounded-md"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
-          >
-            {strings('perps.pro_positions_panel.card.share')}
-          </Button>
+            accessibilityLabel={strings('perps.pro_positions_panel.card.share')}
+          />
         </Box>
       </Box>
     </Pressable>
