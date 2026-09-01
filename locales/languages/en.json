@@ -7669,7 +7669,7 @@
       "up_to": "Up to",
       "toasts": {
         "deposit_navigation": {
-          "failed": "Failed to navigate to deposit screen for selected strategy"
+          "failed": "Failed to navigate to deposit screen for selected asset"
         } 
       },
       "strategies": {

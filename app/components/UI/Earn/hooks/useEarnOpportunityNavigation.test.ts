@@ -19,6 +19,7 @@ import Engine from '../../../../core/Engine';
 import type { TokenI } from '../../Tokens/types';
 import { earnAssetToToken } from '../utils/earnAssets';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../utils/earnAssets/earnAssetBalance';
+import type { EarnToastOptions } from './useEarnToasts';
 import useEarnOpportunityNavigation from './useEarnOpportunityNavigation';
 
 const mockNavigate = jest.fn();
@@ -85,6 +86,11 @@ jest.mock('../../../../util/Logger', () => ({
     error: jest.fn(),
   },
 }));
+const mockUseEarnToasts = jest.fn();
+jest.mock('./useEarnToasts', () => ({
+  __esModule: true,
+  default: () => mockUseEarnToasts(),
+}));
 
 const mockUseNavigation = jest.mocked(useNavigation);
 const mockUseStakingChain = jest.mocked(useStakingChain);
@@ -107,6 +113,8 @@ const mockEngineSetActiveNetwork = jest.mocked(
 const mockEngineSetMultichainActiveNetwork = jest.mocked(
   Engine.context.MultichainNetworkController.setActiveNetwork,
 );
+const showToast = jest.fn<void, [EarnToastOptions]>();
+const navigationToDepositToast = {} as EarnToastOptions;
 
 const createExperience = (
   type: EarnExperience['type'],
@@ -185,6 +193,14 @@ describe('useEarnOpportunityNavigation', () => {
     mockUseMoneyOnboardingNavigation.mockReturnValue({
       isOnboardingRedirectNeeded: false,
       redirectToOnboardingIfNeeded: mockRedirectToOnboardingIfNeeded,
+    });
+    mockUseEarnToasts.mockReturnValue({
+      showToast,
+      EarnToastOptions: {
+        earnStrategySelection: {
+          navigationToDeposit: navigationToDepositToast,
+        },
+      },
     });
     mockEarnAssetToToken.mockImplementation((earnAsset: EarnAsset) => {
       const asset =
@@ -363,6 +379,24 @@ describe('useEarnOpportunityNavigation', () => {
       error,
       '[useEarnOpportunityNavigation] Failed to initiate Money deposit',
     );
+  });
+
+  it('shows a toast when single-strategy deposit navigation fails', async () => {
+    const error = new Error('deposit navigation failed');
+    mockRedirectToOnboardingIfNeeded.mockImplementationOnce(() => {
+      throw error;
+    });
+    const earnAsset = createEarnAsset(1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    await act(async () => {
+      result.current.navigateFromEarnAsset(earnAsset);
+      await Promise.resolve();
+    });
+
+    expect(showToast).toHaveBeenCalledWith(navigationToDepositToast);
   });
 
   it('switches network and navigates to staking for stablecoin lending', async () => {

@@ -21,6 +21,7 @@ import { useMoneyOnboardingNavigation } from '../../Money/hooks/useMoneyNavigati
 import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
 import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
 import Logger from '../../../../util/Logger';
+import useEarnToasts from './useEarnToasts';
 
 const LOG_PREFIX = '[useEarnOpportunityNavigation]';
 
@@ -33,6 +34,7 @@ const LOG_PREFIX = '[useEarnOpportunityNavigation]';
  */
 const useEarnOpportunityNavigation = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { showToast, EarnToastOptions } = useEarnToasts();
   const { isStakingSupportedChain } = useStakingChain();
   const { redirectToOnboardingIfNeeded } = useMoneyOnboardingNavigation();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -182,6 +184,9 @@ const useEarnOpportunityNavigation = () => {
       if (hasSingleStrategy) {
         navigateToDepositForExperience(asset, asset.experiences[0]).catch(
           (error: Error) => {
+            showToast(
+              EarnToastOptions.earnStrategySelection.navigationToDeposit,
+            );
             Logger.error(
               error,
               `${LOG_PREFIX} Failed to navigate to deposit screen`,
@@ -196,7 +201,12 @@ const useEarnOpportunityNavigation = () => {
         params: { earnAsset: asset },
       });
     },
-    [navigation, navigateToDepositForExperience],
+    [
+      navigation,
+      navigateToDepositForExperience,
+      showToast,
+      EarnToastOptions.earnStrategySelection.navigationToDeposit,
+    ],
   );
 
   return {
