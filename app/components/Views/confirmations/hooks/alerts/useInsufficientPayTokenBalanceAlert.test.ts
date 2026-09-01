@@ -13,6 +13,7 @@ import {
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 
+import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../locales/i18n';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
@@ -28,20 +29,16 @@ import {
 } from '../pay/useTransactionPayData';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
-import { BigNumber } from 'bignumber.js';
 
 jest.mock('../pay/useTransactionPayToken');
-jest.mock('../pay/useTransactionPayBalance');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../tokens/useTokenWithBalance');
-jest.mock('../transactions/useTransactionPayingAccount');
 jest.mock('../pay/useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 
 const PAY_TOKEN_MOCK = {
   address: '0x123' as Hex,
@@ -64,17 +61,12 @@ const TOTALS_MOCK = {
     },
   },
   sourceAmount: { raw: '1000', usd: '1.25' },
-  // Fee-inclusive total (input + all fees). Kept below the default pay balance
-  // (1.23... wait, see below) so the generic balance check passes by default.
-  total: { usd: '1.20' },
 } as TransactionPayTotals;
 
 const NATIVE_TOKEN_MOCK = {
   address: '0x456' as Hex,
   balanceRaw: '100',
 } as NonNullable<ReturnType<typeof useTokenWithBalance>>;
-const PAYER_ADDRESS = '0x2222222222222222222222222222222222222222' as Hex;
-const SIGNER_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
 
 function runHook(
   props: Parameters<typeof useInsufficientPayTokenBalanceAlert>[0] = {},
@@ -89,8 +81,6 @@ function runHook(
 }
 
 describe('useInsufficientPayTokenBalanceAlert', () => {
-  let moneyAccountBalanceRawMock: string | undefined;
-
   const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTokenWithBalanceMock = jest.mocked(useTokenWithBalance);
@@ -109,9 +99,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const useTransactionPayingAccountMock = jest.mocked(
-    useTransactionPayingAccount,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -122,40 +109,19 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
-    useTransactionPayingAccountMock.mockReturnValue(PAYER_ADDRESS);
     useTransactionMetadataRequestMock.mockReturnValue(
       undefined as unknown as TransactionMeta,
     );
     jest
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
       .mockReturnValue(undefined);
-    moneyAccountBalanceRawMock = undefined;
+    jest.mocked(useMoneyAccountBalance).mockReturnValue({
+      withdrawableFiatRaw: undefined,
+    } as ReturnType<typeof useMoneyAccountBalance>);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
       setPayToken: jest.fn(),
-    });
-
-    // useTransactionPayBalance is the single source of truth for balanceUsd and
-    // balanceRaw. Mirror its per-flow resolution from the same mocks the test
-    // controls: money-account (override/withdraw) uses exact withdrawable raw,
-    // every other flow uses the pay token's balance.
-    jest.mocked(useTransactionPayBalance).mockImplementation(() => {
-      const { payToken } = useTransactionPayTokenMock();
-
-      if (moneyAccountBalanceRawMock !== undefined) {
-        const usd = new BigNumber(moneyAccountBalanceRawMock).shiftedBy(-6);
-        return {
-          balanceRaw: moneyAccountBalanceRawMock,
-          balanceUsd: usd.toNumber(),
-        };
-      }
-
-      const balanceUsd = new BigNumber(payToken?.balanceUsd ?? '0').toNumber();
-      return {
-        balanceRaw: payToken?.balanceRaw ?? '0',
-        balanceUsd,
-      };
     });
   });
 
@@ -413,16 +379,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
   });
 
   describe('for source network fee', () => {
-    it('uses paying account for native balance lookup', () => {
-      runHook();
-
-      expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
-        expect.any(String),
-        PAY_TOKEN_MOCK.chainId,
-        PAYER_ADDRESS,
-      );
-    });
-
     it('returns alert if native balance is less than total source network fee', () => {
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -575,71 +531,44 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
     beforeEach(() => {
       useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-      useTransactionPayingAccountMock.mockReturnValue(SIGNER_ADDRESS);
 
       // payToken is the *destination* token (e.g. ETH on mainnet 0x1)
       // transactionMeta.chainId is the *source* chain (e.g. Polygon 0x89)
       useTransactionMetadataRequestMock.mockReturnValue({
         chainId: SOURCE_CHAIN_ID,
       } as TransactionMeta);
-
-      // In withdrawal flows the spendable balance is the withdrawable balance,
-      // resolved independently of payToken. Default it high enough that both the
-      // input and fees checks pass, so source-gas cases exercise the native
-      // check in isolation.
-      jest.mocked(useTransactionPayBalance).mockReturnValue({
-        balanceRaw: '1000000',
-        balanceUsd: 1000,
-      });
     });
 
-    it('fires input insufficient balance check for post-quote (withdrawal) flows', () => {
-      // In withdrawal flows the resolved balance is the withdrawable balance
-      // (perps/predict/money). When it is below the entered amount the input
-      // check now fires generically — this replaces the former per-flow alerts.
-      jest.mocked(useTransactionPayBalance).mockReturnValue({
-        balanceRaw: '500000',
-        balanceUsd: 0.5, // < required $1.23
+    it('skips input insufficient balance check for post-quote flows', () => {
+      // Balance is less than required amount - would normally trigger alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceUsd: '0.50', // Less than required $1.23
+        },
+        setPayToken: jest.fn(),
       });
 
       const { result } = runHook({}, polygonNetworkState);
 
-      expect(result.current).toStrictEqual([
-        {
-          key: AlertKeys.InsufficientPayTokenBalance,
-          field: RowAlertKey.Amount,
-          isBlocking: true,
-          message: strings(
-            'alert_system.insufficient_pay_token_balance.message',
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
     });
 
-    it('fires the fees check generically in post-quote flows', () => {
-      // The fees check is no longer special-cased for post-quote flows: it runs
-      // against the resolved spendable balance (balanceRaw) like every other
-      // flow. Resolve a balance below the source amount so the fees alert fires.
-      jest.mocked(useTransactionPayBalance).mockReturnValue({
-        balanceRaw: '500', // < source amount (1000) -> fees alert
-        balanceUsd: 1000, // input check passes
+    it('skips fees insufficient balance check for post-quote flows', () => {
+      // Balance is less than source amount - would normally trigger fee alert
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceRaw: '500', // Less than source amount (1000)
+        },
+        setPayToken: jest.fn(),
       });
 
       const { result } = runHook({}, polygonNetworkState);
 
-      expect(result.current).toStrictEqual([
-        {
-          key: AlertKeys.InsufficientPayTokenFees,
-          field: RowAlertKey.Amount,
-          isBlocking: true,
-          title: strings('alert_system.insufficient_pay_token_balance.message'),
-          message: strings(
-            'alert_system.insufficient_pay_method_balance.message',
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
+      // No alert because post-quote funds come from withdrawal, not user balance
+      expect(result.current).toStrictEqual([]);
     });
 
     it('uses transactionMeta.chainId (source chain) not payToken.chainId for native balance check', () => {
@@ -656,7 +585,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(useTokenWithBalanceMock).toHaveBeenCalledWith(
         expect.any(String),
         SOURCE_CHAIN_ID,
-        SIGNER_ADDRESS,
       );
     });
 
@@ -766,51 +694,6 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         },
       ]);
     });
-
-    it('still checks source network fee when a payment override is set in a post-quote flow', () => {
-      // Perps/Predict -> Money Account is post-quote *and* has the override set.
-      // Gas is still paid on the source chain here, so the override alone must
-      // not mark the source chain gasless — the native-gas check still fires.
-      const overrideState = merge({}, polygonNetworkState, {
-        engine: {
-          backgroundState: {
-            TransactionPayController: {
-              transactionData: {
-                'tx-post-quote-override': {
-                  paymentOverride: PaymentOverride.MoneyAccount,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: 'tx-post-quote-override',
-        chainId: SOURCE_CHAIN_ID,
-      } as TransactionMeta);
-
-      useTokenWithBalanceMock.mockReturnValue({
-        ...NATIVE_TOKEN_MOCK,
-        balanceRaw: '50', // < max gas fee (100)
-      } as ReturnType<typeof useTokenWithBalance>);
-
-      const { result } = runHook({}, overrideState);
-
-      expect(result.current).toStrictEqual([
-        {
-          key: AlertKeys.InsufficientPayTokenNative,
-          field: RowAlertKey.Amount,
-          isBlocking: true,
-          title: strings('alert_system.insufficient_pay_token_balance.message'),
-          message: strings(
-            'alert_system.insufficient_pay_token_native_post_quote.message',
-            { ticker: 'POL' },
-          ),
-          severity: Severity.Danger,
-        },
-      ]);
-    });
   });
 
   describe('money account source', () => {
@@ -837,7 +720,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('uses money account balance instead of on-chain balance for input check', () => {
-      moneyAccountBalanceRawMock = '500000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '0.50',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -863,7 +748,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('returns no input alert when money account balance covers the amount', () => {
-      moneyAccountBalanceRawMock = '10000000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '10.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({}, moneyAccountState);
 
@@ -871,7 +758,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('skips fee insufficient balance check for money account source', () => {
-      moneyAccountBalanceRawMock = '10000000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '10.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
@@ -886,15 +775,14 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('skips source network fee check for money account source (gasless)', () => {
-      // A deposit-direction money-account source (override set, not post-quote)
-      // is a gasless source chain: gas is sponsored by the override path, not
-      // paid from the user's native balance, so the native-gas check is skipped.
-      moneyAccountBalanceRawMock = '10000000';
+    it('skips source network fee check for money account source', () => {
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '10.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
-        balanceRaw: '99', // < source network fee (100), but source is gasless
+        balanceRaw: '99',
       } as ReturnType<typeof useTokenWithBalance>);
 
       const { result } = runHook({}, moneyAccountState);
@@ -902,14 +790,19 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toStrictEqual([]);
     });
 
-    it('returns the input alert when the money account balance is below the amount', () => {
-      // The former money-account `total.usd` check has been removed in favour of
-      // the generic input check against the resolved money-account balance.
-      moneyAccountBalanceRawMock = '2980000'; // < required $2.99
+    it('returns alert when total (amount + fees) exceeds money account balance', () => {
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
         { ...REQUIRED_TOKEN_MOCK, amountUsd: '2.99' },
       ]);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        total: { usd: '3.06' },
+      } as TransactionPayTotals);
 
       const { result } = runHook({}, moneyAccountState);
 
@@ -918,8 +811,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           key: AlertKeys.InsufficientPayTokenBalance,
           field: RowAlertKey.Amount,
           isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_balance.message',
+            'alert_system.insufficient_pay_method_balance.message',
           ),
           severity: Severity.Danger,
         },
@@ -931,7 +825,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       // amount is reduced to leave room for fees.
       useTransactionPayIsMaxAmountMock.mockReturnValue(true);
 
-      moneyAccountBalanceRawMock = '3000000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
         { ...REQUIRED_TOKEN_MOCK, amountUsd: '3.00' },
@@ -948,7 +844,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('returns no alert when total is within money account balance', () => {
-      moneyAccountBalanceRawMock = '5000000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '5.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayRequiredTokensMock.mockReturnValue([
         { ...REQUIRED_TOKEN_MOCK, amountUsd: '2.99' },
@@ -965,7 +863,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
 
     it('skips total check during pending input (keyboard visible)', () => {
-      moneyAccountBalanceRawMock = '3000000';
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        withdrawableFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
 
       useTransactionPayTotalsMock.mockReturnValue({
         ...TOTALS_MOCK,
