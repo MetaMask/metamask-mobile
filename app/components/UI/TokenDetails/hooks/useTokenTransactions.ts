@@ -21,6 +21,10 @@ import { store } from '../../../../store';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
+import {
+  collectBridgeArrivalTxs,
+  createBridgeHistoryFinder,
+} from '../../../../util/bridge/collectBridgeArrivalTxs';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
@@ -288,65 +292,41 @@ export const useTokenTransactions = (
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
-   * EVM bridge transactions arriving at this non-EVM asset.
+   * Bridge transactions whose destination is this page's asset but whose
+   * source tx lives on another chain (mirrors extension selectIncomingBridgeHistory).
    *
-   * A bridge's only local tx is on the source chain, and this page's list is
-   * keyring txs from its own chain — so the receiving leg would never show.
-   * `isBridgeArrivalForCurrentToken` does the same job for EVM pages; it can't
-   * be reused here because it compares hex chain ids.
+   * EVM→NEVM: inject the EVM source tx on the NEVM token page.
+   * NEVM→NEVM / NEVM→EVM: inject source or dest fill txs from bridge history.
    */
   const bridgeArrivalTxs = useMemo(() => {
-    if (!isNonEvmAsset || !asset.chainId) {
-      return [] as Transaction[];
-    }
+    const nativeAssetId = asset.chainId
+      ? AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+          asset.chainId as SupportedCaipChainId
+        ]?.nativeCurrency
+      : undefined;
 
-    const nativeAssetId =
-      AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-        asset.chainId as SupportedCaipChainId
-      ]?.nativeCurrency;
-    const assetAddress = asset.address?.toLowerCase();
-    const isNativeAsset = asset.isNative || asset.isETH;
+    const nonEvmTransactions =
+      nonEvmTransactionsData?.transactions?.filter(Boolean) ?? [];
 
-    return evmTransactions.filter((tx: Transaction) => {
-      if (tx.type !== TransactionType.bridge || tx.status === TX_UNAPPROVED) {
-        return false;
-      }
-
-      const quote = findBridgeHistoryItem({
-        bridgeHistory,
-        transactionMetaId: tx.id,
-        transactionActionId: tx.actionId,
-        transactionHash: tx.hash,
-      })?.quote;
-
-      if (quote?.destChainId === undefined || quote.destChainId === null) {
-        return false;
-      }
-
-      if (formatChainIdToCaip(quote.destChainId) !== asset.chainId) {
-        return false;
-      }
-
-      const destAssetId = quote.destAsset?.assetId?.toLowerCase();
-
-      if (isNativeAsset) {
-        return Boolean(
-          nativeAssetId && destAssetId === nativeAssetId.toLowerCase(),
-        );
-      }
-
-      return Boolean(
-        assetAddress && destAssetId && destAssetId.includes(assetAddress),
-      );
-    });
+    return collectBridgeArrivalTxs({
+      bridgeHistory,
+      evmTransactions,
+      nonEvmTransactions,
+      pageAsset: asset,
+      isNonEvmAsset,
+      pageChainId: chainId,
+      nativeAssetId,
+      isBridgeTx: (tx) =>
+        tx.type === TransactionType.bridge && tx.status !== TX_UNAPPROVED,
+      findHistoryForTx: createBridgeHistoryFinder(bridgeHistory),
+    }) as Transaction[];
   }, [
-    asset.address,
-    asset.chainId,
-    asset.isETH,
-    asset.isNative,
+    asset,
     bridgeHistory,
+    chainId,
     evmTransactions,
     isNonEvmAsset,
+    nonEvmTransactionsData?.transactions,
   ]);
   ///: END:ONLY_INCLUDE_IF
 
@@ -678,6 +658,24 @@ export const useTokenTransactions = (
           ].insertImportTime = true;
         }
 
+        if (!isNonEvmAsset && bridgeArrivalTxs.length > 0) {
+          const existingIds = new Set(
+            filteredTransactions.map((tx: Transaction) => tx.id),
+          );
+
+          for (const arrivalTx of bridgeArrivalTxs) {
+            if (arrivalTx.id && !existingIds.has(arrivalTx.id)) {
+              filteredTransactions.push(arrivalTx);
+              confirmedTxs.push(arrivalTx);
+              existingIds.add(arrivalTx.id);
+            }
+          }
+
+          filteredTransactions.sort(
+            (a: Transaction, b: Transaction) => (b?.time ?? 0) - (a?.time ?? 0),
+          );
+        }
+
         if (
           (txsRef.current.length === 0 && !txState.transactionsUpdated) ||
           txsRef.current.length !== filteredTransactions.length ||
@@ -709,6 +707,7 @@ export const useTokenTransactions = (
     chainIdRef.current = chainId;
   }, [
     allTransactions,
+    bridgeArrivalTxs,
     chainId,
     filter,
     isNonEvmAsset,

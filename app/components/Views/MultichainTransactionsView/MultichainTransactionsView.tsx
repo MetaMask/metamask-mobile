@@ -185,10 +185,15 @@ const MultichainTransactionsView = ({
     bridgeArrivalItems,
     arrivalDestTxHashes,
     bridgeTransactionByActivityItem,
+    bridgeKeyringArrivalByActivityItem,
   } = useMemo(() => {
     const items: ActivityListItem[] = [];
     const destTxHashes = new Set<string>();
     const sourceTransactions = new WeakMap<ActivityListItem, TransactionMeta>();
+    const keyringArrivalTransactions = new WeakMap<
+      ActivityListItem,
+      Transaction
+    >();
 
     for (const tx of bridgeArrivalTransactions ?? []) {
       const bridgeHistoryItem = findBridgeHistoryItem({
@@ -204,21 +209,52 @@ const MultichainTransactionsView = ({
         destTxHashes.add(destTxHash.toLowerCase());
       }
 
-      const activityItem = mapTransactionToActivityItem({
-        transaction: tx,
-        currentChainId: tx.chainId,
-        bridgeHistoryItem,
-      });
+      const isEvmBridgeArrival = Boolean(
+        (tx as TransactionMeta).txParams || (tx as TransactionMeta).chainId,
+      );
+
+      if (isEvmBridgeArrival) {
+        const activityItem = mapTransactionToActivityItem({
+          transaction: tx as TransactionMeta,
+          currentChainId: (tx as TransactionMeta).chainId,
+          bridgeHistoryItem,
+        });
+        items.push(activityItem);
+        sourceTransactions.set(activityItem, tx as TransactionMeta);
+        continue;
+      }
+
+      const keyringTx = tx as Transaction;
+      let activityItem = classifyKeyringStakingActivity(
+        keyringTx,
+        mapKeyringTransaction({
+          transaction: {
+            ...keyringTx,
+            chain: keyringTx.chain ?? chainId,
+            fees: keyringTx.fees ?? [],
+          },
+          subjectAddress: address,
+        }) as ActivityListItem,
+      );
+      const quote = bridgeHistoryItem?.quote;
+      if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
+        activityItem = applyBridgeQuote(
+          activityItem,
+          bridgeHistoryItem,
+          address,
+        );
+      }
       items.push(activityItem);
-      sourceTransactions.set(activityItem, tx);
+      keyringArrivalTransactions.set(activityItem, keyringTx);
     }
 
     return {
       bridgeArrivalItems: items,
       arrivalDestTxHashes: destTxHashes,
       bridgeTransactionByActivityItem: sourceTransactions,
+      bridgeKeyringArrivalByActivityItem: keyringArrivalTransactions,
     };
-  }, [bridgeArrivalTransactions, bridgeHistory]);
+  }, [address, bridgeArrivalTransactions, bridgeHistory, chainId]);
 
   const { activityListData, transactionByActivityItem } = useMemo(() => {
     const sourceTransactions = new WeakMap<ActivityListItem, Transaction>();
@@ -405,6 +441,27 @@ const MultichainTransactionsView = ({
             onPress={handleBridgeArrivalPress}
           />
         </Box>
+      );
+    }
+
+    const keyringArrivalTx = bridgeKeyringArrivalByActivityItem.get(item.item);
+    if (keyringArrivalTx) {
+      const srcTxHash = item.item.hash ?? keyringArrivalTx.id;
+      return (
+        <MultichainAssetDetailsActivityListItem
+          item={item.item}
+          transaction={keyringArrivalTx}
+          bridgeHistoryItem={
+            srcTxHash
+              ? (bridgeHistoryItemsBySrcTxHash[srcTxHash] ??
+                bridgeHistoryItemsByDestTxHash[srcTxHash])
+              : undefined
+          }
+          navigation={nav}
+          index={index}
+          chainId={chainId}
+          location={location}
+        />
       );
     }
 
