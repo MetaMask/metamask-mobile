@@ -25,6 +25,7 @@ import { usePerpsEventTracking } from '../hooks/usePerpsEventTracking';
 import { usePerpsChaseOrders } from '../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
+import { useFeatureNotificationsStatus } from '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
@@ -55,6 +56,8 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const isPushNotificationsEnabled = useSelector(
     selectIsMetaMaskPushNotificationsEnabled,
   );
+  const { isPushEnabled: isPerpsPushNotificationsEnabled } =
+    useFeatureNotificationsStatus('perps');
   const {
     hasLiveChaseOrders,
     isChaseOrderDiscoveryResolved,
@@ -74,6 +77,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     suspendChaseOrders,
     track,
     isPushNotificationsEnabled,
+    isPerpsPushNotificationsEnabled,
   });
   useLayoutEffect(() => {
     isPerpsEnabledRef.current = isPerpsEnabled;
@@ -82,9 +86,11 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       suspendChaseOrders,
       track,
       isPushNotificationsEnabled,
+      isPerpsPushNotificationsEnabled,
     };
   }, [
     isPerpsEnabled,
+    isPerpsPushNotificationsEnabled,
     isPushNotificationsEnabled,
     shouldSuspendChaseOrders,
     suspendChaseOrders,
@@ -176,11 +182,17 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         notifyingBackgroundedChaseHandlesRef.current.add(order.handle),
       );
       (async () => {
-        if (!chaseLifecycleRef.current.isPushNotificationsEnabled) return;
+        if (
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+        ) {
+          return;
+        }
         if (
           !(await isPushPermissionGranted()) ||
           !isActive ||
-          !chaseLifecycleRef.current.isPushNotificationsEnabled
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
         ) {
           return;
         }
@@ -244,11 +256,17 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       }
       notifyingMaxDistanceChaseHandlesRef.current.add(event.handle);
       (async () => {
-        if (!chaseLifecycleRef.current.isPushNotificationsEnabled) return;
+        if (
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+        ) {
+          return;
+        }
         if (
           !(await isPushPermissionGranted()) ||
           !isActive ||
-          !chaseLifecycleRef.current.isPushNotificationsEnabled
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
         ) {
           return;
         }

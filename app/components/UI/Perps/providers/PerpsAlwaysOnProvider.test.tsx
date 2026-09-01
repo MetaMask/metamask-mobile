@@ -31,6 +31,7 @@ const mockTrack = jest.fn();
 const mockSuspendChaseOrders = jest.fn().mockResolvedValue([]);
 let mockHasLiveChaseOrders = false;
 let mockIsChaseOrderDiscoveryResolved = true;
+let mockIsPerpsPushNotificationsEnabled = true;
 const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
   hasLiveChaseOrders: mockHasLiveChaseOrders,
   isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
@@ -147,6 +148,15 @@ jest.mock('../../../../selectors/notifications', () => ({
   selectIsMetaMaskPushNotificationsEnabled: jest.fn(),
 }));
 
+jest.mock(
+  '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus',
+  () => ({
+    useFeatureNotificationsStatus: () => ({
+      isPushEnabled: mockIsPerpsPushNotificationsEnabled,
+    }),
+  }),
+);
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockResumeFromForeground =
   PerpsConnectionManager.resumeFromForeground as jest.Mock;
@@ -196,6 +206,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockSuspendChaseOrders.mockReset().mockResolvedValue([]);
     mockHasLiveChaseOrders = false;
     mockIsChaseOrderDiscoveryResolved = true;
+    mockIsPerpsPushNotificationsEnabled = true;
     mockProviderChildRenderAction = undefined;
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
@@ -367,7 +378,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 
-  it('skips max-distance notification when in-app notifications are disabled', async () => {
+  it('skips max-distance notification when global push is disabled', async () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return true;
@@ -395,6 +406,74 @@ describe('PerpsAlwaysOnProvider', () => {
     });
 
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('skips max-distance notification when Perps push is disabled', async () => {
+    mockIsPerpsPushNotificationsEnabled = false;
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockMaxDistanceHandler?.({
+        handle: 'chase-max-distance-perps-disabled',
+        symbol: 'ETH',
+        side: 'buy',
+        restingOrderId: 'resting-disabled',
+        restingPrice: '2500',
+        maxDistanceBps: 100,
+        timestamp: 1_711_756_800_000,
+        providerId: 'hyperliquid',
+      });
+      await Promise.resolve();
+    });
+
+    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('rechecks Perps push after the permission await', async () => {
+    let resolvePermission: ((isGranted: boolean) => void) | undefined;
+    mockIsPushPermissionGranted.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePermission = resolve;
+        }),
+    );
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'chase-max-distance-perps-rerender',
+      symbol: 'ETH',
+      side: 'buy' as const,
+      restingOrderId: 'resting-rerender',
+      restingPrice: '2500',
+      maxDistanceBps: 100,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as const,
+    };
+
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+    });
+    mockIsPerpsPushNotificationsEnabled = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      resolvePermission?.(true);
+      await Promise.resolve();
+    });
+
     expect(mockDisplayNotification).not.toHaveBeenCalled();
   });
 
@@ -1154,7 +1233,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(2);
   });
 
-  it('skips background notification when in-app notifications are disabled', async () => {
+  it('skips background notification when global push is disabled', async () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return true;
       if (selector === selectPerpsMobileChaseEnabledFlag) return true;
@@ -1164,6 +1243,32 @@ describe('PerpsAlwaysOnProvider', () => {
     mockSuspendChaseOrders.mockResolvedValueOnce([
       {
         handle: 'chase-background-disabled',
+        symbol: 'ETH',
+        status: 'backgrounded',
+      },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+  });
+
+  it('skips background notification when Perps push is disabled', async () => {
+    mockIsPerpsPushNotificationsEnabled = false;
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      {
+        handle: 'chase-background-perps-disabled',
         symbol: 'ETH',
         status: 'backgrounded',
       },

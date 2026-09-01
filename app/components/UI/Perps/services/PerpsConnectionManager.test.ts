@@ -1864,9 +1864,10 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
-    it('ignores a legacy timer armed on the inactive edge', async () => {
-      // Production now waits for `background`; this keeps the manager safe if a
-      // legacy caller still arms the grace period during `inactive`.
+    it('ignores a grace timer incorrectly armed on the inactive edge', async () => {
+      // Non-deferred lifecycle disconnects immediately on active → inactive.
+      // Only Chase-deferred callers wait for background, so neither path should
+      // arm a grace timer while inactive.
       armGracePeriodWhileAppIs('inactive');
 
       jest.advanceTimersByTime(PERPS_CONSTANTS.ConnectionGracePeriodMs);

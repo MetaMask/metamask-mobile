@@ -19,6 +19,7 @@ import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomShe
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsMobileScaleEnabledFlag,
+  selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
@@ -31,7 +32,6 @@ import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDur
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
-import { usePerpsChaseEligibility } from '../../../hooks/usePerpsChaseEligibility';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
 const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
@@ -76,20 +76,23 @@ const PerpsProOrderFormPanel = ({
   );
   const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
+  const isChaseFlagEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const activeProvider = useSelector(selectPerpsProvider);
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
+  const isChaseBaseEnabled = isProModeActive && isChaseFlagEnabled;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
   const {
     isLoadingOrderCapabilities,
     orderCapabilities,
     supportsTwapOrders,
     supportsScaleOrders,
+    supportsChaseOrders,
     checkOrderCapability,
   } = usePerpsProvider(
-    isScaleBaseEnabled || isTwapRolloutEnabled
+    isScaleBaseEnabled || isTwapRolloutEnabled || isChaseBaseEnabled
       ? {
           symbol: market.symbol,
           providerId: selectedProviderId,
@@ -131,13 +134,23 @@ const PerpsProOrderFormPanel = ({
     [checkOrderCapability, resolvedProviderId],
   );
   const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
-  const {
-    isChaseEnabled,
-    isCapabilityPending: isChaseAvailabilityPending,
-    resolvedProviderId: chaseProviderId,
-    refreshCapability,
-  } = usePerpsChaseEligibility(market.symbol, selectedProviderId);
-  const isChaseOrderEnabled = isProModeActive && isChaseEnabled;
+  const chaseProviderId =
+    isChaseBaseEnabled && supportsChaseOrders
+      ? (resolvedProviderId ?? null)
+      : null;
+  const isChaseOrderEnabled = chaseProviderId !== null;
+  const isChaseAvailabilityPending =
+    isChaseBaseEnabled && isLoadingOrderCapabilities;
+  const refreshChaseCapability = useCallback(async () => {
+    if (
+      !isChaseBaseEnabled ||
+      !resolvedProviderId ||
+      !(await checkOrderCapability('chase', resolvedProviderId))
+    ) {
+      return null;
+    }
+    return resolvedProviderId;
+  }, [checkOrderCapability, isChaseBaseEnabled, resolvedProviderId]);
   const availableOrderTypes = useMemo<readonly OrderType[]>(
     () => [
       ...BASIC_ORDER_TYPES,
@@ -223,7 +236,7 @@ const PerpsProOrderFormPanel = ({
     checkScaleOrderSupport,
     isChaseEnabled: isChaseOrderEnabled,
     isChaseAvailabilityPending,
-    refreshChaseCapability: refreshCapability,
+    refreshChaseCapability,
     chaseProviderId,
   });
 

@@ -554,28 +554,6 @@ const getFreshChaseOrders = async (): Promise<ChaseOrder[]> => {
   return result;
 };
 
-const recordTerminalChaseOrder = (
-  route: string,
-  handle: string,
-  status: ChaseOrder['status'],
-) => {
-  if (!CHASE_HISTORY_STATUSES.has(status)) return;
-  const hasMatchingOrder = cachedOrders.some(
-    (order) => order.handle === handle,
-  );
-  if (!hasMatchingOrder || cachedRoute !== route) return;
-  cachedOrders = cachedOrders.map((order) =>
-    order.handle === handle
-      ? {
-          ...order,
-          status,
-        }
-      : order,
-  );
-  emitChange();
-  syncRefreshLifecycle();
-};
-
 const subscribeToConnectionIdentity = (listener: () => void) =>
   PerpsConnectionManager.subscribeToInitializedUserContext(listener);
 const getConnectionIdentitySnapshot = () =>
@@ -692,12 +670,6 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     [],
   );
 
-  const recordChaseOrderStatus = useCallback(
-    (handle: string, status: ChaseOrder['status']) =>
-      recordTerminalChaseOrder(route, handle, status),
-    [route],
-  );
-
   return {
     chaseOrders,
     getChaseOrders,
@@ -706,7 +678,6 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     ),
     isChaseOrderDiscoveryResolved:
       !isEnabledFallingEdge && chaseSnapshot.discoveryResolvedRoute === route,
-    recordChaseOrderStatus,
     suspendChaseOrders,
   };
 }

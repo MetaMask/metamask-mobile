@@ -1276,28 +1276,6 @@ describe('usePerpsChaseOrders', () => {
     appStateSpy.mockRestore();
   });
 
-  it('records accepted cancellation in route-scoped history', async () => {
-    mockGetChaseOrders.mockResolvedValueOnce([activeOrder]);
-    const { result, unmount } = renderHook(() =>
-      usePerpsChaseOrders({ isEnabled: true }),
-    );
-    await waitFor(() =>
-      expect(result.current.chaseOrders).toEqual([activeOrder]),
-    );
-
-    act(() =>
-      result.current.recordChaseOrderStatus(activeOrder.handle, 'canceled'),
-    );
-
-    expect(result.current.chaseOrders).toEqual([
-      {
-        ...activeOrder,
-        status: 'canceled',
-      },
-    ]);
-    unmount();
-  });
-
   it.each([
     'backgrounded',
     'canceled',
@@ -1327,7 +1305,7 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
-  it('reconciles an accepted cancellation with controller lifecycle truth', async () => {
+  it('uses controller lifecycle truth across termination refreshes', async () => {
     mockGetChaseOrders
       .mockResolvedValueOnce([activeOrder])
       .mockResolvedValueOnce([
@@ -1340,16 +1318,6 @@ describe('usePerpsChaseOrders', () => {
     await waitFor(() =>
       expect(result.current.chaseOrders).toEqual([activeOrder]),
     );
-
-    act(() =>
-      result.current.recordChaseOrderStatus(activeOrder.handle, 'canceled'),
-    );
-    expect(result.current.chaseOrders).toEqual([
-      {
-        ...activeOrder,
-        status: 'canceled',
-      },
-    ]);
 
     await act(async () => result.current.getChaseOrders());
     expect(result.current.chaseOrders).toEqual([

@@ -13,7 +13,10 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-import { selectPerpsMYXProviderEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsMobileChaseEnabledFlag,
+  selectPerpsMYXProviderEnabledFlag,
+} from '../selectors/featureFlags';
 import {
   PERPS_ORDER_CAPABILITIES_MAX_RETRIES,
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
@@ -52,6 +55,7 @@ export function usePerpsProvider(
 ) {
   const activeProvider = useSelector(selectPerpsProvider);
   const isMYXProviderEnabled = useSelector(selectPerpsMYXProviderEnabledFlag);
+  const isChaseOrdersEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const initializationState = useSelector(selectPerpsInitializationState);
 
@@ -225,6 +229,10 @@ export function usePerpsProvider(
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
     orderCapabilities.supportedStrategies.includes('scale');
+  const supportsChaseOrders =
+    isChaseOrdersEnabled &&
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.supportedStrategies.includes('chase');
   const checkOrderCapability = useCallback(
     async (
       strategy: SupportedOrderStrategy,
@@ -284,6 +292,7 @@ export function usePerpsProvider(
     orderCapabilities,
     supportsTwapOrders,
     supportsScaleOrders,
+    supportsChaseOrders,
     checkOrderCapability,
     isMultiProviderEnabled,
   };

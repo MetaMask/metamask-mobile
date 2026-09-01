@@ -208,10 +208,9 @@ const PerpsProPositionsPanel = ({
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
-  const { chaseOrders, getChaseOrders, recordChaseOrderStatus } =
-    usePerpsChaseOrders({
-      isEnabled: isChaseEnabled,
-    });
+  const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
+    isEnabled: isChaseEnabled,
+  });
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [chaseSideFilter, setChaseSideFilter] = useState(
@@ -692,7 +691,6 @@ const PerpsProPositionsPanel = ({
           );
           return;
         }
-        recordChaseOrderStatus(order.handle, CHASE_ORDER_STATUS.Canceled);
         try {
           await getChaseOrders();
         } catch (error) {
@@ -765,7 +763,6 @@ const PerpsProPositionsPanel = ({
       getChaseOrders,
       perpsNetwork,
       PerpsToastOptions.orderManagement.shared.cancellationFailed,
-      recordChaseOrderStatus,
       showToast,
       terminatingChaseHandle,
       track,

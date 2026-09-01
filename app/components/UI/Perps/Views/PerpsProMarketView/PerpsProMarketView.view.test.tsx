@@ -536,7 +536,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'terminates a running Chase from the Chase tab and removes its row',
+    'removes a terminated Chase when the controller omits its session',
     async () => {
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
@@ -576,6 +576,62 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         });
         expect(screen.queryByTestId(rowSelector)).not.toBeOnTheScreen();
       });
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+      );
+      expect(
+        screen.queryByText(strings('perps.order.chase.status.canceled')),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'shows canceled History when the controller returns canceled after termination',
+    async () => {
+      const canceledChase: ChaseOrder = {
+        ...activeChase,
+        status: 'canceled',
+      };
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
+      getChaseOrders
+        .mockResolvedValueOnce([activeChase])
+        .mockResolvedValueOnce([canceledChase]);
+      cancelOrder.mockClear();
+      renderFundedProMarket();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          getPerpsProChaseTerminateSelector(
+            'active',
+            'ETH',
+            activeChase.handle,
+            true,
+          ),
+        ),
+      );
+      await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getPerpsProChaseStatusSelector(
+            'canceled',
+            'ETH',
+            canceledChase.handle,
+            true,
+          ),
+        ),
+      ).toHaveTextContent(strings('perps.order.chase.status.canceled'));
     },
   );
 
@@ -1112,6 +1168,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           expect(cancelOrder).toHaveBeenCalledTimes(1);
           expect(loggerError).toHaveBeenCalled();
         });
+        expect(
+          screen.getByTestId(
+            getPerpsProChaseStatusSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        ).toBeOnTheScreen();
         expect(
           screen.queryByText(strings('perps.order.failed_to_cancel_order')),
         ).not.toBeOnTheScreen();
