@@ -25,18 +25,21 @@ import {
  * Row component that owns the bottom line of the totals section.
  *
  * For withdrawal flows (when the feature flag allows selecting a withdraw
- * token) and for exact-output flows when Max is selected, the "You receive" row
- * is shown so the user can see they receive less than they put in. Otherwise the
- * total cost row is shown.
+ * token), input-based quotes, and non-withdraw flows when Max is selected, the
+ * "You receive" row is shown so the user can see the authoritative destination
+ * amount. Otherwise the total cost row is shown.
  */
 export function TotalRow() {
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const totals = useTransactionPayTotals();
   const transactionMetadata = useTransactionMetadataRequest();
   const isWithdraw = isTransactionPayWithdraw(transactionMetadata);
 
   const showReceiveRow =
-    canSelectWithdrawToken || (Boolean(isMaxAmount) && !isWithdraw);
+    canSelectWithdrawToken ||
+    totals?.isInputBased === true ||
+    (Boolean(isMaxAmount) && !isWithdraw);
 
   if (showReceiveRow) {
     return <ReceiveRow />;
@@ -87,7 +90,7 @@ function TotalFeesRow() {
 }
 
 /**
- * Displays "You'll receive" for withdrawal and Max exact-output flows.
+ * Displays "You'll receive" for withdrawal, input-based, and Max flows.
  *
  * The net received amount is the target amount computed by the Transaction Pay
  * controller (after all provider, network, and MetaMask fees), so this row

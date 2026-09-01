@@ -16,9 +16,11 @@ PredictNext/
       index.ts                 # Game presentation and Game Selection quotes
       createGamePresentation.ts
       findGameSelectionQuote.ts
+      findWinnerMarketQuotes.ts
     markets/
       index.ts                 # Supported Market-card and list API
       MarketList.tsx           # Card-agnostic detail-list composition
+      MarketFooterCard.tsx     # Public Game winner footer composition
       MarketStandardCard.tsx   # Public standard Market composition
       SpreadMarketGroupCard.tsx # Public spread Market-group composition
       TotalMarketGroupCard.tsx  # Public total Market-group composition
