@@ -329,17 +329,13 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
-  it('limits active homepage positions without limiting claimable aggregation', () => {
+  it('limits active homepage positions', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
     expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
       maxPositions: MAX_POSITIONS_DISPLAYED,
-      enabled: true,
-    });
-    expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
-      claimable: true,
       enabled: true,
     });
   });
@@ -959,6 +955,7 @@ describe('PredictionsSection', () => {
       );
 
       expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+        maxPositions: MAX_POSITIONS_DISPLAYED,
         enabled: true,
       });
       expect(mockUsePredictPositionsForHomepage).not.toHaveBeenCalledWith(
