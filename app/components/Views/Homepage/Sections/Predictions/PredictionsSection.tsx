@@ -40,15 +40,11 @@ import {
 import { usePredictionsDefaultSectionModel } from './hooks/usePredictionsDefaultSectionModel';
 import { useTreatmentDiscoveryFeedsLoading } from './hooks/useTreatmentDiscoveryFeedsLoading';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
 import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
 import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  PredictEventProperties,
-  PredictEventValues,
-} from '../../../../UI/Predict/constants/eventNames';
+import { PredictEventProperties } from '../../../../UI/Predict/constants/eventNames';
 import {
   PredictPositionsEmptyStateVariant,
   type PredictEmptyStateCtaName,
@@ -201,7 +197,6 @@ const PredictionsSectionShell = forwardRef<
 /** Co-located so `usePredictPositionsForHomepage` resolves through `jest.mock('./hooks')` in tests. */
 const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
   const privacyMode = useSelector(selectPrivacyMode);
-  const { claim } = usePredictClaim();
 
   const {
     positions,
@@ -212,17 +207,6 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     maxPositions: MAX_POSITIONS_DISPLAYED,
     enabled: homepageQueriesEnabled,
   });
-  const { totalClaimableValue, isLoading: isLoadingClaimable } =
-    usePredictPositionsForHomepage({
-      claimable: true,
-      enabled: homepageQueriesEnabled,
-    });
-
-  const handleClaim = useCallback(async () => {
-    await claim({
-      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-    });
-  }, [claim]);
 
   const hasPositions = positions.length > 0;
   const {
@@ -254,9 +238,6 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     isLoadingPositions,
     positionsError,
     refetchPositions,
-    totalClaimableValue,
-    isLoadingClaimable,
-    handleClaim,
     hasPositions,
     predictHomepageUnrealizedPnl,
   };
@@ -285,9 +266,6 @@ const PredictionsSectionDefault = forwardRef<
       isLoadingPositions,
       positionsError,
       refetchPositions,
-      totalClaimableValue,
-      isLoadingClaimable,
-      handleClaim,
       hasPositions,
       predictHomepageUnrealizedPnl,
     } = usePredictPositionsSectionData(isPredictEnabled);
@@ -330,7 +308,6 @@ const PredictionsSectionDefault = forwardRef<
     } = usePredictionsDefaultSectionModel({
       isPredictEnabled,
       isLoadingPositions,
-      isLoadingClaimable,
       isLoadingMarkets,
       isTreatmentDiscovery,
       isLoadingWorldCupHomepage: isLoadingMarketSlots,
@@ -339,7 +316,6 @@ const PredictionsSectionDefault = forwardRef<
       positionsError,
       marketsError,
       marketsLength: markets.length,
-      totalClaimableValue,
     });
 
     useSectionPerformance({
@@ -388,8 +364,7 @@ const PredictionsSectionDefault = forwardRef<
       refetchHomepageMarketSlots,
     ]);
 
-    const positionsLayout =
-      hasAnyPositions || isLoadingPositions || isLoadingClaimable;
+    const positionsLayout = hasAnyPositions || isLoadingPositions;
     const discoveryHasNothingToShow =
       !isTreatmentDiscovery && !isLoadingMarkets && markets.length === 0;
     const enabled =
@@ -440,10 +415,7 @@ const PredictionsSectionDefault = forwardRef<
               privacyMode={privacyMode}
               isLoadingPositions={isLoadingPositions}
               positions={positions}
-              isLoadingClaimable={isLoadingClaimable}
-              totalClaimableValue={totalClaimableValue}
               predictHomepageUnrealizedPnl={predictHomepageUnrealizedPnl}
-              onClaim={handleClaim}
               onPositionPress={handlePositionPress}
               showHeader={!showTrendingAbove}
             />

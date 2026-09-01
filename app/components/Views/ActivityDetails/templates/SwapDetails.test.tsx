@@ -70,10 +70,11 @@ const USDT_ASSET_ID =
 const makeItem = (
   type: ActivityListItem['type'],
   data: Record<string, unknown>,
+  chainId = 'eip155:42161',
 ): ActivityListItem =>
   ({
     type,
-    chainId: 'eip155:42161',
+    chainId,
     status: 'success',
     timestamp: 1,
     hash: '0xabc',
@@ -136,6 +137,50 @@ describe('SwapDetails', () => {
     expect(capturedSentToken?.decimals).toBe(6);
     expect(capturedSentToken?.symbol).toBe('USDT');
     expect(capturedSentToken?.amount).toBe('10000');
+  });
+
+  it('preserves a human-readable non-EVM amount when token metadata loads', () => {
+    const sunAssetId = 'tron:728126428/trc20:TSUN';
+    const item = makeItem(
+      'swap',
+      {
+        sourceToken: {
+          direction: 'out',
+          amount: '50',
+          assetId: sunAssetId,
+          symbol: 'SUN',
+        },
+      },
+      'tron:728126428',
+    ) as never;
+
+    const { rerender } = render(<SwapDetails item={item} />);
+
+    expect(capturedSentToken).toEqual(
+      expect.objectContaining({ amount: '50', symbol: 'SUN' }),
+    );
+    expect(capturedSentToken?.decimals).toBeUndefined();
+
+    jest.mocked(useTokensData).mockReturnValue({
+      [sunAssetId.toLowerCase()]: {
+        assetId: sunAssetId,
+        symbol: 'SUN',
+        decimals: 18,
+        name: 'SUN',
+        iconUrl: '',
+      },
+    });
+
+    rerender(<SwapDetails item={item} />);
+
+    expect(capturedSentToken).toEqual(
+      expect.objectContaining({
+        amount: '50',
+        symbol: 'SUN',
+        decimals: 18,
+        amountIsHumanReadable: true,
+      }),
+    );
   });
 
   it('leaves an already-populated token unchanged (no-op when decimals are present)', () => {

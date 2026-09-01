@@ -483,6 +483,7 @@ export type RootStackParamList = {
   BrowserView: BrowserParams | undefined;
   AddBookmarkView: NavigatorScreenParams<AddBookmarkViewParamList> | undefined;
   SettingsView: NavigatorScreenParams<SettingsStackParamList> | undefined;
+  AccountHubView: undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -1072,6 +1073,7 @@ export type RootStackParamList = {
 
   // Earn routes
   EarnScreens: NavigatorScreenParams<EarnScreensStackParamList> | undefined;
+  EarnSearchList: EarnScreensStackParamList['EarnSearchList'];
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];

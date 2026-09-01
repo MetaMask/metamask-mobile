@@ -4,10 +4,11 @@ import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import type { BridgeToken } from '../../types';
+import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
-  formatFiatInputAmount,
-  formatTokenInputAmountFromFiat,
-} from '../../utils/sourceAmountInputMode';
+  formatLimitOrderFiatPrice,
+  formatLimitOrderFiatPriceFromTokenAmount,
+} from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { getSwapsLimitOrderSecondaryValue } from '../../utils/limitOrders/getSwapsLimitOrderSecondaryValue';
@@ -98,6 +99,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
 
     const magnitude = new BigNumber(customValue ?? '');
     if (!magnitude.isFinite() || magnitude.lte(0)) {
+      dispatch({ type: 'exitCustom' });
       return;
     }
 
@@ -129,7 +131,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    const nextLimitPrice = formatFiatInputAmount('1', quotedFiatRate);
+    const nextLimitPrice = formatLimitOrderFiatPrice(quotedFiatRate);
     if (nextLimitPrice === undefined) {
       return;
     }
@@ -167,7 +169,10 @@ export const useSwapsLimitOrderPriceAdjust = ({
               tokenFiatRate: counterFiatRate,
               tokenDecimals: counterToken?.decimals,
             })
-          : formatFiatInputAmount(currentLimitPrice, counterFiatRate),
+          : formatLimitOrderFiatPriceFromTokenAmount(
+              currentLimitPrice,
+              counterFiatRate,
+            ),
     });
   }, [
     canToggleLimitPrice,
@@ -187,12 +192,12 @@ export const useSwapsLimitOrderPriceAdjust = ({
 
   const limitFiat = isLimitFiatMode
     ? limitPrice
-    : formatFiatInputAmount(limitPrice, counterFiatRate);
+    : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
   const marketComparison = getSwapsLimitOrderPriceMarketComparison({
     limitFiat,
     marketFiat: quotedFiatRate,
     executionType,
-    threshold: 3,
+    threshold: 0,
   });
 
   return {

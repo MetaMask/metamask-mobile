@@ -36,6 +36,7 @@ import type {
 import { LIMIT_ORDER_BUTTON_PRICE_PRESETS } from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
+import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
 
 interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -113,6 +114,7 @@ const BridgeLimitOrderViewContent = ({
   });
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
+  const isMissingPrice = useHasMissingQuoteAndAssetsPriceData();
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -286,6 +288,7 @@ const BridgeLimitOrderViewContent = ({
               onPress={() => 'test'}
               label="test"
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+              disabled={isMissingPrice}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions
