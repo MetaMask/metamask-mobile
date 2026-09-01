@@ -9,8 +9,9 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { EarnStrategySelectionViewTestIds } from './EarnStrategySelectionView.testIds';
-import EarnStrategySelectionView, { requireEarnStrategyToken } from './index';
+import { strings } from '../../../../../../locales/i18n';
+import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
+import EarnStrategySelectionModal, { requireEarnStrategyToken } from './index';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useEarnToasts, {
   type EarnToastOptions,
@@ -50,12 +51,14 @@ const navigationToDepositToast = {} as EarnToastOptions;
 const createExperience = (
   type: EarnExperienceType,
   id = `strategy:${type}`,
+  overrides: Partial<EarnExperience> = {},
 ): EarnExperience => ({
   id,
   type,
   role: 'underlying',
   rate: { type: 'APY', percentage: 6.2, status: 'ready' },
   isFeeSubsidized: false,
+  ...overrides,
 });
 
 const createEarnAsset = (
@@ -84,7 +87,25 @@ const createEarnAsset = (
   experiences,
 });
 
-describe('EarnStrategySelectionView', () => {
+const createDiscoveryEarnAsset = (
+  experiences: readonly EarnExperience[],
+): EarnAsset => ({
+  kind: 'discovery',
+  assetId,
+  metadata: {
+    address: assetAddress,
+    chainId: '0x1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    logo: undefined,
+    isETH: false,
+  },
+  experiences,
+});
+
+describe('EarnStrategySelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseNavigation.mockReturnValue({
@@ -111,50 +132,114 @@ describe('EarnStrategySelectionView', () => {
   });
 
   it('renders modal controls and every strategy returned for the asset', () => {
-    render(<EarnStrategySelectionView />);
+    render(<EarnStrategySelectionModal />);
 
     expect(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.MODAL),
+      screen.getByTestId(EarnStrategySelectionModalTestIds.MODAL),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.MODAL_HEADER),
+      screen.getByTestId(EarnStrategySelectionModalTestIds.MODAL_HEADER),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
-        EarnStrategySelectionViewTestIds.STRATEGY_CARD('money:usdc'),
+        EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
-        EarnStrategySelectionViewTestIds.STRATEGY_CARD('lending:usdc'),
+        EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON),
+      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
     ).toBeOnTheScreen();
   });
 
-  it('selects the first strategy when the view renders', async () => {
-    render(<EarnStrategySelectionView />);
+  it('renders fallback info copy for an unavailable money strategy', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        earnAsset: createEarnAsset([
+          createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc', {
+            rate: { type: 'APY', status: 'unavailable' },
+          }),
+        ]),
+      },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    render(<EarnStrategySelectionModal />);
+
+    expect(
+      screen.getByText(
+        strings('earn.strategy_selection.strategies.rate_unavailable_subtitle'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render an unavailable non-money strategy', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        earnAsset: createEarnAsset([
+          createExperience(
+            EARN_EXPERIENCES.STABLECOIN_LENDING,
+            'lending:usdc',
+            { rate: { type: 'APY', status: 'unavailable' } },
+          ),
+        ]),
+      },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    const { queryByTestId } = render(<EarnStrategySelectionModal />);
+
+    expect(
+      queryByTestId(
+        EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not render a non-money strategy for a discovery asset', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        earnAsset: createDiscoveryEarnAsset([
+          createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
+        ]),
+      },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    const { queryByTestId } = render(<EarnStrategySelectionModal />);
+
+    expect(
+      queryByTestId(
+        EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('selects the first strategy when the modal renders', async () => {
+    render(<EarnStrategySelectionModal />);
 
     await waitFor(() => {
       expect(
         screen.getByTestId(
-          EarnStrategySelectionViewTestIds.STRATEGY_CARD('money:usdc'),
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
         ).props.accessibilityState,
       ).toEqual({ selected: true });
     });
   });
 
   it('updates the selected strategy after a card press', async () => {
-    render(<EarnStrategySelectionView />);
+    render(<EarnStrategySelectionModal />);
+    const moneyCard = screen.getByTestId(
+      EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
+    );
     const lendingCard = screen.getByTestId(
-      EarnStrategySelectionViewTestIds.STRATEGY_CARD('lending:usdc'),
+      EarnStrategySelectionModalTestIds.STRATEGY_CARD('lending:usdc'),
     );
 
     fireEvent.press(lendingCard);
 
     await waitFor(() => {
+      expect(moneyCard.props.accessibilityState).toEqual({ selected: false });
       expect(lendingCard.props.accessibilityState).toEqual({ selected: true });
     });
   });
@@ -164,10 +249,10 @@ describe('EarnStrategySelectionView', () => {
       params: { earnAsset: createEarnAsset([]) },
     } as unknown as ReturnType<typeof useRoute>);
 
-    render(<EarnStrategySelectionView />);
+    render(<EarnStrategySelectionModal />);
 
     expect(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON)
+      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON)
         .props.accessibilityState?.disabled,
     ).toBe(true);
   });
@@ -180,18 +265,18 @@ describe('EarnStrategySelectionView', () => {
       params: { earnAsset },
     } as unknown as ReturnType<typeof useRoute>);
 
-    render(<EarnStrategySelectionView />);
+    render(<EarnStrategySelectionModal />);
 
     await waitFor(() => {
       expect(
         screen.getByTestId(
-          EarnStrategySelectionViewTestIds.STRATEGY_CARD('money:usdc'),
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
         ).props.accessibilityState,
       ).toEqual({ selected: true });
     });
 
     fireEvent.press(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON),
+      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
     );
 
     await waitFor(() => {
@@ -208,10 +293,10 @@ describe('EarnStrategySelectionView', () => {
       throw error;
     });
 
-    render(<EarnStrategySelectionView />);
+    render(<EarnStrategySelectionModal />);
 
     fireEvent.press(
-      screen.getByTestId(EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON),
+      screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
     );
 
     await waitFor(() => {

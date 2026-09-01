@@ -36,9 +36,9 @@ export const getRateTagSeverity = (
 
 const getRateCopy = (
   rate: EarnStrategyCardProps['experience']['rate'],
-): string => {
+): string | undefined => {
   if (rate.status !== 'ready') {
-    return strings('earn_module.rate_unavailable');
+    return undefined;
   }
 
   const base = strings('earn.strategy_selection.up_to');
@@ -50,11 +50,8 @@ const getRateCopy = (
   if (rate.type === 'APR') {
     return `${base} ${strings('earn_module.rate_apr', { percentage: truncateNumber(rate.percentage) })}`;
   }
-
-  throw new Error(`Unsupported rate type: ${rate.type}`);
 };
 
-// TODO: Rename to EarnStrategyCard after deleting existing EarnStrategyCard component.
 const EarnStrategyCard = ({
   variant,
   experience,
@@ -68,6 +65,8 @@ const EarnStrategyCard = ({
   const tw = useTailwind();
   const isPrimary = variant === EarnStrategyCardVariant.Primary;
   const rateSeverity = getRateTagSeverity(experience.type);
+
+  const rateCopy = getRateCopy(experience.rate);
 
   return (
     <Pressable
@@ -103,16 +102,18 @@ const EarnStrategyCard = ({
             >
               {title}
             </Text>
-            <Tag
-              severity={rateSeverity}
-              testID={
-                testID
-                  ? `${testID}-${EarnStrategyCardSelectorsIDs.RATE_TAG}`
-                  : undefined
-              }
-            >
-              {getRateCopy(experience.rate)}
-            </Tag>
+            {rateCopy && (
+              <Tag
+                severity={rateSeverity}
+                testID={
+                  testID
+                    ? `${testID}-${EarnStrategyCardSelectorsIDs.RATE_TAG}`
+                    : undefined
+                }
+              >
+                {rateCopy}
+              </Tag>
+            )}
             {experience.isFeeSubsidized && (
               <EarnNoFeeTag
                 testID={

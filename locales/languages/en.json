@@ -7630,12 +7630,12 @@
         } 
       },
       "strategies": {
+        "rate_unavailable_subtitle": "Earn on your balance",
         "money": {
           "title": "Money account",
           "subtitle": "Variable yield · auto-earning",
           "info_rows": {
             "row_1": "Earn up to ~{{percentage}}% APY on your balance",
-            "row_1_unavailable": "Rate unavailable — auto-earning, compounding yield",
             "row_2": "No lockups—trade or withdraw anytime",
             "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
           }

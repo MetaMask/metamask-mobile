@@ -120,7 +120,7 @@ const useEarnOpportunityNavigation = () => {
       } catch (error) {
         Logger.error(
           error as Error,
-          '[Earn Strategy Selection View] Failed to initiate Money deposit',
+          `${LOG_PREFIX} Failed to initiate Money deposit`,
         );
       }
     },

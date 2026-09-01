@@ -101,12 +101,14 @@ const MoneyProjection = ({
   currency,
   privacyMode,
   isLoading,
+  onProjectionPress,
 }: {
   totalAssetsFiat: number;
   projectedAmount: number;
   currency: string;
   privacyMode: boolean;
   isLoading: boolean;
+  onProjectionPress: () => void;
 }) => {
   const hasPositiveProjection =
     isPositiveNumber(projectedAmount) && isPositiveNumber(totalAssetsFiat);
@@ -153,12 +155,15 @@ const MoneyProjection = ({
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
+            twClassName="underline decoration-dotted"
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             testID={EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED}
+            onPress={onProjectionPress}
           >
             {`+${moneyFormatFiat(new BigNumber(projectedAmount), currency)}`}
           </SensitiveText>
+
           {` ${strings('money.potential_earnings.description_with_amounts_suffix')}`}
         </Text>
       ) : (
@@ -309,7 +314,7 @@ const EarnSectionListView = () => {
   );
 
   const handleViewAllMoney = useCallback(() => {
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS);
   }, [navigation]);
 
   const handleRetry = useCallback(async () => {
@@ -345,6 +350,14 @@ const EarnSectionListView = () => {
   );
 
   const keyExtractor = useCallback((item: EarnAssetSearchItem) => item.id, []);
+
+  const handleEarningsProjectionPress = useCallback(
+    () =>
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+      }),
+    [navigation],
+  );
 
   const listHeader = useMemo(() => {
     const errorBanner = hasError ? (
@@ -391,6 +404,7 @@ const EarnSectionListView = () => {
           currency={currency}
           privacyMode={privacyMode}
           isLoading={isLoading}
+          onProjectionPress={handleEarningsProjectionPress}
         />
         <EarnMoneyAccountRow
           item={moneyAccountItem}
@@ -447,6 +461,7 @@ const EarnSectionListView = () => {
     );
   }, [
     currency,
+    handleEarningsProjectionPress,
     handleRetry,
     handleDeposit,
     handleViewAllMoney,

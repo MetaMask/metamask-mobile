@@ -42,13 +42,13 @@ import {
   truncateNumber,
 } from '../../utils';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
-import { EarnStrategySelectionViewTestIds } from './EarnStrategySelectionView.testIds';
+import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
 }
 
-type EarnStrategySelectionRoute = RouteProp<
+type EarnStrategySelectionModalRoute = RouteProp<
   { params: EarnStrategySelectionModalRouteParams },
   'params'
 >;
@@ -76,16 +76,14 @@ interface StrategyCardRenderContext {
 
 const renderMoneyStrategyCard = (
   strategy: MoneyAccountDepositExperience,
-  { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
+  { selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
 ) => {
   const row1Text =
     strategy.rate.status === 'ready'
       ? strings('earn.strategy_selection.strategies.money.info_rows.row_1', {
           percentage: truncateNumber(strategy.rate.percentage),
         })
-      : strings(
-          'earn.strategy_selection.strategies.money.info_rows.row_1_unavailable',
-        );
+      : strings('earn.strategy_selection.strategies.rate_unavailable_subtitle');
 
   const infoRows = [
     {
@@ -114,7 +112,7 @@ const renderMoneyStrategyCard = (
       infoRows={infoRows}
       isActive={selectedStrategyId === strategy.id}
       onPress={() => onStrategyPress(strategy.id)}
-      testID={EarnStrategySelectionViewTestIds.STRATEGY_CARD(strategy.id)}
+      testID={EarnStrategySelectionModalTestIds.STRATEGY_CARD(strategy.id)}
     />
   );
 };
@@ -123,31 +121,26 @@ const renderNonMoneyStrategyCard = (
   strategy: NonMoneyAccountExperience,
   { earnAsset, selectedStrategyId, onStrategyPress }: StrategyCardRenderContext,
 ) => {
-  let title;
-  let subtitle;
-
-  if (strategy.rate.status === 'ready' && earnAsset.kind === 'held') {
-    const assetSymbol =
-      strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
-        ? earnAsset.asset.symbol
-        : undefined;
-
-    title = strings(
-      `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.title`,
-      { asset: assetSymbol },
-    );
-    subtitle = strings(
-      `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
-      {
-        percentage: truncateNumber(strategy.rate.percentage),
-        asset: assetSymbol,
-      },
-    );
-  } else {
-    subtitle = strings(
-      'earn.strategy_selection.strategies.money.info_rows.row_1_unavailable',
-    );
+  if (strategy.rate.status !== 'ready' || earnAsset.kind !== 'held') {
+    return null;
   }
+
+  const assetSymbol =
+    strategy.type === EARN_EXPERIENCES.STABLECOIN_LENDING
+      ? earnAsset.asset.symbol
+      : undefined;
+
+  const title = strings(
+    `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.title`,
+    { asset: assetSymbol },
+  );
+  const subtitle = strings(
+    `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
+    {
+      percentage: truncateNumber(strategy.rate.percentage),
+      asset: assetSymbol,
+    },
+  );
 
   return (
     <EarnStrategyCard
@@ -158,18 +151,18 @@ const renderNonMoneyStrategyCard = (
       subtitle={subtitle}
       isActive={selectedStrategyId === strategy.id}
       onPress={() => onStrategyPress(strategy.id)}
-      testID={EarnStrategySelectionViewTestIds.STRATEGY_CARD(strategy.id)}
+      testID={EarnStrategySelectionModalTestIds.STRATEGY_CARD(strategy.id)}
     />
   );
 };
 
-const EarnStrategySelectionView = () => {
+const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { params } = useRoute<EarnStrategySelectionRoute>();
+  const { params } = useRoute<EarnStrategySelectionModalRoute>();
   const { earnAsset } = params;
 
   const [selectedStrategyId, setSelectedStrategyId] = useState<string>();
@@ -206,7 +199,7 @@ const EarnStrategySelectionView = () => {
       showToast(EarnToastOptions.earnStrategySelection.navigationToDeposit);
       Logger.error(
         error as Error,
-        '[Earn Strategy Selection View] Failed to navigate to deposit screen for earn asset',
+        '[Earn Strategy Selection Modal] Failed to navigate to deposit screen for earn asset',
       );
     } finally {
       setIsNavigatingToDeposit(false);
@@ -263,12 +256,12 @@ const EarnStrategySelectionView = () => {
       ref={sheetRef}
       goBack={navigation.goBack}
       isInteractable
-      testID={EarnStrategySelectionViewTestIds.MODAL}
+      testID={EarnStrategySelectionModalTestIds.MODAL}
       twClassName="flex-1"
     >
       <BottomSheetHeader
         onClose={handleClose}
-        testID={EarnStrategySelectionViewTestIds.MODAL_HEADER}
+        testID={EarnStrategySelectionModalTestIds.MODAL_HEADER}
       >
         {strings('earn.strategy_selection.title')}
       </BottomSheetHeader>
@@ -287,7 +280,7 @@ const EarnStrategySelectionView = () => {
           isDisabled={!selectedStrategy || isNavigatingToDeposit}
           isLoading={isNavigatingToDeposit}
           onPress={handleGetStartedPress}
-          testID={EarnStrategySelectionViewTestIds.GET_STARTED_BUTTON}
+          testID={EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON}
         >
           {strings('earn.strategy_selection.get_started')}
         </Button>
@@ -296,4 +289,4 @@ const EarnStrategySelectionView = () => {
   );
 };
 
-export default EarnStrategySelectionView;
+export default EarnStrategySelectionModal;

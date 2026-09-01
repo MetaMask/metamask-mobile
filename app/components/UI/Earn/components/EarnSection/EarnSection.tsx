@@ -52,7 +52,6 @@ import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
-import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
@@ -314,7 +313,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           const { asset } = slot;
           const {
             metadata,
-            hasSubsidizedFee,
             hasMinDepositAmount,
             fiatBalance,
             highestRateCopy,
@@ -324,13 +322,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
             <EarnSectionAssetCard
               key={slot.key}
               icon={<EarnAssetIcon asset={asset} />}
-              tag={
-                hasSubsidizedFee ? (
-                  <EarnNoFeeTag
-                    testID={EarnSectionTestIds.ASSET_NO_FEE_TAG(index)}
-                  />
-                ) : undefined
-              }
               primaryText={metadata.ticker ?? metadata.symbol}
               secondaryText={renderAssetSecondaryText({
                 hasMinDepositAmount,

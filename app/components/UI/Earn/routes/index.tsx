@@ -5,7 +5,7 @@ import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepo
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
 import EarnSectionListView from '../Views/EarnSectionListView/EarnSectionListView';
-import EarnStrategySelectionView from '../Views/EarnStrategySelectionView';
+import EarnStrategySelectionModal from '../modals/EarnStrategySelectionModal';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -80,7 +80,7 @@ const EarnModalStack = () => (
     />
     <ModalStack.Screen
       name={Routes.EARN.MODALS.STRATEGY_SELECTION}
-      component={EarnStrategySelectionView}
+      component={EarnStrategySelectionModal}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

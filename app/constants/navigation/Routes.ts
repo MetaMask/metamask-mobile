@@ -476,7 +476,7 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
-      STRATEGY_SELECTION: 'EarnStrategySelection',
+      STRATEGY_SELECTION: 'EarnStrategySelectionModal',
     },
   },
   MONEY: {

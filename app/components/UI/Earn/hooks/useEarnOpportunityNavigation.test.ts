@@ -215,6 +215,18 @@ describe('useEarnOpportunityNavigation', () => {
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
   });
 
+  it('does not navigate when the asset is undefined', () => {
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    act(() => {
+      result.current.navigateFromEarnAsset(undefined as unknown as EarnAsset);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEarnAssetToToken).not.toHaveBeenCalled();
+    expect(mockIsEarnAssetBalanceBelowMinDepositAmount).not.toHaveBeenCalled();
+  });
+
   it('navigates an asset with more than one supported experience at the minimum deposit to strategy selection', () => {
     const earnAsset = createEarnAsset(0.01, [
       createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING),
@@ -317,6 +329,22 @@ describe('useEarnOpportunityNavigation', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
+  it('throws when a discovery asset is passed directly to deposit navigation', () => {
+    const earnAsset = createDiscoveryEarnAsset([
+      createExperience(EARN_EXPERIENCES.TRX_STAKING),
+    ]);
+    const { result } = renderHook(() => useEarnOpportunityNavigation());
+
+    expect(() =>
+      result.current.navigateToDepositForExperience(
+        earnAsset,
+        earnAsset.experiences[0],
+      ),
+    ).toThrow(
+      '[useEarnOpportunityNavigation] Deposit redirect is only supported for held assets',
+    );
+  });
+
   it('logs Money deposit initiation failures', async () => {
     const error = new Error('Deposit failed');
     mockInitiateDeposit.mockRejectedValue(error);
@@ -333,7 +361,7 @@ describe('useEarnOpportunityNavigation', () => {
 
     expect(mockLoggerError).toHaveBeenCalledWith(
       error,
-      '[Earn Strategy Selection View] Failed to initiate Money deposit',
+      '[useEarnOpportunityNavigation] Failed to initiate Money deposit',
     );
   });
 
@@ -362,6 +390,9 @@ describe('useEarnOpportunityNavigation', () => {
         }),
       },
     });
+    expect(mockEngineSetActiveNetwork.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
   });
 
   it('logs and stops stablecoin lending navigation without a network client', async () => {
@@ -436,6 +467,9 @@ describe('useEarnOpportunityNavigation', () => {
         }),
       },
     });
+    expect(
+      mockEngineSetMultichainActiveNetwork.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockNavigate.mock.invocationCallOrder[0]);
   });
 
   it('navigates to staking for TRX staking', async () => {

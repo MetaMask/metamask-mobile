@@ -409,6 +409,28 @@ describe('EarnSectionListView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('navigates to Earn crypto info when the projection is pressed', () => {
+    const moneyAsset = createHeldAsset('USDC', 1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [moneyAsset] }),
+    );
+    mockUseProjectedEarnings.mockReturnValue(
+      createProjectionResult({ totalAssetsFiat: 100, projectedAmount: 4.2 }),
+    );
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(
+      screen.getByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION_PROJECTED),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET,
+    });
+  });
+
   it('caps Money rows at five and projects all derived Money assets in ranked order', () => {
     const moneyAssets = createMoneyAssets(6);
     const catalogueSymbols = moneyAssets.map((asset) =>
