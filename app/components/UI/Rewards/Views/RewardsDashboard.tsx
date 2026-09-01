@@ -1,13 +1,16 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
   Box,
   ButtonIcon,
   ButtonIconSize,
+  HeaderStandardAnimated,
   IconName,
   Text,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -53,7 +56,8 @@ import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
-import { Pressable, ScrollView } from 'react-native';
+import { Pressable } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
@@ -68,6 +72,7 @@ const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
+  const floatingTabBarInset = useFloatingTabBarInset();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const pendingDeeplink = useSelector(selectPendingDeeplink);
@@ -365,6 +370,18 @@ const RewardsDashboard: React.FC = () => {
     }, []),
   );
 
+  // Treatment pushes Rewards onto the root stack instead of giving it a tab, so
+  // it needs a way back. Asking navigation directly avoids reading the
+  // experiment flag here and stays correct however the arms are configured: a
+  // tab has nothing to pop, a pushed screen does.
+  const isPushedScreen = navigation.canGoBack();
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleTitlePress = useCallback(() => {
     if (isVipEnabled || vipUnlockTriggeredRef.current || !subscriptionId) {
       return;
@@ -434,6 +451,48 @@ const RewardsDashboard: React.FC = () => {
     );
   }, [activeTab, trackEvent, createEventBuilder]);
 
+  const headerEndAccessory = (
+    <Box twClassName="flex-row gap-2">
+      {isVipProgramEnabled && isVipReferee && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleVipRefereePress}
+          style={tw.style('h-8 w-8 items-center justify-center')}
+          testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+        >
+          <VipIcon width={24} height={24} name="VipIcon" />
+        </Pressable>
+      )}
+      {isVipProgramEnabled && isVipEnabled && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={handleVipPress}
+          style={tw.style('h-8 w-8 items-center justify-center')}
+          testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
+        >
+          <VipIcon width={24} height={24} name="VipIcon" />
+        </Pressable>
+      )}
+      <ButtonIcon
+        iconName={IconName.UserCircleAdd}
+        onPress={() =>
+          navigateToRewardsRoute(navigation, Routes.REFERRAL_REWARDS_VIEW)
+        }
+        size={ButtonIconSize.Md}
+        testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
+      />
+      <ButtonIcon
+        disabled={!subscriptionId}
+        iconName={IconName.Setting}
+        onPress={() =>
+          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+        }
+        size={ButtonIconSize.Md}
+        testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
+      />
+    </Box>
+  );
+
   return (
     <ErrorBoundary navigation={navigation} view="RewardsView">
       <SafeAreaView
@@ -441,75 +500,67 @@ const RewardsDashboard: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIEW_SELECTORS.SAFE_AREA_VIEW}
       >
-        <HeaderRoot
-          endAccessory={
-            <Box twClassName="flex-row gap-2">
-              {isVipProgramEnabled && isVipReferee && (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handleVipRefereePress}
-                  style={tw.style('h-8 w-8 items-center justify-center')}
-                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
-                >
-                  <VipIcon width={24} height={24} name="VipIcon" />
-                </Pressable>
-              )}
-              {isVipProgramEnabled && isVipEnabled && (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={handleVipPress}
-                  style={tw.style('h-8 w-8 items-center justify-center')}
-                  testID={REWARDS_VIEW_SELECTORS.VIP_BUTTON}
-                >
-                  <VipIcon width={24} height={24} name="VipIcon" />
-                </Pressable>
-              )}
-              <ButtonIcon
-                iconName={IconName.UserCircleAdd}
-                onPress={() =>
-                  navigateToRewardsRoute(
-                    navigation,
-                    Routes.REFERRAL_REWARDS_VIEW,
-                  )
-                }
-                size={ButtonIconSize.Md}
-                testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
-              />
-              <ButtonIcon
-                disabled={!subscriptionId}
-                iconName={IconName.Setting}
-                onPress={() =>
-                  navigateToRewardsRoute(
-                    navigation,
-                    Routes.REWARDS_SETTINGS_VIEW,
-                  )
-                }
-                size={ButtonIconSize.Md}
-                testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}
-              />
-            </Box>
-          }
-        >
-          <Pressable
-            accessibilityRole="header"
-            onPress={handleTitlePress}
-            testID={REWARDS_VIEW_SELECTORS.TITLE}
-          >
-            <Text variant={TextVariant.HeadingLg}>
-              {strings('rewards.main_title')}
-            </Text>
-          </Pressable>
-        </HeaderRoot>
-        <ScrollView
+        {isPushedScreen ? (
+          <HeaderStandardAnimated
+            title={strings('rewards.main_title')}
+            titleProps={{
+              onPress: handleTitlePress,
+              suppressHighlighting: true,
+              accessibilityRole: 'button',
+            }}
+            scrollY={scrollY}
+            titleSectionHeight={titleSectionHeightSv}
+            onBack={handleBackPress}
+            backButtonProps={{ testID: REWARDS_VIEW_SELECTORS.BACK_BUTTON }}
+            endAccessory={headerEndAccessory}
+          />
+        ) : (
+          <HeaderRoot endAccessory={headerEndAccessory}>
+            <Pressable
+              accessibilityRole="header"
+              onPress={handleTitlePress}
+              testID={REWARDS_VIEW_SELECTORS.TITLE}
+            >
+              <Text variant={TextVariant.HeadingLg}>
+                {strings('rewards.main_title')}
+              </Text>
+            </Pressable>
+          </HeaderRoot>
+        )}
+        <Animated.ScrollView
+          onScroll={onScroll}
+          scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
           style={tw.style('flex-1')}
+          contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
         >
+          {/* Pushed only: the large title lives in the content and collapses
+              into the header on scroll, as on Activity and the home redesign.
+              As a tab it stays in HeaderRoot, unchanged. */}
+          {isPushedScreen ? (
+            <Box
+              twClassName="px-4 pb-3"
+              onLayout={(event) =>
+                setTitleSectionHeight(event.nativeEvent.layout.height)
+              }
+            >
+              <Pressable
+                accessibilityRole="header"
+                onPress={handleTitlePress}
+                testID={REWARDS_VIEW_SELECTORS.TITLE}
+              >
+                <Text variant={TextVariant.HeadingLg}>
+                  {strings('rewards.main_title')}
+                </Text>
+              </Pressable>
+            </Box>
+          ) : null}
           <Box twClassName="gap-3">
             <CampaignsPreview />
             <EarnRewardsPreview />
             <BenefitsPreview />
           </Box>
-        </ScrollView>
+        </Animated.ScrollView>
       </SafeAreaView>
     </ErrorBoundary>
   );
