@@ -1476,6 +1476,59 @@ describe('SignUp Component', () => {
       );
     });
 
+    it('prefills phone region after regions load when user details were pending', async () => {
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+
+      mockUseRegions.mockReturnValue({
+        allRegions: [],
+        signUpRegions: [],
+        getRegionByCode: mockGetRegionByCode,
+        isLoading: true,
+      });
+      mockGetUserDetails.mockResolvedValue({
+        email: 'migrating@example.com',
+        phoneNumber: '1512345678',
+        phoneCountryCode: '+49',
+      });
+
+      const { getByTestId, rerender } = render(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      expect(mockGetUserDetails).not.toHaveBeenCalled();
+
+      mockUseRegions.mockReturnValue({
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+        getRegionByCode: mockGetRegionByCode,
+        isLoading: false,
+      });
+
+      rerender(
+        <Provider store={createTestStore()}>
+          <SignUp />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(mockGetUserDetails).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(
+          getByTestId('signup-immersve-phone-area-code-select'),
+        ).toHaveTextContent(/\+49/);
+      });
+
+      mockUseRegions.mockImplementation(() => ({
+        allRegions: mockSignUpRegions,
+        signUpRegions: mockSignUpRegions.filter((r) => r.canSignUp),
+        getRegionByCode: mockGetRegionByCode,
+        isLoading: false,
+      }));
+    });
+
     it('prefills email and phone from Baanx user details when available', async () => {
       mockGetUserDetails.mockResolvedValue({
         email: 'migrating@example.com',

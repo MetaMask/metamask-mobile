@@ -206,7 +206,12 @@ const SignUp = () => {
 
   // Best-effort contact prefill for UK migration while Baanx is still active.
   useEffect(() => {
-    if (!fromMigration || !sdk || hasPrefillAttempted.current) {
+    if (
+      !fromMigration ||
+      !sdk ||
+      !allRegions.length ||
+      hasPrefillAttempted.current
+    ) {
       return;
     }
 
