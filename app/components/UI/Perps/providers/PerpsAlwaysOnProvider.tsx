@@ -7,6 +7,7 @@ import {
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type ChaseOrderMaxDistanceReached,
 } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import { PERPS_CONNECTION_SOURCE } from '../constants/perpsConfig';
@@ -64,6 +65,9 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const reportedBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const notifiedBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const notifyingBackgroundedChaseHandlesRef = useRef(new Set<string>());
+  const reportedMaxDistanceChaseHandlesRef = useRef(new Set<string>());
+  const notifiedMaxDistanceChaseHandlesRef = useRef(new Set<string>());
+  const notifyingMaxDistanceChaseHandlesRef = useRef(new Set<string>());
   const chaseLifecycleRef = useRef({
     shouldSuspendChaseOrders,
     suspendChaseOrders,
@@ -210,6 +214,76 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         });
     };
 
+    const handleChaseOrderMaxDistanceReached = (
+      event: ChaseOrderMaxDistanceReached,
+    ) => {
+      const reportedHandles = reportedMaxDistanceChaseHandlesRef.current;
+      if (!reportedHandles.has(event.handle)) {
+        reportedHandles.add(event.handle);
+        while (reportedHandles.size > MAX_REPORTED_CHASE_HANDLES) {
+          const oldestHandle = reportedHandles.values().next().value;
+          if (oldestHandle === undefined) break;
+          reportedHandles.delete(oldestHandle);
+        }
+        chaseLifecycleRef.current.track(
+          MetaMetricsEvents.PERPS_UI_INTERACTION,
+          {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              CHASE_ORDER_STATUS.MaxDistanceReached,
+            [PERPS_EVENT_PROPERTY.ASSET]: event.symbol,
+          },
+        );
+      }
+
+      if (
+        notifiedMaxDistanceChaseHandlesRef.current.has(event.handle) ||
+        notifyingMaxDistanceChaseHandlesRef.current.has(event.handle)
+      ) {
+        return;
+      }
+      notifyingMaxDistanceChaseHandlesRef.current.add(event.handle);
+      (async () => {
+        if (!(await isPushPermissionGranted()) || !isActive) return;
+        await NotificationsService.displayNotification({
+          id: `perps-chase-max-distance-${event.handle}`,
+          pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+          title: strings('perps.order.chase.max_distance_reached_title'),
+          body: strings('perps.order.chase.max_distance_reached_notification', {
+            symbol: event.symbol,
+          }),
+          data: {
+            notification_type: CHASE_ORDER_STATUS.MaxDistanceReached,
+          },
+        });
+        const notifiedHandles = notifiedMaxDistanceChaseHandlesRef.current;
+        notifiedHandles.add(event.handle);
+        while (notifiedHandles.size > MAX_REPORTED_CHASE_HANDLES) {
+          const oldestHandle = notifiedHandles.values().next().value;
+          if (oldestHandle === undefined) break;
+          notifiedHandles.delete(oldestHandle);
+        }
+      })()
+        .catch((error) => {
+          DevLogger.log(
+            'PerpsAlwaysOnProvider: Chase max-distance notification failed',
+            {
+              error: ensureError(
+                error,
+                'PerpsAlwaysOnProvider.displayMaxDistanceNotification',
+              ).message,
+            },
+          );
+        })
+        .finally(() => {
+          notifyingMaxDistanceChaseHandlesRef.current.delete(event.handle);
+        });
+    };
+
+    Engine.controllerMessenger.subscribe(
+      'PerpsController:chaseOrderMaxDistanceReached',
+      handleChaseOrderMaxDistanceReached,
+    );
+
     PerpsConnectionManager.resumeFromForeground({
       source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
       suppressError: true,
@@ -319,6 +393,10 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => {
       isActive = false;
       lifecycleGeneration += 1;
+      Engine.controllerMessenger.unsubscribe(
+        'PerpsController:chaseOrderMaxDistanceReached',
+        handleChaseOrderMaxDistanceReached,
+      );
       subscription.remove();
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);

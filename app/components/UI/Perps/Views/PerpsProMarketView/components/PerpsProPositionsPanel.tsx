@@ -61,6 +61,7 @@ import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarke
 import {
   PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR,
   getPerpsProOrderRowSelector,
+  getPerpsProChaseDistanceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseStatusSelector,
@@ -133,15 +134,21 @@ const getChaseStatusLabel = (status: ChaseOrder['status']) => {
 const ChaseKeyValueItem = ({
   label,
   value,
+  testID,
 }: {
   label: string;
   value: string;
+  testID?: string;
 }) => (
   <Box>
     <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
       {label}
     </Text>
-    <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+    <Text
+      variant={TextVariant.BodyXs}
+      fontWeight={FontWeight.Medium}
+      testID={testID}
+    >
       {value}
     </Text>
   </Box>
@@ -771,8 +778,23 @@ const PerpsProPositionsPanel = ({
       order.maxDistanceBps === undefined
         ? PERPS_CONSTANTS.FallbackPercentageDisplay
         : `${chaseDistanceFormatter.format(order.maxDistanceBps / 100)}%`;
+    const distanceChased = `${chaseDistanceFormatter.format(
+      order.distanceChasedBps / 100,
+    )}%`;
+    const displayedDistanceLabel = isHistoryOrder
+      ? strings('perps.order.chase.card.max_distance')
+      : strings('perps.order.chase.card.distance_chased');
+    const displayedDistance = isHistoryOrder
+      ? maxDistance
+      : order.maxDistanceBps === undefined
+        ? distanceChased
+        : strings('perps.order.chase.card.distance_chased_with_max', {
+            distance: distanceChased,
+            max: maxDistance,
+          });
     const progressLabel =
-      order.status === CHASE_ORDER_STATUS.Active && order.maxDistanceBps
+      order.status === CHASE_ORDER_STATUS.Active &&
+      order.maxDistanceBps !== undefined
         ? `${Math.min(
             100,
             Math.round((order.distanceChasedBps / order.maxDistanceBps) * 100),
@@ -880,8 +902,17 @@ const PerpsProPositionsPanel = ({
                   />
                 </View>
                 <ChaseKeyValueItem
-                  label={strings('perps.order.chase.card.max_distance')}
-                  value={maxDistance}
+                  label={displayedDistanceLabel}
+                  value={displayedDistance}
+                  testID={
+                    isHistoryOrder
+                      ? undefined
+                      : getPerpsProChaseDistanceSelector(
+                          order.symbol,
+                          order.handle,
+                          index === 0,
+                        )
+                  }
                 />
               </Box>
             </Box>

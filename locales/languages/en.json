@@ -1873,6 +1873,8 @@
         "backgrounded_title": "Chase paused",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
         "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
+        "max_distance_reached_title": "Chase max distance reached",
+        "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
         "tab": "Chase",
         "tab_with_count": "Chase ({{count}})",
         "active": "Active",
@@ -1889,7 +1891,9 @@
         "card": {
           "size": "Size",
           "filled_size": "Filled size",
-          "max_distance": "Max distance"
+          "max_distance": "Max distance",
+          "distance_chased": "Distance chased",
+          "distance_chased_with_max": "{{distance}} / {{max}} max"
         },
         "status": {
           "termination_pending": "Termination pending",

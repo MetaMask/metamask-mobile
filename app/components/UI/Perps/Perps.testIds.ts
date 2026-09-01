@@ -590,6 +590,12 @@ export const getPerpsProChaseRepriceSelector = (
   isPrimary = false,
 ) => `perps-chase-reprice-observed-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
+export const getPerpsProChaseDistanceSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-distance-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
 export const getPerpsProChaseTerminateSelector = (
   status: string,
   symbol: string,

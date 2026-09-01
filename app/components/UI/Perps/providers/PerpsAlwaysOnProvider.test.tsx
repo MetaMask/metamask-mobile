@@ -13,6 +13,7 @@ import {
 import NotificationsService, {
   isPushPermissionGranted,
 } from '../../../../util/notifications/services/NotificationService';
+import { PressActionId } from '../../../../util/notifications';
 import { selectPerpsEnabledFlag } from '../index';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 
@@ -54,6 +55,10 @@ jest.mock(
 );
 
 jest.mock('../../../../core/Engine', () => ({
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    unsubscribe: jest.fn(),
+  },
   context: {
     PerpsController: {
       startMarketDataPreload: jest.fn(),
@@ -149,9 +154,25 @@ const mockStartMarketDataPreload = Engine.context.PerpsController
   .startMarketDataPreload as jest.Mock;
 const mockStopMarketDataPreload = Engine.context.PerpsController
   .stopMarketDataPreload as jest.Mock;
+const mockControllerSubscribe = Engine.controllerMessenger
+  .subscribe as jest.Mock;
+const mockControllerUnsubscribe = Engine.controllerMessenger
+  .unsubscribe as jest.Mock;
 
 describe('PerpsAlwaysOnProvider', () => {
   let mockAppStateListener: ((state: string) => void) | null = null;
+  let mockMaxDistanceHandler:
+    | ((event: {
+        handle: string;
+        symbol: string;
+        side: 'buy' | 'sell';
+        restingOrderId: string | null;
+        restingPrice: string;
+        maxDistanceBps: number;
+        timestamp: number;
+        providerId: 'hyperliquid';
+      }) => void)
+    | null = null;
   let mockSubscriptionRemove: jest.Mock;
   let addEventListenerSpy: jest.SpyInstance;
 
@@ -168,6 +189,11 @@ describe('PerpsAlwaysOnProvider', () => {
     mockIsChaseOrderDiscoveryResolved = true;
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
+    mockControllerSubscribe.mockImplementation((eventName, handler) => {
+      if (eventName === 'PerpsController:chaseOrderMaxDistanceReached') {
+        mockMaxDistanceHandler = handler;
+      }
+    });
 
     mockSubscriptionRemove = jest.fn();
     addEventListenerSpy = jest
@@ -201,6 +227,7 @@ describe('PerpsAlwaysOnProvider', () => {
     jest.useRealTimers();
     addEventListenerSpy.mockRestore();
     mockAppStateListener = null;
+    mockMaxDistanceHandler = null;
   });
 
   it('renders children', () => {
@@ -233,6 +260,104 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     expect(mockStartMarketDataPreload).toHaveBeenCalledTimes(1);
+  });
+
+  it('subscribes to max-distance events and unsubscribes on unmount', () => {
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const subscribedHandler = mockMaxDistanceHandler;
+
+    view.unmount();
+
+    expect(mockControllerSubscribe).toHaveBeenCalledWith(
+      'PerpsController:chaseOrderMaxDistanceReached',
+      expect.any(Function),
+    );
+    expect(mockControllerUnsubscribe).toHaveBeenCalledWith(
+      'PerpsController:chaseOrderMaxDistanceReached',
+      subscribedHandler,
+    );
+  });
+
+  it('notifies and tracks a max-distance event once for duplicate delivery', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'chase-max-distance',
+      symbol: 'ETH',
+      side: 'buy' as const,
+      restingOrderId: 'resting-1',
+      restingPrice: '2500',
+      maxDistanceBps: 100,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as const,
+    };
+
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'max_distance_reached',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledWith({
+      id: 'perps-chase-max-distance-chase-max-distance',
+      pressActionId: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+      title: 'Chase max distance reached',
+      body: 'Your ETH Chase order reached its max distance and is now resting as a limit order.',
+      data: { notification_type: 'max_distance_reached' },
+    });
+  });
+
+  it('retries a max-distance notification after permission is granted', async () => {
+    mockIsPushPermissionGranted
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'chase-max-distance-permission',
+      symbol: 'BTC',
+      side: 'sell' as const,
+      restingOrderId: null,
+      restingPrice: '64000',
+      maxDistanceBps: 125,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as const,
+    };
+
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 
   it('does not call resumeFromForeground on mount when perps is disabled', () => {

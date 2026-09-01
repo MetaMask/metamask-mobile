@@ -31,6 +31,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProChaseDistanceSelector,
   getPerpsProChaseRowSelector,
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProChaseStatusSelector,
@@ -666,7 +667,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         rowContent.queryByText(strings('perps.order.reduce_only')),
       ).not.toBeOnTheScreen();
-      expect(rowContent.getByText('0.05%')).toBeOnTheScreen();
+      expect(
+        rowContent.getByText(strings('perps.order.chase.card.distance_chased')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsProChaseDistanceSelector('ETH', activeChase.handle, true),
+        ),
+      ).toHaveTextContent('0.01% / 0.05% max');
+      expect(rowContent.getByText('20%')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           getPerpsProChaseTerminateSelector(
@@ -677,6 +686,44 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ),
         ),
       ).toBeEnabled();
+    },
+  );
+
+  itForPlatforms(
+    'shows actual chased distance for an active Chase without a max distance',
+    async () => {
+      const unlimitedChase: ChaseOrder = {
+        ...activeChase,
+        handle: 'chase-view-unlimited',
+        distanceChasedBps: 25,
+        maxDistanceBps: undefined,
+      };
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      getChaseOrders.mockResolvedValue([unlimitedChase]);
+      renderFundedProMarket();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+      const row = await screen.findByTestId(
+        getPerpsProChaseRowSelector('ETH', unlimitedChase.handle, true),
+      );
+
+      const rowContent = within(row);
+      expect(
+        rowContent.getByText(strings('perps.order.chase.card.distance_chased')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsProChaseDistanceSelector('ETH', unlimitedChase.handle, true),
+        ),
+      ).toHaveTextContent('0.25%');
+      expect(
+        rowContent.getByText(strings('perps.order.chase.running')),
+      ).toBeOnTheScreen();
     },
   );
 
