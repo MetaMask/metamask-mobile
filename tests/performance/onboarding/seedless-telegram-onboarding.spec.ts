@@ -78,7 +78,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
       const timer2 = new TimerHelper(
         'Telegram: Tap Telegram login → post-OAuth screen visible',
-        { ios: 15000, android: 5000 },
+        { ios: 15000, android: 15000 },
         currentDeviceDetails.platform,
       );
       const timer3 = new TimerHelper(

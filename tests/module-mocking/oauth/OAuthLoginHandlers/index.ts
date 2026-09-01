@@ -11,14 +11,18 @@ import QuickCrypto from 'react-native-quick-crypto';
 // Re-export types from real module
 export { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
 
+import { AuthConnection } from '../../../../app/core/OAuthService/OAuthInterface';
 import {
   AuthServerUrl,
   web3AuthNetwork,
   AppleWebClientId,
+  AuthConnectionConfig,
   GoogleWebGID,
   IosGID,
+  SupportedPlatforms,
 } from '../../../../app/core/OAuthService/OAuthLoginHandlers/constants';
 import type { BaseHandlerOptions } from '../../../../app/core/OAuthService/OAuthLoginHandlers/baseHandler';
+import { E2E_EMAILS } from '../../../api-mocking/seedless-onboarding/constants';
 
 function getMockGoogleOAuthClientId(): string {
   if (Platform.OS === 'ios') {
@@ -35,6 +39,18 @@ function getMockGoogleOAuthClientId(): string {
     );
   }
   return GoogleWebGID;
+}
+
+function getMockTelegramOAuthClientId(): string {
+  const clientId =
+    AuthConnectionConfig[SupportedPlatforms.Android][AuthConnection.Telegram]
+      .clientId;
+  if (!clientId) {
+    throw new Error(
+      '[E2E Mock] Missing Telegram client ID (TELEGRAM_CLIENT_ID from OAuth config).',
+    );
+  }
+  return clientId;
 }
 
 /**
@@ -315,7 +331,7 @@ class MockTelegramLoginHandler extends MockBaseLoginHandler {
   }
 
   async login(): Promise<LoginHandlerResult> {
-    const email = getE2EMockEmail();
+    const email = E2E_EMAILS.TELEGRAM_NEW_USER;
     console.log(`[E2E Mock] Telegram login with email: ${email}`);
 
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -340,7 +356,7 @@ class MockTelegramLoginHandler extends MockBaseLoginHandler {
       login_provider: this.authConnection,
       network: params.web3AuthNetwork,
       code_verifier: params.codeVerifier,
-      email: params.email || getE2EMockEmail(),
+      email: params.email || E2E_EMAILS.TELEGRAM_NEW_USER,
     };
   }
 }
@@ -375,7 +391,7 @@ export function createLoginHandler(
         throw new Error('[E2E Mock] Telegram login is not available');
       }
       return new MockTelegramLoginHandler({
-        clientId: 'e2e-mock-telegram-client-id',
+        clientId: getMockTelegramOAuthClientId(),
         redirectUri: 'metamask://e2e',
       });
     default:
