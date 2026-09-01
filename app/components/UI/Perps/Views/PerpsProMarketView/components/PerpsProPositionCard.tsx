@@ -30,7 +30,6 @@ import React from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -223,19 +222,6 @@ const PerpsProPositionCard = ({
     ? formatPerpsPrice(position.stopLossPrice as string)
     : PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
-
-  DevLogger.log(
-    `[PR-TAT-3791] BUG_MARKER: position card renders TP/SL summary ignoring trigger order counts ${JSON.stringify(
-      {
-        symbol: position.symbol,
-        takeProfitCount: position.takeProfitCount,
-        stopLossCount: position.stopLossCount,
-        takeProfitPrice: position.takeProfitPrice ?? null,
-        stopLossPrice: position.stopLossPrice ?? null,
-        rendered: tpSlDisplay,
-      },
-    )}`,
-  );
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).
   const fundingSinceOpen = parseFloat(
