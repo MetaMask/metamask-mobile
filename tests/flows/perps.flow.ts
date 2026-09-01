@@ -235,7 +235,9 @@ export const switchToPerpsProMode = async (): Promise<void> => {
  * Opens Perps from the wallet home and switches to Pro mode, landing on the
  * Pro Market View for the given symbol.
  */
-export const navigateToPerpsProEntry = async (symbol: string): Promise<void> => {
+export const navigateToPerpsProEntry = async (
+  symbol: string,
+): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
   await dismissPerpsOnboardingTutorialIfPresent();
   await switchToPerpsProMode();

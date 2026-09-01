@@ -37,8 +37,19 @@ export const buildPerpsSmokeFixture = () =>
     .withPopularNetworks()
     .build();
 
+const PERPS_PRO_MODE_FLAGS = {
+  perpsProModeEnabled: {
+    enabled: true,
+    minimumVersion: '7.0.0',
+  },
+  perpsProTriggeredOrdersEnabled: {
+    enabled: true,
+    minimumVersion: '7.0.0',
+  },
+};
+
 export const setupPerpsSmokeMocks = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {});
+  await setupRemoteFeatureFlagsMock(mockServer, PERPS_PRO_MODE_FLAGS);
   await PERPS_ARBITRUM_MOCKS(mockServer);
   await mockPerpsGeolocation(mockServer, RampsRegions[RampsRegionsEnum.SPAIN]);
 };

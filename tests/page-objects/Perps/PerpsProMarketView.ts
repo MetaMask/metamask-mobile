@@ -181,7 +181,8 @@ class PerpsProMarketView {
   // ── Order form actions ─────────────────────────────────────────────────────
 
   async selectDirection(direction: 'long' | 'short'): Promise<void> {
-    const button = direction === 'long' ? this.directionLong : this.directionShort;
+    const button =
+      direction === 'long' ? this.directionLong : this.directionShort;
     await Gestures.waitAndTap(button, {
       elemDescription: `Pro order form direction ${direction}`,
       checkForDisplayed: true,
