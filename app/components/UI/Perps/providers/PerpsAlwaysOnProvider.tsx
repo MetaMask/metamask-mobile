@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -29,6 +29,21 @@ import { useFeatureNotificationsStatus } from '../../../Views/Settings/Notificat
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
+const ChaseNotificationPreference = ({
+  onChange,
+}: {
+  onChange: (isEnabled: boolean) => void;
+}) => {
+  const { isPushEnabled } = useFeatureNotificationsStatus('perps');
+  useLayoutEffect(() => {
+    onChange(isPushEnabled);
+    return () => {
+      onChange(false);
+    };
+  }, [isPushEnabled, onChange]);
+  return null;
+};
+
 /**
  * Top-level always-on provider for Perps WebSocket connections.
  *
@@ -56,14 +71,21 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const isPushNotificationsEnabled = useSelector(
     selectIsMetaMaskPushNotificationsEnabled,
   );
-  const { isPushEnabled: isPerpsPushNotificationsEnabled } =
-    useFeatureNotificationsStatus('perps');
+  const isPerpsPushNotificationsEnabledRef = useRef(false);
+  const handlePerpsPushNotificationsEnabledChange = useCallback(
+    (isEnabled: boolean) => {
+      isPerpsPushNotificationsEnabledRef.current = isEnabled;
+    },
+    [],
+  );
   const {
     hasLiveChaseOrders,
     isChaseOrderDiscoveryResolved,
     suspendChaseOrders,
   } = usePerpsChaseOrders({
-    isEnabled: isPerpsEnabled && isChaseEnabled,
+    // Wallet root owns one-shot retained discovery and suspension only.
+    // Screen consumers opt into the 1 Hz refresh loop while Perps is visible.
+    isEnabled: false,
   });
   const shouldSuspendChaseOrders =
     isChaseEnabled || hasLiveChaseOrders || !isChaseOrderDiscoveryResolved;
@@ -77,7 +99,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     suspendChaseOrders,
     track,
     isPushNotificationsEnabled,
-    isPerpsPushNotificationsEnabled,
   });
   useLayoutEffect(() => {
     isPerpsEnabledRef.current = isPerpsEnabled;
@@ -86,11 +107,9 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       suspendChaseOrders,
       track,
       isPushNotificationsEnabled,
-      isPerpsPushNotificationsEnabled,
     };
   }, [
     isPerpsEnabled,
-    isPerpsPushNotificationsEnabled,
     isPushNotificationsEnabled,
     shouldSuspendChaseOrders,
     suspendChaseOrders,
@@ -184,7 +203,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       (async () => {
         if (
           !chaseLifecycleRef.current.isPushNotificationsEnabled ||
-          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+          !isPerpsPushNotificationsEnabledRef.current
         ) {
           return;
         }
@@ -192,7 +211,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           !(await isPushPermissionGranted()) ||
           !isActive ||
           !chaseLifecycleRef.current.isPushNotificationsEnabled ||
-          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+          !isPerpsPushNotificationsEnabledRef.current
         ) {
           return;
         }
@@ -258,7 +277,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
       (async () => {
         if (
           !chaseLifecycleRef.current.isPushNotificationsEnabled ||
-          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+          !isPerpsPushNotificationsEnabledRef.current
         ) {
           return;
         }
@@ -266,7 +285,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           !(await isPushPermissionGranted()) ||
           !isActive ||
           !chaseLifecycleRef.current.isPushNotificationsEnabled ||
-          !chaseLifecycleRef.current.isPerpsPushNotificationsEnabled
+          !isPerpsPushNotificationsEnabledRef.current
         ) {
           return;
         }
@@ -463,5 +482,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [isPerpsEnabled]);
 
-  return children;
+  return (
+    <>
+      {children}
+      {isPerpsEnabled && isChaseEnabled ? (
+        <ChaseNotificationPreference
+          onChange={handlePerpsPushNotificationsEnabledChange}
+        />
+      ) : null}
+    </>
+  );
 };

@@ -32,6 +32,9 @@ const mockSuspendChaseOrders = jest.fn().mockResolvedValue([]);
 let mockHasLiveChaseOrders = false;
 let mockIsChaseOrderDiscoveryResolved = true;
 let mockIsPerpsPushNotificationsEnabled = true;
+const mockUseFeatureNotificationsStatus = jest.fn(() => ({
+  isPushEnabled: mockIsPerpsPushNotificationsEnabled,
+}));
 const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
   hasLiveChaseOrders: mockHasLiveChaseOrders,
   isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
@@ -121,7 +124,7 @@ jest.mock('@metamask/perps-controller', () => ({
       CHASE_BACKGROUNDED_CONVERTED: 'chase_backgrounded_converted',
     },
     NOTIFICATION_TYPE: {
-      CHASE_BACKGROUNDED: 'perps_chase_backgrounded',
+      CHASE_BACKGROUNDED: 'chase_backgrounded',
     },
   },
 }));
@@ -151,9 +154,7 @@ jest.mock('../../../../selectors/notifications', () => ({
 jest.mock(
   '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus',
   () => ({
-    useFeatureNotificationsStatus: () => ({
-      isPushEnabled: mockIsPerpsPushNotificationsEnabled,
-    }),
+    useFeatureNotificationsStatus: () => mockUseFeatureNotificationsStatus(),
   }),
 );
 
@@ -588,6 +589,46 @@ describe('PerpsAlwaysOnProvider', () => {
     );
 
     expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({ isEnabled: false });
+  });
+
+  it('keeps wallet-root Chase discovery off the screen polling loop', () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenCalledWith({ isEnabled: false });
+    expect(mockUseFeatureNotificationsStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    {
+      state: 'Perps disabled',
+      selector: selectPerpsEnabledFlag,
+    },
+    {
+      state: 'Chase disabled',
+      selector: selectPerpsMobileChaseEnabledFlag,
+    },
+  ])('skips the Perps notification query when $state', ({ selector }) => {
+    mockUseSelector.mockImplementation((currentSelector) => {
+      if (currentSelector === selector) return false;
+      if (currentSelector === selectPerpsEnabledFlag) return true;
+      if (currentSelector === selectPerpsMobileChaseEnabledFlag) return true;
+      if (currentSelector === selectIsMetaMaskPushNotificationsEnabled) {
+        return true;
+      }
+      return undefined;
+    });
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockUseFeatureNotificationsStatus).not.toHaveBeenCalled();
   });
 
   it('does not start market data preload when perps is disabled', () => {
@@ -1146,7 +1187,7 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).toHaveBeenCalledWith(
       expect.objectContaining({
         data: {
-          notification_type: 'perps_chase_backgrounded',
+          notification_type: 'chase_backgrounded',
         },
         throwOnError: true,
       }),

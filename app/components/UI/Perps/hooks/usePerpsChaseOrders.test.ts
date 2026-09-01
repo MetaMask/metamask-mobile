@@ -157,7 +157,7 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
-  it('preserves retained orders when an aggregated refresh returns no orders', async () => {
+  it('removes an aggregated Chase after authoritative termination omission', async () => {
     mockPerpsProvider = 'aggregated';
     mockGetChaseOrders
       .mockResolvedValueOnce([activeOrder])
@@ -170,14 +170,15 @@ describe('usePerpsChaseOrders', () => {
 
     act(() => PerpsCacheInvalidator.invalidate('accountState'));
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
-    await waitFor(() =>
-      expect(hook.result.current.isChaseOrderDiscoveryResolved).toBe(false),
-    );
+    await waitFor(() => expect(hook.result.current.chaseOrders).toEqual([]));
 
     const orders = hook.result.current.chaseOrders;
+    const isDiscoveryResolved =
+      hook.result.current.isChaseOrderDiscoveryResolved;
     hook.unmount();
 
-    expect(orders).toEqual([activeOrder]);
+    expect(orders).toEqual([]);
+    expect(isDiscoveryResolved).toBe(true);
   });
 
   it('shares one refresh request and polling interval across consumers', async () => {
@@ -381,7 +382,7 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
-  it('installs no polling timer for rollout-off users without live orders', async () => {
+  it('keeps one-shot retained discovery off the 1 Hz polling loop', async () => {
     const setIntervalSpy = jest.spyOn(global, 'setInterval');
     const { result, unmount } = renderHook(() =>
       usePerpsChaseOrders({ isEnabled: false }),
@@ -393,6 +394,12 @@ describe('usePerpsChaseOrders', () => {
     expect(result.current.isChaseOrderDiscoveryResolved).toBe(true);
     expect(setIntervalSpy).not.toHaveBeenCalled();
     expect(PerpsCacheInvalidator.getSubscriberCount('accountState')).toBe(0);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.RefreshIntervalMs * 3,
+      );
+    });
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
     unmount();
     setIntervalSpy.mockRestore();
   });
@@ -615,8 +622,8 @@ describe('usePerpsChaseOrders', () => {
     await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
     await waitFor(() =>
       expect(hook.result.current.chaseOrders).toEqual([
-        freshOrder,
         partialOrder,
+        freshOrder,
       ]),
     );
     hook.unmount();
@@ -1330,6 +1337,36 @@ describe('usePerpsChaseOrders', () => {
     },
   );
 
+  it('retains newest terminal history within the configured count limit', async () => {
+    const historyOrders = Array.from(
+      { length: CHASE_ORDER_UI_CONFIG.TerminalHistoryLimit + 2 },
+      (_, index) => ({
+        ...activeOrder,
+        handle: `history-${index}`,
+        startedAt: index,
+        status: 'canceled' as const,
+      }),
+    );
+    mockGetChaseOrders.mockResolvedValueOnce(historyOrders);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: false }));
+
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toHaveLength(
+        CHASE_ORDER_UI_CONFIG.TerminalHistoryLimit,
+      ),
+    );
+
+    expect(
+      hook.result.current.chaseOrders.map((order) => order.handle),
+    ).toEqual(
+      historyOrders
+        .slice(2)
+        .reverse()
+        .map((order) => order.handle),
+    );
+    hook.unmount();
+  });
+
   it('uses controller lifecycle truth across termination refreshes', async () => {
     mockGetChaseOrders
       .mockResolvedValueOnce([activeOrder])
@@ -1443,6 +1480,7 @@ describe('usePerpsChaseOrders', () => {
     hook.rerender({});
 
     expect(hook.result.current.chaseOrders).toEqual([]);
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
     hook.unmount();
   });
 
@@ -1582,6 +1620,7 @@ describe('usePerpsChaseOrders', () => {
       hook.rerender({});
 
       expect(hook.result.current.chaseOrders).toEqual([]);
+      expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
       hook.unmount();
     },

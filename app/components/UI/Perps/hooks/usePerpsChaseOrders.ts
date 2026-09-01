@@ -59,7 +59,6 @@ export const isExpectedChaseOrderRequestError = (
 let cachedOrders: ChaseOrder[] = [];
 let cachedRoute = '';
 let selectedRoute = '';
-let selectedProviderMode = '';
 let initialRefreshRoute = '';
 let isControllerInitialized = false;
 let requestGeneration = 0;
@@ -94,12 +93,21 @@ const EMPTY_SNAPSHOT: ChaseOrdersSnapshot = {
 };
 const hasLiveRetainedOrders = () =>
   cachedOrders.some((order) => CHASE_RETAINED_STATUSES.has(order.status));
+const getBoundedTerminalHistory = (orders: ChaseOrder[]) =>
+  orders
+    .filter((order) => CHASE_HISTORY_STATUSES.has(order.status))
+    .sort(
+      (left, right) =>
+        right.startedAt - left.startedAt ||
+        left.handle.localeCompare(right.handle),
+    )
+    .slice(0, CHASE_ORDER_UI_CONFIG.TerminalHistoryLimit);
 const mergeWithCachedHistory = (
   orders: ChaseOrder[],
   preserveMissingRetainedOrders = false,
 ): ChaseOrder[] => {
   const controllerHandles = new Set(orders.map((order) => order.handle));
-  return [
+  const mergedOrders = [
     ...orders,
     ...(preserveMissingRetainedOrders
       ? cachedOrders.filter(
@@ -113,6 +121,12 @@ const mergeWithCachedHistory = (
         CHASE_HISTORY_STATUSES.has(order.status) &&
         !controllerHandles.has(order.handle),
     ),
+  ];
+  return [
+    ...mergedOrders.filter(
+      (order) => !CHASE_HISTORY_STATUSES.has(order.status),
+    ),
+    ...getBoundedTerminalHistory(mergedOrders),
   ];
 };
 
@@ -244,22 +258,9 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
       }
       refreshFailureLogged = false;
       cachedRoute = route;
-      // Controller v15 returns only successful aggregated reads and exposes no
-      // completeness metadata. Preserve missing retained sessions; only an
-      // empty response against a live cache is detectable as incomplete.
-      const isIncompleteAggregatedRead =
-        selectedProviderMode === 'aggregated' &&
-        orders.length === 0 &&
-        hasLiveRetainedOrders();
-      const ordersChanged = setCachedOrders(
-        mergeWithCachedHistory(orders, selectedProviderMode === 'aggregated'),
-      );
+      const ordersChanged = setCachedOrders(mergeWithCachedHistory(orders));
       if (ordersChanged) emitChange();
       syncRefreshLifecycle();
-      if (isIncompleteAggregatedRead) {
-        setDiscoveryResolvedRoute('');
-        throw new Error('Aggregated Chase discovery returned no orders');
-      }
       return cachedOrders;
     })
     .finally(() => {
@@ -404,7 +405,6 @@ function resetChaseOrdersStore() {
   cachedRoute = '';
   cachedOrders = [];
   selectedRoute = '';
-  selectedProviderMode = '';
   initialRefreshRoute = '';
   isControllerInitialized = false;
   refreshFailureLogged = false;
@@ -612,9 +612,29 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
   }, [isEnabled]);
   // Reset route-scoped state first so the initialization effect below can run
   // exactly one discovery read for the new route.
-  useEffect(() => {
+  useLayoutEffect(() => {
+    const previousRoute = selectedRoute;
+    if (
+      previousRoute &&
+      previousRoute !== route &&
+      cachedRoute === previousRoute &&
+      hasLiveRetainedOrders()
+    ) {
+      Engine.context.PerpsController.suspendChaseOrders().catch((error) => {
+        Logger.error(ensureError(error, 'usePerpsChaseOrders.routeChange'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsChaseOrders',
+            action: 'suspend_before_route_change',
+          },
+          context: {
+            name: 'usePerpsChaseOrders.routeChange',
+            data: { previousRoute, nextRoute: route },
+          },
+        });
+      });
+    }
     selectedRoute = route;
-    selectedProviderMode = activeProvider ?? '';
     if (cachedRoute === route) {
       syncRefreshLifecycle();
       return;
@@ -626,17 +646,13 @@ export function usePerpsChaseOrders({ isEnabled }: { isEnabled: boolean }) {
     cachedRoute = route;
     cachedOrders = [];
     setDiscoveryResolvedRoute('');
-  }, [activeProvider, route]);
+  }, [route]);
   useEffect(() => {
     if (!connectionIdentityReady) {
       requestGeneration += 1;
       refreshPromise = undefined;
       const retainedHistory =
-        cachedRoute === route
-          ? cachedOrders.filter((order) =>
-              CHASE_HISTORY_STATUSES.has(order.status),
-            )
-          : [];
+        cachedRoute === route ? getBoundedTerminalHistory(cachedOrders) : [];
       cachedRoute = route;
       cachedOrders = retainedHistory;
       stopRefreshLifecycle();

@@ -150,6 +150,7 @@ export const CHASE_ORDER_UI_CONFIG = {
   DiscoveryRetryMaxAttempts: 4,
   DiscoveryRetryMaxDelayMs: 8000,
   BackgroundSuspensionTimeoutMs: 3000,
+  TerminalHistoryLimit: 50,
 } as const;
 
 export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
