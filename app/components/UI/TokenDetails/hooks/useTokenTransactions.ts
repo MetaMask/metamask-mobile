@@ -21,6 +21,7 @@ import { store } from '../../../../store';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
+import { bridgeQuoteLegMatchesAsset } from '../../../../util/activity-adapters/activityMatchesAssetId';
 import { getMaybeHexChainId } from '../../../../util/bridge';
 import { TransactionType } from '@metamask/transaction-controller';
 import { TOKEN_CATEGORY_HASH } from '../../../UI/TransactionElement/utils';
@@ -267,6 +268,33 @@ export const useTokenTransactions = (
         });
       }
 
+      const pageAssetId = isNativeAsset
+        ? AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
+            asset.chainId as SupportedCaipChainId
+          ]?.nativeCurrency
+        : asset.address;
+
+      const bridgeQuoteLegTransactions = txs.filter((tx: Transaction) => {
+        if (filteredTransactions.some((existing) => existing.id === tx.id)) {
+          return false;
+        }
+
+        const bridgeHistoryItem = findBridgeHistoryItem({
+          bridgeHistory,
+          transactionMetaId: tx.id,
+          transactionActionId: tx.actionId,
+          transactionHash: tx.hash ?? tx.id,
+        });
+
+        return bridgeQuoteLegMatchesAsset(
+          bridgeHistoryItem?.quote,
+          pageAssetId,
+          assetAddress,
+        );
+      });
+
+      filteredTransactions = [...filteredTransactions, ...bridgeQuoteLegTransactions];
+
       transactions = [...filteredTransactions].sort(
         (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
       );
@@ -275,6 +303,7 @@ export const useTokenTransactions = (
 
     return transactions;
   }, [
+    bridgeHistory,
     evmTransactions,
     asset.chainId,
     asset.address,

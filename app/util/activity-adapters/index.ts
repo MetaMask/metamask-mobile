@@ -41,6 +41,10 @@ export {
   applyDisplaySign,
   toMarketRateLookupToken,
 } from './fiat';
+export {
+  activityMatchesAssetId,
+  bridgeQuoteLegMatchesAsset,
+} from './activityMatchesAssetId';
 export { formatTokenDisplayAmount } from './token-display';
 export {
   enrichTokenFromApi,

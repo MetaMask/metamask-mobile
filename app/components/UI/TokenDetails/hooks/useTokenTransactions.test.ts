@@ -1077,6 +1077,85 @@ describe('useTokenTransactions', () => {
       ]);
     });
 
+    it('includes a bridge tx matched by quote assetId when participant filter misses it', async () => {
+      const stellarChainId = 'stellar:pubnet';
+      const xlmAssetId = 'stellar:pubnet/slip44:148';
+
+      jest.mocked(isNonEvmChainId).mockReturnValue(true);
+      jest
+        .mocked(formatChainIdToCaip)
+        .mockImplementation((chainId: unknown) => chainId as never);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectTransactions) return [];
+        if (selector === selectBridgeHistoryForAccount) {
+          return {
+            'stellar-bridge-1': {
+              quote: {
+                srcChainId: stellarChainId,
+                destChainId: 1,
+                srcAsset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  assetId: xlmAssetId,
+                  symbol: 'XLM',
+                },
+                destAsset: {
+                  address: '0x0000000000000000000000000000000000000000',
+                  assetId: 'eip155:1/slip44:60',
+                  symbol: 'ETH',
+                },
+              },
+            },
+          };
+        }
+        if (selector === selectTokens) return [];
+        if (selector === selectSelectedInternalAccount) {
+          return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
+        }
+        if (selector === selectSelectedInternalAccountByScope) {
+          return () => ({ address: SOLANA_ADDRESS });
+        }
+        if (selector === selectNonEvmTransactionsForSelectedAccountGroup) {
+          return {
+            transactions: [
+              {
+                id: 'stellar-bridge-1',
+                chain: stellarChainId,
+                type: 'unknown',
+                status: TX_CONFIRMED,
+                time: 3,
+                from: [],
+                to: [],
+              },
+            ],
+          };
+        }
+        if (selector === selectConversionRate) return 1;
+        if (selector === selectCurrentCurrency) return 'usd';
+        return SOLANA_ADDRESS;
+      });
+
+      const { result } = renderHook(() =>
+        useTokenTransactions(
+          createAsset({
+            chainId: stellarChainId,
+            symbol: 'XLM',
+            name: 'Stellar Lumens',
+            isNative: true,
+            isETH: false,
+            address: xlmAssetId,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions.map((tx) => tx.id)).toEqual([
+        'stellar-bridge-1',
+      ]);
+    });
+
     it('replaces a pending unknown row when the same non-EVM transaction confirms', async () => {
       const pendingTx = {
         id: 'tron-swap-1',
