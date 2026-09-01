@@ -70,6 +70,18 @@ class ChangePasswordView {
     );
   }
 
+  get warningSheetTitle(): Promise<AppiumElement> {
+    return Matchers.getElementByText(
+      ChangePasswordViewSelectorsText.WARNING_PASSWORD_CHANGE_TITLE,
+    );
+  }
+
+  get confirmPasswordChangeButton(): Promise<AppiumElement> {
+    return Matchers.getElementByText(
+      ChangePasswordViewSelectorsText.CONFIRM_PASSWORD_CHANGE,
+    );
+  }
+
   private getCatchAllXPath(identifier: string): string {
     if (PlatformDetector.isAndroid()) {
       return `//*[@resource-id='${identifier}' or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
@@ -154,8 +166,25 @@ class ChangePasswordView {
     });
   }
 
+  async expectWarningSheetVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.warningSheetTitle, {
+      description:
+        'Seedless password-change confirmation sheet should be visible',
+      timeout: 15000,
+    });
+  }
+
+  async tapConfirmPasswordChange(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmPasswordChangeButton, {
+      elemDescription: 'Change password - Confirm on warning sheet',
+      checkEnabled: true,
+    });
+  }
+
   /**
    * Completes both change-password steps after the screen is open.
+   * Seedless Save shows a confirmation sheet that must be confirmed before
+   * the password is applied and the success toast appears.
    */
   async changePassword(
     currentPassword: string,
@@ -170,6 +199,9 @@ class ChangePasswordView {
     await this.reEnterNewPassword(newPassword);
     await this.tapIUnderstandCheckBox();
     await this.tapSaveButton();
+
+    await this.expectWarningSheetVisible();
+    await this.tapConfirmPasswordChange();
   }
 }
 
