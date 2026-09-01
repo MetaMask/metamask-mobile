@@ -34,6 +34,7 @@ import {
   useFormatActivityTokenAmount,
 } from '../components';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { usePerpsTransactionById } from '../hooks/usePerpsTransactionById';
 import {
   asPerpsActivityItem,
   formatPerpsOrderFee,
@@ -44,7 +45,6 @@ import {
   getPerpsPositionSize,
   getPerpsPriceLabel,
   getPerpsPriceValue,
-  getPerpsTransaction,
   shouldShowPerpsPnl,
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
@@ -474,7 +474,7 @@ function LocalFundsDetails({ item }: { item: PerpsActivityListItem }) {
 
 export function PerpsDetails({ item }: { item: ActivityListItem }) {
   const perpsItem = asPerpsActivityItem(item);
-  const transaction = getPerpsTransaction(item);
+  const transaction = usePerpsTransactionById(item.hash);
 
   if (!transaction) {
     if (item.type === 'perpsAddFunds' || item.type === 'perpsWithdraw') {

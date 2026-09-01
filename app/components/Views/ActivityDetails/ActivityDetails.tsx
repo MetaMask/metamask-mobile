@@ -50,11 +50,8 @@ const ActivityDetails = () => {
   const isFocused = useIsFocused();
   const { chainId, txIdentifier, preloadKey } =
     useParams<ActivityDetailsParams>();
-  // Provider-backed rows (Perps / Predict) are handed off via a transient store
-  // keyed by `preloadKey` (params stay serializable). Capture the row once per
-  // key and hold it, so a later store eviction can't blank a still-mounted
-  // screen on re-render; re-read only when the key changes (the screen is reused
-  // across navigations).
+  // Predict rows are handed off via a transient store keyed by `preloadKey`.
+  // Perps rows re-resolve from HyperLiquid history by id/hash.
   const preloadedRef = useRef<{
     key?: string;
     item: ReturnType<typeof getPreloadedActivityItem>;
