@@ -12,14 +12,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { initialState } from '../../_mocks_/initialState';
 import OrdersTabs from './OrdersTabs';
 import { OrdersTabsSelectorsIDs } from './OrdersTabs.testIds';
-import type { OrdersTabsProps } from './OrdersTabs.types';
-
-jest.mock('@shopify/flash-list', () => {
-  const { flashListMock } = jest.requireActual(
-    '../../../../../util/test/mockFlashList',
-  );
-  return flashListMock();
-});
+import { OrdersTabKey, type OrdersTabsProps } from './OrdersTabs.types';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   ...jest.requireActual('../../../../../util/remoteFeatureFlag'),
@@ -157,6 +150,39 @@ describe('OrdersTabs', () => {
 
     expect(queryByTestId('limit-open-order')).toBeNull();
     expect(getByTestId(OrdersTabsSelectorsIDs.EMPTY_STATE)).toBeOnTheScreen();
+  });
+
+  it('switches back to open orders when Open orders tab is pressed from History', () => {
+    const { getByTestId, getByText, queryByText } = renderOrdersTabs({
+      openOrders: { items: [] },
+      history: { items: [] },
+      initialTab: OrdersTabKey.History,
+    });
+
+    expect(getByText(strings('bridge.orders.empty.history'))).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB));
+
+    expect(
+      getByText(strings('bridge.orders.empty.open_orders')),
+    ).toBeOnTheScreen();
+    expect(queryByText(strings('bridge.orders.empty.history'))).toBeNull();
+  });
+
+  it('renders items without a keyExtractor using the row index as the key', () => {
+    const { getByTestId } = renderOrdersTabs({
+      openOrders: {
+        items: [{ label: 'first' }, { label: 'second' }],
+        renderItem: (item) => (
+          <Text testID={`order-row-${item.label}`}>{item.label}</Text>
+        ),
+      },
+      history: { items: [] },
+    });
+
+    expect(getByTestId('order-row-first')).toHaveTextContent('first');
+    expect(getByTestId('order-row-second')).toHaveTextContent('second');
+    expect(getByTestId(OrdersTabsSelectorsIDs.CONTENT)).toBeOnTheScreen();
   });
 
   it('shows the selected network icon and name on the filter button', () => {

@@ -1,9 +1,7 @@
 import {
   applyDisplaySign,
-  calculateFiatFromMarketRates,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
-  getTokenAddressForMarketRates,
   type MarketRateLookupToken,
   toMarketRateLookupToken,
 } from './fiat';
@@ -17,42 +15,6 @@ const ethToken: MarketRateLookupToken = {
 };
 
 describe('activity adapter fiat helpers', () => {
-  describe('calculateFiatFromMarketRates', () => {
-    const marketRates = {
-      1: { [NATIVE_TOKEN_ADDRESS]: 2500 },
-    };
-
-    it('returns fiat amount for a valid token and amount', () => {
-      expect(calculateFiatFromMarketRates('1.5', ethToken, marketRates)).toBe(
-        3750,
-      );
-    });
-
-    it('preserves sign for negative amounts', () => {
-      expect(calculateFiatFromMarketRates('-1', ethToken, marketRates)).toBe(
-        -2500,
-      );
-    });
-
-    it('parses leading plus amounts', () => {
-      expect(calculateFiatFromMarketRates('+1.5', ethToken, marketRates)).toBe(
-        3750,
-      );
-    });
-
-    it('returns undefined when amount, token, or rate is missing', () => {
-      expect(
-        calculateFiatFromMarketRates(undefined, ethToken, marketRates),
-      ).toBeUndefined();
-      expect(calculateFiatFromMarketRates('1', undefined, marketRates)).toBe(
-        undefined,
-      );
-      expect(
-        calculateFiatFromMarketRates('1', ethToken, { 1: {} }),
-      ).toBeUndefined();
-    });
-  });
-
   it('returns an unsigned human-readable token amount', () => {
     expect(
       getHumanReadableTokenAmount({
@@ -62,6 +24,29 @@ describe('activity adapter fiat helpers', () => {
         symbol: 'ETH',
       }),
     ).toBe('1');
+  });
+
+  it('does not apply metadata decimals when the amount is already human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+        amountIsHumanReadable: true,
+      }),
+    ).toBe('1');
+  });
+
+  it('treats an integer amount as atomic units when decimals are set and the amount is not marked human-readable', () => {
+    expect(
+      getHumanReadableTokenAmount({
+        amount: '1',
+        decimals: 9,
+        direction: 'out',
+        symbol: 'SOL',
+      }),
+    ).toBe('0.000000001');
   });
 
   it('treats a missing amount with symbol/assetId as zero for client-utils natives', () => {
@@ -91,17 +76,6 @@ describe('activity adapter fiat helpers', () => {
     expect(applyDisplaySign('-$2,500.00', '-')).toBe('-$2,500.00');
     expect(applyDisplaySign('+$2,500.00', '-')).toBe('+$2,500.00');
     expect(applyDisplaySign('1.5 ETH', '')).toBe('1.5 ETH');
-  });
-
-  it('maps CAIP asset ids to market-rate token addresses', () => {
-    expect(getTokenAddressForMarketRates('eip155:1/slip44:60')).toBe(
-      NATIVE_TOKEN_ADDRESS,
-    );
-    expect(
-      getTokenAddressForMarketRates(
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      ),
-    ).toBe('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48');
   });
 
   it('builds a market-rate lookup token from an activity token amount', () => {

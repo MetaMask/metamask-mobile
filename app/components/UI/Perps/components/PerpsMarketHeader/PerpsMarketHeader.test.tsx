@@ -247,7 +247,7 @@ describe('PerpsMarketHeader', () => {
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
   });
 
-  it('plays TabChange after an accepted mode-pill switch', async () => {
+  it('plays TabChange as soon as a mode-pill switch is accepted', async () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({
@@ -255,19 +255,20 @@ describe('PerpsMarketHeader', () => {
       enableHaptics: true,
     });
 
-    fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
-
-    expect(playImpact).not.toHaveBeenCalled();
-    expect(onModeChange).not.toHaveBeenCalled();
-
     await act(async () => {
-      jest.advanceTimersByTime(GLOW_TOTAL_MS);
-      await Promise.resolve();
+      fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
     });
 
     expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
     expect(playImpact).toHaveBeenCalledTimes(1);
     expect(playImpact).toHaveBeenCalledWith(ImpactMoment.TabChange);
+
+    // Drain the shimmer timer so it cannot leak into later tests.
+    await act(async () => {
+      jest.advanceTimersByTime(GLOW_TOTAL_MS);
+    });
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
   });
 
   it('keeps other Lite header actions silent when mode haptics are enabled', async () => {
@@ -309,19 +310,21 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
-  it('fires onModeChange from the active Pro mode pill once the shimmer finishes', () => {
+  it('fires onModeChange from the active Pro mode pill without waiting for the shimmer', () => {
     jest.useFakeTimers();
     const onModeChange = jest.fn();
     const { getByTestId } = renderHeader({ onModeChange });
 
     fireEvent.press(getByTestId(PerpsModeToggleSelectorsIDs.PRO_SEGMENT));
 
-    expect(onModeChange).not.toHaveBeenCalled();
+    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+
+    // Drain the shimmer timer so it cannot leak into later tests.
     act(() => {
       jest.advanceTimersByTime(GLOW_TOTAL_MS);
     });
 
-    expect(onModeChange).toHaveBeenCalledWith(PerpsMode.Lite);
+    expect(onModeChange).toHaveBeenCalledTimes(1);
   });
 
   it('omits the mode pill when mode is not provided', () => {

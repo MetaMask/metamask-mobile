@@ -11,13 +11,15 @@ The deep link analytics system consolidates multiple analytics events into a sin
 - Signature validation status
 - Interstitial modal interactions
 - UTM parameters for attribution
-- Route-specific sensitive properties
+- Route-specific sensitive properties (deprecated leftover on this event; see below)
 
 ## DEEP_LINK_USED Event
 
 ### Event Structure
 
-The `DEEP_LINK_USED` event is created using `AnalyticsEventBuilder` and includes both standard properties and sensitive properties.
+Today `DEEP_LINK_USED` is still built with `AnalyticsEventBuilder` using both `addProperties` (standard fields) and `addSensitiveProperties` (route-specific fields). Sensitive properties trigger dual emission: an anonymous event with those fields, and a non-anonymous event with the rest.
+
+`addSensitiveProperties` is deprecated. New tracking, including new deep link routes, uses `addProperties` only. When you edit this event, review each sensitive field and drop it or move it to `addProperties` when that is safe.
 
 ### Standard Properties
 
@@ -37,7 +39,9 @@ The `DEEP_LINK_USED` event is created using `AnalyticsEventBuilder` and includes
 
 ### Sensitive Properties
 
-Sensitive properties are extracted based on the route type and include transaction-specific information that should be handled with care:
+These fields are what `DEEP_LINK_USED` still sends via `addSensitiveProperties`. That API is deprecated; do not add new ones. When editing this extraction, review each field and drop it or move it to `addProperties` when that is safe.
+
+Sensitive properties are extracted based on the route type and include transaction-specific information:
 
 #### Common Properties (Most Routes)
 
@@ -301,6 +305,6 @@ export const detectAppInstallation = async (
 
 ## Code References
 
-- [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts) - Main handler that creates analytics contexts
+- [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/handleUniversalLink.ts) - Main handler that creates analytics contexts
 - [deepLinkAnalytics.ts](../../app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
 - [deepLinkAnalytics.types.ts](../../app/core/DeeplinkManager/types/deepLinkAnalytics.types.ts) - Type definitions

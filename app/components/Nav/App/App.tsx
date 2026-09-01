@@ -18,6 +18,10 @@ import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import ImportFromSecretRecoveryPhrase from '../../Views/ImportFromSecretRecoveryPhrase';
+import { ALLOWED_CAPABILITIES as IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ImportFromSecretRecoveryPhrase/messenger';
+import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
+import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
+import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -185,13 +189,34 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/AddDeviceToWallet/messenger';
 import DesignerModeOverlay from '../../UI/DesignerMode';
 import ProSubscription from '../../Views/ProSubscription';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
+import Earned from '../../Views/ProHub/screens/Earned';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
 
 const NativeStack = createNativeStackNavigator();
+
+const ImportFromSecretRecoveryPhraseWithMessenger = withRouteMessenger(
+  ImportFromSecretRecoveryPhrase,
+  {
+    capabilities: IMPORT_FROM_SECRET_RECOVERY_PHRASE_ROUTE_ALLOWED_CAPABILITIES,
+  },
+);
+
+const AddDeviceToWalletWithMessenger = withRouteMessenger(AddDeviceToWallet, {
+  capabilities: ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const ChoosePasswordWithMessenger = withRouteMessenger(ChoosePassword, {
+  capabilities: CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES,
+});
+
+const QRTabSwitcherWithMessenger = withRouteMessenger(QRTabSwitcher, {
+  capabilities: QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES,
+});
 
 const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
@@ -298,7 +323,7 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name="ChoosePassword"
-        component={ChoosePassword}
+        component={ChoosePasswordWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -338,12 +363,12 @@ const OnboardingNav = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -436,7 +461,7 @@ const OnboardingRootNav = () => (
     <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
     <NativeStack.Screen
       name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
+      component={QRTabSwitcherWithMessenger}
       options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
@@ -811,7 +836,7 @@ const ImportPrivateKeyView = () => {
       />
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcher}
+        component={QRTabSwitcherWithMessenger}
       />
     </NativeStack.Navigator>
   );
@@ -830,7 +855,7 @@ const ImportSRPView = () => (
     />
     <NativeStack.Screen
       name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcher}
+      component={QRTabSwitcherWithMessenger}
       options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
@@ -1216,7 +1241,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWallet}
+        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -1226,7 +1251,7 @@ const AppFlow = () => {
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
-        component={ImportFromSecretRecoveryPhrase}
+        component={ImportFromSecretRecoveryPhraseWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -1415,6 +1440,16 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.PRO_HUB.MEMBERSHIP}
         component={Membership}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.EARNED}
+        component={Earned}
         options={{
           headerShown: false,
           gestureEnabled: true,
