@@ -124,5 +124,15 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       response: JSON.stringify('unifiedAccount'),
       priority: hyperliquidMockPriority,
     },
+    // Catch-all for info POSTs whose `type` is not listed above. Without this,
+    // findMatchingPostEvent finds no body match and no no-body fallback, so the
+    // request is recorded as live and fixture cleanup fails even when the test
+    // assertions already passed (permission / getSession Appium smokes).
+    {
+      urlEndpoint: hyperliquidInfoEndpoint,
+      responseCode: 200,
+      response: {},
+      priority: hyperliquidMockPriority,
+    },
   ],
 };

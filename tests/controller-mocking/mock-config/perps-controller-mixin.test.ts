@@ -32,6 +32,7 @@ const CHANNELS_REQUIRING_GET_SNAPSHOT = [
   'prices',
   'marketData',
   'account',
+  'fills',
   'orders',
   'positions',
 ] as const;
