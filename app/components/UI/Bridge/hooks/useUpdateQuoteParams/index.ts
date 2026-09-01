@@ -8,7 +8,6 @@ import {
 } from '@metamask/bridge-controller';
 import { useCallback, useEffect, useMemo } from 'react';
 
-import { TraceName } from '../../../../../util/trace';
 import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import type { UseSwapQuotesParams } from '../useSwapQuotes/types';
@@ -16,7 +15,6 @@ import type { UseSwapQuotesParams } from '../useSwapQuotes/types';
 export interface UseDebouncedUpdateParams extends UseSwapQuotesParams {
   featureId: FeatureId;
   debounceWait: number;
-  traceName?: TraceName;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
   genericQuoteRequest?: GenericQuoteRequest;
@@ -35,7 +33,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
   const {
     genericQuoteRequest,
     featureId,
-    traceName,
     quoteRequestIndex = 0,
     quoteRequestCount = 1,
     debounceWait,
@@ -53,8 +50,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         return;
       }
 
-      const shouldTrace =
-        isValidQuoteRequest(genericQuoteRequest) && Boolean(traceName);
+      const shouldTrace = isValidQuoteRequest(genericQuoteRequest);
 
       if (options?.traceId && !shouldTrace) {
         swapQuoteFetchTrace.finish('cancelled', options.traceId);
@@ -68,22 +64,23 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
           quoteRequestCount,
         );
       } catch (error) {
-        if (shouldTrace) {
-          swapQuoteFetchTrace.finish('error', options?.traceId);
+        if (options?.traceId && shouldTrace) {
+          swapQuoteFetchTrace.finish('error', options.traceId);
         }
         throw error;
       }
     },
-    [
-      metricsContext,
-      quoteRequestIndex,
-      quoteRequestCount,
-      traceName,
-      genericQuoteRequest,
-    ],
+    [metricsContext, quoteRequestIndex, quoteRequestCount, genericQuoteRequest],
   );
 
-  const { srcToken, destToken, srcAmount, walletAddress } = quoteParams;
+  const { srcToken, destToken, srcAmount } = quoteParams;
+  const {
+    srcChainId,
+    destChainId,
+    srcTokenAddress,
+    destTokenAddress,
+    walletAddress,
+  } = genericQuoteRequest ?? {};
 
   // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
@@ -96,6 +93,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
         !srcToken ||
         !destToken ||
         srcAmount === undefined ||
+        !destChainId ||
+        !destToken?.chainId ||
         !walletAddress
       ) {
         debounced.cancel();
@@ -130,6 +129,8 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
 
     return debouncedWithTrace;
   }, [
+    destChainId,
+    srcChainId,
     destToken,
     srcToken,
     srcAmount,
