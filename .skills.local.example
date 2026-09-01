@@ -18,19 +18,31 @@
 #   CONSENSYS_SKILLS_DIR=~/dev/Consensys/skills   # optional
 #   METAMASK_SKILLS_TARGET_REPO=metamask-mobile   # optional fork override
 #
-# Default behavior installs only the BASE skills (`base: true` upstream) — a fresh
-# clone lands those from `yarn install` with no configuration. Opt into more:
-#   SKILLS_DOMAINS=                          # base only (default)
+# The two install paths behave differently, and only the automatic one changed:
+#
+#   yarn install / yarn setup   -> BASE skills only (`base: true` upstream), so a
+#                                  fresh clone lands a useful set with no config
+#   yarn skills                 -> every domain, unchanged
+#
+# Setting SKILLS_DOMAINS pins BOTH paths to your selection:
+#   SKILLS_DOMAINS=none                      # base only, even for `yarn skills`
 #   SKILLS_DOMAINS=perps                     # base + one domain
 #   SKILLS_DOMAINS=perps,testing,pr-workflow # base + several
 #   SKILLS_DOMAINS=all                       # every domain
 #
-# Skills refresh automatically during yarn install/setup. Opt out to manage them
-# by hand with `yarn skills`:
+# Note `none`, not an empty value, for base-only. A bare `SKILLS_DOMAINS=` is what
+# the old picker wrote for the "all" choice, so it is read as `all` to avoid
+# silently shrinking the skill set of engineers who chose that before.
+#
+# Leaving it unset (as below) is the recommended default: automatic installs stay
+# base-only, and `yarn skills` still gives you everything on demand.
+#
+# The refresh + install runs automatically during yarn install/setup. Opt out to
+# manage skills by hand with `yarn skills`:
 #   SKILLS_AUTO_UPDATE=0              # skip the refresh + install
 #   SKILLS_SKIP_POSTINSTALL=1         # skip the postinstall hook entirely
 #
 # Override per-run with `SKILLS_DOMAINS=... yarn skills` or `--domain <list>`.
 # Pick interactively with `yarn skills --select`.
 # Use `yarn skills --reset` to wipe.
-SKILLS_DOMAINS=
+# SKILLS_DOMAINS=

@@ -44,7 +44,7 @@
     "coverage:files": "node scripts/coverage-analysis.js --files",
     "setup": "yarn clean && node scripts/setup.mjs",
     "skills": "metamask-skills sync",
-    "postinstall": "yarn skills:postinstall || true",
+    "postinstall": "yarn skills:postinstall || echo 'agent skills were not installed (non-fatal) - run yarn skills to retry' >&2",
     "setup:ci": "yarn clean:ios && yarn clean:android && node scripts/setup.mjs",
     "setup:github-ci": "node scripts/setup.mjs --build-on-github-ci",
     "eas": "eas",

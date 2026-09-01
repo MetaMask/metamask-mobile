@@ -289,27 +289,55 @@ const reportAgentSkillsTask = {
       installed = fs
         .readdirSync(skillsDir, { withFileTypes: true })
         .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name);
-    } catch {
-      return task.skip(
-        'No agent skills installed. Run `yarn skills` to install them.',
-      );
+        .map((entry) => entry.name)
+        // Only skills this tooling manages. Personal skills living in the same
+        // directory would otherwise inflate the count.
+        .filter((name) => name.startsWith('mms-'));
+    } catch (error) {
+      // ENOENT just means nothing has been installed yet — a fresh clone before
+      // postinstall, or SKILLS_AUTO_UPDATE=0. Fall through to the empty-state
+      // branch below, which points at `yarn skills`.
+      //
+      // Anything else (EACCES after a stray `sudo yarn`, ENOTDIR if a file
+      // shadows the directory) means the state is unknown rather than empty, and
+      // "none installed, run `yarn skills`" would send the reader at a command
+      // that fails the same way without naming the cause.
+      //
+      // Reported, NOT thrown. This list runs with exitOnError, and `tasks.run()`
+      // is unguarded, so throwing from a purely informational step would abort
+      // Husky, the Expo build links and the whole iOS / Terms-of-Use stage that
+      // follow it — over a skill count. That would also break the promise in
+      // README: "Skipping `yarn skills` is fine — it only affects agent tooling,
+      // not the app build."
+      if (error.code !== 'ENOENT') {
+        task.title = `Report agent skills — could not read ${skillsDir} (${error.code}); skills may be installed but unreadable.`;
+        return undefined;
+      }
     }
 
     if (installed.length === 0) {
-      return task.skip(
-        'No agent skills installed. Run `yarn skills` to install them.',
-      );
+      // NOT task.skip(): rendererOptions sets showSkipMessage: false, so a skip
+      // message is swallowed and the user sees only "[SKIPPED]". Retitling is the
+      // only way this guidance actually reaches them — and on a fresh clone this
+      // is the path most likely to be taken.
+      task.title =
+        'Report agent skills — none installed. Run `yarn skills` to install them.';
+      return undefined;
     }
 
+    // Project-scope skills are written to .claude/skills, .cursor/rules and
+    // .agents/skills, so Claude Code and Cursor see this set. Codex only ever
+    // receives `scope: user` skills, which install to $HOME and are deliberately
+    // not counted here.
     console.log(`
-     You have ${installed.length} agent skill(s) available in Claude Code, Cursor and Codex.
+     You have ${installed.length} agent skill(s) installed for Claude Code and Cursor.
 
-     The base set is installed for everyone. Everything else is opt-in:
-      🔎 See what else is available:  yarn skills --select
+     The base set installs automatically; yarn skills adds every domain:
+      🔎 Pick specific domains:       yarn skills --select
       📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
       🔄 Refresh after pulling main:  yarn skills
 ${TRAILING_BLANK_LINE}`);
+    return undefined;
   },
 };
 
