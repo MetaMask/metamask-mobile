@@ -1,22 +1,8 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import type {
-  Position,
-  PositionModifyPreviewResult,
-} from '@metamask/perps-controller';
+import type { Position } from '@metamask/perps-controller';
 import { usePerpsPositionModifyPreview } from './usePerpsPositionModifyPreview';
 
 const mockPreviewPositionModify = jest.fn();
-
-const createDeferred = <T>() => {
-  let resolve!: (value: T) => void;
-  let reject!: (reason?: unknown) => void;
-  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
-    resolve = resolvePromise;
-    reject = rejectPromise;
-  });
-
-  return { promise, resolve, reject };
-};
 
 jest.mock('./usePerpsTrading', () => ({
   usePerpsTrading: () => ({
@@ -180,80 +166,5 @@ describe('usePerpsPositionModifyPreview', () => {
     expect(mockPreviewPositionModify).toHaveBeenLastCalledWith(
       expect.objectContaining({ leverage: 10 }),
     );
-  });
-
-  it('discards a superseded preview response', async () => {
-    const firstRequest = createDeferred<PositionModifyPreviewResult>();
-    const latestPreview: PositionModifyPreviewResult = {
-      status: 'full_close',
-      current: {
-        margin: { available: true, value: 400 },
-        liquidationPrice: { available: true, value: 1640 },
-      },
-      resultingDirection: 'long',
-    };
-    mockPreviewPositionModify
-      .mockReturnValueOnce(firstRequest.promise)
-      .mockResolvedValueOnce(latestPreview);
-    const position = isolatedPosition();
-    const { result, rerender } = renderHook(
-      (props: { price: string }) =>
-        usePerpsPositionModifyPreview({
-          position,
-          direction: 'long',
-          size: '1',
-          price: props.price,
-          leverage: 10,
-          reduceOnly: false,
-        }),
-      { initialProps: { price: '2000' } },
-    );
-    await waitFor(() => {
-      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
-    });
-
-    rerender({ price: '2100' });
-
-    expect(result.current.preview).toEqual({ status: 'none' });
-    await waitFor(() => {
-      expect(result.current.preview).toEqual(latestPreview);
-    });
-    await act(async () => {
-      firstRequest.resolve({ status: 'none' });
-    });
-    expect(result.current.preview).toEqual(latestPreview);
-  });
-
-  it('discards a superseded preview rejection', async () => {
-    const firstRequest = createDeferred<PositionModifyPreviewResult>();
-    mockPreviewPositionModify
-      .mockReturnValueOnce(firstRequest.promise)
-      .mockResolvedValueOnce({ status: 'none' });
-    const position = isolatedPosition();
-    const { result, rerender } = renderHook(
-      (props: { leverage: number }) =>
-        usePerpsPositionModifyPreview({
-          position,
-          direction: 'long',
-          size: '1',
-          price: '2000',
-          leverage: props.leverage,
-          reduceOnly: false,
-        }),
-      { initialProps: { leverage: 5 } },
-    );
-    await waitFor(() => {
-      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
-    });
-
-    rerender({ leverage: 10 });
-    await waitFor(() => {
-      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(2);
-    });
-    await act(async () => {
-      firstRequest.reject(new Error('stale failure'));
-    });
-
-    expect(result.current.error).toBeNull();
   });
 });

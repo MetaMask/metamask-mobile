@@ -1,5 +1,5 @@
 import { debounce } from 'lodash';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type {
   Position,
   PositionModifyPreviewParams,
@@ -52,7 +52,6 @@ export const usePerpsPositionModifyPreview = (
     useState<PositionModifyPreviewResult>(IDLE_PREVIEW);
   const [isCalculating, setIsCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const requestGeneration = useRef(0);
 
   const debounceMs = options?.debounceMs ?? 0;
   const {
@@ -96,72 +95,47 @@ export const usePerpsPositionModifyPreview = (
 
   const runPreview = useMemo(
     () =>
-      debounce(
-        async (
-          nextParams: PositionModifyPreviewParams | null,
-          generation: number,
-        ) => {
-          if (generation !== requestGeneration.current) {
-            return;
-          }
+      debounce(async (nextParams: PositionModifyPreviewParams | null) => {
+        if (!nextParams) {
+          setPreview(IDLE_PREVIEW);
+          setIsCalculating(false);
+          setError(null);
+          return;
+        }
 
-          if (!nextParams) {
-            setPreview(IDLE_PREVIEW);
-            setIsCalculating(false);
-            setError(null);
-            return;
-          }
-
-          try {
-            setIsCalculating(true);
-            setError(null);
-            const result = await previewPositionModify(nextParams);
-            if (generation !== requestGeneration.current) {
-              return;
-            }
-            setPreview(result);
-          } catch (err) {
-            if (generation !== requestGeneration.current) {
-              return;
-            }
-            DevLogger.log('Error previewing position modify:', err);
-            setError(
-              err instanceof Error
-                ? err.message
-                : 'Failed to preview position modify',
-            );
-            setPreview(IDLE_PREVIEW);
-          } finally {
-            if (generation === requestGeneration.current) {
-              setIsCalculating(false);
-            }
-          }
-        },
-        debounceMs,
-      ),
+        try {
+          setIsCalculating(true);
+          setError(null);
+          const result = await previewPositionModify(nextParams);
+          setPreview(result);
+        } catch (err) {
+          DevLogger.log('Error previewing position modify:', err);
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to preview position modify',
+          );
+          setPreview(IDLE_PREVIEW);
+        } finally {
+          setIsCalculating(false);
+        }
+      }, debounceMs),
     [previewPositionModify, debounceMs],
   );
 
   useEffect(() => {
-    const generation = ++requestGeneration.current;
-
     if (requestParams) {
-      setPreview(IDLE_PREVIEW);
       setIsCalculating(true);
-      setError(null);
     } else {
       setPreview(IDLE_PREVIEW);
       setIsCalculating(false);
       setError(null);
     }
 
-    runPreview(requestParams, generation);
+    runPreview(requestParams);
 
     return () => {
       runPreview.cancel();
-      if (requestGeneration.current === generation) {
-        requestGeneration.current += 1;
-      }
     };
   }, [requestParams, runPreview]);
 
