@@ -80,6 +80,55 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('$3,000')).toBeOnTheScreen();
   });
 
+  it('appends the liquidation distance in parentheses to the liquidation price', () => {
+    // Mark 4350 / 1.5 = 2900, liq 2500 → (2900 - 2500) / 2900 = 13.79%
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('$2,500 (13.79%)')).toBeOnTheScreen();
+  });
+
+  it('measures the liquidation distance against the live mark price', () => {
+    // Mark moves to 5000 / 1.5 = 3333.33, liq 2500 → 25.00%
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, positionValue: '5000' }}
+      />,
+    );
+
+    expect(screen.getByText('$2,500 (25.00%)')).toBeOnTheScreen();
+  });
+
+  it('reports the distance as a positive value for a short position', () => {
+    // Short: mark 4350 / 1.5 = 2900, liq 3200 → |2900 - 3200| / 2900 = 10.34%
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, size: '-1.5', liquidationPrice: '3200' }}
+      />,
+    );
+
+    expect(screen.getByText('$3,200 (10.34%)')).toBeOnTheScreen();
+  });
+
+  it('renders the fallback when the position has no liquidation price', () => {
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, liquidationPrice: null }}
+      />,
+    );
+
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+  });
+
+  it('renders the liquidation price without a distance when size is zero', () => {
+    // No size means no derivable mark price, so no distance can be shown.
+    render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
+
+    expect(screen.getByText('$2,500')).toBeOnTheScreen();
+  });
+
   it('renders TP/SL edit control when handler is provided', () => {
     const onEditTpSl = jest.fn();
 

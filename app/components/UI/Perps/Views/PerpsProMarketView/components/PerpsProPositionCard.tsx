@@ -32,6 +32,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPercentage,
@@ -77,6 +78,8 @@ interface KeyValueItemProps {
   /** Sits on the text that holds the value, so recipes can read it without a press target. */
   valueTestID?: string;
   showEditIcon?: boolean;
+  /** Test ID for the value row, so agentic recipes can read the rendered value. */
+  valueTestID?: string;
 }
 
 const KeyValueItem = ({
@@ -91,6 +94,7 @@ const KeyValueItem = ({
   valuePressAccessibilityLabel,
   valueTestID,
   showEditIcon = false,
+  valueTestID,
 }: KeyValueItemProps) => {
   const valueContent = (
     <>
@@ -141,6 +145,7 @@ const KeyValueItem = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
+          testID={valueTestID}
         >
           {valueContent}
         </Box>
@@ -203,11 +208,27 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
+  // How far the live mark price sits from liquidation. Same formula and
+  // precision as the Lite card, so both modes report the same percentage for
+  // the same position.
+  const liqPriceNum =
+    position.liquidationPrice != null
+      ? parseFloat(String(position.liquidationPrice))
+      : NaN;
+  const canShowDistance =
+    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
+  const liquidationDistanceSuffix = canShowDistance
+    ? ` (${(
+        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
+        100
+      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
+    : '';
+
   const liqPriceDisplay =
     position.liquidationPrice != null
-      ? formatPerpsFiat(position.liquidationPrice, {
+      ? `${formatPerpsFiat(position.liquidationPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
-        })
+        })}${liquidationDistanceSuffix}`
       : PERPS_CONSTANTS.FallbackPriceDisplay;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
@@ -373,6 +394,7 @@ const PerpsProPositionCard = ({
                 label={strings('perps.pro_positions_panel.card.liq_price')}
                 value={liqPriceDisplay}
                 isHidden={privacyMode}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
