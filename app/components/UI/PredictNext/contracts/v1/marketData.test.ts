@@ -60,6 +60,18 @@ describe('Predict API canonical response parsers', () => {
     expect(result).toEqual(input);
   });
 
+  it('parses Event description without treating it as rules', () => {
+    const input = createEvent({
+      description: 'Canonical event description.',
+      rules: 'Event resolution rules.',
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.description).toBe('Canonical event description.');
+    expect(result.rules).toBe('Event resolution rules.');
+  });
+
   it('parses market rules and removes raw venue rule fields', () => {
     const input = createEvent({
       settlementSources: [
