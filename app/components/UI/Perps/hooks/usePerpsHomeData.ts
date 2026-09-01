@@ -6,7 +6,6 @@ import {
   usePerpsLiveFills,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   MARKET_SORTING_CONFIG,
   MarketCategory,
@@ -192,24 +191,15 @@ export const usePerpsHomeData = ({
 
   // Filter and sort markets by type
   // Perps (crypto) - exclude all non-crypto markets
-  const perpsMarkets = useMemo(() => {
-    const cryptoMarkets = allMarkets.filter((m) => !m.marketType && !m.isHip3);
-    if (allMarkets.length > 0 && cryptoMarkets.length === 0) {
-      DevLogger.log(
-        '[PR-TAT-3893] BUG_MARKER: Explore crypto section hidden — allMarkets=' +
-          allMarkets.length +
-          ' cryptoMarkets=0 marketTypes=' +
-          JSON.stringify(
-            Array.from(new Set(allMarkets.map((m) => m.marketType))),
-          ),
-      );
-    }
-    return sortMarkets({
-      markets: cryptoMarkets,
-      sortBy,
-      direction,
-    }).slice(0, trendingLimit);
-  }, [allMarkets, sortBy, direction, trendingLimit]);
+  const perpsMarkets = useMemo(
+    () =>
+      sortMarkets({
+        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
+        sortBy,
+        direction,
+      }).slice(0, trendingLimit),
+    [allMarkets, sortBy, direction, trendingLimit],
+  );
 
   // Stocks - top N by user preference
   const stocksMarkets = useMemo(
