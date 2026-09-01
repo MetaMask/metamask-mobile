@@ -48,7 +48,8 @@ export type DeeplinkProcessedCancelReason =
   | 'interstitial_rejected';
 export type DeeplinkNavigatedCancelReason =
   | DeeplinkProcessedCancelReason
-  | 'unlock_failed';
+  | 'unlock_failed'
+  | 'metrics_opt_in';
 
 interface DeeplinkUrlTags {
   deeplink_route: string;
