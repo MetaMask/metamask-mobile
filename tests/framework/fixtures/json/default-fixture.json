@@ -132,9 +132,7 @@
                   "eth_signTypedData_v4"
                 ],
                 "options": {},
-                "scopes": [
-                  "eip155:0"
-                ],
+                "scopes": ["eip155:0"],
                 "type": "eip155:eoa"
               }
             },
@@ -166,10 +164,7 @@
         "ClaimsController": {
           "claims": [],
           "claimsConfigurations": {
-            "supportedNetworks": [
-              "0x1",
-              "0xe708"
-            ],
+            "supportedNetworks": ["0x1", "0xe708"],
             "validSubmissionWindowDays": 21
           },
           "drafts": []
@@ -222,9 +217,7 @@
         "KeyringController": {
           "keyrings": [
             {
-              "accounts": [
-                "0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3"
-              ],
+              "accounts": ["0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3"],
               "index": 0,
               "type": "HD Key Tree"
             }
@@ -336,9 +329,7 @@
         "NetworkController": {
           "networkConfigurationsByChainId": {
             "0x1": {
-              "blockExplorerUrls": [
-                "https://etherscan.io"
-              ],
+              "blockExplorerUrls": ["https://etherscan.io"],
               "chainId": "0x1",
               "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
@@ -354,9 +345,7 @@
               ]
             },
             "0x8f": {
-              "blockExplorerUrls": [
-                "https://monadscan.com"
-              ],
+              "blockExplorerUrls": ["https://monadscan.com"],
               "chainId": "0x8f",
               "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
@@ -372,9 +361,7 @@
               ]
             },
             "0xaa36a7": {
-              "blockExplorerUrls": [
-                "https://sepolia.etherscan.io"
-              ],
+              "blockExplorerUrls": ["https://sepolia.etherscan.io"],
               "chainId": "0xaa36a7",
               "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
@@ -390,9 +377,7 @@
               ]
             },
             "0xe705": {
-              "blockExplorerUrls": [
-                "https://sepolia.lineascan.build"
-              ],
+              "blockExplorerUrls": ["https://sepolia.lineascan.build"],
               "chainId": "0xe705",
               "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
@@ -408,9 +393,7 @@
               ]
             },
             "0xe708": {
-              "blockExplorerUrls": [
-                "https://lineascan.build"
-              ],
+              "blockExplorerUrls": ["https://lineascan.build"],
               "chainId": "0xe708",
               "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
