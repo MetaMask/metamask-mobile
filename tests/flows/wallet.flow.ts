@@ -940,12 +940,9 @@ export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
     dismissModals?: boolean;
-    accountListDescription?: string;
   } = {},
 ): Promise<void> => {
-  const { ...loginOptions } = options;
-
-  await loginToAppPlaywright(loginOptions);
+  await loginToAppPlaywright(options);
 
   // After skipping post-login modal probes, wallet chrome can still be settling
   // when the first identicon tap lands as a no-op — retry until the list opens.
