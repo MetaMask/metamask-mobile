@@ -37,6 +37,7 @@ interface TestTabDescriptor {
     callback?: () => void;
     isHidden?: boolean;
     isSelected?: (rootScreenName: string) => boolean;
+    onLeave?: () => void;
   };
 }
 
@@ -306,6 +307,50 @@ describe('TabBarFloating', () => {
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
 
     expect(callback).toHaveBeenCalled();
+  });
+
+  // Explore stays mounted on blur, so `onLeave` is its only chance to end the
+  // trending session. Dropping it leaves the session running for the whole arm.
+  it('fires the previous tab onLeave when switching away', () => {
+    const onLeave = jest.fn();
+    const { getByTestId } = renderBar(
+      {
+        '2': {
+          options: {
+            tabBarIconKey: TabBarIconKey.Trending,
+            rootScreenName: Routes.TRENDING_VIEW,
+            onLeave,
+          },
+        },
+      },
+      undefined,
+      1,
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`));
+
+    expect(onLeave).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not fire onLeave when re-pressing the active tab', () => {
+    const onLeave = jest.fn();
+    const { getByTestId } = renderBar(
+      {
+        '2': {
+          options: {
+            tabBarIconKey: TabBarIconKey.Trending,
+            rootScreenName: Routes.TRENDING_VIEW,
+            onLeave,
+          },
+        },
+      },
+      undefined,
+      1,
+    );
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Trending}`));
+
+    expect(onLeave).not.toHaveBeenCalled();
   });
 
   it('skips hidden descriptors', () => {

@@ -89,6 +89,10 @@ const TabBarFloating = ({
     navigation.navigate(Routes.EXPLORE_SEARCH);
   }, [navigation]);
 
+  // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,
+  // so the bar has to fire it — see the matching block in `TabBar`.
+  const previousTabIndexRef = useRef<number>(state.index);
+
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const descriptor = descriptors[route.key];
@@ -112,6 +116,11 @@ const TabBarFloating = ({
       const labelText = labelKey ? strings(labelKey) : '';
 
       const onPress = () => {
+        if (previousTabIndexRef.current !== index) {
+          const previousRoute = state.routes[previousTabIndexRef.current];
+          descriptors[previousRoute?.key]?.options?.onLeave?.();
+          previousTabIndexRef.current = index;
+        }
         options.callback?.();
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
@@ -155,6 +164,7 @@ const TabBarFloating = ({
       descriptors,
       state.routeNames,
       state.index,
+      state.routes,
       navigation,
       navigateToMoneyHome,
     ],
