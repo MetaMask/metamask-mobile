@@ -14,12 +14,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.mode.selection_title': 'Choose how you trade',
+      'perps.mode.selection_subtitle':
+        'Change this anytime on the top right menu.',
       'perps.mode.lite': 'Lite',
       'perps.mode.lite_description':
         'One-tap longs or shorts. Simple by design.',
       'perps.mode.pro': 'Pro',
       'perps.mode.pro_description':
-        'Order book, advanced order types, and leverage.',
+        'Professional workstation with advanced controls.',
     };
     return translations[key] ?? key;
   }),
@@ -50,6 +52,20 @@ describe('PerpsModeSelectionBottomSheet', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.PRO_ICON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the subtitle and both mode descriptions', () => {
+    render(<PerpsModeSelectionBottomSheet {...defaultProps} />);
+
+    expect(
+      screen.getByTestId(PerpsModeSelectionBottomSheetSelectorsIDs.SUBTITLE),
+    ).toHaveTextContent('Change this anytime on the top right menu.');
+    expect(
+      screen.getByText('One-tap longs or shorts. Simple by design.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('Professional workstation with advanced controls.'),
     ).toBeOnTheScreen();
   });
 

@@ -197,7 +197,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
-  it('shows loading while validation is pending after a live price update', async () => {
+  it('keeps the minimum-order error visible during protocol validation', async () => {
     const validateOrder = Engine.context.PerpsController
       .validateOrder as jest.Mock;
     let resolvePendingValidation:
@@ -206,14 +206,14 @@ describe('PerpsOrderView', () => {
     const pendingValidation = new Promise<{ isValid: boolean }>((resolve) => {
       resolvePendingValidation = resolve;
     });
-    validateOrder.mockResolvedValue({ isValid: true });
+    validateOrder.mockReturnValue(pendingValidation);
 
-    const { stream } = renderPerpsOrderView({
+    renderPerpsOrderView({
       overrides: eligibleOverrides,
       initialParams: {
         asset: 'ETH',
         direction: 'long',
-        amount: '120',
+        amount: '1',
         leverage: 4,
       },
       streamOverrides: {
@@ -237,17 +237,20 @@ describe('PerpsOrderView', () => {
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
     );
-    await waitFor(() => expect(placeOrderButton).toBeEnabled());
-
-    validateOrder.mockReturnValue(pendingValidation);
-    await new Promise<void>((resolve) => setTimeout(resolve, 1100));
-    emitEthPrice(stream, '2', '2501');
+    const minimumOrderError = await screen.findByText(
+      strings('perps.order.validation.minimum_amount', { amount: '10' }),
+    );
+    expect(placeOrderButton).toBeDisabled();
+    fireEvent.press(placeOrderButton);
+    expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(validateOrder).toHaveBeenCalled();
+    });
 
     expect(placeOrderButton).toBeOnTheScreen();
     expect(placeOrderButton).toBeDisabled();
-    expect(placeOrderButton.props.accessibilityState).toEqual(
-      expect.objectContaining({ busy: true, disabled: true }),
-    );
+    expect(placeOrderButton.props.accessibilityState?.busy).not.toBe(true);
+    expect(minimumOrderError).toBeOnTheScreen();
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -257,8 +260,43 @@ describe('PerpsOrderView', () => {
     validateOrder.mockResolvedValue({ isValid: true });
 
     await waitFor(() => {
-      expect(placeOrderButton).toBeEnabled();
+      expect(placeOrderButton).toBeDisabled();
+      expect(minimumOrderError).toBeOnTheScreen();
     });
+  });
+
+  it('reopens a below-minimum order while market sizing is unavailable', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const renderOptions = {
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long' as const,
+        amount: '1',
+        leverage: 4,
+        defaultSzDecimals: undefined,
+        defaultMaxLeverage: undefined,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [],
+        prices: {},
+      },
+    };
+    const firstRender = renderPerpsOrderView(renderOptions);
+    await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.HEADER);
+    firstRender.unmount();
+
+    renderPerpsOrderView(renderOptions);
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    expect(placeOrderButton).toBeDisabled();
+    fireEvent.press(placeOrderButton);
+    expect(placeOrder).not.toHaveBeenCalled();
   });
 
   it('switches to limit order, accepts the Mid preset, and routes to TP/SL setup', async () => {
@@ -344,9 +382,11 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
+    // The balance cannot cover the margin either, so the shared
+    // insufficient-funds banner owns that message and the CTA keeps its label.
     expect(
       await screen.findByText(
-        strings('perps.order.validation.insufficient_funds'),
+        strings('perps.order.validation.insufficient_funds_to_cover_trade'),
       ),
     ).toBeOnTheScreen();
     const placeOrderButton = await screen.findByTestId(

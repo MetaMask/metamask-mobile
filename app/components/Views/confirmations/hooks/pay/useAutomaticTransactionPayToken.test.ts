@@ -16,10 +16,7 @@ import {
   selectRelayFixedSpread,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
-import {
-  isHardwareAccount,
-  isQRHardwareAccount,
-} from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
@@ -41,6 +38,7 @@ import { selectLastWithdrawTokenByType } from '../../../../../selectors/transact
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
+import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
@@ -53,6 +51,7 @@ jest.mock('./useWithdrawTokenFilter');
 jest.mock('../../../../UI/Ramp/hooks/useRampsPaymentMethods');
 jest.mock('./useIsFiatPaymentAvailable');
 jest.mock('./useMMPayFiatConfig');
+jest.mock('./useAutomaticMoneyAccountPayToken');
 jest.mock('../../../../../selectors/transactionController', () => ({
   ...jest.requireActual('../../../../../selectors/transactionController'),
   selectLastWithdrawTokenByType: jest.fn(),
@@ -135,6 +134,9 @@ describe('useAutomaticTransactionPayToken', () => {
     selectMetaMaskPayTokensFlags,
   );
   const selectRelayFixedSpreadMock = jest.mocked(selectRelayFixedSpread);
+  const useAutomaticMoneyAccountPayTokenMock = jest.mocked(
+    useAutomaticMoneyAccountPayToken,
+  );
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -203,6 +205,11 @@ describe('useAutomaticTransactionPayToken', () => {
     jest.mocked(useMMPayFiatConfig).mockReturnValue({
       enabledTransactionTypes: [],
       maxDelayMinutesForPaymentMethods: 10,
+    });
+
+    useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+      isPending: false,
+      shouldSelect: false,
     });
   });
 
@@ -276,71 +283,6 @@ describe('useAutomaticTransactionPayToken', () => {
     });
 
     isHardwareAccountMock.mockReturnValue(true);
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_1_MOCK,
-      chainId: CHAIN_ID_1_MOCK,
-    });
-  });
-
-  it('selects first available token for hardware wallet on mUSD conversion', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: transactionIdMock,
-      type: TransactionType.musdConversion,
-      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
-    } as never);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    isHardwareAccountMock.mockReturnValue(true);
-
-    runHook();
-
-    expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: TOKEN_ADDRESS_2_MOCK,
-      chainId: CHAIN_ID_2_MOCK,
-    });
-  });
-
-  it('selects target token for QR hardware wallet on mUSD conversion', () => {
-    const isQRHardwareAccountMock = jest.mocked(isQRHardwareAccount);
-
-    useTransactionMetadataRequestMock.mockReturnValue({
-      id: transactionIdMock,
-      type: TransactionType.musdConversion,
-      txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
-    } as never);
-
-    useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: [
-        {
-          address: TOKEN_ADDRESS_2_MOCK,
-          chainId: CHAIN_ID_2_MOCK,
-        },
-        {
-          address: TOKEN_ADDRESS_1_MOCK,
-          chainId: CHAIN_ID_1_MOCK,
-        },
-      ] as AssetType[],
-      hasTokens: true,
-    });
-
-    isHardwareAccountMock.mockReturnValue(true);
-    isQRHardwareAccountMock.mockReturnValue(true);
 
     runHook();
 
@@ -1756,5 +1698,42 @@ describe('useAutomaticTransactionPayToken', () => {
         });
       },
     );
+  });
+
+  describe('money account fallback', () => {
+    it('does not select a token while money account auto-select is pending', () => {
+      useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+        isPending: true,
+        shouldSelect: false,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+
+    it('does not select a token when money account auto-select should run', () => {
+      useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
+        isPending: false,
+        shouldSelect: true,
+      });
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [] as AssetType[],
+        hasTokens: false,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
   });
 });

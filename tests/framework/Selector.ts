@@ -1,8 +1,6 @@
-import {
-  encapsulated,
-  type EncapsulatedElementType,
-} from './EncapsulatedElement.ts';
-import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import type { AppiumElement } from './AppiumElement.ts';
+import AppiumMatchers from './AppiumMatchers.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 export type Selector =
   | { testID: string; index?: number }
@@ -10,185 +8,112 @@ export type Selector =
   | { label: string; index?: number }
   | { text: string; index?: number }
   | { textPattern: RegExp; index?: number }
-  | { detoxTestID: string; appiumTestID: string }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumTestID: string;
-    }
-  | {
-      detoxTestID: string;
-      androidAppiumTestID: string;
-      iosAppiumXPath: string;
-    }
+  | { androidAppiumTestID: string; iosAppiumTestID: string }
+  | { androidAppiumTestID: string; iosAppiumXPath: string }
   | { testID: string; iosAppiumTestID: string; index?: number };
 
+function encapsulated(locators: {
+  android?: () => Promise<AppiumElement>;
+  ios?: () => Promise<AppiumElement>;
+}): Promise<AppiumElement> {
+  const platform = PlatformDetector.getPlatform();
+  const locator = locators[platform];
+  if (!locator) {
+    return Promise.reject(
+      new Error(
+        `Locator for platform '${platform}' is not provided in the configuration`,
+      ),
+    );
+  }
+  return locator();
+}
+
 /**
- * Moves `encapsulated()` to a single location so page-objects can use declarative Selectors without importing encapsulated() or LocatorConfig.
- * This can also be used in the original Matchers, Assertions, and Gestures methods that currently return DetoxElements to make them cross-framework compatible without page-object changes.
+ * Resolve a declarative Selector to the Appium Element API.
  */
-export function resolve(selector: Selector): EncapsulatedElementType {
+export function resolve(selector: Selector): Promise<AppiumElement> {
   if ('iosAppiumXPath' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByXPath(selector.iosAppiumXPath),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () => AppiumMatchers.getElementByXPath(selector.iosAppiumXPath),
     });
   }
 
   if ('androidAppiumTestID' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(selector.androidAppiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            selector.iosAppiumTestID,
-          ),
-      },
-    });
-  }
-
-  if ('detoxTestID' in selector) {
-    return encapsulated({
-      detox: () =>
-        element(by.id(selector.detoxTestID)) as unknown as DetoxElement,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(selector.appiumTestID, {
-            exact: true,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(selector.appiumTestID),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.androidAppiumTestID, {
+          exact: true,
+        }),
+      ios: () =>
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID),
     });
   }
 
   if ('iosAppiumTestID' in selector) {
-    const detoxEl = () => {
-      const el = element(by.id(selector.testID));
-      return (selector.index !== undefined
-        ? el.atIndex(selector.index)
-        : el) as unknown as DetoxElement;
-    };
     return encapsulated({
-      detox: detoxEl,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(selector.testID, {
-            exact: true,
-            index: selector.index,
-          }),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            selector.iosAppiumTestID,
-            { index: selector.index },
-          ),
-      },
+      android: () =>
+        AppiumMatchers.getElementById(selector.testID, {
+          exact: true,
+          index: selector.index,
+        }),
+      ios: () =>
+        AppiumMatchers.getElementByAccessibilityId(selector.iosAppiumTestID, {
+          index: selector.index,
+        }),
     });
   }
 
   if ('label' in selector) {
     return encapsulated({
-      detox: () =>
-        element(by.label(selector.label)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByAndroidUIAutomator(
-            `.description("${selector.label}")`,
-            { index: selector.index ?? 0 },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(selector.label, {
-            index: selector.index ?? 0,
-          }),
-      },
+      android: () =>
+        AppiumMatchers.getElementByAndroidUIAutomator(
+          `.description("${selector.label}")`,
+          { index: selector.index ?? 0 },
+        ),
+      ios: () =>
+        AppiumMatchers.getElementByCatchAll(selector.label, {
+          index: selector.index ?? 0,
+        }),
     });
   }
 
   if ('text' in selector) {
-    return encapsulated({
-      detox: () =>
-        element(by.text(selector.text)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
-      appium: () =>
-        PlaywrightMatchers.getElementByText(selector.text, false, {
-          index: selector.index ?? 0,
-        }),
+    return AppiumMatchers.getElementByText(selector.text, false, {
+      index: selector.index ?? 0,
     });
   }
 
   if ('textPattern' in selector) {
-    return encapsulated({
-      detox: () =>
-        element(by.text(selector.textPattern)).atIndex(
-          selector.index ?? 0,
-        ) as unknown as DetoxElement,
-      appium: () =>
-        PlaywrightMatchers.getElementByText(selector.textPattern, false, {
-          index: selector.index ?? 0,
-        }),
+    return AppiumMatchers.getElementByText(selector.textPattern, false, {
+      index: selector.index ?? 0,
     });
   }
 
   if ('testIDPattern' in selector) {
-    const detoxEl = () => {
-      const el = element(by.id(selector.testIDPattern));
-      return (selector.index !== undefined
-        ? el.atIndex(selector.index)
-        : el) as unknown as DetoxElement;
-    };
-    return encapsulated({
-      detox: detoxEl,
-      appium: () =>
-        PlaywrightMatchers.getElementById(selector.testIDPattern, {
-          index: selector.index,
-        }),
+    return AppiumMatchers.getElementById(selector.testIDPattern, {
+      index: selector.index,
     });
   }
 
-  // { testID } — the most common case
-  const detoxEl = () => {
-    const el = element(by.id(selector.testID));
-    return (selector.index !== undefined
-      ? el.atIndex(selector.index)
-      : el) as unknown as DetoxElement;
-  };
   return encapsulated({
-    detox: detoxEl,
-    appium: {
-      android: () =>
-        PlaywrightMatchers.getElementById(selector.testID, {
-          exact: true,
-          index: selector.index,
-        }),
-      ios: () =>
-        PlaywrightMatchers.getElementByAccessibilityId(selector.testID, {
-          index: selector.index,
-        }),
-    },
+    android: () =>
+      AppiumMatchers.getElementById(selector.testID, {
+        exact: true,
+        index: selector.index,
+      }),
+    ios: () =>
+      AppiumMatchers.getElementByAccessibilityId(selector.testID, {
+        index: selector.index,
+      }),
   });
 }
 
 /**
- * Type guard — returns true when value is a declarative Selector object
- * rather than an EncapsulatedElementType (DetoxElement or Promise<PlaywrightElement>).
- *
- * Used by UnifiedGestures to accept either Selector or EncapsulatedElementType.
+ * Type guard — true when value is a declarative Selector object.
  */
 export function isSelector(value: unknown): value is Selector {
   if (value === null || typeof value !== 'object') return false;
@@ -200,7 +125,6 @@ export function isSelector(value: unknown): value is Selector {
     'label' in v ||
     'text' in v ||
     'textPattern' in v ||
-    'detoxTestID' in v ||
     'androidAppiumTestID' in v ||
     'iosAppiumTestID' in v ||
     'iosAppiumXPath' in v

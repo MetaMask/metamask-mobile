@@ -31,6 +31,7 @@ import SearchFeedRow, {
 import {
   getExploreSearchResultCount,
   trackExploreSearchEvent,
+  trackExploreSearchOpened,
   useInstrumentedSearchEffect,
   useScrollTracking,
   type SearchFeedPill,
@@ -317,9 +318,19 @@ const ExploreSearchScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(
     () => route.params?.initialQuery?.trim() ?? '',
   );
+  const routeParams = route.params;
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
   const isTransitionComplete = useScreenTransitionComplete();
+
+  useEffect(() => {
+    if (!routeParams?.entryPoint) {
+      return;
+    }
+
+    setSearchQuery(routeParams.initialQuery?.trim() ?? '');
+    trackExploreSearchOpened(routeParams.entryPoint);
+  }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {
     setSearchQuery('');

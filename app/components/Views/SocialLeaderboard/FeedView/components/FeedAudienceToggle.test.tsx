@@ -38,6 +38,55 @@ describe('FeedAudienceToggle', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders Following first by default', () => {
+    renderWithProvider(<FeedAudienceToggle value="all" onChange={jest.fn()} />);
+
+    expect(
+      screen.getAllByRole('button').map((option) => option.props.testID),
+    ).toEqual([
+      getFeedAudienceOptionTestId('following'),
+      getFeedAudienceOptionTestId('all'),
+    ]);
+  });
+
+  it('renders the segments in the requested order', () => {
+    renderWithProvider(
+      <FeedAudienceToggle
+        value="all"
+        order={['all', 'following']}
+        onChange={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getAllByRole('button').map((option) => option.props.testID),
+    ).toEqual([
+      getFeedAudienceOptionTestId('all'),
+      getFeedAudienceOptionTestId('following'),
+    ]);
+  });
+
+  it('still switches the selection when the order is reversed', () => {
+    const onChange = jest.fn();
+    renderWithProvider(
+      <FeedAudienceToggle
+        value="all"
+        order={['all', 'following']}
+        onChange={onChange}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')),
+    );
+
+    expect(onChange).toHaveBeenCalledWith('following');
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props
+        .accessibilityState?.selected,
+    ).toBe(true);
+  });
+
   it('calls onChange and plays a selection haptic when a different option is pressed', () => {
     const onChange = jest.fn();
     renderWithProvider(<FeedAudienceToggle value="all" onChange={onChange} />);
@@ -77,5 +126,18 @@ describe('FeedAudienceToggle', () => {
       screen.getByTestId(getFeedAudienceOptionTestId('all')).props
         .accessibilityState?.selected,
     ).toBe(false);
+  });
+
+  it('keeps Following and All segments from shrinking in a tight row', () => {
+    renderWithProvider(
+      <FeedAudienceToggle value="following" onChange={jest.fn()} />,
+    );
+
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('following')).props.style,
+    ).toEqual(expect.objectContaining({ flexShrink: 0 }));
+    expect(
+      screen.getByTestId(getFeedAudienceOptionTestId('all')).props.style,
+    ).toEqual(expect.objectContaining({ flexShrink: 0 }));
   });
 });
