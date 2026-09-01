@@ -631,6 +631,7 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
   const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const trailingTabBarAction = headerNavBarVariant.trailingNavBarAction;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
@@ -818,6 +819,7 @@ const HomeTabs = () => {
           descriptors={descriptors}
           navigation={navigation}
           onHeightChange={setFloatingTabBarHeight}
+          trailingAction={trailingTabBarAction}
         />
       ) : (
         <TabBar

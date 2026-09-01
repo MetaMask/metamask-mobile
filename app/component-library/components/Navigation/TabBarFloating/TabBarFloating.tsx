@@ -31,11 +31,15 @@ import { trackExploreSearchOpened } from '../../../../components/Views/TrendingV
 import { TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
+import TabBarFloatingTradeButton from './TabBarFloatingTradeButton';
 import {
   FLOATING_FILLED_ICON_BY_TAB_BAR_ICON_KEY,
   FLOATING_ICON_BY_TAB_BAR_ICON_KEY,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
+
+/** Which action the circular button beside the pill performs. */
+export type TabBarFloatingTrailingAction = 'search' | 'trade';
 
 export interface TabBarFloatingProps extends TabBarProps {
   /**
@@ -44,6 +48,11 @@ export interface TabBarFloatingProps extends TabBarProps {
    * cases (browser, keyboard open) avoid leaving a dead gap.
    */
   onHeightChange?: (height: number) => void;
+  /**
+   * Trailing circular button. `search` opens Explore search; `trade` opens the
+   * trade tray and moves search into the wallet header instead.
+   */
+  trailingAction?: TabBarFloatingTrailingAction;
 }
 
 /**
@@ -57,6 +66,7 @@ const TabBarFloating = ({
   descriptors,
   navigation,
   onHeightChange,
+  trailingAction = 'search',
 }: TabBarFloatingProps) => {
   const tw = useTailwind();
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -188,17 +198,26 @@ const TabBarFloating = ({
         >
           {state.routes.map((route, index) => renderTabBarItem(route, index))}
         </Box>
-        <ButtonIcon
-          iconName={IconName.Search}
-          iconProps={{ color: IconColor.IconDefault }}
-          size={ButtonIconSize.Lg}
-          onPress={handleSearchPress}
-          testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
-          accessibilityLabel={strings('wallet.search_accessibility_label')}
-          twClassName={`rounded-full border border-muted bg-section ${
-            pillHeight ? `h-[${pillHeight}px] w-[${pillHeight}px]` : 'h-14 w-14'
-          }`}
-        />
+        {trailingAction === 'trade' ? (
+          <TabBarFloatingTradeButton
+            diameter={pillHeight}
+            testID={TAB_BAR_FLOATING_TEST_IDS.TRADE_BUTTON}
+          />
+        ) : (
+          <ButtonIcon
+            iconName={IconName.Search}
+            iconProps={{ color: IconColor.IconDefault }}
+            size={ButtonIconSize.Lg}
+            onPress={handleSearchPress}
+            testID={TAB_BAR_FLOATING_TEST_IDS.SEARCH_BUTTON}
+            accessibilityLabel={strings('wallet.search_accessibility_label')}
+            twClassName={`rounded-full border border-muted bg-section ${
+              pillHeight
+                ? `h-[${pillHeight}px] w-[${pillHeight}px]`
+                : 'h-14 w-14'
+            }`}
+          />
+        )}
       </Box>
     </View>
   );

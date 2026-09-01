@@ -1338,7 +1338,7 @@ describe('MainNavigator', () => {
 
     it('pushes Rewards onto the root stack in treatment, where it is no longer a tab', () => {
       const container = renderWithProvider(<MainNavigator />, {
-        state: stateForArm('treatment'),
+        state: stateForArm('searchFocused'),
       });
 
       expect(rootStackScreenNames(container)).toContain(Routes.REWARDS_VIEW);
