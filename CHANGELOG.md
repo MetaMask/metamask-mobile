@@ -124,6 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed spam airdrop tokens remaining in the wallet after unlock (#35400)
 - Fixed Max token deposits being blocked by an insufficient fees alert when the amount matched the available balance (#35247)
 - Fixed Money Sweepstakes showing a $0 shortfall when a day has a not_scored status (#35196)
 - Fixed Money Account deposit prefill amount flickering when selecting a token (#35167)
