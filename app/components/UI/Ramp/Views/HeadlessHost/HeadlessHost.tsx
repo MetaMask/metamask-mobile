@@ -137,7 +137,7 @@ function HeadlessHost() {
   }, [navigation, headlessSessionId]);
 
   const { userRegion } = useRampsUserRegion();
-  const { paymentMethods } = useRampsPaymentMethods();
+  const { paymentMethods } = useRampsPaymentMethods({ catalog: 'buy' });
 
   // For headless flows, post-auth resets must land back here (not on
   // BuildQuote). We pin the routing base to the Host and re-supply the

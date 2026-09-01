@@ -18,6 +18,7 @@ import { ImpactMoment, useHaptics } from '../../../../util/haptics';
 import { useComplianceGate } from '../../Compliance';
 import PerpsBottomSheetTooltip from '../components/PerpsBottomSheetTooltip';
 import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfirmSheet/PerpsFlipPositionConfirmSheet';
+import { PerpsProMarketViewSelectorsIDs } from '../Perps.testIds';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
@@ -449,7 +450,7 @@ export const usePerpsProPositionsPanelActions =
                 isVisible
                 onClose={closeGeoBlockModal}
                 contentKey="geo_block"
-                testID="perps-pro-positions-panel-geo-block-tooltip"
+                testID={PerpsProMarketViewSelectorsIDs.GEO_BLOCK_TOOLTIP}
               />
             </PerpsProModalPortal>
           )}
