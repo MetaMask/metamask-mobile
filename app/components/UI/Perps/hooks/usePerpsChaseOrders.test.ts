@@ -1987,6 +1987,62 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('keeps a remounted same-route reconciliation guarded after old completion', async () => {
+    let resolveOldReconciliation: ((orders: ChaseOrder[]) => void) | undefined;
+    let resolveNewReconciliation: ((orders: ChaseOrder[]) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOldReconciliation = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([activeOrder])
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveNewReconciliation = resolve;
+          }),
+      )
+      .mockResolvedValueOnce([]);
+    const oldHook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(oldHook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    const oldReconciliation = oldHook.result.current
+      .reconcileCanceledChaseOrder(activeOrder)
+      .catch((error) => error);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(2));
+
+    oldHook.unmount();
+    const newHook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(newHook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    const newReconciliation =
+      newHook.result.current.reconcileCanceledChaseOrder(activeOrder);
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(4));
+    await act(async () => resolveOldReconciliation?.([]));
+    expect(await oldReconciliation).toMatchObject({ code: 'stale_request' });
+    act(() => PerpsCacheInvalidator.invalidate('accountState'));
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(4);
+    await act(async () => {
+      resolveNewReconciliation?.([]);
+      await newReconciliation;
+    });
+
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(5));
+    expect(newHook.result.current.chaseOrders).toEqual([
+      {
+        ...activeOrder,
+        restingOrderId: null,
+        status: 'canceled',
+      },
+    ]);
+    newHook.unmount();
+  });
+
   it('keeps controller terminal truth after cancellation reconciliation', async () => {
     const filledOrder = {
       ...activeOrder,

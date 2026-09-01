@@ -75,6 +75,7 @@ let refreshPromise:
   | undefined;
 let mutationQueue: Promise<void> = Promise.resolve();
 let mutationQueueEpoch = 0;
+let storeLifecycleGeneration = 0;
 const cancellationReconciliationCounts = new Map<string, number>();
 const deferredCancellationRefreshEpochs = new Map<string, number>();
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
@@ -524,6 +525,7 @@ function resetChaseOrdersStore() {
   refreshPromise = undefined;
   mutationQueue = Promise.resolve();
   mutationQueueEpoch += 1;
+  storeLifecycleGeneration += 1;
   cancellationReconciliationCounts.clear();
   deferredCancellationRefreshEpochs.clear();
   cachedRoute = '';
@@ -756,6 +758,7 @@ const getFreshChaseOrders = async ({
   let result: ChaseOrder[] = [];
   const epoch = mutationQueueEpoch;
   const cancellationRoute = canceledOrder ? expectedRoute : undefined;
+  const cancellationLifecycleGeneration = storeLifecycleGeneration;
   if (cancellationRoute) {
     cancellationReconciliationCounts.set(
       cancellationRoute,
@@ -778,7 +781,10 @@ const getFreshChaseOrders = async ({
   try {
     await operation;
   } finally {
-    if (cancellationRoute) {
+    if (
+      cancellationRoute &&
+      cancellationLifecycleGeneration === storeLifecycleGeneration
+    ) {
       const remainingReconciliations = Math.max(
         0,
         (cancellationReconciliationCounts.get(cancellationRoute) ?? 0) - 1,
