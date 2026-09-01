@@ -704,6 +704,18 @@ const formatOrderTypeString = (typeString: string): string => {
   if (normalized === 'market') {
     return strings('perps.order.market');
   }
+  if (normalized === 'stop limit') {
+    return strings('perps.order.type.stop_limit.title');
+  }
+  if (normalized === 'stop market') {
+    return strings('perps.order.type.stop_market.title');
+  }
+  if (normalized === 'take profit limit') {
+    return strings('perps.order.type.take_profit_limit.title');
+  }
+  if (normalized === 'take profit market') {
+    return strings('perps.order.type.take_profit_market.title');
+  }
 
   return capitalize(typeString);
 };
@@ -740,7 +752,7 @@ export const formatOrderLabel = (order: Order): string => {
 /**
  * Format just the order type portion of an order label (no direction/close).
  *
- * Examples: "Limit", "Stop market", "Take profit limit"
+ * Examples: "Limit", "Stop market", "Take limit"
  *
  * @param order - The order object
  * @returns Formatted order type string for compact UI pills

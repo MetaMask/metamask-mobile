@@ -249,7 +249,21 @@ describe('PerpsProOrderCard', () => {
         isTrigger: true,
         triggerPrice: '220',
       },
-      typeLabel: 'Take profit limit',
+      typeLabel: 'Take limit',
+      reduceOnlyLabel: 'Yes',
+    },
+    {
+      name: 'take profit market',
+      order: {
+        ...baseOrder,
+        side: 'sell' as const,
+        detailedOrderType: 'Take Profit Market',
+        orderType: 'market' as const,
+        reduceOnly: true,
+        isTrigger: true,
+        triggerPrice: '220',
+      },
+      typeLabel: 'Take market',
       reduceOnlyLabel: 'Yes',
     },
     {

@@ -301,26 +301,34 @@ describe('orderUtils', () => {
   });
 
   describe('formatOrderTypeLabel', () => {
-    it('returns detailed order type when available', () => {
-      const order: Order = {
-        orderId: '1',
-        symbol: 'BTC',
-        side: 'buy',
-        orderType: 'market',
-        detailedOrderType: 'Stop Market',
-        size: '1',
-        originalSize: '1',
-        price: '50000',
-        filledSize: '0',
-        remainingSize: '1',
-        status: 'open',
-        timestamp: Date.now(),
-        reduceOnly: true,
-        isTrigger: true,
-      };
+    it.each([
+      ['Stop Limit', 'limit', 'Stop limit'],
+      ['Stop Market', 'market', 'Stop market'],
+      ['Take Profit Limit', 'limit', 'Take limit'],
+      ['Take Profit Market', 'market', 'Take market'],
+    ] as const)(
+      'maps provider type %s to the selected order type label',
+      (detailedOrderType, orderType, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType,
+          detailedOrderType,
+          size: '1',
+          originalSize: '1',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: true,
+          isTrigger: true,
+        };
 
-      expect(formatOrderTypeLabel(order)).toBe('Stop market');
-    });
+        expect(formatOrderTypeLabel(order)).toBe(expectedLabel);
+      },
+    );
 
     it('falls back to translated limit or market when detailed type is absent', () => {
       const limitOrder: Order = {
