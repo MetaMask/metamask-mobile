@@ -26,6 +26,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RampsService',
   'TransakService',
   'ComplianceService',
+  'KycService',
   'QrSyncProvisioningService',
   'SocialService',
   'AuthenticatedUserStorageService',
@@ -112,6 +113,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
+  'KycController:stateChange',
   'SocialController:stateChange',
   'QrSyncController:stateChange',
 ] as const;

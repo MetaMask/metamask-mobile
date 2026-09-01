@@ -337,6 +337,7 @@
     "@metamask/keyring-sdk": "^3.1.0",
     "@metamask/keyring-snap-client": "^10.0.0",
     "@metamask/keyring-utils": "^5.0.0",
+    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.0.0-preview-c34a16a37",
     "@metamask/logging-controller": "^9.0.0",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/messenger": "^2.0.0",
