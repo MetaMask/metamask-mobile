@@ -102,7 +102,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
         title={title}
         isInteractive
         onPress={handleViewAll}
-        {...(testID ? { testID: `${testID}-header` } : {})}
+        testID={testID ? `${testID}-header` : undefined}
       />
       <View style={contentContainerStyle}>
         {isLoading ? (
@@ -113,7 +113,7 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
             sortBy={sortBy}
             onMarketPress={handleMarketPress}
             showBadge={false}
-            {...(testID ? { testID: `${testID}-list` } : {})}
+            testID={testID ? `${testID}-list` : undefined}
           />
         )}
       </View>
