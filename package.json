@@ -258,17 +258,7 @@
     "@ledgerhq/device-signer-kit-ethereum@npm:^1.16.0": "patch:@ledgerhq/device-signer-kit-ethereum@npm%3A1.16.0#~/.yarn/patches/@ledgerhq-device-signer-kit-ethereum-npm-1.16.0-df4b883905.patch",
     "@metamask/assets-controller@npm:^14.0.2": "patch:@metamask/assets-controller@npm%3A14.0.2#~/.yarn/patches/@metamask-assets-controller-npm-14.0.2-3eec54a369.patch",
     "@metamask/eth-sig-util": "^9.0.0",
-    "@metamask/bridge-controller@npm:^80.1.0": "patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch",
-    "@metamask/utils@npm:^8.2.0": "patch:@metamask/utils@npm%3A8.5.0#~/.yarn/patches/@metamask-utils-npm-8.5.0-bf696c2d49.patch",
-    "@metamask/utils@npm:^11.11.0": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^11.0.1": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^11.8.1": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^11.9.0": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^11.4.0": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^11.4.2": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
-    "@metamask/utils@npm:^9.1.0": "patch:@metamask/utils@npm%3A9.3.0#~/.yarn/patches/@metamask-utils-npm-9.3.0-23e0ce3a26.patch",
-    "@metamask/utils@npm:^9.0.0": "patch:@metamask/utils@npm%3A9.3.0#~/.yarn/patches/@metamask-utils-npm-9.3.0-23e0ce3a26.patch",
-    "@metamask/utils@npm:^11.10.0": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch"
+    "@metamask/bridge-controller@npm:^80.1.0": "patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -417,7 +407,7 @@
     "@metamask/transaction-controller": "^69.6.0",
     "@metamask/transaction-pay-controller": "^27.0.0",
     "@metamask/tron-wallet-snap": "^3.2.0",
-    "@metamask/utils": "patch:@metamask/utils@npm%3A11.11.0#~/.yarn/patches/@metamask-utils-npm-11.11.0-5631a84e3f.patch",
+    "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^11.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
