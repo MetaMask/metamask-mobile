@@ -8,7 +8,6 @@ import type { RootState } from '../../../app/reducers';
 import Routes from '../../../app/constants/navigation/Routes';
 import ActivityScreen from '../../../app/components/Views/ActivityScreen/ActivityScreen';
 import ActivityList from '../../../app/components/Views/ActivityList';
-import ActivityView from '../../../app/components/Views/ActivityView';
 import ActivityDetails from '../../../app/components/Views/ActivityDetails';
 import ActivityTypeFilterSheet from '../../../app/components/Views/ActivityScreen/components/ActivityTypeFilterSheet';
 import PerpsActivityFilterSheet from '../../../app/components/Views/ActivityScreen/components/PerpsActivityFilterSheet';
@@ -93,28 +92,11 @@ interface RenderActivityListViewWithRoutesOptions
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
 }
 
-interface RenderActivityViewOptions {
-  overrides?: DeepPartial<RootState>;
-}
-
-interface RenderActivityViewWithRoutesOptions
-  extends RenderActivityViewOptions {
-  extraRoutes: { name: string; Component?: React.ComponentType<object> }[];
-}
-
 interface RenderActivityDetailsViewOptions {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;
   params: ActivityDetailsParams;
   extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
-}
-
-function ActivityViewWithProviders() {
-  return React.createElement(
-    HardwareWalletProvider,
-    null,
-    React.createElement(ActivityView as unknown as React.ComponentType),
-  );
 }
 
 function ActivityScreenWithProviders() {
@@ -269,35 +251,6 @@ export function renderActivityListViewWithRoutes(
 
   return renderScreenWithRoutes(
     ActivityListWithProviders,
-    { name: Routes.TRANSACTIONS_VIEW },
-    options.extraRoutes,
-    { state },
-  );
-}
-
-export function renderActivityView(
-  options: RenderActivityViewOptions = {},
-): ReturnType<typeof renderComponentViewScreen> {
-  const state = buildActivityState({
-    overrides: options.overrides,
-  });
-
-  return renderComponentViewScreen(
-    ActivityViewWithProviders,
-    { name: Routes.TRANSACTIONS_VIEW },
-    { state },
-  );
-}
-
-export function renderActivityViewWithRoutes(
-  options: RenderActivityViewWithRoutesOptions,
-): ReturnType<typeof renderScreenWithRoutes> {
-  const state = buildActivityState({
-    overrides: options.overrides,
-  });
-
-  return renderScreenWithRoutes(
-    ActivityViewWithProviders,
     { name: Routes.TRANSACTIONS_VIEW },
     options.extraRoutes,
     { state },
