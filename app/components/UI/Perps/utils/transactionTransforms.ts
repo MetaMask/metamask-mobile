@@ -22,7 +22,7 @@ import {
 } from '../types/transactionHistory';
 import {
   formatOrderLabel,
-  getOrderLabelDirection,
+  getInlineOrderLabelDirection,
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
 } from './orderUtils';
@@ -488,7 +488,7 @@ function formatTriggeredOrderLabel(
     typeLabel = strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
   }
 
-  return `${typeLabel} ${getOrderLabelDirection(order).toLowerCase()}`;
+  return `${typeLabel} ${getInlineOrderLabelDirection(order)}`;
 }
 
 /**

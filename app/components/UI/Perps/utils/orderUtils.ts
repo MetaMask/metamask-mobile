@@ -10,7 +10,7 @@ import {
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
 import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
 import { Position } from '../hooks';
 import { resolveOrderDirection, isClosingOrder } from './orderDirection';
 
@@ -721,6 +721,35 @@ const formatOrderTypeString = (typeString: string): string => {
   return capitalize(typeString);
 };
 
+const getLocalizedOrderDirectionLabel = (
+  order: Order,
+  isClosing: boolean,
+  inline: boolean,
+): string => {
+  const direction = resolveOrderDirection(order.side, isClosing);
+  const key = isClosing
+    ? direction === 'long'
+      ? 'perps.market.close_long'
+      : 'perps.market.close_short'
+    : direction === 'long'
+      ? 'perps.market.long_lowercase'
+      : 'perps.market.short_lowercase';
+  const label = strings(key);
+
+  // English close labels use title case when standalone and sentence case
+  // inline. Other locales retain their translated casing.
+  if (isClosing && I18n.locale?.toLowerCase().startsWith('en')) {
+    return inline
+      ? label.toLocaleLowerCase('en')
+      : label
+          .split(' ')
+          .map((word: string) => capitalize(word))
+          .join(' ');
+  }
+
+  return label;
+};
+
 /**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
  *
@@ -745,11 +774,16 @@ export const formatOrderLabel = (order: Order): string => {
   const typeString = isTrigger
     ? formatOrderTypeString(resolvedTypeString)
     : resolvedTypeString;
+  const localizedDirection = isTrigger
+    ? getLocalizedOrderDirectionLabel(order, isClosing, true)
+    : direction;
 
   // Build the label: [Type] [Close?] [Direction]
-  const label = isClosing
-    ? `${typeString} close ${direction}`
-    : `${typeString} ${direction}`;
+  const label = isTrigger
+    ? `${typeString} ${localizedDirection}`
+    : isClosing
+      ? `${typeString} close ${direction}`
+      : `${typeString} ${direction}`;
 
   // Preserve the legacy Lite label path for ordinary market/limit orders.
   return isTrigger ? label : capitalize(label);
@@ -775,13 +809,12 @@ export const formatOrderTypeLabel = (order: Order): string =>
  */
 export const getOrderLabelDirection = (order: Order): string => {
   const isClosing = isClosingOrder(order);
-  const direction = resolveOrderDirection(order.side, isClosing);
+  return getLocalizedOrderDirectionLabel(order, isClosing, false);
+};
 
-  if (isClosing) {
-    return direction === 'long' ? 'Close Long' : 'Close Short';
-  }
-
-  return direction;
+export const getInlineOrderLabelDirection = (order: Order): string => {
+  const isClosing = isClosingOrder(order);
+  return getLocalizedOrderDirectionLabel(order, isClosing, true);
 };
 
 /**

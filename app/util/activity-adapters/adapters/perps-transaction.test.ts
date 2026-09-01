@@ -644,13 +644,13 @@ describe('mapPerpsTransaction', () => {
     });
 
     it.each([
-      ['Stop Limit', 'limit', false, 'Stop limit short'],
-      ['Stop Market', 'market', true, 'Stop market — close long'],
-      ['Take Profit Limit', 'limit', true, 'Take limit — close long'],
-      ['Take Profit Market', 'market', false, 'Take market short'],
+      ['Stop Limit', 'limit', false, 'stop_limit'],
+      ['Stop Market', 'market', true, 'stop_market'],
+      ['Take Profit Limit', 'limit', true, 'take_profit_limit'],
+      ['Take Profit Market', 'market', false, 'take_profit_market'],
     ] as const)(
-      'preserves the canonical %s title and direction in Activity data',
-      (detailedOrderType, orderType, reduceOnly, expectedTitle) => {
+      'preserves the semantic %s trigger type in Activity data',
+      (detailedOrderType, orderType, reduceOnly, expectedTriggerOrderType) => {
         const result = mapFromOrder(
           makeOrder({
             detailedOrderType,
@@ -660,7 +660,9 @@ describe('mapPerpsTransaction', () => {
           }),
         );
 
-        expect(result?.data.displayTitle).toBe(expectedTitle);
+        expect(result?.data.perpsTriggerOrderType).toBe(
+          expectedTriggerOrderType,
+        );
       },
     );
 

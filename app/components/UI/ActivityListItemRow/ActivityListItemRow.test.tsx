@@ -1017,13 +1017,23 @@ describe('ActivityListItemRow — row content', () => {
   };
 
   it.each([
-    ['limitLong', 'Stop limit long', '0xstop-limit'],
-    ['stopMarketCloseLong', 'Stop market — close long', '0xstop-market'],
-    ['limitCloseLong', 'Take limit — close long', '0xtake-limit'],
-    ['marketLong', 'Take market long', '0xtake-market'],
+    ['limitLong', 'stop_limit', 'Stop limit long', '0xstop-limit'],
+    [
+      'stopMarketCloseLong',
+      'stop_market',
+      'Stop market — close long',
+      '0xstop-market',
+    ],
+    [
+      'limitCloseLong',
+      'take_profit_limit',
+      'Take limit — close long',
+      '0xtake-limit',
+    ],
+    ['marketLong', 'take_profit_market', 'Take market long', '0xtake-market'],
   ] as const)(
     'renders %s triggered orders with their canonical title and direction',
-    (type, title, hash) => {
+    (type, perpsTriggerOrderType, title, hash) => {
       const item = {
         type,
         chainId: 'eip155:42161',
@@ -1031,7 +1041,7 @@ describe('ActivityListItemRow — row content', () => {
         timestamp: 1_700_000_000_000,
         hash,
         data: {
-          displayTitle: title,
+          perpsTriggerOrderType,
           token: { amount: '14', symbol: 'USD', direction: 'out' },
           sourceToken: {
             amount: '0.0002',

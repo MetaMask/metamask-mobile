@@ -18,6 +18,7 @@ import {
   type OrdinaryOrderType,
   type TriggerOrderType,
 } from '@metamask/perps-controller';
+import I18n from '../../../../../locales/i18n';
 import { FillType } from '../components/PerpsTransactionItem/PerpsTransactionItem';
 import {
   PerpsOrderTransactionStatus,
@@ -25,6 +26,7 @@ import {
 } from '../types/transactionHistory';
 import { mapPerpsTransaction } from '../../../../util/activity-adapters/adapters/perps-transaction';
 import { formatOrderLabel } from './orderUtils';
+import { resolvePerpsTriggerOrderTitle } from '../../ActivityListItemRow/titleLabels';
 
 jest.mock('../../../Views/confirmations/utils/transaction-pay');
 jest.mock('../../../Views/confirmations/utils/transaction');
@@ -1477,8 +1479,78 @@ describe('transactionTransforms', () => {
 
         expect(formatOrderLabel(order)).toBe(liteTitle);
         expect(transaction.title).toBe(historyTitle);
-        expect(activityItem?.data.displayTitle).toBe(activityTitle);
         expect(activityItem?.type).toBe(activityKind);
+        expect(activityItem?.data.perpsTriggerOrderType).toBe(triggerOrderType);
+        expect(
+          resolvePerpsTriggerOrderTitle(activityKind, triggerOrderType),
+        ).toBe(activityTitle);
+      },
+    );
+
+    it.each([
+      {
+        detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market',
+        orderType: 'market',
+        reduceOnly: false,
+        liteTitle: 'ストップマーケット ロング',
+        historyTitle: 'ストップマーケット ロング',
+        activityTitle: 'ストップマーケット ロング',
+        activityKind: 'marketLong',
+      },
+      {
+        detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit',
+        orderType: 'limit',
+        reduceOnly: true,
+        liteTitle: 'テイクリミット ショートをクローズ',
+        historyTitle: 'テイクリミット ショートをクローズ',
+        activityTitle: 'テイクリミット — ショートをクローズ',
+        activityKind: 'limitCloseShort',
+      },
+    ] as const)(
+      'localizes an opening and closing $detailedOrderType across trigger surfaces',
+      ({
+        detailedOrderType,
+        triggerOrderType,
+        orderType,
+        reduceOnly,
+        liteTitle,
+        historyTitle,
+        activityTitle,
+        activityKind,
+      }) => {
+        const originalLocale = I18n.locale;
+        I18n.locale = 'ja';
+
+        try {
+          const order = {
+            ...mockOrder,
+            side: 'buy' as const,
+            detailedOrderType,
+            triggerOrderType,
+            orderType,
+            reduceOnly,
+            isTrigger: true,
+          };
+          const [transaction] = transformOrdersToTransactions([order]);
+          const activityItem = mapPerpsTransaction({
+            transaction,
+            chainId: 'eip155:42161',
+          });
+
+          expect(formatOrderLabel(order)).toBe(liteTitle);
+          expect(transaction.title).toBe(historyTitle);
+          expect(activityItem?.type).toBe(activityKind);
+          expect(activityItem?.data.perpsTriggerOrderType).toBe(
+            triggerOrderType,
+          );
+          expect(
+            resolvePerpsTriggerOrderTitle(activityKind, triggerOrderType),
+          ).toBe(activityTitle);
+        } finally {
+          I18n.locale = originalLocale;
+        }
       },
     );
 
