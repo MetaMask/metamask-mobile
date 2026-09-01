@@ -11291,6 +11291,11 @@
     "manage_plan": "Manage plan",
     "earned_with_pro": "Earned with Pro",
     "saved_with_pro": "Saved with Pro",
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Lifetime earnings",
+    "money_balance": "Money balance",
+    "musd_back": "3% mUSD back",
     "your_benefits": "Your benefits",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "physical_card": {
