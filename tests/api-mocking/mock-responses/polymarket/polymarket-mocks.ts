@@ -374,6 +374,10 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
         }));
       }
 
+      // Keep test-only active winnings inside the homepage display limit.
+      const activePositions = showWinningsAsActive
+        ? [...winnings, ...POLYMARKET_CURRENT_POSITIONS_RESPONSE]
+        : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
       const allPositions =
         redeemable === undefined
           ? [
@@ -381,9 +385,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
               ...POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
               ...winnings,
             ]
-          : showWinningsAsActive
-            ? [...POLYMARKET_CURRENT_POSITIONS_RESPONSE, ...winnings]
-            : POLYMARKET_CURRENT_POSITIONS_RESPONSE;
+          : activePositions;
 
       let filteredPositions = allPositions;
       if (eventId) {
