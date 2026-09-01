@@ -1363,6 +1363,41 @@ describe('transactionTransforms', () => {
       },
     );
 
+    it.each([
+      ['Stop Market', 'limit', undefined, 'Stop market', 'market'],
+      ['Take Profit Market', 'limit', undefined, 'Take market', 'market'],
+      ['Stop Limit', 'market', undefined, 'Stop limit', 'limit'],
+      [
+        'Take Profit Limit',
+        'limit',
+        'take_profit_market',
+        'Take market',
+        'market',
+      ],
+    ] as const)(
+      'resolves %s with raw type %s and normalized type %s as %s (%s)',
+      (
+        detailedOrderType,
+        orderType,
+        triggerOrderType,
+        expectedTitle,
+        expectedExecutionType,
+      ) => {
+        const triggerOrder = {
+          ...mockOrder,
+          orderType,
+          triggerOrderType,
+          isTrigger: true,
+          detailedOrderType,
+        };
+
+        const [result] = transformOrdersToTransactions([triggerOrder]);
+
+        expect(result.title).toBe(expectedTitle);
+        expect(result.order?.type).toBe(expectedExecutionType);
+      },
+    );
+
     it('handles market orders correctly', () => {
       const marketOrder = {
         ...mockOrder,

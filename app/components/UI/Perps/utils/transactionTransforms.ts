@@ -436,14 +436,38 @@ export function transformFillsToTransactions(
 }
 
 /**
- * Restores the user-facing conditional order type from provider terminology.
- * The execution type remains normalized to limit/market on the transaction.
+ * Resolves execution style from normalized trigger metadata before consulting
+ * provider display text or the raw order type. Trigger-market orders may carry
+ * `orderType: 'limit'` because their price is a slippage cap.
  */
-function formatTriggeredOrderTypeLabel(order: Order): string {
+function resolveOrderExecutionType(
+  order: Order,
+): NonNullable<PerpsTransaction['order']>['type'] {
   const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
-  const isLimit =
-    order.orderType.toLowerCase().includes('limit') ||
-    detailedOrderType.includes('limit');
+
+  if (order.triggerOrderType !== undefined) {
+    return isLimitExecutionOrderType(order.triggerOrderType)
+      ? 'limit'
+      : 'market';
+  }
+  if (detailedOrderType.includes('market')) {
+    return 'market';
+  }
+  if (detailedOrderType.includes('limit')) {
+    return 'limit';
+  }
+  return order.orderType.toLowerCase().includes('limit') ? 'limit' : 'market';
+}
+
+/**
+ * Restores the user-facing conditional order type from provider terminology.
+ */
+function formatTriggeredOrderTypeLabel(
+  order: Order,
+  executionType: NonNullable<PerpsTransaction['order']>['type'],
+): string {
+  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
+  const isLimit = executionType === 'limit';
 
   if (detailedOrderType.includes('take')) {
     return strings(
@@ -481,10 +505,10 @@ export function transformOrdersToTransactions(
     const {
       orderId,
       symbol,
-      orderType,
       size,
       originalSize,
       price,
+      orderType,
       status,
       timestamp,
       side,
@@ -500,15 +524,7 @@ export function transformOrdersToTransactions(
     const isOpened = status === 'open';
     const isRejected = status === 'rejected';
     const isTriggered = status === 'triggered';
-
-    const title = isTrigger
-      ? formatTriggeredOrderTypeLabel(order)
-      : formatOrderLabel(order);
-    const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
-
-    const executionType = isLimitExecutionOrderType(orderType)
-      ? 'limit'
-      : 'market';
+    const executionType = resolveOrderExecutionType(order);
     const normalizedOrderType: OrderType = resolvePerpsTransactionOrderType({
       type: executionType,
       orderType: triggerOrderType ?? orderType,
@@ -516,6 +532,7 @@ export function transformOrdersToTransactions(
     });
     const isLimitExecution = isLimitExecutionOrderType(normalizedOrderType);
     const isTriggerType = isTriggerOrderType(normalizedOrderType);
+    const isTrigger = sourceIsTrigger || isTriggerType;
     const limitPrice =
       isLimitExecution && getValidPerpsPrice(price) !== null
         ? price
@@ -524,6 +541,11 @@ export function transformOrdersToTransactions(
       isTriggerType && getValidPerpsPrice(sourceTriggerPrice) !== null
         ? sourceTriggerPrice
         : undefined;
+
+    const title = isTrigger
+      ? formatTriggeredOrderTypeLabel(order, executionType)
+      : formatOrderLabel(order);
+    const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
     let orderStatusType: PerpsOrderTransactionStatusType =
       PerpsOrderTransactionStatusType.Pending;
@@ -605,7 +627,7 @@ export function transformOrdersToTransactions(
         orderId,
         text: statusText,
         statusType: orderStatusType,
-        type: isLimitExecution ? 'limit' : 'market',
+        type: executionType,
         orderType: normalizedOrderType,
         size: BigNumber(originalSize).multipliedBy(price).toString(),
         limitPrice,

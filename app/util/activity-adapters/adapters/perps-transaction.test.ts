@@ -629,6 +629,27 @@ describe('mapPerpsTransaction', () => {
       },
     );
 
+    it('keeps a trigger-market order with a limit slippage cap classified as market', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          side: 'buy',
+          reduceOnly: false,
+          isTrigger: true,
+          detailedOrderType: 'Stop Market',
+        }),
+      );
+
+      expect(result?.type).toBe('marketLong');
+      expect(result?.raw).toMatchObject({
+        type: 'perpsTransaction',
+        data: {
+          title: 'Stop market',
+          order: { type: 'market' },
+        },
+      });
+    });
+
     it.each([
       ['Stop Limit', 'limit', false, 'Stop limit'],
       ['Stop Market', 'market', true, 'Stop market'],
