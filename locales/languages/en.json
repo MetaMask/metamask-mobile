@@ -527,7 +527,7 @@
     "seedless_controller_error_prompt_primary_button_label": "Log in",
     "security_alert_title": "Security alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}",
+    "too_many_attempts": "Too many attempts. Try again in {{remainingTime}}.",
     "biometric_too_many_attempts": "Too many attempts. Enter your password.",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
