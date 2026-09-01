@@ -244,7 +244,8 @@
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
     "@metamask/assets-controller@npm:^13.1.3": "patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch",
     "@metamask/assets-controller@npm:^13.1.4": "patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch",
-    "@metamask/assets-controller@npm:^13.1.2": "patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch"
+    "@metamask/assets-controller@npm:^13.1.2": "patch:@metamask/assets-controller@npm%3A13.1.3#~/.yarn/patches/@metamask-assets-controller-npm-13.1.3-bb9a075a03.patch",
+    "@metamask/bridge-controller@npm:^79.2.0": "patch:@metamask/bridge-controller@npm%3A79.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-79.2.0-e03269beaf.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -279,7 +280,7 @@
     "@metamask/base-data-service": "^0.1.3",
     "@metamask/bitcoin-wallet-snap": "^1.14.2",
     "@metamask/bitcoin-wallet-standard": "^1.0.0",
-    "@metamask/bridge-controller": "^79.2.0",
+    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A79.2.0#~/.yarn/patches/@metamask-bridge-controller-npm-79.2.0-e03269beaf.patch",
     "@metamask/bridge-status-controller": "^75.1.0",
     "@metamask/chain-agnostic-permission": "^1.7.0",
     "@metamask/chomp-api-service": "^4.0.0",
