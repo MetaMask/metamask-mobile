@@ -9,6 +9,7 @@ import type {
 import { getEarnAssetMetadata } from '../earnAssets';
 import {
   EARN_SECTION_ASSET_LIMIT,
+  rankEarnAssets,
   rankEarnSectionAssets,
 } from './rankEarnSectionAssets';
 
@@ -170,5 +171,47 @@ describe('rankEarnSectionAssets', () => {
     if (result.kind === 'asset') {
       expect(result.asset.rateStatus).toBe('error');
     }
+  });
+});
+
+describe('rankEarnAssets', () => {
+  it('returns every enriched asset without padding', () => {
+    const result = rankEarnAssets([
+      createAsset('USDT'),
+      createHeldAsset('DAI', 10),
+      createHeldAsset('USDC', 20),
+    ]);
+
+    expect(result).toHaveLength(3);
+    expect(result.map((asset) => getEarnAssetMetadata(asset).symbol)).toEqual([
+      'USDC',
+      'DAI',
+      'USDT',
+    ]);
+    expect(result.every((asset) => asset.rateStatus === 'ready')).toBe(true);
+  });
+
+  it('preserves the selected highest-rate APR or APY experience', () => {
+    const [result] = rankEarnAssets([
+      createAsset('ETH', [
+        {
+          id: 'pooled:eth',
+          type: EARN_EXPERIENCES.POOLED_STAKING,
+          role: 'underlying',
+          rate: { type: 'APR', percentage: 4.1, status: 'ready' },
+          isFeeSubsidized: false,
+        },
+        {
+          id: 'lending:eth',
+          type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+          role: 'underlying',
+          rate: { type: 'APY', percentage: 3.9, status: 'ready' },
+          isFeeSubsidized: false,
+        },
+      ]),
+    ]);
+
+    expect(result.highestRatePercent).toBe(4.1);
+    expect(result.highestRateExperience?.rate.type).toBe('APR');
   });
 });

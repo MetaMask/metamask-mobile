@@ -16,14 +16,14 @@ import {
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   CommonActions,
   StackActions,
@@ -63,6 +63,7 @@ import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/fea
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
+import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
@@ -75,7 +76,6 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
-import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardType, CardMessageBoxType } from '../../types';
@@ -113,6 +113,7 @@ const CardHome = () => {
   // --- Data ---
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
+  const transactionHistoryDestination = useCardTransactionHistoryDestination();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
@@ -221,6 +222,7 @@ const CardHome = () => {
   useCardHomeAnalytics({
     data,
     isLoading,
+    isError,
     hasSetupActions,
     balanceFormatted: primaryToken?.balanceFormatted,
     rawTokenBalance: primaryToken?.rawTokenBalance,
@@ -498,7 +500,7 @@ const CardHome = () => {
           <Icon
             name={IconName.Forest}
             size={IconSize.Xl}
-            color={IconColor.Default}
+            color={IconColor.IconDefault}
           />
           <Text
             variant={TextVariant.HeadingSm}
@@ -678,7 +680,10 @@ const CardHome = () => {
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
-                <AnimatedSpinner testID="push-provisioning-spinner" />
+                <Spinner
+                  testID="push-provisioning-spinner"
+                  spinnerIconProps={{ size: IconSize.Xl }}
+                />
               </Box>
             ) : (
               <AddToWalletButton
@@ -755,6 +760,14 @@ const CardHome = () => {
             hasPriorityTokenBalance={hasPriorityTokenBalance}
             onCashback={actions.cashbackAction}
             onTravel={actions.navigateToTravelPage}
+            onTransactionHistory={
+              transactionHistoryDestination
+                ? () =>
+                    actions.transactionHistoryAction(
+                      transactionHistoryDestination,
+                    )
+                : undefined
+            }
           />
         )}
 

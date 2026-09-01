@@ -13,6 +13,7 @@ import {
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { GLOW_TOTAL_MS } from '../../components/PerpsModeToggle/PerpsModeSwitchPill';
+import type { OhlcData } from '../../components/TradingViewChart';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking, Platform } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -40,6 +41,10 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
 const mockTradingViewResetToDefault = jest.fn();
+const mockTradingViewRender = jest.fn();
+let mockMarketContextKey = 'testnet|hyperliquid|1';
+let mockMarketContextReady = true;
+let mockConnectionInitialized = true;
 
 jest.mock('../../../../../util/haptics');
 
@@ -85,6 +90,7 @@ jest.mock('../../components/TradingViewChart', () => {
   return {
     __esModule: true,
     default: ReactActual.forwardRef((props: object, ref: unknown) => {
+      mockTradingViewRender(props);
       ReactActual.useImperativeHandle(ref, () => ({
         resetToDefault: mockTradingViewResetToDefault,
         zoomToLatestCandle: jest.fn(),
@@ -101,6 +107,27 @@ jest.mock('../../../Ramp/types/legacyDeposit', () => ({
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
   },
+}));
+
+jest.mock('../../hooks/usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: mockMarketContextKey,
+    isReady: mockMarketContextReady,
+    isUserReady: mockConnectionInitialized,
+    isConnectionInitialized: mockConnectionInitialized,
+  }),
+}));
+
+const mockUsePerpsMarketDetailSession = jest.fn((_params?: unknown) => ({
+  generationTrigger: 'initial',
+  isActive: true,
+  isLiveDeliveryFresh: true,
+  liveResetKey: 'detail-session',
+}));
+jest.mock('../../hooks/usePerpsMarketDetailSession', () => ({
+  ...jest.requireActual('../../hooks/usePerpsMarketDetailSession'),
+  usePerpsMarketDetailSession: (params: unknown) =>
+    mockUsePerpsMarketDetailSession(params),
 }));
 
 // Mock PerpsStreamManager
@@ -468,27 +495,30 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
   }),
 }));
 
+const mockUsePerpsLiveCandles = jest.fn();
 jest.mock('../../hooks/stream/usePerpsLiveCandles', () => ({
-  usePerpsLiveCandles: () => ({
-    candleData: {
-      symbol: 'BTC',
-      interval: '1h',
-      candles: [
-        {
-          time: 1234567890,
-          open: '45000',
-          high: '45500',
-          low: '44500',
-          close: '45200',
-          volume: '1000',
-        },
-      ],
-    },
-    isLoading: false,
-    hasHistoricalData: true,
-    error: null,
-  }),
+  usePerpsLiveCandles: (params: unknown) => mockUsePerpsLiveCandles(params),
 }));
+
+const defaultLiveCandles = () => ({
+  candleData: {
+    symbol: 'BTC',
+    interval: '15m',
+    candles: [
+      {
+        time: 1234567890,
+        open: '45000',
+        high: '45500',
+        low: '44500',
+        close: '45200',
+        volume: '1000',
+      },
+    ],
+  },
+  isLoading: false,
+  hasHistoricalData: true,
+  error: null,
+});
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: jest.fn(() => ({
@@ -499,6 +529,7 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
 const mockUseMarketInsights = jest.fn(
   (_assetId?: string | null, _isEnabled?: boolean) => ({
     report: null as Record<string, unknown> | null,
+    reportAssetId: null as string | null,
     isLoading: false,
     error: null,
     timeAgo: '',
@@ -875,6 +906,10 @@ describe('PerpsMarketDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPerpsModeValue = 'lite';
+    mockMarketContextKey = 'testnet|hyperliquid|1';
+    mockMarketContextReady = true;
+    mockConnectionInitialized = true;
+    mockUsePerpsLiveCandles.mockReturnValue(defaultLiveCandles());
     jest.spyOn(Date, 'now').mockReturnValue(MOCK_NOW_MS);
 
     mockUsePerpsAccount.mockReturnValue({
@@ -943,6 +978,9 @@ describe('PerpsMarketDetailsView', () => {
     const mockSelectPerpsEligibility = jest.requireMock(
       '../../selectors/perpsController',
     ).selectPerpsEligibility;
+    const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+      '../../selectors/chartPreferences',
+    ).selectPerpsChartPreferredCandlePeriod;
     useSelector.mockImplementation((selector: unknown) => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
@@ -952,6 +990,9 @@ describe('PerpsMarketDetailsView', () => {
       }
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
+      }
+      if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+        return CandlePeriod.FifteenMinutes;
       }
       return undefined;
     });
@@ -1920,6 +1961,145 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('market context chart isolation', () => {
+    it('keeps account-owned sections loading while context reconnects', () => {
+      mockMarketContextReady = false;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({
+            account: 'loading',
+            positions_orders: 'loading',
+          }),
+        }),
+      );
+    });
+
+    it('keeps account-owned sections loading during an account reconnect', () => {
+      mockConnectionInitialized = false;
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({
+            account: 'loading',
+            positions_orders: 'loading',
+          }),
+        }),
+      );
+    });
+
+    it('renders and resolves an empty Lightweight chart', () => {
+      mockUsePerpsLiveCandles.mockImplementation(
+        (params: { symbol: string; interval: CandlePeriod }) => ({
+          candleData: {
+            symbol: params.symbol,
+            interval: params.interval,
+            candles: [],
+          },
+          isLoading: false,
+          hasHistoricalData: false,
+          error: null,
+          fetchMoreHistory: jest.fn(),
+        }),
+      );
+
+      const view = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+        ),
+      ).toBeOnTheScreen();
+      expect(mockUsePerpsMarketDetailSession).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          sections: expect.objectContaining({ chart: 'empty' }),
+        }),
+      );
+    });
+
+    it('hides prior candles and OHLC while the new context reconnects', () => {
+      const view = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+      const tradingViewProps = mockTradingViewRender.mock.calls.at(-1)?.[0] as
+        | { onOhlcDataChange?: (data: OhlcData) => void }
+        | undefined;
+
+      act(() => {
+        tradingViewProps?.onOhlcDataChange?.({
+          open: '1',
+          high: '2',
+          low: '0.5',
+          close: '1.5',
+          volume: '10',
+          time: 1,
+        });
+      });
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        view.getByTestId(
+          PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON,
+        ),
+      );
+      expect(
+        view.getByTestId('perps-chart-fullscreen-close-button'),
+      ).toBeOnTheScreen();
+
+      mockMarketContextKey = 'mainnet|hyperliquid|1';
+      mockMarketContextReady = false;
+      view.rerender(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+      );
+
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-ohlcv-bar`,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId('perps-chart-fullscreen-close-button'),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -5258,6 +5438,7 @@ describe('PerpsMarketDetailsView', () => {
       // Default: a report is available and loading is complete
       mockUseMarketInsights.mockReturnValue({
         report: mockReport,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '5m ago',
@@ -5333,6 +5514,7 @@ describe('PerpsMarketDetailsView', () => {
     it('passes market_insights_displayed: false to PERPS_SCREEN_VIEWED when no report is returned', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',
@@ -5361,6 +5543,7 @@ describe('PerpsMarketDetailsView', () => {
     it('shows skeleton when loading and no report is available', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: true,
         error: null,
         timeAgo: '',
@@ -5394,6 +5577,7 @@ describe('PerpsMarketDetailsView', () => {
     it('hides market insights section entirely when not loading and no report', () => {
       mockUseMarketInsights.mockReturnValue({
         report: null,
+        reportAssetId: 'BTC',
         isLoading: false,
         error: null,
         timeAgo: '',

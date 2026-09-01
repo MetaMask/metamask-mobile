@@ -1,8 +1,12 @@
 import { PredictError, PredictErrorCode } from '../../errors';
+import marketHistoryMillisecondUtc from './fixtures/market-history-millisecond-utc.json';
 import {
   parsePredictEvent,
   parsePredictFeed,
+  parsePredictMarketHistory,
   parsePredictVenueStatus,
+  PredictMarketGroupSchema,
+  PredictMarketOptionSchema,
 } from './marketData';
 
 const venueId = 'kalshi';
@@ -29,6 +33,21 @@ const createEvent = (overrides = {}) => ({
   id: 'event-1',
   title: 'Game outcome',
   markets: [createMarket()],
+  ...overrides,
+});
+
+const createMarketHistory = (overrides = {}) => ({
+  venueId,
+  marketId: 'market-1',
+  range: '1D',
+  observedAt: '2026-08-07T12:00:00Z',
+  points: [
+    {
+      timestamp: '2026-08-07T11:00:00Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
   ...overrides,
 });
 
@@ -65,6 +84,137 @@ describe('Predict API canonical response parsers', () => {
     expect(result.markets[0].rules).toBe('Primary rule.\n\nSecondary rule.');
     expect(result.markets[0]).not.toHaveProperty('rules_primary');
     expect(result.markets[0]).not.toHaveProperty('rules_secondary');
+  });
+
+  it('parses a numeric market-selector group and masks unknown fields', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'total-points',
+            groupType: 'marketSelector',
+            marketType: 'total',
+            option: { type: 'number', value: 220.5 },
+            displayOrder: 0,
+            unknown: 'discard',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    });
+    expect(result.markets[0].group).not.toHaveProperty('unknown');
+  });
+
+  it('accepts an unsupported group type without specializing it', () => {
+    const [error, result] = PredictMarketGroupSchema.validate({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it('ignores selector fields on an unsupported group type', () => {
+    const [error, result] = PredictMarketGroupSchema.validate(
+      {
+        key: 'future-group',
+        groupType: 'future-group-type',
+        marketType: '',
+        option: { type: 'unexpected', value: 'not-a-number' },
+        displayOrder: -1,
+      },
+      { coerce: true },
+    );
+
+    expect(error).toBeUndefined();
+    expect(result).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it.each(['', ' ', '\t'])('rejects a group key with value %j', (key) => {
+    const [error] = PredictMarketGroupSchema.validate({
+      key,
+      groupType: 'future-group-type',
+    });
+
+    expect(error).toBeDefined();
+  });
+
+  it('rejects whitespace-only selector fields', () => {
+    const [error] = PredictMarketGroupSchema.validate({
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: ' ',
+      option: { type: 'number', value: 220.5 },
+    });
+
+    expect(error).toBeDefined();
+  });
+
+  it.each([
+    {
+      name: 'a marketSelector group without marketType',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        option: { type: 'number', value: 220.5 },
+      },
+    },
+    {
+      name: 'a marketSelector group without option',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+      },
+    },
+    {
+      name: 'a group with a non-numeric option',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: '220.5' },
+      },
+    },
+    {
+      name: 'a group with a negative displayOrder',
+      group: {
+        key: 'total-points',
+        groupType: 'marketSelector',
+        marketType: 'total',
+        option: { type: 'number', value: 220.5 },
+        displayOrder: -1,
+      },
+    },
+  ])('rejects $name', ({ group }) => {
+    expect(() =>
+      parsePredictEvent(createEvent({ markets: [createMarket({ group })] })),
+    ).toThrow('Invalid Predict API response.');
+  });
+
+  it('rejects non-finite numeric market options', () => {
+    const [error] = PredictMarketOptionSchema.validate({
+      type: 'number',
+      value: Number.NaN,
+    });
+
+    expect(error).toBeDefined();
   });
 
   it.each([
@@ -364,6 +514,87 @@ describe('Predict API canonical response parsers', () => {
     );
   });
 
+  it('keeps a market-selector group and strips unknown group fields', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'KXNFLTOTAL-1:total',
+            groupType: 'marketSelector',
+            marketType: 'total',
+            option: { type: 'number', value: 44.5 },
+            displayOrder: 0,
+            extra: 'discard',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'KXNFLTOTAL-1:total',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 44.5 },
+      displayOrder: 0,
+    });
+  });
+
+  it('keeps an unsupported group type so winner quotes can ignore grouped Markets', () => {
+    const input = createEvent({
+      markets: [
+        createMarket({
+          group: {
+            key: 'future-group',
+            groupType: 'future-group-type',
+          },
+        }),
+      ],
+    });
+
+    const result = parsePredictEvent(input);
+
+    expect(result.markets[0].group).toEqual({
+      key: 'future-group',
+      groupType: 'future-group-type',
+    });
+  });
+
+  it.each([
+    {
+      name: 'a marketSelector group without marketType',
+      group: {
+        key: 'group-1',
+        groupType: 'marketSelector',
+        option: { type: 'number', value: 1 },
+      },
+    },
+    {
+      name: 'a marketSelector group without option',
+      group: {
+        key: 'group-1',
+        groupType: 'marketSelector',
+        marketType: 'total',
+      },
+    },
+    {
+      name: 'a whitespace group key',
+      group: {
+        key: ' ',
+        groupType: 'future-group-type',
+      },
+    },
+  ])('rejects $name', ({ group }) => {
+    const input = createEvent({
+      markets: [createMarket({ group })],
+    });
+
+    expect(() => parsePredictEvent(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
   it('parses a paginated event response', () => {
     const input = {
       venueId: 'kalshi',
@@ -394,5 +625,104 @@ describe('Predict API canonical response parsers', () => {
       status: 'available',
       checkedAt: '2026-08-07T12:00:00Z',
     });
+  });
+
+  it('parses Market history', () => {
+    const input = createMarketHistory();
+
+    expect(parsePredictMarketHistory(input)).toEqual(input);
+  });
+
+  it('parses Market history for the ALL range', () => {
+    const input = createMarketHistory({ range: 'ALL' });
+
+    expect(parsePredictMarketHistory(input)).toEqual(input);
+  });
+
+  it('parses the shared Market history response with millisecond UTC timestamps', () => {
+    const result = parsePredictMarketHistory(marketHistoryMillisecondUtc);
+
+    expect(result).toEqual(marketHistoryMillisecondUtc);
+  });
+
+  it.each(['2026-08-17T20:07:30Z', '2026-08-17T20:07:30.1234Z'])(
+    'parses supported UTC timestamp precision %s',
+    (timestamp) => {
+      const input = createMarketHistory({ observedAt: timestamp, points: [] });
+
+      expect(parsePredictMarketHistory(input).observedAt).toBe(timestamp);
+    },
+  );
+
+  it.each([
+    '2026-08-17T20:07:30+00:00',
+    '2026-08-17T20:07:30.000+01:00',
+    '2026-08-17 20:07:30.000Z',
+    '2026-08-17T20:07Z',
+    '2026-02-30T20:07:30.000Z',
+  ])('rejects unsupported or malformed timestamp %s', (timestamp) => {
+    const input = createMarketHistory({ observedAt: timestamp, points: [] });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it.each([
+    ['range', createMarketHistory({ range: 'FOO' })],
+    ['timestamp', createMarketHistory({ observedAt: 'not-a-timestamp' })],
+    [
+      'non-complementary prices',
+      createMarketHistory({
+        points: [
+          {
+            timestamp: '2026-08-07T11:00:00Z',
+            yesPrice: '0.42',
+            noPrice: '0.57',
+          },
+        ],
+      }),
+    ],
+  ])('rejects malformed Market history %s', (_field, input) => {
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('rejects Market history points that are not chronological', () => {
+    const input = createMarketHistory({
+      points: [
+        {
+          timestamp: '2026-08-07T11:00:00Z',
+          yesPrice: '0.42',
+          noPrice: '0.58',
+        },
+        {
+          timestamp: '2026-08-07T10:00:00Z',
+          yesPrice: '0.40',
+          noPrice: '0.60',
+        },
+      ],
+    });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
+  });
+
+  it('rejects Market history points after the backend observation time', () => {
+    const input = createMarketHistory({
+      points: [
+        {
+          timestamp: '2026-08-07T12:00:01Z',
+          yesPrice: '0.42',
+          noPrice: '0.58',
+        },
+      ],
+    });
+
+    expect(() => parsePredictMarketHistory(input)).toThrow(
+      'Invalid Predict API response.',
+    );
   });
 });

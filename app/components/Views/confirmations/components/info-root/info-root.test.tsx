@@ -56,6 +56,11 @@ jest.mock('../info/custom-amount-info', () => ({
 jest.mock('../../hooks/gas/useGasFeeToken');
 jest.mock('../../hooks/tokens/useTokenWithBalance');
 jest.mock('../../hooks/pay/useTransactionPayAutoFiatSubmission');
+// The withdraw info components call `useDefaultPaySelectedSection`, which
+// otherwise reaches the Money Account balance query and its QueryClient.
+jest.mock('../../hooks/pay/usePayMoneyAccountAvailable', () => ({
+  usePayMoneyAccountAvailable: () => ({ isAvailable: true, isPending: false }),
+}));
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),

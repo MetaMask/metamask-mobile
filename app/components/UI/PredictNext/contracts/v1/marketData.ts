@@ -1,6 +1,8 @@
 import {
   array,
+  coerce,
   enums,
+  literal,
   mask,
   number,
   object,
@@ -9,6 +11,9 @@ import {
   string,
   tuple,
   type Struct,
+  type as structType,
+  unknown,
+  union,
 } from '@metamask/superstruct';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type {
@@ -16,16 +21,28 @@ import type {
   PredictEvent,
   PredictFeed,
   PredictMarket,
+  PredictMarketHistory,
   PredictVenueStatus,
 } from '../../types';
 
-const timestamp = refine(
-  string(),
-  'PredictTimestamp',
-  (value) =>
-    !Number.isNaN(Date.parse(value)) &&
-    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(value),
-);
+const timestamp = refine(string(), 'PredictTimestamp', (value) => {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$/.exec(
+      value,
+    );
+  if (!match) {
+    return false;
+  }
+
+  const [, year, month, day, hour, minute, second, fraction = ''] = match;
+  const milliseconds = fraction.padEnd(3, '0').slice(0, 3);
+  const parsed = Date.parse(value);
+  return (
+    !Number.isNaN(parsed) &&
+    new Date(parsed).toISOString() ===
+      `${year}-${month}-${day}T${hour}:${minute}:${second}.${milliseconds}Z`
+  );
+});
 
 const venueId = refine(string(), 'PredictVenueId', (value) => value.length > 0);
 const entityId = refine(
@@ -73,6 +90,14 @@ const status = enums([
 ] as const);
 const venueStatus = enums(['available', 'degraded', 'unavailable'] as const);
 const side = enums(['yes', 'no'] as const);
+const marketHistoryRange = enums([
+  'LIVE',
+  '1D',
+  '1W',
+  '1M',
+  '1Y',
+  'ALL',
+] as const);
 const gameSelection = enums(['home', 'away', 'draw'] as const);
 const gameStatus = enums([
   'scheduled',
@@ -126,6 +151,68 @@ const outcomeSchema = object({
   gameSelection: optional(gameSelection),
 });
 
+export const PredictMarketOptionSchema = object({
+  type: literal('number'),
+  value: refine(number(), 'PredictMarketOptionValue', Number.isFinite),
+});
+
+const nonEmptyGroupString = (name: string) =>
+  refine(string(), name, (value) => value.trim().length > 0);
+
+const pickGroupProperties = (value: unknown, keys: readonly string[]) => {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+
+  const record = value as Record<string, unknown>;
+  return Object.fromEntries(
+    keys.filter((key) => key in record).map((key) => [key, record[key]]),
+  );
+};
+
+const marketSelectorGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: literal('marketSelector'),
+    marketType: nonEmptyGroupString('PredictMarketType'),
+    option: PredictMarketOptionSchema,
+    displayOrder: optional(
+      refine(
+        number(),
+        'PredictMarketDisplayOrder',
+        (value) => Number.isInteger(value) && value >= 0,
+      ),
+    ),
+  }),
+  unknown(),
+  (value) =>
+    pickGroupProperties(value, [
+      'key',
+      'groupType',
+      'marketType',
+      'option',
+      'displayOrder',
+    ]),
+);
+
+const unsupportedMarketGroupSchema = coerce(
+  structType({
+    key: nonEmptyGroupString('PredictMarketGroupKey'),
+    groupType: refine(
+      string(),
+      'PredictMarketGroupType',
+      (value) => value.trim().length > 0 && value !== 'marketSelector',
+    ),
+  }),
+  unknown(),
+  (value) => pickGroupProperties(value, ['key', 'groupType']),
+);
+
+export const PredictMarketGroupSchema = union([
+  marketSelectorGroupSchema,
+  unsupportedMarketGroupSchema,
+]);
+
 const binaryOutcomes = refine(
   tuple([outcomeSchema, outcomeSchema]),
   'BinaryOutcomes',
@@ -138,6 +225,7 @@ const marketSchema = object({
   rules: optional(string()),
   outcomes: binaryOutcomes,
   status,
+  group: optional(PredictMarketGroupSchema),
   volume: optional(amount),
   volume24h: optional(amount),
   createdAt: optional(timestamp),
@@ -186,6 +274,46 @@ const venueStatusSchema = object({
   checkedAt: timestamp,
 });
 
+const marketHistoryPointSchema = refine(
+  object({
+    timestamp,
+    yesPrice: decimal,
+    noPrice: decimal,
+  }),
+  'ComplementaryMarketHistoryPrices',
+  ({ yesPrice, noPrice }) => {
+    const [yesWhole, yesFraction = ''] = yesPrice.split('.');
+    const [noWhole, noFraction = ''] = noPrice.split('.');
+    const scale = Math.max(yesFraction.length, noFraction.length);
+    const yesUnits = BigInt(`${yesWhole}${yesFraction.padEnd(scale, '0')}`);
+    const noUnits = BigInt(`${noWhole}${noFraction.padEnd(scale, '0')}`);
+
+    return yesUnits + noUnits === 10n ** BigInt(scale);
+  },
+);
+
+const marketHistorySchema = refine(
+  object({
+    venueId,
+    marketId: entityId,
+    range: marketHistoryRange,
+    observedAt: timestamp,
+    points: array(marketHistoryPointSchema),
+  }),
+  'OrderedMarketHistory',
+  ({ observedAt, points }) => {
+    const observedAtMs = Date.parse(observedAt);
+    let previousTimestampMs = -Infinity;
+
+    return points.every((point) => {
+      const pointTimestampMs = Date.parse(point.timestamp);
+      const isOrdered = pointTimestampMs > previousTimestampMs;
+      previousTimestampMs = pointTimestampMs;
+      return isOrdered && pointTimestampMs <= observedAtMs;
+    });
+  },
+);
+
 const eventsParamsSchema = object({
   cursor: optional(string()),
   limit: optional(refine(number(), 'PositiveLimit', (value) => value > 0)),
@@ -209,6 +337,11 @@ export const parsePredictFeed = (value: unknown): PredictFeed =>
 
 export const parsePredictMarket = (value: unknown): PredictMarket =>
   parse(value, marketSchema) as unknown as PredictMarket;
+
+export const parsePredictMarketHistory = (
+  value: unknown,
+): PredictMarketHistory =>
+  parse(value, marketHistorySchema) as unknown as PredictMarketHistory;
 
 export const parsePredictVenueStatus = (value: unknown): PredictVenueStatus =>
   parse(value, venueStatusSchema) as unknown as PredictVenueStatus;
