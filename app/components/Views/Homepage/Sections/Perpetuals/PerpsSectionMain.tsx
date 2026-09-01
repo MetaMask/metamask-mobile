@@ -123,6 +123,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
         throttleMs: HOMEPAGE_THROTTLE_MS,
+        // Recompute value and PnL from live mark prices, matching PerpsPositionsView
+        // and PerpsProPositionsPanel, so the row moves between socket pushes.
+        useLivePnl: true,
       });
 
     const { account: perpsAccount, isInitialLoading: perpsAccountLoading } =

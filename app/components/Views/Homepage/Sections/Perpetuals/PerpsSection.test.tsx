@@ -912,14 +912,20 @@ describe('PerpsSection', () => {
     expect(screen.queryByTestId('skeleton-placeholder')).not.toBeOnTheScreen();
   });
 
-  it('throttles positions but delivers orders immediately', () => {
+  it('subscribes to positions at the perps-screen live cadence and delivers orders immediately', () => {
     renderWithProvider(
       <PerpsSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
     expect(usePerpsLivePositions).toHaveBeenCalledWith(
       expect.objectContaining({
-        throttleMs: 5000,
+        throttleMs: 1000,
+        useLivePnl: true,
+      }),
+    );
+    expect(usePerpsLiveAccount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        throttleMs: 1000,
       }),
     );
     expect(usePerpsLiveOrders).toHaveBeenCalledWith(
