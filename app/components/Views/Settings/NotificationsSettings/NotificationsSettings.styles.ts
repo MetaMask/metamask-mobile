@@ -61,6 +61,9 @@ const styleSheet = (params: { theme: Theme }) =>
     selectAllButton: {
       marginLeft: 16,
     },
+    accountsLoadError: {
+      marginTop: 12,
+    },
     marketingDisclaimer: {
       marginTop: 'auto',
       paddingTop: 16,

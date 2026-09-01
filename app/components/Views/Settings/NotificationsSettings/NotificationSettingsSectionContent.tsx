@@ -142,7 +142,11 @@ const WalletActivitySectionContent = ({
               {strings('app_settings.notifications_opts.select_accounts_desc')}
             </Text>
             {notificationAccountListProps.accountSettingsError ? (
-              <Text color={TextColor.ErrorDefault} variant={TextVariant.BodySm}>
+              <Text
+                color={TextColor.ErrorDefault}
+                variant={TextVariant.BodySm}
+                style={styles.accountsLoadError}
+              >
                 {strings('app_settings.notifications_opts.accounts_load_error')}
               </Text>
             ) : null}
