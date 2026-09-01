@@ -22,6 +22,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
@@ -54,19 +55,6 @@ const activeChase: ChaseOrder = {
   repricings: 0,
   startedAt: 1,
   status: 'active',
-};
-const myxProMarket = {
-  symbol: 'ETH',
-  name: 'Ethereum',
-  price: '$2,000.00',
-  change24h: '+$50.00',
-  change24hPercent: '+2.5%',
-  volume: '$1.5B',
-  openInterest: '$500M',
-  maxLeverage: '50x',
-  marketType: 'crypto',
-  providerId: 'myx' as const,
-  szDecimals: 2,
 };
 const triggeredOrderTypeIDs = [
   PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
@@ -450,89 +438,6 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'keeps Chase while hiding Scale and TWAP on a MYX route',
-    async () => {
-      const getOrderCapabilities = jest.mocked(
-        Engine.context.PerpsController.getOrderCapabilities,
-      );
-      getOrderCapabilities.mockResolvedValue({
-        status: 'ready',
-        providerId: 'myx',
-        supportedStrategies: ['twap', 'scale', 'chase'],
-      });
-      getOrderCapabilities.mockClear();
-      renderPerpsProMarketView({
-        initialParams: { market: myxProMarket },
-        streamOverrides: {
-          account: createFundedAccountForViews('1000'),
-          marketData: [myxProMarket],
-        },
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { activeProvider: 'myx' },
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsProModeEnabled: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                  perpsMobileTwap: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                  perpsMobileScale: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                  perpsMobileChase: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-      await findSizeInput();
-      await waitFor(() =>
-        expect(getOrderCapabilities).toHaveBeenCalledWith({
-          symbol: 'ETH',
-          providerId: 'myx',
-        }),
-      );
-      await act(async () => {
-        await Promise.all(
-          getOrderCapabilities.mock.results.map(({ value }) => value),
-        );
-      });
-
-      fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
-      const advancedTab = await screen.findByTestId(
-        PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
-        {},
-        { timeout: TIMEOUT_MS },
-      );
-      fireEvent.press(advancedTab);
-
-      expect(
-        await screen.findByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION),
-      ).not.toBeOnTheScreen();
-      expect(
-        screen.queryByTestId(
-          PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
-        ),
-      ).not.toBeOnTheScreen();
-    },
-  );
-
-  itForPlatforms(
     'removes a terminated Chase when the controller omits its session',
     async () => {
       const getChaseOrders = Engine.context.PerpsController
@@ -629,6 +534,117 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ),
         ),
       ).toHaveTextContent(strings('perps.order.chase.status.canceled'));
+    },
+  );
+
+  itForPlatforms(
+    'tracks Chase termination only after acceptance with the asset payload',
+    async () => {
+      let resolveCancellation:
+        | ((result: { success: boolean }) => void)
+        | undefined;
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      getChaseOrders.mockResolvedValueOnce([activeChase]).mockResolvedValue([]);
+      cancelOrder.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCancellation = resolve;
+          }),
+      );
+      try {
+        renderFundedProMarket();
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+          ),
+        );
+        cancelOrder.mockClear();
+        trackEventSpy.mockClear();
+
+        fireEvent.press(
+          screen.getByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+
+        expect(trackEventSpy).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Perp UI Interaction',
+            properties: expect.objectContaining({
+              interaction_type: 'chase_terminated',
+            }),
+          }),
+        );
+        await act(async () => resolveCancellation?.({ success: true }));
+        await waitFor(() =>
+          expect(trackEventSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+              name: 'Perp UI Interaction',
+              properties: expect.objectContaining({
+                interaction_type: 'chase_terminated',
+                asset: 'ETH',
+              }),
+            }),
+          ),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'omits Chase termination analytics when cancellation is rejected',
+    async () => {
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const cancelOrder = Engine.context.PerpsController
+        .cancelOrder as jest.Mock;
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      getChaseOrders.mockResolvedValue([activeChase]);
+      cancelOrder.mockResolvedValueOnce({ success: false, error: 'rejected' });
+      try {
+        renderFundedProMarket();
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+          ),
+        );
+        cancelOrder.mockClear();
+        trackEventSpy.mockClear();
+
+        fireEvent.press(
+          screen.getByTestId(
+            getPerpsProChaseTerminateSelector(
+              'active',
+              'ETH',
+              activeChase.handle,
+              true,
+            ),
+          ),
+        );
+        await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
+
+        expect(trackEventSpy).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Perp UI Interaction',
+            properties: expect.objectContaining({
+              interaction_type: 'chase_terminated',
+            }),
+          }),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
     },
   );
 

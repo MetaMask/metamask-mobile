@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
-import { ChaseOrderSuspensionError } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { PerpsAlwaysOnProvider } from './PerpsAlwaysOnProvider';
@@ -1477,39 +1476,6 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalled();
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
-  });
-
-  it('reports successful partial suspensions before disconnecting', async () => {
-    const suspendedOrder = {
-      handle: 'chase-partial',
-      symbol: 'ETH',
-      status: 'backgrounded',
-    };
-    mockSuspendChaseOrders.mockRejectedValueOnce(
-      new ChaseOrderSuspensionError({
-        suspendedOrders: [suspendedOrder] as never[],
-        failures: [{ providerId: 'myx', reason: new Error('MYX failed') }],
-      }),
-    );
-    render(
-      <PerpsAlwaysOnProvider>
-        <Text>child</Text>
-      </PerpsAlwaysOnProvider>,
-    );
-
-    await act(async () => {
-      mockAppStateListener?.('background');
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    expect(mockTrack).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ asset: 'ETH' }),
-    );
-    expect(mockTrack.mock.invocationCallOrder[0]).toBeLessThan(
-      mockDisconnect.mock.invocationCallOrder[0],
-    );
   });
 
   it('calls resumeFromForeground after delay when app returns to foreground', () => {

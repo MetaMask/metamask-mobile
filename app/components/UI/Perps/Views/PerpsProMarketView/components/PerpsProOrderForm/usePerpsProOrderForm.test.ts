@@ -626,14 +626,14 @@ describe('usePerpsProOrderForm', () => {
         false,
         {},
         {
-          providerId: 'myx',
+          providerId: 'hyperliquid',
         },
       );
 
       expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
         expect.objectContaining({
           orderType: 'chase',
-          providerId: 'myx',
+          providerId: 'hyperliquid',
         }),
       );
     });
@@ -1686,7 +1686,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).not.toHaveBeenCalled();
     });
 
-    it('abandons Chase submit when the provider changes after capability refresh', async () => {
+    it('abandons Chase submit when the capability route disappears', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -1696,7 +1696,8 @@ describe('usePerpsProOrderForm', () => {
       );
       const chaseGate: {
         refresh: () => Promise<'hyperliquid'>;
-        providerId: PerpsProviderType;
+        providerId?: PerpsProviderType;
+        isEnabled?: boolean;
       } = {
         refresh: jest.fn().mockResolvedValue('hyperliquid'),
         providerId: 'hyperliquid',
@@ -1717,7 +1718,7 @@ describe('usePerpsProOrderForm', () => {
       await waitFor(() => {
         expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
       });
-      chaseGate.providerId = 'myx';
+      chaseGate.isEnabled = false;
       rerender({});
       await act(async () => {
         resolveOrders?.([]);
