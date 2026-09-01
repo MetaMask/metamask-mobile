@@ -181,9 +181,8 @@ runQuoteRequestCases({
   renderHook: (options) =>
     renderHook(
       () => {
-        const { debouncedUpdateQuoteParams, refreshQuotes } = useSwapQuotes();
-
-        return Object.assign(debouncedUpdateQuoteParams, { refreshQuotes });
+        const { debouncedUpdateQuoteParams } = useSwapQuotes();
+        return debouncedUpdateQuoteParams;
       },
       {
         wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
