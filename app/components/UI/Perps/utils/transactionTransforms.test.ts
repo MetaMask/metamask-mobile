@@ -23,6 +23,8 @@ import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
 } from '../types/transactionHistory';
+import { mapPerpsTransaction } from '../../../../util/activity-adapters/adapters/perps-transaction';
+import { formatOrderLabel } from './orderUtils';
 
 jest.mock('../../../Views/confirmations/utils/transaction-pay');
 jest.mock('../../../Views/confirmations/utils/transaction');
@@ -1360,6 +1362,123 @@ describe('transactionTransforms', () => {
         const result = transformOrdersToTransactions([triggerOrder]);
 
         expect(result[0].title).toBe(expectedTitle);
+      },
+    );
+
+    // Buy is fixed for TAT-3860; the Activity adapter matrix and Activity
+    // Details tests cover the complementary sell and close-long paths.
+    it.each([
+      {
+        detailedOrderType: 'Stop Limit',
+        triggerOrderType: 'stop_limit',
+        orderType: 'limit',
+        reduceOnly: false,
+        liteTitle: 'Stop limit long',
+        historyTitle: 'Stop limit long',
+        activityTitle: 'Stop limit long',
+        activityKind: 'limitLong',
+      },
+      {
+        detailedOrderType: 'Stop Limit',
+        triggerOrderType: 'stop_limit',
+        orderType: 'limit',
+        reduceOnly: true,
+        liteTitle: 'Stop limit close short',
+        historyTitle: 'Stop limit close short',
+        activityTitle: 'Stop limit — close short',
+        activityKind: 'limitCloseShort',
+      },
+      {
+        detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market',
+        orderType: 'market',
+        reduceOnly: false,
+        liteTitle: 'Stop market long',
+        historyTitle: 'Stop market long',
+        activityTitle: 'Stop market long',
+        activityKind: 'marketLong',
+      },
+      {
+        detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market',
+        orderType: 'market',
+        reduceOnly: true,
+        liteTitle: 'Stop market close short',
+        historyTitle: 'Stop market close short',
+        activityTitle: 'Stop market — close short',
+        activityKind: 'stopMarketCloseShort',
+      },
+      {
+        detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit',
+        orderType: 'limit',
+        reduceOnly: false,
+        liteTitle: 'Take limit long',
+        historyTitle: 'Take limit long',
+        activityTitle: 'Take limit long',
+        activityKind: 'limitLong',
+      },
+      {
+        detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit',
+        orderType: 'limit',
+        reduceOnly: true,
+        liteTitle: 'Take limit close short',
+        historyTitle: 'Take limit close short',
+        activityTitle: 'Take limit — close short',
+        activityKind: 'limitCloseShort',
+      },
+      {
+        detailedOrderType: 'Take Profit Market',
+        triggerOrderType: 'take_profit_market',
+        orderType: 'market',
+        reduceOnly: false,
+        liteTitle: 'Take market long',
+        historyTitle: 'Take market long',
+        activityTitle: 'Take market long',
+        activityKind: 'marketLong',
+      },
+      {
+        detailedOrderType: 'Take Profit Market',
+        triggerOrderType: 'take_profit_market',
+        orderType: 'market',
+        reduceOnly: true,
+        liteTitle: 'Take market close short',
+        historyTitle: 'Take market close short',
+        activityTitle: 'Take market — close short',
+        activityKind: 'marketCloseShort',
+      },
+    ] as const)(
+      'pins $detailedOrderType labels and Activity kind with reduceOnly=$reduceOnly',
+      ({
+        detailedOrderType,
+        triggerOrderType,
+        orderType,
+        reduceOnly,
+        liteTitle,
+        historyTitle,
+        activityTitle,
+        activityKind,
+      }) => {
+        const order = {
+          ...mockOrder,
+          side: 'buy' as const,
+          detailedOrderType,
+          triggerOrderType,
+          orderType,
+          reduceOnly,
+          isTrigger: true,
+        };
+        const [transaction] = transformOrdersToTransactions([order]);
+        const activityItem = mapPerpsTransaction({
+          transaction,
+          chainId: 'eip155:42161',
+        });
+
+        expect(formatOrderLabel(order)).toBe(liteTitle);
+        expect(transaction.title).toBe(historyTitle);
+        expect(activityItem?.data.displayTitle).toBe(activityTitle);
+        expect(activityItem?.type).toBe(activityKind);
       },
     );
 
