@@ -9512,6 +9512,7 @@
         "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
         "clickwrap_and": " and ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {

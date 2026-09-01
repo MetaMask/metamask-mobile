@@ -14,6 +14,8 @@ interface ImmersveLegalClickwrapProps {
    * an error (retry) instead of rendering nothing and soft-locking SignUp.
    */
   treatEmptyAsError?: boolean;
+  /** Overrides the default trailing period after the legal-doc links. */
+  suffix?: string;
 }
 
 function openDocument(url: string) {
@@ -70,6 +72,7 @@ const ImmersveLegalClickwrap = ({
   error,
   onRetry,
   treatEmptyAsError = false,
+  suffix = strings('card.card_onboarding.sign_up.clickwrap_suffix'),
 }: ImmersveLegalClickwrapProps) => {
   if (isLoading) {
     return (
@@ -110,7 +113,7 @@ const ImmersveLegalClickwrap = ({
           </Text>
         </React.Fragment>
       ))}
-      {strings('card.card_onboarding.sign_up.clickwrap_suffix')}
+      {suffix}
     </Text>
   );
 };

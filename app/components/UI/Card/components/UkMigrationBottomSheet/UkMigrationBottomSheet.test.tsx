@@ -4,9 +4,11 @@ import UkMigrationBottomSheet from './UkMigrationBottomSheet';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
 import I18n from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockOnCloseBottomSheet = jest.fn();
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
 
 const expectedDeadlineLabel = getIntlDateTimeFormatter(I18n.locale, {
   month: 'short',
@@ -20,6 +22,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -62,7 +65,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
     ) => {
       ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: mockOnCloseBottomSheet,
+        onCloseBottomSheet: (cb?: () => void) => {
+          mockOnCloseBottomSheet(cb);
+          cb?.();
+        },
         onOpenBottomSheet: jest.fn(),
       }));
       return ReactActual.createElement(View, { testID }, children);
@@ -114,7 +120,7 @@ describe('UkMigrationBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('closes the sheet when Get started is pressed', () => {
+  it('closes the sheet and navigates to SignUp with fromMigration when Get started is pressed', () => {
     const { getByTestId } = render(<UkMigrationBottomSheet />);
 
     fireEvent.press(
@@ -122,6 +128,10 @@ describe('UkMigrationBottomSheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+      screen: Routes.CARD.ONBOARDING.SIGN_UP,
+      params: { fromMigration: true },
+    });
   });
 
   it('closes the sheet when Remind me later is pressed', () => {
@@ -132,6 +142,7 @@ describe('UkMigrationBottomSheet', () => {
     );
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('closes the sheet when the close button is pressed', () => {
@@ -140,5 +151,6 @@ describe('UkMigrationBottomSheet', () => {
     fireEvent.press(getByTestId(UkMigrationBottomSheetSelectors.CLOSE_BUTTON));
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });

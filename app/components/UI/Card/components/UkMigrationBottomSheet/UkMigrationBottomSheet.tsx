@@ -48,7 +48,8 @@ const MIGRATION_STEP_KEYS = [
  * UK Card provider migration prompt.
  *
  * Intentionally unreachable from production Card Home until migration
- * entry points are wired. Registered on the Card modals stack for preview.
+ * entry points are wired. Get started closes the sheet and opens Immersve
+ * SignUp with `fromMigration: true`.
  */
 const UkMigrationBottomSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -62,10 +63,14 @@ const UkMigrationBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  // Placeholder — will navigate into Immersve onboarding when wired.
   const handleGetStarted = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.CARD.ONBOARDING.ROOT, {
+        screen: Routes.CARD.ONBOARDING.SIGN_UP,
+        params: { fromMigration: true },
+      });
+    });
+  }, [navigation]);
 
   // For now, same as X / dismiss (DF3). Re-entry UX still TBD.
   const handleRemindLater = handleClose;
