@@ -1,71 +1,76 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyCardFlipAnimation from './MoneyCardFlipAnimation';
 import { MoneyCardFlipAnimationTestIds } from './MoneyCardFlipAnimation.testIds';
 import { useReduceMotionState } from '../../hooks/useReduceMotion';
-import { RIVE_REVEAL_FALLBACK_DELAY_MS } from '../../hooks/useRiveRevealTrigger';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 import mmCardRegular from '../../../../../images/mm_card_regular.png';
 import mmCardMetal from '../../../../../images/mm_card_metal.png';
 
+// The component drives the entrance through the artboard's state machine by
+// firing a data-bound `startAnimation` trigger via `instance.triggerProperty()`
+// (see `useRiveRevealTrigger`), so the local mock provides a view-model
+// instance whose `triggerProperty(...).trigger()` records into
+// `mockTrigger(path)`. `useRive` is overridden so tests can flip the native
+// view's readiness (`mockViewReady`), which gates the reveal. The RiveView
+// wrapper additionally captures props (artboardName/stateMachineName/dataBind/
+// onError) and counts mounts for the remount-per-variant contract.
 const mockTrigger = jest.fn();
-const mockViewTag = jest.fn((): number | null => 1);
-const mockDataBinding = { autoBind: true };
-const mockAutoBind = jest.fn((_autoBind: boolean) => mockDataBinding);
-const mockOnPlayRef: { current?: () => void } = {};
-const mockOnErrorRef: { current?: (error: { message: string }) => void } = {};
-const mockRiveProps: {
+const mockTriggerProperty = jest.fn((path: string) => ({
+  trigger: () => mockTrigger(path),
+}));
+const mockPlayIfNeeded = jest.fn();
+const mockInstance = { triggerProperty: mockTriggerProperty };
+let mockInstanceReady = true;
+let mockViewReady = true;
+const mockRiveViewProps: {
   current?: {
+    testID?: string;
     artboardName?: string;
-    animationName?: string;
     stateMachineName?: string;
-    dataBinding?: unknown;
+    dataBind?: unknown;
+    autoPlay?: boolean;
+    onError?: (error: RiveError) => void;
   };
 } = {};
 const mockMountCount = { current: 0 };
 
-jest.mock('rive-react-native', () => {
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
   const ReactActual = jest.requireActual('react');
-  const { View: RNView } = jest.requireActual('react-native');
+  const MockRiveView = (props: {
+    testID?: string;
+    artboardName?: string;
+    stateMachineName?: string;
+    dataBind?: unknown;
+    autoPlay?: boolean;
+    onError?: (error: RiveError) => void;
+  }) => {
+    ReactActual.useEffect(() => {
+      mockMountCount.current += 1;
+    }, []);
+    // Captured in a per-render effect (not during render) to keep the
+    // react-compiler happy about external writes.
+    ReactActual.useEffect(() => {
+      mockRiveViewProps.current = props;
+    });
+    return ReactActual.createElement(actual.RiveView, props);
+  };
   return {
     __esModule: true,
-    // Called through rather than passed directly: the factory runs before the
-    // module body, so `mockAutoBind` is not bound yet at that point.
-    AutoBind: (autoBind: boolean) => mockAutoBind(autoBind),
-    Fit: { Contain: 'contain' },
-    default: ReactActual.forwardRef(
-      (
-        props: {
-          testID?: string;
-          artboardName?: string;
-          animationName?: string;
-          stateMachineName?: string;
-          dataBinding?: unknown;
-          onError?: (error: { message: string }) => void;
-          onPlay?: () => void;
-        },
-        ref: React.Ref<{
-          trigger: (path: string) => void;
-          viewTag: () => number | null;
-        }>,
-      ) => {
-        mockOnErrorRef.current = props.onError;
-        mockOnPlayRef.current = props.onPlay;
-        mockRiveProps.current = {
-          artboardName: props.artboardName,
-          animationName: props.animationName,
-          stateMachineName: props.stateMachineName,
-          dataBinding: props.dataBinding,
-        };
-        ReactActual.useImperativeHandle(ref, () => ({
-          trigger: mockTrigger,
-          viewTag: mockViewTag,
-        }));
-        ReactActual.useEffect(() => {
-          mockMountCount.current += 1;
-        }, []);
-        return ReactActual.createElement(RNView, { testID: props.testID });
-      },
-    ),
+    ...actual,
+    useViewModelInstance: () => ({
+      instance: mockInstanceReady ? mockInstance : null,
+      isLoading: !mockInstanceReady,
+      error: null,
+    }),
+    useRive: () => ({
+      riveRef: { current: null },
+      riveViewRef: mockViewReady ? { playIfNeeded: mockPlayIfNeeded } : null,
+      setHybridRef: { f: jest.fn() },
+    }),
+    RiveView: MockRiveView,
   };
 });
 
@@ -83,12 +88,14 @@ const mockUseReduceMotionState = useReduceMotionState as jest.Mock;
 describe('MoneyCardFlipAnimation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnErrorRef.current = undefined;
-    mockOnPlayRef.current = undefined;
-    mockRiveProps.current = undefined;
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
     mockMountCount.current = 0;
-    mockViewTag.mockReturnValue(1);
-    mockAutoBind.mockReturnValue(mockDataBinding);
+    mockInstanceReady = true;
+    mockViewReady = true;
+    mockTriggerProperty.mockImplementation((path: string) => ({
+      trigger: () => mockTrigger(path),
+    }));
     mockUseSelector.mockReturnValue(true);
     mockUseReduceMotionState.mockReturnValue(false);
   });
@@ -160,27 +167,26 @@ describe('MoneyCardFlipAnimation', () => {
   it('renders the metal artboard for a metal card', () => {
     render(<MoneyCardFlipAnimation isMetalCard />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('CardTiltMetal');
+    expect(mockRiveViewProps.current?.artboardName).toBe('CardTiltMetal');
   });
 
   it('renders the digital artboard for a virtual card', () => {
     render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.artboardName).toBe('CardTiltDigital');
+    expect(mockRiveViewProps.current?.artboardName).toBe('CardTiltDigital');
   });
 
-  it('drives the entrance through the state machine rather than a named timeline', () => {
+  it('drives the entrance through the state machine', () => {
     render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-    expect(mockRiveProps.current?.stateMachineName).toBe('State Machine 1');
-    expect(mockRiveProps.current?.animationName).toBeUndefined();
+    expect(mockRiveViewProps.current?.stateMachineName).toBe('State Machine 1');
+    expect(mockRiveViewProps.current?.autoPlay).toBe(true);
   });
 
   it('binds the artboard view model so the reveal trigger resolves', () => {
     render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-    expect(mockAutoBind).toHaveBeenCalledWith(true);
-    expect(mockRiveProps.current?.dataBinding).toBe(mockDataBinding);
+    expect(mockRiveViewProps.current?.dataBind).toBe(mockInstance);
   });
 
   it('remounts the Rive view when the card variant changes', () => {
@@ -222,7 +228,12 @@ describe('MoneyCardFlipAnimation', () => {
       <MoneyCardFlipAnimation isMetalCard={false} />,
     );
 
-    act(() => mockOnErrorRef.current?.({ message: 'boom' }));
+    act(() =>
+      mockRiveViewProps.current?.onError?.({
+        message: 'boom',
+        type: RiveErrorType.Unknown,
+      }),
+    );
 
     expect(
       getByTestId(MoneyCardFlipAnimationTestIds.STATIC_IMAGE),
@@ -320,105 +331,77 @@ describe('MoneyCardFlipAnimation', () => {
   });
 
   describe('entry reveal', () => {
-    const fireOnPlay = () => act(() => mockOnPlayRef.current?.());
-
-    it('fires the authored reveal trigger once the Rive view starts playing', () => {
+    it('fires the authored reveal trigger once the native view is ready', () => {
       render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-      fireOnPlay();
 
       expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+      expect(mockTrigger).toHaveBeenCalledTimes(1);
     });
 
-    it('fires the reveal only once when the Rive view reports playing again', () => {
+    it('wakes the state machine after firing the reveal', () => {
       render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-      fireOnPlay();
-      fireOnPlay();
+      expect(mockPlayIfNeeded).toHaveBeenCalled();
+    });
+
+    it('fires the reveal only once across re-renders', () => {
+      const { rerender } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} />,
+      );
+
+      rerender(<MoneyCardFlipAnimation isMetalCard={false} />);
 
       expect(mockTrigger).toHaveBeenCalledTimes(1);
     });
 
-    it('does not dispatch to a detached native view', () => {
-      mockViewTag.mockReturnValue(null);
+    it('defers the reveal until the native view becomes ready', () => {
+      mockViewReady = false;
+      const { rerender } = render(
+        <MoneyCardFlipAnimation isMetalCard={false} />,
+      );
+
+      expect(mockTrigger).not.toHaveBeenCalled();
+
+      mockViewReady = true;
+      rerender(<MoneyCardFlipAnimation isMetalCard={false} />);
+
+      expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
+    });
+
+    it('does not fire the reveal before the view-model instance is ready', () => {
+      mockInstanceReady = false;
 
       render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-      fireOnPlay();
 
       expect(mockTrigger).not.toHaveBeenCalled();
     });
 
-    describe('before the native view reports playing', () => {
-      beforeEach(() => {
-        jest.useFakeTimers();
-      });
+    it('does not fire the reveal while the flip is held', () => {
+      render(<MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />);
 
-      afterEach(() => {
-        jest.useRealTimers();
-      });
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
 
-      const advancePastFallback = () =>
-        act(() => {
-          jest.advanceTimersByTime(RIVE_REVEAL_FALLBACK_DELAY_MS);
-        });
+    it('does not fire the reveal while the card variant is unknown', () => {
+      render(<MoneyCardFlipAnimation />);
 
-      it('fires the reveal from the fallback timer', () => {
-        render(<MoneyCardFlipAnimation isMetalCard={false} />);
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
 
-        advancePastFallback();
+    it('does not fire the reveal when the feature flag is off', () => {
+      mockUseSelector.mockReturnValue(false);
 
-        expect(mockTrigger).toHaveBeenCalledWith('startAnimation');
-      });
+      render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-      it('fires the reveal again once a slow-loading view reports playing', () => {
-        // The trigger is the flip's only motion, and the fallback's attempt is
-        // dropped silently when the file has not loaded yet.
-        render(<MoneyCardFlipAnimation isMetalCard={false} />);
+      expect(mockTrigger).not.toHaveBeenCalled();
+    });
 
-        advancePastFallback();
-        fireOnPlay();
+    it('does not fire the reveal under reduce motion', () => {
+      mockUseReduceMotionState.mockReturnValue(true);
 
-        expect(mockTrigger).toHaveBeenCalledTimes(2);
-      });
+      render(<MoneyCardFlipAnimation isMetalCard={false} />);
 
-      it('does not fire the reveal while the flip is held', () => {
-        render(
-          <MoneyCardFlipAnimation isMetalCard={false} shouldPlay={false} />,
-        );
-
-        advancePastFallback();
-
-        expect(mockTrigger).not.toHaveBeenCalled();
-      });
-
-      it('does not fire the reveal while the card variant is unknown', () => {
-        render(<MoneyCardFlipAnimation />);
-
-        advancePastFallback();
-
-        expect(mockTrigger).not.toHaveBeenCalled();
-      });
-
-      it('does not fire the reveal when the feature flag is off', () => {
-        mockUseSelector.mockReturnValue(false);
-
-        render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-        advancePastFallback();
-
-        expect(mockTrigger).not.toHaveBeenCalled();
-      });
-
-      it('does not fire the reveal under reduce motion', () => {
-        mockUseReduceMotionState.mockReturnValue(true);
-
-        render(<MoneyCardFlipAnimation isMetalCard={false} />);
-
-        advancePastFallback();
-
-        expect(mockTrigger).not.toHaveBeenCalled();
-      });
+      expect(mockTrigger).not.toHaveBeenCalled();
     });
   });
 });

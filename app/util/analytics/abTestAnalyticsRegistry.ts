@@ -5,6 +5,7 @@ import { TOKEN_SELECTOR_BALANCE_LAYOUT_AB_TEST_ANALYTICS_MAPPING } from '../../c
 import { SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/haptics/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import {
+  HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
@@ -16,6 +17,7 @@ import {
 } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SOCIAL_AI_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
 import { TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/TraderPositionView/abTestConfig';
+import { LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/SocialLeaderboard/SocialTradersTabsView/abTestConfig';
 import { WHATS_HAPPENING_EXPLORE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/abTestConfig';
 import { EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
@@ -35,6 +37,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage
+  HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_ACTION_BUTTONS_GRID_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_BALANCE_BREAKDOWN_AB_TEST_ANALYTICS_MAPPING,
   HOMEPAGE_DISCOVERY_PILLS_AB_TEST_ANALYTICS_MAPPING,
@@ -56,6 +59,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Top Traders (Social Leaderboard)
   TOP_TRADERS_BUY_ACTION_AB_TEST_ANALYTICS_MAPPING,
+  LEADERBOARD_LANDING_FEED_AB_TEST_ANALYTICS_MAPPING,
 
   // Perps
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
