@@ -158,6 +158,30 @@ class FixtureBuilder {
   }
 
   /**
+   * Suppresses the post-login push / marketing pre-prompt sheet
+   * (`@MetaMask:PUSH_PRE_PROMPT_SHOWN`). Default fixtures include this flag so
+   * Appium happy-path login can skip modal probes (MMQA-2214).
+   */
+  ensurePushPrePromptSuppressed() {
+    if (!this.fixture.asyncState) {
+      this.fixture.asyncState = {};
+    }
+    this.fixture.asyncState['@MetaMask:PUSH_PRE_PROMPT_SHOWN'] = 'true';
+    return this;
+  }
+
+  /**
+   * Allows the push / marketing pre-prompt sheet to show (e.g. notification
+   * onboarding specs). Removes the default fixture suppression flag.
+   */
+  withPushPrePromptEnabled() {
+    if (this.fixture.asyncState) {
+      delete this.fixture.asyncState['@MetaMask:PUSH_PRE_PROMPT_SHOWN'];
+    }
+    return this;
+  }
+
+  /**
    * Defines a Perps profile for E2E mocks.
    * The value is stored in the PerpsController state so that the mocks can read it.
    * @param profile Profile, e.g.: 'no-funds', 'default'.
@@ -191,6 +215,7 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
+      '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };

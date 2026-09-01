@@ -735,6 +735,28 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 };
 
 /**
+ * Completes post-login phases. Default fixtures suppress push / marketing
+ * pre-prompts (`@MetaMask:PUSH_PRE_PROMPT_SHOWN`,
+ * `security.dataCollectionForMarketing`), so the happy path skips modal probes
+ * (MMQA-2214 modal-only slice). Pass `dismissModals: true` to probe and
+ * dismiss when a fixture intentionally shows those sheets.
+ */
+const finishPostLoginPhases = async (dismissModals: boolean): Promise<void> => {
+  if (!dismissModals) {
+    startPhase('test_body');
+    return;
+  }
+
+  startPhase('modal_dismissal');
+  try {
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+  } finally {
+    startPhase('test_body');
+  }
+};
+
+/**
  * Logs into the application using the provided password or a default password.
  *
  * @async
@@ -743,18 +765,12 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 export const loginToAppPlaywright = async (
   options: { scenarioType?: string; dismissModals?: boolean } = {},
 ): Promise<void> => {
-  const { scenarioType = 'login' } = options;
+  const { scenarioType = 'login', dismissModals = false } = options;
 
-  const dismissPostLoginModals = async (): Promise<void> => {
-    startPhase('modal_dismissal');
-    try {
-      await AppiumUtilities.wait(500);
-      await dismissPushNotificationExistingUserSheet();
-      await dismissExperienceEnhancerModal();
-    } finally {
-      // Resume test_body after login + modals (exclusive phases).
-      startPhase('test_body');
-    }
+  const afterWalletHomeReady = async (): Promise<void> => {
+    await completeUnlockedWalletHome(async () => {
+      await finishPostLoginPhases(dismissModals);
+    });
   };
 
   startPhase('login');
@@ -762,14 +778,14 @@ export const loginToAppPlaywright = async (
   await dismissAndroidSystemOverlaysPlaywright();
 
   if (await isUnlockedWalletHomeReady()) {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
   const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
   if (readyScreen === 'wallet') {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
@@ -794,7 +810,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
-  await dismissPostLoginModals();
+  await finishPostLoginPhases(dismissModals);
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
