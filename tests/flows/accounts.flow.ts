@@ -3,7 +3,6 @@ import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomShee
 import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../page-objects/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../page-objects/importAccount/SuccessImportAccountView';
-import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
