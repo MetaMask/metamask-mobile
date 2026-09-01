@@ -251,6 +251,49 @@ describe('PerpsProPositionCard', () => {
     expect(onEditMargin).toHaveBeenCalledWith(position);
   });
 
+  it('renders the take profit order count when the position carries several take profit orders', () => {
+    render(
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 3 }} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('3 orders / $2,000');
+    expect(screen.queryByText(/\$3,500/)).toBeNull();
+  });
+
+  // Whether that one order closes the position fully or partially is the controller's
+  // concern: `resolvePositionTriggerSummaryPrice` returns the order's own trigger price
+  // whenever exactly one exists, partial or not (@metamask/perps-controller). The card's
+  // obligation is to show that price instead of a count of one.
+  it('renders the trigger price when the controller reports a single take profit order', () => {
+    render(
+      <PerpsProPositionCard position={{ ...position, takeProfitCount: 1 }} />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('$3,500 / $2,000');
+    expect(screen.queryByText(/1 order/)).toBeNull();
+  });
+
+  // Which orders belong in the tally is the controller's decision: it counts every
+  // `isTrigger && reduceOnly` order, which spans take profit market/limit and stop
+  // market/limit (@metamask/perps-controller `collectPositionTriggerOrders`). The card
+  // renders that tally verbatim rather than re-deriving it, so trigger-type coverage is
+  // asserted there, not here.
+  it('renders the controller trigger tally for both sides without recounting orders', () => {
+    render(
+      <PerpsProPositionCard
+        position={{ ...position, takeProfitCount: 2, stopLossCount: 2 }}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE),
+    ).toHaveTextContent('2 orders / 2 orders');
+  });
+
   it('hides size, value, PnL, and key figures when privacy mode is enabled', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
 
