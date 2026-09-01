@@ -735,41 +735,24 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 };
 
 /**
- * Completes post-login phases. Default fixtures suppress push / marketing
- * pre-prompts (`@MetaMask:PUSH_PRE_PROMPT_SHOWN`,
- * `security.dataCollectionForMarketing`), so the happy path skips modal probes
- * (MMQA-2214 modal-only slice). Pass `dismissModals: true` to probe and
- * dismiss when a fixture intentionally shows those sheets.
- */
-const finishPostLoginPhases = async (dismissModals: boolean): Promise<void> => {
-  if (!dismissModals) {
-    startPhase('test_body');
-    return;
-  }
-
-  startPhase('modal_dismissal');
-  try {
-    await dismissPushNotificationExistingUserSheet();
-    await dismissExperienceEnhancerModal();
-  } finally {
-    startPhase('test_body');
-  }
-};
-
-/**
  * Logs into the application using the provided password or a default password.
+ *
+ * Default fixtures suppress push / marketing pre-prompts, so this path does
+ * not probe or dismiss those sheets (MMQA-2214). Call
+ * {@link dismissPushNotificationExistingUserSheet} /
+ * {@link dismissExperienceEnhancerModal} explicitly when a flow needs them.
  *
  * @async
  * @function loginToAppPlaywright
  */
 export const loginToAppPlaywright = async (
-  options: { scenarioType?: string; dismissModals?: boolean } = {},
+  options: { scenarioType?: string } = {},
 ): Promise<void> => {
-  const { scenarioType = 'login', dismissModals = false } = options;
+  const { scenarioType = 'login' } = options;
 
   const afterWalletHomeReady = async (): Promise<void> => {
     await completeUnlockedWalletHome(async () => {
-      await finishPostLoginPhases(dismissModals);
+      startPhase('test_body');
     });
   };
 
@@ -810,7 +793,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
-  await finishPostLoginPhases(dismissModals);
+  startPhase('test_body');
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
@@ -939,7 +922,6 @@ export const ensureAccountGroupsFinishedLoading = async (
 export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
-    dismissModals?: boolean;
   } = {},
 ): Promise<void> => {
   await loginToAppPlaywright(options);
