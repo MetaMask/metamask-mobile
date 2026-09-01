@@ -33,6 +33,8 @@ export interface UsePerpsProSizeInputParams {
    * (used for reduce-only `no_position` / `wrong_side`).
    */
   keepSizeEmpty?: boolean;
+  /** Preserve reactive maximum recalculation after a Chase MAX selection. */
+  preserveMaxIntent?: boolean;
 }
 
 export interface UsePerpsProSizeInputResult {
@@ -129,6 +131,7 @@ export const usePerpsProSizeInput = ({
   maxDigits,
   forceUsd = false,
   keepSizeEmpty = false,
+  preserveMaxIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     !forceUsd && Number.isFinite(effectivePrice) && effectivePrice > 0;
@@ -242,6 +245,7 @@ export const usePerpsProSizeInput = ({
       clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
     );
     const preservesMaxIntent =
+      preserveMaxIntent &&
       sliderAtMaxRef.current &&
       maxPossibleAmount > 0 &&
       clampedMaximum.gt(0) &&
@@ -266,6 +270,7 @@ export const usePerpsProSizeInput = ({
     effectivePrice,
     isSizeFocused,
     maxPossibleAmount,
+    preserveMaxIntent,
     szDecimals,
     usdAmount,
   ]);

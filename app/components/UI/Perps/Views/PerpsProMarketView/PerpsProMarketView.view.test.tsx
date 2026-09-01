@@ -734,7 +734,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           getPerpsProChaseDistanceSelector('ETH', activeChase.handle, true),
         ),
       ).toHaveTextContent('0.01% / 0.05% max');
-      expect(rowContent.getByText('20%')).toBeOnTheScreen();
+      expect(rowContent.getByText('Running · 20%')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           getPerpsProChaseTerminateSelector(

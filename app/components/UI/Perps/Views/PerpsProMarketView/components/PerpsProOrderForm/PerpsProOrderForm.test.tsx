@@ -1372,16 +1372,16 @@ describe('PerpsProOrderForm', () => {
       expect(onPlaceOrderPress).toHaveBeenCalledTimes(1);
     });
 
-    it('exposes ready state on the existing Place Order label', () => {
+    it('keeps one Place Order selector across ready and loading states', () => {
       const view = renderForm();
 
-      expect(screen.getByTestId(ids.PLACE_ORDER_READY)).toBeOnTheScreen();
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeEnabled();
 
       view.rerender(
         <PerpsProOrderForm {...createProps({ isPlaceOrderLoading: true })} />,
       );
 
-      expect(screen.queryByTestId(ids.PLACE_ORDER_READY)).not.toBeOnTheScreen();
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
     });
 
     it('plays selection when leverage is opened', () => {

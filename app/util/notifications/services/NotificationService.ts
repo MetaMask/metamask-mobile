@@ -287,7 +287,9 @@ class NotificationsService {
         title,
         body,
         // Notifee can only store and handle data strings
-        data: { dataStr: JSON.stringify(data) },
+        ...(data === undefined
+          ? {}
+          : { data: { dataStr: JSON.stringify(data) } }),
         android: {
           // Omit largeIcon — same fox as smallIcon caused a duplicate on Android.
           smallIcon: 'ic_notification_small',

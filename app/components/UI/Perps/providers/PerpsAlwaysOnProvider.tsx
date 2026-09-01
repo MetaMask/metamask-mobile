@@ -432,6 +432,9 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         PerpsConnectionManager.disconnect();
         return;
       }
+      // A committed flag disable updates this ref before React runs the prior
+      // effect cleanup. A real wallet-root unmount leaves the last committed
+      // enabled value intact, so cleanup can still suspend Chase before exit.
       const isWalletRootUnmount = isPerpsEnabledRef.current;
       const suspension = isWalletRootUnmount
         ? chaseLifecycle.suspendChaseOrders()

@@ -557,6 +557,16 @@ describe('NotificationService - displayNotification', () => {
     expect(displayCall.android?.pressAction?.id).toBe(PressActionId.OPEN_HOME);
   });
 
+  it('omits Notifee data when notification data is undefined', async () => {
+    const mocks = arrangeMocks();
+
+    await NotificationService.displayNotification({ title: 'Test Title' });
+
+    expect(mocks.mockNotifeeDisplayNotification).toHaveBeenCalledWith(
+      expect.not.objectContaining({ data: expect.anything() }),
+    );
+  });
+
   it('keeps display failures non-throwing by default', async () => {
     const error = new Error('display failed');
     jest.mocked(notifee.displayNotification).mockRejectedValueOnce(error);

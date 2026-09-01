@@ -208,6 +208,31 @@ describe('usePerpsChaseOrders', () => {
     second.unmount();
   });
 
+  it('keeps the shared snapshot stable when polling returns unchanged orders', async () => {
+    mockGetChaseOrders.mockResolvedValue([{ ...activeOrder }]);
+    let renderCount = 0;
+    const hook = renderHook(() => {
+      renderCount += 1;
+      return usePerpsChaseOrders({ isEnabled: true });
+    });
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    const stableOrders = hook.result.current.chaseOrders;
+    const settledRenderCount = renderCount;
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.RefreshIntervalMs,
+      );
+    });
+
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+    expect(hook.result.current.chaseOrders).toBe(stableOrders);
+    expect(renderCount).toBe(settledRenderCount);
+    hook.unmount();
+  });
+
   it('shares one failed discovery and one retry timer across consumers', async () => {
     const loggerError = jest.spyOn(Logger, 'error').mockImplementation();
     const setTimeoutSpy = jest.spyOn(global, 'setTimeout');

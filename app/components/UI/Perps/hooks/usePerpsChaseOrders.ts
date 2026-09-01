@@ -13,6 +13,7 @@ import {
 } from '@metamask/perps-controller';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
@@ -123,6 +124,14 @@ const emitChange = () => {
   listeners.forEach((listener) => listener());
 };
 
+const setCachedOrders = (orders: ChaseOrder[]): boolean => {
+  if (isEqual(cachedOrders, orders)) {
+    return false;
+  }
+  cachedOrders = orders;
+  return true;
+};
+
 const setDiscoveryResolvedRoute = (route: string) => {
   const isCurrentSnapshot =
     initialRefreshRoute === route &&
@@ -209,7 +218,10 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
   }
   const promise = Engine.context.PerpsController.getChaseOrders()
     .catch((error) => {
-      if (isExpectedChaseOrderRequestError(error)) {
+      if (
+        error instanceof ChaseOrderRequestError &&
+        error.code === 'context_not_ready'
+      ) {
         Logger.log('Chase order refresh skipped', { code: error.code });
         throw error;
       }
@@ -246,11 +258,10 @@ async function refreshChaseOrders(): Promise<ChaseOrder[]> {
         selectedProviderMode === 'aggregated' &&
         orders.length === 0 &&
         hasLiveRetainedOrders();
-      cachedOrders = mergeWithCachedHistory(
-        orders,
-        selectedProviderMode === 'aggregated',
+      const ordersChanged = setCachedOrders(
+        mergeWithCachedHistory(orders, selectedProviderMode === 'aggregated'),
       );
-      emitChange();
+      if (ordersChanged) emitChange();
       syncRefreshLifecycle();
       if (isIncompleteAggregatedRead) {
         setDiscoveryResolvedRoute('');

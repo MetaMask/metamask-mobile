@@ -7,7 +7,6 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
-import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsProvider } from './usePerpsProvider';
 
 jest.mock('react-redux', () => ({
@@ -55,9 +54,6 @@ const mockAggregatedProviderSelectors = (
     if (selector === selectPerpsInitializationState) {
       return getInitializationState();
     }
-    if (selector === selectPerpsMobileChaseEnabledFlag) {
-      return true;
-    }
     return false;
   });
 };
@@ -79,9 +75,6 @@ beforeEach(() => {
     }
     if (selector === selectPerpsInitializationState) {
       return InitializationState.Initialized;
-    }
-    if (selector === selectPerpsMobileChaseEnabledFlag) {
-      return true;
     }
     return false;
   });
@@ -295,14 +288,13 @@ describe('usePerpsProvider', () => {
       });
     });
 
-    it('keeps Chase disabled when its independent flag is off', async () => {
+    it('reports Chase capability independently of rollout state', async () => {
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectPerpsProvider) return 'hyperliquid';
         if (selector === selectPerpsNetwork) return 'mainnet';
         if (selector === selectPerpsInitializationState) {
           return InitializationState.Initialized;
         }
-        if (selector === selectPerpsMobileChaseEnabledFlag) return false;
         return false;
       });
       mockGetOrderCapabilities.mockResolvedValue({
@@ -318,7 +310,7 @@ describe('usePerpsProvider', () => {
         expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
 
-      expect(result.current.supportsChaseOrders).toBe(false);
+      expect(result.current.supportsChaseOrders).toBe(true);
     });
 
     it('keeps Scale unsupported when capabilities resolve to MYX', async () => {

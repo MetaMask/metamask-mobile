@@ -824,10 +824,14 @@ const PerpsProPositionsPanel = ({
     const progressLabel =
       order.status === CHASE_ORDER_STATUS.Active &&
       order.maxDistanceBps !== undefined
-        ? `${Math.min(
-            100,
-            Math.round((order.distanceChasedBps / order.maxDistanceBps) * 100),
-          )}%`
+        ? strings('perps.order.chase.running_with_progress', {
+            progress: `${Math.min(
+              100,
+              Math.round(
+                (order.distanceChasedBps / order.maxDistanceBps) * 100,
+              ),
+            )}%`,
+          })
         : statusLabel;
     const isCanceling = terminatingChaseHandle === order.handle;
 

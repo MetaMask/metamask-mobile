@@ -953,12 +953,6 @@ const PerpsProOrderForm = ({
             isLoading={isPlaceOrderLoading}
             onPress={onPlaceOrderPress}
             testID={ids.PLACE_ORDER_BUTTON}
-            textProps={{
-              testID:
-                !isPlaceOrderDisabled && !isPlaceOrderLoading
-                  ? ids.PLACE_ORDER_READY
-                  : undefined,
-            }}
           >
             {placeOrderLabel}
           </ButtonSemantic>

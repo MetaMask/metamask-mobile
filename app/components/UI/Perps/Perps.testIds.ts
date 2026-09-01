@@ -647,7 +647,6 @@ export const PerpsProOrderFormSelectorsIDs = {
   TPSL: 'perps-pro-order-form-tpsl',
   NOTICE: 'perps-pro-order-form-notice',
   PLACE_ORDER_BUTTON: 'perps-pro-order-form-place-order',
-  PLACE_ORDER_READY: 'perps-pro-order-form-place-order-ready',
   SUMMARY: 'perps-pro-order-form-summary',
   SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
   SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',

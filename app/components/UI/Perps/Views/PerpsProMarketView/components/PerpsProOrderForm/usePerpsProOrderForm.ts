@@ -915,6 +915,7 @@ export const usePerpsProOrderForm = ({
     maxDigits: MAX_PERPS_INPUT_DIGITS,
     forceUsd: isScaleOrder,
     keepSizeEmpty: keepReduceOnlySizeEmpty,
+    preserveMaxIntent: orderForm.type === 'chase',
   });
   const currentSubmissionState =
     orderForm.type === 'chase'
@@ -1764,12 +1765,13 @@ export const usePerpsProOrderForm = ({
     marketPrice: assetData.price,
   });
   const standardOrderToastOptions =
-    isScaleOrder ||
-    orderForm.type === 'chase' ||
-    isLimitExecutionOrderType(orderForm.type) ||
-    isTriggerOrderType(orderForm.type)
-      ? PerpsToastOptions.orderManagement.limit
-      : PerpsToastOptions.orderManagement.market;
+    orderForm.type === 'chase'
+      ? PerpsToastOptions.orderManagement.chase
+      : isScaleOrder ||
+          isLimitExecutionOrderType(orderForm.type) ||
+          isTriggerOrderType(orderForm.type)
+        ? PerpsToastOptions.orderManagement.limit
+        : PerpsToastOptions.orderManagement.market;
   const chaseConfirmationPositionSizeRef = useRef(submissionPositionSize);
 
   const { placeOrder: executeOrder, isPlacing } = usePerpsOrderExecution({
@@ -1869,7 +1871,7 @@ export const usePerpsProOrderForm = ({
     const isCurrentSubmission = () =>
       submissionStateRef.current === expectedState;
     if (!isCurrentSubmission()) {
-      if (orderForm.type === 'chase') reportChaseSubmissionChanged();
+      if (expectedState) reportChaseSubmissionChanged();
       return;
     }
 
@@ -1880,6 +1882,13 @@ export const usePerpsProOrderForm = ({
         PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
       [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
       [PERPS_EVENT_PROPERTY.DIRECTION]: directionTrackingValue,
+      ...(expectedState
+        ? {
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+              PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+            [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
+          }
+        : {}),
     });
 
     if (!isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type)) {
@@ -2082,7 +2091,7 @@ export const usePerpsProOrderForm = ({
           ? latestChaseValidation.validationResult
           : await validateNow();
       if (!isCurrentSubmission()) {
-        if (orderForm.type === 'chase') reportChaseSubmissionChanged();
+        if (expectedState) reportChaseSubmissionChanged();
         return;
       }
       if (!validationResult.isValid) {
@@ -2382,7 +2391,7 @@ export const usePerpsProOrderForm = ({
         }
       }
       if (!isCurrentSubmission()) {
-        if (orderForm.type === 'chase') reportChaseSubmissionChanged();
+        if (expectedState) reportChaseSubmissionChanged();
         return;
       }
       const finalizedLimitPrice = orderForm.limitPrice
@@ -3287,7 +3296,7 @@ export const usePerpsProOrderForm = ({
       // and the canonical compliance gate ordering (docs/compliance.md).
       await gate(async () => {
         if (submissionStateRef.current !== expectedSubmissionState) {
-          if (orderForm.type === 'chase') {
+          if (expectedSubmissionState) {
             showToast(
               PerpsToastOptions.formValidation.orderForm.validationError(
                 strings(
@@ -3320,7 +3329,6 @@ export const usePerpsProOrderForm = ({
     commitPendingSliderPreview,
     gate,
     isEligible,
-    orderForm.type,
     PerpsToastOptions.formValidation.orderForm,
     isScaleOrder,
     showToast,

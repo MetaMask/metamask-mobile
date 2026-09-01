@@ -400,6 +400,19 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
+  it('keeps Chase gated off when shared capabilities support it', () => {
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isChaseEnabled: false,
+        chaseProviderId: null,
+      }),
+    );
+  });
+
   it('forwards the selected Scale provider route to the order form', () => {
     renderPanel();
 

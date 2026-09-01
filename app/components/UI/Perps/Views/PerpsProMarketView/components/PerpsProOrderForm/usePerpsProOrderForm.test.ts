@@ -180,6 +180,9 @@ const creationFailed = jest.fn(() => ({ id: 'failed' }));
 const limitSubmitted = jest.fn(() => ({ id: 'limit-submitted' }));
 const limitConfirmed = jest.fn(() => ({ id: 'limit-confirmed' }));
 const limitCreationFailed = jest.fn(() => ({ id: 'limit-failed' }));
+const chaseSubmitted = jest.fn(() => ({ id: 'chase-submitted' }));
+const chaseConfirmed = jest.fn(() => ({ id: 'chase-confirmed' }));
+const chaseCreationFailed = jest.fn(() => ({ id: 'chase-failed' }));
 const twapSubmitted = jest.fn(() => ({ id: 'twap-submitted' }));
 const twapConfirmed = jest.fn(() => ({ id: 'twap-confirmed' }));
 const twapCreationFailed = jest.fn(() => ({ id: 'twap-failed' }));
@@ -200,6 +203,11 @@ const mockPerpsToastOptions = {
       submitted: limitSubmitted,
       confirmed: limitConfirmed,
       creationFailed: limitCreationFailed,
+    },
+    chase: {
+      submitted: chaseSubmitted,
+      confirmed: chaseConfirmed,
+      creationFailed: chaseCreationFailed,
     },
     twap: {
       submitted: twapSubmitted,
@@ -1457,6 +1465,9 @@ describe('usePerpsProOrderForm', () => {
       await act(async () => releaseCompliance?.());
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
     });
 
     it('uses committed Chase refs during a render-phase compliance callback', async () => {
@@ -1508,6 +1519,16 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).toHaveBeenCalledWith(
         expect.not.objectContaining({ chaseMaxDistanceBps: expect.anything() }),
+      );
+      expect(chaseSubmitted).toHaveBeenCalledTimes(1);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+          [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: false,
+        }),
       );
     });
 
@@ -1986,7 +2007,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledWith(
         expect.objectContaining({ size: '0.003' }),
       );
-      expect(limitConfirmed).toHaveBeenCalledWith('long', '0.003', 'BTC');
+      expect(chaseConfirmed).toHaveBeenCalledWith('long', '0.003', 'BTC');
     });
 
     it('continues Chase submit when a MAX amount updates during session refresh', async () => {
@@ -2797,7 +2818,7 @@ describe('usePerpsProOrderForm', () => {
       expect(confirmed).toHaveBeenCalled();
     });
 
-    it('shows resting-order confirmation when Chase starts', () => {
+    it('shows Chase confirmation when Chase starts', () => {
       mockOrderForm.type = 'chase';
       renderProForm();
 
@@ -2805,7 +2826,8 @@ describe('usePerpsProOrderForm', () => {
         mockExecutionOptions.onSuccess?.();
       });
 
-      expect(limitConfirmed).toHaveBeenCalled();
+      expect(chaseConfirmed).toHaveBeenCalled();
+      expect(limitConfirmed).not.toHaveBeenCalled();
       expect(confirmed).not.toHaveBeenCalled();
     });
 
