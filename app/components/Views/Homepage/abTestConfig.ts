@@ -381,25 +381,52 @@ interface HeaderNavBarVariantConfig {
   isHeaderSearchEnabled: boolean;
 }
 
+const HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG: HeaderNavBarVariantConfig = {
+  isCompactHeaderEnabled: true,
+  trailingNavBarAction: 'trade',
+  isHeaderSearchEnabled: true,
+};
+
+/** Non-App-Store environments that opt into the override below. */
+const TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS = ['dev', 'rc', 'beta'];
+
+/**
+ * TEMPORARY — forces the trade-focused arm for internal team testing (TMCU-1276).
+ * Remove this override and restore control's real config once testing wraps up.
+ *
+ * LaunchDarkly still serves only `control`, so instead of re-cutting the flag we
+ * point control at the trade-focused config in dev and TestFlight builds.
+ * `production` is deliberately absent and the check is an allow-list, so an
+ * App Store build — or any environment we failed to anticipate — gets the real
+ * control experience.
+ *
+ * Note: the assignment stays unresolved, so `isActive` is `false` — no
+ * `Experiment Viewed` and no `active_ab_tests` enrichment. These builds show the
+ * UI but produce no experiment data.
+ */
+const FORCE_TRADE_FOCUSED_FOR_TESTFLIGHT =
+  __DEV__ ||
+  TRADE_FOCUSED_OVERRIDE_ENVIRONMENTS.includes(
+    process.env.METAMASK_ENVIRONMENT ?? '',
+  );
+
 export const HEADER_NAV_BAR_VARIANTS: Record<
   HeaderNavBarVariant,
   HeaderNavBarVariantConfig
 > = {
-  [HeaderNavBarVariant.Control]: {
-    isCompactHeaderEnabled: false,
-    trailingNavBarAction: 'none',
-    isHeaderSearchEnabled: false,
-  },
+  [HeaderNavBarVariant.Control]: FORCE_TRADE_FOCUSED_FOR_TESTFLIGHT
+    ? HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG
+    : {
+        isCompactHeaderEnabled: false,
+        trailingNavBarAction: 'none',
+        isHeaderSearchEnabled: false,
+      },
   [HeaderNavBarVariant.SearchFocused]: {
     isCompactHeaderEnabled: true,
     trailingNavBarAction: 'search',
     isHeaderSearchEnabled: false,
   },
-  [HeaderNavBarVariant.TradeFocused]: {
-    isCompactHeaderEnabled: true,
-    trailingNavBarAction: 'trade',
-    isHeaderSearchEnabled: true,
-  },
+  [HeaderNavBarVariant.TradeFocused]: HEADER_NAV_BAR_TRADE_FOCUSED_CONFIG,
 };
 
 export const HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS = {
