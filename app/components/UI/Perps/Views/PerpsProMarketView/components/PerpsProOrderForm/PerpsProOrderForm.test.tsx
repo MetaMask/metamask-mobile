@@ -267,6 +267,10 @@ describe('PerpsProOrderForm', () => {
         'placeholder',
         '0.00',
       );
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
+        'hitSlop',
+        12,
+      );
       expect(
         screen.getByTestId(
           PerpsProMarketViewSelectorsIDs.CHASE_FOREGROUND_WARNING,

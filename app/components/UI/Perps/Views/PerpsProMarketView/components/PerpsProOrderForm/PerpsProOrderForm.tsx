@@ -224,6 +224,7 @@ const summaryRangeRowClassName = 'min-h-10 h-auto px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
 const SLIPPAGE_EDIT_HIT_SLOP = 12;
+const CHASE_UNIT_HIT_SLOP = 12;
 
 const OrderSummary = ({
   margin,
@@ -860,6 +861,7 @@ const PerpsProOrderForm = ({
                     <ButtonIcon
                       iconName={IconName.SwapHorizontal}
                       size={ButtonIconSize.Xs}
+                      hitSlop={CHASE_UNIT_HIT_SLOP}
                       onPress={() =>
                         onChaseMaxDistanceUnitChange(
                           chaseMaxDistanceUnit === 'usd' ? 'percent' : 'usd',

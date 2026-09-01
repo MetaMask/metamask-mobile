@@ -439,6 +439,28 @@ describe('usePerpsChaseOrders', () => {
     setIntervalSpy.mockRestore();
   });
 
+  it('does not poll a Pro screen with terminal Chase history only', async () => {
+    const setIntervalSpy = jest.spyOn(global, 'setInterval');
+    const terminalOrder = { ...activeOrder, status: 'filled' as const };
+    mockGetChaseOrders.mockResolvedValueOnce([terminalOrder]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([terminalOrder]),
+    );
+
+    expect(hook.result.current.hasLiveChaseOrders).toBe(false);
+    expect(setIntervalSpy).not.toHaveBeenCalled();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(
+        CHASE_ORDER_UI_CONFIG.RefreshIntervalMs * 2,
+      );
+    });
+    expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+    hook.unmount();
+    setIntervalSpy.mockRestore();
+  });
+
   it('arms screen polling after a fresh placement read returns an order', async () => {
     const setIntervalSpy = jest.spyOn(global, 'setInterval');
     mockGetChaseOrders

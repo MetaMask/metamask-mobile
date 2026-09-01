@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { render, act, cleanup } from '@testing-library/react-native';
 import { Text, AppState } from 'react-native';
 import {
   ChaseOrderSuspensionError,
@@ -19,9 +19,10 @@ import NotificationsService, {
 import { selectPerpsEnabledFlag } from '../index';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
-import NavigationService from '../../../../core/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
-import { reportSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
+import {
+  reportSuspendedChaseOrders,
+  resetSuspendedChaseOrderBufferForTests,
+} from '../services/ChaseOrderSuspensionEvents';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -46,6 +47,9 @@ const mockUsePerpsChaseOrders = jest.fn((_options: { isEnabled: boolean }) => ({
   isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
   suspendChaseOrders: mockSuspendChaseOrders,
 }));
+const mockIsChaseOrderSymbolVisible = jest.fn(
+  (_symbol: string): boolean => false,
+);
 
 jest.mock('../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: () => ({ track: mockTrack }),
@@ -54,6 +58,11 @@ jest.mock('../hooks/usePerpsEventTracking', () => ({
 jest.mock('../hooks/usePerpsChaseOrders', () => ({
   usePerpsChaseOrders: (options: { isEnabled: boolean }) =>
     mockUsePerpsChaseOrders(options),
+}));
+
+jest.mock('../services/ChaseOrderVisibility', () => ({
+  isChaseOrderSymbolVisible: (symbol: string) =>
+    mockIsChaseOrderSymbolVisible(symbol),
 }));
 
 jest.mock(
@@ -202,7 +211,6 @@ describe('PerpsAlwaysOnProvider', () => {
     | null = null;
   let mockSubscriptionRemove: jest.Mock;
   let addEventListenerSpy: jest.SpyInstance;
-  let getCurrentRouteSpy: jest.SpyInstance;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -217,6 +225,8 @@ describe('PerpsAlwaysOnProvider', () => {
     mockIsChaseOrderDiscoveryResolved = true;
     mockIsPerpsPushNotificationsEnabled = true;
     mockProviderChildRenderAction = undefined;
+    mockIsChaseOrderSymbolVisible.mockReturnValue(false);
+    resetSuspendedChaseOrderBufferForTests();
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
     mockControllerSubscribe.mockImplementation((eventName, handler) => {
@@ -224,10 +234,6 @@ describe('PerpsAlwaysOnProvider', () => {
         mockMaxDistanceHandler = handler;
       }
     });
-    getCurrentRouteSpy = jest
-      .spyOn(NavigationService, 'getCurrentRoute')
-      .mockReturnValue({ name: 'Wallet' } as never);
-
     mockSubscriptionRemove = jest.fn();
     addEventListenerSpy = jest
       .spyOn(AppState, 'addEventListener')
@@ -255,10 +261,11 @@ describe('PerpsAlwaysOnProvider', () => {
   });
 
   afterEach(() => {
-    getCurrentRouteSpy.mockRestore();
+    cleanup();
     act(() => {
       jest.runOnlyPendingTimers();
     });
+    resetSuspendedChaseOrderBufferForTests();
     jest.useRealTimers();
     addEventListenerSpy.mockRestore();
     mockAppStateListener = null;
@@ -356,9 +363,9 @@ describe('PerpsAlwaysOnProvider', () => {
   });
 
   it('suppresses max-distance notification on the visible Chase market screen', async () => {
-    getCurrentRouteSpy.mockReturnValue({
-      name: Routes.PERPS.MARKET_DETAILS,
-    } as never);
+    mockIsChaseOrderSymbolVisible.mockImplementation(
+      (symbol) => symbol === 'ETH',
+    );
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -383,10 +390,43 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification).not.toHaveBeenCalled();
   });
 
+  it.each([
+    { scenario: 'another market', visibleSymbol: 'ETH' },
+    { scenario: 'Lite mode', visibleSymbol: null },
+    { scenario: 'another Pro tab', visibleSymbol: null },
+  ])(
+    'delivers max-distance notification for $scenario without a matching visible Chase row',
+    async ({ visibleSymbol }) => {
+      mockIsChaseOrderSymbolVisible.mockImplementation(
+        (symbol) => symbol === visibleSymbol,
+      );
+      render(
+        <PerpsAlwaysOnProvider>
+          <Text>child</Text>
+        </PerpsAlwaysOnProvider>,
+      );
+
+      await act(async () => {
+        mockMaxDistanceHandler?.({
+          handle: 'not-visible-chase',
+          symbol: 'BTC',
+          side: 'buy',
+          restingOrderId: 'resting-not-visible',
+          restingPrice: '64000',
+          maxDistanceBps: 100,
+          timestamp: 1_711_756_800_000,
+          providerId: 'hyperliquid',
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    },
+  );
+
   it('delivers max-distance notification during background transition', async () => {
-    getCurrentRouteSpy.mockReturnValue({
-      name: Routes.PERPS.MARKET_DETAILS,
-    } as never);
+    mockIsChaseOrderSymbolVisible.mockReturnValue(true);
     Object.defineProperty(AppState, 'currentState', {
       value: 'background',
       configurable: true,
@@ -1681,6 +1721,122 @@ describe('PerpsAlwaysOnProvider', () => {
         asset: 'SOL',
       }),
     );
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports timeout-late suspension once after Chase rollout turns off', async () => {
+    let isChaseEnabled = true;
+    mockHasLiveChaseOrders = true;
+    mockSuspendChaseOrders.mockRejectedValueOnce(
+      new Error('Chase suspension timed out'),
+    );
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsMobileChaseEnabledFlag) {
+        return isChaseEnabled;
+      }
+      if (selector === selectIsMetaMaskPushNotificationsEnabled) return true;
+      return undefined;
+    });
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    isChaseEnabled = false;
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const lateOrder = {
+      handle: 'rollout-off-late-suspension',
+      symbol: 'SOL',
+      status: 'backgrounded',
+    } as never;
+
+    await act(async () => {
+      reportSuspendedChaseOrders([lateOrder]);
+      reportSuspendedChaseOrders([lateOrder]);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_backgrounded_converted',
+        asset: 'SOL',
+      }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('buffers wallet-unmount late suspension until one remount', async () => {
+    mockHasLiveChaseOrders = true;
+    mockSuspendChaseOrders.mockRejectedValueOnce(
+      new Error('Chase suspension timed out'),
+    );
+    const first = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const lateOrder = {
+      handle: 'wallet-unmount-late-suspension',
+      symbol: 'ETH',
+      status: 'backgrounded',
+    } as never;
+
+    act(() => {
+      first.unmount();
+    });
+    await act(async () => {
+      await Promise.resolve();
+      reportSuspendedChaseOrders([lateOrder]);
+      reportSuspendedChaseOrders([lateOrder]);
+      await Promise.resolve();
+    });
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+
+    const second = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_backgrounded_converted',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+
+    second.unmount();
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 

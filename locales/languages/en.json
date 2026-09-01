@@ -1754,6 +1754,7 @@
         "chase_max_distance_percent": "Max chase distance must be greater than 0% and less than 100%.",
         "chase_account_changed": "Account changed. Review and place the Chase order again.",
         "chase_details_changed": "Order details changed. Review and place the Chase order again.",
+        "chase_route_changed": "Market route changed. Review and place the Chase order again.",
         "chase_unavailable": "Chase placement is not available for this provider.",
         "reduce_only_no_position": "You need to have an open position in this market to place reduce-only orders",
         "reduce_only_wrong_side": "Reduce-only orders can only reduce an existing position. Switch to the opposite side.",

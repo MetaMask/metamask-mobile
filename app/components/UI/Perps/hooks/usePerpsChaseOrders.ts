@@ -196,7 +196,7 @@ function syncRefreshLifecycle() {
     listeners.size > 0 &&
     canRefreshCurrentRoute() &&
     enabledConsumerCount > 0 &&
-    cachedOrders.length > 0;
+    hasLiveRetainedOrders();
   if (!shouldRefresh) {
     stopRefreshLifecycle();
     return;
@@ -215,7 +215,8 @@ function syncRefreshLifecycle() {
     if (
       AppState.currentState === 'active' &&
       canRefreshCurrentRoute() &&
-      (enabledConsumerCount > 0 || hasLiveRetainedOrders())
+      enabledConsumerCount > 0 &&
+      hasLiveRetainedOrders()
     ) {
       refreshChaseOrders().catch(() => undefined);
     }

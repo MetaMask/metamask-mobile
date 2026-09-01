@@ -728,6 +728,10 @@ export const usePerpsProOrderForm = ({
     showErrorToast: false,
   });
   const network = usePerpsNetwork();
+  const networkRef = useRef(network);
+  useLayoutEffect(() => {
+    networkRef.current = network;
+  }, [network]);
   const scaleMinimumOrderAmount =
     network === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
@@ -934,6 +938,8 @@ export const usePerpsProOrderForm = ({
           chaseMaxDistance,
           chaseMaxDistanceUnit,
           selectedAddress: normalizedSelectedAddress,
+          providerId: chaseProviderId,
+          network,
         })
       : orderForm.type;
   useLayoutEffect(() => {
@@ -1851,6 +1857,8 @@ export const usePerpsProOrderForm = ({
     expectedState: string,
     expectedSelectedAddress: string,
     isChaseSubmission: boolean,
+    expectedChaseProviderId: PerpsProviderType | null,
+    expectedNetwork: typeof network,
   ) => {
     if (isSubmittingRef.current) {
       return;
@@ -1870,12 +1878,25 @@ export const usePerpsProOrderForm = ({
           PERPS_EVENT_VALUE.SCREEN_TYPE.TRADING,
       });
     };
+    const hasChaseRouteChanged = () =>
+      chaseProviderIdRef.current !== expectedChaseProviderId ||
+      networkRef.current !== expectedNetwork;
+    const reportChaseRouteChanged = () =>
+      reportValidationFailure(
+        strings(
+          selectedAddressRef.current !== expectedSelectedAddress
+            ? 'perps.order.validation.chase_account_changed'
+            : 'perps.order.validation.chase_route_changed',
+        ),
+      );
     const reportChaseSubmissionChanged = () =>
       reportValidationFailure(
         strings(
           selectedAddressRef.current !== expectedSelectedAddress
             ? 'perps.order.validation.chase_account_changed'
-            : 'perps.order.validation.chase_details_changed',
+            : hasChaseRouteChanged()
+              ? 'perps.order.validation.chase_route_changed'
+              : 'perps.order.validation.chase_details_changed',
         ),
       );
     const isCurrentSubmission = () =>
@@ -2022,14 +2043,16 @@ export const usePerpsProOrderForm = ({
           isChaseEnabledRef.current &&
           expectedProviderId !== null &&
           chaseProviderIdRef.current === expectedProviderId &&
+          networkRef.current === expectedNetwork &&
           refreshChaseCapabilityRef.current === refreshCapability;
         const refreshedProviderId = await refreshCapability();
         // A route change during the async refresh invalidates this submission.
         // The new route becomes available on the next user submit.
-        if (
-          !isCurrentChaseRoute() ||
-          refreshedProviderId !== expectedProviderId
-        ) {
+        if (!isCurrentChaseRoute()) {
+          reportChaseRouteChanged();
+          return;
+        }
+        if (refreshedProviderId !== expectedProviderId) {
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
               strings('perps.order.validation.chase_unavailable'),
@@ -2046,7 +2069,7 @@ export const usePerpsProOrderForm = ({
             error instanceof ChaseOrderRequestError &&
             error.code === 'stale_request'
           ) {
-            reportChaseSubmissionChanged();
+            reportChaseRouteChanged();
           } else {
             showToast(
               PerpsToastOptions.formValidation.orderForm.validationError(
@@ -2061,11 +2084,7 @@ export const usePerpsProOrderForm = ({
           !isCurrentChaseRoute()
         ) {
           if (!isCurrentChaseRoute()) {
-            showToast(
-              PerpsToastOptions.formValidation.orderForm.validationError(
-                strings('perps.order.validation.chase_unavailable'),
-              ),
-            );
+            reportChaseRouteChanged();
           } else {
             reportChaseSubmissionChanged();
           }
@@ -3308,6 +3327,8 @@ export const usePerpsProOrderForm = ({
     const expectedSubmissionState = submissionStateRef.current;
     const expectedSelectedAddress = selectedAddressRef.current;
     const isChaseSubmission = orderForm.type === 'chase';
+    const expectedChaseProviderId = chaseProviderIdRef.current;
+    const expectedNetwork = networkRef.current;
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -3330,7 +3351,10 @@ export const usePerpsProOrderForm = ({
                 strings(
                   selectedAddressRef.current !== expectedSelectedAddress
                     ? 'perps.order.validation.chase_account_changed'
-                    : 'perps.order.validation.chase_details_changed',
+                    : chaseProviderIdRef.current !== expectedChaseProviderId ||
+                        networkRef.current !== expectedNetwork
+                      ? 'perps.order.validation.chase_route_changed'
+                      : 'perps.order.validation.chase_details_changed',
                 ),
               ),
             );
@@ -3345,6 +3369,8 @@ export const usePerpsProOrderForm = ({
           expectedSubmissionState,
           expectedSelectedAddress,
           isChaseSubmission,
+          expectedChaseProviderId,
+          expectedNetwork,
         );
       });
     } finally {

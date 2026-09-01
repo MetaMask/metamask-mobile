@@ -27,6 +27,10 @@ import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
+  isChaseOrderSymbolVisible,
+  resetChaseOrderVisibilityForTests,
+} from '../../services/ChaseOrderVisibility';
+import {
   PerpsBalanceBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
@@ -69,6 +73,7 @@ let connectionSubscriptionSpy: jest.SpyInstance;
 
 beforeEach(() => {
   resetPerpsChaseOrdersStoreForTests();
+  resetChaseOrderVisibilityForTests();
   connectionReadySpy = jest
     .spyOn(PerpsConnectionManager, 'isSelectedUserContextReady')
     .mockReturnValue(true);
@@ -81,6 +86,7 @@ afterEach(() => {
   connectionReadySpy.mockRestore();
   connectionSubscriptionSpy.mockRestore();
   resetPerpsChaseOrdersStoreForTests();
+  resetChaseOrderVisibilityForTests();
 });
 
 const renderFundedProMarket = () =>
@@ -700,6 +706,38 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           }),
         ),
       );
+    },
+  );
+
+  itForPlatforms(
+    'registers only symbols visible on the active Pro Chase tab',
+    async () => {
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      getChaseOrders.mockResolvedValue([activeChase]);
+      renderFundedProMarket();
+
+      expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+
+      await waitFor(() => expect(isChaseOrderSymbolVisible('ETH')).toBe(true));
+      expect(isChaseOrderSymbolVisible('BTC')).toBe(false);
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+      );
+      await waitFor(() => expect(isChaseOrderSymbolVisible('ETH')).toBe(false));
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+        ),
+      );
+      expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
     },
   );
 

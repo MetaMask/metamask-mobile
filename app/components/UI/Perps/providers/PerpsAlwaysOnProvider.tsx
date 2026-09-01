@@ -26,9 +26,8 @@ import { usePerpsChaseOrders } from '../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 import { useFeatureNotificationsStatus } from '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus';
-import NavigationService from '../../../../core/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import { subscribeToSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
+import { isChaseOrderSymbolVisible } from '../services/ChaseOrderVisibility';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
@@ -270,8 +269,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     ) => {
       if (
         AppState.currentState === 'active' &&
-        NavigationService.getCurrentRoute()?.name ===
-          Routes.PERPS.MARKET_DETAILS
+        isChaseOrderSymbolVisible(event.symbol)
       ) {
         return;
       }

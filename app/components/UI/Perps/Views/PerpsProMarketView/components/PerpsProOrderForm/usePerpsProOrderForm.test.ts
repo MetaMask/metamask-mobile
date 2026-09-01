@@ -174,6 +174,7 @@ let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
 let mockSizeDecimals = 3;
 let mockSelectedAddress = '0xaccount-a';
+let mockPerpsNetwork: 'mainnet' | 'testnet' = 'mainnet';
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
@@ -253,7 +254,7 @@ jest.mock('../../../../hooks', () => ({
     isLoading: mockMarketDataLoading,
     error: mockMarketDataError,
   }),
-  usePerpsNetwork: () => 'mainnet',
+  usePerpsNetwork: () => mockPerpsNetwork,
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
@@ -424,7 +425,7 @@ const renderProForm = (
   chaseGate: {
     isEnabled?: boolean;
     isPending?: boolean;
-    refresh?: () => Promise<'hyperliquid' | null>;
+    refresh?: () => Promise<PerpsProviderType | null>;
     providerId?: PerpsProviderType;
   } = {},
 ) => {
@@ -522,6 +523,7 @@ describe('usePerpsProOrderForm', () => {
     mockTotalFee = 5;
     mockSizeDecimals = 3;
     mockSelectedAddress = '0xaccount-a';
+    mockPerpsNetwork = 'mainnet';
     mockOrderValidationParams = undefined;
     mockValidateCalculatedMargin = false;
     mockContextValue.balanceForValidation = 500;
@@ -1540,6 +1542,79 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).toHaveBeenCalledWith(
         strings('perps.order.validation.chase_details_changed'),
       );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+    });
+
+    it('aborts Chase when the provider changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const chaseGate = { providerId: 'hyperliquid' as PerpsProviderType };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      chaseGate.providerId = 'secondary-provider' as PerpsProviderType;
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts Chase when the Perps network changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockPerpsNetwork = 'testnet';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
     });
 
     it('uses committed Chase refs during a render-phase compliance callback', async () => {
@@ -1659,7 +1734,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('asks for review when the Chase session refresh becomes stale', async () => {
+    it('asks for route review when the Chase session refresh becomes stale', async () => {
       mockOrderForm.type = 'chase';
       mockGetChaseOrders.mockRejectedValueOnce(
         new ChaseOrderRequestError('stale_request'),
@@ -1670,10 +1745,13 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
-        strings('perps.order.validation.chase_details_changed'),
+        strings('perps.order.validation.chase_route_changed'),
       );
       expect(validationError).not.toHaveBeenCalledWith(
         strings('perps.order.validation.chase_unavailable'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
       );
     });
 
@@ -1758,7 +1836,7 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
-        strings('perps.order.validation.chase_unavailable'),
+        strings('perps.order.validation.chase_route_changed'),
       );
     });
 
