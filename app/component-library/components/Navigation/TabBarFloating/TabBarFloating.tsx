@@ -72,9 +72,14 @@ const TabBarFloating = ({
   );
   const { navigateToMoneyHome } = useMoneyNavigation();
 
+  const lastReportedHeight = useRef<number>(0);
   const handleLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      onHeightChange?.(event.nativeEvent.layout.height);
+      const height = event.nativeEvent.layout.height;
+      if (Math.abs(height - lastReportedHeight.current) > 2) {
+        lastReportedHeight.current = height;
+        onHeightChange?.(height);
+      }
     },
     [onHeightChange],
   );

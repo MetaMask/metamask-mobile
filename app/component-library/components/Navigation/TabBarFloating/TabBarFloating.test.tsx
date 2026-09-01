@@ -235,6 +235,41 @@ describe('TabBarFloating', () => {
     expect(onHeightChange).toHaveBeenCalledWith(88);
   });
 
+  it('does not re-report height for sub-3px fluctuations (Android inset oscillation)', () => {
+    const onHeightChange = jest.fn();
+    const { getByTestId } = renderBar({}, onHeightChange);
+    const container = getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER);
+
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 89, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(onHeightChange).toHaveBeenCalledTimes(1);
+    expect(onHeightChange).toHaveBeenCalledWith(88);
+  });
+
+  it('does re-report height when a genuine resize exceeds the threshold', () => {
+    const onHeightChange = jest.fn();
+    const { getByTestId } = renderBar({}, onHeightChange);
+    const container = getByTestId(TAB_BAR_FLOATING_TEST_IDS.CONTAINER);
+
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 88, width: 390, x: 0, y: 0 } },
+    });
+    fireEvent(container, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(onHeightChange).toHaveBeenCalledTimes(2);
+    expect(onHeightChange).toHaveBeenLastCalledWith(96);
+  });
+
   it('reports zero height on unmount so a hidden bar leaves no gap', () => {
     const onHeightChange = jest.fn();
     const { unmount } = renderBar({}, onHeightChange);
