@@ -316,21 +316,18 @@ export function readGoldenSnapshotFingerprint(
  * True when a golden snapshot exists and — when ANDROID_EMULATOR_IMAGE_FINGERPRINT
  * is set — was primed against the same system image / emulator / boot args.
  *
- * `ANDROID_GOLDEN_SNAPSHOT_VALID=false` (from the CI check helper) is authoritative
- * and forces unusable. In CI, a missing fingerprint is also unusable — existence-only
- * acceptance is for local experimentation only.
+ * In CI, a missing fingerprint is unusable (do not resume an unvalidated
+ * snapshot). Existence-only acceptance is for local experimentation only.
+ *
+ * Do not gate on ANDROID_GOLDEN_SNAPSHOT_VALID: that flag is written to
+ * GITHUB_ENV by an earlier check step and sticks across restore/prime in the
+ * same job, which would permanently block a later valid snapshot.
  */
 export function isGoldenSnapshotUsable(
   avdName: string,
   env: Record<string, string | undefined> = process.env,
 ): boolean {
   if (!hasGoldenSnapshot(avdName, env)) {
-    return false;
-  }
-  if (env.ANDROID_GOLDEN_SNAPSHOT_VALID?.trim().toLowerCase() === 'false') {
-    logger.warn(
-      'ANDROID_GOLDEN_SNAPSHOT_VALID=false — treating golden snapshot as unusable.',
-    );
     return false;
   }
   const expected = env.ANDROID_EMULATOR_IMAGE_FINGERPRINT?.trim();

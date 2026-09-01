@@ -325,7 +325,9 @@ describe('EmulatorHelpers', () => {
       ).toBe(false);
     });
 
-    it('isGoldenSnapshotUsable rejects when ANDROID_GOLDEN_SNAPSHOT_VALID is false', () => {
+    it('isGoldenSnapshotUsable ignores ANDROID_GOLDEN_SNAPSHOT_VALID', () => {
+      // VALID is GITHUB_ENV logging only — a stale false from an earlier check
+      // step must not block a restored/primed snapshot in the same job.
       writeSnapshot('fp-1');
       expect(
         isGoldenSnapshotUsable(avdName, {
@@ -333,7 +335,7 @@ describe('EmulatorHelpers', () => {
           ANDROID_EMULATOR_IMAGE_FINGERPRINT: 'fp-1',
           ANDROID_GOLDEN_SNAPSHOT_VALID: 'false',
         }),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('isGoldenSnapshotUsable enforces the fingerprint when set', () => {

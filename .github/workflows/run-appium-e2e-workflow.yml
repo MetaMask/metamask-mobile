@@ -242,9 +242,9 @@ jobs:
           runner_provider: ${{ inputs.runner_provider }}
 
       # Resolves the system-image fingerprint and validates the downloaded golden
-      # snapshot; exports ANDROID_EMULATOR_IMAGE_FINGERPRINT and
-      # ANDROID_GOLDEN_SNAPSHOT_VALID (authoritative for isGoldenSnapshotUsable).
-      # Never fails the step — on error VALID=false so shards cold-boot.
+      # snapshot; exports ANDROID_EMULATOR_IMAGE_FINGERPRINT (boot gate) and
+      # ANDROID_GOLDEN_SNAPSHOT_VALID (logging). Never fails the step — on error
+      # fingerprint is cleared so shards cold-boot.
       - name: Check Android golden snapshot
         if: >-
           ${{

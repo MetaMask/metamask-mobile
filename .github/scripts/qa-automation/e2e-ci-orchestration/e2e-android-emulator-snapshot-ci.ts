@@ -12,11 +12,11 @@
  *
  * Usage: `yarn tsx .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts check` computes
  * the system-image fingerprint and exports ANDROID_EMULATOR_IMAGE_FINGERPRINT
- * and ANDROID_GOLDEN_SNAPSHOT_VALID (true|false) to $GITHUB_ENV. It always
- * exits 0 — on any error it reports valid=false; `isGoldenSnapshotUsable` treats
- * that as authoritative so shards cold-boot instead of resuming unvalidated.
- * `... prime` cold-boots the AVD, stabilizes it, saves and resume-verifies the
- * golden snapshot with the current image fingerprint, exiting non-zero on failure.
+ * and ANDROID_GOLDEN_SNAPSHOT_VALID (true|false) to $GITHUB_ENV (logging /
+ * workflow `if`s). It always exits 0 — on any error it reports valid=false.
+ * Boot decisions use `isGoldenSnapshotUsable` with the fingerprint (in CI a
+ * missing fingerprint is unusable). `... prime` cold-boots, saves, and
+ * resume-verifies the golden snapshot, exiting non-zero on failure.
  *
  * Relevant env: ANDROID_AVD_NAME (default appium_smoke_avd),
  * ANDROID_SYSTEM_IMAGE_API_LEVEL (default 36), ANDROID_SYSTEM_IMAGE_TAG
@@ -64,6 +64,9 @@ async function check(): Promise<void> {
     console.warn(
       `Golden snapshot check failed (${error}) — shards will cold boot.`,
     );
+    // Do not leave a prior fingerprint in GITHUB_ENV: a failed check must not
+    // resume an unvalidated snapshot (isGoldenSnapshotUsable requires CI fp).
+    exportToGithubEnv('ANDROID_EMULATOR_IMAGE_FINGERPRINT', '');
     exportToGithubEnv('ANDROID_GOLDEN_SNAPSHOT_VALID', 'false');
   }
 }
