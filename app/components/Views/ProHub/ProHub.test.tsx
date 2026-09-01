@@ -128,27 +128,17 @@ describe('ProHub', () => {
       );
     });
 
-    it('renders the physical card placeholder, title, and description', () => {
+    it('renders the physical card banner with title and description', () => {
       const { getByTestId } = renderProHub();
 
-      const placeholder = getByTestId(ProHubTestIds.CARD_PLACEHOLDER);
+      const banner = getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER);
       const title = getByTestId(ProHubTestIds.PHYSICAL_CARD_TITLE);
       const description = getByTestId(ProHubTestIds.PHYSICAL_CARD_DESCRIPTION);
 
-      expect(placeholder).toBeOnTheScreen();
+      expect(banner).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.physical_card.title'));
       expect(description).toHaveTextContent(
         strings('pro_hub.physical_card.description'),
-      );
-    });
-
-    it('renders the get card button with the i18n label', () => {
-      const { getByTestId } = renderProHub();
-
-      const getCardButton = getByTestId(ProHubTestIds.GET_CARD_BUTTON);
-
-      expect(getCardButton).toHaveTextContent(
-        strings('pro_hub.physical_card.cta'),
       );
     });
 
@@ -216,22 +206,12 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
     });
 
-    it('navigates to Card when get card is pressed', () => {
+    it('navigates to Card when physical card banner is pressed', () => {
       const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(ProHubTestIds.GET_CARD_BUTTON));
+      fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('does not navigate when the physical card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
-        nativeEvent: { locationX: 40, locationY: 40 },
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate when a benefit row is pressed', () => {

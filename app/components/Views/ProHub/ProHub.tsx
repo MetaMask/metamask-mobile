@@ -29,7 +29,7 @@ import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
-import PhysicalCardPreview from './components/PhysicalCardPreview';
+import PhysicalCardBanner from './components/PhysicalCardBanner';
 import { BENEFITS, BenefitRow } from '../shared/pro';
 
 interface MembershipBannerProps {
@@ -184,37 +184,7 @@ const ProHub = () => {
           </Box>
         </Box>
 
-        <Box twClassName="flex flex-col gap-y-12">
-          <PhysicalCardPreview />
-          <Box twClassName="flex flex-col items-center justify-center gap-y-2">
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-              twClassName="text-center"
-              testID={ProHubTestIds.PHYSICAL_CARD_TITLE}
-            >
-              {strings('pro_hub.physical_card.title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              twClassName="text-center max-w-[85%]"
-              testID={ProHubTestIds.PHYSICAL_CARD_DESCRIPTION}
-            >
-              {strings('pro_hub.physical_card.description')}
-            </Text>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Md}
-              onPress={handleGetCard}
-              testID={ProHubTestIds.GET_CARD_BUTTON}
-              twClassName="mx-auto mt-1"
-            >
-              {strings('pro_hub.physical_card.cta')}
-            </Button>
-          </Box>
-        </Box>
+        <PhysicalCardBanner onPress={handleGetCard} />
 
         <SectionDivider marginVertical={6} />
 

@@ -11299,9 +11299,8 @@
     "your_benefits": "Your benefits",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "physical_card": {
-      "title": "Get your physical card.",
-      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
-      "cta": "Get card"
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
     },
     "earned": {
       "total_label": "Earned since joining Pro",
