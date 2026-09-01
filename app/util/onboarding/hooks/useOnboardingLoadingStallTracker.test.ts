@@ -29,12 +29,12 @@ describe('useOnboardingLoadingStallTracker', () => {
     jest.useRealTimers();
   });
 
-  it('tracks Onboarding Loading Stalled after 30s while still loading', () => {
+  it('tracks Onboarding Loading Timed Out after 30s while still loading', () => {
     renderHook(() =>
       useOnboardingLoadingStallTracker({
         isLoading: true,
         screen: 'login',
-        properties: { login_method: 'password' },
+        properties: { unlock_type: 'password' },
       }),
     );
 
@@ -44,12 +44,40 @@ describe('useOnboardingLoadingStallTracker', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: MetaMetricsEvents.ONBOARDING_LOADING_STALLED.category,
+        name: MetaMetricsEvents.ONBOARDING_LOADING_TIMED_OUT.category,
         properties: expect.objectContaining({
           screen: 'login',
           elapsed_ms: ONBOARDING_LOADING_STALL_MS,
           app_state: 'active',
-          login_method: 'password',
+          unlock_type: 'password',
+        }),
+      }),
+    );
+  });
+
+  it('includes optional timeout properties when provided', () => {
+    renderHook(() =>
+      useOnboardingLoadingStallTracker({
+        isLoading: true,
+        screen: 'onboarding',
+        properties: {
+          account_type: 'metamask_google',
+          wallet_setup_type: 'new',
+        },
+      }),
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(ONBOARDING_LOADING_STALL_MS);
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: MetaMetricsEvents.ONBOARDING_LOADING_TIMED_OUT.category,
+        properties: expect.objectContaining({
+          screen: 'onboarding',
+          account_type: 'metamask_google',
+          wallet_setup_type: 'new',
         }),
       }),
     );
@@ -76,7 +104,7 @@ describe('useOnboardingLoadingStallTracker', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('tracks a single stall event when loading continues past 30s', () => {
+  it('tracks a single timed-out event when loading continues past 30s', () => {
     renderHook(() =>
       useOnboardingLoadingStallTracker({
         isLoading: true,
