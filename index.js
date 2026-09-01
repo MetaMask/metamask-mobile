@@ -33,8 +33,6 @@ import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { hasTestOverrides } from './app/util/test/utils.js';
-// TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
-import { startupBeacon } from './app/util/test/startupBeacon';
 import { Performance } from './app/core/Performance';
 import {
   handleCustomError,
@@ -132,16 +130,7 @@ function setupGlobalErrorHandler() {
   // set the base handler to the react native ExceptionsManager.handleException(), please refer to setupErrorHandling.js under react-native/Libraries/Core/ for details.
   setReactNativeDefaultHandler(reactNativeDefaultHandler);
   // override the global handler to provide custom error handling
-  // TEMPORARY DEBUG INSTRUMENTATION — beacon wrapper; remove before merge.
-  global.ErrorUtils.setGlobalHandler((error, isFatal) => {
-    startupBeacon(
-      `global-error:fatal=${isFatal}:${error?.message ?? String(error)}`,
-    );
-    handleCustomError(error, isFatal);
-  });
+  global.ErrorUtils.setGlobalHandler(handleCustomError);
 }
 
 setupGlobalErrorHandler();
-
-// TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
-startupBeacon('index-eval-complete');

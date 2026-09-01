@@ -531,25 +531,6 @@ jobs:
             --grep "${{ inputs.test_suite_tag }}" \
             --pass-with-no-tests
 
-      # TEMPORARY DEBUG INSTRUMENTATION — remove before merge.
-      # Captures the simulator's os_log for the MetaMask process plus any crash
-      # reports into the playwright-json dir so they ride the existing
-      # playwright-json-report-* artifact upload.
-      - name: Capture iOS simulator logs (startup-freeze debug)
-        if: ${{ always() && inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        env:
-          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
-        run: |
-          set +e
-          mkdir -p tests/test-reports/playwright-json
-          xcrun simctl spawn "$IOS_SIMULATOR_UDID" log show --last 1h \
-            --predicate 'process == "MetaMask"' --style compact \
-            > tests/test-reports/playwright-json/simulator-metamask.log 2>&1
-          cp ~/Library/Logs/DiagnosticReports/MetaMask* \
-            tests/test-reports/playwright-json/ 2>/dev/null
-          ls -la tests/test-reports/playwright-json/ || true
-          exit 0
-
       - name: Write / merge Appium shard status (for re-runs)
         if: ${{ always() && (steps.run-tests-android.outcome == 'success' || steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'success' || steps.run-tests-ios.outcome == 'failure') }}
         run: |
