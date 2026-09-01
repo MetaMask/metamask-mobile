@@ -19,11 +19,9 @@
  * structured proposal — { advisory_id, package, action, target, reasoning }
  * per advisory. This script is the only thing that ever writes to
  * package.json/yarn.lock.
- * - The AI has no shell access, so it can't run `yarn why` itself to see
- * which packages actually depend on a given advisory's package (crucial for
- * judging whether a `resolutions` pin is safe for every consumer). This
- * script runs it beforehand instead and folds a summarized dependents list
- * into the advisory context file — see getDependents() below.
+ * - The AI has no shell access, so this script runs `yarn why` on its behalf
+ * and folds the result into the advisory context file — see getDependents()
+ * below for why that matters.
  * - The AI's proposal is never trusted at face value. For each proposed
  * fix, this script applies it itself, then re-runs the same
  * isAdvisoryCleared / verifyTreeIsClean checks a plain `yarn up`/resolutions

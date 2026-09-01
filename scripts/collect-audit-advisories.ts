@@ -56,8 +56,7 @@ const RESULT_PATH = process.env.AUDIT_FIX_RESULT_PATH || 'audit-fix-result.json'
 
 /**
  * Parse the NDJSON tree output of `yarn npm audit --json` into a flat advisory list.
- * See rK()/Xhe()/Zhe() in the vendored Yarn CLI for the exact shape each line follows:
- * { value: "<packageName>", children: { ID, Issue, URL?, Severity, "Vulnerable Versions", ... } }
+ * Each line is `{ value: "<packageName>", children: { ID, Issue, URL?, Severity, ... } }`.
  */
 function parseAuditNdjson(raw: string): AuditAdvisory[] {
   const advisories: AuditAdvisory[] = [];
