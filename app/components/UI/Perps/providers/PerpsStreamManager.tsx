@@ -704,9 +704,9 @@ abstract class StreamChannel<T> {
    * Symbol-aware channels can override this to avoid materializing data the
    * subscriber did not request.
    */
-  protected getCachedDataForSubscription(params: {
-    symbols?: string[];
-  }): T | null {
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<T>, 'symbols'>,
+  ): T | null {
     return this.getCachedData();
   }
 
@@ -948,9 +948,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     return cached;
   }
 
-  protected getCachedDataForSubscription(params: {
-    symbols?: string[];
-  }): Record<string, PriceUpdate> | null {
+  protected getCachedDataForSubscription(
+    params: Pick<StreamSubscription<Record<string, PriceUpdate>>, 'symbols'>,
+  ): Record<string, PriceUpdate> | null {
     if (!params.symbols) {
       return this.getCachedData();
     }
