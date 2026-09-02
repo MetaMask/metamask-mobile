@@ -182,50 +182,61 @@ const mergeWithCachedHistory = (
   ];
 };
 
-const mergeWithAuthoritativeFilledOrders = (
+const mergeWithAuthoritativeTerminalOrders = (
   orders: ChaseOrder[],
   filledOrders: ChaseOrder[],
+  canceledOrders: ChaseOrder[],
 ) => {
   const mergedOrders = mergeWithCachedHistory(orders);
-  if (filledOrders.length === 0) return mergedOrders;
-  filledOrders.forEach((order) => {
+  const terminalOrders = [...filledOrders, ...canceledOrders];
+  if (terminalOrders.length === 0) return mergedOrders;
+  terminalOrders.forEach((order) => {
     aggregatedOmissionCounts.delete(getChaseOrderIdentity(order));
     if (order.providerId !== undefined) {
       aggregatedOmissionCounts.delete(`unknown:${order.handle}`);
     }
   });
-  const withoutFilledOrders = mergedOrders.filter(
+  const withoutTerminalOrders = mergedOrders.filter(
     (order) =>
-      !filledOrders.some((filledOrder) => isSameChaseOrder(order, filledOrder)),
+      !terminalOrders.some((terminalOrder) =>
+        isSameChaseOrder(order, terminalOrder),
+      ),
   );
-  const withFilledOrders = [
-    ...withoutFilledOrders,
+  const withTerminalOrders = [
+    ...withoutTerminalOrders,
     ...filledOrders.map((order) => ({
       ...order,
       remainingSize: '0',
       restingOrderId: null,
       status: CHASE_ORDER_STATUS.Filled,
     })),
+    ...canceledOrders.map((order) => ({
+      ...order,
+      restingOrderId: null,
+      status: CHASE_ORDER_STATUS.Canceled,
+    })),
   ];
   return [
-    ...withFilledOrders.filter(
+    ...withTerminalOrders.filter(
       (order) => !CHASE_HISTORY_STATUSES.has(order.status),
     ),
-    ...getBoundedTerminalHistory(withFilledOrders),
+    ...getBoundedTerminalHistory(withTerminalOrders),
   ];
 };
 
-const getOrdersProvenFilled = (
+const getOrdersProvenTerminal = (
   orders: ChaseOrder[],
   historicalOrders: Order[],
-) =>
-  cachedOrders.filter((cachedOrder) => {
+) => {
+  const filledOrders: ChaseOrder[] = [];
+  const canceledOrders: ChaseOrder[] = [];
+  cachedOrders.forEach((cachedOrder) => {
     if (
       !CHASE_RETAINED_STATUSES.has(cachedOrder.status) ||
       cachedOrder.restingOrderId === null ||
       orders.some((order) => isSameChaseOrder(order, cachedOrder))
     ) {
-      return false;
+      return;
     }
     const matchingOrders = historicalOrders.filter(
       (historicalOrder) =>
@@ -236,7 +247,7 @@ const getOrdersProvenFilled = (
           ? historicalOrder.providerId === cachedOrder.providerId
           : selectedProvider !== 'aggregated'),
     );
-    if (matchingOrders.length === 0) return false;
+    if (matchingOrders.length === 0) return;
     const latestTimestamp = Math.max(
       ...matchingOrders.map(
         (historicalOrder) =>
@@ -248,21 +259,42 @@ const getOrdersProvenFilled = (
         (historicalOrder.lastUpdated ?? historicalOrder.timestamp) ===
         latestTimestamp,
     );
-    return latestOrders.every(
-      (historicalOrder) => historicalOrder.status === 'filled',
-    );
+    if (
+      latestOrders.every(
+        (historicalOrder) => historicalOrder.status === 'filled',
+      )
+    ) {
+      filledOrders.push(cachedOrder);
+    } else if (
+      selectedProvider !== 'aggregated' &&
+      latestOrders.every(
+        (historicalOrder) =>
+          historicalOrder.status === 'canceled' &&
+          Number.parseFloat(historicalOrder.filledSize) === 0,
+      )
+    ) {
+      canceledOrders.push(cachedOrder);
+    }
   });
+  return { filledOrders, canceledOrders };
+};
 
 const mergeAfterSuccessfulCancellation = (
   orders: ChaseOrder[],
   canceledOrder: ChaseOrder,
   filledOrders: ChaseOrder[],
+  canceledOrders: ChaseOrder[],
 ) => {
-  const mergedOrders = mergeWithAuthoritativeFilledOrders(orders, filledOrders);
+  const mergedOrders = mergeWithAuthoritativeTerminalOrders(
+    orders,
+    filledOrders,
+    canceledOrders,
+  );
   if (
     !CHASE_RETAINED_STATUSES.has(canceledOrder.status) ||
     orders.some((order) => isSameChaseOrder(order, canceledOrder)) ||
-    filledOrders.some((order) => isSameChaseOrder(order, canceledOrder))
+    filledOrders.some((order) => isSameChaseOrder(order, canceledOrder)) ||
+    canceledOrders.some((order) => isSameChaseOrder(order, canceledOrder))
   ) {
     return mergedOrders;
   }
@@ -431,9 +463,10 @@ async function refreshChaseOrders(
           !orders.some((order) => isSameChaseOrder(order, cachedOrder)),
       );
       let filledOrders: ChaseOrder[] = [];
+      let canceledOrders: ChaseOrder[] = [];
       if (missingRetainedOrders.length > 0) {
         // Provider teardown can remove a terminal Chase before Mobile reads its
-        // final snapshot. Only the exact child's terminal status proves Filled.
+        // final snapshot. Only exact child truth proves Filled or clean Canceled.
         const startTime = Math.min(
           ...missingRetainedOrders.map((order) => order.startedAt),
         );
@@ -448,7 +481,10 @@ async function refreshChaseOrders(
         ) {
           throw new ChaseOrderRequestError('stale_request');
         }
-        filledOrders = getOrdersProvenFilled(orders, historicalOrders);
+        ({ filledOrders, canceledOrders } = getOrdersProvenTerminal(
+          orders,
+          historicalOrders,
+        ));
       }
       refreshFailureLogged = false;
       cachedRoute = route;
@@ -458,8 +494,13 @@ async function refreshChaseOrders(
               orders,
               canceledOrder,
               filledOrders,
+              canceledOrders,
             )
-          : mergeWithAuthoritativeFilledOrders(orders, filledOrders),
+          : mergeWithAuthoritativeTerminalOrders(
+              orders,
+              filledOrders,
+              canceledOrders,
+            ),
       );
       if (ordersChanged) emitChange();
       syncRefreshLifecycle();
