@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { AppiumAssertions } from '../../framework/index.js';
+import { Assertions } from '../../framework/index.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
@@ -38,12 +38,10 @@ appiumTest.describe('ProfilerAssetView', () => {
 
           try {
             await WalletView.tapOnToken('ETH');
-            await AppiumAssertions.expectElementToBeVisible(
+            await Assertions.expectElementToBeVisible(
               TokenOverview.priceChartContainer,
             );
-            await AppiumAssertions.expectElementToBeVisible(
-              TokenOverview.container,
-            );
+            await Assertions.expectElementToBeVisible(TokenOverview.container);
           } finally {
             if (profilingStarted) {
               await stopProfiler(driver);
