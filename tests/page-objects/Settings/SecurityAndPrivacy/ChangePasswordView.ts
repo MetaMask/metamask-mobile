@@ -8,6 +8,7 @@ import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { type AppiumElement } from '../../../framework';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import Utilities from '../../../framework/Utilities';
 
 /**
  * Settings → Security & Privacy → Change password (ResetPassword screen).
@@ -78,9 +79,9 @@ class ChangePasswordView {
   }
 
   get confirmCurrentPasswordButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      ChangePasswordViewSelectorsText.CONFIRM_CURRENT_PASSWORD,
-    );
+    // Prefer the ResetPassword confirm CTA testID — text "Confirm" is
+    // ambiguous and the keyboard often covers the bottom button on iOS.
+    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   get saveButton(): Promise<AppiumElement> {
@@ -172,16 +173,22 @@ class ChangePasswordView {
   async enterCurrentPassword(password: string): Promise<void> {
     // Do not append newline — Confirm is an explicit button (onSubmitEditing
     // would race with the tap and can leave the form mid-transition).
+    // Do not hideKeyboard on iOS either: XCUITest `mobile: hideKeyboard` /
+    // tapOutside frequently fails here and leaves the soft keyboard covering
+    // Confirm, so the step-2 form never appears (create-password-second-input).
     await Gestures.typeText(this.passwordInput, password, {
-      hideKeyboard: true,
+      hideKeyboard: false,
       elemDescription: 'Change password - current password input',
     });
   }
 
   async tapConfirmCurrentPassword(): Promise<void> {
     await Gestures.waitAndTap(this.confirmCurrentPasswordButton, {
-      elemDescription: 'Change password - Confirm current password',
+      elemDescription:
+        'Change password - Confirm current password (submit-button)',
       checkEnabled: true,
+      // Confirm sits under the soft keyboard when hideKeyboard is skipped.
+      waitForInteractive: true,
     });
   }
 
@@ -244,8 +251,22 @@ class ChangePasswordView {
     if (!skippedCurrentPasswordStep) {
       await this.expectCurrentPasswordStepVisible();
       await this.enterCurrentPassword(currentPassword);
-      await this.tapConfirmCurrentPassword();
-      await this.expectNewPasswordFormVisible();
+      // Retry confirm → step-2 transition: iOS keyboard / loader races can
+      // swallow the first Confirm tap after current-password entry.
+      await Utilities.executeWithRetry(
+        async () => {
+          if (!(await this.isNewPasswordFormShowing())) {
+            await this.tapConfirmCurrentPassword();
+          }
+          await this.expectNewPasswordFormVisible();
+        },
+        {
+          timeout: 45000,
+          interval: 2000,
+          description:
+            'Change password - confirm current password → new password form',
+        },
+      );
     }
 
     await this.enterNewPassword(newPassword);
