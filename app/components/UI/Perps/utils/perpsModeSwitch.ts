@@ -244,10 +244,11 @@ export const useNavigateToPerpsHome = (): ((
 
       navigate(
         Routes.PERPS.ROOT,
-        // Callers reach here from a screen stacked on top of the Perps home
-        // target (e.g. the deposit confirmation), so pop back to it. Without
-        // `pop` React Navigation pushes a duplicate, leaving that confirmation
-        // underneath so Back returns to it.
+        // When the target is already below the caller (e.g. the deposit
+        // confirmation stacked over it), pop back to it: without `pop` React
+        // Navigation pushes a duplicate and leaves that confirmation
+        // underneath, so Back returns to it. When the target is not in the
+        // stack at all, `pop` finds nothing and the push happens as before.
         toPerpsNavigatorScreenParams(getTarget(extraParams), { pop: true }),
       );
     },
