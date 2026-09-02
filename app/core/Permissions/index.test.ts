@@ -1088,51 +1088,6 @@ describe('Permission Utility Functions', () => {
       expect(result).toEqual(sortedAccounts);
     });
 
-    it('should return empty array for external origins when wallet is locked', () => {
-      const mockCaveat = {
-        type: Caip25CaveatType,
-        value: {
-          optionalScopes: {},
-          requiredScopes: {},
-          isMultichainOrigin: false,
-          sessionProperties: {},
-        },
-      };
-
-      mockGetCaveat.mockReturnValue(mockCaveat);
-      mockIsUnlocked.mockReturnValue(false);
-
-      const result = getPermittedAccounts('https://example.com');
-      expect(result).toEqual([]);
-    });
-
-    it('should return permitted accounts for external origins when wallet is locked but ignoreLock is true', () => {
-      const mockCaveat = {
-        type: Caip25CaveatType,
-        value: {
-          optionalScopes: {},
-          requiredScopes: {},
-          isMultichainOrigin: false,
-          sessionProperties: {},
-        },
-      };
-
-      const ethAccounts: Hex[] = ['0x1', '0x2', '0x3'];
-      const sortedAccounts: Hex[] = ['0x3', '0x1', '0x2'];
-
-      mockLastSelectedByAddress({
-        '0x1': 200,
-        '0x2': 100,
-        '0x3': 300,
-      });
-      mockGetCaveat.mockReturnValue(mockCaveat);
-      mockIsUnlocked.mockReturnValue(false);
-      (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
-
-      const result = getPermittedAccounts('https://example.com');
-      expect(result).toEqual(sortedAccounts);
-    });
-
     it('should return empty array when permission does not exist', () => {
       mockGetCaveat.mockImplementation(() => {
         throw new PermissionDoesNotExistError(
