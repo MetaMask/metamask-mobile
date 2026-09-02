@@ -226,7 +226,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const {
     toWin,
     metamaskFee,
-    exchangeFee,
     total,
     depositFee,
     rewardsFeeAmount,
@@ -243,7 +242,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     side: Side.BUY,
     order: currentValue,
     metamaskFee,
-    exchangeFee,
     depositFee,
     total,
   });
