@@ -1,7 +1,6 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import { type AppiumElement } from '../../framework';
 
@@ -38,23 +37,9 @@ class FundActionMenu {
     await Gestures.waitAndTap(this.buyButton);
   }
 
-  async isUnifiedBuyDisplayed(timeout = 2000): Promise<boolean> {
-    try {
-      await Assertions.expectElementToBeVisible(this.unifiedBuyButton, {
-        description: 'Fund Action Menu - Unified Buy Button probe',
-        timeout,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   async tapUnifiedBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.unifiedBuyButton, {
       elemDescription: 'Fund Action Menu - Unified Buy Button',
-      // Sheet animation / wallet-home readiness can exceed the default 10s.
-      timeout: 15000,
     });
   }
 
@@ -66,10 +51,14 @@ class FundActionMenu {
   async openAndTapUnifiedBuy(openSheet: () => Promise<void>): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        if (!(await this.isUnifiedBuyDisplayed(2000))) {
+        if (!(await Utilities.isElementVisible(this.unifiedBuyButton, 1500))) {
           await openSheet();
         }
-        await this.tapUnifiedBuyButton();
+        await Gestures.waitAndTap(this.unifiedBuyButton, {
+          elemDescription: 'Fund Action Menu - Unified Buy Button',
+          // Short per-attempt timeout; outer executeWithRetry covers retries.
+          timeout: 5000,
+        });
       },
       {
         timeout: 30000,
