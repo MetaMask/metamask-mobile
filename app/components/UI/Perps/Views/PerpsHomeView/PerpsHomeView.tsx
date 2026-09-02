@@ -853,6 +853,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION}
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"

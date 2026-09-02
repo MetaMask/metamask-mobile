@@ -32,16 +32,9 @@ import {
 } from '@metamask/bridge-controller';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
-import { SecurityDataType, BridgeViewMode, BridgeToken } from '../../types';
+import { SecurityDataType, BridgeToken } from '../../types';
 import { FEATURE_FLAG_NAME as RWA_FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
-import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
-import {
-  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-  SwapsCtaButtonColorVariant,
-} from './abTestConfig';
-import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../../util/theme';
 import {
   STOCK_MARKET_STATUS_POLL_MS,
   __resetStockMarketHoursClockForTest,
@@ -325,33 +318,6 @@ const mockState: DeepPartial<RootState> = {
   },
 };
 
-function createAbTestState(
-  variantName?: SwapsCtaButtonColorVariant,
-  bridgeViewMode = BridgeViewMode.Unified,
-): DeepPartial<RootState> {
-  return {
-    ...mockState,
-    engine: {
-      ...mockState.engine,
-      backgroundState: {
-        ...mockState.engine?.backgroundState,
-        RemoteFeatureFlagController: {
-          remoteFeatureFlags: {
-            bridgeConfigV2: defaultBridgeConfigV2,
-            ...(variantName && {
-              [SWAPS_CTA_BUTTON_COLOR_AB_KEY]: { name: variantName },
-            }),
-          },
-        },
-      },
-    },
-    bridge: {
-      ...mockState.bridge,
-      bridgeViewMode,
-    },
-  };
-}
-
 describe('SwapsMarketOrderConfirmButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -379,117 +345,6 @@ describe('SwapsMarketOrderConfirmButton', () => {
     __resetStockMarketHoursClockForTest();
     jest.useRealTimers();
     jest.restoreAllMocks();
-  });
-
-  describe('CTA color A/B test', () => {
-    it('uses Primary when the CTA experiment is unresolved', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        { state: createAbTestState() },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.variant).toBe(ButtonVariant.Primary);
-      expect(button.props.twClassName).toBeUndefined();
-      expect(button.props.textProps).toBeUndefined();
-    });
-
-    it('uses Primary for the control assignment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Control),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.variant).toBe(ButtonVariant.Primary);
-      expect(button.props.twClassName).toBeUndefined();
-      expect(button.props.textProps).toBeUndefined();
-    });
-
-    it('uses the success color for the treatment assignment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
-      expect(button.props.textProps).toEqual({
-        color: TextColor.SuccessInverse,
-      });
-    });
-
-    it('uses the success color outside Unified mode for treatment', () => {
-      const { UNSAFE_getByProps } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-        />,
-        {
-          state: createAbTestState(
-            SwapsCtaButtonColorVariant.Treatment,
-            BridgeViewMode.Swap,
-          ),
-        },
-      );
-
-      const button = UNSAFE_getByProps({
-        variant: ButtonVariant.Primary,
-      });
-
-      expect(button.props.twClassName).toBe(`bg-[${LIGHT_MODE_SUCCESS_GREEN}]`);
-    });
-
-    it('preserves existing transaction attribution when submitting treatment', async () => {
-      const existingAssignment = createActiveABTestAssignment(
-        'existingExperiment',
-        'control',
-      );
-      const { getByTestId } = renderWithProvider(
-        <SwapsMarketOrderConfirmButton
-          latestSourceBalance={mockLatestSourceBalance}
-          location={MetaMetricsSwapsEventSource.MainView}
-          transactionActiveAbTests={[existingAssignment]}
-        />,
-        {
-          state: createAbTestState(SwapsCtaButtonColorVariant.Treatment),
-        },
-      );
-
-      await act(async () => {
-        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
-      });
-
-      await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith({
-          quoteResponse: mockActiveQuote,
-          location: MetaMetricsSwapsEventSource.MainView,
-          transactionActiveAbTests: [existingAssignment],
-        });
-      });
-    });
   });
 
   describe('Button Label', () => {
