@@ -7735,7 +7735,6 @@
         "rate_unavailable_subtitle": "Earn on your balance",
         "money": {
           "title": "Money account",
-          "subtitle": "Variable yield · auto-earning",
           "info_rows": {
             "row_1": "Earn up to ~{{percentage}}% APY on your balance",
             "row_2": "No lockups—trade or withdraw anytime",
@@ -7744,15 +7743,15 @@
         },
         "stablecoin_lending": {
           "title": "Lend {{asset}}",
-          "subtitle": "Lend your {{asset}} to earn up to {{percentage}}% APY. Withdraw anytime."
+          "subtitle": "Earn rewards daily and withdraw anytime."
         },
         "pooled_staking": {
           "title": "Stake ETH",
-          "subtitle": "Stake your ETH to earn up to {{percentage}}% APR. Unstake anytime."
+          "subtitle": "Earn rewards daily and unstake anytime."
         },
         "trx_staking": {
           "title": "Stake TRX",
-          "subtitle": "Stake your TRX to earn up to {{percentage}}% APR. Unstake anytime."
+          "subtitle": "Earn rewards daily and unstake anytime."
         }
       },
       "get_started": "Get started"

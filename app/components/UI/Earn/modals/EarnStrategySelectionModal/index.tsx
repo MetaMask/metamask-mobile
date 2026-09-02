@@ -136,10 +136,7 @@ const renderNonMoneyStrategyCard = (
   );
   const subtitle = strings(
     `earn.strategy_selection.strategies.${strategy.type.toLowerCase()}.subtitle`,
-    {
-      percentage: truncateNumber(strategy.rate.percentage),
-      asset: assetSymbol,
-    },
+    { percentage: truncateNumber(strategy.rate.percentage) },
   );
 
   return (
