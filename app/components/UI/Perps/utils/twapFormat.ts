@@ -18,6 +18,13 @@ export const formatTwapDuration = (durationMinutes: number): string => {
   );
   const minutes = wholeMinutes % PERPS_TWAP_UI_CONFIG.MinutesPerHour;
 
+  // A schedule under a minute old has no non-zero unit to show. Fall back to
+  // the smallest unit so callers rendering "elapsed / total" never emit a bare
+  // separator.
+  if (wholeMinutes === 0) {
+    return strings('perps.order.twap_duration_minutes', { count: 0 });
+  }
+
   return [
     days > 0
       ? strings(

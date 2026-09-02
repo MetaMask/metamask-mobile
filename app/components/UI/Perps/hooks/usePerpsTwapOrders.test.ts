@@ -105,15 +105,16 @@ describe('usePerpsTwapOrders', () => {
       },
     );
 
-    // Act
+    // Act: skip the mount read so only the stream can write the list
     const { result, unmount } = renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true }),
+      usePerpsTwapOrders({ enablePolling: true, skipInitialFetch: true }),
     );
 
     // Assert
     await waitFor(() =>
       expect(result.current.twapOrders).toStrictEqual([streamed]),
     );
+    expect(mockController.getTwapOrders).not.toHaveBeenCalled();
     unmount();
     expect(unsubscribe).toHaveBeenCalled();
   });
@@ -134,22 +135,27 @@ describe('usePerpsTwapOrders', () => {
     mockController.getTwapOrders.mockResolvedValue([
       buildTwapOrder({ fills: [fill] }),
     ]);
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
     mockController.subscribeToTwapOrders = jest.fn(
       (params: { callback: (orders: TwapOrder[]) => void }) => {
-        setTimeout(() => params.callback([buildTwapOrder({ fills: [] })]), 0);
+        pushStreamed = params.callback;
         return jest.fn();
       },
     );
 
-    // Act
+    // Act: let the read land first, so the stream genuinely merges onto it
     const { result } = renderHook(() =>
       usePerpsTwapOrders({ enablePolling: true }),
     );
-
-    // Assert
     await waitFor(() =>
       expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]),
     );
+    await act(async () => {
+      pushStreamed?.([buildTwapOrder({ fills: [] })]);
+    });
+
+    // Assert: the stream's empty fills must not erase the known ones
+    expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]);
   });
 
   it('falls back to polling when the provider has no push channel', async () => {

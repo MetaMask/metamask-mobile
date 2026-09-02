@@ -1305,6 +1305,8 @@ const PerpsProPositionsPanel = ({
         twClassName="gap-2 px-2 pt-3"
         accessible={false}
       >
+        {/* TWAP schedules are venue-ordered. Chase has its own activity
+            filters. The sort sheet only knows Positions and Orders. */}
         {!isChaseTab && !isTwapTab ? (
           <Box twClassName="bg-muted rounded-lg">
             <ButtonIcon

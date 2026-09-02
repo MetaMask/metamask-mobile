@@ -33,12 +33,12 @@ describe('formatTwapDuration', () => {
     expect(result).toBe('30 minutes');
   });
 
-  it('returns an empty string for a zero duration', () => {
+  it('renders zero minutes rather than an empty string', () => {
     // Arrange / Act
     const result = formatTwapDuration(0);
 
-    // Assert
-    expect(result).toBe('');
+    // Assert: a bare '' would render as " / 30 minutes" in an elapsed/total pair
+    expect(result).toBe('0 minutes');
   });
 
   it('treats a negative duration as zero', () => {
@@ -46,7 +46,7 @@ describe('formatTwapDuration', () => {
     const result = formatTwapDuration(-10);
 
     // Assert
-    expect(result).toBe('');
+    expect(result).toBe('0 minutes');
   });
 });
 

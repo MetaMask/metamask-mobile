@@ -153,6 +153,13 @@ export const usePerpsTwapOrders = (
 
     // A provider without a push channel returns a no-op cleanup and never
     // calls back, so poll until the first streamed update proves otherwise.
+    // Read once up front: waiting a full interval would leave the list and the
+    // tab count on their mount-time snapshot, so a TWAP placed from another
+    // tab stays invisible for seconds after switching here.
+    if (!subscribeToTwapOrders) {
+      fetchTwapOrders(true);
+    }
+
     const intervalId = setInterval(() => {
       if (!isStreaming) {
         fetchTwapOrders(true);
