@@ -1713,7 +1713,8 @@
         "history": "History",
         "fill_history": "Fill history",
         "previous": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
       },
       "twap_card": {
         "total_size": "Total size",

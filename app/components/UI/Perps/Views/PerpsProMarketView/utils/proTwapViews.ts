@@ -41,15 +41,3 @@ export const selectTwapFillRows = (twapOrders: TwapOrder[]): ProTwapFillRow[] =>
       twapOrder.fills.map((fill) => ({ fill, twapOrder })),
     )
     .sort((a, b) => b.fill.timestamp - a.fill.timestamp);
-
-/**
- * The list a given view renders its count from. The tab label counts active
- * schedules only — a terminal schedule is history, not something to monitor.
- */
-export const selectTwapOrdersForView = (
-  twapOrders: TwapOrder[],
-  view: ProTwapView,
-): TwapOrder[] =>
-  view === 'active'
-    ? selectActiveTwapOrders(twapOrders)
-    : selectHistoricalTwapOrders(twapOrders);

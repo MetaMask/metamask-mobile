@@ -401,6 +401,7 @@ const PerpsProPositionsPanel = ({
     // termination surface for venue-native schedules after a flag rollback.
     enableLiveUpdates: isScreenFocused && isTwapTabSelected,
     pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
+    pauseLiveRestReconciliation: terminatingTwapSelection !== null,
   });
   const allActiveTwapOrders = useMemo(
     () => selectActiveTwapOrders(twapOrders),
@@ -454,7 +455,7 @@ const PerpsProPositionsPanel = ({
     }
   }, [activeTabKey, shouldShowChaseTab, shouldShowTwapTab]);
 
-  const { terminatingOrderId, terminateTwap } = usePerpsTerminateTwap({
+  const { isTerminationInFlight, terminateTwap } = usePerpsTerminateTwap({
     onSuccess: (twapOrder) => {
       setAcceptedTerminationSelection({
         contextIdentityKey: twapContextIdentityKey,
@@ -649,6 +650,7 @@ const PerpsProPositionsPanel = ({
       filterProTwapOrdersBySide(visibleHistoricalTwapOrders, twapSideFilter),
     [twapSideFilter, visibleHistoricalTwapOrders],
   );
+  const twapFilterScopeKey = `${isTickerOnly ? symbol : 'all'}:${twapSideFilter}`;
 
   const isOrdersTab = activeTabKey === 'orders';
   const isChaseTab = activeTabKey === 'chase' && shouldShowChaseTab;
@@ -1052,7 +1054,8 @@ const PerpsProPositionsPanel = ({
       isRefreshing={areTwapOrdersRefreshing}
       onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
       onTerminate={handleSelectTwapToTerminate}
-      terminatingOrderId={terminatingOrderId}
+      isTerminationInFlight={isTerminationInFlight}
+      filterScopeKey={twapFilterScopeKey}
       acceptedTerminationOrderIdentityKey={acceptedTerminationOrderIdentityKey}
       emptyMetadataByView={twapEmptyMetadataByView}
     />
@@ -1552,7 +1555,7 @@ const PerpsProPositionsPanel = ({
           sheetRef={twapTerminateSheetRef}
           onClose={() => setTerminatingTwapSelection(null)}
           onConfirm={terminateTwap}
-          isTerminating={terminatingOrderId !== null}
+          isTerminating={isTerminationInFlight}
         />
       ) : null}
       <PerpsProPositionsSideFilterSheet

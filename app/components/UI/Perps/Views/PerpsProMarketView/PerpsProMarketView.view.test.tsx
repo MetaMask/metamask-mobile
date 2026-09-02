@@ -13,6 +13,7 @@ import type {
   Order,
   PriceUpdate,
   TwapOrder,
+  TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -49,8 +50,11 @@ import {
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
+  getPerpsProTwapFillValueSelector,
   getPerpsProTwapTerminateSelector,
+  getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
+import { formatProOrderCardTimestamp } from '../../utils/formatUtils';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
@@ -89,6 +93,24 @@ const activeTwap: TwapOrder = {
   lastUpdated: 2_000,
   fills: [],
   providerId: 'hyperliquid',
+};
+const completeTwapFill: TwapOrderFill = {
+  fillId: 'fill-view-1',
+  orderId: activeTwap.orderId,
+  side: 'buy',
+  price: '2500',
+  size: '1.5',
+  fee: '0.5',
+  feeToken: 'USDC',
+  timestamp: 1_700_000_100_000,
+  transactionHash: '0xabc',
+};
+const completeTwap: TwapOrder = {
+  ...activeTwap,
+  randomize: true,
+  reduceOnly: true,
+  startedAt: 1_700_000_000_000,
+  fills: [completeTwapFill],
 };
 const triggeredOrderTypeIDs = [
   PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
@@ -525,6 +547,135 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'renders complete TWAP schedule and fill data after the controller read resolves',
+    async () => {
+      // Arrange
+      jest
+        .mocked(Engine.context.PerpsController.getTwapOrders)
+        .mockResolvedValue([completeTwap]);
+      renderProMarketWithTwapFlag(false);
+
+      // Act
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+      const cardValueTestID = (baseTestID: string) =>
+        getPerpsProTwapValueSelector(
+          baseTestID,
+          completeTwap.providerId,
+          completeTwap.orderId,
+        );
+
+      // Assert: every significant card value crossed the real selector, hook,
+      // panel, and formatting path from the async Engine result.
+      expect(
+        await screen.findByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_MARKET),
+        ),
+      ).toHaveTextContent('ETH');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_DIRECTION_TAG),
+        ),
+      ).toHaveTextContent(strings('perps.market.close_short'));
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_REDUCE_ONLY_TAG),
+        ),
+      ).toHaveTextContent(
+        strings('perps.pro_positions_panel.twap_card.reduce_only'),
+      );
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_CREATED_AT),
+        ),
+      ).toHaveTextContent(formatProOrderCardTimestamp(completeTwap.startedAt));
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_STATUS_TAG),
+        ),
+      ).toHaveTextContent(
+        strings('perps.pro_positions_panel.twap_card.status_active'),
+      );
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_SIZE),
+        ),
+      ).toHaveTextContent('10 ETH');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILLED_SIZE),
+        ),
+      ).toHaveTextContent('4 ETH');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_AVERAGE_PRICE),
+        ),
+      ).toHaveTextContent('$2,500');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_PROGRESS),
+        ),
+      ).toHaveTextContent('40%');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED),
+        ),
+      ).toHaveTextContent('1 minute / 30 minutes');
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE),
+        ),
+      ).toHaveTextContent(strings('perps.order_details.yes'));
+
+      // Act
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_FILL_HISTORY,
+        ),
+      );
+      const fillValueTestID = (baseTestID: string) =>
+        getPerpsProTwapFillValueSelector(
+          baseTestID,
+          completeTwap.providerId,
+          completeTwap.orderId,
+          completeTwapFill.fillId,
+        );
+
+      // Assert: actual value elements, not row wrappers, expose all fill data.
+      expect(
+        screen.getByTestId(
+          fillValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_MARKET),
+        ),
+      ).toHaveTextContent('ETH');
+      expect(
+        screen.getByTestId(
+          fillValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_DIRECTION),
+        ),
+      ).toHaveTextContent(strings('perps.market.close_short'));
+      expect(
+        screen.getByTestId(
+          fillValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_PRICE),
+        ),
+      ).toHaveTextContent('$2,500');
+      expect(
+        screen.getByTestId(
+          fillValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_TIME),
+        ),
+      ).toHaveTextContent(
+        formatProOrderCardTimestamp(completeTwapFill.timestamp),
+      );
+      expect(
+        screen.getByTestId(
+          fillValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_SIZE),
+        ),
+      ).toHaveTextContent('1.5 ETH');
+    },
+  );
+
+  itForPlatforms(
     'retains an active TWAP termination surface when rollout turns off',
     async () => {
       jest
@@ -667,6 +818,50 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await waitFor(() =>
         expect(screen.queryByTestId(terminateTestID)).not.toBeOnTheScreen(),
       );
+    },
+  );
+
+  itForPlatforms(
+    'pauses live REST reconciliation while termination confirmation is open and resumes on close',
+    async () => {
+      // Arrange
+      const getTwapOrders = jest
+        .mocked(Engine.context.PerpsController.getTwapOrders)
+        .mockResolvedValue([activeTwap]);
+      renderProMarketWithTwapFlag(false);
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
+
+      // Act
+      fireEvent.press(
+        await screen.findByTestId(
+          getPerpsProTwapTerminateSelector(
+            activeTwap.providerId,
+            activeTwap.orderId,
+          ),
+        ),
+      );
+
+      // Assert: opening confirmation does not trigger another REST read. The
+      // interval-level pause is covered in the hook's timer contract test.
+      expect(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).toBeOnTheScreen();
+      expect(getTwapOrders).toHaveBeenCalledTimes(2);
+
+      // Act
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE),
+      );
+
+      // Assert
+      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(3));
     },
   );
 

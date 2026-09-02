@@ -2,7 +2,11 @@ import { render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { getPerpsProTwapFillRowSelector } from '../../../Perps.testIds';
+import {
+  getPerpsProTwapFillRowSelector,
+  getPerpsProTwapFillValueSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 
 jest.mock('react-redux', () => ({
@@ -141,5 +145,65 @@ describe('PerpsProTwapFillRow', () => {
         getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-1'),
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('scopes every value element across provider and order ID collisions', () => {
+    // Arrange
+    const rows: { twapOrder: TwapOrder; fill: TwapOrderFill }[] = [
+      {
+        twapOrder: { ...twapOrder, providerId: 'hyperliquid' },
+        fill: buildFill({ fillId: 'shared-fill' }),
+      },
+      {
+        twapOrder: { ...twapOrder, providerId: 'myx' },
+        fill: buildFill({ fillId: 'shared-fill' }),
+      },
+      {
+        twapOrder: {
+          ...twapOrder,
+          providerId: 'hyperliquid',
+          orderId: 'twap-2',
+        },
+        fill: buildFill({
+          fillId: 'shared-fill',
+          orderId: 'twap-2',
+        }),
+      },
+    ];
+    const valueTestIDs = [
+      PerpsProMarketViewSelectorsIDs.TWAP_FILL_MARKET,
+      PerpsProMarketViewSelectorsIDs.TWAP_FILL_DIRECTION,
+      PerpsProMarketViewSelectorsIDs.TWAP_FILL_PRICE,
+      PerpsProMarketViewSelectorsIDs.TWAP_FILL_TIME,
+      PerpsProMarketViewSelectorsIDs.TWAP_FILL_SIZE,
+    ];
+
+    // Act
+    render(
+      <>
+        {rows.map((row) => (
+          <PerpsProTwapFillRowItem
+            key={`${row.twapOrder.providerId}:${row.twapOrder.orderId}`}
+            row={row}
+          />
+        ))}
+      </>,
+    );
+
+    // Assert
+    for (const row of rows) {
+      for (const baseTestID of valueTestIDs) {
+        expect(
+          screen.getByTestId(
+            getPerpsProTwapFillValueSelector(
+              baseTestID,
+              row.twapOrder.providerId,
+              row.twapOrder.orderId,
+              row.fill.fillId,
+            ),
+          ),
+        ).toBeOnTheScreen();
+      }
+    }
   });
 });

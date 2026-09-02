@@ -82,7 +82,8 @@ const renderPanel = (
       historicalTwapOrders={[]}
       isInitialLoading={false}
       onTerminate={jest.fn()}
-      terminatingOrderId={null}
+      isTerminationInFlight={false}
+      filterScopeKey="all:all"
       error={null}
       onRetry={jest.fn()}
       isRefreshing={false}
@@ -229,6 +230,48 @@ describe('PerpsProTwapPanel', () => {
         getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-50'),
       ),
     ).toBeNull();
+    expect(screen.getByTestId(ids.TWAP_FILL_PAGE_LABEL)).toHaveTextContent(
+      'Page 2 of 2',
+    );
+  });
+
+  it('resets fill pagination when the ticker or side filter scope changes', () => {
+    // Arrange
+    const fills = Array.from({ length: 51 }, (_, index) =>
+      buildFill({ fillId: `scope-fill-${index}`, timestamp: index }),
+    );
+    const activeOrders = [buildTwapOrder({ fills })];
+    const view = renderPanel({ activeTwapOrders: activeOrders });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+    expect(screen.getByTestId(ids.TWAP_FILL_PAGE_LABEL)).toHaveTextContent(
+      'Page 2 of 2',
+    );
+
+    // Act
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={activeOrders}
+        historicalTwapOrders={[]}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        isTerminationInFlight={false}
+        filterScopeKey="BTC:long"
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByTestId(ids.TWAP_FILL_PAGE_LABEL)).toHaveTextContent(
+      'Page 1 of 2',
+    );
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'scope-fill-50'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('preserves fill page two across a same-content reconciliation', () => {
@@ -259,7 +302,8 @@ describe('PerpsProTwapPanel', () => {
         historicalTwapOrders={[]}
         isInitialLoading={false}
         onTerminate={jest.fn()}
-        terminatingOrderId={null}
+        isTerminationInFlight={false}
+        filterScopeKey="all:all"
         error={null}
         onRetry={jest.fn()}
         isRefreshing={false}
@@ -304,7 +348,8 @@ describe('PerpsProTwapPanel', () => {
         historicalTwapOrders={[]}
         isInitialLoading={false}
         onTerminate={jest.fn()}
-        terminatingOrderId={null}
+        isTerminationInFlight={false}
+        filterScopeKey="all:all"
         error={null}
         onRetry={jest.fn()}
         isRefreshing={false}
@@ -347,7 +392,8 @@ describe('PerpsProTwapPanel', () => {
         historicalTwapOrders={[]}
         isInitialLoading={false}
         onTerminate={jest.fn()}
-        terminatingOrderId={null}
+        isTerminationInFlight={false}
+        filterScopeKey="all:all"
         error={null}
         onRetry={jest.fn()}
         isRefreshing={false}
@@ -400,6 +446,54 @@ describe('PerpsProTwapPanel', () => {
     expect(
       screen.queryByTestId(getPerpsProTwapRowSelector(undefined, 'history-0')),
     ).toBeNull();
+    expect(screen.getByTestId(ids.TWAP_HISTORY_PAGE_LABEL)).toHaveTextContent(
+      'Page 2 of 2',
+    );
+  });
+
+  it('resets schedule history pagination when the ticker or side filter scope changes', () => {
+    // Arrange
+    const pageSize = PERPS_TWAP_UI_CONFIG.HistoryPageSize;
+    const historyOrders = Array.from({ length: pageSize + 1 }, (_, index) =>
+      buildTwapOrder({
+        orderId: `scope-history-${index}`,
+        status: 'completed',
+      }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [],
+      historicalTwapOrders: historyOrders,
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
+    expect(screen.getByTestId(ids.TWAP_HISTORY_PAGE_LABEL)).toHaveTextContent(
+      'Page 2 of 2',
+    );
+
+    // Act
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[]}
+        historicalTwapOrders={historyOrders}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        isTerminationInFlight={false}
+        filterScopeKey="ETH:short"
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByTestId(ids.TWAP_HISTORY_PAGE_LABEL)).toHaveTextContent(
+      'Page 1 of 2',
+    );
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapRowSelector(undefined, 'scope-history-0'),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('clamps schedule history to the last remaining page', async () => {
@@ -432,7 +526,8 @@ describe('PerpsProTwapPanel', () => {
         historicalTwapOrders={nextHistory}
         isInitialLoading={false}
         onTerminate={jest.fn()}
-        terminatingOrderId={null}
+        isTerminationInFlight={false}
+        filterScopeKey="all:all"
         error={null}
         onRetry={jest.fn()}
         isRefreshing={false}
@@ -537,14 +632,26 @@ describe('PerpsProTwapPanel', () => {
     );
   });
 
-  it('disables Terminate while a termination is in flight', () => {
+  it('disables every provider target while one termination is in flight', () => {
     // Arrange
     const onTerminate = jest.fn();
-    renderPanel({ onTerminate, terminatingOrderId: 'twap-1' });
+    renderPanel({
+      activeTwapOrders: [
+        buildTwapOrder({ providerId: 'hyperliquid' }),
+        buildTwapOrder({ providerId: 'myx' }),
+      ],
+      onTerminate,
+      isTerminationInFlight: true,
+    });
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('myx', 'twap-1')),
     );
 
     // Assert

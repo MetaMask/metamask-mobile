@@ -17,7 +17,11 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
-import { getPerpsProTwapFillRowSelector } from '../../../Perps.testIds';
+import {
+  getPerpsProTwapFillRowSelector,
+  getPerpsProTwapFillValueSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import {
   formatPerpsFiat,
   formatPositionSize,
@@ -48,6 +52,13 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
       side: fill.side,
     }),
   );
+  const getValueTestID = (baseTestID: string) =>
+    getPerpsProTwapFillValueSelector(
+      baseTestID,
+      twapOrder.providerId,
+      twapOrder.orderId,
+      fill.fillId,
+    );
 
   return (
     <Box
@@ -72,10 +83,21 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
         >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            testID={getValueTestID(
+              PerpsProMarketViewSelectorsIDs.TWAP_FILL_MARKET,
+            )}
+          >
             {displaySymbol}
           </Text>
-          <Tag severity={isBuySide ? TagSeverity.Success : TagSeverity.Danger}>
+          <Tag
+            severity={isBuySide ? TagSeverity.Success : TagSeverity.Danger}
+            testID={getValueTestID(
+              PerpsProMarketViewSelectorsIDs.TWAP_FILL_DIRECTION,
+            )}
+          >
             {directionLabel}
           </Tag>
         </Box>
@@ -84,6 +106,9 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
           fontWeight={FontWeight.Medium}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
+          testID={getValueTestID(
+            PerpsProMarketViewSelectorsIDs.TWAP_FILL_PRICE,
+          )}
         >
           {formatPerpsFiat(Number.parseFloat(fill.price), {
             ranges: PRICE_RANGES_UNIVERSAL,
@@ -96,7 +121,11 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
         justifyContent={BoxJustifyContent.Between}
         twClassName="gap-2"
       >
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={getValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_TIME)}
+        >
           {formatProOrderCardTimestamp(fill.timestamp)}
         </Text>
         <SensitiveText
@@ -104,6 +133,7 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
           color={TextColor.TextAlternative}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
+          testID={getValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_FILL_SIZE)}
         >
           {`${formatPositionSize(fill.size)} ${displaySymbol}`}
         </SensitiveText>

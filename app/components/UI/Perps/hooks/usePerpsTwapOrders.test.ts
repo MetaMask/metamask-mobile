@@ -131,16 +131,24 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('retains a known active provider partition and exposes retry when a later aggregate omits it', async () => {
+  it('retains and deduplicates a complete known provider partition until authoritative recovery', async () => {
     // Arrange
     mockProvider = 'aggregated';
     const hyperliquidActive = buildTwapOrder({
-      orderId: 'hyperliquid-active',
+      orderId: 'shared-order-id',
       providerId: 'hyperliquid',
       startedAt: 3_000,
     });
+    const historicalFill = buildTwapFill({ fillId: 'historical-fill' });
+    const hyperliquidHistory = buildTwapOrder({
+      orderId: 'hyperliquid-history',
+      providerId: 'hyperliquid',
+      status: 'completed',
+      startedAt: 2_500,
+      fills: [historicalFill],
+    });
     const myxHistory = buildTwapOrder({
-      orderId: 'myx-history',
+      orderId: 'shared-order-id',
       providerId: 'myx',
       status: 'completed',
       startedAt: 2_000,
@@ -150,14 +158,32 @@ describe('usePerpsTwapOrders', () => {
       status: 'canceled' as const,
       lastUpdated: 4_000,
     };
+    const recoveredHistory = {
+      ...hyperliquidHistory,
+      fills: [
+        historicalFill,
+        buildTwapFill({ fillId: 'recovered-fill', timestamp: 4_000 }),
+      ],
+      lastUpdated: 4_000,
+    };
     mockController.getTwapOrders
-      .mockResolvedValueOnce([hyperliquidActive, myxHistory])
+      .mockResolvedValueOnce([
+        hyperliquidActive,
+        hyperliquidHistory,
+        hyperliquidHistory,
+        myxHistory,
+      ])
       .mockResolvedValueOnce([myxHistory])
-      .mockResolvedValueOnce([myxHistory, hyperliquidTerminal]);
+      .mockResolvedValueOnce([
+        myxHistory,
+        hyperliquidTerminal,
+        recoveredHistory,
+      ]);
     const { result } = renderHook(() => usePerpsTwapOrders());
     await waitFor(() =>
       expect(result.current.twapOrders).toStrictEqual([
         hyperliquidActive,
+        hyperliquidHistory,
         myxHistory,
       ]),
     );
@@ -171,8 +197,10 @@ describe('usePerpsTwapOrders', () => {
     // Assert
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidActive,
+      hyperliquidHistory,
       myxHistory,
     ]);
+    expect(result.current.twapOrders[1].fills).toStrictEqual([historicalFill]);
     expect(result.current.error).not.toBeNull();
 
     // Act: a later response containing the provider confirms terminal state.
@@ -183,6 +211,7 @@ describe('usePerpsTwapOrders', () => {
     // Assert
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidTerminal,
+      recoveredHistory,
       myxHistory,
     ]);
     expect(result.current.error).toBeNull();
@@ -506,6 +535,49 @@ describe('usePerpsTwapOrders', () => {
 
       // Assert: the immediate read plus interval refreshes continue after push.
       expect(mockController.getTwapOrders.mock.calls.length).toBeGreaterThan(1);
+      unmount();
+    });
+
+    it('pauses interval reads during confirmation and resumes without restarting the stream', async () => {
+      // Arrange
+      const { rerender, unmount } = renderHook(
+        ({ isPaused }: { isPaused: boolean }) =>
+          usePerpsTwapOrders({
+            enableLiveUpdates: true,
+            pollingInterval: 1000,
+            pauseLiveRestReconciliation: isPaused,
+            skipInitialFetch: true,
+          }),
+        { initialProps: { isPaused: false } },
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
+
+      // Act: opening confirmation clears the interval but leaves the stream.
+      rerender({ isPaused: true });
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2500);
+      });
+
+      // Assert
+      expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
+      expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(1);
+
+      // Act: closing confirmation immediately reconciles and restarts cadence.
+      rerender({ isPaused: false });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(1000);
+      });
+
+      // Assert
+      expect(mockController.getTwapOrders).toHaveBeenCalledTimes(3);
+      expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(1);
       unmount();
     });
   });

@@ -45,7 +45,10 @@ interface PerpsProTwapPanelProps {
   isInitialLoading: boolean;
   onSelectMarket?: (twapOrder: TwapOrder) => void;
   onTerminate: (twapOrder: TwapOrder) => void;
-  terminatingOrderId: string | null;
+  /** Global one-at-a-time cancellation lock across every provider/order. */
+  isTerminationInFlight: boolean;
+  /** Stable ticker/side filter identity; changes reset both paged views. */
+  filterScopeKey: string;
   /** Accepted cancellation awaiting a terminal stream/REST confirmation. */
   acceptedTerminationOrderIdentityKey?: string | null;
   /** Load failure from the most recent REST read. */
@@ -83,7 +86,8 @@ const PerpsProTwapPanel = ({
   isInitialLoading,
   onSelectMarket,
   onTerminate,
-  terminatingOrderId,
+  isTerminationInFlight,
+  filterScopeKey,
   acceptedTerminationOrderIdentityKey = null,
   error,
   onRetry,
@@ -137,6 +141,11 @@ const PerpsProTwapPanel = ({
       Math.min(page, scheduleHistoryPageCount - 1),
     );
   }, [scheduleHistoryPageCount]);
+
+  useEffect(() => {
+    setFillHistoryPage(0);
+    setScheduleHistoryPage(0);
+  }, [filterScopeKey]);
 
   const viewTabs: TabItem[] = useMemo(
     () =>
@@ -200,7 +209,7 @@ const PerpsProTwapPanel = ({
             onPress={onSelectMarket}
             onTerminate={isActiveView ? onTerminate : undefined}
             isTerminateDisabled={
-              terminatingOrderId !== null ||
+              isTerminationInFlight ||
               acceptedTerminationOrderIdentityKey ===
                 getTwapOrderIdentityKey(twapOrder)
             }
@@ -218,6 +227,7 @@ const PerpsProTwapPanel = ({
     onNext,
     previousTestID,
     nextTestID,
+    pageLabelTestID,
   }: {
     page: number;
     pageCount: number;
@@ -225,9 +235,13 @@ const PerpsProTwapPanel = ({
     onNext: () => void;
     previousTestID: string;
     nextTestID: string;
+    pageLabelTestID: string;
   }) =>
     pageCount > 1 ? (
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="items-center gap-2 px-2"
+      >
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
@@ -238,6 +252,16 @@ const PerpsProTwapPanel = ({
         >
           {strings('perps.pro_positions_panel.twap_views.previous')}
         </Button>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={pageLabelTestID}
+        >
+          {strings('perps.pro_positions_panel.twap_views.page_count', {
+            page: page + 1,
+            total: pageCount,
+          })}
+        </Text>
         <Button
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
@@ -276,6 +300,7 @@ const PerpsProTwapPanel = ({
           onNext: () => setFillHistoryPage((page) => page + 1),
           previousTestID: PerpsProMarketViewSelectorsIDs.TWAP_FILL_PREVIOUS,
           nextTestID: PerpsProMarketViewSelectorsIDs.TWAP_FILL_NEXT,
+          pageLabelTestID: PerpsProMarketViewSelectorsIDs.TWAP_FILL_PAGE_LABEL,
         })}
       </Box>
     );
@@ -296,6 +321,8 @@ const PerpsProTwapPanel = ({
           onNext: () => setScheduleHistoryPage((page) => page + 1),
           previousTestID: PerpsProMarketViewSelectorsIDs.TWAP_HISTORY_PREVIOUS,
           nextTestID: PerpsProMarketViewSelectorsIDs.TWAP_HISTORY_NEXT,
+          pageLabelTestID:
+            PerpsProMarketViewSelectorsIDs.TWAP_HISTORY_PAGE_LABEL,
         }),
       );
     }

@@ -563,6 +563,11 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
   TWAP_ROW: 'perps-pro-market-twap-row',
   TWAP_FILL_ROW: 'perps-pro-market-twap-fill-row',
+  TWAP_FILL_MARKET: 'perps-pro-market-twap-fill-market',
+  TWAP_FILL_DIRECTION: 'perps-pro-market-twap-fill-direction',
+  TWAP_FILL_PRICE: 'perps-pro-market-twap-fill-price',
+  TWAP_FILL_TIME: 'perps-pro-market-twap-fill-time',
+  TWAP_FILL_SIZE: 'perps-pro-market-twap-fill-size',
   TWAP_MARKET_BUTTON: 'perps-pro-market-twap-market-button',
   TWAP_MARKET: 'perps-pro-market-twap-market',
   TWAP_DIRECTION_TAG: 'perps-pro-market-twap-direction-tag',
@@ -585,8 +590,10 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_LOADING: 'perps-pro-market-twap-loading',
   TWAP_FILL_PREVIOUS: 'perps-pro-market-twap-fill-previous',
   TWAP_FILL_NEXT: 'perps-pro-market-twap-fill-next',
+  TWAP_FILL_PAGE_LABEL: 'perps-pro-market-twap-fill-page-label',
   TWAP_HISTORY_PREVIOUS: 'perps-pro-market-twap-history-previous',
   TWAP_HISTORY_NEXT: 'perps-pro-market-twap-history-next',
+  TWAP_HISTORY_PAGE_LABEL: 'perps-pro-market-twap-history-page-label',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -671,16 +678,25 @@ export const getPerpsProTwapTerminateSelector = (
     orderId,
   );
 
+export const getPerpsProTwapFillValueSelector = (
+  baseTestID: string,
+  providerId: string | undefined,
+  orderId: string,
+  fillId: string,
+) =>
+  `${getPerpsProTwapValueSelector(baseTestID, providerId, orderId)}-${fillId}`;
+
 export const getPerpsProTwapFillRowSelector = (
   providerId: string | undefined,
   orderId: string,
   fillId: string,
 ) =>
-  `${getPerpsProTwapValueSelector(
+  getPerpsProTwapFillValueSelector(
     PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW,
     providerId,
     orderId,
-  )}-${fillId}`;
+    fillId,
+  );
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',

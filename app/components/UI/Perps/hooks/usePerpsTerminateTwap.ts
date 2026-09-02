@@ -17,8 +17,8 @@ export interface UsePerpsTerminateTwapOptions {
 }
 
 export interface UsePerpsTerminateTwapReturn {
-  /** The schedule currently being terminated, or null when idle. */
-  terminatingOrderId: string | null;
+  /** Global one-at-a-time cancellation lock for every provider/order target. */
+  isTerminationInFlight: boolean;
   terminateTwap: (twapOrder: TwapOrder) => Promise<void>;
 }
 
@@ -40,26 +40,33 @@ export const usePerpsTerminateTwap = (
   const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
   const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}`;
-  const [terminatingOrderId, setTerminatingOrderId] = useState<string | null>(
-    null,
-  );
+  const [isTerminationInFlight, setIsTerminationInFlight] = useState(false);
   const currentIdentityKeyRef = useRef(identityKey);
   const operationGenerationRef = useRef(0);
+  const inFlightOperationRef = useRef<object | null>(null);
   currentIdentityKeyRef.current = identityKey;
 
   useEffect(() => {
     operationGenerationRef.current += 1;
-    setTerminatingOrderId(null);
+    inFlightOperationRef.current = null;
+    setIsTerminationInFlight(false);
   }, [identityKey]);
 
   const terminateTwap = useCallback(
     async (twapOrder: TwapOrder): Promise<void> => {
+      if (inFlightOperationRef.current) {
+        return;
+      }
+
       const operationIdentityKey = identityKey;
       const operationGeneration = ++operationGenerationRef.current;
+      const operationToken = {};
+      inFlightOperationRef.current = operationToken;
       const isCurrentOperation = () =>
         currentIdentityKeyRef.current === operationIdentityKey &&
-        operationGenerationRef.current === operationGeneration;
-      setTerminatingOrderId(twapOrder.orderId);
+        operationGenerationRef.current === operationGeneration &&
+        inFlightOperationRef.current === operationToken;
+      setIsTerminationInFlight(true);
 
       try {
         const result = await Engine.context.PerpsController.cancelOrder({
@@ -107,13 +114,16 @@ export const usePerpsTerminateTwap = (
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
         onError?.(error, twapOrder);
       } finally {
-        if (isCurrentOperation()) {
-          setTerminatingOrderId(null);
+        if (inFlightOperationRef.current === operationToken) {
+          inFlightOperationRef.current = null;
+          if (currentIdentityKeyRef.current === operationIdentityKey) {
+            setIsTerminationInFlight(false);
+          }
         }
       }
     },
     [PerpsToastOptions, identityKey, onError, onSuccess, showToast],
   );
 
-  return { terminatingOrderId, terminateTwap };
+  return { isTerminationInFlight, terminateTwap };
 };

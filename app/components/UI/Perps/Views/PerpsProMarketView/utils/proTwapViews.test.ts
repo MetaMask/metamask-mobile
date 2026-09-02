@@ -3,7 +3,6 @@ import {
   selectActiveTwapOrders,
   selectHistoricalTwapOrders,
   selectTwapFillRows,
-  selectTwapOrdersForView,
 } from './proTwapViews';
 
 const createFill = (overrides: Partial<TwapOrderFill> = {}): TwapOrderFill => ({
@@ -140,31 +139,5 @@ describe('selectTwapFillRows', () => {
 
     // Assert
     expect(result).toStrictEqual([]);
-  });
-});
-
-describe('selectTwapOrdersForView', () => {
-  it('returns active schedules for the active view', () => {
-    // Arrange
-    const active = createTwapOrder({ orderId: 'a', status: 'active' });
-    const completed = createTwapOrder({ orderId: 'b', status: 'completed' });
-
-    // Act
-    const result = selectTwapOrdersForView([active, completed], 'active');
-
-    // Assert
-    expect(result).toStrictEqual([active]);
-  });
-
-  it('returns terminal schedules for the history view', () => {
-    // Arrange
-    const active = createTwapOrder({ orderId: 'a', status: 'active' });
-    const completed = createTwapOrder({ orderId: 'b', status: 'completed' });
-
-    // Act
-    const result = selectTwapOrdersForView([active, completed], 'history');
-
-    // Assert
-    expect(result).toStrictEqual([completed]);
   });
 });

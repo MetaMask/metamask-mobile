@@ -100,7 +100,7 @@ describe('usePerpsTerminateTwap', () => {
       providerId: 'hyperliquid',
     });
     expect(onSuccess).toHaveBeenCalledWith(twapOrder);
-    expect(result.current.terminatingOrderId).toBeNull();
+    expect(result.current.isTerminationInFlight).toBe(false);
   });
 
   it('routes cancellation to the provider that owns the schedule', async () => {
@@ -117,6 +117,50 @@ describe('usePerpsTerminateTwap', () => {
     expect(mockCancelOrder).toHaveBeenCalledWith(
       expect.objectContaining({ providerId: 'myx' }),
     );
+  });
+
+  it('keeps the first cancellation when a colliding provider target confirms while it is pending', async () => {
+    // Arrange
+    let resolveCancellation:
+      | ((result: { success: boolean }) => void)
+      | undefined;
+    const pendingCancellation = new Promise<{ success: boolean }>((resolve) => {
+      resolveCancellation = resolve;
+    });
+    mockCancelOrder.mockReturnValue(pendingCancellation);
+    const onSuccess = jest.fn();
+    const { result } = renderHook(() => usePerpsTerminateTwap({ onSuccess }));
+    const collidingProviderOrder = {
+      ...twapOrder,
+      providerId: 'myx' as const,
+    };
+    let firstTermination: Promise<void> | undefined;
+    let secondTermination: Promise<void> | undefined;
+
+    // Act: both venue targets share the same local order ID, but cancellation
+    // is globally one-at-a-time and the ref lock is set synchronously.
+    act(() => {
+      firstTermination = result.current.terminateTwap(twapOrder);
+      secondTermination = result.current.terminateTwap(collidingProviderOrder);
+    });
+
+    // Assert
+    expect(mockCancelOrder).toHaveBeenCalledTimes(1);
+    expect(mockCancelOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'hyperliquid' }),
+    );
+    expect(result.current.isTerminationInFlight).toBe(true);
+
+    // Act
+    await act(async () => {
+      resolveCancellation?.({ success: true });
+      await Promise.all([firstTermination, secondTermination]);
+    });
+
+    // Assert: the ignored second confirm cannot replace the first outcome.
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(onSuccess).toHaveBeenCalledWith(twapOrder);
+    expect(result.current.isTerminationInFlight).toBe(false);
   });
 
   it('names the filled size in the success toast', async () => {
@@ -207,7 +251,7 @@ describe('usePerpsTerminateTwap', () => {
 
     // Assert: the failure surfaces through the callback, not a rejection
     expect(onError.mock.calls[0][0].message).toBe('network down');
-    expect(result.current.terminatingOrderId).toBeNull();
+    expect(result.current.isTerminationInFlight).toBe(false);
   });
 
   it.each([
@@ -236,12 +280,14 @@ describe('usePerpsTerminateTwap', () => {
       act(() => {
         terminatePromise = result.current.terminateTwap(twapOrder);
       });
-      expect(result.current.terminatingOrderId).toBe('twap-1');
+      expect(result.current.isTerminationInFlight).toBe(true);
 
       // Act
       switchIdentity();
       rerender();
-      await waitFor(() => expect(result.current.terminatingOrderId).toBeNull());
+      await waitFor(() =>
+        expect(result.current.isTerminationInFlight).toBe(false),
+      );
       await act(async () => {
         resolveCancellation?.({ success: true });
         await terminatePromise;
@@ -251,7 +297,7 @@ describe('usePerpsTerminateTwap', () => {
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(onSuccess).not.toHaveBeenCalled();
       expect(onError).not.toHaveBeenCalled();
-      expect(result.current.terminatingOrderId).toBeNull();
+      expect(result.current.isTerminationInFlight).toBe(false);
     },
   );
 
@@ -286,6 +332,6 @@ describe('usePerpsTerminateTwap', () => {
     expect(mockShowToast).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
-    expect(result.current.terminatingOrderId).toBeNull();
+    expect(result.current.isTerminationInFlight).toBe(false);
   });
 });

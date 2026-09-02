@@ -30,24 +30,35 @@ const reconcileTwapOrderSnapshot = (
   const snapshotProviderIds = new Set(
     snapshotOrders.map(getTwapOrderProviderId),
   );
-  const unconfirmedProviderIds = new Set<string>();
-  const retainedActiveOrders = previousOrders.filter((order) => {
-    const providerId = getTwapOrderProviderId(order);
-    const retainOrder =
-      order.status === 'active' && !snapshotProviderIds.has(providerId);
+  const unconfirmedProviderIds = new Set(
+    previousOrders
+      .filter(
+        (order) =>
+          order.status === 'active' &&
+          !snapshotProviderIds.has(getTwapOrderProviderId(order)),
+      )
+      .map(getTwapOrderProviderId),
+  );
+  const ordersByIdentity = new Map(
+    snapshotOrders.map((order) => [getTwapOrderIdentityKey(order), order]),
+  );
 
-    if (retainOrder) {
-      unconfirmedProviderIds.add(providerId);
+  // A provider read is one all-or-nothing partition in the aggregated
+  // controller. If that partition disappears while one of its schedules was
+  // active, retain the complete prior partition: its terminal rows and fills
+  // are no less authoritative than the active termination surface. The
+  // provider-qualified key also guards against duplicate venue-local IDs.
+  for (const order of previousOrders) {
+    if (unconfirmedProviderIds.has(getTwapOrderProviderId(order))) {
+      const identityKey = getTwapOrderIdentityKey(order);
+      if (!ordersByIdentity.has(identityKey)) {
+        ordersByIdentity.set(identityKey, order);
+      }
     }
-
-    return retainOrder;
-  });
+  }
 
   return {
-    orders: sortTwapOrdersByStartedAt([
-      ...snapshotOrders,
-      ...retainedActiveOrders,
-    ]),
+    orders: sortTwapOrdersByStartedAt([...ordersByIdentity.values()]),
     unconfirmedProviderIds,
   };
 };
@@ -81,6 +92,14 @@ export interface UsePerpsTwapOrdersOptions {
    * @default 5000
    */
   pollingInterval?: number;
+  /**
+   * Pause periodic/immediate live REST reconciliation without stopping the
+   * schedule subscription. Explicit refreshes and the initial discovery read
+   * remain available.
+   *
+   * @default false
+   */
+  pauseLiveRestReconciliation?: boolean;
   /** Skip the fetch on mount. @default false */
   skipInitialFetch?: boolean;
 }
@@ -109,6 +128,7 @@ export const usePerpsTwapOrders = (
   const {
     enableLiveUpdates = false,
     pollingInterval = PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
+    pauseLiveRestReconciliation = false,
     skipInitialFetch = false,
   } = options;
 
@@ -253,11 +273,6 @@ export const usePerpsTwapOrders = (
 
     const lifecycleGeneration = lifecycleGenerationRef.current;
 
-    // Refresh immediately when the TWAP tab becomes active. The subscription
-    // supplies schedule deltas, while this read supplies slice fills and the
-    // aggregated provider view.
-    fetchTwapOrders(true);
-
     const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
       callback: (streamedOrders) => {
         if (
@@ -316,18 +331,34 @@ export const usePerpsTwapOrders = (
       },
     });
 
-    // The venue's TWAP schedule stream does not contain slice-fill updates.
-    // Keep this bounded REST refresh even after streaming starts so Fill
-    // History and executed-size details cannot freeze.
+    return unsubscribe;
+  }, [enableLiveUpdates, identityKey]);
+
+  useEffect(() => {
+    if (!enableLiveUpdates || pauseLiveRestReconciliation) {
+      return undefined;
+    }
+
+    // Refresh immediately when live reconciliation starts or resumes. The
+    // subscription supplies schedule deltas, while this read supplies slice
+    // fills and the aggregated provider view.
+    fetchTwapOrders(true);
+
+    // The venue's TWAP schedule stream does not contain slice-fill updates, so
+    // keep this bounded REST refresh while reconciliation is not paused.
     const intervalId = setInterval(() => {
       fetchTwapOrders(true);
     }, pollingInterval);
 
     return () => {
-      unsubscribe();
       clearInterval(intervalId);
     };
-  }, [enableLiveUpdates, pollingInterval, fetchTwapOrders, identityKey]);
+  }, [
+    enableLiveUpdates,
+    fetchTwapOrders,
+    pauseLiveRestReconciliation,
+    pollingInterval,
+  ]);
 
   const isCurrentIdentity = resolvedIdentityKey === identityKey;
 

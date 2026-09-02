@@ -302,7 +302,7 @@ describe('PerpsProPositionsPanel', () => {
       isRefreshing: false,
     });
     mockUsePerpsTerminateTwap.mockReturnValue({
-      terminatingOrderId: null,
+      isTerminationInFlight: false,
       terminateTwap: mockTerminateTwap,
     });
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
