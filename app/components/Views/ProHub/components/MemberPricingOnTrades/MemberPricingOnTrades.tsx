@@ -12,10 +12,7 @@ import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
 import TradeAllowanceRow from './TradeAllowanceRow';
 
 const MemberPricingOnTrades = () => (
-  <Box
-    twClassName="gap-y-6"
-    testID={MemberPricingOnTradesTestIds.SECTION}
-  >
+  <Box twClassName="gap-y-6" testID={MemberPricingOnTradesTestIds.SECTION}>
     <Text
       variant={TextVariant.HeadingMd}
       fontWeight={FontWeight.Bold}

@@ -2,7 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS, MOCK_TRADE_ALLOWANCES } from './ProHub.constants';
+import {
+  MOCK_NEXT_PAYMENT,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+} from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -135,9 +139,7 @@ describe('ProHub', () => {
       const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
 
       expect(section).toBeOnTheScreen();
-      expect(title).toHaveTextContent(
-        strings('pro_hub.member_pricing.title'),
-      );
+      expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
 
       MOCK_TRADE_ALLOWANCES.forEach((item) => {
         const row = getByTestId(MemberPricingOnTradesTestIds.ROW(item.id));

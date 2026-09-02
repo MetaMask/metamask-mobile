@@ -37,9 +37,7 @@ describe('MemberPricingOnTrades', () => {
 
     const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
 
-    expect(title).toHaveTextContent(
-      strings('pro_hub.member_pricing.title'),
-    );
+    expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
   });
 
   it('renders a row and progress bar for each mock trade allowance', () => {
