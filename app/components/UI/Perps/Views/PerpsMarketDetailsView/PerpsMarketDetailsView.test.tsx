@@ -243,6 +243,7 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -306,6 +307,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
       getState: mockGetState,
+      addListener: mockAddListener,
       reset: mockReset,
     }),
     useRoute: () => ({
@@ -1826,6 +1828,7 @@ describe('PerpsMarketDetailsView', () => {
 
       await waitFor(() => {
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: 'customAmount',
           stack: 'Perps',
         });
         expect(mockDepositWithConfirmation).toHaveBeenCalled();

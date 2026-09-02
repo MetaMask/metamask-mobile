@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Made Perps Add funds open the deposit confirmation immediately instead of waiting for transaction prep
+
 ## [8.9.1]
 
 ### Fixed
