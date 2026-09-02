@@ -375,12 +375,12 @@ export function useTransactionCustomAmount({
         },
       });
 
-      // Always arm isMaxAmount on a full (100%) selection. TPC resolves the
-      // correct source balance for every flow — including money-account deposit
-      // max — via the getBalance callback (perps HyperLiquid, predict
-      // Polymarket, money-account mUSD + vmUSD), so no per-transaction-type
-      // exclusion or client-side full-precision override is needed here.
-      if (percentage === 100) {
+      // Arm isMaxAmount on a full (100%) selection so TPC can resolve the exact
+      // source balance via getBalance (perps HyperLiquid, predict Polymarket,
+      // money-account deposit mUSD + vmUSD). Money-account withdraws are the
+      // exception: Max must keep the explicit nested-tx amount, not treat the
+      // destination payment token balance as the source amount in post-quote.
+      if (percentage === 100 && !isMoneyAccountWithdraw) {
         setIsMax(true);
       } else if (isMaxAmount) {
         setIsMax(false);
@@ -389,7 +389,13 @@ export function useTransactionCustomAmount({
       setAmountFiat(newAmount);
       return true;
     },
-    [balanceUsd, isMaxAmount, setIsMax, setConfirmationMetric],
+    [
+      balanceUsd,
+      isMaxAmount,
+      isMoneyAccountWithdraw,
+      setIsMax,
+      setConfirmationMetric,
+    ],
   );
 
   const prevHasPrefilled = useRef(depositPrefill.hasPrefilled);
