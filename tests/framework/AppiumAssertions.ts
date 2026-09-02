@@ -83,10 +83,16 @@ export default class AppiumAssertions {
       : this.POLL_INTERVAL_MS;
     const start = Date.now();
 
+    // Short timeouts (e.g. optional-modal probes at 500ms) must use the full
+    // budget for fast polls. Reserving 2s would skip the poll loop entirely and
+    // fall through to waitForDisplayed under the default implicit wait.
+    const finalReserveMs =
+      timeout <= this.FINAL_WAIT_RESERVE_MS ? 0 : this.FINAL_WAIT_RESERVE_MS;
+
     const found = await withImplicitWait(
       this.POLL_IMPLICIT_WAIT_MS,
       async () => {
-        while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
+        while (Date.now() - start < timeout - finalReserveMs) {
           const remaining = timeout - (Date.now() - start);
           if (remaining <= 0) {
             break;
@@ -129,6 +135,9 @@ export default class AppiumAssertions {
     }
 
     const remainingTimeout = timeout - (Date.now() - start);
+    if (remainingTimeout <= 0) {
+      throw new Error(`Element not visible after ${timeout}ms`);
+    }
     await el.waitForDisplayed({
       timeout: Math.max(interval, remainingTimeout),
     });

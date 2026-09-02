@@ -10,8 +10,9 @@ import PerpsProMarketView from '../page-objects/Perps/PerpsProMarketView';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
 import WalletView from '../page-objects/wallet/WalletView';
 
+/** Presence probe for optional Perps UI (tutorial / tooltip). Keep short — smoke fixtures pre-grant notifications and usually skip GTM. */
+const PERPS_OPTIONAL_UI_PROBE_MS = 1_000;
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
-const PERPS_NOTIFICATION_TOOLTIP_WAIT_MS = 15_000;
 
 /**
  * Resolves whether the Perps GTM onboarding tutorial should be handled.
@@ -49,11 +50,16 @@ export const resolvePerpsGtmOnboardingModalEnabled = async (
  */
 export const dismissPerpsOnboardingTutorialIfPresent =
   async (): Promise<void> => {
+    if (
+      !(await Utilities.isElementVisible(
+        PerpsOnboarding.skipButton,
+        PERPS_OPTIONAL_UI_PROBE_MS,
+      ))
+    ) {
+      return;
+    }
+
     try {
-      await Assertions.expectElementToBeVisible(PerpsOnboarding.skipButton, {
-        timeout: PERPS_GTM_MODAL_FALLBACK_WAIT_MS,
-        description: 'Perps onboarding skip button',
-      });
       await Gestures.waitAndTap(PerpsOnboarding.skipButton, {
         checkForDisplayed: true,
         checkEnabled: true,
@@ -64,24 +70,25 @@ export const dismissPerpsOnboardingTutorialIfPresent =
         description: 'Perps onboarding skip button should close',
       });
     } catch {
-      // Tutorial not shown or already dismissed.
+      // Tutorial shown but dismiss failed — leave for caller / next attempt.
     }
   };
 
 /**
  * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
  * Blocks navigation until closed (first successful perps order with push disabled).
+ * Smoke specs that set `PERPS_SMOKE_PERMISSIONS` should no-op within the short probe.
  */
 export const dismissPerpsNotificationTooltipIfPresent =
   async (): Promise<void> => {
-    const turnOnTestId = PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON;
+    const turnOnEl = Matchers.getElementByID(
+      PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON,
+    );
+    if (!(await Utilities.isElementVisible(turnOnEl, PERPS_OPTIONAL_UI_PROBE_MS))) {
+      return;
+    }
 
     try {
-      const turnOnEl = Matchers.getElementByID(turnOnTestId);
-      await Assertions.expectElementToBeVisible(turnOnEl, {
-        timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
-        description: 'Perps notification tooltip',
-      });
       await Gestures.waitAndTap(turnOnEl, {
         checkForDisplayed: true,
         timeout: 10_000,
@@ -91,7 +98,7 @@ export const dismissPerpsNotificationTooltipIfPresent =
         description: 'Perps notification tooltip should close',
       });
     } catch {
-      // Tooltip not shown.
+      // Tooltip shown but dismiss failed — leave for caller / next attempt.
     }
   };
 

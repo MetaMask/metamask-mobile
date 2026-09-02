@@ -1,7 +1,7 @@
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from '../../../app/components/Views/ExperienceEnhancerModal/ExperienceEnhancerModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 
 class ExperienceEnhancerBottomSheet {
@@ -28,12 +28,13 @@ class ExperienceEnhancerBottomSheet {
    * No-op when the modal is not visible.
    */
   async dismissIfPresent(): Promise<void> {
+    // Short probe: often a no-op after login. Rely on fast poll (timeout ≤ 2s
+    // uses the full budget — see AppiumAssertions.pollUntilVisible).
+    if (!(await Utilities.isElementVisible(this.noThanksButton, 500))) {
+      return;
+    }
+
     try {
-      // Short timeout: this is often a no-op; avoid a 5s wait on every call site.
-      await Assertions.expectElementToBeVisible(this.noThanksButton, {
-        description: 'experience enhancer modal',
-        timeout: 500,
-      });
       await Gestures.waitAndTap(this.noThanksButton, {
         elemDescription: 'No Thanks Button in Experience Enhancer Bottom Sheet',
         checkForDisplayed: true,
@@ -41,7 +42,7 @@ class ExperienceEnhancerBottomSheet {
         timeout: 5_000,
       });
     } catch {
-      // Modal not shown
+      // Modal shown but dismiss failed — leave for caller / next attempt.
     }
   }
 

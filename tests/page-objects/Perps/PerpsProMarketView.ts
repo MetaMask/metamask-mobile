@@ -157,13 +157,14 @@ class PerpsProMarketView {
    * If only `PRO_SEGMENT` is present, we are already on the Pro active pill.
    */
   async switchToProMode(): Promise<void> {
+    // Lite active-pill is the common path; only spend a full wait on Pro if Lite is absent.
     const liteSegmentVisible = await Utilities.isElementVisible(
       this.liteModeSegment,
       3000,
     );
     const proSegmentVisible = await Utilities.isElementVisible(
       this.proModeSegment,
-      3000,
+      liteSegmentVisible ? 500 : 3000,
     );
 
     if (liteSegmentVisible && !proSegmentVisible) {
