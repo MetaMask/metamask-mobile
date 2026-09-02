@@ -172,9 +172,12 @@ export const SwapsMarketOrderConfirmButton = ({
   // True when the sourceAmount changed from what the current quote was
   // fetched for (stale quote during debounce window).
   const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
+  // The ref covers the gap while a refresh has cleared the active quote; once
+  // a quote is present, its slippage is the source of truth.
   const isPendingSlippageRefresh =
     Boolean(isSlippageUserOverride) &&
-    (slippage !== settledSlippageRef.current || isActiveQuoteSlippageMismatch);
+    (isActiveQuoteSlippageMismatch ||
+      (!activeQuote && slippage !== settledSlippageRef.current));
 
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
