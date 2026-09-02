@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_ERROR_CODES,
   PERFORMANCE_CONFIG,
   VALIDATION_THRESHOLDS,
   type OrderFormState,
@@ -98,6 +99,64 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
+    it('passes TWAP fields and provider route to protocol validation', async () => {
+      const twapOrderForm: OrderFormState = {
+        ...defaultOrderForm,
+        type: 'twap',
+      };
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: twapOrderForm,
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(mockValidateOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          twapDuration: 90,
+          twapRandomize: true,
+          providerId: 'hyperliquid',
+        }),
+      );
+    });
+
+    it('suppresses protocol errors owned by the calling form by code', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          orderForm: { ...defaultOrderForm, type: 'twap' },
+          twapDuration: 1,
+          suppressedProtocolErrorCodes: [
+            PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID,
+          ],
+        }),
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+      expect(result.current.errors).toEqual([]);
+    });
+
     it('keeps zero position size invalid without an amount message', async () => {
       // Arrange
       mockValidateOrder.mockResolvedValue({
@@ -223,10 +282,84 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'Insufficient balance: need 10.00, have 5',
+      ]);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
+    });
+
+    it('excludes the minimum amount error from the insufficient balance errors', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: 5,
+          marginRequired: '10.00',
+          originalUsdAmount: '3.59',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).toContain('Minimum order size is $10');
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'Insufficient balance: need 10.00, have 5',
+      ]);
+    });
+
+    it('reports protocol insufficient balance errors alongside the local ones', async () => {
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation(defaultParams),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.insufficientBalanceErrors).toEqual([
+        'perps.errors.insufficientMargin',
+      ]);
+      expect(result.current.errors).toContain(
+        'perps.errors.insufficientMargin',
+      );
+    });
+
+    it('clears the insufficient balance errors once the required margin fits the balance', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result, rerender } = renderHook(
+        (marginRequired: string) =>
+          usePerpsOrderValidation({
+            ...defaultParams,
+            spendableBalance: 5,
+            marginRequired,
+          }),
+        { initialProps: '10.00' },
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.insufficientBalanceErrors).toHaveLength(1);
+      });
+
+      rerender('1.00');
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.errors).toEqual([]);
+      expect(result.current.insufficientBalanceErrors).toEqual([]);
     });
   });
 

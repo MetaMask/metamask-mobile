@@ -162,6 +162,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     ipfsGateway,
     newTab,
     activeChainId,
+    fromExploreSearch,
     fromPerps,
     fromBenefit,
     fromCard,
@@ -1474,7 +1475,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, []);
 
     const handleClosePress = useCallback(() => {
-      if (fromPerps) {
+      if (fromExploreSearch) {
+        navigation.navigate(Routes.HOME_TABS, undefined, { pop: true });
+      } else if (fromPerps) {
         navigateToPerpsHome();
       } else if (fromBenefit) {
         navigation.goBack();
@@ -1514,6 +1517,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     }, [
       navigation,
       navigateToPerpsHome,
+      fromExploreSearch,
       fromPerps,
       fromBenefit,
       fromCard,

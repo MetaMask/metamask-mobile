@@ -15,7 +15,6 @@ import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
-import { SWAPS_CTA_BUTTON_COLOR_AB_KEY } from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
 type BridgeQuoteResponse = QuoteResponse;
@@ -101,28 +100,24 @@ const inactiveABTestResult: MockABTestResult = {
   isActive: false,
 };
 
+const expectedDefaultQuotesReceivedContext = expect.objectContaining({
+  custom_slippage: false,
+  slippage_limit: 0,
+});
+
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    numpad = inactiveABTestResult,
-    tokenSelector = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
-    ctaButtonColor = inactiveABTestResult,
     chainValueOrder = inactiveABTestResult,
   }: {
-    numpad?: MockABTestResult;
-    tokenSelector?: MockABTestResult;
     ambientColor?: MockABTestResult;
-    ctaButtonColor?: MockABTestResult;
     chainValueOrder?: MockABTestResult;
   } = {}) => {
     jest
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(numpad)
-      .mockReturnValueOnce(tokenSelector)
       .mockReturnValueOnce(ambientColor)
-      .mockReturnValueOnce(ctaButtonColor)
       .mockReturnValueOnce(chainValueOrder);
   };
 
@@ -159,6 +154,8 @@ describe('useSubmitBridgeTx', () => {
       bridge: {
         abTestContext: undefined,
         isGasIncludedSTXSendBundleSupported: true,
+        slippage: undefined,
+        isSlippageUserOverride: false,
       },
       swaps: {
         featureFlags: {
@@ -209,7 +206,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
@@ -228,10 +225,9 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
-
     // Re-render with an active assignment to verify submitTx forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -263,7 +259,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -312,7 +308,7 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
@@ -523,12 +519,12 @@ describe('useSubmitBridgeTx', () => {
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
       migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
-
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -558,7 +554,8 @@ describe('useSubmitBridgeTx', () => {
       ],
       tokenSecurityTypeDestination: null,
       inputPrimaryDenomination: 'token_amount',
-      migrationPhase: '1.5',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
@@ -598,63 +595,10 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       transactionActiveAbTests,
-      null,
-      undefined,
-      'token_amount',
-      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-    );
-  });
-
-  it('forwards CTA button color A/B test assignment via submitTx', async () => {
-    mockABTests({
-      ctaButtonColor: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    const mockQuoteResponse = {
-      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
-      ...DummyQuoteMetadata,
-    };
-    mockSubmitTx.mockResolvedValueOnce({
-      chainId: '0x1',
-      id: '1',
-      networkClientId: '1',
-      status: 'submitted',
-      time: Date.now(),
-      txParams: {
-        from: '0x1234567890123456789012345678901234567890',
-      },
-    } as TransactionMeta);
-    const { result } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
-    });
-
-    expect(mockSubmitTx).toHaveBeenLastCalledWith(
-      '0x1234567890123456789012345678901234567890',
-      {
-        ...mockQuoteResponse,
-        approval: undefined,
-      },
-      true,
-      undefined,
-      undefined,
-      undefined,
-      [
-        createActiveABTestAssignment(
-          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-          'treatment',
-        ),
-      ],
       null,
       undefined,
       'token_amount',
@@ -701,7 +645,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -762,7 +706,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -791,6 +735,8 @@ describe('useSubmitBridgeTx', () => {
           bridge: {
             abTestContext: undefined,
             isGasIncludedSTXSendBundleSupported: true,
+            slippage: undefined,
+            isSlippageUserOverride: false,
             destToken: {
               symbol: 'SCAM',
               securityData: {
@@ -829,7 +775,7 @@ describe('useSubmitBridgeTx', () => {
       '0x1234567890123456789012345678901234567890',
       expect.any(Object),
       expect.any(Boolean),
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,

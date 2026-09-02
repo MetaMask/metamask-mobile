@@ -7,10 +7,44 @@ import { Hex } from '@metamask/utils';
 import { mockUseBridgeQuoteData } from '../../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../../hooks/useBridgeQuoteData';
 import { mockQuoteWithMetadata } from '../../../_mocks_/bridgeQuoteWithMetadata';
-import { createBridgeTestState } from '../../../testUtils';
+import { ethToken1Address } from '../../../_mocks_/initialState';
+import { createBridgeTestState, createMockToken } from '../../../testUtils';
 import type { RootState } from '../../../../../../reducers';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
+
+const pricedDestToken = createMockToken({
+  address: ethToken1Address,
+  symbol: 'TOKEN1',
+});
+const unpricedDestToken = createMockToken({
+  address: '0x00000000000000000000000000000000000000ff',
+  symbol: 'MUSD',
+});
+
+const quoteWithPriceImpact = {
+  ...mockQuoteWithMetadata,
+  quote: {
+    ...mockQuoteWithMetadata.quote,
+    priceData: {
+      ...mockQuoteWithMetadata.quote.priceData,
+      priceImpact: { amount: '0.01' },
+    },
+  },
+};
+
+const quoteWithoutPriceImpact = {
+  ...mockQuoteWithMetadata,
+  quote: {
+    ...mockQuoteWithMetadata.quote,
+    priceData: undefined,
+  },
+};
+
+const mockQuoteDataWithPriceImpact = {
+  ...mockUseBridgeQuoteData,
+  activeQuote: quoteWithPriceImpact,
+};
 
 jest.mock(
   '../../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -69,6 +103,7 @@ function buildActiveQuoteState(
         name: 'Ether',
         symbol: 'ETH',
       },
+      destToken: pricedDestToken,
       ...(overrides.bridgeReducerOverrides ?? {}),
     },
   });
@@ -83,7 +118,7 @@ describe('BridgeLimitOrderFooterView', () => {
     jest.clearAllMocks();
     jest
       .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => mockUseBridgeQuoteData);
+      .mockImplementation(() => mockQuoteDataWithPriceImpact);
   });
 
   it('renders nothing when loading without an active quote', () => {
@@ -140,5 +175,59 @@ describe('BridgeLimitOrderFooterView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBeFalsy();
+  });
+
+  it('disables the confirm button when the quote has no price data', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockQuoteDataWithPriceImpact,
+        activeQuote: quoteWithoutPriceImpact,
+      }));
+
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('disables the confirm button when a selected token has no fiat rate', () => {
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { destToken: unpricedDestToken },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('keeps the confirm button enabled while the quote is for a previous token pair', () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockQuoteDataWithPriceImpact,
+        isActiveQuoteForCurrentTokenPair: false,
+        activeQuote: quoteWithoutPriceImpact,
+      }));
+
+    const { getByTestId } = renderFooter(
+      buildActiveQuoteState({
+        bridgeReducerOverrides: { destToken: unpricedDestToken },
+      }),
+    );
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON).props
+        .accessibilityState?.disabled,
+    ).toBeFalsy();
   });
 });

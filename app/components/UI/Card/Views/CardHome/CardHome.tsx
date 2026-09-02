@@ -16,14 +16,14 @@ import {
   ButtonVariant,
   ButtonSize,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconSize,
+  Spinner,
 } from '@metamask/design-system-react-native';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   CommonActions,
   StackActions,
@@ -76,7 +76,6 @@ import {
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
-import AnimatedSpinner from '../../../AnimatedSpinner';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
 import { CardType, CardMessageBoxType } from '../../types';
@@ -223,6 +222,7 @@ const CardHome = () => {
   useCardHomeAnalytics({
     data,
     isLoading,
+    isError,
     hasSetupActions,
     balanceFormatted: primaryToken?.balanceFormatted,
     rawTokenBalance: primaryToken?.rawTokenBalance,
@@ -500,7 +500,7 @@ const CardHome = () => {
           <Icon
             name={IconName.Forest}
             size={IconSize.Xl}
-            color={IconColor.Default}
+            color={IconColor.IconDefault}
           />
           <Text
             variant={TextVariant.HeadingSm}
@@ -680,7 +680,10 @@ const CardHome = () => {
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
-                <AnimatedSpinner testID="push-provisioning-spinner" />
+                <Spinner
+                  testID="push-provisioning-spinner"
+                  spinnerIconProps={{ size: IconSize.Xl }}
+                />
               </Box>
             ) : (
               <AddToWalletButton

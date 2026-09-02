@@ -1,4 +1,5 @@
 import type { Json } from '@metamask/utils';
+import { getVersion } from 'react-native-device-info';
 import {
   selectPerpsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -19,6 +20,8 @@ import {
   selectPerpsWatchlistEnabledFlag,
   selectPerpsProModeEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsMobileScaleEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
   selectPerpsRecentlyAddedEnabledFlag,
   selectPerpsShowFullAssetNamesFlag,
   selectPerpsClosePositionLimitOrderEnabledFlag,
@@ -59,6 +62,7 @@ describe('Perps Feature Flag Selectors', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env = { ...originalEnv };
+    jest.mocked(getVersion).mockReturnValue('1.0.0');
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
       'hasMinimumRequiredVersion',
@@ -2178,6 +2182,154 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       const result = selectPerpsProTriggeredOrdersEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsProTwapEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileTwap = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the TWAP minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is missing', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the remote flag is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 1,
+      });
+
+      const result = selectPerpsProTwapEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsMobileScaleEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags.perpsMobileScale = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true at the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.10.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the Scale flag is disabled', () => {
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the Scale minimum version 8.10.0', () => {
+      jest.mocked(getVersion).mockReturnValue('8.9.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.10.0',
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('defaults Scale to false when the flag is absent', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the Scale flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.1,
+      });
+
+      const result = selectPerpsMobileScaleEnabledFlag(state);
 
       expect(result).toBe(false);
     });
