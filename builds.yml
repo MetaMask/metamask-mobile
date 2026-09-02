@@ -247,8 +247,8 @@ builds:
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
   # on feature branches with the same github_environment/signing as all other e2e builds.
-  # It also enables ProfilerManager Appium start/stop hooks (performance-profiler-*) so
-  # scenarios can capture Hermes CPU profiles without device shake.
+  # It also enables startAppProfiling/stopAppProfiling (and e2e://profiler/* deeplinks)
+  # so scenarios can capture Hermes CPU profiles without device shake.
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   # E2E_BYOA_AUTH_SECRET is optional — QAMockOAuthService has a hardcoded default fallback.
   main-e2e-bs-without-srp:
@@ -276,8 +276,8 @@ builds:
   # IS_PERFORMANCE_TEST suppresses E2E startup overhead (ReadOnlyNetworkStore, command
   # polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so this build works
   # on feature branches with the same github_environment/signing as all other e2e builds.
-  # It also enables ProfilerManager Appium start/stop hooks (performance-profiler-*) so
-  # scenarios can capture Hermes CPU profiles without device shake.
+  # It also enables startAppProfiling/stopAppProfiling (and e2e://profiler/* deeplinks)
+  # so scenarios can capture Hermes CPU profiles without device shake.
   # The seedless-onboarding controller is still mocked via E2E_MOCK_OAUTH.
   main-e2e-bs-with-srp:
     github_environment: build-e2e

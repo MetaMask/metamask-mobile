@@ -4,9 +4,7 @@ import { Platform, Share } from 'react-native';
 import RNFS from 'react-native-fs';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 import ShakeDetector from './ShakeDetector';
-import ProfilerManager, {
-  PERFORMANCE_PROFILER_TEST_IDS,
-} from './ProfilerManager';
+import ProfilerManager from './ProfilerManager';
 
 jest.mock('react-native-device-info', () => ({
   getBundleId: jest.fn(),
@@ -35,20 +33,17 @@ describe('ProfilerManager', () => {
   describe('environment-based enabling', () => {
     it('enables profiler when enabled prop is true', () => {
       render(<ProfilerManager enabled />);
-
       expect(ShakeDetector).toHaveBeenCalled();
     });
 
     it('disables profiler when enabled prop is false', () => {
       const { toJSON } = render(<ProfilerManager enabled={false} />);
-
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
     });
 
     it('disables profiler when enabled prop is undefined and no environment set', () => {
       const { toJSON } = render(<ProfilerManager />);
-
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
     });
@@ -57,85 +52,13 @@ describe('ProfilerManager', () => {
   describe('forced enabling via props', () => {
     it('enables profiler when forced via props regardless of environment', () => {
       render(<ProfilerManager enabled />);
-
       expect(ShakeDetector).toHaveBeenCalled();
     });
 
     it('disables profiler when explicitly disabled via props', () => {
       const { toJSON } = render(<ProfilerManager enabled={false} />);
-
       expect(toJSON()).toBeNull();
       expect(ShakeDetector).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('performance test Appium controls', () => {
-    it('hides Appium profiler controls when performanceTestControls is false', () => {
-      const { queryByTestId } = render(
-        <ProfilerManager enabled performanceTestControls={false} />,
-      );
-
-      expect(
-        queryByTestId(PERFORMANCE_PROFILER_TEST_IDS.start),
-      ).toBeNull();
-      expect(queryByTestId(PERFORMANCE_PROFILER_TEST_IDS.stop)).toBeNull();
-    });
-
-    it('starts and stops profiling from Appium controls', async () => {
-      const mockProfilePath = '/sdcard/Download/mock-profile.cpuprofile';
-      (startProfiling as jest.Mock).mockResolvedValue(undefined);
-      (stopProfiling as jest.Mock).mockResolvedValue(mockProfilePath);
-
-      const { getByTestId, queryByTestId } = render(
-        <ProfilerManager enabled performanceTestControls />,
-      );
-
-      expect(
-        queryByTestId(PERFORMANCE_PROFILER_TEST_IDS.recordingReady),
-      ).toBeNull();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(PERFORMANCE_PROFILER_TEST_IDS.start));
-      });
-
-      expect(startProfiling).toHaveBeenCalledTimes(1);
-      expect(
-        getByTestId(PERFORMANCE_PROFILER_TEST_IDS.recordingReady),
-      ).toBeTruthy();
-
-      await act(async () => {
-        fireEvent.press(getByTestId(PERFORMANCE_PROFILER_TEST_IDS.stop));
-      });
-
-      expect(stopProfiling).toHaveBeenCalledWith(true);
-      expect(
-        queryByTestId(PERFORMANCE_PROFILER_TEST_IDS.recordingReady),
-      ).toBeNull();
-      expect(
-        getByTestId(PERFORMANCE_PROFILER_TEST_IDS.resultReady),
-      ).toBeTruthy();
-      expect(
-        getByTestId(PERFORMANCE_PROFILER_TEST_IDS.resultReady).props
-          .accessibilityLabel,
-      ).toBe(
-        `${PERFORMANCE_PROFILER_TEST_IDS.resultReady}:${mockProfilePath}`,
-      );
-    });
-
-    it('surfaces stop error when Appium stop is pressed without an active session', async () => {
-      const { getByTestId } = render(
-        <ProfilerManager enabled performanceTestControls />,
-      );
-
-      await act(async () => {
-        fireEvent.press(getByTestId(PERFORMANCE_PROFILER_TEST_IDS.stop));
-      });
-
-      expect(getByTestId(PERFORMANCE_PROFILER_TEST_IDS.error)).toBeTruthy();
-      expect(
-        getByTestId(PERFORMANCE_PROFILER_TEST_IDS.error).props
-          .accessibilityLabel,
-      ).toContain('no active profiling session');
     });
   });
 

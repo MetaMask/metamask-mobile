@@ -29,19 +29,32 @@ Notes:
 - iOS ignores "save to downloads" and always writes to Caches; use Export to share it.
 - Android copies to Downloads when profiling stops.
 
-#### Performance-test APKs (Appium, no shake)
+#### Performance-test APKs (programmatic profiling)
 
-BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. Those APKs mount invisible Appium controls that call the same `startProfiling` / `stopProfiling` APIs as the shake UI — smoke e2e and production builds do not get these hooks.
+BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. Those APKs include:
 
-From a performance Appium scenario:
+```ts
+import { startAppProfiling, stopAppProfiling } from 'app/core/Performance';
 
-1. Click `~performance-profiler-start` (or `id=performance-profiler-start`).
-2. Wait for `~performance-profiler-recording-ready`.
-3. Run the journey under test.
-4. Click `~performance-profiler-stop`.
-5. Wait for `~performance-profiler-result-ready` (accessibility label includes the on-device `.cpuprofile` path). On Android the file is under Downloads.
+await startAppProfiling();
+// ... flow to measure ...
+const path = await stopAppProfiling();
+```
 
-Constants live in `PERFORMANCE_PROFILER_TEST_IDS` inside `app/components/UI/ProfilerManager/ProfilerManager.tsx`.
+Outside performance APKs these functions no-op. Appium scenarios invoke the same functions through deeplinks (no shake, no UI):
+
+```ts
+import {
+  startAppProfilingFromTest,
+  stopAppProfilingFromTest,
+} from '../performance/helpers/appProfiling';
+
+await startAppProfilingFromTest(); // metamask://e2e/profiler/start
+// ... scenario ...
+await stopAppProfilingFromTest(); // metamask://e2e/profiler/stop
+```
+
+On Android the `.cpuprofile` is written under Downloads when stop completes.
 
 ### 3) Convert and view in Chrome tracing
 

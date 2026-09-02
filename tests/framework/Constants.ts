@@ -216,6 +216,7 @@ export const DEFAULT_BROWSER_PLAYGROUND_PATH = path.join(
 export enum E2EDeeplinkSchemes {
   PERPS = 'e2e://perps/',
   QR_SYNC = 'e2e://qr-sync/',
+  PROFILER = 'e2e://profiler/',
 }
 
 /**

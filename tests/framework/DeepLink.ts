@@ -14,6 +14,7 @@ const logger = createLogger({
 const E2E_SCHEME_TO_METAMASK_PREFIX: Record<E2EDeeplinkSchemes, string> = {
   [E2EDeeplinkSchemes.PERPS]: 'metamask://e2e/perps/',
   [E2EDeeplinkSchemes.QR_SYNC]: 'metamask://e2e/qr-sync/',
+  [E2EDeeplinkSchemes.PROFILER]: 'metamask://e2e/profiler/',
 };
 
 const mapToMetamaskScheme = (url: string): string => {
