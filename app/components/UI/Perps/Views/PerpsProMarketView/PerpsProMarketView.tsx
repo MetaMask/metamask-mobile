@@ -39,7 +39,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
@@ -295,9 +294,6 @@ const PerpsProMarketView = ({
   }, [setOrderBookExpanded]);
 
   const handleExpandOrderBook = useCallback(() => {
-    DevLogger.log(
-      '[PR-TAT-3773] BUG_MARKER: expanding the Pro order book triggers the header transition',
-    );
     setOrderBookExpanded(true);
   }, [setOrderBookExpanded]);
 
