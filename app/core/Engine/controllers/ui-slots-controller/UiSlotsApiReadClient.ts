@@ -23,7 +23,6 @@ export interface FetchUiSlotsScreenRequest {
   screenId: UiSlotsScreenId;
   locale: string;
   etag?: string;
-  signal?: AbortSignal;
 }
 
 export interface UiSlotsReadTransport {
@@ -56,6 +55,13 @@ export class UiSlotsTimeoutError extends Error {
   }
 }
 
+export const isRetryableUiSlotsError = (error: unknown): boolean =>
+  error instanceof UiSlotsInvalidResponseError ||
+  error instanceof UiSlotsTimeoutError ||
+  (error instanceof UiSlotsHttpError
+    ? error.status === 429 || error.status >= 500
+    : error instanceof TypeError);
+
 export class UiSlotsApiReadClient implements UiSlotsReadTransport {
   readonly #baseUrl: URL;
   readonly #clientVersion: string;
@@ -70,7 +76,9 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
     clientVersion: string;
     fetch?: typeof fetch;
   }) {
-    this.#baseUrl = new URL(baseUrl);
+    const url = new URL(baseUrl);
+    url.pathname = `${url.pathname.replace(/\/$/u, '')}/`;
+    this.#baseUrl = url;
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
   }
@@ -79,26 +87,19 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
     screenId,
     locale,
     etag,
-    signal,
   }: FetchUiSlotsScreenRequest): Promise<FetchUiSlotsScreenResult> {
     const url = new URL(
       `v1/config/ui-slots/${encodeArtifactPart(
         screenId,
       )}.${encodeArtifactPart(locale)}`,
-      this.#baseUrlWithTrailingSlash(),
+      this.#baseUrl,
     );
 
     const requestController = new AbortController();
     let timedOut = false;
-    const abortRequest = () => requestController.abort();
-    if (signal?.aborted) {
-      abortRequest();
-    } else {
-      signal?.addEventListener('abort', abortRequest, { once: true });
-    }
     const timeout = setTimeout(() => {
       timedOut = true;
-      abortRequest();
+      requestController.abort();
     }, UI_SLOTS_REQUEST_TIMEOUT_MS);
 
     try {
@@ -144,13 +145,6 @@ export class UiSlotsApiReadClient implements UiSlotsReadTransport {
       throw error;
     } finally {
       clearTimeout(timeout);
-      signal?.removeEventListener('abort', abortRequest);
     }
-  }
-
-  #baseUrlWithTrailingSlash(): URL {
-    const url = new URL(this.#baseUrl.toString());
-    url.pathname = `${url.pathname.replace(/\/$/u, '')}/`;
-    return url;
   }
 }

@@ -7,7 +7,6 @@ import type {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
-import type { UiSlotsDataServiceActions } from './UiSlotsDataService';
 
 export const UI_SLOTS_CONTROLLER_NAME = 'UiSlotsController' as const;
 
@@ -23,7 +22,6 @@ export interface UiSlotWidgetMap {}
 export interface UiSlotDataReferenceMap {}
 
 export type UiSlotsScreenId = keyof UiSlotsScreenIdMap & string;
-export type UiSlotsConfigurationKey = string;
 
 export type UiSlotWidget = UiSlotWidgetMap[keyof UiSlotWidgetMap];
 
@@ -60,7 +58,7 @@ export type StoredScreenConfiguration = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ActiveScreenConfiguration = {
-  configurationKey: UiSlotsConfigurationKey;
+  configurationKey: string;
   slotsById: Record<string, UiSlot>;
 };
 
@@ -72,10 +70,7 @@ export interface UiSlotsDiagnostics {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UiSlotsControllerState = {
   enabled: boolean;
-  screenConfigurations: Record<
-    UiSlotsConfigurationKey,
-    StoredScreenConfiguration
-  >;
+  screenConfigurations: Record<string, StoredScreenConfiguration>;
   /**
    * Interpreted slots for the configuration currently on screen. Derived from
    * `screenConfigurations`, so it is never persisted.
@@ -101,6 +96,6 @@ export type UiSlotsControllerEvents =
 
 export type UiSlotsControllerMessenger = Messenger<
   typeof UI_SLOTS_CONTROLLER_NAME,
-  UiSlotsControllerActions | UiSlotsDataServiceActions,
+  UiSlotsControllerActions,
   UiSlotsControllerEvents
 >;

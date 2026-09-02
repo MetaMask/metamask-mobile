@@ -142,7 +142,6 @@ import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
-import { getUiSlotsDataServiceMessenger } from './ui-slots-data-service-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-service-messenger';
@@ -469,10 +468,6 @@ export const MESSENGER_FACTORIES = {
   },
   CardController: {
     getMessenger: getCardControllerMessenger,
-    getInitMessenger: noop,
-  },
-  UiSlotsDataService: {
-    getMessenger: getUiSlotsDataServiceMessenger,
     getInitMessenger: noop,
   },
   UiSlotsController: {

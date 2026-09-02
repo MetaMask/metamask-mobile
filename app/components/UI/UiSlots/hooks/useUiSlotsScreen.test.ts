@@ -9,7 +9,6 @@ import {
 import { normalizeUiSlotsLocale, useUiSlotsScreen } from './useUiSlotsScreen';
 
 const mockLoadScreen = jest.fn().mockResolvedValue('ready');
-const mockSetBasicFunctionalityEnabled = jest.fn();
 const mockGetNextRefreshAt = jest.fn((): number | undefined => undefined);
 
 jest.mock('@react-navigation/native', () => {
@@ -43,8 +42,6 @@ jest.mock('../../../../core/Engine', () => ({
       UiSlotsController: {
         getNextRefreshAt: () => mockGetNextRefreshAt(),
         loadScreen: (...args: unknown[]) => mockLoadScreen(...args),
-        setBasicFunctionalityEnabled: (...args: unknown[]) =>
-          mockSetBasicFunctionalityEnabled(...args),
       },
     },
   },
@@ -161,15 +158,10 @@ describe('useUiSlotsScreen', () => {
   });
 
   it('does not load when basic functionality is disabled', async () => {
-    jest
-      .mocked(useSelector)
-      .mockReset()
-      .mockReturnValueOnce(true)
-      .mockReturnValueOnce(false);
+    jest.mocked(useSelector).mockReset().mockReturnValue(false);
     renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
     await act(async () => undefined);
 
-    expect(mockSetBasicFunctionalityEnabled).toHaveBeenCalledWith(false);
     expect(mockLoadScreen).not.toHaveBeenCalled();
   });
 

@@ -1,105 +1,78 @@
-import type { PartialUiSlotsContractRegistry } from '../../../../../core/Engine/controllers/ui-slots-controller/contracts/registry';
+import {
+  array,
+  assert,
+  define,
+  literal,
+  object,
+  size,
+  union,
+} from '@metamask/superstruct';
+import type { UiSlotsContractRegistry } from '../../../../../core/Engine/controllers/ui-slots-controller/contracts/registry';
 import type {
   PredictDiscoveryListWidget,
   PredictHomepageMarketSlotReference,
-  PredictHomepageMarketSlotReferenceItem,
 } from '../types';
-import { isPredictHomepageSeriesId } from '../seriesRegistry';
+import {
+  isPredictHomepageSeriesId,
+  type PredictHomepageSeriesId,
+} from '../seriesRegistry';
 
 const MAX_PREDICT_HOMEPAGE_MARKET_SLOTS = 10;
 const MAX_PREDICT_HOMEPAGE_EVENT_IDENTIFIER_LENGTH = 512;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const hasExactKeys = (
-  value: Record<string, unknown>,
-  expectedKeys: readonly string[],
-): boolean => {
-  const keys = Object.keys(value);
-  return (
-    keys.length === expectedKeys.length &&
-    keys.every((key) => expectedKeys.includes(key))
-  );
-};
-
-const isNonBlankString = (value: unknown): value is string =>
-  typeof value === 'string' &&
-  value.trim().length > 0 &&
-  value.length <= MAX_PREDICT_HOMEPAGE_EVENT_IDENTIFIER_LENGTH;
+const eventIdentifier = define<string>(
+  'non-blank Predict event identifier',
+  (value) =>
+    typeof value === 'string' &&
+    value.trim().length > 0 &&
+    value.length <= MAX_PREDICT_HOMEPAGE_EVENT_IDENTIFIER_LENGTH,
+);
+const seriesId = define<PredictHomepageSeriesId>(
+  'supported Predict homepage series',
+  isPredictHomepageSeriesId,
+);
+const discoveryListWidget = object({
+  type: literal('predict-discovery-list'),
+  schemaVersion: literal(1),
+  props: object({}),
+});
+const marketSlotsReference = object({
+  id: literal('markets'),
+  type: literal('predict-homepage-market-slots'),
+  params: object({
+    venue: literal('polymarket'),
+    items: size(
+      array(
+        union([
+          object({
+            type: literal('event'),
+            id: eventIdentifier,
+            slug: eventIdentifier,
+          }),
+          object({ type: literal('series'), seriesId }),
+        ]),
+      ),
+      1,
+      MAX_PREDICT_HOMEPAGE_MARKET_SLOTS,
+    ),
+  }),
+});
 
 const parsePredictDiscoveryListWidget = (
   value: unknown,
 ): PredictDiscoveryListWidget => {
-  if (
-    !isRecord(value) ||
-    !hasExactKeys(value, ['type', 'schemaVersion', 'props']) ||
-    value.type !== 'predict-discovery-list' ||
-    value.schemaVersion !== 1 ||
-    !isRecord(value.props) ||
-    !hasExactKeys(value.props, [])
-  ) {
-    throw new Error('Invalid Predict discovery list widget.');
-  }
-
-  return {
-    type: 'predict-discovery-list',
-    schemaVersion: 1,
-    props: {},
-  };
-};
-
-const parsePredictHomepageMarketSlotItem = (
-  value: unknown,
-): PredictHomepageMarketSlotReferenceItem => {
-  if (!isRecord(value) || typeof value.type !== 'string') {
-    throw new Error('Invalid Predict homepage market slot item.');
-  }
-  if (value.type === 'event') {
-    if (
-      !hasExactKeys(value, ['type', 'id', 'slug']) ||
-      !isNonBlankString(value.id) ||
-      !isNonBlankString(value.slug)
-    ) {
-      throw new Error('Invalid Predict homepage event slot.');
-    }
-    return { type: 'event', id: value.id, slug: value.slug };
-  }
-  if (value.type === 'series') {
-    if (
-      !hasExactKeys(value, ['type', 'seriesId']) ||
-      !isPredictHomepageSeriesId(value.seriesId)
-    ) {
-      throw new Error('Invalid Predict homepage series slot.');
-    }
-    return { type: 'series', seriesId: value.seriesId };
-  }
-  throw new Error('Unknown Predict homepage market slot item type.');
+  assert(value, discoveryListWidget);
+  return value;
 };
 
 const parsePredictHomepageMarketSlotReference = (
   value: unknown,
 ): PredictHomepageMarketSlotReference => {
-  if (
-    !isRecord(value) ||
-    !hasExactKeys(value, ['id', 'type', 'params']) ||
-    value.id !== 'markets' ||
-    value.type !== 'predict-homepage-market-slots' ||
-    !isRecord(value.params) ||
-    !hasExactKeys(value.params, ['venue', 'items']) ||
-    value.params.venue !== 'polymarket' ||
-    !Array.isArray(value.params.items) ||
-    value.params.items.length === 0 ||
-    value.params.items.length > MAX_PREDICT_HOMEPAGE_MARKET_SLOTS
-  ) {
-    throw new Error('Invalid Predict homepage market slots reference.');
-  }
-
-  const items = value.params.items.map(parsePredictHomepageMarketSlotItem);
+  assert(value, marketSlotsReference);
   const eventIds = new Set<string>();
   const eventSlugs = new Set<string>();
   const seriesIds = new Set<string>();
-  for (const item of items) {
+  for (const item of value.params.items) {
     if (item.type === 'event') {
       if (eventIds.has(item.id) || eventSlugs.has(item.slug)) {
         throw new Error('Duplicate Predict homepage event slot.');
@@ -114,21 +87,21 @@ const parsePredictHomepageMarketSlotReference = (
     }
   }
 
-  return {
-    id: 'markets',
-    type: 'predict-homepage-market-slots',
-    params: {
-      venue: 'polymarket',
-      items,
-    },
-  };
+  return value;
 };
 
-export const PREDICT_UI_SLOTS_V1_CONTRACTS: PartialUiSlotsContractRegistry = {
+export const PREDICT_UI_SLOTS_V1_CONTRACTS = {
+  slots: {
+    'wallet-home.predict-empty-state': {
+      widgetTypes: ['predict-discovery-list'],
+      dataReferenceTypes: ['predict-homepage-market-slots'],
+      requiredDataReferenceTypes: ['predict-homepage-market-slots'],
+    },
+  },
   widgets: {
     'predict-discovery-list': parsePredictDiscoveryListWidget,
   },
   dataReferences: {
     'predict-homepage-market-slots': parsePredictHomepageMarketSlotReference,
   },
-};
+} satisfies UiSlotsContractRegistry;

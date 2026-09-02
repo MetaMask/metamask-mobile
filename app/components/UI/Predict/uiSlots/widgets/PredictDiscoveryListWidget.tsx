@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo } from 'react';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
 import HomepagePredictDiscovery from '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery';
 import {
@@ -12,9 +12,9 @@ import {
   type PredictHomepageMarketSlotReference,
 } from '../types';
 import { PREDICT_HOMEPAGE_SERIES_REGISTRY } from '../seriesRegistry';
-import { usePredictDiscoveryListHost } from './PredictDiscoveryListContext';
+import { PredictDiscoveryListHostContext } from './PredictDiscoveryListContext';
 
-export const resolveHomepagePredictMarketSlots = (
+const resolveHomepagePredictMarketSlots = (
   reference: PredictHomepageMarketSlotReference,
 ): HomepagePredictMarketSlot[] =>
   reference.params.items.map((item) =>
@@ -31,7 +31,10 @@ function ActivePredictDiscoveryList({
 }: {
   slots: readonly HomepagePredictMarketSlot[];
 }) {
-  const host = usePredictDiscoveryListHost();
+  const host = useContext(PredictDiscoveryListHostContext);
+  if (!host) {
+    throw new Error('Predict discovery list host context is missing.');
+  }
   const { registerDiscoveryRefetch, reportDiscoveryLoading } = host;
   const marketSlots = useHomepagePredictMarketSlots({
     enabled: host.enabled,
@@ -69,27 +72,19 @@ export function BundledPredictDiscoveryList() {
   return <ActivePredictDiscoveryList slots={HOMEPAGE_PREDICT_MARKET_SLOTS} />;
 }
 
-function ResolvedPredictDiscoveryList({
-  reference,
-}: {
-  reference: PredictHomepageMarketSlotReference;
-}) {
-  const slots = useMemo(
-    () => resolveHomepagePredictMarketSlots(reference),
-    [reference],
-  );
-  return <ActivePredictDiscoveryList slots={slots} />;
-}
-
 export function PredictDiscoveryListWidget({ slot }: { slot: UiSlot }) {
   const reference = slot.dataReferences?.find(
     isPredictHomepageMarketSlotReference,
   );
-  if (!reference) {
+  const slots = useMemo(
+    () => reference && resolveHomepagePredictMarketSlots(reference),
+    [reference],
+  );
+  if (!slots) {
     throw new Error(
       'Predict discovery list requires a market slots data reference.',
     );
   }
 
-  return <ResolvedPredictDiscoveryList reference={reference} />;
+  return <ActivePredictDiscoveryList slots={slots} />;
 }

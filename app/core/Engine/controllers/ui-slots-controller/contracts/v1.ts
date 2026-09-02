@@ -7,6 +7,7 @@ import {
   optional,
   string,
   unknown,
+  type Infer,
 } from '@metamask/superstruct';
 import type { UiSlot, UiSlotsScreenResponse } from '../types';
 import type { UiSlotsContractRegistry } from './registry';
@@ -19,8 +20,12 @@ export type UiSlotsRejectionCode =
   | 'invalid-data-reference'
   | 'invalid-slot'
   | 'invalid-widget'
+  | 'missing-required-data-reference'
+  | 'unknown-slot'
   | 'unknown-data-reference'
-  | 'unknown-widget';
+  | 'unknown-widget'
+  | 'unsupported-data-reference'
+  | 'unsupported-widget';
 
 export interface UiSlotsRejection {
   index: number;
@@ -76,48 +81,31 @@ const slotBaseSchema = object({
   dataReferences: optional(array(unknown())),
 });
 
-function parseWidget(value: unknown, registry: UiSlotsContractRegistry) {
+function parseRegistered<T>(
+  value: unknown,
+  parsers: Record<string, (value: unknown) => T>,
+  invalidCode: UiSlotsRejectionCode,
+  unknownCode: UiSlotsRejectionCode,
+): T {
   let base: { type: string };
   try {
     base = mask(value, object({ type: string() }));
   } catch {
-    throw new UiSlotsContractError('invalid-widget');
+    throw new UiSlotsContractError(invalidCode);
   }
-  const parser = registry.widgets[base.type];
+  const parser = parsers[base.type];
   if (!parser) {
-    throw new UiSlotsContractError('unknown-widget');
+    throw new UiSlotsContractError(unknownCode);
   }
   try {
     return parser(value);
   } catch {
-    throw new UiSlotsContractError('invalid-widget');
+    throw new UiSlotsContractError(invalidCode);
   }
-}
-
-function parseDataReference(value: unknown, registry: UiSlotsContractRegistry) {
-  let base: { type: string };
-  try {
-    base = mask(value, object({ type: string() }));
-  } catch {
-    throw new UiSlotsContractError('invalid-data-reference');
-  }
-  const parser = registry.dataReferences[base.type];
-  if (!parser) {
-    throw new UiSlotsContractError('unknown-data-reference');
-  }
-  try {
-    return parser(value);
-  } catch {
-    throw new UiSlotsContractError('invalid-data-reference');
-  }
-}
-
-function parseSlotBase(value: unknown) {
-  return mask(value, slotBaseSchema);
 }
 
 function parseUiSlot(
-  base: ReturnType<typeof parseSlotBase>,
+  base: Infer<typeof slotBaseSchema>,
   registry: UiSlotsContractRegistry,
 ): UiSlot {
   if (base.actions?.length) {
@@ -130,7 +118,12 @@ function parseUiSlot(
     throw new UiSlotsContractError('invalid-data-reference');
   }
   const dataReferences = base.dataReferences?.map((reference) =>
-    parseDataReference(reference, registry),
+    parseRegistered(
+      reference,
+      registry.dataReferences,
+      'invalid-data-reference',
+      'unknown-data-reference',
+    ),
   );
   if (
     dataReferences &&
@@ -140,13 +133,41 @@ function parseUiSlot(
     throw new UiSlotsContractError('invalid-data-reference');
   }
 
-  return {
+  const slot: UiSlot = {
     slotId: base.slotId,
     contentId: base.contentId,
     revision: base.revision,
-    widget: parseWidget(base.widget, registry),
+    widget: parseRegistered(
+      base.widget,
+      registry.widgets,
+      'invalid-widget',
+      'unknown-widget',
+    ),
     dataReferences,
   };
+  const definition = registry.slots[slot.slotId];
+  if (!definition) {
+    throw new UiSlotsContractError('unknown-slot');
+  }
+  if (definition && !definition.widgetTypes.includes(slot.widget.type)) {
+    throw new UiSlotsContractError('unsupported-widget');
+  }
+  if (
+    definition &&
+    !(dataReferences ?? []).every((reference) =>
+      definition.dataReferenceTypes.includes(reference.type),
+    )
+  ) {
+    throw new UiSlotsContractError('unsupported-data-reference');
+  }
+  if (
+    definition?.requiredDataReferenceTypes?.some(
+      (type) => !dataReferences?.some((reference) => reference.type === type),
+    )
+  ) {
+    throw new UiSlotsContractError('missing-required-data-reference');
+  }
+  return slot;
 }
 
 export function parseUiSlotsResponse(
@@ -164,23 +185,19 @@ export function parseUiSlotsResponse(
   const rejections: UiSlotsRejection[] = [];
   const candidates = envelope.slots.map((candidate, index) => {
     try {
-      return { index, base: parseSlotBase(candidate) };
+      return { index, base: mask(candidate, slotBaseSchema) };
     } catch {
       throw new UiSlotsResponseValidationError('invalid-slot-structure');
     }
   });
 
-  const slotIds = new Set<string>();
-  const contentIds = new Set<string>();
-  for (const { base } of candidates) {
-    if (slotIds.has(base.slotId)) {
-      throw new UiSlotsResponseValidationError('duplicate-slot-id');
-    }
-    if (contentIds.has(base.contentId)) {
-      throw new UiSlotsResponseValidationError('duplicate-content-id');
-    }
-    slotIds.add(base.slotId);
-    contentIds.add(base.contentId);
+  const slotIds = candidates.map(({ base }) => base.slotId);
+  if (new Set(slotIds).size !== slotIds.length) {
+    throw new UiSlotsResponseValidationError('duplicate-slot-id');
+  }
+  const contentIds = candidates.map(({ base }) => base.contentId);
+  if (new Set(contentIds).size !== contentIds.length) {
+    throw new UiSlotsResponseValidationError('duplicate-content-id');
   }
 
   for (const { index, base } of candidates) {

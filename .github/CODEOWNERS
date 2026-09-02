@@ -331,9 +331,7 @@ app/components/Views/Homepage/components/        @MetaMask/mobile-core-ux
 app/components/UI/Predict/uiSlots/                @MetaMask/mobile-core-ux
 app/components/UI/UiSlots/                        @MetaMask/mobile-core-ux
 app/core/Engine/controllers/ui-slots-controller/  @MetaMask/mobile-core-ux
-app/core/Engine/controllers/ui-slots-data-service-init.ts @MetaMask/mobile-core-ux
 app/core/Engine/messengers/ui-slots-controller-messenger/ @MetaMask/mobile-core-ux
-app/core/Engine/messengers/ui-slots-data-service-messenger/ @MetaMask/mobile-core-ux
 app/selectors/uiSlotsController.ts                 @MetaMask/mobile-core-ux
 
 # Transactions Team

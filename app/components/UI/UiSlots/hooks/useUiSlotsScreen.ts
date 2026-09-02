@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
-import type { UiSlotsLoadOutcome } from '../../../../core/Engine/controllers/ui-slots-controller/UiSlotsController';
 import type { UiSlotsScreenId } from '../../../../core/Engine/controllers/ui-slots-controller/types';
-import { selectBasicFunctionalityEnabledForRemoteFlags } from '../../../../selectors/featureFlagController';
 import { selectUiSlotsEnabled } from '../../../../selectors/uiSlotsController';
 import Logger from '../../../../util/Logger';
 
@@ -47,23 +45,13 @@ export function useUiSlotsScreen(
   );
   const locale = normalizeUiSlotsLocale(selectedLocale);
   const enabled = useSelector(selectUiSlotsEnabled);
-  const basicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabledForRemoteFlags,
-  );
-
-  useEffect(() => {
-    Engine.context.UiSlotsController.setBasicFunctionalityEnabled(
-      basicFunctionalityEnabled,
-    );
-  }, [basicFunctionalityEnabled]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!active || !enabled || !basicFunctionalityEnabled) {
+      if (!active || !enabled) {
         return undefined;
       }
 
-      let cancelled = false;
       let timer: ReturnType<typeof setTimeout> | undefined;
       let generation = 0;
       let retryDelay = INITIAL_RETRY_DELAY_MS;
@@ -83,22 +71,12 @@ export function useUiSlotsScreen(
           return;
         }
 
-        let outcome: UiSlotsLoadOutcome;
-        try {
-          outcome = await Engine.context.UiSlotsController.loadScreen(
-            screenId,
-            locale,
-          );
-        } catch (error) {
-          outcome = 'error' as const;
-          Logger.error(
-            error instanceof Error
-              ? error
-              : new Error('Failed to request UI Slots screen.'),
-          );
-        }
+        const outcome = await Engine.context.UiSlotsController.loadScreen(
+          screenId,
+          locale,
+        );
 
-        if (cancelled || currentGeneration !== generation || !isAppActive()) {
+        if (currentGeneration !== generation || !isAppActive()) {
           return;
         }
 
@@ -141,11 +119,10 @@ export function useUiSlotsScreen(
       loadAndSchedule().catch(Logger.error);
 
       return () => {
-        cancelled = true;
         generation += 1;
         clearTimer();
         appStateSubscription.remove();
       };
-    }, [active, basicFunctionalityEnabled, enabled, locale, screenId]),
+    }, [active, enabled, locale, screenId]),
   );
 }

@@ -3,8 +3,8 @@ import {
   UiSlotsHttpError,
   UiSlotsInvalidResponseError,
   UiSlotsTimeoutError,
+  isRetryableUiSlotsError,
 } from './UiSlotsApiReadClient';
-import { isRetryableUiSlotsError } from './UiSlotsDataService';
 import type { UiSlotsScreenId } from './types';
 import { UI_SLOTS_REQUEST_TIMEOUT_MS } from './config';
 

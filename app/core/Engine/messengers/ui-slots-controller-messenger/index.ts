@@ -21,10 +21,7 @@ export function getUiSlotsControllerMessenger(
 
   rootMessenger.delegate({
     messenger,
-    actions: [
-      'UiSlotsDataService:getScreen',
-      'RemoteFeatureFlagController:getState',
-    ],
+    actions: ['RemoteFeatureFlagController:getState'],
     events: ['RemoteFeatureFlagController:stateChange'],
   });
 

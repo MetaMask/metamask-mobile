@@ -3,11 +3,8 @@ import { render } from '@testing-library/react-native';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
 import { BTC_UP_OR_DOWN_5M_SERIES } from '../../constants/btcUpDown5mSeries';
 import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sections/Predictions/hooks';
-import { PredictDiscoveryListHostProvider } from './PredictDiscoveryListContext';
-import {
-  PredictDiscoveryListWidget,
-  resolveHomepagePredictMarketSlots,
-} from './PredictDiscoveryListWidget';
+import { PredictDiscoveryListHostContext } from './PredictDiscoveryListContext';
+import { PredictDiscoveryListWidget } from './PredictDiscoveryListWidget';
 import type { PredictHomepageMarketSlotReference } from '../types';
 
 const mockHomepagePredictDiscovery = jest.fn((_props: unknown) => null);
@@ -68,16 +65,6 @@ describe('PredictDiscoveryListWidget', () => {
     });
   });
 
-  it('maps validated remote items to domain slots in exact order', () => {
-    const result = resolveHomepagePredictMarketSlots(reference);
-
-    expect(result).toEqual([
-      { type: 'event', id: 'event-1', slug: 'event-one' },
-      { type: 'series', series: BTC_UP_OR_DOWN_5M_SERIES },
-      { type: 'event', id: 'event-2', slug: 'event-two' },
-    ]);
-  });
-
   it('mounts one query for the resolved remote assignment', () => {
     const host = {
       enabled: true,
@@ -89,9 +76,9 @@ describe('PredictDiscoveryListWidget', () => {
     };
 
     render(
-      <PredictDiscoveryListHostProvider value={host}>
+      <PredictDiscoveryListHostContext.Provider value={host}>
         <PredictDiscoveryListWidget slot={slot} />
-      </PredictDiscoveryListHostProvider>,
+      </PredictDiscoveryListHostContext.Provider>,
     );
 
     expect(useHomepagePredictMarketSlots).toHaveBeenCalledTimes(1);
@@ -116,19 +103,19 @@ describe('PredictDiscoveryListWidget', () => {
       reportDiscoveryLoading: jest.fn(),
     };
     const { rerender } = render(
-      <PredictDiscoveryListHostProvider value={host}>
+      <PredictDiscoveryListHostContext.Provider value={host}>
         <PredictDiscoveryListWidget slot={slot} />
-      </PredictDiscoveryListHostProvider>,
+      </PredictDiscoveryListHostContext.Provider>,
     );
     const firstSlots = jest.mocked(useHomepagePredictMarketSlots).mock
       .calls[0][0].slots;
 
     rerender(
-      <PredictDiscoveryListHostProvider
+      <PredictDiscoveryListHostContext.Provider
         value={{ ...host, title: 'Updated title' }}
       >
         <PredictDiscoveryListWidget slot={slot} />
-      </PredictDiscoveryListHostProvider>,
+      </PredictDiscoveryListHostContext.Provider>,
     );
 
     const secondSlots = jest.mocked(useHomepagePredictMarketSlots).mock

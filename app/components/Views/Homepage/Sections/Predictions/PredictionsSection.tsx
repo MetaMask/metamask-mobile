@@ -52,7 +52,7 @@ import {
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { UiSlotRenderer } from '../../../../UI/UiSlots/UiSlotRenderer';
 import { BundledPredictDiscoveryList } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListWidget';
-import { PredictDiscoveryListHostProvider } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListContext';
+import { PredictDiscoveryListHostContext } from '../../../../UI/Predict/uiSlots/widgets/PredictDiscoveryListContext';
 import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarketSlots';
 
 const usePredictEmptyStateAnalytics = ({
@@ -350,11 +350,9 @@ const PredictionsSectionDefault = forwardRef<
       variantName: predictEmptyStateVariantName,
     });
 
-    const emptyStateTransactionActiveAbTests = shouldTrackEmptyState
+    const discoveryTransactionActiveAbTests = shouldTrackEmptyState
       ? predictEmptyStateActiveAbTests
       : undefined;
-    const discoveryTransactionActiveAbTests =
-      emptyStateTransactionActiveAbTests;
 
     const refreshPositions = useRefreshPredictPositions({
       queryClient,
@@ -401,14 +399,14 @@ const PredictionsSectionDefault = forwardRef<
       ],
     );
     const discoveryList = (
-      <PredictDiscoveryListHostProvider value={discoveryHost}>
+      <PredictDiscoveryListHostContext.Provider value={discoveryHost}>
         <UiSlotRenderer
           screenId="wallet-home"
           slotId="wallet-home.predict-empty-state"
           fallback={<BundledPredictDiscoveryList />}
           fallbackOnEmpty
         />
-      </PredictDiscoveryListHostProvider>
+      </PredictDiscoveryListHostContext.Provider>
     );
 
     return (

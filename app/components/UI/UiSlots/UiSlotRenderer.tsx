@@ -1,9 +1,21 @@
-import React, { useMemo, type ReactNode } from 'react';
+import React, { type ComponentType, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
-import type { UiSlotsScreenId } from '../../../core/Engine/controllers/ui-slots-controller/types';
-import { makeSelectUiSlotResolution } from '../../../selectors/uiSlotsController';
-import { MOBILE_UI_SLOT_WIDGET_REGISTRY } from './mobileWidgetRegistry';
+import type {
+  UiSlot,
+  UiSlotsScreenId,
+  UiSlotWidget,
+} from '../../../core/Engine/controllers/ui-slots-controller/types';
+import type { RootState } from '../../../reducers';
+import {
+  selectUiSlotsControllerState,
+  selectUiSlotsEnabled,
+} from '../../../selectors/uiSlotsController';
+import { PredictDiscoveryListWidget } from '../Predict/uiSlots/widgets/PredictDiscoveryListWidget';
 import { UiSlotErrorBoundary } from './UiSlotErrorBoundary';
+
+const WIDGETS = {
+  'predict-discovery-list': PredictDiscoveryListWidget,
+} satisfies Record<UiSlotWidget['type'], ComponentType<{ slot: UiSlot }>>;
 
 export function UiSlotRenderer({
   screenId,
@@ -16,21 +28,25 @@ export function UiSlotRenderer({
   fallback?: ReactNode;
   fallbackOnEmpty?: boolean;
 }) {
-  const selector = useMemo(
-    () => makeSelectUiSlotResolution(screenId, slotId),
-    [screenId, slotId],
+  const slot = useSelector(
+    (state: RootState) =>
+      selectUiSlotsControllerState(state)?.activeConfigurations[screenId]
+        ?.slotsById[slotId],
   );
-  const resolution = useSelector(selector);
-
-  if (resolution.status === 'fallback') {
+  const hasActiveConfiguration = useSelector((state: RootState) =>
+    Boolean(
+      selectUiSlotsControllerState(state)?.activeConfigurations[screenId],
+    ),
+  );
+  const enabled = useSelector(selectUiSlotsEnabled);
+  if (!enabled || !hasActiveConfiguration) {
     return fallback;
   }
-  if (resolution.status === 'empty') {
+  if (!slot) {
     return fallbackOnEmpty ? fallback : null;
   }
-  const { slot } = resolution;
 
-  const Widget = MOBILE_UI_SLOT_WIDGET_REGISTRY[slot.widget.type];
+  const Widget = WIDGETS[slot.widget.type];
   return Widget ? (
     <UiSlotErrorBoundary
       key={`${slot.contentId}:${slot.revision}`}

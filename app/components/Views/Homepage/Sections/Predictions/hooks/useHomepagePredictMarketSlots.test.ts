@@ -93,6 +93,8 @@ describe('orderHomepagePredictEventMarkets', () => {
 });
 
 describe('useHomepagePredictMarketSlots', () => {
+  const assignedSlots: readonly HomepagePredictMarketSlot[] =
+    HOMEPAGE_PREDICT_MARKET_SLOTS;
   const lastQueryOptions = () =>
     jest.mocked(usePredictMarketData).mock.lastCall?.[0];
 
@@ -104,11 +106,11 @@ describe('useHomepagePredictMarketSlots', () => {
     const { rerender } = renderHook(
       ({ slots }: { slots: readonly HomepagePredictMarketSlot[] }) =>
         useHomepagePredictMarketSlots({ enabled: true, slots }),
-      { initialProps: { slots: HOMEPAGE_PREDICT_MARKET_SLOTS } },
+      { initialProps: { slots: assignedSlots } },
     );
     const first = lastQueryOptions();
 
-    rerender({ slots: HOMEPAGE_PREDICT_MARKET_SLOTS });
+    rerender({ slots: assignedSlots });
 
     const second = lastQueryOptions();
     expect(second?.refine).toBe(first?.refine);
@@ -119,7 +121,7 @@ describe('useHomepagePredictMarketSlots', () => {
     const { rerender } = renderHook(
       ({ slots }: { slots: readonly HomepagePredictMarketSlot[] }) =>
         useHomepagePredictMarketSlots({ enabled: true, slots }),
-      { initialProps: { slots: HOMEPAGE_PREDICT_MARKET_SLOTS } },
+      { initialProps: { slots: assignedSlots } },
     );
     const first = lastQueryOptions();
 

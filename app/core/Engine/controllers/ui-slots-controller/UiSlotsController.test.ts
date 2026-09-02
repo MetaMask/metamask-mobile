@@ -3,15 +3,14 @@ import {
   UiSlotsController,
   defaultUiSlotsControllerState,
 } from './UiSlotsController';
-import { PREDICT_UI_SLOT_DEFINITIONS } from '../../../../components/UI/Predict/uiSlots/slotDefinitions';
-import { buildUiSlotsConfigurationKey } from './configurationKey';
-import { MOBILE_UI_SLOTS_CONTRACT_REGISTRY } from '../../../../components/UI/UiSlots/mobileContractRegistry';
-import { UI_SLOTS_SOFT_TTL_MS } from './config';
+import { PREDICT_UI_SLOTS_V1_CONTRACTS } from '../../../../components/UI/Predict/uiSlots/contracts/v1';
+import { UI_SLOTS_CONTRACT_MAJOR, UI_SLOTS_SOFT_TTL_MS } from './config';
+import type { UiSlotsReadTransport } from './UiSlotsApiReadClient';
 
 jest.mock('../../../../util/Logger');
 
 const buildConfigurationKey = (locale: string) =>
-  buildUiSlotsConfigurationKey({ screenId: 'wallet-home', locale });
+  `wallet-home:${encodeURIComponent(locale)}:${UI_SLOTS_CONTRACT_MAJOR}`;
 
 const makeResponse = (overrides: Record<string, unknown> = {}) => ({
   contractVersion: 1,
@@ -59,14 +58,18 @@ function buildMessenger(
   } as unknown as jest.Mocked<UiSlotsControllerMessenger>;
 }
 
+const buildReadClient = (
+  fetchScreen: jest.Mock = jest.fn(),
+): UiSlotsReadTransport => ({ fetchScreen });
+
 const controllerOptions = {
   enabled: true,
+  messenger: buildMessenger(),
   diagnostics: {
     log: jest.fn(),
     error: jest.fn(),
   },
-  slotDefinitions: PREDICT_UI_SLOT_DEFINITIONS,
-  contractRegistry: MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
+  contractRegistry: PREDICT_UI_SLOTS_V1_CONTRACTS,
 };
 
 function getActiveSlots(controller: UiSlotsController) {
@@ -76,7 +79,7 @@ function getActiveSlots(controller: UiSlotsController) {
 
 describe('UiSlotsController', () => {
   it('loads and publishes a validated screen', async () => {
-    const messenger = buildMessenger(
+    const readClient = buildReadClient(
       jest.fn().mockResolvedValue({
         status: 'modified',
         etag: '"config-1"',
@@ -84,7 +87,7 @@ describe('UiSlotsController', () => {
       }),
     );
     const controller = new UiSlotsController({
-      messenger,
+      readClient,
       ...controllerOptions,
     });
 
@@ -104,7 +107,7 @@ describe('UiSlotsController', () => {
     });
     const call = jest.fn().mockReturnValue(request);
     const controller = new UiSlotsController({
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
       ...controllerOptions,
     });
 
@@ -124,7 +127,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       enabled: false,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
     });
 
     const outcome = await controller.loadScreen('wallet-home', 'en');
@@ -137,7 +140,7 @@ describe('UiSlotsController', () => {
   it('immediately removes active content when dynamically disabled', async () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse(),
@@ -152,36 +155,17 @@ describe('UiSlotsController', () => {
     expect(controller.state.activeConfigurations).toEqual({});
   });
 
-  it('disables active content when basic functionality is turned off', async () => {
-    const controller = new UiSlotsController({
-      ...controllerOptions,
-      messenger: buildMessenger(
-        jest.fn().mockResolvedValue({
-          status: 'modified',
-          value: makeResponse(),
-        }),
-      ),
-    });
-    await controller.loadScreen('wallet-home', 'en');
-
-    controller.setBasicFunctionalityEnabled(false);
-    controller.setEnabled(true);
-
-    expect(controller.state.enabled).toBe(false);
-    expect(controller.state.activeConfigurations).toEqual({});
-  });
-
   it('does not let an older locale request replace the latest locale', async () => {
     const resolvers = new Map<string, (value: unknown) => void>();
     const call = jest.fn(
-      (_action: string, request: { locale: string }) =>
+      (request: { locale: string }) =>
         new Promise((resolve) => {
           resolvers.set(request.locale, resolve);
         }),
     );
     const controller = new UiSlotsController({
       ...controllerOptions,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
     });
 
     const englishRequest = controller.loadScreen('wallet-home', 'en');
@@ -205,14 +189,14 @@ describe('UiSlotsController', () => {
   it('shares one request between concurrent loads of the same locale', async () => {
     const resolvers = new Map<string, (value: unknown) => void>();
     const call = jest.fn(
-      (_action: string, request: { locale: string }) =>
+      (request: { locale: string }) =>
         new Promise((resolve) => {
           resolvers.set(request.locale, resolve);
         }),
     );
     const controller = new UiSlotsController({
       ...controllerOptions,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
     });
 
     const first = controller.loadScreen('wallet-home', 'en');
@@ -239,7 +223,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
       state: {
         ...defaultUiSlotsControllerState,
         screenConfigurations: {
@@ -253,7 +237,7 @@ describe('UiSlotsController', () => {
 
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(call).toHaveBeenCalledWith('UiSlotsDataService:getScreen', {
+    expect(call).toHaveBeenCalledWith({
       screenId: 'wallet-home',
       locale: 'en',
       etag: undefined,
@@ -270,7 +254,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
       state: {
         ...defaultUiSlotsControllerState,
         screenConfigurations: {
@@ -285,7 +269,7 @@ describe('UiSlotsController', () => {
 
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(call).toHaveBeenCalledWith('UiSlotsDataService:getScreen', {
+    expect(call).toHaveBeenCalledWith({
       screenId: 'wallet-home',
       locale: 'en',
       etag: undefined,
@@ -297,7 +281,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse(),
@@ -320,7 +304,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(call),
+      readClient: buildReadClient(call),
     });
     await controller.loadScreen('wallet-home', 'en');
 
@@ -334,7 +318,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse(),
@@ -368,7 +352,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'not-modified',
           etag: '"config-1"',
@@ -400,8 +384,11 @@ describe('UiSlotsController', () => {
 
   it('keeps last-known-good content after a failed refresh', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
+    const fetchScreen = jest
+      .fn()
+      .mockRejectedValue(new TypeError('Network request failed'));
     const controller = new UiSlotsController({
-      messenger: buildMessenger(jest.fn().mockRejectedValue(new Error('500'))),
+      readClient: buildReadClient(fetchScreen),
       ...controllerOptions,
       now: () => now,
       state: {
@@ -420,12 +407,15 @@ describe('UiSlotsController', () => {
 
     expect(outcome).toBe('stale');
     expect(getActiveSlots(controller)).toHaveLength(1);
+    expect(fetchScreen).toHaveBeenCalledTimes(3);
   });
 
   it('reports an error outcome when a failed load has no cached content', async () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
-      messenger: buildMessenger(jest.fn().mockRejectedValue(new Error('404'))),
+      readClient: buildReadClient(
+        jest.fn().mockRejectedValue(new Error('404')),
+      ),
     });
 
     const outcome = await controller.loadScreen('wallet-home', 'en');
@@ -440,7 +430,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse({
@@ -484,7 +474,7 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse({
@@ -519,8 +509,8 @@ describe('UiSlotsController', () => {
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
-      messenger: buildMessenger(
-        jest.fn((_action, request: { locale: string }) =>
+      readClient: buildReadClient(
+        jest.fn((request: { locale: string }) =>
           Promise.resolve({
             status: 'modified',
             value: makeResponse({ locale: request.locale }),
@@ -538,7 +528,7 @@ describe('UiSlotsController', () => {
 
   it('rejects content missing a required slot data reference', async () => {
     const controller = new UiSlotsController({
-      messenger: buildMessenger(
+      readClient: buildReadClient(
         jest.fn().mockResolvedValue({
           status: 'modified',
           value: makeResponse({

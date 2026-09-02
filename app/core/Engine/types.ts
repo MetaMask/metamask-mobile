@@ -365,11 +365,6 @@ import {
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
-import {
-  UiSlotsDataService,
-  type UiSlotsDataServiceActions,
-  type UiSlotsDataServiceEvents,
-} from './controllers/ui-slots-controller/UiSlotsDataService';
 import type {
   UiSlotsControllerActions,
   UiSlotsControllerEvents,
@@ -684,7 +679,6 @@ export type GlobalActions =
   | PredictControllerActions
   | PredictMarketDataServiceActions
   | CardControllerActions
-  | UiSlotsDataServiceActions
   | UiSlotsControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
@@ -800,7 +794,6 @@ export type GlobalEvents =
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
   | CardControllerEvents
-  | UiSlotsDataServiceEvents
   | UiSlotsControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
@@ -956,7 +949,6 @@ export type MessengerClients = {
   PredictController: PredictController;
   PredictNextController: PredictNextController;
   CardController: CardController;
-  UiSlotsDataService: UiSlotsDataService;
   UiSlotsController: UiSlotsController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
@@ -1161,7 +1153,6 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'PredictNextController'
   | 'CardController'
-  | 'UiSlotsDataService'
   | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
