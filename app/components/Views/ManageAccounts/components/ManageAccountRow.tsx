@@ -27,10 +27,6 @@ import {
  * - `remove` — error-colored minus control (hardware & imported rows).
  * - `hideAndRemove` — both controls (hardware rows).
  * - `none` — no trailing action (snap rows).
- *
- * Spec §5 interim substitution: `IconName.MinusCircle` does not exist in the
- * icon set, so removal uses `IconName.RemoveMinus` pending design
- * confirmation.
  */
 export enum ManageAccountRowVariant {
   Hide = 'hide',
@@ -102,12 +98,6 @@ const ManageAccountRow = ({
       accessibilityElementsHidden={isHidden}
       importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
     >
-      {/*
-        Content region (avatar, name, balance, and the future drag handle).
-        When hidden: non-interactive (pointerEvents="none") and dimmed ~50%,
-        per the spec's hidden account row state. The eye toggle below lives
-        outside this region and remains the sole interactive control.
-      */}
       <Box
         twClassName={`flex-1 ${isHidden ? 'opacity-50' : ''}`}
         pointerEvents={isHidden ? 'none' : 'auto'}
@@ -123,8 +113,6 @@ const ManageAccountRow = ({
           iconName={IconName.RemoveMinus}
           size={ButtonIconSize.Md}
           onPress={handleRemove}
-          // Spec §5 hidden-row state: the eye toggle is the sole enabled
-          // control on a hidden row — remove disables with the row.
           isDisabled={isHidden}
           accessibilityLabel="Remove account"
           accessibilityRole="button"
@@ -138,7 +126,6 @@ const ManageAccountRow = ({
           iconName={isHidden ? IconName.EyeSlash : IconName.Eye}
           size={ButtonIconSize.Md}
           onPress={handleToggleHidden}
-          // Sole interactive control on a hidden row — never disabled.
           isDisabled={false}
           accessibilityLabel={isHidden ? 'Unhide account' : 'Hide account'}
           accessibilityRole="button"
