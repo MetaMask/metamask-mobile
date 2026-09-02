@@ -34,10 +34,10 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
   ...overrides,
 });
 
-const mockController = Engine.context.PerpsController as jest.Mocked<{
+const mockController: {
   getTwapOrders: jest.Mock;
   subscribeToTwapOrders?: jest.Mock;
-}>;
+} = jest.mocked(Engine.context.PerpsController);
 
 describe('usePerpsTwapOrders', () => {
   beforeEach(() => {

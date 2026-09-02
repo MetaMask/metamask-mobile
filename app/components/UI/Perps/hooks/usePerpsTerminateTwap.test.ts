@@ -51,8 +51,7 @@ const twapOrder: TwapOrder = {
   fills: [],
 };
 
-const mockCancelOrder = Engine.context.PerpsController
-  .cancelOrder as jest.Mock;
+const mockCancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
 
 describe('usePerpsTerminateTwap', () => {
   beforeEach(() => {
