@@ -37,7 +37,7 @@ const AlsoIncludedRow = ({ item, testID }: AlsoIncludedRowProps) => (
       />
     </Box>
 
-    <Box>
+    <Box twClassName="flex-1 min-w-0">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
