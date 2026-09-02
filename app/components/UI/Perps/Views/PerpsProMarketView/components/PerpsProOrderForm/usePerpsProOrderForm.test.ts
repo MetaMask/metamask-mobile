@@ -174,7 +174,6 @@ let mockExistingPosition: {
   marginUsed?: string;
   liquidationPrice?: string;
   entryPrice?: string;
-  symbol?: string;
   positionValue?: string;
 } | null = null;
 
