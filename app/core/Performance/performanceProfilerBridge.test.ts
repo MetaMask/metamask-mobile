@@ -24,7 +24,10 @@ describe('performanceProfilerBridge', () => {
     __resetPerformanceProfilerBridgeForTests();
     urlHandler = undefined;
 
-    jest.spyOn(Linking, 'addEventListener').mockImplementation(((_event, handler) => {
+    jest.spyOn(Linking, 'addEventListener').mockImplementation(((
+      _event,
+      handler,
+    ) => {
       urlHandler = handler as (event: { url: string }) => void;
       return { remove: jest.fn() } as { remove: () => void };
     }) as typeof Linking.addEventListener);

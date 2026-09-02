@@ -3,8 +3,8 @@
  * `stopAppProfiling` via deeplink (performance APKs only).
  */
 
-import { openE2EUrl } from '../framework/DeepLink.ts';
-import { E2EDeeplinkSchemes } from '../framework/Constants.ts';
+import { openE2EUrl } from '../../framework/DeepLink.ts';
+import { E2EDeeplinkSchemes } from '../../framework/Constants.ts';
 
 export async function startAppProfilingFromTest(): Promise<void> {
   await openE2EUrl(`${E2EDeeplinkSchemes.PROFILER}start`);
