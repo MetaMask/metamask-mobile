@@ -46,6 +46,8 @@ export const PerpsOHLCVBarSelectorsIDs = {
   CONTAINER: 'perps-ohlcv-bar',
   VALUES_ROW: 'perps-ohlcv-bar-values-row',
   LABELS_ROW: 'perps-ohlcv-bar-labels-row',
+  OPEN_VALUE: 'perps-ohlcv-bar-open-value',
+  VOLUME_VALUE: 'perps-ohlcv-bar-volume-value',
 };
 
 // ========================================
