@@ -15,6 +15,19 @@ const mockSubscribeOnceIf = jest.fn();
 const mockTryUnsubscribe = jest.fn();
 const mockTransactions: TransactionMeta[] = [];
 
+function buildTransactionMeta(
+  overrides: Partial<TransactionMeta> & { id: string },
+): TransactionMeta {
+  return {
+    chainId: '0x1',
+    networkClientId: 'mainnet',
+    status: TransactionStatus.unapproved,
+    time: 0,
+    txParams: { from: '0x1234567890abcdef1234567890abcdef12345678' },
+    ...overrides,
+  };
+}
+
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: mockEnsureDeviceReady,
@@ -128,22 +141,20 @@ describe('useLedgerConfirm', () => {
   it('completes signing after every required batch transaction is signed', async () => {
     const transactionId = 'parent-transaction';
     const batchId = '0xbatch';
-    const firstTransaction = {
+    const firstTransaction = buildTransactionMeta({
       id: 'first-transaction',
       batchId,
-      status: TransactionStatus.unapproved,
-    } as TransactionMeta;
-    const secondTransaction = {
+    });
+    const secondTransaction = buildTransactionMeta({
       id: 'second-transaction',
       batchId,
-      status: TransactionStatus.unapproved,
-    } as TransactionMeta;
+    });
     mockBatchTransactionCounts[batchId] = 2;
     mockTransactions.push(
-      {
+      buildTransactionMeta({
         id: transactionId,
         requiredTransactionIds: [firstTransaction.id, secondTransaction.id],
-      } as TransactionMeta,
+      }),
       firstTransaction,
       secondTransaction,
     );
