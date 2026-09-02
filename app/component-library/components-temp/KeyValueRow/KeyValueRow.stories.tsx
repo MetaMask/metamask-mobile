@@ -84,7 +84,7 @@ export const KeyValueRow = {
               text: 'Sample key text',
             },
             icon: {
-              name: IconName.Wifi,
+              name: IconName.Info,
               color: IconColor.Primary,
               size: IconSize.Sm,
               side: KeyValueRowFieldIconSides.BOTH,
@@ -95,7 +95,7 @@ export const KeyValueRow = {
               text: 'Sample value text',
             },
             icon: {
-              name: IconName.Wifi,
+              name: IconName.Info,
               color: IconColor.Primary,
               size: IconSize.Sm,
               side: KeyValueRowFieldIconSides.BOTH,

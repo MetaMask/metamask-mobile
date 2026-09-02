@@ -83,13 +83,11 @@ import moreverticalSVG from './assets/more-vertical.svg';
 import musdfilledSVG from './assets/musd-filled.svg';
 import musdSVG from './assets/musd.svg';
 import notificationSVG from './assets/notification.svg';
-import piechartSVG from './assets/pie-chart.svg';
 import plantSVG from './assets/plant.svg';
 import plugSVG from './assets/plug.svg';
 import predictionsSVG from './assets/predictions.svg';
 import qrcodeSVG from './assets/qr-code.svg';
 import questionSVG from './assets/question.svg';
-import receiveSVG from './assets/receive.svg';
 import receivedSVG from './assets/received.svg';
 import refreshSVG from './assets/refresh.svg';
 import removeminusSVG from './assets/remove-minus.svg';
@@ -124,7 +122,6 @@ import usercircleaddSVG from './assets/user-circle-add.svg';
 import verifiedfilledSVG from './assets/verified-filled.svg';
 import walletSVG from './assets/wallet.svg';
 import warningSVG from './assets/warning.svg';
-import wifiSVG from './assets/wifi.svg';
 import xSVG from './assets/x.svg';
 
 /**
@@ -210,13 +207,11 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MusdFilled]: musdfilledSVG,
   [IconName.Musd]: musdSVG,
   [IconName.Notification]: notificationSVG,
-  [IconName.PieChart]: piechartSVG,
   [IconName.Plant]: plantSVG,
   [IconName.Plug]: plugSVG,
   [IconName.Predictions]: predictionsSVG,
   [IconName.QrCode]: qrcodeSVG,
   [IconName.Question]: questionSVG,
-  [IconName.Receive]: receiveSVG,
   [IconName.Received]: receivedSVG,
   [IconName.Refresh]: refreshSVG,
   [IconName.RemoveMinus]: removeminusSVG,
@@ -251,6 +246,5 @@ export const assetByIconName: AssetByIconName = {
   [IconName.VerifiedFilled]: verifiedfilledSVG,
   [IconName.Wallet]: walletSVG,
   [IconName.Warning]: warningSVG,
-  [IconName.Wifi]: wifiSVG,
   [IconName.X]: xSVG,
 };
