@@ -190,6 +190,7 @@ describe('usePerpsHomeActions', () => {
     });
 
     it('navigates to confirmation without waiting for deposit prep', async () => {
+      jest.useFakeTimers();
       let resolveDeposit: () => void = () => undefined;
       mockDepositWithConfirmation.mockReturnValue(
         new Promise<void>((resolve) => {
@@ -199,19 +200,26 @@ describe('usePerpsHomeActions', () => {
 
       const { result } = renderHook(() => usePerpsHomeActions());
 
-      await act(async () => {
-        result.current.handleAddFunds();
-      });
+      try {
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
 
-      expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledTimes(1);
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
 
-      await waitFor(() => {
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
         expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
-      });
 
-      await act(async () => {
-        resolveDeposit();
-      });
+        await act(async () => {
+          resolveDeposit();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('triggers onAddFundsSuccess callback', async () => {

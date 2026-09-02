@@ -1822,17 +1822,26 @@ describe('PerpsMarketDetailsView', () => {
       const addFundsButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
       );
-      await act(async () => {
-        fireEvent.press(addFundsButton);
-      });
+      jest.useFakeTimers();
+      try {
+        await act(async () => {
+          fireEvent.press(addFundsButton);
+        });
 
-      await waitFor(() => {
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
           loader: 'customAmount',
           stack: 'Perps',
         });
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {

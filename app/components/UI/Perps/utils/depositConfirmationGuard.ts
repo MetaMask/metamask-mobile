@@ -83,6 +83,10 @@ export function createDepositConfirmationGuard(
 
     const focused = isRedesignedConfirmationFocused(navigation);
     if (!focused) {
+      if (presented) {
+        cancelled = true;
+        unsubscribe();
+      }
       return;
     }
 

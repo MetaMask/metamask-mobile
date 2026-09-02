@@ -106,6 +106,17 @@ describe('createDepositConfirmationGuard', () => {
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
   });
 
+  it('does not go back for a later confirmation after the original loses focus', () => {
+    const navigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const guard = createDepositConfirmationGuard(navigation);
+
+    navigation.emitState(createState(Routes.PERPS.MARKET_DETAILS));
+    navigation.emitState(createState(CONFIRMATION_ROUTE));
+    guard.onDepositFailed();
+
+    expect(navigation.goBack).not.toHaveBeenCalled();
+  });
+
   it('does not go back for a later confirmation after cancel', () => {
     const navigation = createNavigation(
       createState(Routes.PERPS.MARKET_DETAILS),
