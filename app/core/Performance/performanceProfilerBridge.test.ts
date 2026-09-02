@@ -1,6 +1,7 @@
 import { Linking } from 'react-native';
 import {
   __resetPerformanceProfilerBridgeForTests,
+  PROFILER_DEEPLINK_DEDUPE_WINDOW_MS,
   registerPerformanceProfilerBridge,
 } from './performanceProfilerBridge';
 import * as appProfiling from './appProfiling';
@@ -21,6 +22,7 @@ describe('performanceProfilerBridge', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     __resetPerformanceProfilerBridgeForTests();
     urlHandler = undefined;
 
@@ -36,6 +38,7 @@ describe('performanceProfilerBridge', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -58,6 +61,30 @@ describe('performanceProfilerBridge', () => {
     await urlHandler?.({ url: 'e2e://profiler/stop' });
 
     expect(appProfiling.stopAppProfiling).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores duplicate start deeplinks within the dedupe window', async () => {
+    registerPerformanceProfilerBridge();
+
+    await urlHandler?.({ url: 'metamask://e2e/profiler/start' });
+    await urlHandler?.({ url: 'metamask://e2e/profiler/start' });
+
+    expect(appProfiling.startAppProfiling).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows a second start/stop after the dedupe window expires', async () => {
+    registerPerformanceProfilerBridge();
+
+    await urlHandler?.({ url: 'metamask://e2e/profiler/start' });
+    await urlHandler?.({ url: 'metamask://e2e/profiler/stop' });
+
+    jest.advanceTimersByTime(PROFILER_DEEPLINK_DEDUPE_WINDOW_MS);
+
+    await urlHandler?.({ url: 'metamask://e2e/profiler/start' });
+    await urlHandler?.({ url: 'metamask://e2e/profiler/stop' });
+
+    expect(appProfiling.startAppProfiling).toHaveBeenCalledTimes(2);
+    expect(appProfiling.stopAppProfiling).toHaveBeenCalledTimes(2);
   });
 
   it('ignores unrelated deeplinks', async () => {

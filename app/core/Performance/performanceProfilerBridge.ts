@@ -21,8 +21,14 @@ import {
 export const PERFORMANCE_PROFILER_METAMASK_SCHEME = 'metamask://e2e/profiler/';
 export const PERFORMANCE_PROFILER_RAW_SCHEME = 'e2e://profiler/';
 
+/**
+ * Ignore duplicate deliveries of the same URL (initialURL + `url` event) without
+ * permanently blocking later intentional start/stop calls that reuse the same link.
+ */
+export const PROFILER_DEEPLINK_DEDUPE_WINDOW_MS = 1_500;
+
 let hasRegisteredDeepLinkHandler = false;
-const processedDeepLinks = new Set<string>();
+const recentlyHandledDeepLinks = new Map<string, number>();
 
 function stripProfilerScheme(url: string): string {
   const prefixes = [
@@ -54,16 +60,27 @@ function isProfilerDeepLink(url: string): boolean {
   );
 }
 
+function shouldSkipDuplicateDeepLink(url: string, now: number): boolean {
+  const lastHandledAt = recentlyHandledDeepLinks.get(url);
+  if (
+    lastHandledAt !== undefined &&
+    now - lastHandledAt < PROFILER_DEEPLINK_DEDUPE_WINDOW_MS
+  ) {
+    return true;
+  }
+  recentlyHandledDeepLinks.set(url, now);
+  return false;
+}
+
 async function handleProfilerUrl(incomingUrl?: string): Promise<void> {
   const url = incomingUrl || '';
   if (!url || !isProfilerDeepLink(url)) {
     return;
   }
 
-  if (processedDeepLinks.has(url)) {
+  if (shouldSkipDuplicateDeepLink(url, Date.now())) {
     return;
   }
-  processedDeepLinks.add(url);
 
   const withoutScheme = stripProfilerScheme(url);
   const [path] = withoutScheme.split('?');
@@ -123,5 +140,5 @@ export function registerPerformanceProfilerBridge(): void {
  */
 export function __resetPerformanceProfilerBridgeForTests(): void {
   hasRegisteredDeepLinkHandler = false;
-  processedDeepLinks.clear();
+  recentlyHandledDeepLinks.clear();
 }
