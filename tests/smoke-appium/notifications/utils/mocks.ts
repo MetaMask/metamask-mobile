@@ -1,5 +1,4 @@
 import type { Mockttp } from 'mockttp';
-import type { ContentfulResult } from '@metamask/notification-services-controller/dist/NotificationServicesController/services/feature-announcements.d.cts';
 import {
   getMockFeatureAnnouncementResponse,
   getMockListNotificationsResponse,
@@ -31,6 +30,8 @@ import { MockttpNotificationTriggerServer } from './mock-notification-trigger-se
 import { mockAuthServices } from '../../../smoke/identity/utils/mocks';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { createLogger } from '../../../framework/logger';
+import type { Asset, Entry } from 'contentful';
+import type { TypeFeatureAnnouncement } from '@metamask/notification-services-controller/notification-services';
 
 export const mockListNotificationsResponse = getMockListNotificationsResponse();
 const mockNotifications = [
@@ -61,6 +62,16 @@ mockListNotificationsResponse.response = mockNotifications;
 const logger = createLogger({
   name: 'MockNotificationServices',
 });
+
+// TODO: Export this type from `@metamask/notification-services-controller` and
+// remove these duplicates.
+interface ContentfulResult {
+  includes?: {
+    Entry?: Entry[];
+    Asset?: Asset[];
+  };
+  items?: TypeFeatureAnnouncement[];
+}
 
 const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
 const mockFeatureAnnouncementContentfulResponse =

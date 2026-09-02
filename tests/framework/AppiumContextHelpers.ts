@@ -1,8 +1,5 @@
 import type { Context } from '@wdio/protocols';
-import type {
-  AndroidDetailedContext,
-  IosDetailedContext,
-} from 'webdriverio/build/types';
+import type { AndroidDetailedContext, IosDetailedContext } from 'webdriverio';
 import { APP_PACKAGE_IDS } from './Constants';
 import { PlatformDetector } from './PlatformLocator';
 import { getDriver, withTimeout } from './AppiumUtilities';
