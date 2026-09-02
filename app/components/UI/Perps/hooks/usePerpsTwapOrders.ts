@@ -3,6 +3,17 @@ import type { TwapOrder } from '@metamask/perps-controller';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 
+/**
+ * `PerpsController.subscribeToTwapOrders` ships in a controller release after
+ * the one currently pinned here, so it is described locally as optional. Drop
+ * this shim once the dependency is upgraded and call the method directly.
+ *
+ * @see https://github.com/MetaMask/core/pull/10056
+ */
+type SubscribeToTwapOrders = (params: {
+  callback: (twapOrders: TwapOrder[], isSnapshot?: boolean) => void;
+}) => () => void;
+
 export interface UsePerpsTwapOrdersResult {
   /** Current and terminal TWAP schedules, newest first. */
   twapOrders: TwapOrder[];
@@ -112,7 +123,16 @@ export const usePerpsTwapOrders = (
     }
 
     let isStreaming = false;
-    const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
+    // `subscribeToTwapOrders` lands in a later controller release than the one
+    // this app pins, so detect it rather than requiring the upgrade to ship
+    // first. Until then the poll below is the only path; once the controller
+    // upgrade lands this starts streaming with no further change here.
+    const subscribeToTwapOrders: SubscribeToTwapOrders | undefined =
+      Reflect.get(
+        Engine.context.PerpsController,
+        'subscribeToTwapOrders',
+      )?.bind(Engine.context.PerpsController);
+    const unsubscribe = subscribeToTwapOrders?.({
       callback: (streamedOrders) => {
         isStreaming = true;
         // The stream omits slice fills, so carry forward the ones the last
@@ -140,7 +160,7 @@ export const usePerpsTwapOrders = (
     }, pollingInterval);
 
     return () => {
-      unsubscribe();
+      unsubscribe?.();
       clearInterval(intervalId);
     };
   }, [enablePolling, pollingInterval, fetchTwapOrders]);
