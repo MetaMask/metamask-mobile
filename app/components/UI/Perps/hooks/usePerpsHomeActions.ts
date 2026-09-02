@@ -132,6 +132,9 @@ export const usePerpsHomeActions = (
         setError(null);
 
         DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
+        DevLogger.log(
+          '[PR-TAT-3772] BUG_MARKER: deposit tap blocked by setIsProcessing and await depositWithConfirmation',
+        );
 
         try {
           navigateToConfirmation({ stack: Routes.PERPS.ROOT });
