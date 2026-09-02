@@ -394,30 +394,19 @@ jobs:
   # needing to know anything about what (if anything) reacts to it.
   dependency-audit:
     name: Dependency audit (advisory)
-    runs-on: >-
-      ${{
-        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
-      }}
+    # Unlike the older jobs in this file, this one has no GitHub-hosted
+    # fallback: it's new, and this repo is already fully committed to
+    # Namespace runners, so there's no dual-provider transition to support
+    # here.
+    runs-on: namespace-profile-metamask-ci-linux-small
     outputs:
       has-advisories: ${{ steps.audit.outputs.has-advisories }}
-    env:
-      # Effective provider for this job. Steps must test this, never inputs.runner_provider
-      # directly, or a provider set through the repo variables would be ignored.
-      RESOLVED_RUNNER_PROVIDER: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
-        }}
     if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
     needs:
       - get_requirements
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-      - uses: actions/checkout@v6
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |
@@ -428,7 +417,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
       - name: Install Yarn dependencies with retry
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
