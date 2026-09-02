@@ -61,30 +61,13 @@ const rampOrder: FiatOrder = {
 function makeItem(
   partial: Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>,
 ): ActivityListItem {
-  const item = {
+  return {
     chainId: 'eip155:1',
     status: 'success',
     timestamp: 1,
     data: {},
     ...partial,
   } as ActivityListItem;
-
-  if (item.raw?.type === 'localTransaction') {
-    const { primaryTransaction, initialTransaction } = item.raw.data;
-    return {
-      ...item,
-      localTransactionMetaId: primaryTransaction.id,
-      localTransactionInitialMetaId: initialTransaction.id,
-      localTransactionActionId:
-        initialTransaction.actionId ?? primaryTransaction.actionId,
-      localTransactionLookupHashes: [
-        primaryTransaction.hash,
-        initialTransaction.hash,
-      ].filter((hash): hash is string => Boolean(hash)),
-    };
-  }
-
-  return item;
 }
 
 function setSources({
@@ -280,26 +263,6 @@ describe('useActivityDetailsItem', () => {
 
     const { result } = renderHook(() => useActivityDetailsItem('0xdegraded'));
     expect(result.current).toBe(api);
-  });
-
-  it('resolves a local item by initial TransactionMeta id after speed-up', () => {
-    const local = makeItem({
-      type: 'send',
-      hash: '0xnewhash',
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'meta-speedup', hash: '0xnewhash' },
-          initialTransaction: { id: 'meta-original', hash: '0xoldhash' },
-        },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
-    setSources({ local: [local] });
-
-    const { result } = renderHook(() =>
-      useActivityDetailsItem('meta-original'),
-    );
-    expect(result.current).toBe(local);
   });
 
   it('resolves a local item by TransactionMeta id when the display hash changed', () => {

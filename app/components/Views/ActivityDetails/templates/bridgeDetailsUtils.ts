@@ -1,43 +1,12 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction } from '@metamask/keyring-api';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import { useSelector } from 'react-redux';
-import {
-  type ActivityListItem,
-  type TokenAmount,
-  getKeyringTransactionId,
-  getLocalTransactionActionId,
-  getLocalTransactionInitialMetaId,
-  getLocalTransactionMetaId,
+import type {
+  ActivityListItem,
+  TokenAmount,
 } from '../../../../util/activity-adapters';
-import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
-import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
-import type { RootState } from '../../../../reducers';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
 import { getAssetIdCaipChainId } from '../activityAssetId';
-
-function useTransactionMetaById(
-  metaId: string | undefined,
-): TransactionMeta | undefined {
-  return useSelector((state: RootState) =>
-    metaId ? selectTransactionMetadataById(state, metaId) : undefined,
-  );
-}
-
-function useKeyringTransactionById(
-  transactionId: string | undefined,
-): Transaction | undefined {
-  const nonEvmState = useSelector(
-    selectNonEvmTransactionsForSelectedAccountGroup,
-  );
-  if (!transactionId) {
-    return undefined;
-  }
-  const normalizedId = transactionId.toLowerCase();
-  return nonEvmState?.transactions.find(
-    (transaction) => transaction.id.toLowerCase() === normalizedId,
-  );
-}
 
 export function getBridgeDestinationCaipChainId(
   token: TokenAmount | undefined,
@@ -51,44 +20,37 @@ export function getBridgeDestinationTxHash(
   return bridgeHistoryItem?.status.destChain?.txHash;
 }
 
+/**
+ * The transaction the block-explorer sheet resolves both legs from. Uses
+ * `initialTransaction`, matching {@link getBridgeHistoryItem}, so the two can't
+ * land on different history items. Empty for indexer-only rows, which have no
+ * local transaction.
+ */
+export function getBridgeExplorerSheetTx(
+  item: Extract<ActivityListItem, { type: 'bridge' }>,
+): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
+  if (item.raw?.type === 'localTransaction') {
+    return { evmTxMeta: item.raw.data.initialTransaction };
+  }
+  if (item.raw?.type === 'keyringTransaction') {
+    return { multiChainTx: item.raw.data };
+  }
+  return {};
+}
+
 export function getBridgeHistoryItem(
   item: Extract<ActivityListItem, { type: 'bridge' }>,
   bridgeHistory: Record<string, BridgeHistoryItem>,
-  transactionMetaId?: string,
-  transactionActionId?: string,
 ) {
+  const transactionMeta =
+    item.raw?.type === 'localTransaction'
+      ? item.raw.data.initialTransaction
+      : undefined;
+
   return findBridgeHistoryItem({
     bridgeHistory,
-    transactionMetaId,
-    transactionActionId,
+    transactionMetaId: transactionMeta?.id,
+    transactionActionId: transactionMeta?.actionId,
     transactionHash: item.hash,
   });
-}
-
-export function useBridgeHistoryItem(
-  item: Extract<ActivityListItem, { type: 'bridge' }>,
-  bridgeHistory: Record<string, BridgeHistoryItem>,
-) {
-  const initialMetaId =
-    getLocalTransactionInitialMetaId(item) ?? getLocalTransactionMetaId(item);
-  const initialMeta = useTransactionMetaById(initialMetaId);
-  const actionId =
-    getLocalTransactionActionId(item) ?? initialMeta?.actionId ?? undefined;
-
-  return getBridgeHistoryItem(
-    item,
-    bridgeHistory,
-    initialMeta?.id ?? initialMetaId,
-    actionId,
-  );
-}
-
-export function useBridgeExplorerSheetTx(
-  item: Extract<ActivityListItem, { type: 'bridge' }>,
-): { evmTxMeta?: TransactionMeta; multiChainTx?: Transaction } {
-  const initialMetaId =
-    getLocalTransactionInitialMetaId(item) ?? getLocalTransactionMetaId(item);
-  const evmTxMeta = useTransactionMetaById(initialMetaId);
-  const multiChainTx = useKeyringTransactionById(getKeyringTransactionId(item));
-  return { evmTxMeta, multiChainTx };
 }

@@ -216,10 +216,44 @@ export function enrichTokenFromApi(
 
 export const getActivityFromTo = (item: ActivityListItem) => {
   const { data } = item;
+  const rawFrom = (() => {
+    if (item.raw?.type === 'apiEvmTransaction') {
+      return item.raw.data.from;
+    }
+
+    if (item.raw?.type === 'localTransaction') {
+      return item.raw.data.initialTransaction.txParams.from;
+    }
+
+    if (item.raw?.type === 'keyringTransaction') {
+      return item.raw.data.from[0]?.address;
+    }
+
+    return undefined;
+  })();
+
+  const rawTo = (() => {
+    if (item.raw?.type === 'apiEvmTransaction') {
+      return item.raw.data.to;
+    }
+
+    if (item.raw?.type === 'localTransaction') {
+      return item.raw.data.initialTransaction.txParams.to;
+    }
+
+    if (item.raw?.type === 'keyringTransaction') {
+      return item.raw.data.to[0]?.address;
+    }
+
+    return undefined;
+  })();
 
   return {
-    from: 'from' in data && typeof data.from === 'string' ? data.from : '',
-    to: 'to' in data && typeof data.to === 'string' ? data.to : '',
+    from:
+      'from' in data && typeof data.from === 'string'
+        ? data.from
+        : (rawFrom ?? ''),
+    to: 'to' in data && typeof data.to === 'string' ? data.to : (rawTo ?? ''),
   };
 };
 
@@ -235,17 +269,26 @@ export const getGroupedActivityListItemKey = (
     return `date-header-${item.date}`;
   }
 
+  const raw = item.item.raw;
   const { chainId } = item.item;
-  if (item.item.localTransactionMetaId) {
-    return `local-transaction-${chainId}-${item.item.localTransactionMetaId}`;
+  if (raw?.type === 'localTransaction') {
+    const txId =
+      raw.data.primaryTransaction?.id ?? raw.data.initialTransaction?.id;
+    if (txId) {
+      return `local-transaction-${chainId}-${txId}`;
+    }
   }
 
-  if (item.item.keyringTransactionId) {
-    return `keyring-transaction-${chainId}-${item.item.keyringTransactionId}`;
+  if (raw?.type === 'keyringTransaction' && raw.data.id) {
+    return `keyring-transaction-${chainId}-${raw.data.id}`;
+  }
+
+  if (raw?.type === 'apiEvmTransaction' && item.item.hash) {
+    return `api-evm-transaction-${chainId}-${item.item.hash}`;
   }
 
   if (item.item.hash) {
-    return `api-evm-transaction-${chainId}-${item.item.hash}`;
+    return `${chainId}-${item.item.type}-${item.item.hash}`;
   }
 
   return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;
@@ -302,59 +345,4 @@ export function groupActivityListItems(
 
   grouped.push(...groupItemsByDate(historical));
   return grouped;
-}
-
-export function getLocalTransactionMetaId(
-  item: ActivityListItem,
-): string | undefined {
-  return item.localTransactionMetaId;
-}
-
-export function getLocalTransactionInitialMetaId(
-  item: ActivityListItem,
-): string | undefined {
-  return item.localTransactionInitialMetaId;
-}
-
-export function getLocalTransactionActionId(
-  item: ActivityListItem,
-): string | undefined {
-  return item.localTransactionActionId;
-}
-
-export function isApiEvmTransactionItem(item: ActivityListItem): boolean {
-  return item.apiEvmTransaction === true;
-}
-
-export function isLocalTransactionItem(item: ActivityListItem): boolean {
-  return Boolean(item.localTransactionMetaId);
-}
-
-export function getKeyringTransactionId(
-  item: ActivityListItem,
-): string | undefined {
-  return item.keyringTransactionId;
-}
-
-export function isKeyringTransactionItem(item: ActivityListItem): boolean {
-  return Boolean(item.keyringTransactionId);
-}
-
-export function collectLocalTransactionLookupKeys(
-  item: ActivityListItem,
-): string[] {
-  const keys = new Set<string>();
-  if (item.hash) {
-    keys.add(item.hash.toLowerCase());
-  }
-  if (item.localTransactionMetaId) {
-    keys.add(item.localTransactionMetaId.toLowerCase());
-  }
-  if (item.localTransactionInitialMetaId) {
-    keys.add(item.localTransactionInitialMetaId.toLowerCase());
-  }
-  for (const hash of item.localTransactionLookupHashes ?? []) {
-    keys.add(hash.toLowerCase());
-  }
-  return [...keys];
 }

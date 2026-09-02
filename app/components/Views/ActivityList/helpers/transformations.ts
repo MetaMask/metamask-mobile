@@ -19,9 +19,7 @@ import {
   type ActivityListItem,
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
-  isNftTransferType,
 } from '../../../../util/activity-adapters';
-import { areAddressesEqual } from '../../../../util/address';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
@@ -29,73 +27,6 @@ import { applyBridgeQuote } from './apply-bridge-quote';
 export type { ActivityListItem };
 
 const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
-
-interface NftValueTransfer {
-  from?: string;
-  to?: string;
-  contractAddress?: string;
-  tokenId?: string | number;
-  transferType?: string;
-}
-
-const nftActivityKinds = new Set<ActivityListItem['type']>([
-  'nftBuy',
-  'nftMint',
-  'nftSell',
-]);
-
-function enrichApiActivityData(
-  activity: ActivityListItem,
-  transaction: V1TransactionByHashResponse,
-): ActivityListItem {
-  const extras: Record<string, string> = {};
-
-  if (transaction.transactionProtocol) {
-    extras.transactionProtocol = transaction.transactionProtocol;
-  }
-  if (transaction.from) {
-    extras.from = transaction.from;
-  }
-  if (transaction.to) {
-    extras.to = transaction.to;
-  }
-
-  if (nftActivityKinds.has(activity.type)) {
-    const transfers = transaction.valueTransfers as
-      | NftValueTransfer[]
-      | undefined;
-    const { from, to } = activity.data as { from?: string; to?: string };
-    const nftTransfer =
-      transfers?.find(
-        (transfer) =>
-          isNftTransferType(transfer.transferType) &&
-          areAddressesEqual(transfer.from ?? '', from ?? '') &&
-          areAddressesEqual(transfer.to ?? '', to ?? ''),
-      ) ??
-      transfers?.find(({ transferType }) => isNftTransferType(transferType));
-
-    if (
-      nftTransfer?.contractAddress &&
-      nftTransfer.tokenId !== undefined &&
-      nftTransfer.tokenId !== null
-    ) {
-      extras.nftContractAddress = nftTransfer.contractAddress;
-      extras.nftTokenId = String(nftTransfer.tokenId);
-    }
-  }
-
-  if (Object.keys(extras).length === 0) {
-    return activity;
-  }
-
-  return {
-    ...activity,
-    data: {
-      ...activity.data,
-      ...extras,
-    },
-  };
-}
 
 const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
   (bridgeHistoryItem as unknown as { originalTransactionId?: string })
@@ -226,14 +157,10 @@ function transformApiTransactions(
     if (shouldSkipTransaction(subjectAddress, tx, excludedTxHashes)) {
       continue;
     }
-    const activity = enrichApiActivityData(
-      {
-        ...mapApiTransaction({ subjectAddress, transaction: tx }),
-        raw: { type: 'apiEvmTransaction' as const, data: tx },
-        apiEvmTransaction: true,
-      } as ActivityListItem,
-      tx,
-    );
+    const activity = {
+      ...mapApiTransaction({ subjectAddress, transaction: tx }),
+      raw: { type: 'apiEvmTransaction' as const, data: tx },
+    } as ActivityListItem;
     items.push(classifyPooledStakingActivity(tx, activity));
   }
 
@@ -263,22 +190,15 @@ export function mapNonEvmTransactions(
 ): ActivityListItem[] {
   return transactions.map((transaction) => {
     const subjectAddress = getSubjectAddress?.(transaction);
-    const mapped = mapKeyringTransaction({
-      transaction: {
-        ...transaction,
-        fees: transaction.fees ?? [],
-      },
-      subjectAddress,
-    });
     const activity = classifyKeyringStakingActivity(transaction, {
-      ...mapped,
+      ...mapKeyringTransaction({
+        transaction: {
+          ...transaction,
+          fees: transaction.fees ?? [],
+        },
+        subjectAddress,
+      }),
       raw: { type: 'keyringTransaction' as const, data: transaction },
-      keyringTransactionId: transaction.id,
-      data: {
-        ...mapped.data,
-        from: transaction.from[0]?.address,
-        to: transaction.to[0]?.address,
-      },
     } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
     const quote = bridgeHistoryItem?.quote;

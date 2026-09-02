@@ -55,21 +55,30 @@ function getNftIdentity(item: ActivityListItem): NftIdentity | undefined {
     return undefined;
   }
 
-  const data = item.data as {
-    from?: string;
-    to?: string;
-    nftContractAddress?: string;
-    nftTokenId?: string;
-  };
-
-  if (data.nftContractAddress && data.nftTokenId) {
-    return {
-      contractAddress: data.nftContractAddress,
-      tokenId: data.nftTokenId,
-    };
+  if (item.raw?.type !== 'apiEvmTransaction') {
+    return undefined;
   }
 
-  return undefined;
+  const transfers = item.raw.data.valueTransfers as
+    | NftValueTransfer[]
+    | undefined;
+
+  const { from, to } = item.data as { from?: string; to?: string };
+  const nftTransfer =
+    transfers?.find(
+      (transfer) =>
+        isNftTransferType(transfer.transferType) &&
+        areAddressesEqual(transfer.from ?? '', from ?? '') &&
+        areAddressesEqual(transfer.to ?? '', to ?? ''),
+    ) ?? transfers?.find(({ transferType }) => isNftTransferType(transferType));
+
+  const contractAddress = nftTransfer?.contractAddress;
+  const tokenId = nftTransfer?.tokenId;
+  if (!contractAddress || tokenId === undefined || tokenId === null) {
+    return undefined;
+  }
+
+  return { contractAddress, tokenId: String(tokenId) };
 }
 
 function firstNonEmptyImage(

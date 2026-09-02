@@ -1,15 +1,13 @@
-import {
-  type ActivityListItem,
-  getLocalTransactionMetaId,
-} from '../../../util/activity-adapters';
+import type { ActivityListItem } from '../../../util/activity-adapters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details route type; route-isolation backlog
 import type { ActivityDetailsParams } from '../ActivityDetails/ActivityDetails.types';
 import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
 
-function getLocalTransactionMetaIdFromItem(
-  item: ActivityListItem,
-): string | undefined {
-  return getLocalTransactionMetaId(item);
+function getLocalTransactionMetaId(item: ActivityListItem): string | undefined {
+  if (item.raw?.type !== 'localTransaction') {
+    return undefined;
+  }
+  return item.raw.data.primaryTransaction?.id;
 }
 
 /**
@@ -25,7 +23,7 @@ function getLocalTransactionMetaIdFromItem(
 export function getActivityDetailsRoute(
   item: ActivityListItem,
 ): ActivityDetailsParams | null {
-  const localMetaId = getLocalTransactionMetaIdFromItem(item);
+  const localMetaId = getLocalTransactionMetaId(item);
   const txIdentifier = localMetaId ?? item.hash;
   if (!txIdentifier) {
     return null;
@@ -33,9 +31,9 @@ export function getActivityDetailsRoute(
 
   const { raw } = item;
   const shouldPreload =
-    Boolean(getLocalTransactionMetaIdFromItem(item)) ||
     raw?.type === 'perpsTransaction' ||
-    raw?.type === 'predictActivity';
+    raw?.type === 'predictActivity' ||
+    raw?.type === 'localTransaction';
   const preloadKey = shouldPreload
     ? stashPreloadedActivityItem(item)
     : undefined;

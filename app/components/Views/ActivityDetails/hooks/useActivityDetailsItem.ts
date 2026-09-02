@@ -3,8 +3,6 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
-  collectLocalTransactionLookupKeys,
-  getLocalTransactionMetaId,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
@@ -54,7 +52,23 @@ function buildItemsByHash(
 
 /** Keys that can address a local EVM Activity row (meta id + hashes). */
 export function getLocalActivityLookupKeys(item: ActivityListItem): string[] {
-  return collectLocalTransactionLookupKeys(item);
+  const keys = new Set<string>();
+  if (item.hash) {
+    keys.add(item.hash.toLowerCase());
+  }
+  if (item.raw?.type !== 'localTransaction') {
+    return [...keys];
+  }
+  const { primaryTransaction, initialTransaction } = item.raw.data;
+  for (const tx of [primaryTransaction, initialTransaction]) {
+    if (tx?.id) {
+      keys.add(tx.id.toLowerCase());
+    }
+    if (tx?.hash) {
+      keys.add(tx.hash.toLowerCase());
+    }
+  }
+  return [...keys];
 }
 
 function buildLocalItemsByLookupKey(
@@ -211,8 +225,9 @@ export function useActivityDetailsItem(
     }
 
     const preloadedMetaId =
-      preloadedResolvedItem &&
-      getLocalTransactionMetaId(preloadedResolvedItem)?.toLowerCase();
+      preloadedResolvedItem?.raw?.type === 'localTransaction'
+        ? preloadedResolvedItem.raw.data.primaryTransaction.id?.toLowerCase()
+        : undefined;
     const localFromPreloadMeta = preloadedMetaId
       ? localByLookupKey.get(preloadedMetaId)
       : undefined;
@@ -239,10 +254,7 @@ export function useActivityDetailsItem(
     // stashed local snapshot from navigation — apply the same API preference
     // so a gas-token (or richer spending-cap) fee is not discarded for a
     // native-only API copy.
-    if (
-      preloadedResolvedItem &&
-      getLocalTransactionMetaId(preloadedResolvedItem)
-    ) {
+    if (preloadedResolvedItem?.raw?.type === 'localTransaction') {
       return preferLocalOrApiActivityItem(preloadedResolvedItem, apiItem);
     }
 
