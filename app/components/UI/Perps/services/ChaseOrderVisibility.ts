@@ -1,28 +1,28 @@
-const visibleSymbolCounts = new Map<string, number>();
+const visibleHandleCounts = new Map<string, number>();
 
-/** Registers Chase symbols that are currently rendered in the active Pro tab. */
-export const registerVisibleChaseOrderSymbols = (
-  symbols: readonly string[],
+/** Registers Chase handles that are currently rendered in the active Pro tab. */
+export const registerVisibleChaseOrderHandles = (
+  handles: readonly string[],
 ) => {
-  const uniqueSymbols = [...new Set(symbols)];
-  uniqueSymbols.forEach((symbol) => {
-    visibleSymbolCounts.set(symbol, (visibleSymbolCounts.get(symbol) ?? 0) + 1);
+  const uniqueHandles = [...new Set(handles)];
+  uniqueHandles.forEach((handle) => {
+    visibleHandleCounts.set(handle, (visibleHandleCounts.get(handle) ?? 0) + 1);
   });
   return () => {
-    uniqueSymbols.forEach((symbol) => {
-      const nextCount = (visibleSymbolCounts.get(symbol) ?? 1) - 1;
+    uniqueHandles.forEach((handle) => {
+      const nextCount = (visibleHandleCounts.get(handle) ?? 1) - 1;
       if (nextCount <= 0) {
-        visibleSymbolCounts.delete(symbol);
+        visibleHandleCounts.delete(handle);
       } else {
-        visibleSymbolCounts.set(symbol, nextCount);
+        visibleHandleCounts.set(handle, nextCount);
       }
     });
   };
 };
 
-export const isChaseOrderSymbolVisible = (symbol: string) =>
-  visibleSymbolCounts.has(symbol);
+export const isChaseOrderHandleVisible = (handle: string) =>
+  visibleHandleCounts.has(handle);
 
 export const resetChaseOrderVisibilityForTests = () => {
-  visibleSymbolCounts.clear();
+  visibleHandleCounts.clear();
 };

@@ -770,7 +770,27 @@ const PerpsProOrderForm = ({
                 size: IconSize.Sm,
                 testID: `${ids.ORDER_TYPE_BUTTON}-chevron`,
               }}
-              accessibilityLabel={isChase ? orderTypeTitle : undefined}
+              accessibilityLabel={
+                isChase ? strings('perps.order.type.title') : undefined
+              }
+              accessibilityHint={
+                isChase
+                  ? strings('perps.pro_order_form.choose_order_type')
+                  : undefined
+              }
+              accessibilityValue={
+                isChase
+                  ? {
+                      text: strings(
+                        'perps.order.chase.reference_price_accessibility_value',
+                        {
+                          orderType: orderTypeTitle,
+                          price: chaseReferencePrice,
+                        },
+                      ),
+                    }
+                  : undefined
+              }
               testID={ids.ORDER_TYPE_BUTTON}
             >
               {isChase ? (

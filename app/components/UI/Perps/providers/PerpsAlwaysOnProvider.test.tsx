@@ -49,8 +49,8 @@ const mockUsePerpsChaseOrders = jest.fn(
     suspendChaseOrders: mockSuspendChaseOrders,
   }),
 );
-const mockIsChaseOrderSymbolVisible = jest.fn(
-  (_symbol: string): boolean => false,
+const mockIsChaseOrderHandleVisible = jest.fn(
+  (_handle: string): boolean => false,
 );
 
 jest.mock('../hooks/usePerpsEventTracking', () => ({
@@ -65,8 +65,8 @@ jest.mock('../hooks/usePerpsChaseOrders', () => ({
 }));
 
 jest.mock('../services/ChaseOrderVisibility', () => ({
-  isChaseOrderSymbolVisible: (symbol: string) =>
-    mockIsChaseOrderSymbolVisible(symbol),
+  isChaseOrderHandleVisible: (handle: string) =>
+    mockIsChaseOrderHandleVisible(handle),
 }));
 
 jest.mock(
@@ -229,7 +229,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockIsChaseOrderDiscoveryResolved = true;
     mockIsPerpsPushNotificationsEnabled = true;
     mockProviderChildRenderAction = undefined;
-    mockIsChaseOrderSymbolVisible.mockReturnValue(false);
+    mockIsChaseOrderHandleVisible.mockReturnValue(false);
     resetSuspendedChaseOrderBufferForTests();
     mockStartMarketDataPreload.mockClear();
     mockStopMarketDataPreload.mockClear();
@@ -368,8 +368,8 @@ describe('PerpsAlwaysOnProvider', () => {
   });
 
   it('suppresses max-distance notification on the visible Chase market screen', async () => {
-    mockIsChaseOrderSymbolVisible.mockImplementation(
-      (symbol) => symbol === 'ETH',
+    mockIsChaseOrderHandleVisible.mockImplementation(
+      (handle) => handle === 'visible-chase',
     );
     render(
       <PerpsAlwaysOnProvider>
@@ -396,14 +396,14 @@ describe('PerpsAlwaysOnProvider', () => {
   });
 
   it.each([
-    { scenario: 'another market', visibleSymbol: 'ETH' },
-    { scenario: 'Lite mode', visibleSymbol: null },
-    { scenario: 'another Pro tab', visibleSymbol: null },
+    { scenario: 'another Chase on the same market', visibleHandle: 'chase-b' },
+    { scenario: 'Lite mode', visibleHandle: null },
+    { scenario: 'another Pro tab', visibleHandle: null },
   ])(
     'delivers max-distance notification for $scenario without a matching visible Chase row',
-    async ({ visibleSymbol }) => {
-      mockIsChaseOrderSymbolVisible.mockImplementation(
-        (symbol) => symbol === visibleSymbol,
+    async ({ visibleHandle }) => {
+      mockIsChaseOrderHandleVisible.mockImplementation(
+        (handle) => handle === visibleHandle,
       );
       render(
         <PerpsAlwaysOnProvider>
@@ -431,7 +431,7 @@ describe('PerpsAlwaysOnProvider', () => {
   );
 
   it('delivers max-distance notification during background transition', async () => {
-    mockIsChaseOrderSymbolVisible.mockReturnValue(true);
+    mockIsChaseOrderHandleVisible.mockReturnValue(true);
     Object.defineProperty(AppState, 'currentState', {
       value: 'background',
       configurable: true,

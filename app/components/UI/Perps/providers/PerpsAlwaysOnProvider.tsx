@@ -27,7 +27,7 @@ import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
 import { useFeatureNotificationsStatus } from '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus';
 import { subscribeToSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
-import { isChaseOrderSymbolVisible } from '../services/ChaseOrderVisibility';
+import { isChaseOrderHandleVisible } from '../services/ChaseOrderVisibility';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
 
@@ -271,7 +271,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     ) => {
       if (
         AppState.currentState === 'active' &&
-        isChaseOrderSymbolVisible(event.symbol)
+        isChaseOrderHandleVisible(event.handle)
       ) {
         return;
       }

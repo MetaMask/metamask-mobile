@@ -232,7 +232,23 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent(strings('perps.order.type.chase.title'));
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
         'accessibilityLabel',
-        strings('perps.order.type.chase.title'),
+        strings('perps.order.type.title'),
+      );
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityHint',
+        strings('perps.pro_order_form.choose_order_type'),
+      );
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityValue',
+        {
+          text: strings(
+            'perps.order.chase.reference_price_accessibility_value',
+            {
+              orderType: strings('perps.order.type.chase.title'),
+              price: '$---',
+            },
+          ),
+        },
       );
     });
 
@@ -247,6 +263,26 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toHaveTextContent(
         '$2,500.50',
+      );
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityLabel',
+        strings('perps.order.type.title'),
+      );
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityHint',
+        strings('perps.pro_order_form.choose_order_type'),
+      );
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveProp(
+        'accessibilityValue',
+        {
+          text: strings(
+            'perps.order.chase.reference_price_accessibility_value',
+            {
+              orderType: strings('perps.order.type.chase.title'),
+              price: '$2,500.50',
+            },
+          ),
+        },
       );
       expect(
         screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),

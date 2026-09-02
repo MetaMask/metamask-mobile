@@ -1845,7 +1845,7 @@
         },
         "chase": {
           "title": "Chase",
-          "description": "Auto adjust limit order to the best price"
+          "description": "Post-only limit order that follows the best bid or ask"
         },
         "stop_limit": {
           "title": "Stop limit",
@@ -1871,6 +1871,7 @@
       "chase": {
         "max_distance": "Max distance",
         "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
+        "reference_price_accessibility_value": "{{orderType}}, reference price {{price}}",
         "foreground_notice": "Keep the app open while the Chase order is running.",
         "backgrounded_title": "Chase became a limit order",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",

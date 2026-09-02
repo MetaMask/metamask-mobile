@@ -294,6 +294,20 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps retained Chase polling focused when rollout is disabled', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL');
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+      enableDiscovery: false,
+    });
+  });
+
   it('reports loading while the market context reconnects', () => {
     const onResolvedStateChange = jest.fn();
     renderWithProvider(

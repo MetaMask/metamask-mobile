@@ -32,7 +32,7 @@ import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
-  isChaseOrderSymbolVisible,
+  isChaseOrderHandleVisible,
   resetChaseOrderVisibilityForTests,
 } from '../../services/ChaseOrderVisibility';
 import {
@@ -751,34 +751,38 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
-    'registers only symbols visible on the active Pro Chase tab',
+    'registers only handles visible on the active Pro Chase tab',
     async () => {
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
       getChaseOrders.mockResolvedValue([activeChase]);
       renderFundedProMarket();
 
-      expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
+      expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false);
       fireEvent.press(
         await screen.findByTestId(
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
         ),
       );
 
-      await waitFor(() => expect(isChaseOrderSymbolVisible('ETH')).toBe(true));
-      expect(isChaseOrderSymbolVisible('BTC')).toBe(false);
+      await waitFor(() =>
+        expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(true),
+      );
+      expect(isChaseOrderHandleVisible('other-chase')).toBe(false);
 
       fireEvent.press(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
       );
-      await waitFor(() => expect(isChaseOrderSymbolVisible('ETH')).toBe(false));
+      await waitFor(() =>
+        expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false),
+      );
 
       fireEvent.press(
         screen.getByTestId(
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
         ),
       );
-      expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
+      expect(isChaseOrderHandleVisible(activeChase.handle)).toBe(false);
     },
   );
 

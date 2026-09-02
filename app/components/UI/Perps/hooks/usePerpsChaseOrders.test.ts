@@ -65,14 +65,17 @@ jest.mock('../services/ChaseOrderSuspensionEvents', () => ({
   reportSuspendedChaseOrders: jest.fn(),
 }));
 
-const mockGetChaseOrders = Engine.context.PerpsController
-  .getChaseOrders as jest.Mock;
-const mockGetOrders = Engine.context.PerpsController.getOrders as jest.Mock;
-const mockSuspendChaseOrders = Engine.context.PerpsController
-  .suspendChaseOrders as jest.Mock;
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockIsSelectedUserContextReady =
-  PerpsConnectionManager.isSelectedUserContextReady as jest.Mock;
+const mockGetChaseOrders = jest.mocked(
+  Engine.context.PerpsController.getChaseOrders,
+);
+const mockGetOrders = jest.mocked(Engine.context.PerpsController.getOrders);
+const mockSuspendChaseOrders = jest.mocked(
+  Engine.context.PerpsController.suspendChaseOrders,
+);
+const mockUseSelector = jest.mocked(useSelector);
+const mockIsSelectedUserContextReady = jest.mocked(
+  PerpsConnectionManager.isSelectedUserContextReady,
+);
 
 const activeOrder = {
   handle: 'chase-1',

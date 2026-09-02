@@ -77,7 +77,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Execute at your specified price or better',
       'perps.order.type.chase.title': 'Chase',
       'perps.order.type.chase.description':
-        'Auto adjust limit order to the best price',
+        'Post-only limit order that follows the best bid or ask',
       'perps.order.type.scale.title': 'Scale',
       'perps.order.type.scale.description':
         'Multiple limit orders spread across a price range',
@@ -187,7 +187,7 @@ describe('PerpsOrderTypeBottomSheet', () => {
 
     it('keeps the exact shared Chase description', () => {
       expect(strings('perps.order.type.chase.description')).toBe(
-        'Auto adjust limit order to the best price',
+        'Post-only limit order that follows the best bid or ask',
       );
     });
 

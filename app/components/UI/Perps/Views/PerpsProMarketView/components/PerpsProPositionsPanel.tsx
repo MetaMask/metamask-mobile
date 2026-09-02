@@ -88,7 +88,7 @@ import {
 } from '../../../selectors/perpsController';
 import { CHASE_HISTORY_STATUSES } from '../../../constants/perpsConfig';
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
-import { registerVisibleChaseOrderSymbols } from '../../../services/ChaseOrderVisibility';
+import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
@@ -216,7 +216,7 @@ const PerpsProPositionsPanel = ({
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
   const { chaseOrders, reconcileCanceledChaseOrder } = usePerpsChaseOrders({
-    isEnabled: isChaseEnabled && isScreenFocused,
+    isEnabled: isScreenFocused,
     enableDiscovery: false,
   });
   const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
@@ -517,16 +517,16 @@ const PerpsProPositionsPanel = ({
   );
   const displayedChaseOrders =
     chaseActivityFilter === 'active' ? activeChaseOrders : historyChaseOrders;
-  const displayedChaseSymbols = useMemo(
-    () => displayedChaseOrders.map((order) => order.symbol),
+  const displayedChaseHandles = useMemo(
+    () => displayedChaseOrders.map((order) => order.handle),
     [displayedChaseOrders],
   );
   useEffect(() => {
     if (!isScreenFocused || !isChaseTab || chaseActivityFilter !== 'active') {
       return;
     }
-    return registerVisibleChaseOrderSymbols(displayedChaseSymbols);
-  }, [chaseActivityFilter, displayedChaseSymbols, isChaseTab, isScreenFocused]);
+    return registerVisibleChaseOrderHandles(displayedChaseHandles);
+  }, [chaseActivityFilter, displayedChaseHandles, isChaseTab, isScreenFocused]);
   const unfilteredActivityChaseOrders = useMemo(
     () =>
       chaseOrders.filter((order) =>

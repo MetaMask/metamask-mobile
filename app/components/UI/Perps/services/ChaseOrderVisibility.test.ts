@@ -1,6 +1,6 @@
 import {
-  isChaseOrderSymbolVisible,
-  registerVisibleChaseOrderSymbols,
+  isChaseOrderHandleVisible,
+  registerVisibleChaseOrderHandles,
   resetChaseOrderVisibilityForTests,
 } from './ChaseOrderVisibility';
 
@@ -13,23 +13,23 @@ describe('ChaseOrderVisibility', () => {
     resetChaseOrderVisibilityForTests();
   });
 
-  it('removes visible symbols when their registration cleans up', () => {
-    const unregister = registerVisibleChaseOrderSymbols(['ETH']);
-    expect(isChaseOrderSymbolVisible('ETH')).toBe(true);
+  it('removes visible handles when their registration cleans up', () => {
+    const unregister = registerVisibleChaseOrderHandles(['chase-1']);
+    expect(isChaseOrderHandleVisible('chase-1')).toBe(true);
 
     unregister();
 
-    expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
+    expect(isChaseOrderHandleVisible('chase-1')).toBe(false);
   });
 
-  it('keeps a symbol visible until every registration cleans up', () => {
-    const unregisterFirst = registerVisibleChaseOrderSymbols(['ETH']);
-    const unregisterSecond = registerVisibleChaseOrderSymbols(['ETH']);
+  it('keeps a handle visible until every registration cleans up', () => {
+    const unregisterFirst = registerVisibleChaseOrderHandles(['chase-1']);
+    const unregisterSecond = registerVisibleChaseOrderHandles(['chase-1']);
 
     unregisterFirst();
 
-    expect(isChaseOrderSymbolVisible('ETH')).toBe(true);
+    expect(isChaseOrderHandleVisible('chase-1')).toBe(true);
     unregisterSecond();
-    expect(isChaseOrderSymbolVisible('ETH')).toBe(false);
+    expect(isChaseOrderHandleVisible('chase-1')).toBe(false);
   });
 });
