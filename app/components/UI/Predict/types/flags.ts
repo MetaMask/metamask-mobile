@@ -18,6 +18,12 @@ export interface PredictFeedBannerConfig extends VersionGatedFeatureFlag {
   dismissible: boolean;
 }
 
+export interface PredictFeedCarouselPrioritySlot {
+  seriesId: string;
+  /** 0-based index in the composed rail. */
+  index: number;
+}
+
 export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
   title?: string;
@@ -28,6 +34,13 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
    * order (sports interleaved with crypto).
    */
   priorityOrder: string[];
+  /**
+   * Series IDs placed at a specific 0-based index in the Live Now rail.
+   * Slots win over `priorityOrder` for the same series. First entry wins for
+   * a duplicate series or index. Unknown IDs are ignored (no hole). Indexes
+   * past the rail length append. Empty keeps `priorityOrder` / default order.
+   */
+  prioritySlots: PredictFeedCarouselPrioritySlot[];
   contentSource: {
     /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
     composition: 'query-results' | 'live-now';

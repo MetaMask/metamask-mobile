@@ -15,7 +15,7 @@ import type { PredictMarket, PredictMarketListParams } from '../../../../types';
 import type { PredictFeedCarouselConfig } from '../../../../types/flags';
 import { isCryptoUpDown } from '../../../../utils/cryptoUpDown';
 import { interleaveLiveNowMarkets } from './liveNowInterleave';
-import { applySeriesPriorityOrder } from './liveNowPriorityOrder';
+import { applySeriesPriority } from './liveNowPriorityOrder';
 
 /**
  * Over-fetch live markets so client-side filtering (keep sports game markets
@@ -68,8 +68,9 @@ export interface UsePredictLiveNowSectionResult {
  * {@link interleaveLiveNowMarkets} (crypto capped at 3).
  *
  * `priorityOrder` then pins matching `series.id` cards to the front of the
- * rail (use case: crypto Up/Down first) without changing which markets are
- * fetched.
+ * rail (use case: crypto Up/Down first). `prioritySlots` can instead place a
+ * series at a specific 0-based index (use case: one crypto card second).
+ * Slots win for the same series. Neither changes which markets are fetched.
  *
  * Crypto is only included when the Up/Down feature flag is on — `PredictMarket`
  * itself only renders the crypto card when that flag is enabled, so gating here
@@ -169,9 +170,14 @@ export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
       ? interleaveLiveNowMarkets(liveMarkets, cryptoMarkets)
       : customMarkets;
 
-    return applySeriesPriorityOrder(composed, config.priorityOrder);
+    return applySeriesPriority(
+      composed,
+      config.priorityOrder,
+      config.prioritySlots,
+    );
   }, [
     config.priorityOrder,
+    config.prioritySlots,
     cryptoMarkets,
     customMarkets,
     liveMarkets,
