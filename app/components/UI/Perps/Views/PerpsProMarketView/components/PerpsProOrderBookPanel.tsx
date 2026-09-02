@@ -716,7 +716,9 @@ const PerpsProOrderBookPanel = ({
     placeholderMessage = strings('perps.order_book.connection_error');
   }
 
-  const unitLabel = currency === 'usd' ? 'USD' : displaySymbol;
+  // Use "$" instead of "USD" so "Total ($)" fits the fixed 132px Pro order-book
+  // column without ellipsizing to "Total (U…" (TAT-3774). Settings still say USD.
+  const unitLabel = currency === 'usd' ? '$' : displaySymbol;
   const metricLabel =
     metric === 'total'
       ? strings('perps.order_book.total')
