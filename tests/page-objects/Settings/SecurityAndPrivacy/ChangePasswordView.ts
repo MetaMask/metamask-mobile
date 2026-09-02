@@ -82,12 +82,6 @@ class ChangePasswordView {
     );
   }
 
-  get incorrectPasswordWarning(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      enContent.reveal_credential.warning_incorrect_password,
-    );
-  }
-
   get newPasswordLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(enContent.reset_password.password);
   }
@@ -164,29 +158,6 @@ class ChangePasswordView {
     return Utilities.isElementVisible(this.newPasswordLabel, 3000);
   }
 
-  private async diagnoseFailedTransitionToResetForm(
-    formError: unknown,
-  ): Promise<never> {
-    // Use isElementVisible — do NOT use expectElementToBeVisible here.
-    // Failed visibility errors include the matcher text (e.g. "Incorrect
-    // password" inside an XPath), which falsely matched message checks.
-    if (await Utilities.isElementVisible(this.incorrectPasswordWarning, 1500)) {
-      throw new Error(
-        'Change password: still on current-password step with "Incorrect password" after Confirm — new-password form did not appear',
-      );
-    }
-
-    if (
-      await Utilities.isElementVisible(this.enterCurrentPasswordLabel, 1500)
-    ) {
-      throw new Error(
-        'Change password: still on current-password step after Confirm (password not verified / Confirm did not advance). ResetForm never appeared.',
-      );
-    }
-
-    throw formError;
-  }
-
   async enterCurrentPassword(password: string): Promise<void> {
     // Same Gestures.typeText (setValue) path as LoginView — proven on iOS for
     // design-system TextField secure inputs in this suite (unlockApp).
@@ -207,19 +178,59 @@ class ChangePasswordView {
   }
 
   /**
-   * If Confirm never enables after setValue (onChangeText missed), retype
-   * per-character so passwordRef / React state catch up, then tap again.
+   * Tap Confirm; on failure retype per-character so passwordRef / React state
+   * catch up, then tap again (via Utilities.executeWithRetry).
    */
   private async confirmCurrentPasswordWithRetry(
     password: string,
   ): Promise<void> {
-    try {
-      await this.tapConfirmCurrentPassword();
-    } catch {
-      await Gestures.typeTextByCharacters(this.passwordInput, password);
-      await Gestures.hideKeyboard();
-      await this.tapConfirmCurrentPassword();
-    }
+    let isRetry = false;
+    await Utilities.executeWithRetry(
+      async () => {
+        if (isRetry) {
+          await Gestures.typeTextByCharacters(this.passwordInput, password);
+          await Gestures.hideKeyboard();
+        }
+        isRetry = true;
+        await this.tapConfirmCurrentPassword();
+      },
+      {
+        timeout: 45_000,
+        interval: 1_000,
+        maxRetries: 2,
+        description: 'Confirm current password',
+        elemDescription: 'change-password Confirm button',
+      },
+    );
+  }
+
+  /**
+   * Wait for ResetForm after Confirm (retries while the form mounts).
+   * Uses short per-attempt timeouts; executeWithRetry owns the overall budget.
+   */
+  private async waitForNewPasswordFormAfterConfirm(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
+          description: 'New password label should be visible (ResetForm)',
+          timeout: 3_000,
+        });
+        await Assertions.expectElementToBeVisible(this.iUnderstandCheckBox, {
+          description: 'I understand checkbox should be visible',
+          timeout: 3_000,
+        });
+        await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
+          description: 'Confirm new password input should be visible',
+          timeout: 3_000,
+        });
+      },
+      {
+        timeout: 35_000,
+        interval: 1_500,
+        description: 'Wait for new-password form after Confirm',
+        elemDescription: 'change-password ResetForm',
+      },
+    );
   }
 
   async enterNewPassword(password: string): Promise<void> {
@@ -292,11 +303,7 @@ class ChangePasswordView {
       await this.expectCurrentPasswordStepVisible();
       await this.enterCurrentPassword(currentPassword);
       await this.confirmCurrentPasswordWithRetry(currentPassword);
-      try {
-        await this.expectNewPasswordFormVisible();
-      } catch (error) {
-        await this.diagnoseFailedTransitionToResetForm(error);
-      }
+      await this.waitForNewPasswordFormAfterConfirm();
     }
 
     await this.enterNewPassword(newPassword);
