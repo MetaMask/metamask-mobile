@@ -110,8 +110,13 @@ export interface PerpsProCompactInputProps {
   isHidden?: boolean;
 }
 
+/** Live focus facade that avoids exposing a snapshot of the native input ref. */
+export interface PerpsProCompactInputRef {
+  focus: () => void;
+}
+
 const PerpsProCompactInput = React.forwardRef<
-  TextInput | null,
+  PerpsProCompactInputRef,
   PerpsProCompactInputProps
 >(
   (
@@ -144,9 +149,9 @@ const PerpsProCompactInput = React.forwardRef<
     const [shouldFocusInput, setShouldFocusInput] = useState(false);
     const isInlineActive = isFocused || value.length > 0;
     const isInputVisible = variant !== 'inline' || isInlineActive;
-    useImperativeHandle<TextInput | null, TextInput | null>(
+    useImperativeHandle(
       ref,
-      () => inputRef.current,
+      () => ({ focus: () => inputRef.current?.focus() }),
       [],
     );
     const inputAccessoryViewID =

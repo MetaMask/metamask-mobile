@@ -15,6 +15,7 @@ import {
   FilterButtonGroup,
   FilterButtonVariant,
   HeaderStandard,
+  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -73,16 +74,41 @@ const EventScreenChrome = ({
   children,
   footer,
   onBack,
+  title,
+  onRulesPress,
 }: {
   children: React.ReactNode;
   footer?: React.ReactNode;
   onBack: () => void;
+  title?: string;
+  onRulesPress?: () => void;
 }) => (
   <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
     <HeaderStandard
       includesTopInset
+      title={title}
+      titleProps={{
+        testID: PredictEventScreenTestIds.TITLE,
+        accessibilityRole: 'header',
+        numberOfLines: 1,
+      }}
       onBack={onBack}
       backButtonProps={{ testID: PredictEventScreenTestIds.BACK }}
+      endButtonIconProps={
+        onRulesPress
+          ? [
+              {
+                iconName: IconName.Question,
+                onPress: onRulesPress,
+                testID: PredictEventScreenTestIds.EVENT_RULES_BUTTON,
+                accessibilityLabel: strings(
+                  'predict.rules.event_accessibility_label',
+                ),
+                accessibilityRole: 'button',
+              },
+            ]
+          : undefined
+      }
     />
     {children}
     {footer}
@@ -92,14 +118,22 @@ const EventScreenChrome = ({
 const EventScreenLayout = ({
   children,
   onBack,
+  title,
+  onRulesPress,
 }: {
   children: React.ReactNode;
   onBack: () => void;
+  title?: string;
+  onRulesPress?: () => void;
 }) => {
   const tw = useTailwind();
 
   return (
-    <EventScreenChrome onBack={onBack}>
+    <EventScreenChrome
+      onBack={onBack}
+      title={title}
+      onRulesPress={onRulesPress}
+    >
       <ScrollView contentContainerStyle={tw.style('flex-grow')}>
         <Box twClassName="flex-1 px-4 pb-8">{children}</Box>
       </ScrollView>
@@ -114,7 +148,6 @@ const EventLoadedHeader = ({
   selectedMarketId,
   showPredictTitle,
   onSelectMarket,
-  onEventRulesPress,
 }: {
   event: PredictEvent;
   winnerQuotes?: WinnerQuotes;
@@ -122,7 +155,6 @@ const EventLoadedHeader = ({
   selectedMarketId?: string;
   showPredictTitle: boolean;
   onSelectMarket: (marketId: string) => void;
-  onEventRulesPress?: () => void;
 }) => {
   const game = getEventGame(event);
 
@@ -171,9 +203,9 @@ const EventLoadedHeader = ({
   return (
     <Box>
       {game ? (
-        <GameEventHeader event={event} onRulesPress={onEventRulesPress} />
+        <GameEventHeader event={event} />
       ) : (
-        <StandardEventHeader event={event} onRulesPress={onEventRulesPress} />
+        <StandardEventHeader event={event} />
       )}
       {event.markets.length > 1 && !winnerQuotes ? (
         <FilterButtonGroup
@@ -199,11 +231,11 @@ const EventLoadedHeader = ({
           ))}
         </FilterButtonGroup>
       ) : null}
-      {renderMarketHistory()}
+      <Box twClassName="mt-4 mb-6">{renderMarketHistory()}</Box>
       {showPredictTitle ? (
         <Box
           testID={PredictEventScreenTestIds.PREDICT_SECTION}
-          twClassName="mt-8 pb-[14px]"
+          twClassName="mt-2 pb-[14px]"
         >
           <Text variant={TextVariant.HeadingMd}>
             {strings('wallet.predict')}
@@ -383,7 +415,9 @@ export const PredictEventScreen = () => {
     return (
       <>
         <EventScreenChrome
+          title={event.title}
           onBack={handleBack}
+          onRulesPress={eventRules ? handleEventRulesPress : undefined}
           footer={
             game && winnerQuotes ? (
               <MarketFooterCard
@@ -411,9 +445,6 @@ export const PredictEventScreen = () => {
                 selectedMarketId={selectedMarketId}
                 showPredictTitle={marketProjection.length > 0}
                 onSelectMarket={handleMarketSelect}
-                onEventRulesPress={
-                  eventRules ? handleEventRulesPress : undefined
-                }
               />
             }
           />
@@ -431,15 +462,8 @@ export const PredictEventScreen = () => {
 
   if (query.isError || hasBlockingError) {
     return (
-      <EventScreenLayout onBack={handleBack}>
+      <EventScreenLayout title={titleSnapshot} onBack={handleBack}>
         <Box twClassName="gap-6">
-          <Text
-            testID={PredictEventScreenTestIds.TITLE}
-            accessibilityRole="header"
-            variant={TextVariant.HeadingLg}
-          >
-            {titleSnapshot}
-          </Text>
           <Box
             testID={PredictEventScreenTestIds.ERROR}
             twClassName="items-start gap-3 py-4"
@@ -466,8 +490,8 @@ export const PredictEventScreen = () => {
   }
 
   return (
-    <EventScreenLayout onBack={handleBack}>
-      <EventLoadingHeader title={titleSnapshot} />
+    <EventScreenLayout title={titleSnapshot} onBack={handleBack}>
+      <EventLoadingHeader />
     </EventScreenLayout>
   );
 };
