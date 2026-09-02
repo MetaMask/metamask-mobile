@@ -1583,17 +1583,6 @@ jobs:
       reuse-main-builds-only: ${{ needs.get_requirements.outputs.native_build_needed == 'false' }}
     secrets: inherit
 
-  ios-tests-ready:
-    name: 'iOS Tests Ready'
-    runs-on: ubuntu-latest
-    if: ${{ !cancelled() && needs.build-ios-apps.result == 'success' }}
-    needs: [build-ios-apps]
-    steps:
-      - name: iOS build complete
-        run: echo "Dummy step to better visualize the Android and iOS E2E tests in Github workflow graph"
-
-
-
   appium-smoke-tests-android:
     name: 'Appium Smoke Tests (Android)'
     if: >-
@@ -1642,8 +1631,7 @@ jobs:
     # (same smart-selected tags as other E2E jobs).
     if: >-
       ${{
-        !cancelled() &&
-        needs.ios-tests-ready.result == 'success' &&
+        !cancelled() &&        
         (needs.prepare-e2e-timings.result == 'success' ||
           needs.prepare-e2e-timings.result == 'skipped' ||
           needs.prepare-e2e-timings.result == 'failure') &&
@@ -1673,7 +1661,7 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [get_requirements, ios-tests-ready, smart-e2e-selection, prepare-e2e-timings]
+    needs: [get_requirements, smart-e2e-selection, prepare-e2e-timings]
     uses: ./.github/workflows/run-appium-smoke-tests-ios.yml
     with:
       build_type: 'main'
