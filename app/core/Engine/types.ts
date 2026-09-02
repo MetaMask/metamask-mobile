@@ -1089,8 +1089,6 @@ export type MessengerClientsToInitialize =
   | 'AssetsContractController'
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
-  | 'ConfigRegistryController'
-  | 'ConfigRegistryApiService'
   | 'SentinelApiService'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'

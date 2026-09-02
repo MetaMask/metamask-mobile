@@ -7,7 +7,6 @@ import {
   AvatarTokenSize,
   BadgeWrapper,
   BadgeWrapperPosition,
-  BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
   Box,
@@ -50,6 +49,7 @@ import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
+import RecurringBottomSheet from '../RecurringBottomSheet';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
 
@@ -243,7 +243,7 @@ const RecurringConfirmOrderSheet = ({
   }
 
   return (
-    <BottomSheet
+    <RecurringBottomSheet
       ref={sheetRef}
       testID={RecurringConfirmOrderSheetSelectorsIDs.SHEET}
       onClose={onClose}
@@ -400,7 +400,7 @@ const RecurringConfirmOrderSheet = ({
           ) : null}
         </Box>
       ) : null}
-    </BottomSheet>
+    </RecurringBottomSheet>
   );
 };
 
