@@ -35,7 +35,8 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
    */
   priorityOrder: string[];
   /**
-   * Series IDs placed at a specific 0-based index in the Live Now rail.
+   * Series IDs inserted at a specific 0-based index in the Live Now rail.
+   * The occupant and everything after it shift right; nothing is replaced.
    * Slots win over `priorityOrder` for the same series. First entry wins for
    * a duplicate series or index. Unknown IDs are ignored (no hole). Indexes
    * past the rail length append. Empty keeps `priorityOrder` / default order.

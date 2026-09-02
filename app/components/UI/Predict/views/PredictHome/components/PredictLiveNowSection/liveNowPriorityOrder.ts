@@ -52,7 +52,8 @@ export interface SeriesPrioritySlot {
 }
 
 /**
- * Places matching `series.id` cards at the given 0-based indexes, then applies
+ * Inserts matching `series.id` cards at the given 0-based indexes and shifts
+ * later cards right. Never replaces or drops the occupant. Then applies
  * {@link applySeriesPriorityOrder} to the remaining cards. Slots win for the
  * same series. First slot wins for a duplicate series or index. Unknown IDs
  * are ignored (no hole). Indexes past the rail length append.

@@ -81,7 +81,7 @@ describe('applySeriesPriority', () => {
     expect(idsOf(result)).toEqual(['C1', 'L1']);
   });
 
-  it('places a matching series at the requested index', () => {
+  it('inserts a matching series at the requested index and shifts the rest right', () => {
     const markets = [
       createMarket('L1', 'sports'),
       createMarket('L2', 'sports'),
@@ -95,6 +95,7 @@ describe('applySeriesPriority', () => {
       [{ seriesId: '10684', index: 1 }],
     );
 
+    // L2 was already in slot 1; it slides to 2 instead of being replaced.
     expect(idsOf(result)).toEqual(['L1', 'C1', 'L2', 'L3']);
   });
 

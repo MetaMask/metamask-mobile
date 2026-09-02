@@ -68,9 +68,10 @@ export interface UsePredictLiveNowSectionResult {
  * {@link interleaveLiveNowMarkets} (crypto capped at 3).
  *
  * `priorityOrder` then pins matching `series.id` cards to the front of the
- * rail (use case: crypto Up/Down first). `prioritySlots` can instead place a
- * series at a specific 0-based index (use case: one crypto card second).
- * Slots win for the same series. Neither changes which markets are fetched.
+ * rail (use case: crypto Up/Down first). `prioritySlots` can instead insert a
+ * series at a specific 0-based index and shift the rest right (use case: one
+ * crypto card second). Slots win for the same series. Neither changes which
+ * markets are fetched.
  *
  * Crypto is only included when the Up/Down feature flag is on — `PredictMarket`
  * itself only renders the crypto card when that flag is enabled, so gating here
