@@ -123,6 +123,7 @@ export function useContinueWithQuote(
     selectedProvider,
     selectedPaymentMethod,
     userRegion,
+    getQuotes,
     getBuyWidgetData,
     addPrecreatedOrder,
   } = useRampsController();
@@ -307,7 +308,34 @@ export function useContinueWithQuote(
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
         redirectUrl = redirectConfig.redirectUrl;
-        const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
+        let checkoutQuote = quote;
+        const quotedAmount = Number(quote.quote.amountIn);
+
+        if (quotedAmount !== ctx.amount) {
+          const refreshedQuotes = await getQuotes({
+            assetId: ctx.assetId,
+            amount: ctx.amount,
+            walletAddress: effectiveWalletAddress ?? '',
+            paymentMethods: [ctx.paymentMethodId ?? quote.quote.paymentMethod],
+            providers: [quote.provider],
+            fiat: effectiveCurrency,
+            redirectUrl,
+            forceRefresh: true,
+          });
+          const refreshedQuote = refreshedQuotes.success?.find(
+            (candidate) => candidate.provider === quote.provider,
+          );
+
+          if (!refreshedQuote) {
+            throw new Error('No refreshed widget quote available');
+          }
+          checkoutQuote = refreshedQuote;
+        }
+
+        const quoteForWidget = buildQuoteWithRedirectUrl(
+          checkoutQuote,
+          redirectUrl,
+        );
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
         endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
@@ -427,6 +455,7 @@ export function useContinueWithQuote(
       walletAddress,
       currency,
       navigation,
+      getQuotes,
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,
