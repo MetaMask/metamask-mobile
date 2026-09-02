@@ -243,6 +243,58 @@ describe('TraderAdvancedChart', () => {
     );
   });
 
+  it('draws a labeled current-price line from the last bar close for a perp position', () => {
+    // Spot feed empty: the perp path builds its series from historicalPrices.
+    setOHLCV([]);
+    const historicalPrices: TokenPrice[] = Array.from(
+      { length: 10 },
+      (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
+    );
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        assetId={undefined}
+        isPerp
+        historicalPrices={historicalPrices}
+      />,
+    );
+
+    const props = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      positionLines: {
+        side: string;
+        currentPrice: number;
+        currentPriceLabel: string;
+      };
+      positionLineColors: Record<string, string>;
+    };
+    // Current price = last bar close (100 + 9 = 109).
+    expect(props.positionLines).toEqual(
+      expect.objectContaining({
+        side: 'long',
+        currentPrice: 109,
+        currentPriceLabel: 'Current',
+      }),
+    );
+    // A colors object is supplied so the shared overlay can theme the line.
+    expect(props.positionLineColors).toEqual(
+      expect.objectContaining({ currentPrice: expect.any(String) }),
+    );
+  });
+
+  it('does not draw position lines for a spot position (feature scoped to perps)', () => {
+    setOHLCV(makeBars(20));
+
+    render(<TraderAdvancedChart {...defaultProps} />);
+
+    expect(mockAdvancedChart).toHaveBeenCalledWith(
+      expect.objectContaining({
+        positionLines: undefined,
+        positionLineColors: undefined,
+      }),
+    );
+  });
+
   it('opts into SLB-scoped chart behavior via slbMode', () => {
     setOHLCV(makeBars(20));
 
