@@ -359,7 +359,6 @@ describe('PredictPositionDetail', () => {
 
       renderComponent();
 
-      // Should show skeletons instead of actual values
       expect(screen.queryByText('$129.93')).toBeNull();
       expect(screen.queryByText('5.25%')).toBeNull();
     });
@@ -374,7 +373,6 @@ describe('PredictPositionDetail', () => {
 
       renderComponent();
 
-      // Should show skeletons instead of actual values
       expect(screen.queryByText('5.25%')).toBeNull();
     });
 
