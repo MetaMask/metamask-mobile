@@ -1437,7 +1437,8 @@ describe('OAuthRehydration', () => {
       });
       (getTraceContextMock as jest.Mock).mockImplementation(
         (req: { name: string }) => {
-          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          if (req.name === TraceName.OnboardingJourneyOverall)
+            return journeyCtx;
           return undefined;
         },
       );
@@ -1446,7 +1447,7 @@ describe('OAuthRehydration', () => {
           if (fn) {
             return fn();
           }
-          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
           }
           return undefined;
@@ -1459,7 +1460,7 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(endTraceMock).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: 'OnboardingPasswordLoginAttempt',
+            name: TraceName.OnboardingPasswordLoginAttempt,
           }),
         );
         expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalled();
@@ -1468,7 +1469,7 @@ describe('OAuthRehydration', () => {
       const endTraceJestMock = endTraceMock as jest.Mock;
       const passwordEndIndex = endTraceJestMock.mock.calls.findIndex(
         ([request]: [{ name?: string }]) =>
-          request?.name === 'OnboardingPasswordLoginAttempt',
+          request?.name === TraceName.OnboardingPasswordLoginAttempt,
       );
       expect(passwordEndIndex).toBeGreaterThanOrEqual(0);
       expect(
