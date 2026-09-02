@@ -561,6 +561,9 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
   TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
   TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
+  TWAP_SIDE_FILTER_BUTTON: 'perps-pro-market-twap-side-filter-button',
+  TWAP_SIDE_FILTER_SHEET: 'perps-pro-market-twap-side-filter-sheet',
+  TWAP_SIDE_FILTER_SHEET_CLOSE: 'perps-pro-market-twap-side-filter-sheet-close',
   TWAP_ROW: 'perps-pro-market-twap-row',
   TWAP_FILL_ROW: 'perps-pro-market-twap-fill-row',
   TWAP_FILL_MARKET: 'perps-pro-market-twap-fill-market',
@@ -615,6 +618,10 @@ export const PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR =
 export const getPerpsProChaseSideFilterOptionSelector = (
   side: 'long' | 'short' | 'all',
 ) => `${PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET}-option-${side}`;
+
+export const getPerpsProTwapSideFilterOptionSelector = (
+  side: 'long' | 'short' | 'all',
+) => `${PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET}-option-${side}`;
 
 export const getPerpsProChaseFormActiveCountSelector = (count: number) =>
   `perps-pro-chase-active-count-${count}`;

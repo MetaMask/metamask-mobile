@@ -39,6 +39,7 @@ const CUF_META = {
   SYMBOL: 'symbol',
   WATCH: 'watch',
   ORDER_ID: 'orderId',
+  PROVIDER_ID: 'providerId',
   ORDER_IDS: 'orderIds',
   SNAPSHOT: 'snapshot',
   // True when the positions cache was not loaded at submit, so the pre-order
@@ -62,6 +63,7 @@ const PERPS_CUF_WATCH = {
   /** TP/SL update: the position's take-profit or stop-loss value changed. */
   TPSL_CHANGED: 'tpsl_changed',
   ORDER_ABSENT: 'order_absent',
+  TWAP_TERMINAL: 'twap_terminal',
   /** Limit place: the order rests in the orders stream OR fills into a position. */
   ORDER_PRESENT_OR_FILLED: 'order_present_or_filled',
   /** Edit: the order's resting limit price updated to the requested value. */
@@ -463,6 +465,20 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
   });
 }
 
+/** Watch reconciled TWAP data for a schedule to become terminal or disappear. */
+export function watchPerpsCufTwapTerminal(
+  opId: string,
+  orderId: string,
+  providerId?: string,
+): void {
+  setPerpsCufMeta(opId, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.TWAP_TERMINAL,
+    [CUF_META.ORDER_ID]: orderId,
+    ...(providerId ? { [CUF_META.PROVIDER_ID]: providerId } : {}),
+    [CUF_META.AWAIT_ACCEPT]: true,
+  });
+}
+
 /** Watch for an open order to reflect the edited limit price before ending `opId`. */
 export function watchPerpsCufOrderPriceUpdated(
   opId: string,
@@ -806,6 +822,53 @@ export function handlePerpsCufOrdersDelivered(
   if (flushThrottled && (toEnd.length > 0 || deferred)) {
     flushThrottled();
   }
+  for (const opId of toEnd) {
+    endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
+  }
+}
+
+interface PerpsCufTwapOrderLike {
+  orderId: string;
+  providerId?: string;
+  status: string;
+}
+
+/**
+ * Reconciled TWAP schedules just committed to the UI. Unlike ordinary cancel
+ * confirmation, this watches the TWAP lifecycle data rather than the resting
+ * orders stream, which never contains venue-native schedule IDs.
+ */
+export function handlePerpsCufTwapOrdersDelivered(
+  orders: readonly PerpsCufTwapOrderLike[] | null,
+): void {
+  if (!orders) {
+    return;
+  }
+
+  const toEnd: string[] = [];
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsTerminateTwapToConfirmation,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    const orderId = meta?.[CUF_META.ORDER_ID];
+    const providerId = meta?.[CUF_META.PROVIDER_ID];
+    if (
+      meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.TWAP_TERMINAL ||
+      typeof orderId !== 'string'
+    ) {
+      continue;
+    }
+
+    const schedule = orders.find(
+      (order) =>
+        order.orderId === orderId &&
+        (typeof providerId !== 'string' || order.providerId === providerId),
+    );
+    if (!schedule || schedule.status !== 'active') {
+      confirmOrDefer(opId, meta, toEnd);
+    }
+  }
+
   for (const opId of toEnd) {
     endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
   }

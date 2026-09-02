@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { TwapOrder } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -7,6 +7,7 @@ import {
   getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
+import { formatProOrderCardTimestamp } from '../../../utils/formatUtils';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -158,7 +159,7 @@ describe('PerpsProTwapCard', () => {
     // Assert
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_AVERAGE_PRICE)),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
   });
 
   it('marks a buy schedule long and a sell schedule short', () => {
@@ -171,6 +172,9 @@ describe('PerpsProTwapCard', () => {
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
     ).toHaveProp('severity', 'success');
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
+    ).toHaveTextContent('Long');
 
     // Act
     rerender(<PerpsProTwapCard twapOrder={buildTwapOrder({ side: 'sell' })} />);
@@ -179,6 +183,9 @@ describe('PerpsProTwapCard', () => {
     expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
     ).toHaveProp('severity', 'danger');
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
+    ).toHaveTextContent('Short');
   });
 
   it.each([
@@ -373,5 +380,34 @@ describe('PerpsProTwapCard', () => {
 
     // Assert
     expect(onPress).toHaveBeenCalledWith(twapOrder);
+  });
+
+  it('keeps direction, timestamp, and terminal status in the market action label', () => {
+    // Arrange
+    const onPress = jest.fn();
+    const twapOrder = buildTwapOrder({ status: 'canceled' });
+    render(<PerpsProTwapCard twapOrder={twapOrder} onPress={onPress} />);
+
+    // Assert: the actionable header owns the descendants in the accessibility
+    // tree, so its label must preserve all meaningful summary context.
+    const marketButton = screen.getByTestId(
+      getPerpsProTwapValueSelector(
+        ids.TWAP_MARKET_BUTTON,
+        twapOrder.providerId,
+        twapOrder.orderId,
+      ),
+    );
+    expect(marketButton).toHaveProp(
+      'accessibilityLabel',
+      expect.stringContaining('Long'),
+    );
+    expect(marketButton).toHaveProp(
+      'accessibilityLabel',
+      expect.stringContaining(formatProOrderCardTimestamp(twapOrder.startedAt)),
+    );
+    expect(marketButton).toHaveProp(
+      'accessibilityLabel',
+      expect.stringContaining('Terminated'),
+    );
   });
 });

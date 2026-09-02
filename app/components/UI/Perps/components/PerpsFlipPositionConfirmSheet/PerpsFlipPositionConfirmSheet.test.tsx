@@ -98,30 +98,16 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
-  HYPERLIQUID_TWAP_LIMITS: {
-    MinDurationMinutes: 5,
-    MaxDurationMinutes: 1440,
-    MinNotionalUsd: 100,
-  },
-  CHASE_ORDER_STATUS: {
-    Active: 'active',
-    TerminationPending: 'termination_pending',
-    Backgrounded: 'backgrounded',
-    MaxDistanceReached: 'max_distance_reached',
-    DurationReached: 'duration_reached',
-    RepricingLimitReached: 'repricing_limit_reached',
-    Filled: 'filled',
-    Canceled: 'canceled',
-    Failed: 'failed',
-  },
-  PERPS_EVENT_VALUE: {
-    SOURCE: {
-      POSITION_SCREEN: 'position_screen',
-    },
-  },
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  };
+});
 
 jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');

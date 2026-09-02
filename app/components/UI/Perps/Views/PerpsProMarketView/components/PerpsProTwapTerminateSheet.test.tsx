@@ -4,6 +4,31 @@ import React from 'react';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactLocal = jest.requireActual<typeof React>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactLocal.forwardRef(
+      (
+        {
+          children,
+          ...props
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+          onClose?: () => void;
+          isInteractable?: boolean;
+        },
+        ref: React.ForwardedRef<React.ComponentRef<typeof View>>,
+      ) => ReactLocal.createElement(View, { ...props, ref }, children),
+    ),
+  };
+});
+
 const twapOrder: TwapOrder = {
   orderId: 'twap-1',
   symbol: 'BTC',
@@ -113,22 +138,32 @@ describe('PerpsProTwapTerminateSheet', () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it('blocks a second confirm while terminating', () => {
+  it('blocks confirmation and every dismissal path while terminating', () => {
     // Arrange
     const onConfirm = jest.fn();
+    const onClose = jest.fn();
     render(
       <PerpsProTwapTerminateSheet
         twapOrder={twapOrder}
-        onClose={jest.fn()}
+        onClose={onClose}
         onConfirm={onConfirm}
         isTerminating
       />,
     );
 
-    // Act
+    // Act: primary, footer cancel, header close, and the sheet's overlay/swipe/
+    // Android-back callback all remain inert for the financial action lifetime.
     fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE_CONFIRM));
+    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE_CANCEL));
+    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE_CLOSE));
+    screen.getByTestId(ids.TWAP_TERMINATE_SHEET).props.onClose();
 
     // Assert
     expect(onConfirm).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId(ids.TWAP_TERMINATE_SHEET)).toHaveProp(
+      'isInteractable',
+      false,
+    );
   });
 });

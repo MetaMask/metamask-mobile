@@ -33,7 +33,6 @@ import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapFillRowProps {
   row: ProTwapFillRow;
-  testID?: string;
 }
 
 /**
@@ -41,7 +40,7 @@ interface PerpsProTwapFillRowProps {
  * child fills a schedule expands into, so each row names its parent market and
  * side alongside the fill's price, size, and execution time.
  */
-const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
+const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { fill, twapOrder } = row;
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
@@ -63,14 +62,11 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
   return (
     <Box
       twClassName="gap-1 px-2 py-3"
-      testID={
-        testID ??
-        getPerpsProTwapFillRowSelector(
-          twapOrder.providerId,
-          twapOrder.orderId,
-          fill.fillId,
-        )
-      }
+      testID={getPerpsProTwapFillRowSelector(
+        twapOrder.providerId,
+        twapOrder.orderId,
+        fill.fillId,
+      )}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}

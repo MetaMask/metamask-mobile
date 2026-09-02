@@ -16,6 +16,7 @@ import {
   watchPerpsCufPositionClosed,
   watchPerpsCufTpSlChanged,
   watchPerpsCufOrderAbsent,
+  watchPerpsCufTwapTerminal,
   watchPerpsCufOrderPriceUpdated,
   watchPerpsCufLimitRendered,
   watchPerpsCufAnyPositions,
@@ -24,6 +25,7 @@ import {
   clearPendingPerpsCufTraces,
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
+  handlePerpsCufTwapOrdersDelivered,
   resetPerpsCufTraceForTests,
 } from './perpsCufTrace';
 import {
@@ -734,6 +736,48 @@ describe('perpsCufTrace', () => {
     handlePerpsCufOrdersDelivered([{ orderId: 'o-2' }]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),
+    );
+  });
+
+  it('TWAP termination confirms only from its provider-qualified lifecycle row', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+    });
+    watchPerpsCufTwapTerminal(opId, 'shared-id', 'hyperliquid');
+    acceptPerpsCufRequest(opId);
+
+    handlePerpsCufTwapOrdersDelivered([
+      { orderId: 'shared-id', providerId: 'hyperliquid', status: 'active' },
+      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+    ]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    handlePerpsCufTwapOrdersDelivered([
+      { orderId: 'shared-id', providerId: 'hyperliquid', status: 'canceled' },
+      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+    ]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: opId }),
+    );
+  });
+
+  it('gates an absent TWAP confirmation until termination is accepted', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+    });
+    watchPerpsCufTwapTerminal(opId, 'twap-1', 'hyperliquid');
+
+    handlePerpsCufTwapOrdersDelivered([]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    acceptPerpsCufRequest(opId);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.BOUNDARY]: PERPS_CUF_BOUNDARY.STREAM,
+        }),
+      }),
     );
   });
 

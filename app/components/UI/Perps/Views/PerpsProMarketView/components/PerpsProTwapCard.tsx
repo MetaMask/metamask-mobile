@@ -47,7 +47,6 @@ import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapCardProps {
   twapOrder: TwapOrder;
-  testID?: string;
   /** Switches the Pro screen to this schedule's market. */
   onPress?: (twapOrder: TwapOrder) => void;
   /** Omitted for terminal schedules, which cannot be terminated. */
@@ -119,7 +118,6 @@ const MILLISECONDS_PER_MINUTE = 60_000;
  */
 const PerpsProTwapCard = ({
   twapOrder,
-  testID,
   onPress,
   onTerminate,
   isTerminateDisabled = false,
@@ -131,6 +129,8 @@ const PerpsProTwapCard = ({
   const directionSeverity = isBuySide
     ? TagSeverity.Success
     : TagSeverity.Danger;
+  const createdAtLabel = formatProOrderCardTimestamp(twapOrder.startedAt);
+  const statusLabel = strings(STATUS_LABEL_KEYS[twapOrder.status]);
 
   const totalSize = formatPositionSize(twapOrder.size);
   const executedSize = formatPositionSize(twapOrder.executedSize);
@@ -154,10 +154,10 @@ const PerpsProTwapCard = ({
       onPress={handlePress}
       disabled={!handlePress}
       accessible={false}
-      testID={
-        testID ??
-        getPerpsProTwapRowSelector(twapOrder.providerId, twapOrder.orderId)
-      }
+      testID={getPerpsProTwapRowSelector(
+        twapOrder.providerId,
+        twapOrder.orderId,
+      )}
     >
       <Box twClassName="gap-3 py-3">
         <Pressable
@@ -169,9 +169,15 @@ const PerpsProTwapCard = ({
           accessibilityRole={handlePress ? 'button' : undefined}
           accessibilityLabel={
             handlePress
-              ? strings('perps.pro_positions_panel.view_market_accessibility', {
-                  symbol: displaySymbol,
-                })
+              ? [
+                  strings(
+                    'perps.pro_positions_panel.view_market_accessibility',
+                    { symbol: displaySymbol },
+                  ),
+                  directionLabel,
+                  createdAtLabel,
+                  statusLabel,
+                ].join(', ')
               : undefined
           }
         >
@@ -231,7 +237,7 @@ const PerpsProTwapCard = ({
                     PerpsProMarketViewSelectorsIDs.TWAP_CREATED_AT,
                   )}
                 >
-                  {formatProOrderCardTimestamp(twapOrder.startedAt)}
+                  {createdAtLabel}
                 </Text>
               </Box>
             </Box>
@@ -241,7 +247,7 @@ const PerpsProTwapCard = ({
                 PerpsProMarketViewSelectorsIDs.TWAP_STATUS_TAG,
               )}
             >
-              {strings(STATUS_LABEL_KEYS[twapOrder.status])}
+              {statusLabel}
             </Tag>
           </Box>
         </Pressable>

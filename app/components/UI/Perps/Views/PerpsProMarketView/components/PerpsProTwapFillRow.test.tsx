@@ -122,20 +122,7 @@ describe('PerpsProTwapFillRow', () => {
     expect(screen.getByText(label)).toBeOnTheScreen();
   });
 
-  it('carries the supplied test ID', () => {
-    // Arrange / Act
-    render(
-      <PerpsProTwapFillRowItem
-        row={{ fill: buildFill(), twapOrder }}
-        testID="fill-row-1"
-      />,
-    );
-
-    // Assert
-    expect(screen.getByTestId('fill-row-1')).toBeOnTheScreen();
-  });
-
-  it('falls back to the provider/order/fill row test ID', () => {
+  it('uses the provider/order/fill row test ID', () => {
     // Arrange / Act
     render(<PerpsProTwapFillRowItem row={{ fill: buildFill(), twapOrder }} />);
 

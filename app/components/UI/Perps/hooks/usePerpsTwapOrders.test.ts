@@ -7,6 +7,9 @@ import { usePerpsTwapOrders } from './usePerpsTwapOrders';
 let mockSelectedAddress = '0xabc';
 let mockProvider = 'hyperliquid';
 let mockNetwork = 'testnet';
+let mockMarketContextKey = 'testnet|hyperliquid|0|1';
+let mockIsMarketReady = true;
+let mockIsUserReady = true;
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
@@ -19,6 +22,16 @@ jest.mock('../selectors/selectedAccountAddress', () => ({
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsProvider: () => mockProvider,
   selectPerpsNetwork: () => mockNetwork,
+}));
+
+jest.mock('./usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: mockMarketContextKey,
+    identityKey: 'testnet|hyperliquid|0',
+    isReady: mockIsMarketReady,
+    isUserReady: mockIsUserReady,
+    isConnectionInitialized: mockIsUserReady,
+  }),
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -75,8 +88,15 @@ describe('usePerpsTwapOrders', () => {
     mockSelectedAddress = '0xabc';
     mockProvider = 'hyperliquid';
     mockNetwork = 'testnet';
+    mockMarketContextKey = 'testnet|hyperliquid|0|1';
+    mockIsMarketReady = true;
+    mockIsUserReady = true;
     mockController.getTwapOrders.mockResolvedValue([buildTwapOrder()]);
     mockController.subscribeToTwapOrders.mockReturnValue(jest.fn());
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('reads schedules from the controller on mount', async () => {
@@ -212,6 +232,59 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([
       hyperliquidTerminal,
       recoveredHistory,
+      myxHistory,
+    ]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('retains a terminal-only provider partition through partial reads until authoritative recovery', async () => {
+    // Arrange
+    mockProvider = 'aggregated';
+    const retainedFill = buildTwapFill({ fillId: 'retained-fill' });
+    const staleHyperliquidHistory = buildTwapOrder({
+      orderId: 'hyperliquid-history',
+      providerId: 'hyperliquid',
+      status: 'completed',
+      fills: [retainedFill],
+    });
+    const myxHistory = buildTwapOrder({
+      orderId: 'myx-history',
+      providerId: 'myx',
+      status: 'completed',
+    });
+    const recoveredHyperliquidHistory = buildTwapOrder({
+      orderId: 'hyperliquid-recovered',
+      providerId: 'hyperliquid',
+      status: 'canceled',
+      startedAt: 3_000,
+    });
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([staleHyperliquidHistory, myxHistory])
+      .mockResolvedValueOnce([myxHistory])
+      .mockResolvedValueOnce([myxHistory, recoveredHyperliquidHistory]);
+    const { result } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() => expect(result.current.twapOrders).toHaveLength(2));
+
+    // Act: Hyperliquid's terminal-only partition is transiently omitted.
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toContainEqual(staleHyperliquidHistory);
+    expect(result.current.twapOrders[1].fills).toStrictEqual([retainedFill]);
+    expect(result.current.error).toBe(
+      'Unable to confirm active TWAP schedules for every provider',
+    );
+
+    // Act: any returned Hyperliquid row authoritatively replaces that partition.
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([
+      recoveredHyperliquidHistory,
       myxHistory,
     ]);
     expect(result.current.error).toBeNull();
@@ -417,6 +490,134 @@ describe('usePerpsTwapOrders', () => {
 
     // Assert: the stream's empty fills must not erase the known ones
     expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]);
+  });
+
+  it('keeps a newer terminal REST schedule when an older active stream row arrives', async () => {
+    // Arrange
+    const restFill = buildTwapFill({ fillId: 'rest-fill' });
+    const streamFill = buildTwapFill({ fillId: 'stream-fill' });
+    const terminalRestOrder = buildTwapOrder({
+      status: 'canceled',
+      lastUpdated: 5_000,
+      fills: [restFill],
+    });
+    mockController.getTwapOrders.mockResolvedValue([terminalRestOrder]);
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([terminalRestOrder]),
+    );
+
+    // Act
+    act(() => {
+      pushStreamed?.([
+        buildTwapOrder({ lastUpdated: 4_000, fills: [streamFill] }),
+      ]);
+    });
+
+    // Assert: schedule fields come from REST while fills are a union.
+    expect(result.current.twapOrders[0]).toMatchObject({
+      status: 'canceled',
+      lastUpdated: 5_000,
+    });
+    expect(result.current.twapOrders[0].fills).toHaveLength(2);
+    expect(result.current.twapOrders[0].fills).toEqual(
+      expect.arrayContaining([restFill, streamFill]),
+    );
+  });
+
+  it('keeps a newer terminal stream schedule when an older active REST row resolves later', async () => {
+    // Arrange
+    let resolveRest: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.getTwapOrders.mockReturnValue(
+      new Promise<TwapOrder[]>((resolve) => {
+        resolveRest = resolve;
+      }),
+    );
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const streamFill = buildTwapFill({ fillId: 'stream-fill' });
+    const terminalStreamOrder = buildTwapOrder({
+      status: 'completed',
+      lastUpdated: 6_000,
+      fills: [streamFill],
+    });
+    const restFill = buildTwapFill({ fillId: 'rest-fill' });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true, skipInitialFetch: true }),
+    );
+    await waitFor(() =>
+      expect(mockController.getTwapOrders).toHaveBeenCalled(),
+    );
+
+    // Act
+    act(() => pushStreamed?.([terminalStreamOrder]));
+    await act(async () => {
+      resolveRest?.([
+        buildTwapOrder({ lastUpdated: 4_000, fills: [restFill] }),
+      ]);
+    });
+
+    // Assert
+    expect(result.current.twapOrders[0]).toMatchObject({
+      status: 'completed',
+      lastUpdated: 6_000,
+    });
+    expect(result.current.twapOrders[0].fills).toHaveLength(2);
+    expect(result.current.twapOrders[0].fills).toEqual(
+      expect.arrayContaining([restFill, streamFill]),
+    );
+  });
+
+  it('uses the incoming schedule fields and unions fills at equal timestamps', async () => {
+    // Arrange
+    const restFill = buildTwapFill({ fillId: 'rest-fill' });
+    const streamFill = buildTwapFill({ fillId: 'stream-fill' });
+    const restOrder = buildTwapOrder({
+      executedSize: '4',
+      lastUpdated: 5_000,
+      fills: [restFill],
+    });
+    mockController.getTwapOrders.mockResolvedValue([restOrder]);
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([restOrder]),
+    );
+
+    // Act
+    act(() => {
+      pushStreamed?.([
+        buildTwapOrder({
+          status: 'completed_underfilled',
+          executedSize: '7',
+          lastUpdated: 5_000,
+          fills: [streamFill],
+        }),
+      ]);
+    });
+
+    // Assert: equal versions have a documented, deterministic incoming winner.
+    expect(result.current.twapOrders[0]).toMatchObject({
+      status: 'completed_underfilled',
+      executedSize: '7',
+      fills: [restFill, streamFill],
+    });
   });
 
   it('retains non-default-provider schedules after a default-provider stream update', async () => {
@@ -657,7 +858,9 @@ describe('usePerpsTwapOrders', () => {
     const { result } = renderHook(() =>
       usePerpsTwapOrders({ enableLiveUpdates: true }),
     );
-    await waitFor(() => expect(result.current.twapOrders).toContain(myxActive));
+    await waitFor(() =>
+      expect(result.current.twapOrders).toContainEqual(myxActive),
+    );
 
     // Act
     act(() => pushStreamed?.([], true));
@@ -873,6 +1076,110 @@ describe('usePerpsTwapOrders', () => {
     // Assert
     expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
     expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(2);
+    unmount();
+    expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('discovers an externally active schedule after an empty read without remounting', async () => {
+    // Arrange
+    jest.useFakeTimers();
+    const discoveredOrder = buildTwapOrder({ orderId: 'external-twap' });
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([])
+      .mockResolvedValue([discoveredOrder]);
+    const { result, unmount } = renderHook(() =>
+      usePerpsTwapOrders({
+        enableDiscovery: true,
+        discoveryInterval: 1000,
+      }),
+    );
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.twapOrders).toStrictEqual([]);
+
+    // Act
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(1000);
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([discoveredOrder]);
+    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
+    unmount();
+  });
+  it('keeps the subscription alive when skipInitialFetch changes', async () => {
+    // Arrange
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
+    const unsubscribe = jest.fn();
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return unsubscribe;
+    });
+    const { result, rerender, unmount } = renderHook(
+      ({ skipInitialFetch }: { skipInitialFetch: boolean }) =>
+        usePerpsTwapOrders({
+          enableLiveUpdates: true,
+          pauseLiveRestReconciliation: true,
+          skipInitialFetch,
+        }),
+      { initialProps: { skipInitialFetch: true } },
+    );
+    const firstStreamOrder = buildTwapOrder({ orderId: 'before-toggle' });
+    act(() => pushStreamed?.([firstStreamOrder]));
+    expect(result.current.twapOrders).toStrictEqual([firstStreamOrder]);
+
+    // Act
+    rerender({ skipInitialFetch: false });
+    await waitFor(() =>
+      expect(mockController.getTwapOrders).toHaveBeenCalled(),
+    );
+    const secondStreamOrder = buildTwapOrder({
+      orderId: 'after-toggle',
+      lastUpdated: 3_000,
+    });
+    act(() => pushStreamed?.([secondStreamOrder]));
+
+    // Assert
+    expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(1);
+    expect(unsubscribe).not.toHaveBeenCalled();
+    expect(result.current.twapOrders).toContainEqual(secondStreamOrder);
+    unmount();
+    expect(unsubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for reconnect readiness and resubscribes after generation advances', () => {
+    // Arrange
+    const firstUnsubscribe = jest.fn();
+    const secondUnsubscribe = jest.fn();
+    mockController.subscribeToTwapOrders
+      .mockReturnValueOnce(firstUnsubscribe)
+      .mockReturnValueOnce(secondUnsubscribe);
+    const { rerender, unmount } = renderHook(() =>
+      usePerpsTwapOrders({
+        enableLiveUpdates: true,
+        pauseLiveRestReconciliation: true,
+        skipInitialFetch: true,
+      }),
+    );
+    expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(1);
+
+    // Act: generation advances before the replacement connection is ready.
+    mockMarketContextKey = 'testnet|hyperliquid|0|2';
+    mockIsMarketReady = false;
+    rerender();
+
+    // Assert: the old listener is gone and no replacement attaches early.
+    expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+    expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(1);
+
+    // Act: the same-identity replacement connection finishes initialization.
+    mockIsMarketReady = true;
+    rerender();
+
+    // Assert
+    expect(mockController.subscribeToTwapOrders).toHaveBeenCalledTimes(2);
+    expect(firstUnsubscribe.mock.invocationCallOrder[0]).toBeLessThan(
+      mockController.subscribeToTwapOrders.mock.invocationCallOrder[1],
+    );
     unmount();
     expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
   });

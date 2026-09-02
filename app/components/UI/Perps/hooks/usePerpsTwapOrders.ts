@@ -16,6 +16,8 @@ import {
   getTwapOrderIdentityKey,
   getTwapOrderProviderId,
 } from '../utils/twapOrderUtils';
+import { handlePerpsCufTwapOrdersDelivered } from '../utils/perpsCufTrace';
+import { usePerpsMarketContext } from './usePerpsMarketContext';
 
 const PARTIAL_TWAP_SNAPSHOT_ERROR =
   'Unable to confirm active TWAP schedules for every provider';
@@ -34,10 +36,43 @@ const mergeTwapOrder = (
     fillsByIdentity.set(fill.fillId, fill);
   }
 
+  // Schedule state is versioned by the venue, not by delivery order. Equal
+  // versions deliberately prefer the incoming row so authoritative snapshots
+  // can refresh fields that do not participate in the version comparison.
+  const scheduleOrder =
+    !retainedOrder ||
+    authoritativeOrder.lastUpdated >= retainedOrder.lastUpdated
+      ? authoritativeOrder
+      : retainedOrder;
+
   return {
-    ...authoritativeOrder,
+    ...scheduleOrder,
     fills: [...fillsByIdentity.values()],
   };
+};
+
+const mergeTwapOrderSnapshot = (
+  previousOrders: TwapOrder[],
+  snapshotOrders: TwapOrder[],
+): Map<string, TwapOrder> => {
+  const previousByIdentity = new Map(
+    previousOrders.map((order) => [getTwapOrderIdentityKey(order), order]),
+  );
+  const ordersByIdentity = new Map<string, TwapOrder>();
+
+  for (const order of snapshotOrders) {
+    const identityKey = getTwapOrderIdentityKey(order);
+    ordersByIdentity.set(
+      identityKey,
+      mergeTwapOrder(
+        ordersByIdentity.get(identityKey) ??
+          previousByIdentity.get(identityKey),
+        order,
+      ),
+    );
+  }
+
+  return ordersByIdentity;
 };
 
 const reconcileTwapOrderStream = (
@@ -108,21 +143,22 @@ const reconcileTwapOrderSnapshot = (
   const unconfirmedProviderIds = new Set(
     previousOrders
       .filter(
-        (order) =>
-          order.status === 'active' &&
-          !snapshotProviderIds.has(getTwapOrderProviderId(order)),
+        (order) => !snapshotProviderIds.has(getTwapOrderProviderId(order)),
       )
       .map(getTwapOrderProviderId),
   );
-  const ordersByIdentity = new Map(
-    snapshotOrders.map((order) => [getTwapOrderIdentityKey(order), order]),
+  const ordersByIdentity = mergeTwapOrderSnapshot(
+    previousOrders,
+    snapshotOrders,
   );
 
   // A provider read is one all-or-nothing partition in the aggregated
   // controller. If that partition disappears while one of its schedules was
-  // active, retain the complete prior partition: its terminal rows and fills
-  // are no less authoritative than the active termination surface. The
-  // provider-qualified key also guards against duplicate venue-local IDs.
+  // known, retain the complete prior partition: terminal history and fills are
+  // no less authoritative than an active termination surface. A later result
+  // containing any row for that provider authoritatively replaces the whole
+  // partition. The provider-qualified key also guards against duplicate
+  // venue-local IDs.
   for (const order of previousOrders) {
     if (unconfirmedProviderIds.has(getTwapOrderProviderId(order))) {
       const identityKey = getTwapOrderIdentityKey(order);
@@ -175,6 +211,16 @@ export interface UsePerpsTwapOrdersOptions {
    * @default false
    */
   pauseLiveRestReconciliation?: boolean;
+  /**
+   * Keep a low-cadence REST discovery read active while rollout is disabled
+   * and the TWAP tab is not mounted. This lets externally-created schedules
+   * surface without remounting the screen.
+   *
+   * @default false
+   */
+  enableDiscovery?: boolean;
+  /** @default PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs */
+  discoveryInterval?: number;
   /** Skip the fetch on mount. @default false */
   skipInitialFetch?: boolean;
 }
@@ -187,10 +233,11 @@ export interface UsePerpsTwapOrdersOptions {
  * from this single source. The aggregated controller silently omits rejected
  * provider partitions and supplies no marker for a provider that successfully
  * returned an empty list. Mobile therefore cannot distinguish a cold-start
- * partial failure from a legitimate empty account. Once an active partition is
- * known, an omitted partition is retained with a retryable error until REST or
- * the default-provider stream confirms its state. The controller must expose
- * per-provider outcomes to close the remaining cold-start ambiguity.
+ * partial failure from a legitimate empty account. Once any partition is
+ * known, an omitted partition (including terminal-only history and fills) is
+ * retained with a retryable error until REST or the default-provider stream
+ * confirms its state. The controller must expose per-provider outcomes to
+ * close the remaining cold-start ambiguity.
  *
  * `subscribeToTwapOrders` supplies authoritative current schedule state but
  * caps terminal history and omits slice fills. Stream snapshots therefore
@@ -206,19 +253,28 @@ export const usePerpsTwapOrders = (
     enableLiveUpdates = false,
     pollingInterval = PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
     pauseLiveRestReconciliation = false,
+    enableDiscovery = false,
+    discoveryInterval = PERPS_TWAP_UI_CONFIG.DiscoveryIntervalMs,
     skipInitialFetch = false,
   } = options;
 
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
-  const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}`;
+  const {
+    key: marketContextKey,
+    isReady: isMarketReady,
+    isUserReady,
+  } = usePerpsMarketContext();
+  const isContextReady = isMarketReady && isUserReady;
+  const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}|${marketContextKey}`;
 
   const [twapOrders, setTwapOrders] = useState<TwapOrder[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resolvedIdentityKey, setResolvedIdentityKey] = useState(identityKey);
+  const skipInitialFetchRef = useRef(skipInitialFetch);
   const lifecycleGenerationRef = useRef(0);
   const requestGenerationRef = useRef(0);
   const currentIdentityKeyRef = useRef(identityKey);
@@ -233,6 +289,7 @@ export const usePerpsTwapOrders = (
     promise: Promise<void>;
   } | null>(null);
   currentIdentityKeyRef.current = identityKey;
+  skipInitialFetchRef.current = skipInitialFetch;
 
   useEffect(() => {
     const lifecycleGeneration = ++lifecycleGenerationRef.current;
@@ -246,7 +303,7 @@ export const usePerpsTwapOrders = (
     streamedProviderSnapshotRevisionRef.current = new Map();
     setTwapOrders([]);
     setResolvedIdentityKey(identityKey);
-    setIsLoading(!skipInitialFetch);
+    setIsLoading(!skipInitialFetchRef.current);
     setIsRefreshing(false);
     setError(null);
 
@@ -256,11 +313,11 @@ export const usePerpsTwapOrders = (
       }
       requestGenerationRef.current += 1;
     };
-  }, [identityKey, skipInitialFetch]);
+  }, [identityKey]);
 
   const fetchTwapOrders = useCallback(
     async (isRefresh = false): Promise<void> => {
-      if (currentIdentityKeyRef.current !== identityKey) {
+      if (!isContextReady || currentIdentityKeyRef.current !== identityKey) {
         return;
       }
 
@@ -295,7 +352,12 @@ export const usePerpsTwapOrders = (
             provider === PROVIDER_CONFIG.AggregatedProvider
               ? reconcileTwapOrderSnapshot(twapOrdersRef.current, orders || [])
               : {
-                  orders: sortTwapOrdersByStartedAt(orders || []),
+                  orders: sortTwapOrdersByStartedAt([
+                    ...mergeTwapOrderSnapshot(
+                      twapOrdersRef.current,
+                      orders || [],
+                    ).values(),
+                  ]),
                   unconfirmedProviderIds: new Set<string>(),
                 };
           const currentOrdersByIdentity = new Map(
@@ -356,6 +418,7 @@ export const usePerpsTwapOrders = (
             ...mergedOrdersByIdentity.values(),
           ]);
           twapOrdersRef.current = mergedOrders;
+          handlePerpsCufTwapOrdersDelivered(mergedOrders);
           readFailureMessageRef.current = null;
           unconfirmedProviderIdsRef.current =
             reconciliation.unconfirmedProviderIds;
@@ -375,11 +438,6 @@ export const usePerpsTwapOrders = (
           readFailureMessageRef.current = errorMessage;
           setError(errorMessage);
           DevLogger.log('Perps: Failed to fetch TWAP orders', err);
-        } finally {
-          if (isCurrentRequest()) {
-            setIsLoading(false);
-            setIsRefreshing(false);
-          }
         }
       })();
       const request = { identityKey, promise: requestPromise };
@@ -391,9 +449,16 @@ export const usePerpsTwapOrders = (
         if (inFlightFetchRef.current === request) {
           inFlightFetchRef.current = null;
         }
+        // Expose an enabled retry/refresh control only after this request no
+        // longer owns the single-flight slot. A user can therefore retry on
+        // the first rendered enabled frame without racing a settled promise.
+        if (isCurrentRequest()) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
     },
-    [identityKey, provider],
+    [identityKey, isContextReady, provider],
   );
 
   const refresh = useCallback(
@@ -402,13 +467,13 @@ export const usePerpsTwapOrders = (
   );
 
   useEffect(() => {
-    if (!skipInitialFetch) {
+    if (isContextReady && !skipInitialFetch) {
       fetchTwapOrders();
     }
-  }, [fetchTwapOrders, skipInitialFetch]);
+  }, [fetchTwapOrders, isContextReady, skipInitialFetch]);
 
   useEffect(() => {
-    if (!enableLiveUpdates) {
+    if (!enableLiveUpdates || !isContextReady) {
       return undefined;
     }
 
@@ -445,6 +510,7 @@ export const usePerpsTwapOrders = (
         }
         const mergedOrders = reconciliation.orders;
         twapOrdersRef.current = mergedOrders;
+        handlePerpsCufTwapOrdersDelivered(mergedOrders);
         setTwapOrders(mergedOrders);
         for (const providerId of reconciliation.authoritativeProviderIds) {
           unconfirmedProviderIdsRef.current.delete(providerId);
@@ -461,10 +527,10 @@ export const usePerpsTwapOrders = (
     });
 
     return unsubscribe;
-  }, [enableLiveUpdates, identityKey, provider]);
+  }, [enableLiveUpdates, identityKey, isContextReady, provider]);
 
   useEffect(() => {
-    if (!enableLiveUpdates || pauseLiveRestReconciliation) {
+    if (!enableLiveUpdates || !isContextReady || pauseLiveRestReconciliation) {
       return undefined;
     }
 
@@ -485,8 +551,29 @@ export const usePerpsTwapOrders = (
   }, [
     enableLiveUpdates,
     fetchTwapOrders,
+    isContextReady,
     pauseLiveRestReconciliation,
     pollingInterval,
+  ]);
+
+  useEffect(() => {
+    if (!enableDiscovery || enableLiveUpdates || !isContextReady) {
+      return undefined;
+    }
+
+    const intervalId = setInterval(() => {
+      fetchTwapOrders(true);
+    }, discoveryInterval);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [
+    discoveryInterval,
+    enableDiscovery,
+    enableLiveUpdates,
+    fetchTwapOrders,
+    isContextReady,
   ]);
 
   const isCurrentIdentity = resolvedIdentityKey === identityKey;

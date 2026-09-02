@@ -405,6 +405,8 @@ const PerpsProPositionsPanel = ({
     // Discovery is independent of the placement rollout: users must retain a
     // termination surface for venue-native schedules after a flag rollback.
     enableLiveUpdates: isScreenFocused && isTwapTabSelected,
+    enableDiscovery:
+      isScreenFocused && !isTwapPlacementEnabled && !isTwapTabSelected,
     pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
     pauseLiveRestReconciliation: terminatingTwapSelection !== null,
   });
@@ -1531,7 +1533,9 @@ const PerpsProPositionsPanel = ({
           testID={
             isChaseTab
               ? PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON
-              : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
+              : isTwapTab
+                ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
+                : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
           }
         >
           {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
@@ -1592,7 +1596,9 @@ const PerpsProPositionsPanel = ({
         testID={
           isChaseTab
             ? PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET
-            : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET
+            : isTwapTab
+              ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET
+              : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET
         }
       />
     </Box>

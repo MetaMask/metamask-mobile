@@ -40,18 +40,28 @@ const PerpsProTwapTerminateSheet = ({
   isTerminating = false,
 }: PerpsProTwapTerminateSheetProps) => {
   const handleConfirm = useCallback(() => {
+    if (isTerminating) {
+      return;
+    }
     onConfirm(twapOrder);
-  }, [onConfirm, twapOrder]);
+  }, [isTerminating, onConfirm, twapOrder]);
+
+  const handleClose = useCallback(() => {
+    if (isTerminating) {
+      return;
+    }
+    onClose();
+  }, [isTerminating, onClose]);
 
   const secondaryButtonProps = useMemo(
     () => ({
       children: strings('perps.pro_positions_panel.twap_terminate.cancel'),
-      onPress: onClose,
+      onPress: handleClose,
       size: ButtonSize.Lg,
       isDisabled: isTerminating,
       testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CANCEL,
     }),
-    [isTerminating, onClose],
+    [handleClose, isTerminating],
   );
 
   const primaryButtonProps = useMemo(
@@ -70,11 +80,12 @@ const PerpsProTwapTerminateSheet = ({
   return (
     <BottomSheet
       ref={sheetRef}
-      onClose={onClose}
+      onClose={handleClose}
+      isInteractable={!isTerminating}
       testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET}
     >
       <BottomSheetHeader
-        onClose={onClose}
+        onClose={handleClose}
         closeButtonProps={{
           testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE,
         }}

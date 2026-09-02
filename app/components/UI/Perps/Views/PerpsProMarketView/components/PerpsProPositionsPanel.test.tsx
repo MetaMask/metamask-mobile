@@ -29,6 +29,7 @@ import {
   getPerpsProPositionRowSelector,
   getPerpsProTwapRowSelector,
   getPerpsProTwapTerminateSelector,
+  getPerpsProTwapSideFilterOptionSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
@@ -247,13 +248,18 @@ const openSideFilterSheet = () => {
   );
 };
 
-const applySideFilter = (side: 'all' | 'long' | 'short') => {
-  openSideFilterSheet();
+const applySideFilter = (
+  side: 'all' | 'long' | 'short',
+  sheetTestID = PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET,
+) => {
   fireEvent.press(
     screen.getByTestId(
-      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET}-option-${side}`,
+      sheetTestID === PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET
+        ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
+        : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
     ),
   );
+  fireEvent.press(screen.getByTestId(`${sheetTestID}-option-${side}`));
 };
 
 const applySortByFundingRate = () => {
@@ -458,8 +464,20 @@ describe('PerpsProPositionsPanel', () => {
     );
   });
 
-  it('shows TWAP discovery error and retry when placement is disabled', () => {
+  it('keeps rollback discovery active until the TWAP tab starts live updates', () => {
     // Arrange
+    const view = renderPanel('SOL');
+
+    // Assert: rollout is off and no schedule has surfaced yet, but discovery
+    // remains active while the hidden tab is unselected.
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enableDiscovery: true,
+        enableLiveUpdates: false,
+      }),
+    );
+
+    // Act: an error exposes the retained-access tab without a remount.
     mockUsePerpsTwapOrders.mockReturnValue({
       twapOrders: [],
       isLoading: false,
@@ -467,23 +485,79 @@ describe('PerpsProPositionsPanel', () => {
       refresh: mockRefreshTwapOrders,
       isRefreshing: false,
     });
-    renderPanel('SOL');
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
     fireEvent.press(
       screen.getByTestId(
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
     );
 
-    // Act
-    fireEvent.press(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_RETRY),
-    );
-
     // Assert
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enableDiscovery: false,
+        enableLiveUpdates: true,
+      }),
+    );
+  });
+
+  it('maps side-filter selectors to Positions, Orders, Chase, and TWAP tabs', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(true),
+    });
+
+    // Assert: Orders intentionally shares the Positions filter contract.
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
     ).toBeOnTheScreen();
-    expect(mockRefreshTwapOrders).toHaveBeenCalledTimes(1);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+
+    // Act / Assert: Chase retains its existing dedicated selectors.
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+
+    // Act / Assert: TWAP exposes a complete dedicated selector family.
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+      ),
+    );
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET_CLOSE,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('long')),
+    ).toBeOnTheScreen();
   });
 
   it('confirms termination with the latest streamed TWAP order', async () => {
@@ -707,7 +781,10 @@ describe('PerpsProPositionsPanel', () => {
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
       ),
     );
-    applySideFilter('short');
+    applySideFilter(
+      'short',
+      PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET,
+    );
 
     // Act
     fireEvent.press(

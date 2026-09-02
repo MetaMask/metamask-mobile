@@ -148,6 +148,8 @@ export const PERPS_TWAP_UI_CONFIG = {
   },
   /** REST fill reconciliation while the venue schedule stream is active. */
   LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
+  /** Low-cadence discovery while rollout is off and the TWAP tab is hidden. */
+  DiscoveryIntervalMs: 30_000,
   /** Maximum schedule cards mounted on one History page. */
   HistoryPageSize: TWAP_HISTORY_PAGE_SIZE,
   /** Maximum fill rows mounted on one Fill History page. */

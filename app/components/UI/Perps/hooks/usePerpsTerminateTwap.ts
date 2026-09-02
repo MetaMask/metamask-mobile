@@ -1,14 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TwapOrder } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type TwapOrder } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
+import { TraceName } from '../../../../util/trace';
+import {
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+  PERPS_CUF_TAG,
+} from '../constants/perpsCufTags';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
+import {
+  acceptPerpsCufRequest,
+  endPerpsCufRequestAfter,
+  endPerpsCufTrace,
+  startPerpsCufTrace,
+  watchPerpsCufTwapTerminal,
+} from '../utils/perpsCufTrace';
 
 export interface UsePerpsTerminateTwapOptions {
   /** Invoked after the venue accepts the termination. */
@@ -44,12 +59,29 @@ export const usePerpsTerminateTwap = (
   const currentIdentityKeyRef = useRef(identityKey);
   const operationGenerationRef = useRef(0);
   const inFlightOperationRef = useRef<object | null>(null);
+  const pendingCufOpIdsRef = useRef(new Set<string>());
   currentIdentityKeyRef.current = identityKey;
 
   useEffect(() => {
+    const pendingCufOpIds = pendingCufOpIdsRef.current;
     operationGenerationRef.current += 1;
     inFlightOperationRef.current = null;
     setIsTerminationInFlight(false);
+
+    return () => {
+      operationGenerationRef.current += 1;
+      inFlightOperationRef.current = null;
+      for (const opId of pendingCufOpIds) {
+        endPerpsCufTrace({
+          id: opId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.DISCONNECTED,
+          },
+        });
+      }
+      pendingCufOpIds.clear();
+    };
   }, [identityKey]);
 
   const terminateTwap = useCallback(
@@ -67,6 +99,24 @@ export const usePerpsTerminateTwap = (
         operationGenerationRef.current === operationGeneration &&
         inFlightOperationRef.current === operationToken;
       setIsTerminationInFlight(true);
+      const cancellationCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsTerminateTwapToConfirmation,
+        tags: {
+          [PERPS_CUF_TAG.ORDER_TYPE]: 'twap',
+        },
+      });
+      pendingCufOpIdsRef.current.add(cancellationCufOpId);
+      watchPerpsCufTwapTerminal(
+        cancellationCufOpId,
+        twapOrder.orderId,
+        twapOrder.providerId,
+      );
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        cancellationCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
 
       try {
         const result = await Engine.context.PerpsController.cancelOrder({
@@ -75,14 +125,25 @@ export const usePerpsTerminateTwap = (
           orderType: 'twap',
           providerId: twapOrder.providerId,
         });
+        controllerSettled = true;
 
         if (!isCurrentOperation()) {
           return;
         }
 
         if (!result.success) {
+          endPerpsCufTrace({
+            id: cancellationCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+            },
+          });
+          pendingCufOpIdsRef.current.delete(cancellationCufOpId);
           throw new Error(result.error ?? 'TWAP termination failed');
         }
+
+        acceptPerpsCufRequest(cancellationCufOpId);
 
         // For opening schedules, name the executed exposure so the shared copy
         // does not fall through to "funds are available to trade". Reduce-only
@@ -92,7 +153,7 @@ export const usePerpsTerminateTwap = (
         showToast(
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             twapOrder.reduceOnly,
-            undefined,
+            'TWAP',
             hasFills && !twapOrder.reduceOnly
               ? twapOrder.side === 'buy'
                 ? 'long'
@@ -106,11 +167,42 @@ export const usePerpsTerminateTwap = (
         );
         onSuccess?.(twapOrder);
       } catch (err) {
+        controllerSettled = true;
         if (!isCurrentOperation()) {
           return;
         }
         const error = err instanceof Error ? err : new Error(String(err));
+        endPerpsCufTrace({
+          id: cancellationCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
+        pendingCufOpIdsRef.current.delete(cancellationCufOpId);
         DevLogger.log('Perps: Failed to terminate TWAP', error);
+        Logger.error(
+          ensureError(error, 'usePerpsTerminateTwap.terminateTwap'),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsTerminateTwap',
+              action: 'terminate_twap',
+              operation: 'order_management',
+              provider: twapOrder.providerId ?? provider,
+              network,
+            },
+            context: {
+              name: 'usePerpsTerminateTwap.terminateTwap',
+              data: {
+                orderId: twapOrder.orderId,
+                symbol: twapOrder.symbol,
+                provider: twapOrder.providerId ?? provider,
+                network,
+              },
+            },
+          },
+        );
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
         onError?.(error, twapOrder);
       } finally {
@@ -122,7 +214,15 @@ export const usePerpsTerminateTwap = (
         }
       }
     },
-    [PerpsToastOptions, identityKey, onError, onSuccess, showToast],
+    [
+      PerpsToastOptions,
+      identityKey,
+      network,
+      onError,
+      onSuccess,
+      provider,
+      showToast,
+    ],
   );
 
   return { isTerminationInFlight, terminateTwap };

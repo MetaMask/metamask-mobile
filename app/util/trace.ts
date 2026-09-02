@@ -220,6 +220,8 @@ export enum TraceName {
   PerpsClosePositionToConfirmation = 'Perps Close Position To Confirmation',
   /** Cancel tap -> order absent from the live stream. */
   PerpsCancelOrderToConfirmation = 'Perps Cancel Order To Confirmation',
+  /** Terminate tap -> TWAP schedule absent or terminal in reconciled data. */
+  PerpsTerminateTwapToConfirmation = 'Perps Terminate TWAP To Confirmation',
   /** TP/SL submit -> updated values visible in the live stream. */
   PerpsUpdateTPSLToConfirmation = 'Perps Update TPSL To Confirmation',
   /** WebSocket price subscription -> first price delivered. */

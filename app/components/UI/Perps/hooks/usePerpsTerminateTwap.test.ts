@@ -2,6 +2,15 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { TraceName } from '../../../../util/trace';
+import {
+  acceptPerpsCufRequest,
+  endPerpsCufRequestAfter,
+  endPerpsCufTrace,
+  startPerpsCufTrace,
+  watchPerpsCufTwapTerminal,
+} from '../utils/perpsCufTrace';
 import { usePerpsTerminateTwap } from './usePerpsTerminateTwap';
 
 let mockSelectedAddress = '0xabc';
@@ -23,6 +32,19 @@ jest.mock('../selectors/perpsController', () => ({
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
+}));
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn() },
+}));
+
+jest.mock('../utils/perpsCufTrace', () => ({
+  acceptPerpsCufRequest: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  endPerpsCufTrace: jest.fn(),
+  startPerpsCufTrace: jest.fn(() => 'twap-cuf-op'),
+  watchPerpsCufTwapTerminal: jest.fn(),
 }));
 
 const mockShowToast = jest.fn();
@@ -99,6 +121,21 @@ describe('usePerpsTerminateTwap', () => {
       orderType: 'twap',
       providerId: 'hyperliquid',
     });
+    expect(startPerpsCufTrace).toHaveBeenCalledWith({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+      tags: { order_type: 'twap' },
+    });
+    expect(watchPerpsCufTwapTerminal).toHaveBeenCalledWith(
+      'twap-cuf-op',
+      'twap-1',
+      'hyperliquid',
+    );
+    expect(endPerpsCufRequestAfter).toHaveBeenCalledWith(
+      'twap-cuf-op',
+      expect.any(Function),
+      30_000,
+    );
+    expect(acceptPerpsCufRequest).toHaveBeenCalledWith('twap-cuf-op');
     expect(onSuccess).toHaveBeenCalledWith(twapOrder);
     expect(result.current.isTerminationInFlight).toBe(false);
   });
@@ -177,7 +214,7 @@ describe('usePerpsTerminateTwap', () => {
     // warning that filled size stays as a position
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       false,
-      undefined,
+      'TWAP',
       'long',
       '4',
       'BTC',
@@ -196,7 +233,7 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       false,
-      undefined,
+      'TWAP',
       undefined,
       undefined,
       undefined,
@@ -215,7 +252,7 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       true,
-      undefined,
+      'TWAP',
       undefined,
       undefined,
       undefined,
@@ -236,6 +273,10 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(onError).toHaveBeenCalled();
     expect(onError.mock.calls[0][0].message).toBe('rejected');
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'twap-cuf-op',
+      data: { success: false, reason: 'request_failed' },
+    });
   });
 
   it('does not throw when the controller rejects', async () => {
@@ -252,6 +293,24 @@ describe('usePerpsTerminateTwap', () => {
     // Assert: the failure surfaces through the callback, not a rejection
     expect(onError.mock.calls[0][0].message).toBe('network down');
     expect(result.current.isTerminationInFlight).toBe(false);
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'network down' }),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          component: 'usePerpsTerminateTwap',
+          action: 'terminate_twap',
+          operation: 'order_management',
+          provider: 'hyperliquid',
+          network: 'testnet',
+        }),
+        context: expect.objectContaining({
+          data: expect.objectContaining({
+            orderId: 'twap-1',
+            symbol: 'BTC',
+          }),
+        }),
+      }),
+    );
   });
 
   it.each([
@@ -288,6 +347,10 @@ describe('usePerpsTerminateTwap', () => {
       await waitFor(() =>
         expect(result.current.isTerminationInFlight).toBe(false),
       );
+      expect(endPerpsCufTrace).toHaveBeenCalledWith({
+        id: 'twap-cuf-op',
+        data: { success: false, reason: 'disconnected' },
+      });
       await act(async () => {
         resolveCancellation?.({ success: true });
         await terminatePromise;

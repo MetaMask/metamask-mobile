@@ -16,11 +16,7 @@ import TabsBar from '../../../../../../component-library/components-temp/Tabs/Ta
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
 import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
-import {
-  getPerpsProTwapFillRowSelector,
-  getPerpsProTwapRowSelector,
-  PerpsProMarketViewSelectorsIDs,
-} from '../../../Perps.testIds';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTwapCard from './PerpsProTwapCard';
 import PerpsProTwapEmptyState from './PerpsProTwapEmptyState';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
@@ -202,10 +198,6 @@ const PerpsProTwapPanel = ({
           <PerpsProTwapCard
             key={getTwapOrderIdentityKey(twapOrder)}
             twapOrder={twapOrder}
-            testID={getPerpsProTwapRowSelector(
-              twapOrder.providerId,
-              twapOrder.orderId,
-            )}
             onPress={onSelectMarket}
             onTerminate={isActiveView ? onTerminate : undefined}
             isTerminateDisabled={
@@ -287,11 +279,6 @@ const PerpsProTwapPanel = ({
           <PerpsProTwapFillRowItem
             key={`${getTwapOrderIdentityKey(row.twapOrder)}:${row.fill.fillId}`}
             row={row}
-            testID={getPerpsProTwapFillRowSelector(
-              row.twapOrder.providerId,
-              row.twapOrder.orderId,
-              row.fill.fillId,
-            )}
           />
         ))}
         {renderPagination({

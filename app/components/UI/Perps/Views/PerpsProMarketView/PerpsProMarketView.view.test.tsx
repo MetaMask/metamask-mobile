@@ -51,6 +51,7 @@ import {
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
   getPerpsProTwapFillValueSelector,
+  getPerpsProTwapSideFilterOptionSelector,
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
@@ -121,8 +122,33 @@ const triggeredOrderTypeIDs = [
 
 let connectionReadySpy: jest.SpyInstance;
 let connectionSubscriptionSpy: jest.SpyInstance;
+const issuedTwapReadPromises = new Set<Promise<TwapOrder[]>>();
+
+const trackTwapRead = (promise: Promise<TwapOrder[]>): Promise<TwapOrder[]> => {
+  issuedTwapReadPromises.add(promise);
+  return promise;
+};
+
+const mockTwapOrders = (orders: TwapOrder[]) => {
+  jest
+    .mocked(Engine.context.PerpsController.getTwapOrders)
+    .mockImplementation(() => trackTwapRead(Promise.resolve(orders)));
+};
+
+const mockTwapOrdersFailure = (error: Error) => {
+  jest
+    .mocked(Engine.context.PerpsController.getTwapOrders)
+    .mockImplementation(() => trackTwapRead(Promise.reject(error)));
+};
+
+const mockNextTwapOrdersFailure = (error: Error) => {
+  jest
+    .mocked(Engine.context.PerpsController.getTwapOrders)
+    .mockImplementationOnce(() => trackTwapRead(Promise.reject(error)));
+};
 
 beforeEach(() => {
+  issuedTwapReadPromises.clear();
   resetPerpsChaseOrdersStoreForTests();
   resetChaseOrderVisibilityForTests();
   connectionReadySpy = jest
@@ -422,10 +448,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       .mocked(Engine.context.PerpsController.getChaseOrders)
       .mockReset()
       .mockResolvedValue([]);
-    jest
-      .mocked(Engine.context.PerpsController.getTwapOrders)
-      .mockReset()
-      .mockResolvedValue([]);
+    jest.mocked(Engine.context.PerpsController.getTwapOrders).mockReset();
+    mockTwapOrders([]);
     jest
       .mocked(Engine.context.PerpsController.subscribeToTwapOrders)
       .mockReset()
@@ -433,15 +457,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   });
 
   afterEach(async () => {
-    // Unmount every journey before the shared Engine mocks are reset, then let
-    // hook cleanup and already-resolved controller continuations drain. This
-    // prevents TWAP reconciliation work from leaking into the next Chase/TWAP
-    // journey in full-file runs.
+    // Unmount first so every real interval is synchronously cleared, then await
+    // every controller promise issued by this journey inside act. Keeping the
+    // issued promises until this boundary makes cleanup deterministic even when
+    // a read resolved just before unmount and its hook continuation is queued.
     cleanup();
     await act(async () => {
-      await Promise.resolve();
-      await Promise.resolve();
+      await Promise.allSettled([...issuedTwapReadPromises]);
     });
+    issuedTwapReadPromises.clear();
   });
 
   itForPlatforms(
@@ -532,9 +556,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'discovers an active TWAP termination surface on cold-start rollback',
     async () => {
-      jest
-        .mocked(Engine.context.PerpsController.getTwapOrders)
-        .mockResolvedValue([activeTwap]);
+      mockTwapOrders([activeTwap]);
       renderProMarketWithTwapFlag(false);
 
       fireEvent.press(
@@ -558,9 +580,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     'renders complete TWAP schedule and fill data after the controller read resolves',
     async () => {
       // Arrange
-      jest
-        .mocked(Engine.context.PerpsController.getTwapOrders)
-        .mockResolvedValue([completeTwap]);
+      mockTwapOrders([completeTwap]);
       renderProMarketWithTwapFlag(false);
 
       // Act
@@ -637,6 +657,35 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE),
         ),
       ).toHaveTextContent(strings('perps.order_details.yes'));
+      expect(
+        screen.getByTestId(
+          cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_MARKET_BUTTON),
+        ),
+      ).toHaveProp(
+        'accessibilityLabel',
+        expect.stringContaining(strings('perps.market.close_short')),
+      );
+
+      // Act / Assert: TWAP owns a complete side-filter selector family through
+      // the real panel and shared sheet.
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+        ),
+      );
+      expect(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET_CLOSE,
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('all')),
+      );
 
       // Act
       fireEvent.press(
@@ -686,9 +735,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'retains an active TWAP termination surface when rollout turns off',
     async () => {
-      jest
-        .mocked(Engine.context.PerpsController.getTwapOrders)
-        .mockResolvedValue([activeTwap]);
+      mockTwapOrders([activeTwap]);
       const { store } = renderProMarketWithTwapFlag(true);
       fireEvent.press(
         await screen.findByTestId(
@@ -733,7 +780,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const getTwapOrders = jest.mocked(
         Engine.context.PerpsController.getTwapOrders,
       );
-      getTwapOrders.mockRejectedValue(new Error('venue down'));
+      mockTwapOrdersFailure(new Error('venue down'));
       renderProMarketWithTwapFlag(false);
 
       fireEvent.press(
@@ -748,11 +795,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsProMarketViewSelectorsIDs.TWAP_RETRY,
       );
       await waitFor(() => expect(retryButton).toBeEnabled());
-      await act(async () => {
-        await Promise.resolve();
-      });
 
-      getTwapOrders.mockResolvedValue([activeTwap]);
+      mockTwapOrders([activeTwap]);
       fireEvent.press(retryButton);
 
       expect(
@@ -779,7 +823,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       let emitTwapOrders:
         | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
         | undefined;
-      getTwapOrders.mockResolvedValue([activeTwap]);
+      mockTwapOrders([activeTwap]);
       jest
         .mocked(Engine.context.PerpsController.subscribeToTwapOrders)
         .mockImplementation(({ callback }) => {
@@ -807,7 +851,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       ).toBeOnTheScreen();
       // Opening the sheet pauses live REST work. Configure the next explicit
       // post-cancel reconciliation only after that user-visible settled state.
-      getTwapOrders.mockRejectedValueOnce(new Error('refresh failed'));
+      mockNextTwapOrdersFailure(new Error('refresh failed'));
       fireEvent.press(
         screen.getByTestId(
           PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM,
@@ -841,9 +885,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     'pauses live REST reconciliation while termination confirmation is open and resumes on close',
     async () => {
       // Arrange
-      const getTwapOrders = jest
-        .mocked(Engine.context.PerpsController.getTwapOrders)
-        .mockResolvedValue([activeTwap]);
+      const getTwapOrders = jest.mocked(
+        Engine.context.PerpsController.getTwapOrders,
+      );
+      mockTwapOrders([activeTwap]);
       renderProMarketWithTwapFlag(false);
       fireEvent.press(
         await screen.findByTestId(
@@ -895,9 +940,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     itForPlatforms(
       `closes TWAP termination when the ${identityChange} identity changes`,
       async () => {
-        jest
-          .mocked(Engine.context.PerpsController.getTwapOrders)
-          .mockResolvedValue([activeTwap]);
+        mockTwapOrders([activeTwap]);
         const { store } = renderProMarketWithTwapFlag(false);
         fireEvent.press(
           await screen.findByTestId(
