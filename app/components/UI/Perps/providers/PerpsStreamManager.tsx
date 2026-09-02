@@ -462,7 +462,7 @@ abstract class StreamChannel<T> {
     this.indexSubscriptionSymbols(subscription);
 
     // Give immediate cached data if available
-    const cached = this.getCachedData();
+    const cached = this.getCachedDataForSubscription(params);
     if (cached != null) {
       params.callback(cached);
       params.onDelivery?.('cache');
@@ -697,6 +697,17 @@ abstract class StreamChannel<T> {
   protected getCachedData(): T | null {
     // Override in subclasses to return null for no cache, or actual data
     return null;
+  }
+
+  /**
+   * Return the cache payload used to hydrate a new subscriber.
+   * Symbol-aware channels can override this to avoid materializing data the
+   * subscriber did not request.
+   */
+  protected getCachedDataForSubscription(params: {
+    symbols?: string[];
+  }): T | null {
+    return this.getCachedData();
   }
 
   public seedCache(key: string, data: T): void {
@@ -935,6 +946,23 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       cached[key] = value;
     });
     return cached;
+  }
+
+  protected getCachedDataForSubscription(params: {
+    symbols?: string[];
+  }): Record<string, PriceUpdate> | null {
+    if (!params.symbols) {
+      return this.getCachedData();
+    }
+
+    const cached: Record<string, PriceUpdate> = {};
+    params.symbols.forEach((symbol) => {
+      const price = this.priceCache.get(symbol);
+      if (price) {
+        cached[symbol] = price;
+      }
+    });
+    return Object.keys(cached).length > 0 ? cached : null;
   }
 
   protected getClearedData(): Record<string, PriceUpdate> {

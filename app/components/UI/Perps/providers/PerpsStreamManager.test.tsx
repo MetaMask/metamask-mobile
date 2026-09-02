@@ -1392,6 +1392,47 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('PriceStreamChannel.prewarm non-blocking behavior', () => {
+    it('hydrates a symbol subscriber without traversing the warm price cache', async () => {
+      const symbols = Array.from({ length: 336 }, (_, index) =>
+        index === 0 ? 'ETH' : `MARKET-${index}`,
+      );
+      const updates = symbols.map((symbol, index) => ({
+        symbol,
+        price: String(1000 + index),
+        timestamp: Date.now(),
+        isTradable: true,
+      }));
+      let prewarmCallback: ((prices: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation((params) => {
+        prewarmCallback = params.callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      act(() => {
+        prewarmCallback?.(updates);
+      });
+      const priceChannel = testStreamManager.prices as unknown as {
+        priceCache: Map<string, PriceUpdate>;
+      };
+      const cacheTraversalSpy = jest.spyOn(priceChannel.priceCache, 'forEach');
+      const callback = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH'],
+        callback,
+      });
+
+      expect(cacheTraversalSpy).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        ETH: expect.objectContaining({ symbol: 'ETH', price: '1000' }),
+      });
+    });
+
     it('drops a late direct-price callback after prewarm takes ownership', async () => {
       const makePrice = (price: string): PriceUpdate => ({
         symbol: 'BTC',
