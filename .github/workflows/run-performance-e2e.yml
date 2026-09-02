@@ -257,15 +257,18 @@ jobs:
         env:
           PROVIDED: ${{ steps.provided.outputs.fingerprint }}
           COMPUTED: ${{ steps.computed.outputs.fingerprint }}
+          NATIVE_BUILD_CACHE_HASH: ${{ hashFiles('.yarn/patches/react-native-release-profiler-*.patch', 'android/app/build.gradle', 'android/settings.gradle') }}
         run: |
+          FINGERPRINT=""
           if [ -n "$PROVIDED" ]; then
-            echo "fingerprint=$PROVIDED" >> "$GITHUB_OUTPUT"
+            FINGERPRINT="$PROVIDED"
           elif [ -n "$COMPUTED" ]; then
-            echo "fingerprint=$COMPUTED" >> "$GITHUB_OUTPUT"
+            FINGERPRINT="$COMPUTED"
           else
             echo "❌ No fingerprint available" >&2
             exit 1
           fi
+          echo "fingerprint=${FINGERPRINT}-${NATIVE_BUILD_CACHE_HASH}" >> "$GITHUB_OUTPUT"
           echo "Resolved fingerprint: $(grep fingerprint= "$GITHUB_OUTPUT" | tail -1)"
 
   trigger-android-dual-versions:
