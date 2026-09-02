@@ -266,7 +266,6 @@ class NotificationsService {
     body,
     data,
     id,
-    throwOnError = false,
   }: {
     channelId?: ChannelId;
     pressActionId?: PressActionId;
@@ -274,7 +273,6 @@ class NotificationsService {
     body?: string;
     data?: unknown;
     id?: string;
-    throwOnError?: boolean;
   }): Promise<void> => {
     try {
       const channel = notificationChannels.find((c) => c.id === channelId);
@@ -287,9 +285,7 @@ class NotificationsService {
         title,
         body,
         // Notifee can only store and handle data strings
-        ...(data === undefined
-          ? {}
-          : { data: { dataStr: JSON.stringify(data) } }),
+        data: { dataStr: JSON.stringify(data) },
         android: {
           // Omit largeIcon — same fox as smallIcon caused a duplicate on Android.
           smallIcon: 'ic_notification_small',
@@ -315,9 +311,6 @@ class NotificationsService {
       });
     } catch (error) {
       Logger.log('Error displaying notification ', error);
-      if (throwOnError) {
-        throw error;
-      }
     }
   };
 }

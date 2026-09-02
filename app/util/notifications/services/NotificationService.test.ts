@@ -19,7 +19,6 @@ import NotificationService, {
 } from './NotificationService';
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { store } from '../../../store';
-import { PressActionId } from '../types';
 
 jest.mock('@notifee/react-native', () => ({
   getNotificationSettings: jest.fn(),
@@ -73,7 +72,6 @@ jest.mock('../../../store', () => ({
 }));
 jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
-  log: jest.fn(),
 }));
 
 describe('NotificationsService - getBlockedNotifications', () => {
@@ -554,40 +552,6 @@ describe('NotificationService - displayNotification', () => {
     );
     const displayCall = mocks.mockNotifeeDisplayNotification.mock.calls[0][0];
     expect(displayCall.android).not.toHaveProperty('largeIcon');
-    expect(displayCall.android?.pressAction?.id).toBe(PressActionId.OPEN_HOME);
-  });
-
-  it('omits Notifee data when notification data is undefined', async () => {
-    const mocks = arrangeMocks();
-
-    await NotificationService.displayNotification({ title: 'Test Title' });
-
-    expect(mocks.mockNotifeeDisplayNotification).toHaveBeenCalledWith(
-      expect.not.objectContaining({ data: expect.anything() }),
-    );
-  });
-
-  it('keeps display failures non-throwing by default', async () => {
-    const error = new Error('display failed');
-    jest.mocked(notifee.displayNotification).mockRejectedValueOnce(error);
-
-    const result = NotificationService.displayNotification({
-      title: 'Test Title',
-    });
-
-    await expect(result).resolves.toBeUndefined();
-  });
-
-  it('propagates display failures when requested', async () => {
-    const error = new Error('display failed');
-    jest.mocked(notifee.displayNotification).mockRejectedValueOnce(error);
-
-    const result = NotificationService.displayNotification({
-      title: 'Test Title',
-      throwOnError: true,
-    });
-
-    await expect(result).rejects.toThrow('display failed');
   });
 });
 

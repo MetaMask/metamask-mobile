@@ -240,7 +240,6 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
             notification_type:
               PERPS_EVENT_VALUE.NOTIFICATION_TYPE.CHASE_BACKGROUNDED,
           },
-          throwOnError: true,
         });
         notificationOrders.forEach((order) => {
           const notifiedHandles = notifiedBackgroundedChaseHandlesRef.current;
@@ -298,15 +297,16 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         ) {
           return;
         }
+        const notificationId = `perps-chase-max-distance-${event.handle}`;
         await NotificationsService.displayNotification({
-          id: `perps-chase-max-distance-${event.handle}`,
+          id: notificationId,
           title: strings('perps.order.chase.max_distance_reached_title'),
           body: strings('perps.order.chase.max_distance_reached_notification', {
             symbol: event.symbol,
           }),
+          data: { notification_id: notificationId },
           // Controller v15 has no max-distance notification enum, so
           // notification_type is omitted and tap attribution is unavailable.
-          throwOnError: true,
         });
         const notifiedHandles = notifiedMaxDistanceChaseHandlesRef.current;
         notifiedHandles.add(event.handle);
