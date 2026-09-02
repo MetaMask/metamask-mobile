@@ -5,7 +5,7 @@ import {
   type AccountGroupPayloadId,
 } from '@metamask/account-tree-controller';
 import { decodeMnemonicWords, toEntropySourceId } from '@metamask/keyring-sdk';
-import { mnemonicToEntropy } from '@metamask/scure-bip39';
+import { mnemonicToSeed } from '@metamask/scure-bip39';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
@@ -54,8 +54,10 @@ import {
  * This MUST match the ID that `AccountTreeController` assigns to the primary
  * wallet after vault creation. The controller derives the ID via
  * `HdKeyring.toEntropySourceId()`, which runs
- * HMAC-SHA256(rawEntropy, "metamask:fingerprint"), takes the first 16 bytes,
+ * HMAC-SHA256(seed, "metamask:fingerprint"), takes the first 16 bytes,
  * and formats the result as `wallet:entropy:mnemonic:<uuid>`.
+ * Critically, `seed` is the 64-byte BIP-39 PBKDF2 seed — not the raw 16-byte
+ * BIP-39 entropy — so we must use `mnemonicToSeed`, not `mnemonicToEntropy`.
  *
  * During `AccountTreeController:importState`, `findLocalWalletMnemonicFromPayloadId`
  * compares the payload's wallet ID against every local wallet by strict string
@@ -71,8 +73,8 @@ import {
 async function computeWalletPayloadId(
   mnemonic: string,
 ): Promise<AccountWalletPayloadId> {
-  const rawEntropy = mnemonicToEntropy(mnemonic, wordlist);
-  return `wallet:${await toEntropySourceId('mnemonic', rawEntropy)}` as AccountWalletPayloadId;
+  const seed = await mnemonicToSeed(mnemonic, wordlist);
+  return `wallet:${await toEntropySourceId('mnemonic', seed)}` as AccountWalletPayloadId;
 }
 
 const metadata: StateMetadata<QrSyncControllerState> = {

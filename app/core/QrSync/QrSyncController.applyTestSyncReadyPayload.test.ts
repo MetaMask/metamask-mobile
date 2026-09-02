@@ -44,6 +44,16 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     mockHasTestOverrides.mockReturnValue(true);
   });
 
+  it('computes the wallet payload ID matching the entropy-derived ID for the test mnemonic', async () => {
+    const controller = buildController();
+
+    await controller.applyTestSyncReadyPayload({ mnemonic: TEST_MNEMONIC });
+
+    expect(controller.state.pendingPayload?.wallets[0].id).toBe(
+      'wallet:entropy:mnemonic:94cc3e86-bcfe-43b6-8be2-d8a66fc55070',
+    );
+  });
+
   it('sets awaiting_password state and stores AccountTreePayload for new-user', async () => {
     const controller = buildController(() => false);
 
