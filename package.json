@@ -173,7 +173,9 @@
     "feature-flags:sync:update": "ts-node tests/feature-flags/sync-production-flags.ts --update",
     "worktree:create": "yarn ts-node --transpile-only scripts/worktree-create.ts",
     "worktree:remove": "yarn ts-node --transpile-only scripts/worktree-remove.ts",
-    "skills:postinstall": "metamask-skills postinstall"
+    "skills:postinstall": "metamask-skills postinstall",
+    "docs:platform-api:build": "platform-api-docs --build --project-label Mobile --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'",
+    "docs:platform-api:serve": "platform-api-docs --serve --project-label Mobile --site-base-url / --strategy root-messenger --root-actions 'app/core/Engine/types.ts#GlobalActions' --root-events 'app/core/Engine/types.ts#GlobalEvents'"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -244,7 +246,7 @@
     "react-native-quick-base64@npm:^2.0.5": "patch:react-native-quick-base64@npm%3A2.2.0#~/.yarn/patches/react-native-quick-base64-npm-2.2.0-9083eb316a.patch",
     "@metamask/permission-controller": "^13.1.1",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
-    "@metamask/transaction-controller": "69.6.0",
+    "@metamask/transaction-controller": "69.7.0",
     "@metamask/keyring-controller": "^27.1.1",
     "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
@@ -401,8 +403,8 @@
     "@metamask/subscription-controller": "^8.0.1",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^69.6.0",
-    "@metamask/transaction-pay-controller": "^27.1.0",
+    "@metamask/transaction-controller": "^69.7.0",
+    "@metamask/transaction-pay-controller": "^27.1.1",
     "@metamask/tron-wallet-snap": "^3.2.0",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^12.0.1",
@@ -638,6 +640,7 @@
     "@metamask/messenger-cli": "^0.2.0",
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
+    "@metamask/platform-api-docs": "^0.1.0",
     "@metamask/providers": "^18.3.1",
     "@metamask/skills": "^0.2.0",
     "@metamask/test-dapp": "9.5.0",

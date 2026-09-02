@@ -61,7 +61,7 @@ const ProSubscription = () => {
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
-      edges={['top', 'bottom']}
+      edges={['bottom']}
     >
       {/* Shared close button — sits above both Benefits and Success screens */}
       <Box twClassName="px-4 pt-4 pb-8 flex-row items-center justify-end">

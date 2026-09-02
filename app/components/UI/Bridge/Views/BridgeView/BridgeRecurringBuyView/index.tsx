@@ -27,6 +27,7 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -229,6 +230,7 @@ const BridgeRecurringBuyViewContent = ({
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />
+              <DestAssetRequireActivateBanner />
               <InsufficientNativeReserveBanner />
               <MissingQuoteAndAssetsPriceDataBanner />
             </SwapsBanners>

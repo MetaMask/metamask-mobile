@@ -279,6 +279,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
     'engine.backgroundState.TransactionController.transactionBatches',
+    'engine.backgroundState.TransactionController.batchTransactionCounts',
     'engine.backgroundState.TransactionController.lastFetchedBlockNumbers',
     'engine.backgroundState.TransactionController.submitHistory',
     'engine.backgroundState.TransactionPayController',
