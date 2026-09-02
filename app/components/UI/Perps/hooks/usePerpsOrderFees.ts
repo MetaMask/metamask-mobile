@@ -132,6 +132,9 @@ export function usePerpsOrderFees({
   const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   const isMaker = useMemo(() => {
+    if (orderType === 'chase') {
+      return true;
+    }
     if (!direction) {
       return false;
     }
