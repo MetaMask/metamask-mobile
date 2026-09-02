@@ -318,25 +318,27 @@ class PerpsProMarketView {
   }
 
   async enterLimitPrice(price: string): Promise<void> {
-    // Empty Limit fields expose `-field`, not the TextInput testID. Tap the
-    // field first so the native input mounts into the a11y tree, then type.
+    // Empty inline Limit fields hide the native TextInput from TalkBack
+    // (`importantForAccessibility="no"` + zero-size wrapper). Tapping `-field`
+    // alone is flaky on CI Android — focus often never flips `isInlineActive`.
+    // Mid commits a value through React state, which mounts the TextInput;
+    // then replace that value with the target price.
     await this.scrollUntilVisible(
-      this.limitPriceField,
-      'Pro order form limit price field',
+      this.midPriceButton,
+      'Pro order form mid price preset',
     );
-    await Gestures.waitAndTap(this.limitPriceField, {
-      elemDescription: 'Pro order form limit price field',
+    await Gestures.waitAndTap(this.midPriceButton, {
+      elemDescription: 'Pro order form mid price preset (reveal limit input)',
       checkForDisplayed: true,
       timeout: 10000,
     });
     await Assertions.expectElementToBeVisible(this.limitPriceInput, {
-      description: 'Pro limit price TextInput after focusing field',
-      timeout: 10000,
+      description: 'Pro limit price TextInput after Mid preset',
+      timeout: 15000,
     });
-    await Gestures.typeText(this.limitPriceInput, price, {
+    await Gestures.replaceText(this.limitPriceInput, price, {
       elemDescription: 'Pro order form limit price value',
-      clearFirst: true,
-      hideKeyboard: true,
+      timeout: 15000,
     });
     await this.dismissOrderFormKeyboard();
   }
