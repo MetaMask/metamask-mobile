@@ -145,6 +145,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   >(undefined);
 
   const confirmPasswordInput = useRef<TextInput | null>(null);
+  const passwordRef = useRef('');
 
   const reauthenticate = useCallback(async (pwd?: string) => {
     // E2E builds: never fall through to keychain Face ID when no password was
@@ -156,11 +157,16 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       return;
     }
 
-    setReady(false);
+    // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
+    // the form mounted so E2E can observe the transition to ResetForm.
+    if (!pwd) {
+      setReady(false);
+    }
     let reauthError: Error | undefined;
     try {
       const { password: verifiedPassword } =
         await Authentication.reauthenticate(pwd);
+      passwordRef.current = '';
       setPassword('');
       setOriginalPassword(verifiedPassword);
       setView(ViewState.ResetForm);
@@ -395,6 +401,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const onPasswordChange = useCallback((val: string) => {
+    passwordRef.current = val;
     setPassword(val);
     setConfirmPassword((prev) => (val === '' ? '' : prev));
   }, []);
@@ -422,11 +429,12 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation]);
 
   const reauthenticateWithPassword = useCallback(() => {
-    if (!password) {
+    const pwd = passwordRef.current;
+    if (!pwd) {
       return;
     }
-    reauthenticate(password);
-  }, [reauthenticate, password]);
+    reauthenticate(pwd);
+  }, [reauthenticate]);
 
   const isError = useCallback(
     () =>

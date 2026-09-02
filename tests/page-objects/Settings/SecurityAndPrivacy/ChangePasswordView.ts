@@ -6,6 +6,7 @@ import {
 import Assertions from '../../../framework/Assertions';
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
+import Utilities from '../../../framework/Utilities';
 import { type AppiumElement } from '../../../framework';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
 import enContent from '../../../../locales/languages/en.json';
@@ -139,9 +140,8 @@ class ChangePasswordView {
   }
 
   async expectNewPasswordFormVisible(): Promise<void> {
-    // Prefer "New password" text over container testID — iOS often reports
-    // ~create-password-screen as not displayed while child text is visible
-    // (same pattern as seedless create-password readiness helpers).
+    // Prefer "New password" text / checkbox IDs over container displayed —
+    // iOS often reports ~create-password-screen as not displayed.
     await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
       description: 'New password label should be visible (ResetForm)',
       timeout: 30000,
@@ -161,68 +161,36 @@ class ChangePasswordView {
    * Short probe — E2E builds skip Face ID auto-reauth.
    */
   private async isNewPasswordFormShowing(): Promise<boolean> {
-    try {
-      await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
-        description: 'Probe for new-password label',
-        timeout: 3000,
-      });
-      return true;
-    } catch {
-      return false;
-    }
+    return Utilities.isElementVisible(this.newPasswordLabel, 3000);
   }
 
   private async diagnoseFailedTransitionToResetForm(
     formError: unknown,
   ): Promise<never> {
-    try {
-      await Assertions.expectElementToBeVisible(this.incorrectPasswordWarning, {
-        description: 'Probe for incorrect-password warning',
-        timeout: 1500,
-      });
+    // Use isElementVisible — do NOT use expectElementToBeVisible here.
+    // Failed visibility errors include the matcher text (e.g. "Incorrect
+    // password" inside an XPath), which falsely matched message checks.
+    if (await Utilities.isElementVisible(this.incorrectPasswordWarning, 1500)) {
       throw new Error(
         'Change password: still on current-password step with "Incorrect password" after Confirm — new-password form did not appear',
       );
-    } catch (warningError) {
-      if (
-        warningError instanceof Error &&
-        warningError.message.includes('Incorrect password')
-      ) {
-        throw warningError;
-      }
     }
 
-    try {
-      await Assertions.expectElementToBeVisible(
-        this.enterCurrentPasswordLabel,
-        {
-          description: 'Probe: still on current-password step',
-          timeout: 1500,
-        },
-      );
+    if (
+      await Utilities.isElementVisible(this.enterCurrentPasswordLabel, 1500)
+    ) {
       throw new Error(
-        'Change password: still on current-password step after Confirm (password likely not applied to React state, or Confirm did not run verify). ResetForm / New password never appeared.',
+        'Change password: still on current-password step after Confirm (password not verified / Confirm did not advance). ResetForm never appeared.',
       );
-    } catch (stepError) {
-      if (
-        stepError instanceof Error &&
-        stepError.message.includes('still on current-password')
-      ) {
-        throw stepError;
-      }
     }
 
     throw formError;
   }
 
   async enterCurrentPassword(password: string): Promise<void> {
-    // iOS: per-character addValue so controlled TextField onChangeText fires.
-    // Do not hideKeyboard before Confirm — tapOutside can race the enable state.
-    // Mirror LoginView: leave keyboard up, then tap the enabled Confirm button.
-    if (PlatformDetector.isIOS()) {
-      await Gestures.typeTextByCharacters(this.passwordInput, password);
-      return;
-    }
+    // Same Gestures.typeText (setValue) path as LoginView — proven on iOS for
+    // design-system TextField secure inputs in this suite (unlockApp).
+    // hideKeyboard so Confirm is not covered by the soft keyboard.
     await Gestures.typeText(this.passwordInput, password, {
       hideKeyboard: true,
       elemDescription: 'Change password - current password input',
@@ -236,6 +204,22 @@ class ChangePasswordView {
       waitForInteractive: true,
       timeout: 15000,
     });
+  }
+
+  /**
+   * If Confirm never enables after setValue (onChangeText missed), retype
+   * per-character so passwordRef / React state catch up, then tap again.
+   */
+  private async confirmCurrentPasswordWithRetry(
+    password: string,
+  ): Promise<void> {
+    try {
+      await this.tapConfirmCurrentPassword();
+    } catch {
+      await Gestures.typeTextByCharacters(this.passwordInput, password);
+      await Gestures.hideKeyboard();
+      await this.tapConfirmCurrentPassword();
+    }
   }
 
   async enterNewPassword(password: string): Promise<void> {
@@ -307,7 +291,7 @@ class ChangePasswordView {
     if (!skippedCurrentPasswordStep) {
       await this.expectCurrentPasswordStepVisible();
       await this.enterCurrentPassword(currentPassword);
-      await this.tapConfirmCurrentPassword();
+      await this.confirmCurrentPasswordWithRetry(currentPassword);
       try {
         await this.expectNewPasswordFormVisible();
       } catch (error) {
