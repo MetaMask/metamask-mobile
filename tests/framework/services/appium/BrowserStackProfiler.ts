@@ -21,41 +21,49 @@ export async function shakeBrowserStackDevice(
   await (driver as ShakeDriver).shake();
 }
 
-async function openProfilerPanel(
-  driver: WebdriverIO.Browser,
-  platform: BrowserStackPlatform,
-): Promise<void> {
-  if (platform === 'ios') {
-    await shakeBrowserStackDevice(driver);
-  } else {
-    const toggle = await driver.$('~e2e-profiler-toggle');
-    await toggle.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
-    await toggle.click();
-  }
-}
-
 export async function startBrowserStackProfiler(
   driver: WebdriverIO.Browser,
   platform: BrowserStackPlatform,
 ): Promise<void> {
-  await openProfilerPanel(driver, platform);
-  const startButton = await driver.$('~profiler-start-button');
-  await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
-  await startButton.click();
+  if (platform === 'ios') {
+    // iOS: shake opens the visible panel, then tap the visible start button.
+    await shakeBrowserStackDevice(driver);
+    const startButton = await driver.$('~profiler-start-button');
+    await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await startButton.click();
+  } else {
+    // Android: profiler-start-button has no accessibilityLabel so the ~
+    // strategy (content-desc) cannot find it. Use the hidden e2e button which
+    // has both testID and accessibilityLabel set.
+    const startButton = await driver.$('~e2e-profiler-start');
+    await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await startButton.click();
+  }
 }
 
 export async function stopBrowserStackProfiler(
   driver: WebdriverIO.Browser,
   platform: BrowserStackPlatform,
 ): Promise<string> {
-  await openProfilerPanel(driver, platform);
-  const stopButton = await driver.$('~profiler-stop-button');
-  await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
-  await stopButton.click();
+  if (platform === 'ios') {
+    // iOS: shake to reopen panel, tap visible stop button, wait for the panel
+    // to revert to "Start" as confirmation that profiling has stopped.
+    await shakeBrowserStackDevice(driver);
+    const stopButton = await driver.$('~profiler-stop-button');
+    await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await stopButton.click();
+    const startButton = await driver.$('~profiler-start-button');
+    await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+  } else {
+    // Android: tap the hidden stop button (has accessibilityLabel).
+    const stopButton = await driver.$('~e2e-profiler-stop');
+    await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await stopButton.click();
+  }
 
+  // Both platforms: wait for the hidden result-ready or error element.
   const resultReady = await driver.$('~e2e-profiler-result-ready');
   const profilerError = await driver.$('~e2e-profiler-error');
-
   await driver.waitUntil(
     async () => {
       const [resultDisplayed, errorDisplayed] = await Promise.all([
