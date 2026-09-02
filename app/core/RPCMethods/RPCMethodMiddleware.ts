@@ -568,7 +568,10 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
-              getAccounts: () => getPermittedAccounts(origin),
+              getAccounts: getPermittedAccounts.bind(
+                getPermittedAccounts,
+                origin,
+              ),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
@@ -596,7 +599,10 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getAccounts: getPermittedAccounts.bind(
+                  getPermittedAccounts,
+                  origin,
+                ),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions?: RequestedPermissions,
                 ) =>
@@ -678,8 +684,10 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (opts?: { ignoreLock?: boolean }) =>
-                  getPermittedAccounts(origin, opts),
+                getAccounts: getPermittedAccounts.bind(
+                  getPermittedAccounts,
+                  origin,
+                ),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions?: RequestedPermissions,
                 ) =>
