@@ -20,7 +20,11 @@ import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  CHAIN_IDS,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
@@ -141,21 +145,17 @@ export function useInsufficientPayTokenBalanceAlert({
   //   flow (`!isPostQuote`), where gas is sponsored by the override path rather
   //   than paid from the user's native balance. Post-quote (withdrawal) flows
   //   still pay gas on the source chain, so the override alone is not enough.
-  const isMoneyAccountOverride =
-    paymentOverride === PaymentOverride.MoneyAccount;
-
   const isGaslessSourceChain =
     sourceChainId === CHAIN_IDS.MONAD ||
     isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
-    (!isPostQuote && isMoneyAccountOverride);
+    (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount);
 
-  // Mirrors the balance sources in `useTransactionPayBalance`: the wallet
-  // balance is only meaningful once a pay token is selected, while withdrawals
-  // and money-account overrides draw from their own balances. Without any of
-  // these the transaction is not funded through MetaMask Pay (e.g. a plain
-  // ERC-20 send still yields a required token), so no balance check applies.
-  const hasPayBalanceSource =
-    Boolean(payToken) || isPostQuote || isMoneyAccountOverride;
+  // A plain ERC-20 send also yields a required token, but it is not funded
+  // through MetaMask Pay, so the pay balance check does not apply.
+  const isMMPayTransaction = hasTransactionType(
+    transactionMeta,
+    MM_PAY_TRANSACTION_TYPES,
+  );
 
   // For non-gasless source chains we still need to check the user has enough
   // native token to pay for gas on the source network (e.g., POL for Polygon).
@@ -183,7 +183,7 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
-    if (selectedFiatPaymentMethod || !hasPayBalanceSource) {
+    if (selectedFiatPaymentMethod || !isMMPayTransaction) {
       return [];
     }
 
@@ -230,7 +230,7 @@ export function useInsufficientPayTokenBalanceAlert({
 
     return [];
   }, [
-    hasPayBalanceSource,
+    isMMPayTransaction,
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
