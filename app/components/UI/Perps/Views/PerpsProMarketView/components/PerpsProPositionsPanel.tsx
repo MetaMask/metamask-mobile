@@ -83,7 +83,10 @@ import {
   isExpectedChaseOrderRequestError,
   usePerpsChaseOrders,
 } from '../../../hooks/usePerpsChaseOrders';
-import { selectPerpsMobileChaseEnabledFlag , selectPerpsProTwapEnabledFlag } from '../../../selectors/featureFlags';
+import {
+  selectPerpsMobileChaseEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
