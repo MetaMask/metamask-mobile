@@ -3,8 +3,9 @@ import { SmokeMultiChainAPI } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
-  startLocalDappServerOnWorker,
-  stopLocalDappServerOnWorker,
+  setupAdbReverse,
+  cleanupAdbReverse,
+  waitForDappServerReady,
 } from '../mm-connect/utils.js';
 import MultichainTestDApp, {
   MULTICHAIN_DAPP_PORT,
@@ -41,17 +42,15 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod_eip5792'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    await startLocalDappServerOnWorker(
-      multichainDappServer,
-      MULTICHAIN_DAPP_PORT,
-    );
+    multichainDappServer.setServerPort(MULTICHAIN_DAPP_PORT);
+    await multichainDappServer.start();
+    await waitForDappServerReady(MULTICHAIN_DAPP_PORT);
+    setupAdbReverse(MULTICHAIN_DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    await stopLocalDappServerOnWorker(
-      multichainDappServer,
-      MULTICHAIN_DAPP_PORT,
-    );
+    cleanupAdbReverse(MULTICHAIN_DAPP_PORT);
+    await multichainDappServer.stop();
   });
 
   appiumTest.describe('Multiple method invocations', () => {

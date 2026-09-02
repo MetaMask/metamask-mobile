@@ -8,8 +8,9 @@ import {
   TestDapps,
 } from '../../../framework/index.js';
 import {
-  startLocalDappServerOnWorker,
-  stopLocalDappServerOnWorker,
+  setupAdbReverse,
+  cleanupAdbReverse,
+  waitForDappServerReady,
 } from '../../mm-connect/utils.js';
 import SolanaTestDApp, {
   SOLANA_DAPP_PORT,
@@ -33,11 +34,15 @@ appiumTest.describe(SmokeNetworkExpansion('Solana Wallet Standard'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    await startLocalDappServerOnWorker(solanaDappServer, SOLANA_DAPP_PORT);
+    solanaDappServer.setServerPort(SOLANA_DAPP_PORT);
+    await solanaDappServer.start();
+    await waitForDappServerReady(SOLANA_DAPP_PORT);
+    setupAdbReverse(SOLANA_DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    await stopLocalDappServerOnWorker(solanaDappServer, SOLANA_DAPP_PORT);
+    cleanupAdbReverse(SOLANA_DAPP_PORT);
+    await solanaDappServer.stop();
   });
 
   appiumTest(

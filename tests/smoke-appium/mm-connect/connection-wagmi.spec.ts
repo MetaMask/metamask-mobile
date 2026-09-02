@@ -20,8 +20,9 @@ import {
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  startLocalDappServerOnWorker,
-  stopLocalDappServerOnWorker,
+  setupAdbReverse,
+  cleanupAdbReverse,
+  waitForDappServerReady,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -45,12 +46,16 @@ const playgroundServer = new DappServer({
 appiumTest.describe.skip(SmokeMMConnect('Wagmi session'), () => {
   // Start local playground server before all tests
   appiumTest.beforeAll(async () => {
-    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
+    playgroundServer.setServerPort(DAPP_PORT);
+    await playgroundServer.start();
+    await waitForDappServerReady(DAPP_PORT);
+    setupAdbReverse(DAPP_PORT);
   });
 
   // Stop local playground server after all tests
   appiumTest.afterAll(async () => {
-    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
+    cleanupAdbReverse(DAPP_PORT);
+    await playgroundServer.stop();
   });
 
   // Test steps (in order):

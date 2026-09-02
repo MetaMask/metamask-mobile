@@ -1,14 +1,10 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { execFileSync } from 'child_process';
+import { execSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { sleep, createLogger } from '../../framework';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
-import {
-  adbDeviceArgs,
-  hostListenPortForDevicePort,
-} from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -59,28 +55,14 @@ export function getDappUrlForBrowser(
 }
 
 /**
- * Set up ADB reverse so the emulator's `devicePort` reaches `hostPort` on the
- * worker host. Worker 1 listens on a shifted host port to avoid EADDRINUSE.
+ * Set up ADB reverse port forwarding for Android emulator.
  */
-export function setupAdbReverse(
-  devicePort: number,
-  hostPort: number = devicePort,
-): void {
-  const deviceArgs = adbDeviceArgs();
+export function setupAdbReverse(port: number): void {
   try {
-    execFileSync(
-      'adb',
-      [...deviceArgs, 'reverse', `tcp:${devicePort}`, `tcp:${hostPort}`],
-      { stdio: 'pipe' },
-    );
-    logger.info(`ADB reverse tcp:${devicePort} → tcp:${hostPort} configured`);
+    execSync(`adb reverse tcp:${port} tcp:${port}`, { stdio: 'pipe' });
+    logger.info(`ADB reverse port ${port} configured`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (deviceArgs.length > 0) {
-      throw new Error(
-        `Could not set up ADB reverse tcp:${devicePort} → tcp:${hostPort}: ${message}`,
-      );
-    }
     logger.warn(
       `Could not set up ADB reverse (may be expected on iOS): ${message}`,
     );
@@ -88,47 +70,15 @@ export function setupAdbReverse(
 }
 
 /**
- * Clean up ADB reverse port forwarding for the device-facing port.
+ * Clean up ADB reverse port forwarding.
  */
-export function cleanupAdbReverse(devicePort: number): void {
+export function cleanupAdbReverse(port: number): void {
   try {
-    execFileSync(
-      'adb',
-      [...adbDeviceArgs(), 'reverse', '--remove', `tcp:${devicePort}`],
-      { stdio: 'pipe' },
-    );
-    logger.info(`ADB reverse port ${devicePort} removed`);
+    execSync(`adb reverse --remove tcp:${port}`, { stdio: 'pipe' });
+    logger.info(`ADB reverse port ${port} removed`);
   } catch {
     // Ignore cleanup errors
   }
-}
-
-export async function startLocalDappServerOnWorker(
-  server: {
-    setServerPort: (port: number) => void;
-    start: () => Promise<void>;
-    stop: () => Promise<void>;
-  },
-  devicePort: number,
-): Promise<void> {
-  const hostPort = hostListenPortForDevicePort(devicePort);
-  server.setServerPort(hostPort);
-  await server.start();
-  await waitForDappServerReady(hostPort);
-  try {
-    setupAdbReverse(devicePort, hostPort);
-  } catch (error) {
-    await server.stop();
-    throw error;
-  }
-}
-
-export async function stopLocalDappServerOnWorker(
-  server: { stop: () => Promise<void> },
-  devicePort: number,
-): Promise<void> {
-  cleanupAdbReverse(devicePort);
-  await server.stop();
 }
 
 // Candidate paths for the playground release APK, checked in priority order:
@@ -182,13 +132,7 @@ export function ensurePlaygroundInstalled(
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {
-    execFileSync(
-      'adb',
-      [...adbDeviceArgs(), 'uninstall', PLAYGROUND_PACKAGE_ID],
-      {
-        stdio: 'pipe',
-      },
-    );
+    execSync(`adb uninstall ${PLAYGROUND_PACKAGE_ID}`, { stdio: 'pipe' });
     logger.info(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
   } catch {
     // Package was not installed; nothing to uninstall
@@ -196,9 +140,7 @@ export function ensurePlaygroundInstalled(
 
   logger.info(`Installing playground release APK from ${apkPath}...`);
   try {
-    execFileSync('adb', [...adbDeviceArgs(), 'install', apkPath], {
-      stdio: 'pipe',
-    });
+    execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
     logger.info('Playground APK installed successfully');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
