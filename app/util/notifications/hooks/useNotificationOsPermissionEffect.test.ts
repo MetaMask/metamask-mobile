@@ -19,11 +19,12 @@ jest.mock('react-redux', () => ({
 const mockSync = jest.mocked(syncPushNotificationOsPermission);
 
 describe('useNotificationOsPermissionEffect', () => {
-  let changeHandler: (state: AppStateStatus) => void;
+  let changeHandler: ((state: AppStateStatus) => void) | undefined;
   const removeSpy = jest.fn();
   const originalPlatformOS = Platform.OS;
 
   beforeEach(() => {
+    changeHandler = undefined; // reset sentinel — prevents stale reference leaking between tests
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(false);
     Platform.OS = 'ios';
