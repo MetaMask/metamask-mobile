@@ -1164,13 +1164,52 @@ describe('ResetPassword', () => {
 
       const component = renderComponent();
 
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+      await waitFor(() => {
+        expect(
+          component.getByTestId(
+            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+          ),
+        ).toBeOnTheScreen();
       });
 
-      expect(mockStorageWrapper.getItem).toHaveBeenCalledWith(
-        '@MetaMask:biometryChoiceDisabled',
-      );
+      expect(
+        component.queryByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeNull();
+      expect(Authentication.reauthenticate).toHaveBeenCalled();
+    });
+
+    it('keeps current-password step when biometric reauth has no stored password', async () => {
+      jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+
+      jest
+        .spyOn(Authentication, 'reauthenticate')
+        .mockRejectedValueOnce(
+          new Error(
+            `${ReauthenticateErrorType.PASSWORD_NOT_SET_WITH_BIOMETRICS}: No password stored with biometrics in keychain.`,
+          ),
+        );
+
+      const component = renderComponent();
+      await flushMicrotasks();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(
+        component.getByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        component.queryByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+      ).toBeNull();
     });
   });
 

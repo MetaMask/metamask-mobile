@@ -197,12 +197,16 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
         );
+        setView(ViewState.ConfirmCurrent);
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        reauthenticate();
+        // Await biometric reauth. On success, reauthenticate sets ResetForm.
+        // Never force ConfirmCurrent afterward — that raced and wiped ResetForm
+        await reauthenticate();
+      } else {
+        setView(ViewState.ConfirmCurrent);
       }
-      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();

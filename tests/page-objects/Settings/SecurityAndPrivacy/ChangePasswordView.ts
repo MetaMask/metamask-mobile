@@ -8,6 +8,7 @@ import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import { type AppiumElement } from '../../../framework';
 import { PlatformDetector } from '../../../framework/PlatformLocator';
+import enContent from '../../../../locales/languages/en.json';
 
 /**
  * Settings → Security & Privacy → Change password (ResetPassword screen).
@@ -77,15 +78,23 @@ class ChangePasswordView {
     );
   }
 
+  /**
+   * Step-1 Confirm uses the same testID as Save on step 2; only one is mounted.
+   * Prefer ID over label text so iOS XCUITest does not miss the button.
+   */
   get confirmCurrentPasswordButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      ChangePasswordViewSelectorsText.CONFIRM_CURRENT_PASSWORD,
-    );
+    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
   }
 
   get saveButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ChangePasswordViewSelectorsText.SAVE_PASSWORD,
+    );
+  }
+
+  get incorrectPasswordWarning(): Promise<AppiumElement> {
+    return Matchers.getElementByText(
+      enContent.reveal_credential.warning_incorrect_password,
     );
   }
 
@@ -156,12 +165,13 @@ class ChangePasswordView {
 
   /**
    * True when biometry auto-reauth skipped the current-password step.
+   * Allow enough time for awaited Face ID reauth on iOS CI.
    */
   private async isNewPasswordFormShowing(): Promise<boolean> {
     try {
       await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
         description: 'Probe for new-password confirm field',
-        timeout: 3000,
+        timeout: 10000,
       });
       return true;
     } catch {
@@ -169,13 +179,29 @@ class ChangePasswordView {
     }
   }
 
+  private async expectNoIncorrectPasswordWarning(): Promise<void> {
+    try {
+      await Assertions.expectElementToBeVisible(this.incorrectPasswordWarning, {
+        description: 'Probe for incorrect-password warning',
+        timeout: 1500,
+      });
+    } catch {
+      return;
+    }
+    throw new Error(
+      'Change password: still on current-password step with "Incorrect password" after Confirm — new-password form did not appear',
+    );
+  }
+
   async enterCurrentPassword(password: string): Promise<void> {
-    // Do not append newline — Confirm is an explicit button (onSubmitEditing
-    // would race with the tap and can leave the form mid-transition).
+    // Do not append newline — onSubmitEditing would race with the Confirm tap.
+    // Match CreatePassword iOS field targeting: keep keyboard until after fill,
+    // then dismiss so Confirm is tappable.
     await Gestures.typeText(this.passwordInput, password, {
-      hideKeyboard: true,
+      hideKeyboard: false,
       elemDescription: 'Change password - current password input',
     });
+    await Gestures.hideKeyboard();
   }
 
   async tapConfirmCurrentPassword(): Promise<void> {
@@ -245,7 +271,12 @@ class ChangePasswordView {
       await this.expectCurrentPasswordStepVisible();
       await this.enterCurrentPassword(currentPassword);
       await this.tapConfirmCurrentPassword();
-      await this.expectNewPasswordFormVisible();
+      try {
+        await this.expectNewPasswordFormVisible();
+      } catch (error) {
+        await this.expectNoIncorrectPasswordWarning();
+        throw error;
+      }
     }
 
     await this.enterNewPassword(newPassword);
