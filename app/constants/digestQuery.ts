@@ -6,19 +6,14 @@ export const DIGEST_QUERY_STALE_TIME_MS = 10 * 60 * 1000;
 export const DIGEST_QUERY_GC_TIME_MS = DIGEST_QUERY_STALE_TIME_MS;
 
 /**
- * 10-minute cache for a successful digest payload; 0 so a 404/`null` miss
- * does not block a later fetch.
+ * Dynamic `staleTime` so a successful digest payload stays fresh for 10
+ * minutes, while a `null` 404 miss is immediately stale and retried on remount.
  *
- * @param data - Cached query data.
- * @returns Cache duration in milliseconds.
+ * `gcTime` stays a constant: unused queries are collected after 10 minutes.
+ *
+ * @param query - React Query cache entry.
+ * @returns Stale time in milliseconds.
  */
-export const digestQueryCacheTimeMs = (data: unknown): number =>
-  data ? DIGEST_QUERY_STALE_TIME_MS : 0;
-
-/**
- * React Query `staleTime` / `gcTime` option. This app's installed types only
- * allow a number; the runtime accepts a function (TanStack Query 5.80+).
- */
-export const digestQueryCacheTimeOption = ((query: {
+export const digestQueryStaleTime = (query: {
   state: { data: unknown };
-}) => digestQueryCacheTimeMs(query.state.data)) as unknown as number;
+}): number => (query.state.data == null ? 0 : DIGEST_QUERY_STALE_TIME_MS);

@@ -1,7 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
-import { digestQueryCacheTimeOption } from '../../../../constants/digestQuery';
+import {
+  DIGEST_QUERY_GC_TIME_MS,
+  digestQueryStaleTime,
+} from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { formatRelativeTime } from '../utils/marketInsightsFormatting';
 
@@ -50,8 +53,8 @@ export const useMarketInsights = (
     enabled: isQueryEnabled,
     retry: false,
     networkMode: 'always',
-    staleTime: digestQueryCacheTimeOption,
-    gcTime: digestQueryCacheTimeOption,
+    staleTime: digestQueryStaleTime,
+    gcTime: DIGEST_QUERY_GC_TIME_MS,
   });
 
   useEffect(() => {

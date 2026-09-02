@@ -5,7 +5,10 @@ import type {
   MarketOverview,
   MarketOverviewFrontPage,
 } from '@metamask/ai-controllers';
-import { digestQueryCacheTimeOption } from '../../../../constants/digestQuery';
+import {
+  DIGEST_QUERY_GC_TIME_MS,
+  digestQueryStaleTime,
+} from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
 import Logger from '../../../../util/Logger';
@@ -183,8 +186,8 @@ export const useWhatsHappening = (
     enabled: isActive,
     retry: false,
     networkMode: 'always',
-    staleTime: digestQueryCacheTimeOption,
-    gcTime: digestQueryCacheTimeOption,
+    staleTime: digestQueryStaleTime,
+    gcTime: DIGEST_QUERY_GC_TIME_MS,
   });
 
   const frontPageQuery = useQuery<WhatsHappeningItem | null, Error>({
