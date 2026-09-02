@@ -66,18 +66,15 @@ export const isBiometricUnlockCancelledByUser = (error: Error): boolean =>
   isAndroidLegacyBiometricOrPinCancel(error);
 
 /**
- * Handles password submission errors by throwing the appropriate error.
+ * Classifies a password submission error into a verbose UnlockWalletErrorType,
+ * without throwing. Does not handle SeedlessOnboardingControllerError, which
+ * callers should check for separately since it propagates as-is.
  *
- * @param error - The error to handle.
- * @returns - void
+ * @param error - The error to classify.
+ * @returns The UnlockWalletErrorType bucket the error falls into.
  */
-export const handlePasswordSubmissionError = (error: Error) => {
-  const loginErrorMessage = error.message || error.toString();
-
-  if (error instanceof SeedlessOnboardingControllerError) {
-    // Detected seedless onboarding controller error. Propogate error.
-    throw error;
-  } else if (
+export const classifyUnlockError = (error: Error): UnlockWalletErrorType => {
+  if (
     containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.WRONG_PASSWORD) ||
     containsErrorMessage(
       error,
@@ -89,16 +86,12 @@ export const handlePasswordSubmissionError = (error: Error) => {
     )
   ) {
     // Invalid password.
-    throw new Error(
-      `${UnlockWalletErrorType.INVALID_PASSWORD}: ${loginErrorMessage}`,
-    );
+    return UnlockWalletErrorType.INVALID_PASSWORD;
   } else if (
     containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.PASSCODE_NOT_SET)
   ) {
     // Password is not set. Is this an empty password?
-    throw new Error(
-      `${UnlockWalletErrorType.PASSWORD_NOT_SET}: ${loginErrorMessage}`,
-    );
+    return UnlockWalletErrorType.PASSWORD_NOT_SET;
   } else if (
     containsErrorMessage(
       error,
@@ -106,16 +99,12 @@ export const handlePasswordSubmissionError = (error: Error) => {
     )
   ) {
     // User cancelled biometrics.
-    throw new Error(
-      `${UnlockWalletErrorType.IOS_USER_CANCELLED_BIOMETRICS}: ${loginErrorMessage}`,
-    );
+    return UnlockWalletErrorType.IOS_USER_CANCELLED_BIOMETRICS;
   } else if (
     containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.ANDROID_PIN_DENIED)
   ) {
     // Pin code denied.
-    throw new Error(
-      `${UnlockWalletErrorType.ANDROID_PIN_DENIED}: ${loginErrorMessage}`,
-    );
+    return UnlockWalletErrorType.ANDROID_PIN_DENIED;
   } else if (
     containsErrorMessage(
       error,
@@ -124,15 +113,35 @@ export const handlePasswordSubmissionError = (error: Error) => {
     containsErrorMessage(error, UNLOCK_WALLET_ERROR_MESSAGES.JSON_PARSE_ERROR)
   ) {
     // Vault corruption detected.
-    throw new Error(
-      `${UnlockWalletErrorType.VAULT_CORRUPTION}: ${loginErrorMessage}`,
-    );
-  } else {
-    // Other password submission errors.
-    throw new Error(
-      `${UnlockWalletErrorType.UNRECOGNIZED_ERROR}: ${loginErrorMessage}`,
-    );
+    return UnlockWalletErrorType.VAULT_CORRUPTION;
+  } else if (
+    containsErrorMessage(
+      error,
+      UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
+    )
+  ) {
+    // OS reports the stored biometric/keychain credential is no longer usable.
+    return UnlockWalletErrorType.USER_NOT_AUTHENTICATED;
   }
+  // Other password submission errors.
+  return UnlockWalletErrorType.UNRECOGNIZED_ERROR;
+};
+
+/**
+ * Handles password submission errors by throwing the appropriate error.
+ *
+ * @param error - The error to handle.
+ * @returns - void
+ */
+export const handlePasswordSubmissionError = (error: Error) => {
+  const loginErrorMessage = error.message || error.toString();
+
+  if (error instanceof SeedlessOnboardingControllerError) {
+    // Detected seedless onboarding controller error. Propogate error.
+    throw error;
+  }
+
+  throw new Error(`${classifyUnlockError(error)}: ${loginErrorMessage}`);
 };
 
 /**

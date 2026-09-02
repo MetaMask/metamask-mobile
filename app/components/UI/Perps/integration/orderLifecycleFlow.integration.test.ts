@@ -32,7 +32,6 @@ import {
 import { HyperliquidError } from '@nktkas/hyperliquid';
 // Mobile's current Node resolver cannot read this package export, while Jest
 // and Metro resolve the SDK's declared `./api/exchange` entrypoint.
-// @ts-expect-error The subpath is exported by @nktkas/hyperliquid.
 import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';

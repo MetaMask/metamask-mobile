@@ -247,3 +247,6 @@ test-artifacts/
 
 # Generated source maps (keep the directories, not their contents)
 sourcemaps/**/*.js.map
+
+# Platform API docs
+.platform-api-docs/

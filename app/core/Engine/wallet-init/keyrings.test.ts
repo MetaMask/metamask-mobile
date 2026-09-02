@@ -115,6 +115,8 @@ describe('wallet-init/keyrings', () => {
         mnemonic: 'test test test test test test test test test test test ball',
       });
       const hdKeyring = new HdKeyringV2({
+        // @ts-expect-error: Property '#private' in type 'HdKeyring' refers to a
+        // different member that cannot be accessed from within type 'HdKeyring'.
         legacyKeyring: legacyHd,
         entropySource: 'entropy-1',
       });
@@ -163,6 +165,8 @@ describe('wallet-init/keyrings', () => {
     it('MoneyKeyring getMnemonic closure throws if the HD keyring has no mnemonic', async () => {
       const messenger = getRootMessenger();
       const emptyHd = new HdKeyringV2({
+        // @ts-expect-error: Two different types with this name exist, but they
+        // are unrelated.
         legacyKeyring: new LegacyHdKeyring(),
         entropySource: 'entropy-1',
       });

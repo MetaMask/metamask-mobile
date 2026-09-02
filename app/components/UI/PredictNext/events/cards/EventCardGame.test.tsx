@@ -139,7 +139,7 @@ describe('EventCardGame', () => {
     expect(screen.getByText('Arizona Cardinals')).toHaveStyle({ width: 80 });
     expect(
       screen.getByTestId('predict-next-game-matchup-game-event'),
-    ).toHaveStyle({ height: 80, paddingBottom: 16 });
+    ).toHaveStyle({ height: 96, paddingBottom: 16 });
     expect(
       screen.getByTestId('predict-next-game-bar-game-event'),
     ).toBeOnTheScreen();
