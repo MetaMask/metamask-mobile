@@ -612,9 +612,7 @@ describe('RecurringConfirmOrderSheet', () => {
       RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
     );
 
-    expect(confirmButton).toHaveTextContent(
-      strings('bridge.insufficient_gas'),
-    );
+    expect(confirmButton).toHaveTextContent(strings('bridge.insufficient_gas'));
     expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
   });
 
