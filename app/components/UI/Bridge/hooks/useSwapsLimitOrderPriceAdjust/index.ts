@@ -5,10 +5,7 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import type { BridgeToken } from '../../types';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
-import {
-  formatLimitOrderFiatPrice,
-  formatLimitOrderFiatPriceFromTokenAmount,
-} from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { formatLimitOrderFiatPriceFromTokenAmount } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import { getSwapsLimitOrderPriceFromMarketPercent } from '../../utils/limitOrders/getSwapsLimitOrderPriceFromMarketPercent';
 import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { getSwapsLimitOrderSecondaryValue } from '../../utils/limitOrders/getSwapsLimitOrderSecondaryValue';
@@ -20,13 +17,11 @@ import { LimitOrderExecutionType } from '../../constants/limitOrders';
 
 interface Params {
   destToken: BridgeToken | undefined;
-  destTokenAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
 }
 
 export const useSwapsLimitOrderPriceAdjust = ({
   destToken,
-  destTokenAmount,
   sourceToken,
 }: Params) => {
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -36,9 +31,9 @@ export const useSwapsLimitOrderPriceAdjust = ({
   );
   const {
     customValue,
-    hasUserEditedLimitPrice,
     isCustomActive,
     isLimitFiatMode,
+    isTrackingMarket,
     limitPrice,
     executionType,
   } = state;
@@ -71,6 +66,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'applyPreset',
       limitPrice: getLimitPriceFromSignedPercent(0),
+      isTrackingMarket: true,
     });
   }, [getLimitPriceFromSignedPercent]);
 
@@ -79,6 +75,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
       dispatch({
         type: 'applyPreset',
         limitPrice: getLimitPriceFromSignedPercent(isSell ? percent : -percent),
+        isTrackingMarket: false,
       });
     },
     [getLimitPriceFromSignedPercent, isSell],
@@ -98,7 +95,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
     }
 
     const magnitude = new BigNumber(customValue ?? '');
-    if (!magnitude.isFinite() || magnitude.lte(0)) {
+    if (!magnitude.isFinite() || magnitude.isNegative()) {
       dispatch({ type: 'exitCustom' });
       return;
     }
@@ -110,7 +107,12 @@ export const useSwapsLimitOrderPriceAdjust = ({
       return;
     }
 
-    dispatch({ type: 'setLimitPrice', limitPrice: nextLimitPrice });
+    // A 0% offset is market, so the price keeps following the live rate.
+    dispatch({
+      type: 'commitCustomPercent',
+      limitPrice: nextLimitPrice,
+      isTrackingMarket: magnitude.isZero(),
+    });
   }, [customValue, getLimitPriceFromSignedPercent, isCustomActive, isSell]);
 
   useEffect(() => {
@@ -122,16 +124,15 @@ export const useSwapsLimitOrderPriceAdjust = ({
     sourceToken?.chainId,
   ]);
 
+  // Keeps the limit price on the live market rate for as long as it sits at
+  // market, so it refreshes with every market data update instead of only
+  // being seeded once.
   useEffect(() => {
-    if (hasUserEditedLimitPrice || !destTokenAmount) {
+    if (!isTrackingMarket) {
       return;
     }
 
-    if (!quotedFiatRate || quotedFiatRate <= 0) {
-      return;
-    }
-
-    const nextLimitPrice = formatLimitOrderFiatPrice(quotedFiatRate);
+    const nextLimitPrice = getLimitPriceFromSignedPercent(0);
     if (nextLimitPrice === undefined) {
       return;
     }
@@ -141,10 +142,9 @@ export const useSwapsLimitOrderPriceAdjust = ({
       limitPrice: nextLimitPrice,
     });
   }, [
-    destTokenAmount,
     executionType, // flipSide clears limitPrice even when quotedFiatRate is unchanged
-    hasUserEditedLimitPrice,
-    quotedFiatRate,
+    getLimitPriceFromSignedPercent,
+    isTrackingMarket,
   ]);
 
   const canToggleLimitPrice = Boolean(
@@ -193,12 +193,14 @@ export const useSwapsLimitOrderPriceAdjust = ({
   const limitFiat = isLimitFiatMode
     ? limitPrice
     : formatLimitOrderFiatPriceFromTokenAmount(limitPrice, counterFiatRate);
-  const marketComparison = getSwapsLimitOrderPriceMarketComparison({
-    limitFiat,
-    marketFiat: quotedFiatRate,
-    executionType,
-    threshold: 0,
-  });
+  const marketComparison = isTrackingMarket
+    ? undefined
+    : getSwapsLimitOrderPriceMarketComparison({
+        limitFiat,
+        marketFiat: quotedFiatRate,
+        executionType,
+        threshold: 0,
+      });
 
   return {
     commitCustomPercent,
