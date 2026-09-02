@@ -32,9 +32,12 @@ export async function startBrowserStackProfiler(
     await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
     await startButton.click();
   } else {
-    // Android: profiler-start-button has no accessibilityLabel so the ~
-    // strategy (content-desc) cannot find it. Use the hidden e2e button which
-    // has both testID and accessibilityLabel set.
+    // Android: open the panel for visual feedback in recordings, then trigger
+    // the hidden start button. profiler-start-button has no accessibilityLabel
+    // so the ~ (content-desc) strategy cannot find it directly on Android.
+    const toggle = await driver.$('~e2e-profiler-toggle');
+    await toggle.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await toggle.click();
     const startButton = await driver.$('~e2e-profiler-start');
     await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
     await startButton.click();
