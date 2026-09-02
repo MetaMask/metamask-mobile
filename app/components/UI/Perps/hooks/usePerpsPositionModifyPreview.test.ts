@@ -283,6 +283,70 @@ describe('usePerpsPositionModifyPreview', () => {
     });
   });
 
+  it('stops gating submission once a preview has settled', async () => {
+    const pendingRecalculation = createDeferred<PositionModifyPreviewResult>();
+    const position = isolatedPosition();
+    const { result, rerender } = renderHook(
+      (props: { price: string }) =>
+        usePerpsPositionModifyPreview({
+          position,
+          direction: 'long',
+          size: '1',
+          price: props.price,
+          leverage: 10,
+          reduceOnly: false,
+        }),
+      { initialProps: { price: '2000' } },
+    );
+
+    expect(result.current.isAwaitingFirstPreview).toBe(true);
+    await waitFor(() => {
+      expect(result.current.preview.status).toBe('open');
+    });
+
+    // Live price ticks re-request the preview; the retained result stays usable.
+    mockPreviewPositionModify.mockReturnValueOnce(pendingRecalculation.promise);
+    rerender({ price: '2100' });
+
+    expect(result.current.isCalculating).toBe(true);
+    expect(result.current.isAwaitingFirstPreview).toBe(false);
+
+    await act(async () => {
+      pendingRecalculation.resolve({ status: 'none' });
+    });
+  });
+
+  it('gates submission again when the previewed position changes', async () => {
+    const nextPositionRequest = createDeferred<PositionModifyPreviewResult>();
+    const { result, rerender } = renderHook(
+      (props: { symbol: string }) =>
+        usePerpsPositionModifyPreview({
+          position: isolatedPosition({ symbol: props.symbol }),
+          direction: 'long',
+          size: '1',
+          price: '2000',
+          leverage: 10,
+          reduceOnly: false,
+        }),
+      { initialProps: { symbol: 'ETH' } },
+    );
+    await waitFor(() => {
+      expect(result.current.isAwaitingFirstPreview).toBe(false);
+    });
+
+    mockPreviewPositionModify.mockReturnValueOnce(nextPositionRequest.promise);
+    rerender({ symbol: 'BTC' });
+
+    await waitFor(() => {
+      expect(result.current.isAwaitingFirstPreview).toBe(true);
+    });
+
+    await act(async () => {
+      nextPositionRequest.resolve({ status: 'none' });
+    });
+    expect(result.current.isAwaitingFirstPreview).toBe(false);
+  });
+
   it('discards a superseded preview rejection', async () => {
     const firstRequest = createDeferred<PositionModifyPreviewResult>();
     mockPreviewPositionModify

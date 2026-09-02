@@ -1355,7 +1355,7 @@ export const usePerpsProOrderForm = ({
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
-    isCalculating: isPositionModifyPreviewCalculating,
+    isAwaitingFirstPreview: isAwaitingPositionModifyPreview,
   } = usePerpsProPositionModifyPreview({
     position: currentMarketPosition,
     direction: orderForm.direction,
@@ -2758,7 +2758,7 @@ export const usePerpsProOrderForm = ({
     !orderValidation.isValid ||
     isAtCap ||
     isPlacing ||
-    isPositionModifyPreviewCalculating ||
+    isAwaitingPositionModifyPreview ||
     isScalePlacementPending ||
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||

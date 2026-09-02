@@ -53,6 +53,7 @@ describe('usePerpsProPositionModifyPreview', () => {
     mockUsePerpsPositionModifyPreview.mockReturnValue({
       preview: { status: 'none' },
       isCalculating: false,
+      isAwaitingFirstPreview: false,
       error: null,
     });
   });
@@ -77,6 +78,7 @@ describe('usePerpsProPositionModifyPreview', () => {
     mockUsePerpsPositionModifyPreview.mockReturnValue({
       preview,
       isCalculating: false,
+      isAwaitingFirstPreview: false,
       error: null,
     });
 
@@ -100,6 +102,7 @@ describe('usePerpsProPositionModifyPreview', () => {
     mockUsePerpsPositionModifyPreview.mockReturnValue({
       preview,
       isCalculating: false,
+      isAwaitingFirstPreview: false,
       error: null,
     });
 
@@ -108,16 +111,17 @@ describe('usePerpsProPositionModifyPreview', () => {
     expect(result.current.summaryDisplay.showBeforeAfter).toBe(false);
   });
 
-  it('forwards loading so the parent form can block submission', () => {
+  it('forwards the first-preview wait so the parent form can block submission', () => {
     mockUsePerpsPositionModifyPreview.mockReturnValue({
       preview: { status: 'none' },
       isCalculating: true,
+      isAwaitingFirstPreview: true,
       error: null,
     });
 
     const { result } = renderPreview();
 
-    expect(result.current.isCalculating).toBe(true);
+    expect(result.current.isAwaitingFirstPreview).toBe(true);
     expect(mockUsePerpsPositionModifyPreview).toHaveBeenCalledWith({
       position,
       direction: 'long',

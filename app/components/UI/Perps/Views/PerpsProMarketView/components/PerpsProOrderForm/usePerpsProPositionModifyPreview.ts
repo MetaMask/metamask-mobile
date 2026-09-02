@@ -26,7 +26,8 @@ export interface UsePerpsProPositionModifyPreviewParams {
  * Protocol calculations remain in `PerpsController.previewPositionModify`.
  *
  * @param params - Current position, proposed order, and display state.
- * @returns Display-ready before/after values, atomic TP/SL inputs, and loading.
+ * @returns Display-ready before/after values, atomic TP/SL inputs, and whether
+ * the first preview for this position is still pending.
  */
 export const usePerpsProPositionModifyPreview = ({
   position,
@@ -40,7 +41,7 @@ export const usePerpsProPositionModifyPreview = ({
   hasValidAmount,
   enabled,
 }: UsePerpsProPositionModifyPreviewParams) => {
-  const { preview, isCalculating } = usePerpsPositionModifyPreview({
+  const { preview, isAwaitingFirstPreview } = usePerpsPositionModifyPreview({
     position,
     direction,
     size,
@@ -67,6 +68,6 @@ export const usePerpsProPositionModifyPreview = ({
 
   return {
     summaryDisplay,
-    isCalculating,
+    isAwaitingFirstPreview,
   };
 };

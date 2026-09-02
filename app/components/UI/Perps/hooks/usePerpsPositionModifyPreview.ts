@@ -46,6 +46,11 @@ export interface UsePerpsPositionModifyPreviewOptions {
  * In-flight requests are generation-tagged so a slower older response cannot
  * overwrite a newer preview. The last successful preview is kept until the
  * next result arrives (no idle flash on every param tick).
+ *
+ * Live prices and fees re-request the preview roughly every second, so
+ * `isCalculating` is true most of the time a position is open. Gate submission
+ * on `isAwaitingFirstPreview`, which is only true until a result exists for the
+ * current position.
  */
 export const usePerpsPositionModifyPreview = (
   params: UsePerpsPositionModifyPreviewParams,
@@ -55,6 +60,7 @@ export const usePerpsPositionModifyPreview = (
   const [preview, setPreview] =
     useState<PositionModifyPreviewResult>(IDLE_PREVIEW);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [hasSettledPreview, setHasSettledPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestGeneration = useRef(0);
 
@@ -138,6 +144,7 @@ export const usePerpsPositionModifyPreview = (
           } finally {
             if (generation === requestGeneration.current) {
               setIsCalculating(false);
+              setHasSettledPreview(true);
             }
           }
         },
@@ -145,6 +152,17 @@ export const usePerpsPositionModifyPreview = (
       ),
     [previewPositionModify, debounceMs],
   );
+
+  const previewTarget =
+    enabled && position
+      ? `${providerId ?? position.providerId ?? ''}:${position.symbol}`
+      : null;
+
+  useEffect(() => {
+    // A different position invalidates the retained preview, so the next
+    // request counts as a first load again. Order/price changes do not.
+    setHasSettledPreview(false);
+  }, [previewTarget]);
 
   useEffect(() => {
     const generation = ++requestGeneration.current;
@@ -172,6 +190,7 @@ export const usePerpsPositionModifyPreview = (
   return {
     preview,
     isCalculating,
+    isAwaitingFirstPreview: isCalculating && !hasSettledPreview,
     error,
   };
 };

@@ -286,7 +286,7 @@ jest.mock('./usePerpsProPositionModifyPreview', () => ({
       tpslLiquidationPrice: undefined,
       tpslDirection: undefined,
     },
-    isCalculating: false,
+    isAwaitingFirstPreview: false,
   }),
 }));
 
