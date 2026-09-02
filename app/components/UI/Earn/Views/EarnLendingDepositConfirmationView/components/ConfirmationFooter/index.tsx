@@ -12,6 +12,17 @@ import { strings } from '../../../../../../../../locales/i18n';
 import AppConstants from '../../../../../../../core/AppConstants';
 import ProgressStepper, { ProgressStep } from '../ProgressStepper';
 import styleSheet from './ConfirmationFooter.styles';
+import {
+  CONFIRMATION_FOOTER_TEST_ID,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+  CONFIRMATION_FOOTER_LINK_TEST_IDS,
+} from './ConfirmationFooter.testIds';
+
+export {
+  CONFIRMATION_FOOTER_TEST_ID,
+  CONFIRMATION_FOOTER_BUTTON_TEST_IDS,
+  CONFIRMATION_FOOTER_LINK_TEST_IDS,
+} from './ConfirmationFooter.testIds';
 
 interface FooterButton {
   text?: string;
@@ -25,18 +36,6 @@ export interface ConfirmationFooterProps {
   buttonSecondary?: FooterButton;
   progressBar?: { activeStep: number; steps: ProgressStep[] };
 }
-
-export const CONFIRMATION_FOOTER_TEST_ID = 'earn-lending-confirmation-footer';
-
-export const CONFIRMATION_FOOTER_BUTTON_TEST_IDS = {
-  CANCEL_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-cancel-button`,
-  CONFIRM_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-confirm-button`,
-};
-
-export const CONFIRMATION_FOOTER_LINK_TEST_IDS = {
-  TERMS_OF_USE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-terms-of-use-button`,
-  RISK_DISCLOSURE_BUTTON: `${CONFIRMATION_FOOTER_TEST_ID}-risk-disclosure-button`,
-};
 
 export const ConfirmationFooter = ({
   onConfirm,

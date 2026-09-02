@@ -26,6 +26,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { EarnWithdrawInputViewTestIds } from './EarnWithdrawInputView.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
@@ -985,7 +986,7 @@ const EarnWithdrawInputView = () => {
           shouldShowTronWithdrawButton && (
             <View style={styles.reviewButtonContainer}>
               <Button
-                testID="review-button"
+                testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
                 label={buttonLabel}
                 size={ButtonSize.Lg}
                 labelTextVariant={TextVariant.BodyMDMedium}
@@ -1002,7 +1003,7 @@ const EarnWithdrawInputView = () => {
         {!isTronEnabled && (
           <View style={styles.reviewButtonContainer}>
             <Button
-              testID="review-button"
+              testID={EarnWithdrawInputViewTestIds.REVIEW_BUTTON}
               label={buttonLabel}
               size={ButtonSize.Lg}
               labelTextVariant={TextVariant.BodyMDMedium}
