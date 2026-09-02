@@ -1,11 +1,16 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ScrollView, type LayoutChangeEvent } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   selectBridgeBalanceRefreshKey,
+  selectSlippage,
   selectSourceToken,
+  setSlippage,
 } from '../../../../../../core/redux/slices/bridge';
 import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
@@ -28,12 +33,19 @@ import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
 import { LIMIT_MOCK_OPEN_ORDERS_TAB } from './BridgeLimitOrderView.mockOpenOrders';
 import { BridgeLimitOrderFooterView } from './BridgeLimitOrderFooterView';
 import { SwapsLimitOrderConfirmButton } from '../../../components/SwapsLimitOrderConfirmButton';
+import LimitOrderDetails from '../../../components/LimitOrderDetails';
 import { LimitOrderPriceAdjustCard } from '../../../components/LimitOrderPriceAdjustCard';
 import type {
   ButtonPricePresetsSectionRef,
   InputSectionRef,
 } from '../../../components/LimitOrderPriceAdjustCard/types';
-import { LIMIT_ORDER_BUTTON_PRICE_PRESETS } from '../../../constants/limitOrders';
+import {
+  LIMIT_ORDER_BUTTON_PRICE_PRESETS,
+  LIMIT_ORDER_DEFAULT_SLIPPAGE,
+  SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+  getSwapsLimitOrderExpirationLabel,
+  type SwapsLimitOrderExpirationMinutes,
+} from '../../../constants/limitOrders';
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
@@ -46,6 +58,9 @@ const BridgeLimitOrderViewContent = ({
   latestSourceBalance,
 }: BridgeLimitOrderViewContentProps) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+  const slippage = useSelector(selectSlippage);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
@@ -115,6 +130,16 @@ const BridgeLimitOrderViewContent = ({
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingQuoteAndAssetsPriceData();
+  const [expirationMinutes, setExpirationMinutes] =
+    useState<SwapsLimitOrderExpirationMinutes>(
+      SWAPS_LIMIT_ORDER_DEFAULT_EXPIRATION_MINUTES,
+    );
+
+  useEffect(() => {
+    if (slippage === undefined) {
+      dispatch(setSlippage(LIMIT_ORDER_DEFAULT_SLIPPAGE));
+    }
+  }, [dispatch, slippage]);
 
   const blurLimitAdjustInputs = useCallback(() => {
     limitPriceInputRef.current?.blur();
@@ -174,6 +199,39 @@ const BridgeLimitOrderViewContent = ({
       current === nextHasVisibleBanner ? current : nextHasVisibleBanner,
     );
   }, []);
+
+  const handleSlippagePress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
+      params: {
+        sourceChainId: sourceToken?.chainId,
+        destChainId: destToken?.chainId,
+      },
+    });
+  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
+
+  const handleExpirationConfirm = useCallback(
+    (minutes: SwapsLimitOrderExpirationMinutes) => {
+      setExpirationMinutes(minutes);
+    },
+    [],
+  );
+
+  const handleExpirationPress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL,
+      params: {
+        selectedMinutes: expirationMinutes,
+        onConfirm: handleExpirationConfirm,
+      },
+    });
+  }, [
+    dismissInputAndKeypad,
+    expirationMinutes,
+    handleExpirationConfirm,
+    navigation,
+  ]);
 
   return (
     <Box twClassName="flex-1 bg-default">
@@ -247,6 +305,19 @@ const BridgeLimitOrderViewContent = ({
               limitPriceInputRef={limitPriceInputRef}
               customPercentInputRef={customPercentInputRef}
             />
+
+            <Box twClassName="flex-grow-0" onTouchEnd={dismissInputAndKeypad}>
+              <LimitOrderDetails
+                expiration={getSwapsLimitOrderExpirationLabel(
+                  expirationMinutes,
+                )}
+                onExpirationPress={handleExpirationPress}
+                slippage={`${slippage ?? LIMIT_ORDER_DEFAULT_SLIPPAGE}%`}
+                onPricePress={handleSlippagePress}
+                networkFee="$1.69"
+                feeToken={sourceToken}
+              />
+            </Box>
 
             <Box
               twClassName="flex-grow-0 pb-3"
