@@ -10,7 +10,7 @@ import {
 } from '@testing-library/react-native';
 import type {
   ChaseOrder,
-  OrderFill,
+  Order,
   PriceUpdate,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
@@ -1358,26 +1358,27 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         restingOrderId: '59081412404',
         startedAt: 1_788_278_727_454,
       };
-      const runtimeFill: OrderFill = {
+      const runtimeChildOrder: Order = {
         orderId: '59081412404',
         symbol: 'ETH',
         side: 'buy',
+        orderType: 'limit',
         size: '0.31',
+        originalSize: '0.31',
         price: '2500',
-        pnl: '0',
-        direction: 'Open Long',
-        fee: '0.01',
-        feeToken: 'USDC',
+        filledSize: '0.31',
+        remainingSize: '0',
+        status: 'filled',
         timestamp: 1_788_278_742_740,
+        lastUpdated: 1_788_278_742_740,
       };
       const getChaseOrders = Engine.context.PerpsController
         .getChaseOrders as jest.Mock;
-      const getOrderFills = Engine.context.PerpsController
-        .getOrderFills as jest.Mock;
+      const getOrders = Engine.context.PerpsController.getOrders as jest.Mock;
       getChaseOrders
         .mockResolvedValueOnce([runtimeActiveChase])
         .mockResolvedValue([]);
-      getOrderFills.mockResolvedValue([runtimeFill]);
+      getOrders.mockResolvedValue([runtimeChildOrder]);
       renderFundedProMarket();
 
       fireEvent.press(

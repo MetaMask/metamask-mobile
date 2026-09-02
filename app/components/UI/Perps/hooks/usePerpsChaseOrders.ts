@@ -11,10 +11,9 @@ import {
   InitializationState,
   PERPS_CONSTANTS,
   type ChaseOrder,
-  type OrderFill,
+  type Order,
   type PerpsActiveProviderMode,
 } from '@metamask/perps-controller';
-import BigNumber from 'bignumber.js';
 import { AppState } from 'react-native';
 import { useSelector } from 'react-redux';
 import isEqual from 'lodash/isEqual';
@@ -216,7 +215,10 @@ const mergeWithAuthoritativeFilledOrders = (
   ];
 };
 
-const getOrdersProvenFilled = (orders: ChaseOrder[], fills: OrderFill[]) =>
+const getOrdersProvenFilled = (
+  orders: ChaseOrder[],
+  historicalOrders: Order[],
+) =>
   cachedOrders.filter((cachedOrder) => {
     if (
       !CHASE_RETAINED_STATUSES.has(cachedOrder.status) ||
@@ -225,22 +227,30 @@ const getOrdersProvenFilled = (orders: ChaseOrder[], fills: OrderFill[]) =>
     ) {
       return false;
     }
-    const remainingSize = new BigNumber(cachedOrder.remainingSize).abs();
-    if (!remainingSize.isFinite() || !remainingSize.isGreaterThan(0)) {
-      return false;
-    }
-    const filledSize = fills
-      .filter(
-        (fill) =>
-          fill.orderId === cachedOrder.restingOrderId &&
-          fill.symbol === cachedOrder.symbol &&
-          fill.timestamp >= cachedOrder.startedAt &&
-          (cachedOrder.providerId !== undefined
-            ? fill.providerId === cachedOrder.providerId
-            : selectedProvider !== 'aggregated'),
-      )
-      .reduce((total, fill) => total.plus(fill.size), new BigNumber(0));
-    return filledSize.isGreaterThanOrEqualTo(remainingSize);
+    const matchingOrders = historicalOrders.filter(
+      (historicalOrder) =>
+        historicalOrder.orderId === cachedOrder.restingOrderId &&
+        historicalOrder.symbol === cachedOrder.symbol &&
+        historicalOrder.timestamp >= cachedOrder.startedAt &&
+        (cachedOrder.providerId !== undefined
+          ? historicalOrder.providerId === cachedOrder.providerId
+          : selectedProvider !== 'aggregated'),
+    );
+    if (matchingOrders.length === 0) return false;
+    const latestTimestamp = Math.max(
+      ...matchingOrders.map(
+        (historicalOrder) =>
+          historicalOrder.lastUpdated ?? historicalOrder.timestamp,
+      ),
+    );
+    const latestOrders = matchingOrders.filter(
+      (historicalOrder) =>
+        (historicalOrder.lastUpdated ?? historicalOrder.timestamp) ===
+        latestTimestamp,
+    );
+    return latestOrders.every(
+      (historicalOrder) => historicalOrder.status === 'filled',
+    );
   });
 
 const mergeAfterSuccessfulCancellation = (
@@ -423,11 +433,11 @@ async function refreshChaseOrders(
       let filledOrders: ChaseOrder[] = [];
       if (missingRetainedOrders.length > 0) {
         // Provider teardown can remove a terminal Chase before Mobile reads its
-        // final snapshot. Only exact child fills prove that omission was Filled.
+        // final snapshot. Only the exact child's terminal status proves Filled.
         const startTime = Math.min(
           ...missingRetainedOrders.map((order) => order.startedAt),
         );
-        const fills = await Engine.context.PerpsController.getOrderFills(
+        const historicalOrders = await Engine.context.PerpsController.getOrders(
           { startTime },
           { forceRefresh: true },
         );
@@ -438,7 +448,7 @@ async function refreshChaseOrders(
         ) {
           throw new ChaseOrderRequestError('stale_request');
         }
-        filledOrders = getOrdersProvenFilled(orders, fills);
+        filledOrders = getOrdersProvenFilled(orders, historicalOrders);
       }
       refreshFailureLogged = false;
       cachedRoute = route;
