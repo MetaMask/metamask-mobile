@@ -111,12 +111,6 @@ const ProHub = () => {
     navigation.navigate(Routes.CARD.ROOT);
   }, [navigation]);
 
-  // TODO: wire up when earned section is tappable
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleEarnedPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.EARNED);
-  }, [navigation]);
-
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
