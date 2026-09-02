@@ -14,6 +14,16 @@ import { getMinimalIncludedAssets } from '../utils/cacheUtils';
 import { ARC_CAIP_CHAIN_ID } from '../../../../enablement/assets/arc';
 import { BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN } from '../constants/default-swap-dest-tokens';
 
+/**
+ * Removes null entries and deduplicates include-assets by normalized asset id.
+ *
+ * Arc can contribute curated assets from multiple sources, so this keeps the
+ * include-assets payload stable while preserving the last occurrence for a
+ * given asset id.
+ *
+ * @param includeAssets - Candidate assets, optionally including null entries.
+ * @returns Deduplicated include-assets keyed by lowercased asset id.
+ */
 const dedupeIncludeAssets = (
   includeAssets: (IncludeAsset | null)[],
 ): IncludeAsset[] => {
