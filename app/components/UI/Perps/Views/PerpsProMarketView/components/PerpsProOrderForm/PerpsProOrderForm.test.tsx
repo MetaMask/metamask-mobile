@@ -1688,6 +1688,17 @@ describe('PerpsProOrderForm', () => {
 
       expect(screen.getByText('$1,000 → $1,020')).toBeOnTheScreen();
       expect(screen.getByText('$48,000 → $45,000')).toBeOnTheScreen();
+      // numberOfLines lives on the value Text, not the KeyValueRow testID.
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(
+          '$1,000 → $1,020',
+        ),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(
+          '$48,000 → $45,000',
+        ),
+      ).toHaveProp('numberOfLines', 2);
     });
 
     // The order type card was the only bordered surface in the form (TAT-3780).
