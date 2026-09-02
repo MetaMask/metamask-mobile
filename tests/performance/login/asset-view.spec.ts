@@ -34,7 +34,6 @@ perfTest.describe(
           currentDeviceDetails.platform,
         );
 
-        await WalletView.tapOnTokensSection();
         const profilingEnabled = currentDeviceDetails.platform === 'android';
         if (profilingEnabled) {
           await startBrowserStackProfiler(
@@ -42,6 +41,8 @@ perfTest.describe(
             currentDeviceDetails.platform,
           );
         }
+
+        await WalletView.tapOnTokensSection();
 
         try {
           await WalletView.tapOnToken('ETH');

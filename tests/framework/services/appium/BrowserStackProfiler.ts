@@ -21,17 +21,25 @@ export async function shakeBrowserStackDevice(
   await (driver as ShakeDriver).shake();
 }
 
+async function openProfilerPanel(
+  driver: WebdriverIO.Browser,
+  platform: BrowserStackPlatform,
+): Promise<void> {
+  if (platform === 'ios') {
+    await shakeBrowserStackDevice(driver);
+  } else {
+    const toggle = await driver.$('~e2e-profiler-toggle');
+    await toggle.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+    await toggle.click();
+  }
+}
+
 export async function startBrowserStackProfiler(
   driver: WebdriverIO.Browser,
   platform: BrowserStackPlatform,
 ): Promise<void> {
-  const shouldUseShake = platform === 'ios';
-  if (shouldUseShake) {
-    await shakeBrowserStackDevice(driver);
-  }
-  const startButton = await driver.$(
-    shouldUseShake ? '~profiler-start-button' : '~e2e-profiler-start',
-  );
+  await openProfilerPanel(driver, platform);
+  const startButton = await driver.$('~profiler-start-button');
   await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
   await startButton.click();
 }
@@ -40,26 +48,36 @@ export async function stopBrowserStackProfiler(
   driver: WebdriverIO.Browser,
   platform: BrowserStackPlatform,
 ): Promise<string> {
-  const shouldUseShake = platform === 'ios';
-  if (shouldUseShake) {
-    await shakeBrowserStackDevice(driver);
-  }
-  const stopButton = await driver.$(
-    shouldUseShake ? '~profiler-stop-button' : '~e2e-profiler-stop',
-  );
+  await openProfilerPanel(driver, platform);
+  const stopButton = await driver.$('~profiler-stop-button');
   await stopButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
   await stopButton.click();
 
   const resultReady = await driver.$('~e2e-profiler-result-ready');
-  if (shouldUseShake) {
-    const startButton = await driver.$('~profiler-start-button');
-    await startButton.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
-  } else {
-    await resultReady.waitForDisplayed({ timeout: PROFILER_TIMEOUT_MS });
+  const profilerError = await driver.$('~e2e-profiler-error');
+
+  await driver.waitUntil(
+    async () => {
+      const [resultDisplayed, errorDisplayed] = await Promise.all([
+        resultReady.isDisplayed().catch(() => false),
+        profilerError.isDisplayed().catch(() => false),
+      ]);
+      return resultDisplayed || errorDisplayed;
+    },
+    {
+      timeout: PROFILER_TIMEOUT_MS,
+      timeoutMsg: `Profiler result not ready after ${PROFILER_TIMEOUT_MS}ms`,
+    },
+  );
+
+  if (await profilerError.isDisplayed().catch(() => false)) {
+    const errorLabel = await profilerError.getAttribute('content-desc');
+    throw new Error(`Profiler failed on device: ${errorLabel}`);
   }
 
   const resultLabel = await resultReady.getAttribute('content-desc');
-  const fileName = resultLabel?.split(':').pop();
+  const fullPath = resultLabel?.split(':').pop();
+  const fileName = fullPath?.split('/').pop();
   if (!fileName?.endsWith('.cpuprofile')) {
     throw new Error('The app did not expose a valid profiler filename');
   }
