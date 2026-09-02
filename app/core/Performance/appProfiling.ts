@@ -9,24 +9,44 @@
  * `react-native-release-profiler` in app code, gated to performance APKs.
  */
 
-import { Platform } from 'react-native';
-import RNFS from 'react-native-fs';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
 
-/**
- * Stable Android Downloads filename so Appium can `pullFile` without discovering
- * the unique name returned by `stopProfiling`.
- */
-export const PERFORMANCE_PROFILE_ANDROID_FILENAME =
-  'metamask-performance-latest.cpuprofile';
+export interface AppProfilingStatus {
+  isRecording: boolean;
+  lastProfilePath: string | null;
+  lastError: string | null;
+}
 
-export const PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH = `/sdcard/Download/${PERFORMANCE_PROFILE_ANDROID_FILENAME}`;
+type AppProfilingListener = (status: AppProfilingStatus) => void;
 
 let isRecording = false;
 let lastProfilePath: string | null = null;
+let lastError: string | null = null;
+const listeners = new Set<AppProfilingListener>();
+
+function getStatus(): AppProfilingStatus {
+  return { isRecording, lastProfilePath, lastError };
+}
+
+function notifyListeners(): void {
+  const status = getStatus();
+  listeners.forEach((listener) => {
+    listener(status);
+  });
+}
+
+export function subscribeAppProfilingStatus(
+  listener: AppProfilingListener,
+): () => void {
+  listeners.add(listener);
+  listener(getStatus());
+  return () => {
+    listeners.delete(listener);
+  };
+}
 
 /**
  * Starts a Hermes CPU profiling session.
@@ -39,42 +59,64 @@ export async function startAppProfiling(
     return false;
   }
 
-  await startProfiling();
-  isRecording = true;
-  lastProfilePath = null;
-  return true;
+  lastError = null;
+  notifyListeners();
+
+  try {
+    await startProfiling();
+    isRecording = true;
+    lastProfilePath = null;
+    notifyListeners();
+    return true;
+  } catch (error) {
+    isRecording = false;
+    lastError = `startProfiling failed: ${String(error)}`;
+    notifyListeners();
+    throw error;
+  }
 }
 
 /**
  * Stops the active profiling session and returns the on-device profile path.
- * On Android, `stopProfiling(true)` copies the `.cpuprofile` to Downloads, then
- * we also copy it to {@link PERFORMANCE_PROFILE_ANDROID_FILENAME} for Appium pull.
+ * On Android, `stopProfiling(true)` copies the `.cpuprofile` into Downloads.
  * No-ops unless this is a performance-test APK with an active session.
  */
 export async function stopAppProfiling(
   enabled: boolean = isPerformanceProfilingEnabled,
 ): Promise<string | null> {
-  if (!enabled || !isRecording) {
+  if (!enabled) {
     return null;
   }
 
-  const path = await stopProfiling(true);
-  isRecording = false;
+  if (!isRecording) {
+    lastError = 'stopProfiling skipped: no active profiling session';
+    notifyListeners();
+    return null;
+  }
 
-  if (typeof path !== 'string' || path.length === 0) {
+  lastError = null;
+  notifyListeners();
+
+  try {
+    const path = await stopProfiling(true);
+    isRecording = false;
+
+    if (typeof path === 'string' && path.length > 0) {
+      lastProfilePath = path;
+      notifyListeners();
+      return lastProfilePath;
+    }
+
     lastProfilePath = null;
+    lastError = 'stopProfiling returned an empty path';
+    notifyListeners();
     return null;
+  } catch (error) {
+    isRecording = false;
+    lastError = `stopProfiling failed: ${String(error)}`;
+    notifyListeners();
+    throw error;
   }
-
-  if (Platform.OS === 'android') {
-    const stablePath = `${RNFS.DownloadDirectoryPath}/${PERFORMANCE_PROFILE_ANDROID_FILENAME}`;
-    await RNFS.copyFile(path, stablePath);
-    lastProfilePath = stablePath;
-    return lastProfilePath;
-  }
-
-  lastProfilePath = path;
-  return lastProfilePath;
 }
 
 export function isAppProfilingRecording(): boolean {
@@ -85,6 +127,10 @@ export function getLastAppProfilePath(): string | null {
   return lastProfilePath;
 }
 
+export function getLastAppProfilingError(): string | null {
+  return lastError;
+}
+
 /**
  * Test-only reset for unit tests.
  * @internal
@@ -92,4 +138,6 @@ export function getLastAppProfilePath(): string | null {
 export function __resetAppProfilingForTests(): void {
   isRecording = false;
   lastProfilePath = null;
+  lastError = null;
+  listeners.clear();
 }

@@ -66,6 +66,7 @@ import ActivityTypeFilterSheet from '../../Views/ActivityScreen/components/Activ
 import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/PerpsActivityFilterSheet';
 import ActivityNetworkFilterSheet from '../../Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 import ProfilerManager from '../../UI/ProfilerManager';
+import PerformanceProfilerStatus from '../../UI/ProfilerManager/PerformanceProfilerStatus';
 import { registerPerformanceProfilerBridge } from '../../../core/Performance';
 import NetworkManager from '../../UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../Views/AccountPermissions/AccountPermissions.types';
@@ -1610,6 +1611,7 @@ const App: React.FC = () => {
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
+        <PerformanceProfilerStatus />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />
       </WebSocketHealthToastProvider>

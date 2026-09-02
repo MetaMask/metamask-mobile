@@ -1,7 +1,7 @@
 /**
  * Performance-test helpers that invoke in-app `startAppProfiling` /
- * `stopAppProfiling` via deeplink, then pull the Hermes `.cpuprofile` off the
- * device so CI artifacts include it.
+ * `stopAppProfiling` via deeplink, wait for the result accessibility hook,
+ * then pull the Hermes `.cpuprofile` off the device into CI artifacts.
  */
 
 /* eslint-disable import-x/no-nodejs-modules */
@@ -15,17 +15,10 @@ import { createLogger } from '../../framework/logger.ts';
 
 const logger = createLogger({ name: 'Performance - AppProfiling' });
 
-/**
- * Must match `PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH` in
- * `app/core/Performance/appProfiling.ts`.
- */
-export const PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH =
-  '/sdcard/Download/metamask-performance-latest.cpuprofile';
-
 const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
-
-const PULL_RETRY_ATTEMPTS = 5;
-const PULL_RETRY_DELAY_MS = 2_000;
+const RESULT_READY_TEST_ID = 'performance-profiler-result-ready';
+const ERROR_TEST_ID = 'performance-profiler-error';
+const RESULT_TIMEOUT_MS = 60_000;
 
 type PullFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
@@ -43,17 +36,70 @@ function sanitizeFilePart(value: string): string {
   return value.replace(/[^a-zA-Z0-9._-]/g, '_');
 }
 
-async function sleep(ms: number): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, ms));
+function toAndroidPullPath(profilePath: string): string {
+  if (profilePath.startsWith('/sdcard/')) {
+    return profilePath;
+  }
+  if (profilePath.startsWith('/storage/emulated/0/')) {
+    return profilePath.replace('/storage/emulated/0/', '/sdcard/');
+  }
+  const fileName = profilePath.split('/').pop();
+  if (!fileName) {
+    throw new Error(`Invalid profile path from app: ${profilePath}`);
+  }
+  return `/sdcard/Download/${fileName}`;
+}
+
+async function waitForProfilerResultPath(
+  appiumDriver: WebdriverIO.Browser,
+): Promise<string> {
+  const resultReady = await appiumDriver.$(`~${RESULT_READY_TEST_ID}`);
+  const profilerError = await appiumDriver.$(`~${ERROR_TEST_ID}`);
+
+  await appiumDriver.waitUntil(
+    async () => {
+      const [resultDisplayed, errorDisplayed] = await Promise.all([
+        resultReady.isDisplayed().catch(() => false),
+        profilerError.isDisplayed().catch(() => false),
+      ]);
+      return resultDisplayed || errorDisplayed;
+    },
+    {
+      timeout: RESULT_TIMEOUT_MS,
+      timeoutMsg: `Profiler result not ready after ${RESULT_TIMEOUT_MS}ms`,
+    },
+  );
+
+  if (await profilerError.isDisplayed().catch(() => false)) {
+    const errorLabel =
+      (await profilerError.getAttribute('content-desc').catch(() => null)) ||
+      (await profilerError.getAttribute('name').catch(() => null)) ||
+      'unknown profiler error';
+    throw new Error(`Profiler failed on device: ${errorLabel}`);
+  }
+
+  const resultLabel =
+    (await resultReady.getAttribute('content-desc').catch(() => null)) ||
+    (await resultReady.getAttribute('name').catch(() => null));
+  const marker = `${RESULT_READY_TEST_ID}:`;
+  if (!resultLabel?.startsWith(marker)) {
+    throw new Error(
+      `Profiler result accessibility label missing path: ${resultLabel}`,
+    );
+  }
+  const profilePath = resultLabel.slice(marker.length);
+  if (!profilePath.endsWith('.cpuprofile')) {
+    throw new Error(`Profiler result path is not a cpuprofile: ${profilePath}`);
+  }
+  return profilePath;
 }
 
 /**
- * Pulls the stable Android Downloads profile written by `stopAppProfiling`,
+ * Pulls the on-device profile path exposed by PerformanceProfilerStatus,
  * saves it under `tests/reporters/reports/hermes-cpuprofiles/` (CI upload path),
  * and attaches it to the Playwright report.
  *
- * Returns `null` on iOS — profile export/pull is Android-only for now so iOS
- * performance specs can still stop profiling and record timers.
+ * Returns `null` on iOS — profile export/pull is Android-only for now.
  */
 export async function pullAndAttachAppProfiling(
   testInfo: TestInfo,
@@ -67,49 +113,30 @@ export async function pullAndAttachAppProfiling(
   }
 
   const appiumDriver = getDriver() as PullFileDriver;
-  let lastError: unknown;
+  const profilePath = await waitForProfilerResultPath(appiumDriver);
+  const remotePath = toAndroidPullPath(profilePath);
 
-  for (let attempt = 1; attempt <= PULL_RETRY_ATTEMPTS; attempt++) {
-    try {
-      logger.info(
-        `Pulling Hermes profile from ${PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH} (attempt ${attempt}/${PULL_RETRY_ATTEMPTS})`,
-      );
-      const base64Profile = await appiumDriver.pullFile(
-        PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH,
-      );
-      const buffer = Buffer.from(base64Profile, 'base64');
-      if (buffer.length === 0) {
-        throw new Error('Pulled cpuprofile was empty');
-      }
-
-      await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
-      const fileName = `${sanitizeFilePart(testInfo.project.name)}-${sanitizeFilePart(testInfo.title)}.cpuprofile`;
-      const outputPath = path.join(PROFILE_OUTPUT_DIRECTORY, fileName);
-      await fs.writeFile(outputPath, buffer);
-
-      await testInfo.attach(fileName, {
-        path: outputPath,
-        contentType: 'application/json',
-      });
-
-      logger.info(
-        `Hermes cpuprofile saved (${buffer.length} bytes): ${outputPath}`,
-      );
-      return outputPath;
-    } catch (error) {
-      lastError = error;
-      logger.warn(
-        `Failed to pull Hermes profile (attempt ${attempt}/${PULL_RETRY_ATTEMPTS}): ${String(error)}`,
-      );
-      if (attempt < PULL_RETRY_ATTEMPTS) {
-        await sleep(PULL_RETRY_DELAY_MS);
-      }
-    }
+  logger.info(`Pulling Hermes profile from ${remotePath}`);
+  const base64Profile = await appiumDriver.pullFile(remotePath);
+  const buffer = Buffer.from(base64Profile, 'base64');
+  if (buffer.length === 0) {
+    throw new Error(`Pulled cpuprofile was empty: ${remotePath}`);
   }
 
-  throw new Error(
-    `Unable to pull Hermes cpuprofile from ${PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH}: ${String(lastError)}`,
+  await fs.mkdir(PROFILE_OUTPUT_DIRECTORY, { recursive: true });
+  const fileName = `${sanitizeFilePart(testInfo.project.name)}-${sanitizeFilePart(testInfo.title)}.cpuprofile`;
+  const outputPath = path.join(PROFILE_OUTPUT_DIRECTORY, fileName);
+  await fs.writeFile(outputPath, buffer);
+
+  await testInfo.attach(fileName, {
+    path: outputPath,
+    contentType: 'application/json',
+  });
+
+  logger.info(
+    `Hermes cpuprofile saved (${buffer.length} bytes): ${outputPath}`,
   );
+  return outputPath;
 }
 
 /**
