@@ -175,8 +175,6 @@ export const usePerpsHomeActions = (
             onAddFundsSuccess?.();
           },
           onFailure: (err) => {
-            depositPrepSessionRef.current = null;
-
             const errorObj = ensureError(
               err,
               'usePerpsHomeActions.handleAddFunds',

@@ -742,7 +742,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             depositPrepSessionRef.current = null;
           },
           onFailure: (err) => {
-            depositPrepSessionRef.current = null;
             Logger.error(
               ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
               {

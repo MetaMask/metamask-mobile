@@ -5,6 +5,12 @@ const CONFIRMATION_ROUTE_NAMES: ReadonlySet<string> = new Set([
   Routes.FULL_SCREEN_CONFIRMATIONS.NO_HEADER,
 ]);
 
+const PAY_WITH_ROUTE_NAMES: ReadonlySet<string> = new Set([
+  Routes.CONFIRMATION_PAY_WITH_MODAL,
+  Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
+  Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL,
+]);
+
 export interface NestedNavigationState {
   index: number;
   routes: { name: string; state?: NestedNavigationState }[];
@@ -61,6 +67,38 @@ export function isRedesignedConfirmationFocused(
 }
 
 /**
+ * Whether the deposit confirmation flow is focused, including Pay With sheets
+ * stacked on top of the redesigned confirmation.
+ *
+ * @param navigation - Navigation object exposing `getState`.
+ * @returns True when confirmation or a Pay With route is focused.
+ */
+export function isDepositConfirmationFlowFocused(
+  navigation: Pick<DepositConfirmationNavigation, 'getState'>,
+): boolean {
+  const focused = getFocusedRouteName(navigation.getState());
+  return (
+    focused !== undefined &&
+    (CONFIRMATION_ROUTE_NAMES.has(focused) || PAY_WITH_ROUTE_NAMES.has(focused))
+  );
+}
+
+/**
+ * Dismiss Pay With if it is covering confirmation, then dismiss confirmation.
+ *
+ * @param navigation - Navigation object exposing `getState` and `goBack`.
+ */
+export function dismissDepositConfirmation(
+  navigation: DepositConfirmationNavigation,
+): void {
+  const focused = getFocusedRouteName(navigation.getState());
+  if (focused !== undefined && PAY_WITH_ROUTE_NAMES.has(focused)) {
+    navigation.goBack();
+  }
+  navigation.goBack();
+}
+
+/**
  * Guards `goBack` after fire-and-forget deposit prep so we only dismiss the
  * confirmation we opened — not Perps, and not a confirmation the user already
  * closed. If `useConfirmNavigation` deferred the push, we wait until it
@@ -73,7 +111,7 @@ export function createDepositConfirmationGuard(
   navigation: DepositConfirmationNavigation,
 ): DepositConfirmationGuard {
   let cancelled = false;
-  let presented = isRedesignedConfirmationFocused(navigation);
+  let presented = isDepositConfirmationFlowFocused(navigation);
   let dismissWhenShown = false;
 
   const unsubscribe = navigation.addListener('state', () => {
@@ -81,8 +119,7 @@ export function createDepositConfirmationGuard(
       return;
     }
 
-    const focused = isRedesignedConfirmationFocused(navigation);
-    if (!focused) {
+    if (!isDepositConfirmationFlowFocused(navigation)) {
       if (presented) {
         cancelled = true;
         unsubscribe();
@@ -94,7 +131,7 @@ export function createDepositConfirmationGuard(
     if (dismissWhenShown) {
       cancelled = true;
       unsubscribe();
-      navigation.goBack();
+      dismissDepositConfirmation(navigation);
     }
   });
 
@@ -104,10 +141,10 @@ export function createDepositConfirmationGuard(
         return;
       }
 
-      if (isRedesignedConfirmationFocused(navigation)) {
+      if (isDepositConfirmationFlowFocused(navigation)) {
         cancelled = true;
         unsubscribe();
-        navigation.goBack();
+        dismissDepositConfirmation(navigation);
         return;
       }
 
@@ -208,8 +245,9 @@ export function createDepositPrepSession(): DepositPrepSession {
           if (disposed) {
             return;
           }
+          // Keep the guard so a waiting dismissWhenShown listener can be
+          // cancelled on dispose or replaced on the next tap.
           guard?.onDepositFailed();
-          guard = null;
           handlers?.onFailure(error);
         });
     }, 0);

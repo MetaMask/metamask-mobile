@@ -130,6 +130,29 @@ describe('createDepositConfirmationGuard', () => {
 
     expect(navigation.goBack).not.toHaveBeenCalled();
   });
+
+  it('keeps watching when Pay With opens on top of confirmation', () => {
+    const navigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const guard = createDepositConfirmationGuard(navigation);
+
+    navigation.emitState(
+      createState(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET),
+    );
+    guard.onDepositFailed();
+
+    expect(navigation.goBack).toHaveBeenCalledTimes(2);
+  });
+
+  it('dismisses Pay With and confirmation when prep fails while the sheet is focused', () => {
+    const navigation = createNavigation(
+      createState(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET),
+    );
+    const guard = createDepositConfirmationGuard(navigation);
+
+    guard.onDepositFailed();
+
+    expect(navigation.goBack).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe('createDepositPrepSession', () => {
@@ -266,6 +289,35 @@ describe('createDepositPrepSession', () => {
     await Promise.resolve();
 
     expect(onFailure).not.toHaveBeenCalled();
+    expect(navigation.goBack).not.toHaveBeenCalled();
+  });
+
+  it('cancels a waiting dismiss listener on dispose after prep fails', async () => {
+    const navigation = createNavigation(
+      createState(Routes.PERPS.MARKET_DETAILS),
+    );
+    const session = createDepositPrepSession();
+    let rejectRun: (error: Error) => void = () => undefined;
+    const run = jest.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectRun = reject;
+        }),
+    );
+
+    session.attachGuard(createDepositConfirmationGuard(navigation));
+    session.ensureScheduled(run, {
+      onSuccess: jest.fn(),
+      onFailure: jest.fn(),
+    });
+    await jest.runAllTimersAsync();
+    rejectRun(new Error('prep failed'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    session.dispose();
+    navigation.emitState(createState(CONFIRMATION_ROUTE));
+
     expect(navigation.goBack).not.toHaveBeenCalled();
   });
 });

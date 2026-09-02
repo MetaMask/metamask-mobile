@@ -169,21 +169,28 @@ describe('usePerpsHomeActions', () => {
 
   describe('handleAddFunds - eligible user', () => {
     it('navigates to confirmation and initiates deposit', async () => {
-      const { result } = renderHook(() => usePerpsHomeActions());
+      jest.useFakeTimers();
+      try {
+        const { result } = renderHook(() => usePerpsHomeActions());
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
 
-      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        loader: ConfirmationLoader.CustomAmount,
-        stack: Routes.PERPS.ROOT,
-      });
+        expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: ConfirmationLoader.CustomAmount,
+          stack: Routes.PERPS.ROOT,
+        });
 
-      await waitFor(() => {
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
         expect(mockDepositWithConfirmation).toHaveBeenCalledTimes(1);
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     describe('deferred deposit prep', () => {
@@ -602,20 +609,27 @@ describe('usePerpsHomeActions', () => {
 
   describe('error handling with non-Error objects', () => {
     it('converts string error to Error object', async () => {
-      mockDepositWithConfirmation.mockRejectedValueOnce('String error');
+      jest.useFakeTimers();
+      try {
+        mockDepositWithConfirmation.mockRejectedValueOnce('String error');
 
-      const onError = jest.fn();
-      const { result } = renderHook(() => usePerpsHomeActions({ onError }));
+        const onError = jest.fn();
+        const { result } = renderHook(() => usePerpsHomeActions({ onError }));
 
-      await act(async () => {
-        await result.current.handleAddFunds();
-      });
+        await act(async () => {
+          await result.current.handleAddFunds();
+        });
 
-      await waitFor(() => {
+        await act(async () => {
+          await jest.runAllTimersAsync();
+        });
+
         expect(result.current.error).toBeInstanceOf(Error);
         expect(result.current.error?.message).toBe('String error');
         expect(onError).toHaveBeenCalledWith(expect.any(Error), 'deposit');
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 });
