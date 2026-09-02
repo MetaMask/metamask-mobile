@@ -142,7 +142,9 @@ describe('ProHub', () => {
     it('renders also included section, rows, disclaimer, and manage membership button', () => {
       const { getByTestId } = renderProHub();
 
-      expect(getByTestId(ProHubTestIds.ALSO_INCLUDED_SECTION)).toBeOnTheScreen();
+      expect(
+        getByTestId(ProHubTestIds.ALSO_INCLUDED_SECTION),
+      ).toBeOnTheScreen();
 
       ALSO_INCLUDED_ITEMS.forEach((item) => {
         const row = getByTestId(ProHubTestIds.ALSO_INCLUDED_ROW(item.id));

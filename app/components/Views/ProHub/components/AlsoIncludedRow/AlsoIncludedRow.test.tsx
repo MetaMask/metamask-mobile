@@ -28,31 +28,21 @@ describe('AlsoIncludedRow', () => {
   it('renders the title, subtitle, and badge when provided', () => {
     const { getByTestId } = render(<AlsoIncludedRow item={itemWithBadge} />);
 
-    const row = getByTestId(
-      AlsoIncludedRowTestIds.ROW(itemWithBadge.id),
-    );
+    const row = getByTestId(AlsoIncludedRowTestIds.ROW(itemWithBadge.id));
 
     expect(row).toHaveTextContent(toRegex(strings(itemWithBadge.titleKey)));
-    expect(row).toHaveTextContent(
-      toRegex(strings(itemWithBadge.subtitleKey)),
-    );
+    expect(row).toHaveTextContent(toRegex(strings(itemWithBadge.subtitleKey)));
     expect(row).toHaveTextContent(
       toRegex(strings(itemWithBadge.badgeKey as string)),
     );
   });
 
   it('renders the title and subtitle without a badge', () => {
-    const { getByTestId } = render(
-      <AlsoIncludedRow item={itemWithoutBadge} />,
-    );
+    const { getByTestId } = render(<AlsoIncludedRow item={itemWithoutBadge} />);
 
-    const row = getByTestId(
-      AlsoIncludedRowTestIds.ROW(itemWithoutBadge.id),
-    );
+    const row = getByTestId(AlsoIncludedRowTestIds.ROW(itemWithoutBadge.id));
 
-    expect(row).toHaveTextContent(
-      toRegex(strings(itemWithoutBadge.titleKey)),
-    );
+    expect(row).toHaveTextContent(toRegex(strings(itemWithoutBadge.titleKey)));
     expect(row).toHaveTextContent(
       toRegex(strings(itemWithoutBadge.subtitleKey)),
     );
@@ -61,9 +51,7 @@ describe('AlsoIncludedRow', () => {
   it('does not set accessibilityRole button', () => {
     const { getByTestId } = render(<AlsoIncludedRow item={itemWithBadge} />);
 
-    const row = getByTestId(
-      AlsoIncludedRowTestIds.ROW(itemWithBadge.id),
-    );
+    const row = getByTestId(AlsoIncludedRowTestIds.ROW(itemWithBadge.id));
 
     expect(row.props.accessibilityRole).not.toBe('button');
   });
