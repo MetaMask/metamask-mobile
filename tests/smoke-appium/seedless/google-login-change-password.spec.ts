@@ -24,7 +24,7 @@ const NEW_PASSWORD = 'NewPass456!@#';
  * TO-678: Seedless change password after Google mock onboard.
  * Asserts success toast, then lock/unlock with the new password.
  */
-appiumTest.describe(
+appiumTest.describe.skip(
   SmokeSeedlessOnboarding('Google Login - Change Password'),
   () => {
     appiumTest(

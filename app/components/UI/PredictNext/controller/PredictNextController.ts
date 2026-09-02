@@ -37,7 +37,12 @@ export class PredictNextController {
       return;
     }
     if (!this.#options.baseUrl) {
-      Logger.error(new Error('PredictNext configuration is missing.'));
+      // Expected while the Predict API URL is not yet wired into release builds.
+      // Logged as a breadcrumb (not an error) to avoid Sentry noise until the
+      // production URL ships via builds.yml.
+      Logger.log(
+        'PredictNext configuration is missing. Skipping controller initialization.',
+      );
       return;
     }
 
