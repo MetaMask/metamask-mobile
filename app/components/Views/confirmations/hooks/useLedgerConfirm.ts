@@ -25,14 +25,8 @@ interface UseLedgerConfirmOptions {
   transactionId?: string;
 }
 
-type TransactionControllerBatchState = {
-  batchTransactionCounts?: Record<string, number>;
-  transactions: TransactionMeta[];
-};
-
-function getTransactionControllerState(): TransactionControllerBatchState {
-  return Engine.context.TransactionController
-    .state as TransactionControllerBatchState;
+function getTransactionControllerState() {
+  return Engine.context.TransactionController.state;
 }
 
 /**
@@ -44,10 +38,6 @@ function getRequiredBatchTransactionCount(
 ): number | undefined {
   const { batchTransactionCounts, transactions } =
     getTransactionControllerState();
-
-  if (!batchTransactionCounts) {
-    return undefined;
-  }
 
   const requiredTransactionIds =
     transactions.find((transaction) => transaction.id === transactionId)
