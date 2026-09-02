@@ -7,6 +7,9 @@ import {
 
 const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:getAccountsFromSelectedAccountGroup',
+  'AccountTreeController:isInitialized',
+  'ClientController:getState',
+  'KeyringController:isUnlocked',
   'ConfigRegistryController:getNetworkConfigByCaip2ChainId',
   'NetworkEnablementController:getState',
   'NetworkController:getState',
@@ -23,7 +26,6 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'AccountTreeController:selectedAccountGroupChange',
   'AccountTreeController:initialized',
   'AccountTreeController:uninitialized',
-  'AccountTreeController:stateChange',
   'NetworkEnablementController:stateChange',
   'ClientController:stateChange',
   'KeyringController:lock',
@@ -107,6 +109,47 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
+  it('delegates AccountTreeController isInitialized action (core#10059)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:isInitialized',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates ClientController getState action (core#10059)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['ClientController:getState']),
+      }),
+    );
+  });
+
+  it('delegates KeyringController isUnlocked action (core#10059)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['KeyringController:isUnlocked']),
+      }),
+    );
+  });
+
   it('delegates core#9388 account-group and network-enablement events', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
@@ -117,7 +160,8 @@ describe('getAssetsControllerMessenger', () => {
       expect.objectContaining({
         events: expect.arrayContaining([
           'AccountTreeController:selectedAccountGroupChange',
-          'AccountTreeController:stateChange',
+          'AccountTreeController:initialized',
+          'AccountTreeController:uninitialized',
           'NetworkEnablementController:stateChange',
           'ClientController:stateChange',
         ]),
