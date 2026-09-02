@@ -29,8 +29,13 @@ const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-// False by default: control keeps Rewards as a tab, which has nothing to pop.
 const mockCanGoBack = jest.fn(() => false);
+// The navigator Rewards is mounted under: a tab in control, the root stack once
+// treatment hands the tab slot to Social and reaches Rewards by a push.
+let mockParentNavigatorType = 'tab';
+const mockGetParent = jest.fn(() => ({
+  getState: () => ({ type: mockParentNavigatorType }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -41,6 +46,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       canGoBack: mockCanGoBack,
+      getParent: mockGetParent,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -579,9 +585,28 @@ describe('RewardsDashboard', () => {
       expect(getByText('Rewards')).toBeOnTheScreen();
     });
 
+    it('renders no back button as a tab, even though canGoBack is true', () => {
+      // Arrange - the tab navigator's default `firstRoute` back behaviour makes
+      // `canGoBack()` true on any non-first tab, so it cannot gate the header.
+      mockCanGoBack.mockReturnValue(true);
+
+      // Act
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      // Assert
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      mockCanGoBack.mockReturnValue(false);
+    });
+
     describe('when pushed onto the stack instead of shown as a tab', () => {
-      beforeEach(() => mockCanGoBack.mockReturnValue(true));
-      afterEach(() => mockCanGoBack.mockReturnValue(false));
+      beforeEach(() => {
+        mockParentNavigatorType = 'stack';
+      });
+      afterEach(() => {
+        mockParentNavigatorType = 'tab';
+      });
 
       it('renders a back button that pops the screen', () => {
         const { getByTestId } = render(<RewardsDashboard />);

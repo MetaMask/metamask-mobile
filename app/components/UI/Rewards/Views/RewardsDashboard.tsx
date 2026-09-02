@@ -370,7 +370,7 @@ const RewardsDashboard: React.FC = () => {
     }, []),
   );
 
-  const isPushedScreen = navigation.canGoBack();
+  const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
 
