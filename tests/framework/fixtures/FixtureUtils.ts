@@ -21,6 +21,7 @@ import {
 import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager.ts';
 import { PlatformDetector } from '../PlatformLocator.ts';
+import { resolveWorkerAndroidSerial } from '../e2eWorkerPorts.ts';
 
 const execAsync = promisify(exec);
 
@@ -75,7 +76,7 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     return;
   }
 
-  const serial = process.env.ANDROID_SERIAL?.trim();
+  const serial = resolveWorkerAndroidSerial();
   const deviceFlag = serial ? `-s ${serial}` : '';
 
   // Clean up only the specific fallback ports we use
@@ -176,7 +177,7 @@ async function setupAndroidPortForwarding(
     fallbackPort += instanceIndex;
   }
 
-  const serial = process.env.ANDROID_SERIAL?.trim();
+  const serial = resolveWorkerAndroidSerial();
   const deviceFlag = serial ? `-s ${serial}` : '';
 
   const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;

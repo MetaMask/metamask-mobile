@@ -4,6 +4,7 @@ import {
   hostListenPortForDevicePort,
   metamaskWebViewCdpForwardPort,
   resolveE2eWorkerIndex,
+  resolveWorkerAndroidSerial,
   webviewCdpForwardPort,
 } from './e2eWorkerPorts.ts';
 
@@ -21,12 +22,18 @@ describe('e2eWorkerPorts', () => {
       expect(workerIndex).toBe(1);
     });
 
-    it('rejects a negative E2E_WORKER_INDEX', () => {
+    it('falls back to Playwright TEST_PARALLEL_INDEX before the device fixture runs', () => {
+      const workerIndex = resolveE2eWorkerIndex({ TEST_PARALLEL_INDEX: '1' });
+
+      expect(workerIndex).toBe(1);
+    });
+
+    it('rejects a negative worker index', () => {
       const resolveNegative = () =>
         resolveE2eWorkerIndex({ E2E_WORKER_INDEX: '-1' });
 
       expect(resolveNegative).toThrow(
-        'Invalid E2E_WORKER_INDEX "-1". Expected a non-negative integer.',
+        'Invalid worker index "-1". Expected a non-negative integer.',
       );
     });
   });
@@ -46,6 +53,14 @@ describe('e2eWorkerPorts', () => {
       });
 
       expect(hostPort).toBe(8193);
+    });
+
+    it('offsets the host listen port from TEST_PARALLEL_INDEX in beforeAll', () => {
+      const hostPort = hostListenPortForDevicePort(8094, {
+        TEST_PARALLEL_INDEX: '1',
+      });
+
+      expect(hostPort).toBe(8194);
     });
   });
 
@@ -72,7 +87,7 @@ describe('e2eWorkerPorts', () => {
   });
 
   describe('adbDeviceArgs', () => {
-    it('returns no serial flags when ANDROID_SERIAL is unset', () => {
+    it('returns no serial flags on the single emulator path', () => {
       const args = adbDeviceArgs({});
 
       expect(args).toEqual([]);
@@ -82,6 +97,39 @@ describe('e2eWorkerPorts', () => {
       const args = adbDeviceArgs({ ANDROID_SERIAL: 'emulator-5556' });
 
       expect(args).toEqual(['-s', 'emulator-5556']);
+    });
+
+    it('pins adb to the pool device when ANDROID_SERIAL is not exported yet', () => {
+      const args = adbDeviceArgs({
+        ANDROID_DEVICE_POOL_SIZE: '2',
+        TEST_PARALLEL_INDEX: '1',
+      });
+
+      expect(args).toEqual(['-s', 'emulator-5556']);
+    });
+  });
+
+  describe('resolveWorkerAndroidSerial', () => {
+    it('returns no serial on the single emulator path', () => {
+      const serial = resolveWorkerAndroidSerial({});
+
+      expect(serial).toBeUndefined();
+    });
+
+    it('gives each pooled worker a distinct serial', () => {
+      const env = { ANDROID_DEVICE_POOL: 'emulator-5554,emulator-5556' };
+
+      const worker0 = resolveWorkerAndroidSerial({
+        ...env,
+        TEST_PARALLEL_INDEX: '0',
+      });
+      const worker1 = resolveWorkerAndroidSerial({
+        ...env,
+        TEST_PARALLEL_INDEX: '1',
+      });
+
+      expect(worker0).toBe('emulator-5554');
+      expect(worker1).toBe('emulator-5556');
     });
   });
 });

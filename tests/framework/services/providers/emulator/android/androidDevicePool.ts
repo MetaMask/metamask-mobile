@@ -60,8 +60,12 @@ export function parseAndroidDevicePool(rawPool: string | undefined): string[] {
   return serials;
 }
 
-function resolveAndroidPoolSerials(
-  env: Record<string, string | undefined>,
+/**
+ * Ordered adb serials for the configured pool, or an empty list on the single
+ * emulator path.
+ */
+export function androidDevicePoolSerials(
+  env: Record<string, string | undefined> = process.env,
 ): string[] {
   const explicit = parseAndroidDevicePool(env.ANDROID_DEVICE_POOL);
   if (explicit.length > 0) {
@@ -84,7 +88,7 @@ export function deviceForWorker(
   workerIndex: number,
   env: Record<string, string | undefined> = process.env,
 ): AndroidWorkerDevice | undefined {
-  const serials = resolveAndroidPoolSerials(env);
+  const serials = androidDevicePoolSerials(env);
   if (serials.length === 0) {
     return undefined;
   }
@@ -117,7 +121,7 @@ export function applyAndroidDevicePoolToWorker(
   }
 
   if (!env.ANDROID_DEVICE_POOL?.trim()) {
-    env.ANDROID_DEVICE_POOL = resolveAndroidPoolSerials(env).join(',');
+    env.ANDROID_DEVICE_POOL = androidDevicePoolSerials(env).join(',');
   }
 
   env.ANDROID_DEVICE_UDID = assignment.serial;

@@ -37,8 +37,17 @@ reads hit the sibling emulator.
 Workers pin those serials from `ANDROID_DEVICE_POOL_SIZE` (Playwright
 `globalSetup` cannot export `ANDROID_DEVICE_POOL` into worker processes).
 `ANDROID_DEVICE_POOL` remains a local override for `SKIP_DEVICE_BOOT`.
-`E2E_WORKER_INDEX` is set with the worker assignment so dapp and CDP helpers
-can pick host ports.
+
+The `deviceProvider` worker fixture exports `E2E_WORKER_INDEX` and
+`ANDROID_SERIAL`, but Playwright creates worker fixtures lazily, so a
+`beforeAll` that only starts a dapp server runs first. Port and serial helpers
+therefore fall back to Playwright's own `TEST_PARALLEL_INDEX` and to the pool
+assignment for that index. Without the fallback both workers pick worker 0's
+host port (`EADDRINUSE`) and run bare `adb reverse` against two emulators.
+
+Framework logs include `[w0]` / `[w1]` (and the adb serial once it is known)
+so CI output from the two workers can be told apart. Global setup has no
+worker index and omits the tag.
 
 ## Local cold pool
 
