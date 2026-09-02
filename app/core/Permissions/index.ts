@@ -498,10 +498,7 @@ export const removePermittedChain = (
 
 /**
  * Gets the sorted permitted accounts for the specified origin. Returns an empty
- * array if no accounts are permitted or the wallet is locked. Returns any permitted
- * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
- * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
- * return permitted accounts to the dapp when the wallet is locked.
+ * array if no accounts are permitted.
  *
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @returns {string[]} The origin's permitted accounts, or an empty
