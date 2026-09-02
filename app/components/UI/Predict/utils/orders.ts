@@ -82,6 +82,10 @@ export function getPredictSellNetProceeds(
   );
 }
 
+/**
+ * Derives display value and P&L from a net (after-fee) position value so P&L
+ * never reads positive on a position that loses money after fees.
+ */
 export function getPredictPositionDisplay(args: {
   initialValue: number;
   netValue: number;
@@ -97,6 +101,12 @@ export function getPredictPositionDisplay(args: {
   };
 }
 
+/**
+ * Estimates cash-out proceeds net of service fees from a gross position value.
+ * Used where no SELL order preview exists (list rows); omits the order-book
+ * market fee and per-market fee waivers, so it can differ from an actual
+ * preview by a small amount.
+ */
 export function estimatePredictSellNetValue(args: {
   grossValue: number;
   feeCollection: { enabled: boolean; metamaskFee: number; providerFee: number };
@@ -111,6 +121,12 @@ export function estimatePredictSellNetValue(args: {
   return roundDownToCents(args.grossValue - args.grossValue * feeRate);
 }
 
+/**
+ * Builds fee breakdown sheet amounts whose itemized rows sum exactly to the
+ * displayed total: each row is snapped to cents, and the exchange fee absorbs
+ * the rounding remainder. BUY rows add up to the total; SELL rows subtract
+ * down to it.
+ */
 export function buildPredictFeeBreakdownAmounts(args: {
   side: Side;
   order: number;
