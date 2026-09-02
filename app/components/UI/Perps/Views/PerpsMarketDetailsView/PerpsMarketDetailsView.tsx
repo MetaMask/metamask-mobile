@@ -124,7 +124,9 @@ import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useC
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   createDepositConfirmationGuard,
+  createDepositPrepSession,
   type DepositConfirmationNavigation,
+  type DepositPrepSession,
 } from '../../utils/depositConfirmationGuard';
 import {
   usePerpsLiveAccount,
@@ -371,7 +373,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
-  const confirmationGuardCancelRef = useRef<(() => void) | null>(null);
+  const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -697,12 +699,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
-  const clearConfirmationGuard = useCallback(() => {
-    confirmationGuardCancelRef.current?.();
-    confirmationGuardCancelRef.current = null;
+  const clearDepositPrepSession = useCallback(() => {
+    depositPrepSessionRef.current?.dispose();
+    depositPrepSessionRef.current = null;
   }, []);
 
-  useEffect(() => clearConfirmationGuard, [clearConfirmationGuard]);
+  useEffect(() => clearDepositPrepSession, [clearDepositPrepSession]);
 
   const handleAddFunds = useCallback(() => {
     playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
@@ -722,30 +724,34 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         loader: ConfirmationLoader.CustomAmount,
         stack: Routes.PERPS.ROOT,
       });
-      clearConfirmationGuard();
-      const confirmationGuard = createDepositConfirmationGuard(
-        navigation as unknown as DepositConfirmationNavigation,
+      if (!depositPrepSessionRef.current) {
+        depositPrepSessionRef.current = createDepositPrepSession();
+      }
+      depositPrepSessionRef.current.attachGuard(
+        createDepositConfirmationGuard(
+          navigation as unknown as DepositConfirmationNavigation,
+        ),
       );
-      confirmationGuardCancelRef.current = confirmationGuard.cancel;
-      setTimeout(() => {
-        withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
-          depositWithConfirmation(),
-        )
-          .then(() => {
-            confirmationGuard.cancel();
-            confirmationGuardCancelRef.current = null;
-          })
-          .catch((err) => {
-            confirmationGuard.onDepositFailed();
-            confirmationGuardCancelRef.current = null;
+      depositPrepSessionRef.current.ensureScheduled(
+        () =>
+          withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+            depositWithConfirmation(),
+          ),
+        {
+          onSuccess: () => {
+            depositPrepSessionRef.current = null;
+          },
+          onFailure: (err) => {
+            depositPrepSessionRef.current = null;
             Logger.error(
               ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
               {
                 tags: { feature: PERPS_CONSTANTS.FeatureName },
               },
             );
-          });
-      }, 0);
+          },
+        },
+      );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
@@ -758,7 +764,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     navigateToConfirmation,
     depositWithConfirmation,
     transactionActiveAbTests,
-    clearConfirmationGuard,
   ]);
 
   // Keep current position ref in sync for callbacks stored in route params

@@ -26,7 +26,9 @@ import { useComplianceGate } from '../../Compliance';
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   createDepositConfirmationGuard,
+  createDepositPrepSession,
   type DepositConfirmationNavigation,
+  type DepositPrepSession,
 } from '../utils/depositConfirmationGuard';
 
 export type PerpsHomeActionType = 'deposit' | 'withdraw';
@@ -100,14 +102,14 @@ export const usePerpsHomeActions = (
 
   const { onAddFundsSuccess, onWithdrawSuccess, onError, buttonLocation } =
     options || {};
-  const confirmationGuardCancelRef = useRef<(() => void) | null>(null);
+  const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
 
-  const clearConfirmationGuard = useCallback(() => {
-    confirmationGuardCancelRef.current?.();
-    confirmationGuardCancelRef.current = null;
+  const clearDepositPrepSession = useCallback(() => {
+    depositPrepSessionRef.current?.dispose();
+    depositPrepSessionRef.current = null;
   }, []);
 
-  useEffect(() => clearConfirmationGuard, [clearConfirmationGuard]);
+  useEffect(() => clearDepositPrepSession, [clearDepositPrepSession]);
 
   const showEligibilityModal = useCallback(
     (source: string) => {
@@ -152,26 +154,28 @@ export const usePerpsHomeActions = (
         stack: Routes.PERPS.ROOT,
       });
 
-      clearConfirmationGuard();
-      const confirmationGuard = createDepositConfirmationGuard(
-        navigation as unknown as DepositConfirmationNavigation,
+      if (!depositPrepSessionRef.current) {
+        depositPrepSessionRef.current = createDepositPrepSession();
+      }
+      depositPrepSessionRef.current.attachGuard(
+        createDepositConfirmationGuard(
+          navigation as unknown as DepositConfirmationNavigation,
+        ),
       );
-      confirmationGuardCancelRef.current = confirmationGuard.cancel;
-
       // Yield so the confirmation skeleton can paint before deposit prep.
-      setTimeout(() => {
-        depositWithConfirmation()
-          .then(() => {
+      // A second tap reuses this session so stale prep cannot clear the new guard.
+      depositPrepSessionRef.current.ensureScheduled(
+        () => depositWithConfirmation(),
+        {
+          onSuccess: () => {
             DevLogger.log(
               '[usePerpsHomeActions] Add funds flow completed successfully',
             );
-            confirmationGuard.cancel();
-            confirmationGuardCancelRef.current = null;
+            depositPrepSessionRef.current = null;
             onAddFundsSuccess?.();
-          })
-          .catch((err) => {
-            confirmationGuard.onDepositFailed();
-            confirmationGuardCancelRef.current = null;
+          },
+          onFailure: (err) => {
+            depositPrepSessionRef.current = null;
 
             const errorObj = ensureError(
               err,
@@ -186,8 +190,9 @@ export const usePerpsHomeActions = (
             });
 
             onError?.(errorObj, 'deposit');
-          });
-      }, 0);
+          },
+        },
+      );
     });
   }, [
     gate,
@@ -195,7 +200,6 @@ export const usePerpsHomeActions = (
     navigation,
     navigateToConfirmation,
     depositWithConfirmation,
-    clearConfirmationGuard,
     onAddFundsSuccess,
     onError,
     track,

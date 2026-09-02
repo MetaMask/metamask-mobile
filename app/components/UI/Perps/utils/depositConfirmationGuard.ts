@@ -128,3 +128,104 @@ export function createDepositConfirmationGuard(
     },
   };
 }
+
+export interface DepositPrepSessionHandlers {
+  onSuccess: () => void;
+  onFailure: (error: unknown) => void;
+}
+
+export interface DepositPrepSession {
+  /** Swap the confirmation guard; in-flight prep settles against the latest one. */
+  attachGuard: (nextGuard: DepositConfirmationGuard) => void;
+  /**
+   * Start deposit prep if none is pending or in flight. Later calls keep the
+   * first `run` and only refresh settlement handlers.
+   */
+  ensureScheduled: (
+    run: () => Promise<unknown>,
+    handlers: DepositPrepSessionHandlers,
+  ) => void;
+  /** Cancel a pending timeout, ignore in-flight settlement, and cancel the guard. */
+  dispose: () => void;
+}
+
+/**
+ * Owns the fire-and-forget deposit timeout so a second Add funds tap cannot
+ * start another prep or let a stale settlement clear the latest guard.
+ *
+ * @returns Session that attaches guards, schedules one prep, and disposes on unmount.
+ */
+export function createDepositPrepSession(): DepositPrepSession {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  let inFlight = false;
+  let disposed = false;
+  let guard: DepositConfirmationGuard | null = null;
+  let handlers: DepositPrepSessionHandlers | null = null;
+
+  const attachGuard = (nextGuard: DepositConfirmationGuard) => {
+    if (disposed) {
+      nextGuard.cancel();
+      return;
+    }
+
+    guard?.cancel();
+    guard = nextGuard;
+  };
+
+  const ensureScheduled = (
+    run: () => Promise<unknown>,
+    nextHandlers: DepositPrepSessionHandlers,
+  ) => {
+    if (disposed) {
+      return;
+    }
+
+    handlers = nextHandlers;
+
+    if (timeoutId !== null || inFlight) {
+      return;
+    }
+
+    timeoutId = setTimeout(() => {
+      timeoutId = null;
+      if (disposed) {
+        return;
+      }
+
+      inFlight = true;
+      run()
+        .then(() => {
+          inFlight = false;
+          if (disposed) {
+            return;
+          }
+          guard?.cancel();
+          guard = null;
+          handlers?.onSuccess();
+        })
+        .catch((error: unknown) => {
+          inFlight = false;
+          if (disposed) {
+            return;
+          }
+          guard?.onDepositFailed();
+          guard = null;
+          handlers?.onFailure(error);
+        });
+    }, 0);
+  };
+
+  const dispose = () => {
+    disposed = true;
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+      timeoutId = null;
+    }
+    inFlight = false;
+    guard?.cancel();
+    guard = null;
+    handlers = null;
+  };
+
+  return { attachGuard, ensureScheduled, dispose };
+}

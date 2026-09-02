@@ -1,6 +1,7 @@
 import Routes from '../../../../constants/navigation/Routes';
 import {
   createDepositConfirmationGuard,
+  createDepositPrepSession,
   getFocusedRouteName,
   isRedesignedConfirmationFocused,
   type NestedNavigationState,
@@ -127,6 +128,144 @@ describe('createDepositConfirmationGuard', () => {
     guard.cancel();
     navigation.emitState(createState(CONFIRMATION_ROUTE));
 
+    expect(navigation.goBack).not.toHaveBeenCalled();
+  });
+});
+
+describe('createDepositPrepSession', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('runs deposit prep once when scheduled twice before the timeout fires', async () => {
+    const session = createDepositPrepSession();
+    const firstRun = jest.fn().mockResolvedValue(undefined);
+    const secondRun = jest.fn().mockResolvedValue(undefined);
+    const firstSuccess = jest.fn();
+    const secondSuccess = jest.fn();
+
+    session.ensureScheduled(firstRun, {
+      onSuccess: firstSuccess,
+      onFailure: jest.fn(),
+    });
+    session.ensureScheduled(secondRun, {
+      onSuccess: secondSuccess,
+      onFailure: jest.fn(),
+    });
+
+    await jest.runAllTimersAsync();
+
+    expect(firstRun).toHaveBeenCalledTimes(1);
+    expect(secondRun).not.toHaveBeenCalled();
+    expect(firstSuccess).not.toHaveBeenCalled();
+    expect(secondSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not start a second prep while the first is in flight', async () => {
+    const session = createDepositPrepSession();
+    let resolveFirst: () => void = () => undefined;
+    const firstRun = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        }),
+    );
+    const secondRun = jest.fn().mockResolvedValue(undefined);
+
+    session.ensureScheduled(firstRun, {
+      onSuccess: jest.fn(),
+      onFailure: jest.fn(),
+    });
+    await jest.runAllTimersAsync();
+
+    session.ensureScheduled(secondRun, {
+      onSuccess: jest.fn(),
+      onFailure: jest.fn(),
+    });
+    await jest.runAllTimersAsync();
+    resolveFirst();
+    await Promise.resolve();
+
+    expect(firstRun).toHaveBeenCalledTimes(1);
+    expect(secondRun).not.toHaveBeenCalled();
+  });
+
+  it('dismisses the latest attached confirmation when a superseded tap fails', async () => {
+    const firstNavigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const secondNavigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const session = createDepositPrepSession();
+    let rejectFirst: (error: Error) => void = () => undefined;
+    const firstRun = jest.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectFirst = reject;
+        }),
+    );
+
+    session.attachGuard(createDepositConfirmationGuard(firstNavigation));
+    session.ensureScheduled(firstRun, {
+      onSuccess: jest.fn(),
+      onFailure: jest.fn(),
+    });
+    await jest.runAllTimersAsync();
+
+    session.attachGuard(createDepositConfirmationGuard(secondNavigation));
+    session.ensureScheduled(jest.fn().mockResolvedValue(undefined), {
+      onSuccess: jest.fn(),
+      onFailure: jest.fn(),
+    });
+
+    rejectFirst(new Error('stale prep failed'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(firstNavigation.goBack).not.toHaveBeenCalled();
+    expect(secondNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not run prep or settle after dispose', async () => {
+    const navigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const session = createDepositPrepSession();
+    const run = jest.fn().mockResolvedValue(undefined);
+    const onSuccess = jest.fn();
+    const onFailure = jest.fn();
+
+    session.attachGuard(createDepositConfirmationGuard(navigation));
+    session.ensureScheduled(run, { onSuccess, onFailure });
+    session.dispose();
+    await jest.runAllTimersAsync();
+
+    expect(run).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+    expect(navigation.goBack).not.toHaveBeenCalled();
+  });
+
+  it('ignores in-flight settlement after dispose', async () => {
+    const navigation = createNavigation(createState(CONFIRMATION_ROUTE));
+    const session = createDepositPrepSession();
+    let rejectRun: (error: Error) => void = () => undefined;
+    const run = jest.fn(
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          rejectRun = reject;
+        }),
+    );
+    const onFailure = jest.fn();
+
+    session.attachGuard(createDepositConfirmationGuard(navigation));
+    session.ensureScheduled(run, { onSuccess: jest.fn(), onFailure });
+    await jest.runAllTimersAsync();
+    session.dispose();
+    rejectRun(new Error('prep failed after unmount'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onFailure).not.toHaveBeenCalled();
     expect(navigation.goBack).not.toHaveBeenCalled();
   });
 });
