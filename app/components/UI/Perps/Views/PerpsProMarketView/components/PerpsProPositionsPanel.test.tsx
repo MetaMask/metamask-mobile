@@ -594,6 +594,67 @@ describe('PerpsProPositionsPanel', () => {
     );
   });
 
+  it('retains every accepted termination until that schedule completes', () => {
+    // Arrange
+    const firstOrder = makeTwapOrder();
+    const secondOrder = makeTwapOrder({ orderId: 'twap-2' });
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [firstOrder, secondOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    const hookOptions = mockUsePerpsTerminateTwap.mock.calls[0][0];
+    if (!hookOptions?.onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+    const { onSuccess } = hookOptions;
+
+    // Act: both accepted cancellations remain in the active snapshot.
+    act(() => {
+      onSuccess(firstOrder);
+      onSuccess(secondOrder);
+    });
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-2'),
+      ),
+    ).toBeDisabled();
+
+    // Act: only the first schedule receives terminal confirmation.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ status: 'completed' }), secondOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: the second stale active row remains protected.
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-2'),
+      ),
+    ).toBeDisabled();
+  });
+
   it('attributes a TWAP row market switch to the compatible orders source', () => {
     // Arrange
     const onSelectMarket = jest.fn();

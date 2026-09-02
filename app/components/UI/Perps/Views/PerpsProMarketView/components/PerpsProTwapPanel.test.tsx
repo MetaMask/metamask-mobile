@@ -692,17 +692,29 @@ describe('PerpsProTwapPanel', () => {
     expect(onTerminate).not.toHaveBeenCalled();
   });
 
-  it('disables an accepted termination awaiting terminal confirmation', () => {
+  it('disables accepted terminations awaiting terminal confirmation', () => {
     // Arrange
     const onTerminate = jest.fn();
     renderPanel({
+      activeTwapOrders: [
+        buildTwapOrder({ providerId: 'hyperliquid' }),
+        buildTwapOrder({ providerId: 'myx' }),
+      ],
       onTerminate,
-      acceptedTerminationOrderIdentityKey: 'hyperliquid:twap-1',
+      acceptedTerminationOrderIdentityKeys: new Set([
+        'hyperliquid:twap-1',
+        'myx:twap-1',
+      ]),
     });
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('myx', 'twap-1')),
     );
 
     // Assert

@@ -49,8 +49,8 @@ interface PerpsProTwapPanelProps {
   isTerminationInFlight: boolean;
   /** Stable ticker/side filter identity; changes reset both paged views. */
   filterScopeKey: string;
-  /** Accepted cancellation awaiting a terminal stream/REST confirmation. */
-  acceptedTerminationOrderIdentityKey?: string | null;
+  /** Accepted cancellations awaiting terminal stream/REST confirmation. */
+  acceptedTerminationOrderIdentityKeys?: ReadonlySet<string>;
   /** Load failure from the most recent REST read. */
   error: string | null;
   onRetry: () => void;
@@ -88,7 +88,7 @@ const PerpsProTwapPanel = ({
   onTerminate,
   isTerminationInFlight,
   filterScopeKey,
-  acceptedTerminationOrderIdentityKey = null,
+  acceptedTerminationOrderIdentityKeys,
   error,
   onRetry,
   isRefreshing,
@@ -210,8 +210,9 @@ const PerpsProTwapPanel = ({
             onTerminate={isActiveView ? onTerminate : undefined}
             isTerminateDisabled={
               isTerminationInFlight ||
-              acceptedTerminationOrderIdentityKey ===
-                getTwapOrderIdentityKey(twapOrder)
+              acceptedTerminationOrderIdentityKeys?.has(
+                getTwapOrderIdentityKey(twapOrder),
+              )
             }
           />
         ))}

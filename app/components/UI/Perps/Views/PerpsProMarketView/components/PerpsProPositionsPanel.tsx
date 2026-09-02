@@ -219,6 +219,11 @@ interface TerminatingTwapSelection {
   orderIdentityKey: string;
 }
 
+interface AcceptedTwapTerminationSelection {
+  contextIdentityKey: string;
+  orderIdentityKeys: ReadonlySet<string>;
+}
+
 /**
  * Pro-mode positions/orders section.
  *
@@ -386,7 +391,7 @@ const PerpsProPositionsPanel = ({
   const [terminatingTwapSelection, setTerminatingTwapSelection] =
     useState<TerminatingTwapSelection | null>(null);
   const [acceptedTerminationSelection, setAcceptedTerminationSelection] =
-    useState<TerminatingTwapSelection | null>(null);
+    useState<AcceptedTwapTerminationSelection | null>(null);
   const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
   const openedTwapSelectionRef = useRef<string | null>(null);
   const isTwapTabSelected = activeTabKey === 'twap';
@@ -441,10 +446,10 @@ const PerpsProPositionsPanel = ({
     },
     [twapContextIdentityKey],
   );
-  const acceptedTerminationOrderIdentityKey =
+  const acceptedTerminationOrderIdentityKeys =
     acceptedTerminationSelection?.contextIdentityKey === twapContextIdentityKey
-      ? acceptedTerminationSelection.orderIdentityKey
-      : null;
+      ? acceptedTerminationSelection.orderIdentityKeys
+      : undefined;
 
   useEffect(() => {
     if (
@@ -457,9 +462,17 @@ const PerpsProPositionsPanel = ({
 
   const { isTerminationInFlight, terminateTwap } = usePerpsTerminateTwap({
     onSuccess: (twapOrder) => {
-      setAcceptedTerminationSelection({
-        contextIdentityKey: twapContextIdentityKey,
-        orderIdentityKey: getTwapOrderIdentityKey(twapOrder),
+      setAcceptedTerminationSelection((currentSelection) => {
+        const orderIdentityKeys =
+          currentSelection?.contextIdentityKey === twapContextIdentityKey
+            ? new Set(currentSelection.orderIdentityKeys)
+            : new Set<string>();
+        orderIdentityKeys.add(getTwapOrderIdentityKey(twapOrder));
+
+        return {
+          contextIdentityKey: twapContextIdentityKey,
+          orderIdentityKeys,
+        };
       });
       setTerminatingTwapSelection(null);
       refreshTwapOrders();
@@ -475,14 +488,25 @@ const PerpsProPositionsPanel = ({
     const isCurrentContext =
       acceptedTerminationSelection.contextIdentityKey ===
       twapContextIdentityKey;
-    const isStillActive = allActiveTwapOrders.some(
-      (order) =>
-        getTwapOrderIdentityKey(order) ===
-        acceptedTerminationSelection.orderIdentityKey,
+    const activeOrderIdentityKeys = new Set(
+      allActiveTwapOrders.map(getTwapOrderIdentityKey),
+    );
+    const remainingAcceptedOrderIdentityKeys = new Set(
+      [...acceptedTerminationSelection.orderIdentityKeys].filter(
+        (orderIdentityKey) => activeOrderIdentityKeys.has(orderIdentityKey),
+      ),
     );
 
-    if (!isCurrentContext || !isStillActive) {
+    if (!isCurrentContext || remainingAcceptedOrderIdentityKeys.size === 0) {
       setAcceptedTerminationSelection(null);
+    } else if (
+      remainingAcceptedOrderIdentityKeys.size !==
+      acceptedTerminationSelection.orderIdentityKeys.size
+    ) {
+      setAcceptedTerminationSelection({
+        contextIdentityKey: twapContextIdentityKey,
+        orderIdentityKeys: remainingAcceptedOrderIdentityKeys,
+      });
     }
   }, [
     acceptedTerminationSelection,
@@ -1056,7 +1080,9 @@ const PerpsProPositionsPanel = ({
       onTerminate={handleSelectTwapToTerminate}
       isTerminationInFlight={isTerminationInFlight}
       filterScopeKey={twapFilterScopeKey}
-      acceptedTerminationOrderIdentityKey={acceptedTerminationOrderIdentityKey}
+      acceptedTerminationOrderIdentityKeys={
+        acceptedTerminationOrderIdentityKeys
+      }
       emptyMetadataByView={twapEmptyMetadataByView}
     />
   );
