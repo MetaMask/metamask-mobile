@@ -321,8 +321,7 @@ class PerpsProMarketView {
     // Empty inline Limit fields hide the native TextInput from TalkBack
     // (`importantForAccessibility="no"` + zero-size wrapper). Tapping `-field`
     // alone is flaky on CI Android — focus often never flips `isInlineActive`.
-    // Mid commits a value through React state, which mounts the TextInput;
-    // then replace that value with the target price.
+    // Mid commits a value through React state, which mounts the TextInput.
     await this.scrollUntilVisible(
       this.midPriceButton,
       'Pro order form mid price preset',
@@ -335,6 +334,14 @@ class PerpsProMarketView {
     await Assertions.expectElementToBeVisible(this.limitPriceInput, {
       description: 'Pro limit price TextInput after Mid preset',
       timeout: 15000,
+    });
+    // Focus before clear/replace. Clearing an unfocused Mid value drops
+    // `value.length` to 0 with `isFocused=false`, which collapses the inline
+    // input out of the a11y tree and makes elementClear/elementSendKeys fail.
+    await Gestures.waitAndTap(this.limitPriceInput, {
+      elemDescription: 'Pro order form limit price input (keep inline active)',
+      checkForDisplayed: true,
+      timeout: 10000,
     });
     await Gestures.replaceText(this.limitPriceInput, price, {
       elemDescription: 'Pro order form limit price value',
