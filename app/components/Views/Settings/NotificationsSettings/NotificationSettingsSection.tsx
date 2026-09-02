@@ -12,7 +12,6 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../locales/i18n';
-import { type NotificationPreferenceSection } from './hooks/useNotificationStoragePreferences';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import Routes from '../../../../constants/navigation/Routes';
 import { NotificationSettingsSectionContent } from './NotificationSettingsSectionContent';
@@ -22,7 +21,8 @@ export interface NotificationSettingsSectionProps {
   route: RouteProp<
     {
       params: {
-        type: NotificationPreferenceSection;
+        categoryId: string;
+        ausKeys: string[];
         title: string;
         description: string;
       };
@@ -37,7 +37,7 @@ const NotificationSettingsSection = ({
 }: NotificationSettingsSectionProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { type, title, description } = route.params;
+  const { categoryId, ausKeys, title, description } = route.params;
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -57,7 +57,8 @@ const NotificationSettingsSection = ({
         onBack={() => navigation.goBack()}
       />
       <NotificationSettingsSectionContent
-        type={type}
+        categoryId={categoryId}
+        ausKeys={ausKeys}
         title={title}
         description={description}
       />

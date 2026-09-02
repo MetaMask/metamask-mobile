@@ -118,7 +118,8 @@ const marketingDisclaimer =
 
 const renderSection = (
   params: NotificationSettingsSectionProps['route']['params'] = {
-    type: 'socialAI',
+    categoryId: 'socialAI',
+    ausKeys: ['socialAI'],
     title: 'Trading Signals',
     description: 'SocialAI notification preferences',
   },
@@ -168,7 +169,8 @@ describe('NotificationSettingsSection', () => {
 
   it('renders the marketing disclaimer for marketing preferences', () => {
     renderSection({
-      type: 'marketing',
+      categoryId: 'marketing',
+      ausKeys: ['marketing'],
       title: 'Updates and Rewards',
       description: 'Product updates, feature announcements, and new releases',
     });
@@ -178,7 +180,8 @@ describe('NotificationSettingsSection', () => {
 
   it('disables both channels and tracks an ALL update when deselecting all accounts', async () => {
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet activity',
       description: 'Buy, sells, transfers, and swaps',
     });
@@ -222,7 +225,8 @@ describe('NotificationSettingsSection', () => {
     mockHasEnabledAccount = false;
 
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet activity',
       description: 'Buy, sells, transfers, and swaps',
     });
@@ -264,7 +268,8 @@ describe('NotificationSettingsSection', () => {
 
   it('keeps the accounts written by the controller when flipping channels for all accounts', async () => {
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -300,7 +305,8 @@ describe('NotificationSettingsSection', () => {
     mockPreferences.walletActivity.inAppNotificationsEnabled = false;
 
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -321,7 +327,8 @@ describe('NotificationSettingsSection', () => {
     mockPreferences.walletActivity.inAppNotificationsEnabled = false;
 
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet Activity',
       description: 'Buy, sells, transfers, swaps and rewards',
     });
@@ -339,7 +346,8 @@ describe('NotificationSettingsSection', () => {
 
   it('updates and tracks the push channel when toggling push notifications', async () => {
     renderSection({
-      type: 'perps',
+      categoryId: 'perps',
+      ausKeys: ['perps'],
       title: 'Trading Activity',
       description: 'Perps position changes',
     });
@@ -373,7 +381,8 @@ describe('NotificationSettingsSection', () => {
 
   it('updates and tracks the in-app channel when toggling in-app notifications', async () => {
     renderSection({
-      type: 'perps',
+      categoryId: 'perps',
+      ausKeys: ['perps'],
       title: 'Trading Activity',
       description: 'Perps position changes',
     });
@@ -479,7 +488,8 @@ describe('NotificationSettingsSection', () => {
       }),
     );
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet activity',
       description: 'Buy, sells, transfers, swaps',
     });
@@ -519,7 +529,8 @@ describe('NotificationSettingsSection', () => {
       )
       .mockResolvedValueOnce(undefined);
     renderSection({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet activity',
       description: 'Buy, sells, transfers, and swaps',
     });

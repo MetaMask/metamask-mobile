@@ -206,9 +206,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('navigates to the wallet activity notification section when its row is pressed', async () => {
-    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+    const { findByText, findByTestId } = renderSettingsWithSectionRoute();
 
-    fireEvent.press(getByText(SECTION_TITLES.walletActivity));
+    fireEvent.press(await findByText(SECTION_TITLES.walletActivity));
 
     expect(
       await findByTestId(
@@ -218,9 +218,9 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
   });
 
   it('navigates to the agentic CLI notification section when its row is pressed', async () => {
-    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+    const { findByText, findByTestId } = renderSettingsWithSectionRoute();
 
-    fireEvent.press(getByText(SECTION_TITLES.agenticCli));
+    fireEvent.press(await findByText(SECTION_TITLES.agenticCli));
 
     expect(
       await findByTestId(

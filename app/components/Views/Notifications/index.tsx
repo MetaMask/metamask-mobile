@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,10 @@ import { NotificationsViewSelectorsIDs } from './NotificationsView.testIds';
 import styles from './styles';
 import Notifications from '../../UI/Notification/List';
 import { sortNotifications } from '../../../util/notifications';
+import {
+  ALL_NOTIFICATIONS_CATEGORY_ID,
+  getNotificationCategoryId,
+} from '../../../util/notifications/categories';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useTheme } from '../../../util/theme';
 
@@ -20,6 +24,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import DisabledNotifications from './DisabledNotifications';
+import NotificationsCategory from './NotificationsCategory';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -98,9 +103,23 @@ const NotificationsView = ({
 
   const { allNotifications } = useNotificationFilters({ notifications });
 
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    ALL_NOTIFICATIONS_CATEGORY_ID,
+  );
+
+  const categoryFilteredNotifications = useMemo(
+    () =>
+      selectedCategory === ALL_NOTIFICATIONS_CATEGORY_ID
+        ? allNotifications
+        : allNotifications.filter(
+            (n) => getNotificationCategoryId(n) === selectedCategory,
+          ),
+    [allNotifications, selectedCategory],
+  );
+
   const unreadCount = useMemo(
-    () => allNotifications.filter((n) => !n.isRead).length,
-    [allNotifications],
+    () => categoryFilteredNotifications.filter((n) => !n.isRead).length,
+    [categoryFilteredNotifications],
   );
 
   const handleClose = useCallback(() => {
@@ -142,9 +161,10 @@ const NotificationsView = ({
       >
         {isNotificationEnabled ? (
           <>
+            <NotificationsCategory onSelect={setSelectedCategory} />
             <Notifications
               navigation={navigation}
-              allNotifications={allNotifications}
+              allNotifications={categoryFilteredNotifications}
               loading={isLoading}
             />
             {!isLoading && unreadCount > 0 && (
