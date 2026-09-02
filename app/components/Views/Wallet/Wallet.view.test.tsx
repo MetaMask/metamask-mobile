@@ -170,10 +170,10 @@ describeForPlatforms('Wallet', () => {
           MultichainNetworkController: {
             isEvmSelected: true,
           },
-            EarnController: {
-              pooled_staking: { isEligible: false },
-              lending: { positions: [], markets: [] },
-            },
+          EarnController: {
+            pooled_staking: { isEligible: false },
+            lending: { positions: [], markets: [] },
+          },
           RewardsController: {
             activeAccount: null,
           },
