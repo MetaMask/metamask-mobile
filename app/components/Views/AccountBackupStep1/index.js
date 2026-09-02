@@ -38,12 +38,20 @@ import {
 } from '../../../constants/onboarding';
 import { TraceName, endTrace } from '../../../util/trace';
 import { AppThemeKey } from '../../../util/theme/models';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 
 const AccountBackupStep1 = (props) => {
   const [hasFunds, setHasFunds] = useState(false);
   const { themeAppearance } = useTheme();
   const { isEnabled: isAnalyticsEnabled } = useAnalytics();
   const tw = useTailwind();
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.ACCOUNT_BACKUP,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   const track = (event, properties) => {
     const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);

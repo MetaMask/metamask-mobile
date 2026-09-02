@@ -34,6 +34,7 @@ import {
 import { getSocialAccountType } from '../../../constants/onboarding';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
@@ -102,6 +103,15 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
         ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
         : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
     destinationReady: true,
+  });
+
+  useScreenPerformance({
+    screenId:
+      type === 'found'
+        ? OnboardingScreenIds.ACCOUNT_ALREADY_EXISTS
+        : OnboardingScreenIds.ACCOUNT_NOT_FOUND,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const isSmallScreen = windowWidth < 375;
