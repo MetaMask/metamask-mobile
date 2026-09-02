@@ -270,13 +270,64 @@ const PerpsProPositionsPanel = ({
     isInitialLoading: areOrdersInitiallyLoading,
     deliveryRevision: ordersDeliveryRevision = 0,
   } = usePerpsLiveOrders({ throttleMs: 1000 });
+  const reconcileAcceptedChaseCancellation = useCallback(
+    async (order: ChaseOrder) => {
+      try {
+        await reconcileCanceledChaseOrder(order);
+      } catch (error) {
+        // The exchange already accepted cancellation. A failed follow-up read
+        // must not tell the user to retry the completed financial action.
+        if (isExpectedChaseOrderRequestError(error)) {
+          Logger.log('Chase refresh skipped after accepted cancellation', {
+            code: error.code,
+          });
+        } else {
+          Logger.error(
+            ensureError(
+              error,
+              'PerpsProPositionsPanel.refreshAfterTerminateChase',
+            ),
+            {
+              tags: {
+                feature: PERPS_CONSTANTS.FeatureName,
+                component: 'PerpsProPositionsPanel',
+                action: 'refresh_after_terminate_chase',
+                provider: order.providerId ?? activeProvider,
+                network: perpsNetwork,
+              },
+              context: {
+                name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
+                data: {
+                  symbol: order.symbol,
+                  provider: order.providerId ?? activeProvider,
+                  network: perpsNetwork,
+                },
+              },
+            },
+          );
+        }
+      }
+    },
+    [activeProvider, perpsNetwork, reconcileCanceledChaseOrder],
+  );
+  const handleCanceledRestingOrder = useCallback(
+    async (order: Order) => {
+      const chaseOrder = chaseOrders.find(
+        (candidate) => candidate.restingOrderId === order.orderId,
+      );
+      if (chaseOrder) {
+        await reconcileAcceptedChaseCancellation(chaseOrder);
+      }
+    },
+    [chaseOrders, reconcileAcceptedChaseCancellation],
+  );
   const {
     handleClosePosition,
     handleReversePosition,
     handleSharePosition,
     handleEditPositionTpSl,
     handleEditPositionMargin,
-    handleCancelOrder,
+    handleCancelOrder: handleBaseOrderCancel,
     handleEditOrderPrice,
     handleEditOrderSize,
     handleCloseAllPress,
@@ -289,6 +340,12 @@ const PerpsProPositionsPanel = ({
     isPositionMarginEditable,
     renderActionSheets,
   } = usePerpsProPositionsPanelActions();
+  const handleCancelVisibleOrder = useCallback(
+    async (order: Order) => {
+      await handleBaseOrderCancel(order, handleCanceledRestingOrder);
+    },
+    [handleBaseOrderCancel, handleCanceledRestingOrder],
+  );
   const { markets } = usePerpsMarkets();
 
   useEffect(() => {
@@ -643,7 +700,7 @@ const PerpsProPositionsPanel = ({
               order={order}
               testID={getPerpsProOrderRowSelector(order.symbol, index)}
               onPress={onSelectMarket ? handleSelectOrderMarket : undefined}
-              onCancel={handleCancelOrder}
+              onCancel={handleCancelVisibleOrder}
               onEditPrice={handleEditOrderPrice}
               onEditSize={handleEditOrderSize}
               isCancelDisabled={
@@ -713,43 +770,9 @@ const PerpsProPositionsPanel = ({
           );
           return;
         }
-        try {
-          // Controller v15 removes a successfully canceled Chase. Any returned
-          // row remains authoritative, including a child that filled first.
-          await reconcileCanceledChaseOrder(order);
-        } catch (error) {
-          // The exchange already accepted cancellation. A failed follow-up read
-          // must not tell the user to retry the completed financial action.
-          if (isExpectedChaseOrderRequestError(error)) {
-            Logger.log('Chase refresh skipped after accepted cancellation', {
-              code: error.code,
-            });
-          } else {
-            Logger.error(
-              ensureError(
-                error,
-                'PerpsProPositionsPanel.refreshAfterTerminateChase',
-              ),
-              {
-                tags: {
-                  feature: PERPS_CONSTANTS.FeatureName,
-                  component: 'PerpsProPositionsPanel',
-                  action: 'refresh_after_terminate_chase',
-                  provider: order.providerId ?? activeProvider,
-                  network: perpsNetwork,
-                },
-                context: {
-                  name: 'PerpsProPositionsPanel.refreshAfterTerminateChase',
-                  data: {
-                    symbol: order.symbol,
-                    provider: order.providerId ?? activeProvider,
-                    network: perpsNetwork,
-                  },
-                },
-              },
-            );
-          }
-        }
+        // Controller v15 removes a successfully canceled Chase. Any returned
+        // row remains authoritative, including a child that filled first.
+        await reconcileAcceptedChaseCancellation(order);
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
@@ -786,7 +809,7 @@ const PerpsProPositionsPanel = ({
       cancelOrder,
       perpsNetwork,
       PerpsToastOptions.orderManagement.shared.cancellationFailed,
-      reconcileCanceledChaseOrder,
+      reconcileAcceptedChaseCancellation,
       showToast,
       terminatingChaseHandle,
       track,

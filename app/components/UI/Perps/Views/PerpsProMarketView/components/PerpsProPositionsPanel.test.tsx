@@ -1,5 +1,6 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type {
+  ChaseOrder,
   Order,
   PerpsMarketData,
   Position,
@@ -102,6 +103,7 @@ const mockUsePerpsProPositionsPanelActions = jest.mocked(
 );
 const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
 const mockUsePerpsChaseOrders = jest.mocked(usePerpsChaseOrders);
+const mockReconcileCanceledChaseOrder = jest.fn().mockResolvedValue([]);
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
@@ -137,6 +139,21 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
   detailedOrderType: 'Limit',
   ...overrides,
 });
+
+const chaseOrder: ChaseOrder = {
+  handle: 'chase-3061e839-7bac-4b3b-b3c6-7f60b1135229',
+  symbol: 'SOL',
+  side: 'buy',
+  originalSize: '1.01',
+  remainingSize: '1.01',
+  arrivalPrice: '99.25',
+  restingPrice: '99.267',
+  restingOrderId: '59106897534',
+  distanceChasedBps: 2,
+  repricings: 2,
+  startedAt: 1_788_302_458_039,
+  status: 'active',
+};
 
 const renderPanel = (
   symbol = 'SOL',
@@ -209,7 +226,7 @@ describe('PerpsProPositionsPanel', () => {
     } as ReturnType<typeof usePerpsLivePositions>);
     mockUsePerpsChaseOrders.mockReturnValue({
       chaseOrders: [],
-      reconcileCanceledChaseOrder: jest.fn().mockResolvedValue([]),
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
     } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
@@ -738,6 +755,62 @@ describe('PerpsProPositionsPanel', () => {
     );
 
     expect(handleCancelOrder).toHaveBeenCalled();
+  });
+
+  it('reconciles only the Chase session owning an accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: '59106897534', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    await waitFor(() =>
+      expect(mockReconcileCanceledChaseOrder).toHaveBeenCalledWith(chaseOrder),
+    );
+  });
+
+  it('does not reconcile Chase for another accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'unrelated-order', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockReconcileCanceledChaseOrder).not.toHaveBeenCalled();
   });
 
   it('disables all order cancel buttons while any cancel is in flight', () => {
