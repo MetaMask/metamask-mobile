@@ -178,7 +178,9 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(getByText(strings(apyDetail.description[0]))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
     });
 
     it('shows bullet points for a benefit that has points (cashback)', () => {
@@ -283,7 +285,9 @@ describe('Benefits', () => {
       const { getByTestId, getByText, queryByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
-      expect(getByText(strings(apyDetail.description[0]))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
 
       fireEvent(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
@@ -294,9 +298,9 @@ describe('Benefits', () => {
       expect(
         getByText(strings(supportDetail.description[0])),
       ).toBeOnTheScreen();
-      expect(
-        queryByText(strings(apyDetail.description[0])),
-      ).not.toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(queryByText(strings(descriptionKey))).not.toBeOnTheScreen();
+      });
     });
   });
 

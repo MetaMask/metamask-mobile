@@ -44,6 +44,7 @@ const BenefitDetails = ({
           fontWeight={FontWeight.Bold}
           color={TextColor.TextDefault}
           twClassName="mb-2"
+          accessibilityRole="header"
         >
           {strings(details.title)}
         </Text>
