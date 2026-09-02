@@ -1,6 +1,7 @@
 import {
   CHAIN_IDS,
   TransactionType,
+  type GasFeeToken,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -2075,17 +2076,37 @@ describe('PolymarketProvider', () => {
     expect(transactionMeta.txParams.nonce).toBeUndefined();
   });
 
-  it('passes through Safe claims before signing', async () => {
+  it('passes through Safe claims before signing when gas fee tokens are pending', async () => {
     const result = await createProvider().beforeSignClaim({
       transactionMeta: {
         id: 'claim-tx',
         txParams: { from: signer.address },
+        selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+        isGasFeeTokenIgnoredIfBalance: true,
       } as TransactionMeta,
       signer,
       positions: [createClaimPosition()],
     });
 
     expect(result).toBeUndefined();
+  });
+
+  it('throws for Safe claims when the selected gas fee token is unavailable', async () => {
+    await expect(
+      createProvider().beforeSignClaim({
+        transactionMeta: {
+          id: 'claim-tx',
+          txParams: { from: signer.address },
+          selectedGasFeeToken: MATIC_CONTRACTS_V2.collateral,
+          isGasFeeTokenIgnoredIfBalance: true,
+          gasFeeTokens: [] as GasFeeToken[],
+        } as TransactionMeta,
+        signer,
+        positions: [createClaimPosition()],
+      }),
+    ).rejects.toThrow(
+      'Insufficient POL and pUSD to pay network fees for this claim',
+    );
   });
 
   it('passes through Safe claim publishing', async () => {

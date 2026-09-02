@@ -62,6 +62,7 @@ export const useInsufficientBalanceAlert = ({
       transactionMetadata;
 
     const isGasFeeTokensEmpty = gasFeeTokens?.length === 0;
+    const { isGasFeeTokenIgnoredIfBalance } = transactionMetadata;
 
     // Check if gasless check has completed (regardless of result)
     const isGaslessCheckComplete = !isGaslessCheckPending;
@@ -83,7 +84,10 @@ export const useInsufficientBalanceAlert = ({
     const hasNoGasFeeTokenSelected =
       ignoreGasFeeToken ||
       !selectedGasFeeToken ||
-      (excludeNativeTokenForFee && isGasFeeTokensEmpty);
+      (excludeNativeTokenForFee && isGasFeeTokensEmpty) ||
+      (isGasFeeTokenIgnoredIfBalance &&
+        isGasFeeTokensEmpty &&
+        Boolean(selectedGasFeeToken));
 
     // Gasless check is complete AND one of:
     //  - Gasless is NOT supported (native currency needed for gas)
