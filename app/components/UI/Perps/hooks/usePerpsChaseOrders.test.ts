@@ -3,6 +3,7 @@ import {
   ChaseOrderSuspensionError,
   InitializationState,
   type ChaseOrder,
+  type OrderFill,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { AppState } from 'react-native';
@@ -44,6 +45,7 @@ jest.mock('../../../../core/Engine', () => ({
     },
     PerpsController: {
       getChaseOrders: jest.fn(),
+      getOrderFills: jest.fn(),
       suspendChaseOrders: jest.fn(),
     },
   },
@@ -65,6 +67,8 @@ jest.mock('../services/ChaseOrderSuspensionEvents', () => ({
 
 const mockGetChaseOrders = Engine.context.PerpsController
   .getChaseOrders as jest.Mock;
+const mockGetOrderFills = Engine.context.PerpsController
+  .getOrderFills as jest.Mock;
 const mockSuspendChaseOrders = Engine.context.PerpsController
   .suspendChaseOrders as jest.Mock;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -87,6 +91,19 @@ const activeOrder = {
 };
 const primaryProvider = 'primary-provider' as PerpsProviderType;
 const secondaryProvider = 'secondary-provider' as PerpsProviderType;
+const makeFill = (overrides: Partial<OrderFill> = {}): OrderFill => ({
+  orderId: 'order-1',
+  symbol: 'ETH',
+  side: 'buy',
+  size: '1',
+  price: '101',
+  pnl: '0',
+  direction: 'Open Long',
+  fee: '0.01',
+  feeToken: 'USDC',
+  timestamp: 2,
+  ...overrides,
+});
 
 const exhaustDiscoveryRetries = async () => {
   for (
@@ -111,6 +128,7 @@ describe('usePerpsChaseOrders', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetChaseOrders.mockResolvedValue([]);
+    mockGetOrderFills.mockResolvedValue([]);
     mockSuspendChaseOrders.mockResolvedValue([]);
     mockSelectedAddress = '0xaccount-a';
     mockPerpsProvider = 'hyperliquid';
@@ -1823,6 +1841,153 @@ describe('usePerpsChaseOrders', () => {
         status: 'canceled',
       },
     ]);
+    hook.unmount();
+  });
+
+  it('retains a proven Filled Chase across empty refresh and screen remount', async () => {
+    const runtimeActiveOrder: ChaseOrder = {
+      ...activeOrder,
+      handle: 'chase-4dbd96d9-1b85-4067-8b04-da01423b8e7a',
+      symbol: 'SOL',
+      originalSize: '0.31',
+      remainingSize: '0.31',
+      restingOrderId: '59081412404',
+      startedAt: 1_788_278_727_454,
+      providerId: primaryProvider,
+    };
+    const filledOrder = {
+      ...runtimeActiveOrder,
+      remainingSize: '0',
+      restingOrderId: null,
+      status: 'filled' as const,
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([runtimeActiveOrder])
+      .mockResolvedValue([]);
+    mockGetOrderFills.mockResolvedValue([
+      makeFill({
+        orderId: '59081412404',
+        symbol: 'SOL',
+        size: '0.31',
+        timestamp: 1_788_278_742_740,
+        providerId: primaryProvider,
+      }),
+    ]);
+    const retainedConsumer = renderHook(() =>
+      usePerpsChaseOrders({ isEnabled: false, enableDiscovery: true }),
+    );
+    const screenConsumer = renderHook(() =>
+      usePerpsChaseOrders({ isEnabled: true, enableDiscovery: false }),
+    );
+    await waitFor(() =>
+      expect(screenConsumer.result.current.chaseOrders).toEqual([
+        runtimeActiveOrder,
+      ]),
+    );
+
+    await act(async () => screenConsumer.result.current.getChaseOrders());
+    expect(screenConsumer.result.current.chaseOrders).toEqual([filledOrder]);
+    screenConsumer.unmount();
+    const remountedScreenConsumer = renderHook(() =>
+      usePerpsChaseOrders({ isEnabled: true, enableDiscovery: false }),
+    );
+    expect(remountedScreenConsumer.result.current.chaseOrders).toEqual([
+      filledOrder,
+    ]);
+    await act(async () =>
+      remountedScreenConsumer.result.current.getChaseOrders(),
+    );
+
+    expect(remountedScreenConsumer.result.current.chaseOrders).toEqual([
+      filledOrder,
+    ]);
+    expect(mockGetOrderFills).toHaveBeenCalledWith(
+      { startTime: runtimeActiveOrder.startedAt },
+      { forceRefresh: true },
+    );
+    remountedScreenConsumer.unmount();
+    retainedConsumer.unmount();
+  });
+
+  it('does not synthesize Filled for an unknown omission', async () => {
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([]);
+    mockGetOrderFills.mockResolvedValue([]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+
+    await act(async () => hook.result.current.getChaseOrders());
+
+    expect(hook.result.current.chaseOrders).toEqual([]);
+    hook.unmount();
+  });
+
+  it('records Canceled when fill evidence covers only part of the remainder', async () => {
+    const partiallyFilledOrder = {
+      ...activeOrder,
+      originalSize: '0.31',
+      remainingSize: '0.31',
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([partiallyFilledOrder])
+      .mockResolvedValueOnce([]);
+    mockGetOrderFills.mockResolvedValue([
+      makeFill({ size: '0.12', timestamp: 2 }),
+    ]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([partiallyFilledOrder]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(partiallyFilledOrder),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([
+      {
+        ...partiallyFilledOrder,
+        restingOrderId: null,
+        status: 'canceled',
+      },
+    ]);
+    hook.unmount();
+  });
+
+  it('ignores old-route fill evidence after the Chase route changes', async () => {
+    let resolveOldRouteFills: ((fills: OrderFill[]) => void) | undefined;
+    mockGetChaseOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([]);
+    mockGetOrderFills.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveOldRouteFills = resolve;
+        }),
+    );
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([activeOrder]),
+    );
+    const oldRouteRefresh = hook.result.current
+      .getChaseOrders()
+      .catch((error) => error);
+    await waitFor(() => expect(mockGetOrderFills).toHaveBeenCalledTimes(1));
+
+    mockSelectedAddress = '0xaccount-b';
+    hook.rerender({});
+    await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(3));
+    await act(async () =>
+      resolveOldRouteFills?.([
+        makeFill({ orderId: activeOrder.restingOrderId ?? 'order-1' }),
+      ]),
+    );
+
+    expect(await oldRouteRefresh).toMatchObject({ code: 'stale_request' });
+    expect(hook.result.current.chaseOrders).toEqual([]);
     hook.unmount();
   });
 

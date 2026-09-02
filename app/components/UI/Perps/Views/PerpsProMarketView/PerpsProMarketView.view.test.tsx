@@ -8,7 +8,11 @@ import {
   within,
   waitFor,
 } from '@testing-library/react-native';
-import type { ChaseOrder, PriceUpdate } from '@metamask/perps-controller';
+import type {
+  ChaseOrder,
+  OrderFill,
+  PriceUpdate,
+} from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
@@ -24,6 +28,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { PERPS_TWAP_UI_CONFIG } from '../../constants/perpsConfig';
 import { resetPerpsChaseOrdersStoreForTests } from '../../hooks/usePerpsChaseOrders';
 import {
@@ -1339,6 +1344,87 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         screen.getByText(strings('perps.order.chase.status.filled')),
       ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'moves an omitted Active Chase to Filled History from child fill evidence',
+    async () => {
+      const runtimeActiveChase: ChaseOrder = {
+        ...activeChase,
+        handle: 'chase-4dbd96d9-1b85-4067-8b04-da01423b8e7a',
+        originalSize: '0.31',
+        remainingSize: '0.31',
+        restingOrderId: '59081412404',
+        startedAt: 1_788_278_727_454,
+      };
+      const runtimeFill: OrderFill = {
+        orderId: '59081412404',
+        symbol: 'ETH',
+        side: 'buy',
+        size: '0.31',
+        price: '2500',
+        pnl: '0',
+        direction: 'Open Long',
+        fee: '0.01',
+        feeToken: 'USDC',
+        timestamp: 1_788_278_742_740,
+      };
+      const getChaseOrders = Engine.context.PerpsController
+        .getChaseOrders as jest.Mock;
+      const getOrderFills = Engine.context.PerpsController
+        .getOrderFills as jest.Mock;
+      getChaseOrders
+        .mockResolvedValueOnce([runtimeActiveChase])
+        .mockResolvedValue([]);
+      getOrderFills.mockResolvedValue([runtimeFill]);
+      renderFundedProMarket();
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+      const activeRowSelector = getPerpsProChaseRowSelector(
+        'ETH',
+        runtimeActiveChase.handle,
+        true,
+      );
+      expect(await screen.findByTestId(activeRowSelector)).toBeOnTheScreen();
+      act(() => PerpsCacheInvalidator.invalidate('accountState'));
+      await waitFor(() => {
+        expect(getChaseOrders).toHaveBeenCalledTimes(2);
+        expect(screen.queryByTestId(activeRowSelector)).not.toBeOnTheScreen();
+      });
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_HISTORY_FILTER),
+      );
+      const filledStatusSelector = getPerpsProChaseStatusSelector(
+        'filled',
+        'ETH',
+        runtimeActiveChase.handle,
+        true,
+      );
+      expect(await screen.findByTestId(filledStatusSelector)).toHaveTextContent(
+        strings('perps.order.chase.status.filled'),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHASE_FILLED_ONLY),
+      );
+      expect(await screen.findByTestId(filledStatusSelector)).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+        ),
+      );
+
+      expect(await screen.findByTestId(filledStatusSelector)).toBeOnTheScreen();
     },
   );
 
