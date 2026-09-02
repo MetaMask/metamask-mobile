@@ -1,0 +1,12 @@
+{
+  "conservative": {
+    "fixes": [],
+    "confidence": 0,
+    "reasoning": "AI analysis did not complete. Advisories remain for manual review."
+  },
+  "empty": {
+    "fixes": [],
+    "confidence": 100,
+    "reasoning": "No advisories to analyze."
+  }
+}
