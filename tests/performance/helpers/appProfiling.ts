@@ -51,15 +51,19 @@ async function sleep(ms: number): Promise<void> {
  * Pulls the stable Android Downloads profile written by `stopAppProfiling`,
  * saves it under `tests/reporters/reports/hermes-cpuprofiles/` (CI upload path),
  * and attaches it to the Playwright report.
+ *
+ * Returns `null` on iOS — profile export/pull is Android-only for now so iOS
+ * performance specs can still stop profiling and record timers.
  */
 export async function pullAndAttachAppProfiling(
   testInfo: TestInfo,
   platform: 'android' | 'ios',
-): Promise<string> {
+): Promise<string | null> {
   if (platform !== 'android') {
-    throw new Error(
-      'Hermes cpuprofile pull is only implemented for Android performance APKs',
+    logger.info(
+      'Skipping Hermes cpuprofile pull on iOS (Android Downloads path only)',
     );
+    return null;
   }
 
   const appiumDriver = getDriver() as PullFileDriver;
@@ -109,12 +113,13 @@ export async function pullAndAttachAppProfiling(
 }
 
 /**
- * Stops in-app profiling and pulls the generated `.cpuprofile` into CI artifacts.
+ * Stops in-app profiling and, on Android, pulls the `.cpuprofile` into CI artifacts.
+ * On iOS, stops profiling only so specs still complete and record timers.
  */
 export async function stopAndCollectAppProfiling(
   testInfo: TestInfo,
   platform: 'android' | 'ios',
-): Promise<string> {
+): Promise<string | null> {
   await stopAppProfilingFromTest();
   return pullAndAttachAppProfiling(testInfo, platform);
 }

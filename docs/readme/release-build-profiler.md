@@ -43,7 +43,7 @@ const path = await stopAppProfiling();
 
 Outside performance APKs these functions no-op. On Android, stop also copies the profile to `/sdcard/Download/metamask-performance-latest.cpuprofile` for Appium `pullFile`.
 
-Appium scenarios invoke the same functions through deeplinks, then pull the file into CI:
+Appium scenarios invoke the same functions through deeplinks, then pull the file into CI on Android (iOS stops profiling only; pull is not implemented yet):
 
 ```ts
 import {
@@ -53,10 +53,10 @@ import {
 
 await startAppProfilingFromTest(); // metamask://e2e/profiler/start
 // ... scenario ...
-await stopAndCollectAppProfiling(testInfo, 'android');
+await stopAndCollectAppProfiling(testInfo, platform);
 ```
 
-Pulled profiles are written to `tests/reporters/reports/hermes-cpuprofiles/` (uploaded with performance test artifacts) and attached to the Playwright report.
+Pulled Android profiles are written to `tests/reporters/reports/hermes-cpuprofiles/` (uploaded with performance test artifacts) and attached to the Playwright report.
 
 ### 3) Convert and view in Chrome tracing
 
