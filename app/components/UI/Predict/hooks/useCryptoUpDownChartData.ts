@@ -184,9 +184,11 @@ export const useCryptoUpDownChartData = (
   >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
-  const pendingLiveUpdateRef = useRef<CryptoPriceUpdate>();
-  const liveRenderTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const lastLiveRenderAtRef = useRef<number>();
+  const pendingLiveUpdateRef = useRef<CryptoPriceUpdate | undefined>(undefined);
+  const liveRenderTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const lastLiveRenderAtRef = useRef<number | undefined>(undefined);
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);

@@ -353,6 +353,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -367,10 +368,9 @@ describe('useCryptoUpDownChartData', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       historicalData = [];
-      const { result } = renderHook(
-        () => useCryptoUpDownChartData(market),
-        { wrapper: Wrapper },
-      );
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
 
       act(() => {
         for (let index = 0; index < 20; index += 1) {
@@ -421,6 +421,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -455,6 +456,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52000,
           timestamp: 1040,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -470,6 +472,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52500,
           timestamp: 1055,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -615,11 +618,13 @@ describe('useCryptoUpDownChartData', () => {
           price: 51000,
           timestamp: 100,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
           timestamp: 130,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 52000,
@@ -1262,6 +1267,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51600,
           timestamp: 270,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -1314,6 +1320,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       rerender({ targetPrice: undefined });
@@ -1863,6 +1870,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -2080,6 +2088,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.connectionError).toBe(false);
