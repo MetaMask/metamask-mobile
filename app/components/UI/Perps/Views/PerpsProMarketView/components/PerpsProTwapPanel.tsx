@@ -276,7 +276,7 @@ const PerpsProTwapPanel = ({
     ) : null;
 
   const renderFillHistory = () => {
-    if (fillRows.length === 0) {
+    if (visibleFillRows.length === 0) {
       return renderEmptyState();
     }
 

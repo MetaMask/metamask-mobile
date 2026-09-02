@@ -432,8 +432,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       .mockReturnValue(jest.fn());
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Unmount every journey before the shared Engine mocks are reset, then let
+    // hook cleanup and already-resolved controller continuations drain. This
+    // prevents TWAP reconciliation work from leaking into the next Chase/TWAP
+    // journey in full-file runs.
     cleanup();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
   itForPlatforms(
@@ -725,10 +733,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const getTwapOrders = jest.mocked(
         Engine.context.PerpsController.getTwapOrders,
       );
-      getTwapOrders
-        .mockRejectedValueOnce(new Error('venue down'))
-        .mockRejectedValueOnce(new Error('venue down'))
-        .mockResolvedValue([activeTwap]);
+      getTwapOrders.mockRejectedValue(new Error('venue down'));
       renderProMarketWithTwapFlag(false);
 
       fireEvent.press(
@@ -736,14 +741,19 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
         ),
       );
-      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
       expect(
         await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
       ).toBeOnTheScreen();
-
-      fireEvent.press(
-        screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_RETRY),
+      const retryButton = screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_RETRY,
       );
+      await waitFor(() => expect(retryButton).toBeEnabled());
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      getTwapOrders.mockResolvedValue([activeTwap]);
+      fireEvent.press(retryButton);
 
       expect(
         await screen.findByTestId(
@@ -789,11 +799,17 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         activeTwap.orderId,
       );
       const terminateButton = await screen.findByTestId(terminateTestID);
-      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
-      getTwapOrders.mockRejectedValueOnce(new Error('refresh failed'));
       fireEvent.press(terminateButton);
-      fireEvent.press(
+      expect(
         await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).toBeOnTheScreen();
+      // Opening the sheet pauses live REST work. Configure the next explicit
+      // post-cancel reconciliation only after that user-visible settled state.
+      getTwapOrders.mockRejectedValueOnce(new Error('refresh failed'));
+      fireEvent.press(
+        screen.getByTestId(
           PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM,
         ),
       );
@@ -834,17 +850,16 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
         ),
       );
-      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
-
-      // Act
-      fireEvent.press(
-        await screen.findByTestId(
-          getPerpsProTwapTerminateSelector(
-            activeTwap.providerId,
-            activeTwap.orderId,
-          ),
+      const terminateButton = await screen.findByTestId(
+        getPerpsProTwapTerminateSelector(
+          activeTwap.providerId,
+          activeTwap.orderId,
         ),
       );
+      const settledReadCount = getTwapOrders.mock.calls.length;
+
+      // Act
+      fireEvent.press(terminateButton);
 
       // Assert: opening confirmation does not trigger another REST read. The
       // interval-level pause is covered in the hook's timer contract test.
@@ -853,15 +868,26 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
         ),
       ).toBeOnTheScreen();
-      expect(getTwapOrders).toHaveBeenCalledTimes(2);
+      expect(getTwapOrders).toHaveBeenCalledTimes(settledReadCount);
 
       // Act
       fireEvent.press(
         screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE),
       );
 
-      // Assert
-      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(3));
+      // Assert: close settles visibly before the resumed reconciliation lands.
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(
+            PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+          ),
+        ).not.toBeOnTheScreen(),
+      );
+      await waitFor(() =>
+        expect(getTwapOrders.mock.calls.length).toBeGreaterThan(
+          settledReadCount,
+        ),
+      );
     },
   );
 

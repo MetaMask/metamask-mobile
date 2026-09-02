@@ -23,6 +23,81 @@ const PARTIAL_TWAP_SNAPSHOT_ERROR =
 const sortTwapOrdersByStartedAt = (orders: TwapOrder[]): TwapOrder[] =>
   [...orders].sort((left, right) => right.startedAt - left.startedAt);
 
+const mergeTwapOrder = (
+  retainedOrder: TwapOrder | undefined,
+  authoritativeOrder: TwapOrder,
+): TwapOrder => {
+  const fillsByIdentity = new Map(
+    (retainedOrder?.fills ?? []).map((fill) => [fill.fillId, fill]),
+  );
+  for (const fill of authoritativeOrder.fills) {
+    fillsByIdentity.set(fill.fillId, fill);
+  }
+
+  return {
+    ...authoritativeOrder,
+    fills: [...fillsByIdentity.values()],
+  };
+};
+
+const reconcileTwapOrderStream = (
+  previousOrders: TwapOrder[],
+  streamedOrders: TwapOrder[],
+  isSnapshot: boolean,
+  activeProviderId: string,
+): { orders: TwapOrder[]; authoritativeProviderIds: Set<string> } => {
+  const previousByIdentity = new Map(
+    previousOrders.map((order) => [getTwapOrderIdentityKey(order), order]),
+  );
+  const streamedByIdentity = new Map(
+    streamedOrders.map((order) => [
+      getTwapOrderIdentityKey(order),
+      mergeTwapOrder(
+        previousByIdentity.get(getTwapOrderIdentityKey(order)),
+        order,
+      ),
+    ]),
+  );
+  const authoritativeProviderIds = new Set(
+    streamedOrders.map(getTwapOrderProviderId),
+  );
+
+  // A direct-provider subscription owns the selected provider partition even
+  // when its snapshot is empty. Aggregated rows carry their own provider
+  // identity; today's empty aggregate stream belongs to the default provider.
+  if (isSnapshot && activeProviderId !== PROVIDER_CONFIG.AggregatedProvider) {
+    authoritativeProviderIds.add(activeProviderId);
+  } else if (isSnapshot && streamedOrders.length === 0) {
+    authoritativeProviderIds.add(PROVIDER_CONFIG.DefaultProvider);
+  }
+
+  for (const previousOrder of previousOrders) {
+    const identityKey = getTwapOrderIdentityKey(previousOrder);
+    if (streamedByIdentity.has(identityKey)) {
+      continue;
+    }
+
+    const providerWasSnapshotted = authoritativeProviderIds.has(
+      getTwapOrderProviderId(previousOrder),
+    );
+    // Stream snapshots cap terminal history, so absence is authoritative only
+    // for active schedules in a partition the snapshot actually owns.
+    if (
+      isSnapshot &&
+      providerWasSnapshotted &&
+      previousOrder.status === 'active'
+    ) {
+      continue;
+    }
+    streamedByIdentity.set(identityKey, previousOrder);
+  }
+
+  return {
+    orders: sortTwapOrdersByStartedAt([...streamedByIdentity.values()]),
+    authoritativeProviderIds,
+  };
+};
+
 const reconcileTwapOrderSnapshot = (
   previousOrders: TwapOrder[],
   snapshotOrders: TwapOrder[],
@@ -117,10 +192,12 @@ export interface UsePerpsTwapOrdersOptions {
  * the default-provider stream confirms its state. The controller must expose
  * per-provider outcomes to close the remaining cold-start ambiguity.
  *
- * `subscribeToTwapOrders` supplies schedule state without slice fills, so a
- * pushed schedule keeps the fills the last REST read supplied rather than
- * blanking Fill History. Bounded REST reconciliation remains active alongside
- * the subscription so fills and aggregate execution details stay current.
+ * `subscribeToTwapOrders` supplies authoritative current schedule state but
+ * caps terminal history and omits slice fills. Stream snapshots therefore
+ * reconcile only the provider partitions they identify, retain REST-only
+ * terminal rows, and preserve known fills. Bounded REST reconciliation remains
+ * active alongside the subscription so unbounded history, fills, and omitted
+ * aggregate provider partitions stay current.
  */
 export const usePerpsTwapOrders = (
   options: UsePerpsTwapOrdersOptions = {},
@@ -148,6 +225,9 @@ export const usePerpsTwapOrders = (
   const twapOrdersRef = useRef<TwapOrder[]>([]);
   const readFailureMessageRef = useRef<string | null>(null);
   const unconfirmedProviderIdsRef = useRef(new Set<string>());
+  const streamRevisionRef = useRef(0);
+  const streamedOrderRevisionRef = useRef(new Map<string, number>());
+  const streamedProviderSnapshotRevisionRef = useRef(new Map<string, number>());
   const inFlightFetchRef = useRef<{
     identityKey: string;
     promise: Promise<void>;
@@ -161,6 +241,9 @@ export const usePerpsTwapOrders = (
     twapOrdersRef.current = [];
     readFailureMessageRef.current = null;
     unconfirmedProviderIdsRef.current = new Set();
+    streamRevisionRef.current = 0;
+    streamedOrderRevisionRef.current = new Map();
+    streamedProviderSnapshotRevisionRef.current = new Map();
     setTwapOrders([]);
     setResolvedIdentityKey(identityKey);
     setIsLoading(!skipInitialFetch);
@@ -189,6 +272,7 @@ export const usePerpsTwapOrders = (
 
       const lifecycleGeneration = lifecycleGenerationRef.current;
       const requestGeneration = ++requestGenerationRef.current;
+      const streamRevisionAtRequestStart = streamRevisionRef.current;
       const isCurrentRequest = () =>
         currentIdentityKeyRef.current === identityKey &&
         lifecycleGenerationRef.current === lifecycleGeneration &&
@@ -214,11 +298,68 @@ export const usePerpsTwapOrders = (
                   orders: sortTwapOrdersByStartedAt(orders || []),
                   unconfirmedProviderIds: new Set<string>(),
                 };
-          twapOrdersRef.current = reconciliation.orders;
+          const currentOrdersByIdentity = new Map(
+            twapOrdersRef.current.map((order) => [
+              getTwapOrderIdentityKey(order),
+              order,
+            ]),
+          );
+          const mergedOrdersByIdentity = new Map(
+            reconciliation.orders.map((order) => [
+              getTwapOrderIdentityKey(order),
+              order,
+            ]),
+          );
+
+          // REST contributes unbounded history, fills, and recovered provider
+          // partitions. If a stream landed after this read began, retain its
+          // newer schedule fields while merging in the complementary REST
+          // fills. A newer provider snapshot may remove only stale active rows;
+          // REST-only terminal history is never removed by the capped stream.
+          for (const [
+            identity,
+            streamRevision,
+          ] of streamedOrderRevisionRef.current) {
+            if (streamRevision <= streamRevisionAtRequestStart) {
+              continue;
+            }
+            const streamedOrder = currentOrdersByIdentity.get(identity);
+            if (streamedOrder) {
+              mergedOrdersByIdentity.set(
+                identity,
+                mergeTwapOrder(
+                  mergedOrdersByIdentity.get(identity),
+                  streamedOrder,
+                ),
+              );
+            }
+          }
+          for (const [
+            providerId,
+            streamRevision,
+          ] of streamedProviderSnapshotRevisionRef.current) {
+            if (streamRevision <= streamRevisionAtRequestStart) {
+              continue;
+            }
+            reconciliation.unconfirmedProviderIds.delete(providerId);
+            for (const [identity, order] of mergedOrdersByIdentity) {
+              if (
+                order.status === 'active' &&
+                getTwapOrderProviderId(order) === providerId &&
+                !currentOrdersByIdentity.has(identity)
+              ) {
+                mergedOrdersByIdentity.delete(identity);
+              }
+            }
+          }
+          const mergedOrders = sortTwapOrdersByStartedAt([
+            ...mergedOrdersByIdentity.values(),
+          ]);
+          twapOrdersRef.current = mergedOrders;
           readFailureMessageRef.current = null;
           unconfirmedProviderIdsRef.current =
             reconciliation.unconfirmedProviderIds;
-          setTwapOrders(reconciliation.orders);
+          setTwapOrders(mergedOrders);
           setResolvedIdentityKey(identityKey);
           setError(
             reconciliation.unconfirmedProviderIds.size > 0
@@ -274,51 +415,40 @@ export const usePerpsTwapOrders = (
     const lifecycleGeneration = lifecycleGenerationRef.current;
 
     const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
-      callback: (streamedOrders) => {
+      callback: (streamedOrders, isSnapshot = false) => {
         if (
           currentIdentityKeyRef.current !== identityKey ||
           lifecycleGenerationRef.current !== lifecycleGeneration
         ) {
           return;
         }
-        // A stream commit is newer than reads already in flight.
-        requestGenerationRef.current += 1;
-        // Aggregated REST reads span every provider, while this stream comes
-        // from the default provider only. Replace that provider's partition,
-        // retain every other provider, and carry REST-only fills by the full
-        // provider/order identity so venue-local IDs cannot cross-contaminate.
-        const mergeStreamedOrders = (previousOrders: TwapOrder[]) => {
-          const fillsByOrderKey = new Map(
-            previousOrders.map((order) => [
-              getTwapOrderIdentityKey(order),
-              order.fills,
-            ]),
+        const streamRevision = ++streamRevisionRef.current;
+        const reconciliation = reconcileTwapOrderStream(
+          twapOrdersRef.current,
+          streamedOrders,
+          isSnapshot,
+          provider ?? PROVIDER_CONFIG.DefaultProvider,
+        );
+        for (const order of streamedOrders) {
+          streamedOrderRevisionRef.current.set(
+            getTwapOrderIdentityKey(order),
+            streamRevision,
           );
-          const mergedStreamedOrders = streamedOrders.map((order) =>
-            order.fills.length > 0
-              ? order
-              : {
-                  ...order,
-                  fills:
-                    fillsByOrderKey.get(getTwapOrderIdentityKey(order)) ?? [],
-                },
-          );
-          const otherProviderOrders = previousOrders.filter(
-            (order) =>
-              getTwapOrderProviderId(order) !== PROVIDER_CONFIG.DefaultProvider,
-          );
-
-          return sortTwapOrdersByStartedAt([
-            ...mergedStreamedOrders,
-            ...otherProviderOrders,
-          ]);
-        };
-        const mergedOrders = mergeStreamedOrders(twapOrdersRef.current);
+        }
+        if (isSnapshot) {
+          for (const providerId of reconciliation.authoritativeProviderIds) {
+            streamedProviderSnapshotRevisionRef.current.set(
+              providerId,
+              streamRevision,
+            );
+          }
+        }
+        const mergedOrders = reconciliation.orders;
         twapOrdersRef.current = mergedOrders;
         setTwapOrders(mergedOrders);
-        unconfirmedProviderIdsRef.current.delete(
-          PROVIDER_CONFIG.DefaultProvider,
-        );
+        for (const providerId of reconciliation.authoritativeProviderIds) {
+          unconfirmedProviderIdsRef.current.delete(providerId);
+        }
         setError(
           readFailureMessageRef.current ??
             (unconfirmedProviderIdsRef.current.size > 0
@@ -327,12 +457,11 @@ export const usePerpsTwapOrders = (
         );
         setResolvedIdentityKey(identityKey);
         setIsLoading(false);
-        setIsRefreshing(false);
       },
     });
 
     return unsubscribe;
-  }, [enableLiveUpdates, identityKey]);
+  }, [enableLiveUpdates, identityKey, provider]);
 
   useEffect(() => {
     if (!enableLiveUpdates || pauseLiveRestReconciliation) {

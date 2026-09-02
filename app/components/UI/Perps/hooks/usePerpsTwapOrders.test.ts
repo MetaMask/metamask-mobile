@@ -503,6 +503,216 @@ describe('usePerpsTwapOrders', () => {
     ).toStrictEqual([myxFill]);
   });
 
+  it('retains unbounded REST terminal history through stream snapshots and deltas', async () => {
+    // Arrange: the venue stream caps terminal history at 100 rows, while REST
+    // has more history than that cap.
+    const restHistory = Array.from({ length: 105 }, (_, index) =>
+      buildTwapOrder({
+        orderId: `history-${index}`,
+        providerId: 'hyperliquid',
+        status: 'completed',
+        startedAt: index,
+      }),
+    );
+    const activeOrder = buildTwapOrder({
+      orderId: 'active-order',
+      providerId: 'hyperliquid',
+      startedAt: 1_000,
+    });
+    mockController.getTwapOrders.mockResolvedValue([
+      activeOrder,
+      ...restHistory,
+    ]);
+    let pushStreamed:
+      | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
+      | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() => expect(result.current.twapOrders).toHaveLength(106));
+
+    // Act: a capped snapshot includes only the newest 100 terminal rows and a
+    // newer version of the active schedule.
+    act(() => {
+      pushStreamed?.(
+        [
+          { ...activeOrder, executedSize: '7', lastUpdated: 3_000 },
+          ...restHistory.slice(5),
+        ],
+        true,
+      );
+    });
+
+    // Assert: all 105 REST terminal rows survive and the active stream record
+    // wins. A later delta also overlays without replacing history.
+    expect(result.current.twapOrders).toHaveLength(106);
+    expect(
+      result.current.twapOrders.find((order) => order.orderId === 'history-0'),
+    ).toStrictEqual(restHistory[0]);
+    expect(
+      result.current.twapOrders.find(
+        (order) => order.orderId === 'active-order',
+      )?.executedSize,
+    ).toBe('7');
+
+    act(() => {
+      pushStreamed?.(
+        [{ ...activeOrder, status: 'completed', lastUpdated: 4_000 }],
+        false,
+      );
+    });
+    expect(result.current.twapOrders).toHaveLength(106);
+    expect(
+      result.current.twapOrders.find(
+        (order) => order.orderId === 'active-order',
+      )?.status,
+    ).toBe('completed');
+  });
+
+  it('merges deferred REST fills and provider recovery into newer streamed state', async () => {
+    // Arrange
+    mockProvider = 'aggregated';
+    const streamOrder = buildTwapOrder({
+      orderId: 'shared',
+      providerId: 'hyperliquid',
+      executedSize: '8',
+      status: 'active',
+      lastUpdated: 8_000,
+      fills: [buildTwapFill({ fillId: 'prior-stream-fill' })],
+    });
+    const priorStreamFill = streamOrder.fills[0];
+    const restFill = buildTwapFill({ fillId: 'rest-fill' });
+    const staleRestOrder = {
+      ...streamOrder,
+      executedSize: '4',
+      lastUpdated: 4_000,
+      fills: [priorStreamFill, restFill],
+    };
+    const recoveredProviderOrder = buildTwapOrder({
+      orderId: 'myx-recovered',
+      providerId: 'myx',
+      status: 'completed',
+      startedAt: 2_000,
+    });
+    let resolveRest: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.getTwapOrders.mockReturnValue(
+      new Promise<TwapOrder[]>((resolve) => {
+        resolveRest = resolve;
+      }),
+    );
+    let pushStreamed:
+      | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
+      | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({
+        enableLiveUpdates: true,
+        skipInitialFetch: true,
+      }),
+    );
+    await waitFor(() =>
+      expect(mockController.getTwapOrders).toHaveBeenCalled(),
+    );
+
+    // Act: stream commits first; the older REST response resolves later with
+    // complementary fills and another provider partition.
+    act(() => {
+      pushStreamed?.([streamOrder], true);
+    });
+    await act(async () => {
+      resolveRest?.([staleRestOrder, recoveredProviderOrder]);
+    });
+
+    // Assert
+    const mergedStreamOrder = result.current.twapOrders.find(
+      (order) => order.providerId === 'hyperliquid',
+    );
+    expect(mergedStreamOrder).toMatchObject({
+      executedSize: '8',
+      lastUpdated: 8_000,
+      fills: [priorStreamFill, restFill],
+    });
+    expect(result.current.twapOrders).toContainEqual(recoveredProviderOrder);
+  });
+
+  it('uses direct-provider ownership for an empty authoritative snapshot', async () => {
+    // Arrange
+    mockProvider = 'myx';
+    const myxActive = buildTwapOrder({ providerId: 'myx' });
+    mockController.getTwapOrders.mockResolvedValue([myxActive]);
+    let pushStreamed:
+      | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
+      | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() => expect(result.current.twapOrders).toContain(myxActive));
+
+    // Act
+    act(() => pushStreamed?.([], true));
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([]);
+  });
+
+  it('partitions aggregated snapshots by streamed row provider identity', async () => {
+    // Arrange
+    mockProvider = 'aggregated';
+    const hyperliquidActive = buildTwapOrder({
+      orderId: 'hyperliquid-active',
+      providerId: 'hyperliquid',
+      startedAt: 2_000,
+    });
+    const myxActive = buildTwapOrder({
+      orderId: 'myx-active',
+      providerId: 'myx',
+      startedAt: 1_000,
+    });
+    const myxHistory = buildTwapOrder({
+      orderId: 'myx-history',
+      providerId: 'myx',
+      status: 'completed',
+      startedAt: 1_000,
+    });
+    mockController.getTwapOrders.mockResolvedValue([
+      hyperliquidActive,
+      myxActive,
+      myxHistory,
+    ]);
+    let pushStreamed:
+      | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
+      | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(({ callback }) => {
+      pushStreamed = callback;
+      return jest.fn();
+    });
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() => expect(result.current.twapOrders).toHaveLength(3));
+
+    // Act: this snapshot owns MYX only. It removes the absent MYX active row,
+    // retains capped MYX history, and cannot corrupt Hyperliquid.
+    act(() => pushStreamed?.([myxHistory], true));
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([
+      hyperliquidActive,
+      myxHistory,
+    ]);
+  });
+
   describe('live-update interval behavior', () => {
     beforeEach(() => {
       jest.useFakeTimers();

@@ -409,6 +409,40 @@ describe('PerpsProTwapPanel', () => {
     expect(screen.getByTestId(ids.TWAP_FILL_NEXT)).toBeDisabled();
   });
 
+  it('renders fill empty state from the clamped page slice at a page boundary', async () => {
+    // Arrange
+    const pageSize = PERPS_TWAP_UI_CONFIG.FillHistoryPageSize;
+    const fills = Array.from({ length: pageSize + 1 }, (_, index) =>
+      buildFill({ fillId: `boundary-${index}`, timestamp: index }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [buildTwapOrder({ fills })],
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+    expect(screen.queryByTestId('twap-empty-state')).toBeNull();
+
+    // Act: reconciliation removes the last remaining fill while the selected
+    // page is clamped back to the only page.
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[buildTwapOrder({ fills: [] })]}
+        historicalTwapOrders={[]}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        isTerminationInFlight={false}
+        filterScopeKey="all:all"
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert
+    expect(await screen.findByTestId('twap-empty-state')).toBeOnTheScreen();
+    expect(screen.queryByTestId(ids.TWAP_LIST)).toBeNull();
+  });
+
   it('bounds schedule history and navigates between pages', () => {
     // Arrange
     const pageSize = PERPS_TWAP_UI_CONFIG.HistoryPageSize;
