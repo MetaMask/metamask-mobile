@@ -9,6 +9,8 @@ import {
   ListItemVariant,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -46,8 +48,11 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.eve
 
 interface PositionListDisplay {
   title: string;
+  directionLabel: string;
+  directionSeverity: TagSeverity;
   description: string;
   valueText: string;
+  valueColor: TextColor;
   subvalueText: string;
   subvalueColor: TextColor;
 }
@@ -56,6 +61,7 @@ interface OrderListDisplay {
   title: string;
   description: string;
   valueText: string;
+  valueColor: TextColor;
   subvalueText: string;
   subvalueColor: TextColor;
 }
@@ -64,23 +70,29 @@ const getPositionListDisplay = (position: Position): PositionListDisplay => {
   const isLong = parseFloat(position.size) > 0;
   const displaySymbol = getPerpsDisplaySymbol(position.symbol);
   const absoluteSize = Math.abs(parseFloat(position.size));
-  const directionLower = isLong
-    ? strings('perps.market.long_lowercase')
-    : strings('perps.market.short_lowercase');
+  const directionLabel = isLong
+    ? strings('perps.market.long')
+    : strings('perps.market.short');
 
   const pnlValue = parseFloat(position.unrealizedPnl);
   const roeValue = parseFloat(position.returnOnEquity) * 100;
+  const pnlColor =
+    pnlValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
+  const positionValue = formatPerpsFiat(position.positionValue, {
+    ranges: PRICE_RANGES_MINIMAL_VIEW,
+  });
 
   return {
-    // Match main: leverage lives in the title string (e.g. "ETH 3x long")
-    title: `${displaySymbol} ${position.leverage.value}x ${directionLower}`,
-    description: `${formatPositionSize(absoluteSize.toString())} ${displaySymbol}`,
-    valueText: formatPerpsFiat(position.positionValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    }),
-    subvalueText: `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`,
-    subvalueColor:
-      pnlValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+    title: displaySymbol,
+    directionLabel: `${position.leverage.value}x ${directionLabel}`,
+    directionSeverity: isLong ? TagSeverity.Success : TagSeverity.Danger,
+    description: `${formatPositionSize(
+      absoluteSize.toString(),
+    )} ${displaySymbol} • ${positionValue}`,
+    valueText: formatPnl(pnlValue),
+    valueColor: pnlColor,
+    subvalueText: formatPercentage(roeValue, 1),
+    subvalueColor: pnlColor,
   };
 };
 
@@ -99,6 +111,7 @@ const getOrderListDisplay = (order: Order): OrderListDisplay => {
         : labelKey === 'perps.order.market_price'
           ? strings('perps.order.market')
           : PERPS_CONSTANTS.FallbackPriceDisplay,
+    valueColor: TextColor.TextDefault,
     subvalueText: strings(labelKey),
     subvalueColor: TextColor.TextAlternative,
   };
@@ -198,7 +211,13 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     <SensitiveText
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
+      color={
+        privacyMode && position
+          ? TextColor.TextDefault
+          : (positionDisplay?.valueColor ??
+            orderDisplay?.valueColor ??
+            TextColor.TextDefault)
+      }
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
     >
@@ -235,10 +254,21 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     <ListItem
       isInteractive
       variant={ListItemVariant.TwoLines}
+      twClassName={position ? 'min-h-[56px] py-2' : undefined}
       avatar={
         symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
       }
       title={title}
+      titleEndAccessory={
+        positionDisplay ? (
+          <Tag
+            severity={positionDisplay.directionSeverity}
+            testID={testID ? `${testID}-direction-tag` : undefined}
+          >
+            {positionDisplay.directionLabel}
+          </Tag>
+        ) : undefined
+      }
       description={descriptionNode}
       value={valueNode}
       subvalue={subvalueNode}

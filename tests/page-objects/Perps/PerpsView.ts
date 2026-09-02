@@ -19,7 +19,7 @@ import PerpsMarketListView from './PerpsMarketListView';
 import PerpsMarketDetailsView from './PerpsMarketDetailsView';
 import { type AppiumElement, PlatformDetector, sleep } from '../../framework';
 
-/** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
+/** Portfolio: limit order primary (`formatOrderLabel`) + position direction badge (`{n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
   symbol: string;
   direction: 'long' | 'short';
@@ -138,14 +138,10 @@ class PerpsView {
     return Matchers.getElementByID(`perps-position-row-${symbol}`);
   }
 
-  private getPositionPrimaryLine(
-    symbol: string,
+  private getPositionDirectionBadge(
     direction: 'long' | 'short',
   ): Promise<AppiumElement> {
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return Matchers.getElementByText(
-      new RegExp(`${escapedSymbol} \\d+x ${direction}`),
-    );
+    return Matchers.getElementByText(new RegExp(`^\\d+x ${direction}$`, 'i'));
   }
 
   // Orders section on the Perps main tab
@@ -256,7 +252,7 @@ class PerpsView {
   }
 
   /**
-   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   * After fill: order label gone and the position row or its `{n}x {direction}` badge is visible.
    */
   async expectPositionRowAfterLimitOrderFilled(
     options: PerpsPortfolioLimitFlowExpectOptions,
@@ -266,7 +262,7 @@ class PerpsView {
     const positionLocators: Promise<AppiumElement>[] = [
       this.getPortfolioPositionCard(0),
       this.getWalletHomePositionRow(symbol),
-      this.getPositionPrimaryLine(symbol, direction),
+      this.getPositionDirectionBadge(direction),
     ];
     await Utilities.executeWithRetry(
       async () => {
