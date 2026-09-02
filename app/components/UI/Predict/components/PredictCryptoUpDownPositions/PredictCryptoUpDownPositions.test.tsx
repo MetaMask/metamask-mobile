@@ -52,6 +52,15 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
+}));
+
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
 >;
@@ -253,7 +262,7 @@ describe('PredictCryptoUpDownPosition', () => {
     renderPosition({ position });
 
     expect(screen.getByText('Down')).toBeOnTheScreen();
-    expect(screen.getByText('-$25')).toBeOnTheScreen();
+    expect(screen.getByText('-$28')).toBeOnTheScreen();
     expect(mockUsePredictOrderPreview).toHaveBeenCalledWith(
       expect.objectContaining({
         autoRefreshTimeout: undefined,
@@ -287,7 +296,7 @@ describe('PredictCryptoUpDownPosition', () => {
       marketStatus: PredictMarketStatus.RESOLVED,
     });
 
-    expect(screen.getByText(/Won \$175/u)).toBeOnTheScreen();
+    expect(screen.getByText(/Won \$168/u)).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
         getPredictCryptoUpDownPositionSelector.cashOutButton(position.id),

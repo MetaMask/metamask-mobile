@@ -60,6 +60,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PredictTradeStatus } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { buildPredictFeeBreakdownAmounts } from '../../utils/orders';
 import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
@@ -237,6 +238,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     previewError,
     isConfirming,
     isPlacingOrder,
+  });
+  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+    side: Side.BUY,
+    order: currentValue,
+    metamaskFee,
+    exchangeFee,
+    depositFee,
+    total,
   });
 
   const {
@@ -661,15 +670,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
           ref={feeBreakdownSheetRef}
-          providerFee={exchangeFee}
-          metamaskFee={metamaskFee}
-          depositFee={depositFee}
+          providerFee={feeBreakdown.exchangeFee}
+          metamaskFee={feeBreakdown.metamaskFee}
+          depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }
           contractCount={preview?.minAmountReceived ?? 0}
-          betAmount={currentValue}
-          total={total}
+          betAmount={feeBreakdown.order}
+          total={feeBreakdown.total}
           onClose={handleFeeBreakdownClose}
           fakOrdersEnabled={fakOrdersEnabled}
         />

@@ -1,5 +1,5 @@
 import QuickCrypto from 'react-native-quick-crypto';
-import type { OrderPreview, PredictFees } from '../types';
+import { Side, type OrderPreview, type PredictFees } from '../types';
 
 const CENTS_PER_UNIT = 100;
 const CENT_ROUNDING_TOLERANCE = 1e-8;
@@ -80,6 +80,79 @@ export function getPredictSellNetProceeds(
       (fees?.metamaskFee ?? 0) -
       getPredictExchangeFee(fees),
   );
+}
+
+export function getPredictPositionDisplay(args: {
+  initialValue: number;
+  netValue: number;
+}): { value: number; cashPnl: number; percentPnl: number } {
+  const cashPnl = args.netValue - args.initialValue;
+  const percentPnl =
+    args.initialValue > 0 ? (cashPnl / args.initialValue) * 100 : 0;
+
+  return {
+    value: args.netValue,
+    cashPnl,
+    percentPnl,
+  };
+}
+
+export function estimatePredictSellNetValue(args: {
+  grossValue: number;
+  feeCollection: { enabled: boolean; metamaskFee: number; providerFee: number };
+}): number {
+  if (!args.feeCollection.enabled) {
+    return roundDownToCents(args.grossValue);
+  }
+
+  const feeRate =
+    args.feeCollection.metamaskFee + args.feeCollection.providerFee;
+
+  return roundDownToCents(args.grossValue - args.grossValue * feeRate);
+}
+
+export function buildPredictFeeBreakdownAmounts(args: {
+  side: Side;
+  order: number;
+  metamaskFee: number;
+  exchangeFee: number;
+  depositFee?: number;
+  total: number;
+}): {
+  order: number;
+  metamaskFee: number;
+  exchangeFee: number;
+  depositFee?: number;
+  total: number;
+} {
+  const { side, order, metamaskFee, total } = args;
+  const snap = side === Side.BUY ? roundUpToCents : roundDownToCents;
+  const snappedOrder = snap(order);
+  const snappedMetamaskFee = snap(metamaskFee);
+  const snappedTotal = snap(total);
+  const includeDeposit = args.depositFee !== undefined && args.depositFee !== 0;
+  const snappedDepositFee = includeDeposit ? snap(args.depositFee) : 0;
+  const exchangeFee =
+    side === Side.BUY
+      ? snappedTotal - snappedOrder - snappedMetamaskFee - snappedDepositFee
+      : snappedOrder - snappedMetamaskFee - snappedTotal;
+
+  if (includeDeposit) {
+    return {
+      order: snappedOrder,
+      metamaskFee: snappedMetamaskFee,
+      exchangeFee,
+      depositFee: snappedDepositFee,
+      total: snappedTotal,
+    };
+  }
+
+  return {
+    order: snappedOrder,
+    metamaskFee: snappedMetamaskFee,
+    exchangeFee,
+    total: snappedTotal,
+  };
 }
 
 export function getPredictBuyAllInCost(preview?: OrderPreview | null): number {

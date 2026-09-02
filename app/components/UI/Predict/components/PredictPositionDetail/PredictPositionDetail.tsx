@@ -6,7 +6,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Image } from 'expo-image';
 import { useSelector } from 'react-redux';
 import SensitiveText, {
@@ -32,6 +32,12 @@ import {
   Side,
 } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
+import {
+  estimatePredictSellNetValue,
+  getPredictPositionDisplay,
+  getPredictSellNetProceeds,
+} from '../../utils/orders';
+import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictCashOut } from '../../hooks/usePredictCashOut';
 
@@ -50,6 +56,7 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
 }: PredictPositionProps) => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const feeCollection = useSelector(selectPredictFeeCollectionFlag);
 
   const { icon, initialValue, outcome, title, optimistic, size } = position;
   const { onCashOut } = usePredictCashOut({
@@ -74,21 +81,16 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     autoRefreshTimeout,
   });
 
-  // Use preview data if available, fallback to position data on error or when preview is unavailable
-  const currentValue = preview
-    ? preview.minAmountReceived
-    : position.currentValue;
-
-  // Recalculate PnL based on preview data
-  const cashPnl = useMemo(
-    () => currentValue - initialValue,
-    [currentValue, initialValue],
-  );
-
-  const percentPnl = useMemo(
-    () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
-    [cashPnl, initialValue],
-  );
+  const netValue = preview
+    ? getPredictSellNetProceeds(preview)
+    : estimatePredictSellNetValue({
+        grossValue: position.currentValue,
+        feeCollection,
+      });
+  const { value: currentValue, percentPnl } = getPredictPositionDisplay({
+    initialValue,
+    netValue,
+  });
 
   const groupItemTitle = market?.outcomes.find(
     (o) => o.id === position.outcomeId && o.groupItemTitle,

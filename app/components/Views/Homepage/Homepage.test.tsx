@@ -163,6 +163,11 @@ jest.mock('../../UI/NftGrid/NftGridItemBottomSheet', () => () => null);
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
 }));
 
 jest.mock('@tanstack/react-query', () => {

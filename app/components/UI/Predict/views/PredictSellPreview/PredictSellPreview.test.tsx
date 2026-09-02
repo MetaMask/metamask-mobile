@@ -18,6 +18,15 @@ import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
+}));
 /**
  * Mock Strategy:
  * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
@@ -482,7 +491,7 @@ describe('PredictSellPreview', () => {
       expect(screen.queryByText('$60')).toBeNull();
     });
 
-    it('falls back to position currentValue when preview has error', () => {
+    it('falls back to estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Failed to fetch preview';
       mockIsCalculating = false;
@@ -491,10 +500,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should display position's currentValue when preview errors
-      expect(screen.getByText('$60')).toBeOnTheScreen();
-      // Should still show PnL from position data
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      expect(screen.getByText('$57.60')).toBeOnTheScreen();
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('displays preview error message when preview fails', () => {
@@ -511,7 +518,7 @@ describe('PredictSellPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('calculates PnL from position data when preview has error', () => {
+    it('calculates PnL from estimated net value when preview has error', () => {
       mockPreview = null;
       mockPreviewError = 'Preview unavailable';
       mockIsCalculating = false;
@@ -536,10 +543,8 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should show position's current value
-      expect(screen.getByText('$150')).toBeOnTheScreen();
-      // Should calculate PnL from position data
-      expect(screen.getByText('+$50 (50%)')).toBeOnTheScreen();
+      expect(screen.getByText('$144')).toBeOnTheScreen();
+      expect(screen.getByText('+$44 (44%)')).toBeOnTheScreen();
     });
   });
 
