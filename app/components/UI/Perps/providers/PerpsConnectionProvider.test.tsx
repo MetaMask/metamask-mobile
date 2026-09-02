@@ -157,6 +157,66 @@ describe('PerpsConnectionProvider', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
+  it('reuses the initial connection snapshot when polling starts enabled', () => {
+    render(
+      <PerpsConnectionProvider suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+
+    expect(mockGetConnectionState).toHaveBeenCalledTimes(1);
+  });
+
+  it('syncs connection state immediately when polling becomes enabled', () => {
+    const { getByTestId, rerender } = render(
+      <PerpsConnectionProvider isEnabled={false} suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+    mockGetConnectionState.mockReturnValue({
+      isConnected: true,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+    });
+
+    rerender(
+      <PerpsConnectionProvider isEnabled suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByTestId('connection-status')).toHaveTextContent('Connected');
+  });
+
+  it('resyncs after active polling is disabled and re-enabled', () => {
+    const { getByTestId, rerender } = render(
+      <PerpsConnectionProvider isEnabled suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+    rerender(
+      <PerpsConnectionProvider isEnabled={false} suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+    mockGetConnectionState.mockReturnValue({
+      isConnected: true,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+    });
+
+    rerender(
+      <PerpsConnectionProvider isEnabled suppressErrorView>
+        <TestComponent />
+      </PerpsConnectionProvider>,
+    );
+
+    expect(getByTestId('connection-status')).toHaveTextContent('Connected');
+    expect(jest.getTimerCount()).toBe(1);
+  });
+
   it('renders children immediately even while connecting', () => {
     // Children should render even when isInitialized is false and isConnecting is true
     // Individual sections handle their own loading states with per-row skeletons

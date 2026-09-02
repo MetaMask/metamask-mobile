@@ -32,7 +32,7 @@ jest.mock('./PerpsSection', () => {
   const RN = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
   const MockPerpsSection = () =>
-    ReactActual.createElement(RN.Text, null, 'PerpsSection');
+    ReactActual.createElement(RN.View, { testID: 'perps-section' });
   return {
     __esModule: true,
     PerpsSection: MockPerpsSection,
@@ -53,7 +53,7 @@ describe('PerpsSectionWithProvider', () => {
       <PerpsSectionWithProvider sectionIndex={0} totalSectionsLoaded={5} />,
     );
 
-    expect(screen.getByText('PerpsSection')).toBeOnTheScreen();
+    expect(screen.getByTestId('perps-section')).toBeOnTheScreen();
   });
 
   it('returns null when perps is disabled', () => {

@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -56,6 +57,8 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const defiSectionRef = useRef<SectionRefreshHandle>(null);
     const nftsSectionRef = useRef<SectionRefreshHandle>(null);
     const watchlistSectionRef = useRef<SectionRefreshHandle>(null);
+    const [hasActivatedPerpsSection, setHasActivatedPerpsSection] =
+      useState(false);
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
@@ -65,6 +68,12 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const isTopTradersEnabled = useSelector(selectSocialLeaderboardEnabled);
     const isWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
     const isEarnSectionEnabled = useSelector(selectEarnHomeSectionEnabledFlag);
+    // Balance Breakdown consumes live Perps context immediately. Otherwise,
+    // defer polling until the Perps section is first visible, then keep it
+    // active so offscreen pull-to-refresh uses current connection state.
+    const isPerpsConnectionPollingEnabled =
+      isPerpsEnabled &&
+      (balanceBreakdownSectionProps !== undefined || hasActivatedPerpsSection);
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -134,7 +143,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const refresh = useCallback(async () => {
       await Promise.allSettled([
         tokensSectionRef.current?.refresh(),
-        perpsSectionRef.current?.refresh(),
+        isPerpsConnectionPollingEnabled
+          ? perpsSectionRef.current?.refresh()
+          : undefined,
         earnSectionRef.current?.refresh(),
         predictionsSectionRef.current?.refresh(),
         watchlistSectionRef.current?.refresh(),
@@ -142,12 +153,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         defiSectionRef.current?.refresh(),
         nftsSectionRef.current?.refresh(),
       ]);
+    }, [isPerpsConnectionPollingEnabled]);
+
+    const activatePerpsSection = useCallback(() => {
+      setHasActivatedPerpsSection(true);
     }, []);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
     return (
-      <PerpsConnectionProvider isEnabled={isPerpsEnabled} suppressErrorView>
+      <PerpsConnectionProvider
+        isEnabled={isPerpsConnectionPollingEnabled}
+        suppressErrorView
+      >
         <PerpsStreamProvider>
           <Box
             marginBottom={8}
@@ -167,6 +185,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                 ref={perpsSectionRef}
                 sectionIndex={getSectionIndex(HomeSectionNames.PERPS)}
                 totalSectionsLoaded={totalSectionsLoaded}
+                onVisible={activatePerpsSection}
               />
             )}
             {isEarnSectionEnabled && (

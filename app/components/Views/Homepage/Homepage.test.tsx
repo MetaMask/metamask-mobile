@@ -64,7 +64,7 @@ jest.mock('../../UI/Perps', () => ({
 const mockPerpsConnectionProvider = jest.fn();
 jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
   const ReactLib = jest.requireActual<typeof import('react')>('react');
-  const PerpsConnectionContext = ReactLib.createContext({
+  const contextValue = {
     isConnected: true,
     isConnecting: false,
     isInitialized: true,
@@ -73,7 +73,10 @@ jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
     disconnect: jest.fn(),
     resetError: jest.fn(),
     reconnectWithNewContext: jest.fn().mockResolvedValue(undefined),
-  });
+  };
+  const PerpsConnectionContext = ReactLib.createContext<
+    typeof contextValue | null
+  >(null);
 
   return {
     PerpsConnectionContext,
@@ -85,18 +88,35 @@ jest.mock('../../UI/Perps/providers/PerpsConnectionProvider', () => {
       isEnabled?: boolean;
     }) => {
       mockPerpsConnectionProvider({ isEnabled });
-      return children;
+      return ReactLib.createElement(
+        PerpsConnectionContext.Provider,
+        { value: contextValue },
+        children,
+      );
     },
   };
 });
 
-jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => ({
-  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
-    children,
-  usePerpsStream: jest.fn(() => ({
+jest.mock('../../UI/Perps/providers/PerpsStreamManager', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const contextValue = {
     candles: { subscribe: jest.fn(() => jest.fn()) },
-  })),
-}));
+  };
+  const PerpsStreamContext = ReactLib.createContext<typeof contextValue | null>(
+    null,
+  );
+
+  return {
+    PerpsStreamContext,
+    PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+      ReactLib.createElement(
+        PerpsStreamContext.Provider,
+        { value: contextValue },
+        children,
+      ),
+    usePerpsStream: () => ReactLib.useContext(PerpsStreamContext),
+  };
+});
 
 jest.mock('../../UI/Perps/hooks', () => ({
   usePerpsLivePositions: jest.fn(() => ({
@@ -136,12 +156,13 @@ jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
   })),
 }));
 
+const mockRefreshPerpsSparklines = jest.fn();
 jest.mock(
   '../Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
   () => ({
     useHomepageSparklines: jest.fn(() => ({
       sparklines: {},
-      refresh: jest.fn(),
+      refresh: mockRefreshPerpsSparklines,
     })),
   }),
 );
@@ -236,11 +257,27 @@ jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
 }));
 
 const mockBalanceBreakdownSection = jest.fn();
+const mockBalanceBreakdownPerpsContexts = jest.fn();
 jest.mock('./Sections/BalanceBreakdown', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
   const { View } = jest.requireActual('react-native');
+  const { PerpsConnectionContext } = jest.requireMock(
+    '../../UI/Perps/providers/PerpsConnectionProvider',
+  ) as typeof import('../../UI/Perps/providers/PerpsConnectionProvider');
+  const { PerpsStreamContext } = jest.requireMock(
+    '../../UI/Perps/providers/PerpsStreamManager',
+  ) as {
+    PerpsStreamContext: React.Context<unknown>;
+  };
+
   return {
     __esModule: true,
     default: (props: unknown) => {
+      mockBalanceBreakdownPerpsContexts({
+        hasConnectionContext:
+          ReactLib.useContext(PerpsConnectionContext) !== null,
+        hasStreamContext: ReactLib.useContext(PerpsStreamContext) !== null,
+      });
       mockBalanceBreakdownSection(props);
       return <View testID="balance-breakdown-section-mock" />;
     },
@@ -282,6 +319,15 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
     PREDICT: 'predict',
     NFTS: 'nfts',
   },
+}));
+
+const mockUseSectionViewportVisible = jest.fn(() => ({
+  isVisible: false,
+  onLayout: jest.fn(),
+}));
+jest.mock('./hooks/useSectionViewportVisible', () => ({
+  __esModule: true,
+  default: () => mockUseSectionViewportVisible(),
 }));
 
 /** Returns mock useHomeViewedEvent calls with typed first argument. */
@@ -392,18 +438,46 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
   });
 
-  it('uses one enabled Perps connection provider for the homepage', () => {
+  it('keeps Perps connection polling idle before section visibility is known', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
 
     expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: false,
+    });
+  });
+
+  it('keeps Perps connection polling active after first visibility', () => {
+    const { rerender } = renderWithProvider(<Homepage />, {
+      state: stateWithPreferences,
+    });
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: true,
+      onLayout: jest.fn(),
+    });
+    rerender(<Homepage />);
+    expect(mockPerpsConnectionProvider).toHaveBeenLastCalledWith({
+      isEnabled: true,
+    });
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    rerender(<Homepage />);
+
+    expect(mockPerpsConnectionProvider).toHaveBeenLastCalledWith({
       isEnabled: true,
     });
   });
 
-  it('keeps the shared provider inert when Perps is disabled', () => {
+  it('keeps the shared Perps context provider inert when Perps is disabled', () => {
     jest
       .requireMock('../../UI/Perps')
       .selectPerpsEnabledFlag.mockReturnValue(false);
@@ -413,6 +487,23 @@ describe('Homepage', () => {
     expect(mockPerpsConnectionProvider).toHaveBeenCalledTimes(1);
     expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
       isEnabled: false,
+    });
+  });
+
+  it('enables Perps connection polling for the visible balance breakdown', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(mockPerpsConnectionProvider).toHaveBeenCalledWith({
+      isEnabled: true,
     });
   });
 
@@ -434,6 +525,24 @@ describe('Homepage', () => {
     expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
       balanceBreakdownSectionProps,
     );
+  });
+
+  it('provides Perps contexts to the treatment balance breakdown', () => {
+    const balanceBreakdownSectionProps = {
+      accountGroupBalanceProps: {},
+      hideRows: false,
+      layout: 'icons' as const,
+    };
+
+    renderWithProvider(
+      <Homepage balanceBreakdownSectionProps={balanceBreakdownSectionProps} />,
+      { state: stateWithPreferences },
+    );
+
+    expect(mockBalanceBreakdownPerpsContexts).toHaveBeenCalledWith({
+      hasConnectionContext: true,
+      hasStreamContext: true,
+    });
   });
 
   it('does not render a breakdown section for control', () => {
@@ -503,6 +612,17 @@ describe('Homepage', () => {
     const result = ref.current?.refresh();
 
     await expect(result).resolves.toBeUndefined();
+  });
+
+  it('skips Perps refresh before the section is activated', async () => {
+    const ref = createRef<SectionRefreshHandle>();
+    renderWithProvider(<Homepage ref={ref} />, { state: stateWithPreferences });
+
+    await act(async () => {
+      await ref.current?.refresh();
+    });
+
+    expect(mockRefreshPerpsSparklines).not.toHaveBeenCalled();
   });
 
   describe('section indices — all flags enabled', () => {

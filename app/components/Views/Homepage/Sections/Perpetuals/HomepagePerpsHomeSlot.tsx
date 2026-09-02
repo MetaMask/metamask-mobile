@@ -1,4 +1,5 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useLayoutEffect, useRef } from 'react';
+import { View } from 'react-native';
 import { useABTest } from '../../../../../hooks';
 import {
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
@@ -9,6 +10,11 @@ import type { SectionRefreshHandle } from '../../types';
 import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import PerpsSection from './PerpsSection';
 import { strings } from '../../../../../../locales/i18n';
+import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
+
+interface HomepagePerpsHomeSlotProps extends PerpsSectionProps {
+  onVisible?: () => void;
+}
 
 /**
  * Chooses the empty-state content for the homepage Perps section.
@@ -17,8 +23,9 @@ import { strings } from '../../../../../../locales/i18n';
  */
 const HomepagePerpsHomeSlot = forwardRef<
   SectionRefreshHandle,
-  PerpsSectionProps
->((props, ref) => {
+  HomepagePerpsHomeSlotProps
+>(({ onVisible, ...props }, ref) => {
+  const sectionViewRef = useRef<View>(null);
   const { variant: perpsPillsEmptyAbVariant } = useABTest(
     HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
     HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
@@ -28,17 +35,29 @@ const HomepagePerpsHomeSlot = forwardRef<
   const emptyStateUsesExplorePills =
     perpsPillsEmptyAbVariant.showExplorePillsWhenEmpty;
 
-  if (!emptyStateUsesExplorePills) {
-    return <PerpsSection ref={ref} {...props} />;
-  }
+  const { isVisible, onLayout } = useSectionViewportVisible(sectionViewRef, {
+    once: true,
+  });
+
+  useLayoutEffect(() => {
+    if (isVisible) {
+      onVisible?.();
+    }
+  }, [isVisible, onVisible]);
 
   return (
-    <PerpsSection
-      ref={ref}
-      {...props}
-      emptyStateContent="pills"
-      emptyStateTitleOverride={strings('trending.perps_movers')}
-    />
+    <View ref={sectionViewRef} onLayout={onLayout}>
+      {emptyStateUsesExplorePills ? (
+        <PerpsSection
+          ref={ref}
+          {...props}
+          emptyStateContent="pills"
+          emptyStateTitleOverride={strings('trending.perps_movers')}
+        />
+      ) : (
+        <PerpsSection ref={ref} {...props} />
+      )}
+    </View>
   );
 });
 
