@@ -161,7 +161,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-
             {isSocialLeaderboardEnabled && (
               <NotificationRow
                 title={strings(

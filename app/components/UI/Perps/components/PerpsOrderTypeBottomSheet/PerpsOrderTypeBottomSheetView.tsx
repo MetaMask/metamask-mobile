@@ -23,6 +23,8 @@ import type { TabItem } from '../../../../../component-library/components-temp/T
 import { useAssetFromTheme, useTheme } from '../../../../../util/theme';
 import LimitIconDark from '../../../../../images/perps/order-types/limit.svg';
 import LimitIconLight from '../../../../../images/perps/order-types/limit-light.svg';
+import ChaseIconDark from '../../../../../images/perps/order-types/chase.svg';
+import ChaseIconLight from '../../../../../images/perps/order-types/chase-light.svg';
 import MarketIconDark from '../../../../../images/perps/order-types/market.svg';
 import MarketIconLight from '../../../../../images/perps/order-types/market-light.svg';
 import ScaleIconDark from '../../../../../images/perps/order-types/scale.svg';
@@ -80,6 +82,15 @@ const SCALE_ORDER_TYPE: OrderTypeOption = {
   LightIcon: ScaleIconLight,
   DarkIcon: ScaleIconDark,
   testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+};
+
+const CHASE_ORDER_TYPE: OrderTypeOption = {
+  type: 'chase',
+  titleKey: 'perps.order.type.chase.title',
+  descriptionKey: 'perps.order.type.chase.description',
+  LightIcon: ChaseIconLight,
+  DarkIcon: ChaseIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
 };
 
 const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
@@ -143,6 +154,7 @@ const ORDER_TYPE_OPTIONS = new Map<OrderType, OrderTypeOption>(
     ...TRIGGERED_ORDER_TYPES,
     TWAP_ORDER_TYPE,
     SCALE_ORDER_TYPE,
+    CHASE_ORDER_TYPE,
   ].map((option): [OrderType, OrderTypeOption] => [option.type, option]),
 );
 
@@ -167,7 +179,7 @@ const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
   {
     key: 'advanced',
     labelKey: 'perps.order.type.advanced',
-    orderTypes: ['twap', 'scale'],
+    orderTypes: ['twap', 'scale', 'chase'],
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
   },
 ];
