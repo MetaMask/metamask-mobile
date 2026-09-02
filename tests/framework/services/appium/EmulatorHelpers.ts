@@ -203,9 +203,33 @@ function parseAdbDevices(stdout: string): AdbDevice[] {
     .filter((device): device is AdbDevice => device !== null);
 }
 
+/**
+ * Serialize adb client calls. Concurrent `adb devices` races on starting the
+ * daemon (`failed to start daemon` / cannot connect) when two pool boots run
+ * in Promise.all.
+ */
+let adbCommandQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueAdb<T>(fn: () => Promise<T>): Promise<T> {
+  const run = adbCommandQueue.then(fn, fn);
+  adbCommandQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+async function ensureAdbServer(): Promise<void> {
+  await enqueueAdb(async () => {
+    await execAsync('adb start-server');
+  });
+}
+
 async function listAdbDevices(): Promise<AdbDevice[]> {
-  const { stdout } = await execAsync('adb devices');
-  return parseAdbDevices(stdout);
+  return enqueueAdb(async () => {
+    const { stdout } = await execAsync('adb devices');
+    return parseAdbDevices(stdout);
+  });
 }
 
 async function getEmulatorAvdName(serial: string): Promise<string | undefined> {
@@ -729,10 +753,13 @@ export async function startAndroidEmulatorPool(
     `Booting Android emulator pool size=${poolSize} mode=${useGoldenSnapshot ? 'golden-snapshot' : 'cold'}.`,
   );
 
+  await ensureAdbServer();
+  const existingDevices = await listAdbDevices();
+
   const bootStartedAt = Date.now();
   const serials = await Promise.all(
     boots.map(async ({ serial: expectedSerial, args }) => {
-      const existing = (await listAdbDevices()).find(
+      const existing = existingDevices.find(
         (adbDevice) => adbDevice.serial === expectedSerial,
       );
       let serial = expectedSerial;
