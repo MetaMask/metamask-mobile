@@ -52,9 +52,13 @@ const calculateProgress = (item: TradeAllowanceItem): number => {
 };
 
 const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
-  const progress = useMemo(() => calculateProgress(item), [item]);
+  const progressPercent = useMemo(
+    () => Math.round(calculateProgress(item) * 100),
+    [item],
+  );
   const labelKey = `pro_hub.member_pricing.${item.id}.label`;
   const footnoteKey = `pro_hub.member_pricing.${item.id}.footnote`;
+  const label = strings(labelKey);
 
   return (
     <Box
@@ -68,7 +72,7 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
           justifyContent={BoxJustifyContent.Between}
         >
           <Text variant={TextVariant.BodyLg} color={TextColor.TextDefault}>
-            {strings(labelKey)}
+            {label}
           </Text>
           <Box flexDirection={BoxFlexDirection.Row}>
             <Text
@@ -90,10 +94,18 @@ const TradeAllowanceRow = ({ item }: TradeAllowanceRowProps) => {
         <Box
           twClassName="h-2 rounded-full bg-muted overflow-hidden"
           testID={MemberPricingOnTradesTestIds.PROGRESS(item.id)}
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel={label}
+          accessibilityValue={{
+            min: 0,
+            max: item.allowance,
+            now: Math.min(item.used, item.allowance),
+          }}
         >
           <Box
             twClassName="h-full rounded-full bg-icon-default"
-            style={{ width: `${progress * 100}%` }}
+            style={{ width: `${progressPercent}%` }}
             testID={MemberPricingOnTradesTestIds.PROGRESS_FILL(item.id)}
           />
         </Box>

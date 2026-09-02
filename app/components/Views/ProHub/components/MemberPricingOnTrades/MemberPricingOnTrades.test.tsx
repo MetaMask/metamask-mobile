@@ -109,6 +109,49 @@ describe('TradeAllowanceRow', () => {
     );
   });
 
+  it('rounds fractional progress fill width to a whole percent', () => {
+    const fractionalItem: TradeAllowanceItem = {
+      id: 'swaps',
+      used: 1,
+      allowance: 3,
+      kind: 'currency',
+    };
+
+    const { getByTestId } = renderTradeAllowanceRow(fractionalItem);
+
+    const fill = getByTestId(
+      MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps'),
+    );
+
+    expect(getFlattenedStyle(fill.props.style)).toEqual(
+      expect.objectContaining({ width: '33%' }),
+    );
+  });
+
+  it('exposes progressbar accessibility props on the allowance track', () => {
+    const swapsItem = MOCK_TRADE_ALLOWANCES.find((item) => item.id === 'swaps');
+
+    if (!swapsItem) {
+      throw new Error('swaps mock item not found');
+    }
+
+    const { getByTestId } = renderTradeAllowanceRow(swapsItem);
+
+    const progress = getByTestId(
+      MemberPricingOnTradesTestIds.PROGRESS('swaps'),
+    );
+
+    expect(progress.props.accessibilityRole).toBe('progressbar');
+    expect(progress.props.accessibilityLabel).toBe(
+      strings('pro_hub.member_pricing.swaps.label'),
+    );
+    expect(progress.props.accessibilityValue).toEqual({
+      min: 0,
+      max: 500,
+      now: 310,
+    });
+  });
+
   it('clamps progress fill width to 100% when used exceeds allowance', () => {
     const overAllowanceItem: TradeAllowanceItem = {
       id: 'swaps',
@@ -122,9 +165,17 @@ describe('TradeAllowanceRow', () => {
     const fill = getByTestId(
       MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps'),
     );
+    const progress = getByTestId(
+      MemberPricingOnTradesTestIds.PROGRESS('swaps'),
+    );
 
     expect(getFlattenedStyle(fill.props.style)).toEqual(
       expect.objectContaining({ width: '100%' }),
     );
+    expect(progress.props.accessibilityValue).toEqual({
+      min: 0,
+      max: 500,
+      now: 500,
+    });
   });
 });
