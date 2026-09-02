@@ -81,6 +81,7 @@ import {
   RESET_PASSWORD_SOCIAL_LOGIN_URL,
 } from '../../../constants/urls';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import { hasTestOverrides } from '../../../util/test/utils';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -201,9 +202,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       } else if (authData.availableBiometryType) {
         setBiometryType(authData.availableBiometryType);
         setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        // Await biometric reauth. On success, reauthenticate sets ResetForm.
-        // Never force ConfirmCurrent afterward — that raced and wiped ResetForm
-        await reauthenticate();
+        // E2E builds: skip Face ID auto-reauth so change-password always uses
+        // the current-password step.
+        // Production: await biometric reauth; on success reauthenticate sets
+        // ResetForm — do not force ConfirmCurrent afterward.
+        if (hasTestOverrides) {
+          setView(ViewState.ConfirmCurrent);
+        } else {
+          await reauthenticate();
+        }
       } else {
         setView(ViewState.ConfirmCurrent);
       }

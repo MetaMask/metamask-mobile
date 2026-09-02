@@ -17,8 +17,9 @@ import enContent from '../../../../locales/languages/en.json';
  * 1. Confirm current password
  * 2. Enter new password + confirm + checkbox → Save
  *
- * On devices with biometrics available, ResetPassword may auto-reauthenticate
- * and skip step 1 (lands on the new-password form).
+ * On devices with biometrics available (non-E2E), ResetPassword may
+ * auto-reauthenticate and skip step 1. E2E builds (HAS_TEST_OVERRIDES) always
+ * show step 1 for a deterministic path.
  */
 class ChangePasswordView {
   /**
@@ -40,6 +41,7 @@ class ChangePasswordView {
     );
   }
 
+  /** Only mounted on the new-password form (step 2). */
   get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
@@ -79,8 +81,8 @@ class ChangePasswordView {
   }
 
   /**
-   * Step-1 Confirm uses the same testID as Save on step 2; only one is mounted.
-   * Prefer ID over label text so iOS XCUITest does not miss the button.
+   * Step-1 Confirm uses SUBMIT_BUTTON_ID; Save on step 2 uses the same id but
+   * different label — only one screen is mounted at a time.
    */
   get confirmCurrentPasswordButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
@@ -96,6 +98,10 @@ class ChangePasswordView {
     return Matchers.getElementByText(
       enContent.reveal_credential.warning_incorrect_password,
     );
+  }
+
+  get newPasswordLabel(): Promise<AppiumElement> {
+    return Matchers.getElementByText(enContent.reset_password.password);
   }
 
   get warningSheetTitle(): Promise<AppiumElement> {
@@ -153,25 +159,37 @@ class ChangePasswordView {
   }
 
   async expectNewPasswordFormVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
-      description: 'Confirm new password input should be visible',
+    // Container / "New password" label are ResetForm-only and more reliable on
+    // iOS than XPath against the confirm TextField wrapper.
+    await Assertions.expectElementToBeVisible(this.container, {
+      description: 'Change password new-password form container',
       timeout: 30000,
+    });
+    await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
+      description: 'New password label should be visible',
+      timeout: 10000,
     });
     await Assertions.expectElementToBeVisible(this.iUnderstandCheckBox, {
       description: 'I understand checkbox should be visible',
       timeout: 10000,
     });
+    // Confirm field last — iOS wrapper testID can be flaky; form chrome is enough
+    // to know ResetForm mounted before we type into it.
+    await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
+      description: 'Confirm new password input should be visible',
+      timeout: 15000,
+    });
   }
 
   /**
    * True when biometry auto-reauth skipped the current-password step.
-   * Allow enough time for awaited Face ID reauth on iOS CI.
+   * Short probe — E2E builds skip Face ID auto-reauth.
    */
   private async isNewPasswordFormShowing(): Promise<boolean> {
     try {
-      await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
-        description: 'Probe for new-password confirm field',
-        timeout: 10000,
+      await Assertions.expectElementToBeVisible(this.container, {
+        description: 'Probe for new-password form container',
+        timeout: 3000,
       });
       return true;
     } catch {
@@ -194,34 +212,58 @@ class ChangePasswordView {
   }
 
   async enterCurrentPassword(password: string): Promise<void> {
-    // Do not append newline — onSubmitEditing would race with the Confirm tap.
-    // Match CreatePassword iOS field targeting: keep keyboard until after fill,
-    // then dismiss so Confirm is tappable.
+    // Do not append newline alone without ensuring React state updates — Confirm
+    // is disabled until onChangeText fires. iOS: per-character addValue.
+    if (PlatformDetector.isIOS()) {
+      await Gestures.typeTextByCharacters(this.passwordInput, password);
+      await Gestures.hideKeyboard();
+      return;
+    }
     await Gestures.typeText(this.passwordInput, password, {
-      hideKeyboard: false,
+      hideKeyboard: true,
       elemDescription: 'Change password - current password input',
     });
-    await Gestures.hideKeyboard();
   }
 
   async tapConfirmCurrentPassword(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmCurrentPasswordButton, {
-      elemDescription: 'Change password - Confirm current password',
-      checkEnabled: true,
-    });
+    // Prefer label — more stable than shared submit-button id across steps.
+    const confirmByLabel = Matchers.getElementByText(
+      ChangePasswordViewSelectorsText.CONFIRM_CURRENT_PASSWORD,
+    );
+    try {
+      await Gestures.waitAndTap(confirmByLabel, {
+        elemDescription: 'Change password - Confirm current password (label)',
+        checkEnabled: true,
+      });
+    } catch {
+      await Gestures.waitAndTap(this.confirmCurrentPasswordButton, {
+        elemDescription: 'Change password - Confirm current password (id)',
+        checkEnabled: true,
+      });
+    }
   }
 
   async enterNewPassword(password: string): Promise<void> {
-    const text = PlatformDetector.isIOS() ? `${password}\n` : password;
-    await Gestures.typeText(this.passwordInput, text, {
+    if (PlatformDetector.isIOS()) {
+      await Gestures.typeTextByCharacters(this.passwordInput, password, {
+        submitWithReturn: true,
+      });
+      return;
+    }
+    await Gestures.typeText(this.passwordInput, password, {
       hideKeyboard: false,
       elemDescription: 'Change password - new password input',
     });
   }
 
   async reEnterNewPassword(password: string): Promise<void> {
-    const text = PlatformDetector.isIOS() ? `${password}\n` : password;
-    await Gestures.typeText(this.confirmPasswordInput, text, {
+    if (PlatformDetector.isIOS()) {
+      await Gestures.typeTextByCharacters(this.confirmPasswordInput, password, {
+        submitWithReturn: true,
+      });
+      return;
+    }
+    await Gestures.typeText(this.confirmPasswordInput, password, {
       hideKeyboard: false,
       elemDescription: 'Change password - confirm new password input',
     });
