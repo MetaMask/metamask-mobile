@@ -11344,11 +11344,8 @@
   },
   "pro_hub": {
     "title": "MetaMask Pro",
-    "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
     "manage_plan": "Manage plan",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
     "lifetime_earnings": "Lifetime earnings",
@@ -11389,7 +11386,6 @@
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
-    "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
       "plan": "Membership",
