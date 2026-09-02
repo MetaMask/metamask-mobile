@@ -125,17 +125,23 @@ export function buildPredictFeeBreakdownAmounts(args: {
   depositFee?: number;
   total: number;
 } {
-  const { side, order, metamaskFee, total } = args;
+  const { side, order, metamaskFee, total, depositFee } = args;
   const snap = side === Side.BUY ? roundUpToCents : roundDownToCents;
   const snappedOrder = snap(order);
   const snappedMetamaskFee = snap(metamaskFee);
   const snappedTotal = snap(total);
-  const includeDeposit = args.depositFee !== undefined && args.depositFee !== 0;
-  const snappedDepositFee = includeDeposit ? snap(args.depositFee) : 0;
+  const includeDeposit = depositFee !== undefined && depositFee !== 0;
+  const snappedDepositFee = includeDeposit ? snap(depositFee) : 0;
+  const orderCents = Math.round(snappedOrder * CENTS_PER_UNIT);
+  const metamaskFeeCents = Math.round(snappedMetamaskFee * CENTS_PER_UNIT);
+  const depositFeeCents = includeDeposit
+    ? Math.round(snappedDepositFee * CENTS_PER_UNIT)
+    : 0;
+  const totalCents = Math.round(snappedTotal * CENTS_PER_UNIT);
   const exchangeFee =
-    side === Side.BUY
-      ? snappedTotal - snappedOrder - snappedMetamaskFee - snappedDepositFee
-      : snappedOrder - snappedMetamaskFee - snappedTotal;
+    (side === Side.BUY
+      ? totalCents - orderCents - metamaskFeeCents - depositFeeCents
+      : orderCents - metamaskFeeCents - totalCents) / CENTS_PER_UNIT;
 
   if (includeDeposit) {
     return {

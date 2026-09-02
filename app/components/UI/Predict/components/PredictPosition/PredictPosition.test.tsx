@@ -11,14 +11,18 @@ import { PredictPositionSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
-jest.mock('../../selectors/featureFlags', () => ({
-  ...jest.requireActual('../../selectors/featureFlags'),
-  selectPredictFeeCollectionFlag: jest.fn(() => ({
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
     enabled: true,
     metamaskFee: 0.02,
     providerFee: 0.02,
-  })),
-}));
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, vars?: Record<string, string | number>) => {
     if (key === 'predict.position_info' && vars) {
