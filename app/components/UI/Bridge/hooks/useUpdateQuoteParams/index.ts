@@ -74,13 +74,7 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
   );
 
   const { srcToken, destToken, srcAmount } = quoteParams;
-  const {
-    srcChainId,
-    destChainId,
-    srcTokenAddress,
-    destTokenAddress,
-    walletAddress,
-  } = genericQuoteRequest ?? {};
+  const { destChainId, walletAddress } = genericQuoteRequest ?? {};
 
   // Start the trace when the user commits a request, before the debounce timer.
   const debouncedUpdateQuoteParams = useMemo(() => {
@@ -130,7 +124,6 @@ export const useUpdateQuoteParams = (params: UseDebouncedUpdateParams) => {
     return debouncedWithTrace;
   }, [
     destChainId,
-    srcChainId,
     destToken,
     srcToken,
     srcAmount,
