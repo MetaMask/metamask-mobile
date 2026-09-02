@@ -45,15 +45,13 @@ class FundActionMenu {
 
   /**
    * Open the fund action sheet (via `openSheet`) then tap Unified Buy.
-   * Retries the open when the sheet does not expose `wallet-buy-unified-action`
+   * Retries open + tap when the sheet does not expose `wallet-buy-unified-action`
    * (iOS smoke flake: buy tap lands before wallet home / sheet is ready).
    */
   async openAndTapUnifiedBuy(openSheet: () => Promise<void>): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        if (!(await Utilities.isElementVisible(this.unifiedBuyButton, 1500))) {
-          await openSheet();
-        }
+        await openSheet();
         await Gestures.waitAndTap(this.unifiedBuyButton, {
           elemDescription: 'Fund Action Menu - Unified Buy Button',
           // Short per-attempt timeout; outer executeWithRetry covers retries.
@@ -61,8 +59,6 @@ class FundActionMenu {
         });
       },
       {
-        timeout: 30000,
-        interval: 1500,
         description:
           'Open Fund Action Menu and tap Unified Buy (wallet-buy-unified-action)',
       },
