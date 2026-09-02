@@ -4,6 +4,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '@metamask/money-account-utils';
 import {
   selectTransactions,
   selectHasUnapprovedTransactions,
@@ -438,6 +439,10 @@ describe('TransactionController Selectors', () => {
 
   describe('selectLocalTransactions', () => {
     const evmAddress = '0x0000000000000000000000000000000000000001';
+    const moneyAddress = '0x0000000000000000000000000000000000000002';
+    const otherEvmAddress = '0x0000000000000000000000000000000000000003';
+    const encodeTransfer = (recipient: string) =>
+      `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}`;
 
     const buildLocalTxState = ({
       groupEvmAccount = { address: evmAddress },
@@ -478,6 +483,134 @@ describe('TransactionController Selectors', () => {
       expect(selectLocalTransactions(buildLocalTxState())).toStrictEqual([
         expect.objectContaining({ id: 'parent' }),
       ]);
+    });
+
+    it('includes a Money deposit parent linked to the EOA through its required funding transaction', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'funding-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'money-deposit',
+            chainId: '0x8f',
+            requiredTransactionIds: ['funding-child'],
+            nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-deposit' }),
+      ]);
+    });
+
+    it('includes a Money withdrawal whose nested transfer targets the EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(evmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-withdraw' }),
+      ]);
+    });
+
+    it('excludes a Money withdrawal targeting a different EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'other-money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('ignores non-mUSD nested transfer recipients in a Money withdrawal', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw-with-refund',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: '0x00000000000000000000000000000000000000aa',
+                data: encodeTransfer(evmAddress),
+              },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('does not associate a non-Money parent through its required child sender', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'non-money-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'non-money-parent',
+            chainId: '0x1',
+            requiredTransactionIds: ['non-money-child'],
+            time: 100,
+            type: TransactionType.contractInteraction,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
     });
 
     it('filters gas_payment fee legs when activity redesign is on', () => {

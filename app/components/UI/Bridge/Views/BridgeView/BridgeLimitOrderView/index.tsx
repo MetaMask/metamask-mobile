@@ -20,6 +20,7 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -101,7 +102,6 @@ const BridgeLimitOrderViewContent = ({
     value,
   } = useSwapsLimitOrderPriceAdjust({
     destToken,
-    destTokenAmount,
     sourceToken,
   });
   const {
@@ -331,6 +331,7 @@ const BridgeLimitOrderViewContent = ({
                   <HardwareWalletUnsupportedBanner />
                   <QuoteErrorBanner />
                   <TokenWarningBanner />
+                  <DestAssetRequireActivateBanner />
                   <InsufficientNativeReserveBanner />
                   <MissingQuoteAndAssetsPriceDataBanner />
                 </SwapsBanners>

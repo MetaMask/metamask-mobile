@@ -10,6 +10,7 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
+import { selectPrimaryMoneyAccount } from '../../../selectors/moneyAccountController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
 import { useConvertToFiat } from '../../hooks/useConvertToFiat';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
@@ -19,7 +20,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import { renderShortAddress } from '../../../util/address';
+import { areAddressesEqual, renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -506,6 +507,7 @@ function resolveCoreContent(
   formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
+  isMoneyAccountCounterparty = false,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -516,12 +518,27 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol ?? '';
       const address = item.type === 'receive' ? item.data.from : item.data.to;
-      const label = item.type === 'receive' ? 'Received' : 'Sent';
-      const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
-      const failedLabel =
-        item.type === 'receive' ? 'Receive failed' : 'Send failed';
-      const cancelledLabel =
-        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
+      const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
+      const label = isMoneyDeposit
+        ? strings('money.transaction.deposited')
+        : item.type === 'receive'
+          ? 'Received'
+          : 'Sent';
+      const pendingLabel = isMoneyDeposit
+        ? strings('money.transaction.depositing')
+        : item.type === 'receive'
+          ? 'Receiving'
+          : 'Sending';
+      const failedLabel = isMoneyDeposit
+        ? strings('money.transaction.deposit_failed')
+        : item.type === 'receive'
+          ? 'Receive failed'
+          : 'Send failed';
+      const cancelledLabel = isMoneyDeposit
+        ? 'Deposit cancelled'
+        : item.type === 'receive'
+          ? 'Receive cancelled'
+          : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
       const counterpartyLabel =
         counterpartyName ||
@@ -1127,7 +1144,7 @@ export function useActivityListItemRowContent(
       : item.type === 'send'
         ? item.data.to
         : undefined;
-  const counterpartyName = useAccountNames(
+  const accountGroupName = useAccountNames(
     counterpartyAddress
       ? [
           {
@@ -1138,12 +1155,22 @@ export function useActivityListItemRowContent(
         ]
       : [],
   )[0];
+  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const isMoneyAccountCounterparty = Boolean(
+    counterpartyAddress &&
+      moneyAccountAddress &&
+      areAddressesEqual(counterpartyAddress, moneyAccountAddress),
+  );
+  const counterpartyName = isMoneyAccountCounterparty
+    ? strings('transaction_details.label.money_account')
+    : accountGroupName;
 
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
+    isMoneyAccountCounterparty,
   );
 
   let basePrimaryToken: TokenAmount | undefined;
