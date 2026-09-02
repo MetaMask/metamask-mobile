@@ -39,7 +39,12 @@ export const FeedPreviewSection = ({
   const renderEvent = (event: PredictEvent) => {
     const handlePress = () => onOpenEvent(event);
     return (
-      <PredictEventCard key={event.id} event={event} onPress={handlePress} />
+      <PredictEventCard
+        key={event.id}
+        event={event}
+        variant="featured"
+        onPress={handlePress}
+      />
     );
   };
 
