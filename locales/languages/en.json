@@ -1587,6 +1587,7 @@
       "available_balance": "{{amount}} available",
       "available_balance_unavailable": "-- available",
       "est_liquidation": "Est Liquidation",
+      "before_after": "{{before}} → {{after}}",
       "tpsl": "TP / SL",
       "place_order": "Place order",
       "keyboard_previous": "Previous field",

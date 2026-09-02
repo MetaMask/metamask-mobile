@@ -531,6 +531,27 @@ describe('useWhatsHappening', () => {
 
       expect(mockFetchFrontPageItem).not.toHaveBeenCalled();
     });
+
+    it('shares the overview query with a carousel observer', async () => {
+      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
+
+      const { result } = renderHook(
+        () => ({
+          carousel: useWhatsHappening(),
+          detail: useWhatsHappening({ outdatedItemId: mockFrontPage.id }),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.carousel.isLoading).toBe(false);
+        expect(result.current.detail.isLoading).toBe(false);
+      });
+
+      expect(mockFetchMarketOverview).toHaveBeenCalledTimes(1);
+      expect(mockFetchFrontPageItem).toHaveBeenCalledTimes(1);
+      expect(result.current.detail.items[0].isOutdated).toBe(true);
+    });
   });
 
   it('shares one in-flight market overview request across same-key mounts', async () => {
