@@ -95,9 +95,12 @@ describe('usePredictActivity', () => {
   it('does not fetch activity when enabled is false', () => {
     const { Wrapper } = createWrapper();
 
-    const { result } = renderHook(() => usePredictActivity({ enabled: false }), {
-      wrapper: Wrapper,
-    });
+    const { result } = renderHook(
+      () => usePredictActivity({ enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
 
     expect(mockGetActivity).not.toHaveBeenCalled();
     expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
