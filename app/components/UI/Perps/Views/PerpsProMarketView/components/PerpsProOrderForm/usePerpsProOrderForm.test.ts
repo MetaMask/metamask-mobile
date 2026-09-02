@@ -1060,6 +1060,86 @@ describe('usePerpsProOrderForm', () => {
       ).toBe('Loading positions...');
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
+
+    it('validates the stop loss side against the remaining position direction on a partial decrease', () => {
+      // Arrange: decreasing a short means a long order, but the remaining
+      // position stays short, so a stop loss above the market is valid.
+      mockOrderForm.direction = 'long';
+      mockOrderForm.stopLossPrice = '95000';
+      mockExistingPosition = {
+        size: '-1',
+        marginUsed: '1000',
+        liquidationPrice: '105000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'decrease',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+        resulting: {
+          direction: 'short',
+          size: 0.5,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 500 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert: no wrong-side warning, and placement is not blocked.
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-invalid'),
+      ).toBeUndefined();
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-liq-risk'),
+      ).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('warns when the stop loss sits past the projected liquidation price', () => {
+      // Arrange: the current liquidation (80000) keeps a 85000 stop loss safe,
+      // but the resize projects liquidation up to 86000.
+      mockOrderForm.stopLossPrice = '85000';
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '80000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 80000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 2,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 2000 },
+          liquidationPrice: { available: true, value: 86000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-liq-risk'),
+      ).toBeDefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
   });
 
   describe('handlePlaceOrder', () => {
