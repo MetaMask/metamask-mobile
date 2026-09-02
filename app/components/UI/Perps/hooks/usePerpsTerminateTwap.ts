@@ -48,9 +48,23 @@ export const usePerpsTerminateTwap = (
           throw new Error(result.error ?? 'TWAP termination failed');
         }
 
+        // Pass the schedule's direction and executed size so the toast names
+        // what was filled. Without them the shared copy falls through to
+        // "funds are available to trade", which contradicts the terminate
+        // sheet's warning that already-filled size stays as a position.
+        const executedSize = Number.parseFloat(twapOrder.executedSize);
+        const hasFills = Number.isFinite(executedSize) && executedSize > 0;
         showToast(
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             twapOrder.reduceOnly,
+            undefined,
+            hasFills
+              ? twapOrder.side === 'buy'
+                ? 'long'
+                : 'short'
+              : undefined,
+            hasFills ? twapOrder.executedSize : undefined,
+            hasFills ? twapOrder.symbol : undefined,
           ),
         );
         onSuccess?.(twapOrder);

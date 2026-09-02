@@ -123,22 +123,34 @@ describe('PerpsProTwapPanel', () => {
   it('flattens slice fills on the fill-history view', () => {
     // Arrange
     renderPanel({
-      activeTwapOrders: [buildTwapOrder({ fills: [buildFill()] })],
+      activeTwapOrders: [
+        buildTwapOrder({
+          fills: [buildFill({ fillId: 'f1' }), buildFill({ fillId: 'f2' })],
+        }),
+      ],
     });
+
+    // Assert: the active view shows schedules, not fills
+    expect(screen.queryByTestId(`${ids.TWAP_FILL_ROW}-f1`)).toBeNull();
 
     // Act
     fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
 
-    // Assert
-    expect(screen.getByTestId(ids.TWAP_LIST)).toBeOnTheScreen();
+    // Assert: both slices of the one schedule are now listed individually
+    expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f1`)).toBeOnTheScreen();
+    expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f2`)).toBeOnTheScreen();
+    expect(screen.queryByTestId(ids.TWAP_TERMINATE)).toBeNull();
   });
 
   it('shows the empty state when a view has nothing to list', () => {
     // Arrange / Act
     renderPanel({ activeTwapOrders: [], historicalTwapOrders: [] });
 
-    // Assert
+    // Assert: the empty state itself renders, not merely an absent list
     expect(screen.queryByTestId(ids.TWAP_LIST)).toBeNull();
+    expect(
+      screen.UNSAFE_getAllByType('PerpsProTwapEmptyState' as never),
+    ).toHaveLength(1);
   });
 
   it('suppresses the empty state while the first read is pending', () => {
@@ -149,8 +161,12 @@ describe('PerpsProTwapPanel', () => {
       isInitialLoading: true,
     });
 
-    // Assert: avoid flashing "no TWAPs" before the first result lands
+    // Assert: neither a list nor an empty state, so "no TWAPs" cannot flash
+    // before the first result lands
     expect(screen.queryByTestId(ids.TWAP_LIST)).toBeNull();
+    expect(
+      screen.UNSAFE_queryAllByType('PerpsProTwapEmptyState' as never),
+    ).toHaveLength(0);
   });
 
   it('disables Terminate while a termination is in flight', () => {

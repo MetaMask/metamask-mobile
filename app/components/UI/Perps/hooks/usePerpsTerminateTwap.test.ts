@@ -8,6 +8,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 const mockShowToast = jest.fn();
+const mockCancellationSuccess = jest.fn(() => ({ id: 'success' }));
 jest.mock('./usePerpsToasts', () => ({
   __esModule: true,
   default: () => ({
@@ -15,7 +16,7 @@ jest.mock('./usePerpsToasts', () => ({
     PerpsToastOptions: {
       orderManagement: {
         shared: {
-          cancellationSuccess: jest.fn(() => ({ id: 'success' })),
+          cancellationSuccess: mockCancellationSuccess,
           cancellationFailed: { id: 'failed' },
         },
       },
@@ -77,6 +78,46 @@ describe('usePerpsTerminateTwap', () => {
     });
     expect(onSuccess).toHaveBeenCalledWith(twapOrder);
     expect(result.current.terminatingOrderId).toBeNull();
+  });
+
+  it('names the filled size in the success toast', async () => {
+    // Arrange: a partially filled opening schedule
+    const { result } = renderHook(() => usePerpsTerminateTwap());
+
+    // Act
+    await act(async () => {
+      await result.current.terminateTwap(twapOrder);
+    });
+
+    // Assert: passing direction/amount/symbol keeps the shared copy off
+    // "funds are available to trade", which would contradict the sheet's
+    // warning that filled size stays as a position
+    expect(mockCancellationSuccess).toHaveBeenCalledWith(
+      false,
+      undefined,
+      'long',
+      '4',
+      'BTC',
+    );
+  });
+
+  it('omits fill details when nothing executed', async () => {
+    // Arrange
+    const { result } = renderHook(() => usePerpsTerminateTwap());
+
+    // Act
+    await act(async () => {
+      await result.current.terminateTwap({ ...twapOrder, executedSize: '0' });
+    });
+
+    // Assert
+    expect(mockCancellationSuccess).toHaveBeenCalledWith(
+      false,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
   });
 
   it('treats an unsuccessful result as a failure', async () => {
