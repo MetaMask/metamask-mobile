@@ -296,11 +296,13 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
 
   if (fix.action === 'no-safe-fix') {
     console.log(`[${id}] ${pkg}: AI analyzer found no safe fix — ${fix.reasoning}`);
+    advisory.reason = fix.reasoning || 'AI analyzer found no safe fix.';
     return null;
   }
 
   if (!fix.target) {
     console.log(`[${id}] ${pkg}: "${fix.action}" proposed with no target — skipping`);
+    advisory.reason = `AI analyzer proposed "${fix.action}" without a target version — treated as no safe fix.`;
     return null;
   }
 
@@ -310,6 +312,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
     if (!upResult.ok) {
       console.log(`[${id}] ${pkg}: "yarn up ${pkg}@${fix.target}" failed, reverting`);
       revertLockfileChanges();
+      advisory.reason = `AI proposed bumping to ${fix.target}, but "yarn up ${pkg}@${fix.target}" failed to apply.`;
       return null;
     }
   } else if (fix.action === 'add-resolution') {
@@ -322,6 +325,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
     const manifest = JSON.parse(readFileSync('package.json', 'utf8'));
     if (!manifest.resolutions || !(fix.target in manifest.resolutions)) {
       console.log(`[${id}] ${pkg}: proposed resolutions key "${fix.target}" does not exist in package.json — skipping`);
+      advisory.reason = `AI proposed removing a resolutions["${fix.target}"] entry, but no such entry exists in package.json.`;
       return null;
     }
     console.log(`[${id}] ${pkg}: applying AI-proposed removal of resolutions["${fix.target}"]`);
@@ -329,6 +333,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
     writeFileSync('package.json', `${JSON.stringify(manifest, null, 2)}\n`);
   } else {
     console.log(`[${id}] ${pkg}: unrecognized action "${fix.action}" — skipping`);
+    advisory.reason = `AI analyzer returned an unrecognized action "${fix.action}".`;
     return null;
   }
 
@@ -350,6 +355,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
 
   console.log(`[${id}] ${pkg}: AI-proposed ${fix.action} did not clear the advisory cleanly, reverting`);
   revertLockfileChanges();
+  advisory.reason = `AI proposed ${fix.action} to ${fix.target}, but it didn't independently verify (yarn dedupe/constraints/re-audit) after applying it.`;
   return null;
 }
 
@@ -436,6 +442,7 @@ function main(): void {
     const fix = proposedFixes.find((candidate) => candidate.advisory_id === advisory.id && candidate.package === advisory.pkg);
     if (!fix) {
       console.log(`[${advisory.id}] ${advisory.pkg}: AI analyzer returned no proposal for this advisory — leaving manual`);
+      advisory.reason = 'AI analyzer returned no proposal for this advisory.';
       stillManual.push(advisory);
       continue;
     }
