@@ -75,8 +75,9 @@ jobs:
          contains(fromJson(inputs.selected_tags || '["ALL"]'), 'SmokePerps'))
       }}
     strategy:
+      # Lite + Pro nearly doubled SmokePerps; 2 shards exceeded the 25m test step.
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3, 4]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -84,7 +85,7 @@ jobs:
       platform: ios
       test_suite_tag: SmokePerps
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 4
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
