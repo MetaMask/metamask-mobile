@@ -29,8 +29,8 @@ export const orderHomepagePredictEventMarkets = (
   });
 
 /**
- * Loads the configured event-backed homepage slots and restores config order.
- * Gamma does not guarantee that repeated `id` filters preserve request order.
+ * Fetches the markets backing the homepage Predict event slots, preserving the
+ * configured slot order.
  */
 export function useHomepagePredictMarketSlots({
   enabled,
@@ -41,13 +41,13 @@ export function useHomepagePredictMarketSlots({
     [slots],
   );
   const customQueryParams = useMemo(
-    () => buildHomepagePredictEventQuery(slots),
-    [slots],
+    () => buildHomepagePredictEventQuery(eventSlots),
+    [eventSlots],
   );
   const refine = useCallback(
     (markets: PredictMarket[]) =>
-      orderHomepagePredictEventMarkets(markets, slots),
-    [slots],
+      orderHomepagePredictEventMarkets(markets, eventSlots),
+    [eventSlots],
   );
 
   return usePredictMarketData({

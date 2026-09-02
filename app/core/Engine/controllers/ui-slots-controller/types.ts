@@ -11,43 +11,32 @@ import type { UiSlotsDataServiceActions } from './UiSlotsDataService';
 
 export const UI_SLOTS_CONTROLLER_NAME = 'UiSlotsController' as const;
 
+/**
+ * Feature modules extend these maps with the screens, widgets and
+ * data-reference contracts they own, so the controller stays feature-agnostic
+ * while persisted state keeps a concrete, JSON-serializable union.
+ */
 export interface UiSlotsScreenIdMap {}
-
-export type UiSlotsScreenId = keyof UiSlotsScreenIdMap & string;
-export type UiSlotsConfigurationKey = string;
-export type UiSlotsPlatform = 'extension' | 'mobile';
 
 export interface UiSlotWidgetMap {}
 
-export type UiSlotWidget = UiSlotWidgetMap[keyof UiSlotWidgetMap];
-
-/**
- * Feature modules extend this map with their owned data-reference contracts.
- * The controller remains feature-agnostic while retaining a concrete,
- * JSON-serializable union in persisted state.
- */
 export interface UiSlotDataReferenceMap {}
+
+export type UiSlotsScreenId = keyof UiSlotsScreenIdMap & string;
+export type UiSlotsConfigurationKey = string;
+
+export type UiSlotWidget = UiSlotWidgetMap[keyof UiSlotWidgetMap];
 
 export type UiSlotDataReference =
   UiSlotDataReferenceMap[keyof UiSlotDataReferenceMap];
 
+// State-bearing shapes stay type aliases: `BaseController`'s state constraint
+// needs the implicit index signature that interfaces do not get.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type UiSlot = {
   slotId: string;
   contentId: string;
   revision: number;
-  compatibility?: Partial<
-    Record<
-      UiSlotsPlatform,
-      {
-        minimumVersion: string;
-      }
-    >
-  >;
-  validity?: {
-    from?: string;
-    until?: string;
-  };
   widget: UiSlotWidget;
   dataReferences?: UiSlotDataReference[];
 };
@@ -67,16 +56,13 @@ export type StoredScreenConfiguration = {
   response: UiSlotsScreenResponse;
   etag?: string;
   fetchedAt: number;
-  capabilityCohort: string;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type RenderedScreenConfiguration = {
+export type ActiveScreenConfiguration = {
+  configurationKey: UiSlotsConfigurationKey;
   slotsById: Record<string, UiSlot>;
-  slotIds: string[];
 };
-
-export type UiSlotsRequestStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 export interface UiSlotsDiagnostics {
   log(message: string, data?: Record<string, unknown>): void;
@@ -90,14 +76,13 @@ export type UiSlotsControllerState = {
     UiSlotsConfigurationKey,
     StoredScreenConfiguration
   >;
-  renderedConfigurations: Record<
-    UiSlotsConfigurationKey,
-    RenderedScreenConfiguration
+  /**
+   * Interpreted slots for the configuration currently on screen. Derived from
+   * `screenConfigurations`, so it is never persisted.
+   */
+  activeConfigurations: Partial<
+    Record<UiSlotsScreenId, ActiveScreenConfiguration>
   >;
-  activeConfigurationKeys: Partial<
-    Record<UiSlotsScreenId, UiSlotsConfigurationKey>
-  >;
-  requestStatus: Partial<Record<UiSlotsScreenId, UiSlotsRequestStatus>>;
 };
 
 export type UiSlotsControllerActions =

@@ -4,9 +4,9 @@ import type {
   PredictHomepageMarketSlotReference,
   PredictHomepageMarketSlotReferenceItem,
 } from '../types';
-import { PREDICT_HOMEPAGE_SERIES_REGISTRY } from '../seriesRegistry';
+import { isPredictHomepageSeriesId } from '../seriesRegistry';
 
-export const MAX_PREDICT_HOMEPAGE_MARKET_SLOTS = 10;
+const MAX_PREDICT_HOMEPAGE_MARKET_SLOTS = 10;
 const MAX_PREDICT_HOMEPAGE_EVENT_IDENTIFIER_LENGTH = 512;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -68,12 +68,11 @@ const parsePredictHomepageMarketSlotItem = (
   if (value.type === 'series') {
     if (
       !hasExactKeys(value, ['type', 'seriesId']) ||
-      typeof value.seriesId !== 'string' ||
-      !Object.hasOwn(PREDICT_HOMEPAGE_SERIES_REGISTRY, value.seriesId)
+      !isPredictHomepageSeriesId(value.seriesId)
     ) {
       throw new Error('Invalid Predict homepage series slot.');
     }
-    return { type: 'series', seriesId: 'btc-up-or-down-5m' };
+    return { type: 'series', seriesId: value.seriesId };
   }
   throw new Error('Unknown Predict homepage market slot item type.');
 };

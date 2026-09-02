@@ -27,14 +27,10 @@ const createState = ({
       UiSlotsController: {
         enabled: true,
         screenConfigurations: {},
-        requestStatus: { 'wallet-home': 'ready' },
-        activeConfigurationKeys: hasActiveConfiguration
-          ? { 'wallet-home': 'wallet-home-key' }
-          : {},
-        renderedConfigurations: hasActiveConfiguration
+        activeConfigurations: hasActiveConfiguration
           ? {
-              'wallet-home-key': {
-                slotIds: ['wallet-home.predict-empty-state'],
+              'wallet-home': {
+                configurationKey: 'wallet-home-key',
                 slotsById: {
                   'wallet-home.predict-empty-state': {
                     slotId: 'wallet-home.predict-empty-state',

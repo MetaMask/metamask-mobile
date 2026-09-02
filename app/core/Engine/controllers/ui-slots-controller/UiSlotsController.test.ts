@@ -6,29 +6,12 @@ import {
 import { PREDICT_UI_SLOT_DEFINITIONS } from '../../../../components/UI/Predict/uiSlots/slotDefinitions';
 import { buildUiSlotsConfigurationKey } from './configurationKey';
 import { MOBILE_UI_SLOTS_CONTRACT_REGISTRY } from '../../../../components/UI/UiSlots/mobileContractRegistry';
-import {
-  UI_SLOTS_CAPABILITY_COHORT,
-  UI_SLOTS_CONTRACT_MAJOR,
-  UI_SLOTS_PLATFORM,
-  UI_SLOTS_SOFT_TTL_MS,
-} from './config';
+import { UI_SLOTS_SOFT_TTL_MS } from './config';
 
 jest.mock('../../../../util/Logger');
 
-const buildConfigurationKey = ({
-  screenId,
-  locale,
-}: {
-  screenId: 'wallet-home';
-  locale: string;
-}) =>
-  buildUiSlotsConfigurationKey({
-    screenId,
-    locale,
-    platform: UI_SLOTS_PLATFORM,
-    contractMajor: UI_SLOTS_CONTRACT_MAJOR,
-    capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
-  });
+const buildConfigurationKey = (locale: string) =>
+  buildUiSlotsConfigurationKey({ screenId: 'wallet-home', locale });
 
 const makeResponse = (overrides: Record<string, unknown> = {}) => ({
   contractVersion: 1,
@@ -77,10 +60,6 @@ function buildMessenger(
 }
 
 const controllerOptions = {
-  clientVersion: '1.0.0',
-  platform: 'mobile' as const,
-  contractMajor: UI_SLOTS_CONTRACT_MAJOR,
-  capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
   enabled: true,
   diagnostics: {
     log: jest.fn(),
@@ -90,11 +69,9 @@ const controllerOptions = {
   contractRegistry: MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
 };
 
-function getRenderedSlots(controller: UiSlotsController) {
-  const key = controller.state.activeConfigurationKeys['wallet-home'];
-  return key
-    ? Object.values(controller.state.renderedConfigurations[key].slotsById)
-    : [];
+function getActiveSlots(controller: UiSlotsController) {
+  const active = controller.state.activeConfigurations['wallet-home'];
+  return active ? Object.values(active.slotsById) : [];
 }
 
 describe('UiSlotsController', () => {
@@ -111,17 +88,13 @@ describe('UiSlotsController', () => {
       ...controllerOptions,
     });
 
-    await controller.loadScreen('wallet-home', 'en');
+    const outcome = await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
-    expect(getRenderedSlots(controller)).toHaveLength(1);
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
-    expect(controller.state.screenConfigurations[configurationKey]?.etag).toBe(
-      '"config-1"',
-    );
+    expect(outcome).toBe('ready');
+    expect(getActiveSlots(controller)).toHaveLength(1);
+    expect(
+      controller.state.screenConfigurations[buildConfigurationKey('en')]?.etag,
+    ).toBe('"config-1"');
   });
 
   it('deduplicates concurrent screen requests', async () => {
@@ -154,11 +127,11 @@ describe('UiSlotsController', () => {
       messenger: buildMessenger(call),
     });
 
-    await controller.loadScreen('wallet-home', 'en');
+    const outcome = await controller.loadScreen('wallet-home', 'en');
 
+    expect(outcome).toBe('disabled');
     expect(call).not.toHaveBeenCalled();
-    expect(controller.state.activeConfigurationKeys).toEqual({});
-    expect(controller.state.requestStatus['wallet-home']).toBe('idle');
+    expect(controller.state.activeConfigurations).toEqual({});
   });
 
   it('immediately removes active content when dynamically disabled', async () => {
@@ -176,8 +149,7 @@ describe('UiSlotsController', () => {
     controller.setEnabled(false);
 
     expect(controller.state.enabled).toBe(false);
-    expect(controller.state.activeConfigurationKeys).toEqual({});
-    expect(controller.state.renderedConfigurations).toEqual({});
+    expect(controller.state.activeConfigurations).toEqual({});
   });
 
   it('disables active content when basic functionality is turned off', async () => {
@@ -196,7 +168,7 @@ describe('UiSlotsController', () => {
     controller.setEnabled(true);
 
     expect(controller.state.enabled).toBe(false);
-    expect(controller.state.activeConfigurationKeys).toEqual({});
+    expect(controller.state.activeConfigurations).toEqual({});
   });
 
   it('does not let an older locale request replace the latest locale', async () => {
@@ -225,15 +197,12 @@ describe('UiSlotsController', () => {
     });
     await englishRequest;
 
-    expect(controller.state.activeConfigurationKeys['wallet-home']).toBe(
-      buildConfigurationKey({
-        screenId: 'wallet-home',
-        locale: 'fr',
-      }),
-    );
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('fr'));
   });
 
-  it('reactivates an existing in-flight request when locale returns to it', async () => {
+  it('shares one request between concurrent loads of the same locale', async () => {
     const resolvers = new Map<string, (value: unknown) => void>();
     const call = jest.fn(
       (_action: string, request: { locale: string }) =>
@@ -246,35 +215,23 @@ describe('UiSlotsController', () => {
       messenger: buildMessenger(call),
     });
 
-    const firstEnglishRequest = controller.loadScreen('wallet-home', 'en');
-    const frenchRequest = controller.loadScreen('wallet-home', 'fr');
-    const latestEnglishRequest = controller.loadScreen('wallet-home', 'en');
-    resolvers.get('fr')?.({
-      status: 'modified',
-      value: makeResponse({ locale: 'fr' }),
-    });
-    await frenchRequest;
+    const first = controller.loadScreen('wallet-home', 'en');
+    const second = controller.loadScreen('wallet-home', 'en');
     resolvers.get('en')?.({
       status: 'modified',
       value: makeResponse({ locale: 'en' }),
     });
-    await Promise.all([firstEnglishRequest, latestEnglishRequest]);
+    await Promise.all([first, second]);
 
-    expect(call).toHaveBeenCalledTimes(2);
-    expect(controller.state.activeConfigurationKeys['wallet-home']).toBe(
-      buildConfigurationKey({
-        screenId: 'wallet-home',
-        locale: 'en',
-      }),
-    );
+    expect(second).toBe(first);
+    expect(call).toHaveBeenCalledTimes(1);
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('en'));
   });
 
   it('revalidates malformed persisted configuration before activation', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
     const call = jest.fn().mockResolvedValue({
       status: 'modified',
       value: makeResponse(),
@@ -286,10 +243,9 @@ describe('UiSlotsController', () => {
       state: {
         ...defaultUiSlotsControllerState,
         screenConfigurations: {
-          [configurationKey]: {
+          [buildConfigurationKey('en')]: {
             response: { invalid: true },
             fetchedAt: now,
-            capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
           },
         },
       } as never,
@@ -302,15 +258,11 @@ describe('UiSlotsController', () => {
       locale: 'en',
       etag: undefined,
     });
-    expect(getRenderedSlots(controller)).toHaveLength(1);
+    expect(getActiveSlots(controller)).toHaveLength(1);
   });
 
   it('rejects malformed persisted cache metadata before activation', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
     const call = jest.fn().mockResolvedValue({
       status: 'modified',
       value: makeResponse(),
@@ -322,11 +274,10 @@ describe('UiSlotsController', () => {
       state: {
         ...defaultUiSlotsControllerState,
         screenConfigurations: {
-          [configurationKey]: {
+          [buildConfigurationKey('en')]: {
             response: makeResponse(),
             fetchedAt: 'invalid',
             etag: 123,
-            capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
           },
         },
       } as never,
@@ -341,141 +292,151 @@ describe('UiSlotsController', () => {
     });
   });
 
-  it('returns the next cache or content evaluation boundary', async () => {
+  it('returns the next refresh boundary from the soft TTL', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const validUntil = now + 5 * 60 * 1000;
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
       messenger: buildMessenger(
         jest.fn().mockResolvedValue({
           status: 'modified',
-          value: makeResponse({
-            slots: [
-              {
-                ...makeResponse().slots[0],
-                validity: { until: new Date(validUntil).toISOString() },
-              },
-            ],
-          }),
+          value: makeResponse(),
         }),
       ),
     });
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.getNextEvaluationAt('wallet-home', 'en')).toBe(
-      Math.min(now + UI_SLOTS_SOFT_TTL_MS, validUntil),
+    expect(controller.getNextRefreshAt('wallet-home', 'en')).toBe(
+      now + UI_SLOTS_SOFT_TTL_MS,
     );
   });
 
-  it('expires content synchronously without waiting for a refresh', async () => {
-    let now = 1_000;
-    const controller = new UiSlotsController({
-      ...controllerOptions,
-      now: () => now,
-      messenger: buildMessenger(
-        jest.fn().mockResolvedValue({
-          status: 'modified',
-          value: makeResponse({
-            slots: [
-              {
-                ...makeResponse().slots[0],
-                validity: { until: new Date(1_500).toISOString() },
-              },
-            ],
-          }),
-        }),
-      ),
+  it('reuses fresh cached content without a second request', async () => {
+    const now = Date.parse('2026-08-13T10:00:00.000Z');
+    const call = jest.fn().mockResolvedValue({
+      status: 'modified',
+      value: makeResponse(),
     });
-    await controller.loadScreen('wallet-home', 'en');
-    expect(getRenderedSlots(controller)).toHaveLength(1);
-
-    now = 2_000;
-    controller.evaluateScreen('wallet-home', 'en');
-
-    expect(getRenderedSlots(controller)).toEqual([]);
-  });
-
-  it('reapplies validity rules after a 304 response', async () => {
-    let now = 1_000;
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
-    const response = makeResponse({
-      slots: [
-        {
-          ...makeResponse().slots[0],
-          validity: { until: new Date(1_500).toISOString() },
-        },
-      ],
-    });
-    const call = jest.fn(
-      () =>
-        new Promise((resolve) => {
-          now = 2_000;
-          resolve({ status: 'not-modified', etag: '"config-1"' });
-        }),
-    );
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
       messenger: buildMessenger(call),
+    });
+    await controller.loadScreen('wallet-home', 'en');
+
+    await controller.loadScreen('wallet-home', 'en');
+
+    expect(call).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the rendered slot identity stable across repeated loads', async () => {
+    const now = Date.parse('2026-08-13T10:00:00.000Z');
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      messenger: buildMessenger(
+        jest.fn().mockResolvedValue({
+          status: 'modified',
+          value: makeResponse(),
+        }),
+      ),
       state: {
         ...defaultUiSlotsControllerState,
         screenConfigurations: {
-          [configurationKey]: {
-            response,
-            fetchedAt: -1_000_000,
+          [buildConfigurationKey('en')]: {
+            response: makeResponse(),
+            fetchedAt: now,
             etag: '"config-1"',
-            capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
           },
         },
       } as never,
     });
 
     await controller.loadScreen('wallet-home', 'en');
+    const [firstSlot] = getActiveSlots(controller);
+    const firstActive = controller.state.activeConfigurations['wallet-home'];
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(getRenderedSlots(controller)).toEqual([]);
+    expect(getActiveSlots(controller)[0]).toBe(firstSlot);
+    expect(controller.state.activeConfigurations['wallet-home']).toBe(
+      firstActive,
+    );
+  });
+
+  it('keeps the rendered slot identity stable across a 304 revalidation', async () => {
+    let now = Date.parse('2026-08-13T10:00:00.000Z');
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      messenger: buildMessenger(
+        jest.fn().mockResolvedValue({
+          status: 'not-modified',
+          etag: '"config-1"',
+        }),
+      ),
+      state: {
+        ...defaultUiSlotsControllerState,
+        screenConfigurations: {
+          [buildConfigurationKey('en')]: {
+            response: makeResponse(),
+            fetchedAt: now - UI_SLOTS_SOFT_TTL_MS - 1,
+            etag: '"config-1"',
+          },
+        },
+      } as never,
+    });
+    await controller.loadScreen('wallet-home', 'en');
+    const [firstSlot] = getActiveSlots(controller);
+
+    now += UI_SLOTS_SOFT_TTL_MS + 1;
+    await controller.loadScreen('wallet-home', 'en');
+
+    expect(getActiveSlots(controller)[0]).toBe(firstSlot);
+    expect(
+      controller.state.screenConfigurations[buildConfigurationKey('en')]
+        .fetchedAt,
+    ).toBe(now);
   });
 
   it('keeps last-known-good content after a failed refresh', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const response = makeResponse();
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
-    const state = {
-      ...defaultUiSlotsControllerState,
-      screenConfigurations: {
-        [configurationKey]: {
-          response,
-          fetchedAt: now - 20 * 60 * 1000,
-          etag: '"config-1"',
-          capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
-        },
-      },
-    };
     const controller = new UiSlotsController({
       messenger: buildMessenger(jest.fn().mockRejectedValue(new Error('500'))),
       ...controllerOptions,
       now: () => now,
-      state: state as never,
+      state: {
+        ...defaultUiSlotsControllerState,
+        screenConfigurations: {
+          [buildConfigurationKey('en')]: {
+            response: makeResponse(),
+            fetchedAt: now - 20 * 60 * 1000,
+            etag: '"config-1"',
+          },
+        },
+      } as never,
     });
 
-    await controller.loadScreen('wallet-home', 'en');
+    const outcome = await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
-    expect(getRenderedSlots(controller)).toHaveLength(1);
+    expect(outcome).toBe('stale');
+    expect(getActiveSlots(controller)).toHaveLength(1);
+  });
+
+  it('reports an error outcome when a failed load has no cached content', async () => {
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      messenger: buildMessenger(jest.fn().mockRejectedValue(new Error('404'))),
+    });
+
+    const outcome = await controller.loadScreen('wallet-home', 'en');
+
+    expect(outcome).toBe('error');
+    expect(getActiveSlots(controller)).toEqual([]);
   });
 
   it('replaces stale content with an empty compatible configuration', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
+    const configurationKey = buildConfigurationKey('en');
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
@@ -504,7 +465,6 @@ describe('UiSlotsController', () => {
             response: makeResponse(),
             fetchedAt: now - 20 * 60 * 1000,
             etag: '"config-1"',
-            capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
           },
         },
       } as never,
@@ -512,8 +472,7 @@ describe('UiSlotsController', () => {
 
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
-    expect(getRenderedSlots(controller)).toEqual([]);
+    expect(getActiveSlots(controller)).toEqual([]);
     expect(
       controller.state.screenConfigurations[configurationKey].response.slots,
     ).toEqual([]);
@@ -521,10 +480,7 @@ describe('UiSlotsController', () => {
 
   it('retains last-known-good content for a structurally malformed slot', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const configurationKey = buildConfigurationKey({
-      screenId: 'wallet-home',
-      locale: 'en',
-    });
+    const configurationKey = buildConfigurationKey('en');
     const controller = new UiSlotsController({
       ...controllerOptions,
       now: () => now,
@@ -544,7 +500,6 @@ describe('UiSlotsController', () => {
             response: makeResponse(),
             fetchedAt: now - 20 * 60 * 1000,
             etag: '"config-1"',
-            capabilityCohort: UI_SLOTS_CAPABILITY_COHORT,
           },
         },
       } as never,
@@ -552,8 +507,7 @@ describe('UiSlotsController', () => {
 
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
-    expect(getRenderedSlots(controller)).toHaveLength(1);
+    expect(getActiveSlots(controller)).toHaveLength(1);
     expect(
       controller.state.screenConfigurations[configurationKey].response
         .configurationVersion,
@@ -582,39 +536,6 @@ describe('UiSlotsController', () => {
     expect(Object.keys(controller.state.screenConfigurations)).toHaveLength(20);
   });
 
-  it('filters expired and minimum-version-incompatible content', async () => {
-    const now = Date.parse('2026-08-13T10:00:00.000Z');
-    const baseSlot = makeResponse().slots[0];
-    const response = makeResponse({
-      slots: [
-        {
-          ...baseSlot,
-          contentId: 'expired',
-          validity: { until: '2020-01-01T00:00:00.000Z' },
-        },
-        {
-          ...baseSlot,
-          contentId: 'future-client',
-          compatibility: { mobile: { minimumVersion: '2.0.0' } },
-        },
-      ],
-    });
-    const controller = new UiSlotsController({
-      messenger: buildMessenger(
-        jest.fn().mockResolvedValue({
-          status: 'modified',
-          value: response,
-        }),
-      ),
-      ...controllerOptions,
-      now: () => now,
-    });
-
-    await controller.loadScreen('wallet-home', 'en');
-
-    expect(getRenderedSlots(controller)).toEqual([]);
-  });
-
   it('rejects content missing a required slot data reference', async () => {
     const controller = new UiSlotsController({
       messenger: buildMessenger(
@@ -641,6 +562,6 @@ describe('UiSlotsController', () => {
 
     await controller.loadScreen('wallet-home', 'en');
 
-    expect(getRenderedSlots(controller)).toEqual([]);
+    expect(getActiveSlots(controller)).toEqual([]);
   });
 });

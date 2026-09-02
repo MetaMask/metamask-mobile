@@ -70,11 +70,3 @@ export const buildHomepagePredictEventQuery = (
       ({ id }) => `id=${encodeURIComponent(id)}`,
     ),
   ].join('&');
-
-export const HOMEPAGE_PREDICT_EVENT_SLOTS = getHomepagePredictEventSlots(
-  HOMEPAGE_PREDICT_MARKET_SLOTS,
-);
-
-export const HOMEPAGE_PREDICT_EVENT_QUERY = buildHomepagePredictEventQuery(
-  HOMEPAGE_PREDICT_MARKET_SLOTS,
-);

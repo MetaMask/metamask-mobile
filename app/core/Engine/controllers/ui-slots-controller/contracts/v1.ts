@@ -69,27 +69,9 @@ const slotBaseSchema = object({
   slotId: string(),
   contentId: string(),
   revision: integer(),
-  compatibility: optional(
-    object({
-      mobile: optional(
-        object({
-          minimumVersion: string(),
-        }),
-      ),
-      extension: optional(
-        object({
-          minimumVersion: string(),
-        }),
-      ),
-    }),
-  ),
-  validity: optional(
-    object({
-      from: optional(string()),
-      until: optional(string()),
-    }),
-  ),
   widget: unknown(),
+  // Reserved: remote actions are not implemented yet, so a slot that depends on
+  // one is rejected rather than rendered without its behaviour.
   actions: optional(array(unknown())),
   dataReferences: optional(array(unknown())),
 });
@@ -162,8 +144,6 @@ function parseUiSlot(
     slotId: base.slotId,
     contentId: base.contentId,
     revision: base.revision,
-    compatibility: base.compatibility,
-    validity: base.validity,
     widget: parseWidget(base.widget, registry),
     dataReferences,
   };
@@ -174,7 +154,6 @@ export function parseUiSlotsResponse(
   registry: UiSlotsContractRegistry,
 ): {
   response: UiSlotsScreenResponse;
-  rejectedSlotCount: number;
   rejections: UiSlotsRejection[];
 } {
   const envelope = mask(value, envelopeSchema);
@@ -222,7 +201,6 @@ export function parseUiSlotsResponse(
       screenId: envelope.screenId as UiSlotsScreenResponse['screenId'],
       slots,
     },
-    rejectedSlotCount: rejections.length,
     rejections,
   };
 }

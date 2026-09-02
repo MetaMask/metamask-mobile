@@ -10,7 +10,7 @@ import {
   type PredictEmptyStateCtaName,
 } from '../../../../abTestConfig';
 import {
-  HOMEPAGE_PREDICT_EVENT_SLOTS,
+  getHomepagePredictEventSlots,
   HOMEPAGE_PREDICT_MARKET_SLOTS,
   HOMEPAGE_PREDICT_SERIES_SLOT,
 } from '../../constants/homepagePredictMarketSlots';
@@ -151,9 +151,9 @@ describe('HomepagePredictDiscovery', () => {
 
   describe('event slots', () => {
     it('passes matching markets to their configured championship rows', () => {
-      const markets = HOMEPAGE_PREDICT_EVENT_SLOTS.map(({ id, slug }) =>
-        createMarket(id, slug),
-      );
+      const markets = getHomepagePredictEventSlots(
+        HOMEPAGE_PREDICT_MARKET_SLOTS,
+      ).map(({ id, slug }) => createMarket(id, slug));
 
       renderComponent({
         marketSlots: createMarketSlots(markets),
@@ -209,7 +209,9 @@ describe('HomepagePredictDiscovery', () => {
     });
 
     it('rejects a market whose slug does not match its configured slot', () => {
-      const [{ id }] = HOMEPAGE_PREDICT_EVENT_SLOTS;
+      const [{ id }] = getHomepagePredictEventSlots(
+        HOMEPAGE_PREDICT_MARKET_SLOTS,
+      );
       const market = createMarket(id, 'different-slug');
 
       renderComponent({ marketSlots: createMarketSlots([market]) });

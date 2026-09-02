@@ -8,13 +8,9 @@ import {
 } from '../../../../util/test/renderWithProvider';
 import { normalizeUiSlotsLocale, useUiSlotsScreen } from './useUiSlotsScreen';
 
-const mockLoadScreen = jest.fn().mockResolvedValue(undefined);
-const mockEvaluateScreen = jest.fn();
+const mockLoadScreen = jest.fn().mockResolvedValue('ready');
 const mockSetBasicFunctionalityEnabled = jest.fn();
 const mockGetNextRefreshAt = jest.fn((): number | undefined => undefined);
-const mockGetNextContentBoundaryAt = jest.fn(
-  (): number | undefined => undefined,
-);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -45,8 +41,6 @@ jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       UiSlotsController: {
-        evaluateScreen: (...args: unknown[]) => mockEvaluateScreen(...args),
-        getNextContentBoundaryAt: () => mockGetNextContentBoundaryAt(),
         getNextRefreshAt: () => mockGetNextRefreshAt(),
         loadScreen: (...args: unknown[]) => mockLoadScreen(...args),
         setBasicFunctionalityEnabled: (...args: unknown[]) =>
@@ -65,9 +59,7 @@ const state: DeepPartial<RootState> = {
       UiSlotsController: {
         enabled: true,
         screenConfigurations: {},
-        renderedConfigurations: {},
-        activeConfigurationKeys: {},
-        requestStatus: {},
+        activeConfigurations: {},
       },
     },
   },
@@ -79,47 +71,93 @@ describe('useUiSlotsScreen', () => {
     jest.clearAllMocks();
     I18n.locale = 'pt_BR';
     jest.mocked(useSelector).mockReset().mockReturnValue(true);
-    mockLoadScreen.mockResolvedValue(undefined);
+    mockLoadScreen.mockResolvedValue('ready');
     mockGetNextRefreshAt.mockReturnValue(undefined);
-    mockGetNextContentBoundaryAt.mockReturnValue(undefined);
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it('retries after an initial load without cached configuration', async () => {
+  it('revalidates when the soft TTL expires', async () => {
+    const now = Date.parse('2026-08-17T12:00:00.000Z');
+    jest.setSystemTime(now);
+    mockGetNextRefreshAt.mockReturnValue(now + 15 * 60 * 1000);
+
     renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
     await act(async () => undefined);
-
     expect(mockLoadScreen).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      jest.advanceTimersByTime(60 * 1000);
+      jest.advanceTimersByTime(15 * 60 * 1000);
       await Promise.resolve();
     });
 
     expect(mockLoadScreen).toHaveBeenCalledTimes(2);
   });
 
-  it('evaluates a content boundary while refresh remains in flight', async () => {
-    const now = Date.parse('2026-08-17T12:00:00.000Z');
-    jest.setSystemTime(now);
-    mockLoadScreen.mockReturnValue(new Promise(() => undefined));
-    mockGetNextRefreshAt.mockReturnValue(now + 15 * 60 * 1000);
-    mockGetNextContentBoundaryAt
-      .mockReturnValueOnce(now + 1_000)
-      .mockReturnValue(undefined);
+  it('backs off exponentially while the screen keeps failing', async () => {
+    mockLoadScreen.mockResolvedValue('error');
 
     renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
     await act(async () => undefined);
-    expect(mockEvaluateScreen).not.toHaveBeenCalled();
+    expect(mockLoadScreen).toHaveBeenCalledTimes(1);
 
-    act(() => {
-      jest.advanceTimersByTime(1_000);
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockLoadScreen).toHaveBeenCalledTimes(2);
+
+    // The second retry waits twice as long, so the first minute is not enough.
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockLoadScreen).toHaveBeenCalledTimes(2);
+
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockLoadScreen).toHaveBeenCalledTimes(3);
+  });
+
+  it('backs off instead of hammering when a refresh fails over stale content', async () => {
+    const now = Date.parse('2026-08-17T12:00:00.000Z');
+    jest.setSystemTime(now);
+    // A stale outcome leaves the soft-TTL boundary in the past, so scheduling
+    // off it would retry with a zero delay.
+    mockLoadScreen.mockResolvedValue('stale');
+    mockGetNextRefreshAt.mockReturnValue(now - 60 * 1000);
+
+    renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
+    await act(async () => undefined);
+    expect(mockLoadScreen).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(0);
+      await Promise.resolve();
+    });
+    expect(mockLoadScreen).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 1000);
+      await Promise.resolve();
+    });
+    expect(mockLoadScreen).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not schedule a retry after a successful load with no refresh boundary', async () => {
+    renderHookWithProvider(() => useUiSlotsScreen('wallet-home'), { state });
+    await act(async () => undefined);
+
+    await act(async () => {
+      jest.advanceTimersByTime(60 * 60 * 1000);
+      await Promise.resolve();
     });
 
-    expect(mockEvaluateScreen).toHaveBeenCalledWith('wallet-home', 'pt-BR');
+    expect(mockLoadScreen).toHaveBeenCalledTimes(1);
   });
 
   it('does not load when basic functionality is disabled', async () => {

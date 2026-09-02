@@ -10,10 +10,7 @@ import {
   UiSlotsResponseValidationError,
 } from './contracts/v1';
 import type { UiSlotsContractRegistry } from './contracts/registry';
-import {
-  applyUiSlotsClientRules,
-  interpretScreenConfiguration,
-} from './interpret';
+import { interpretScreenConfiguration } from './interpret';
 import type { UiSlotDefinitions } from './slotDefinitions';
 import {
   UI_SLOTS_CONTROLLER_NAME,
@@ -21,17 +18,28 @@ import {
   type UiSlotsConfigurationKey,
   type UiSlotsControllerMessenger,
   type UiSlotsControllerState,
-  type RenderedScreenConfiguration,
   type UiSlotsScreenId,
   type UiSlotsScreenResponse,
   type StoredScreenConfiguration,
   type UiSlotsDiagnostics,
-  type UiSlotsPlatform,
 } from './types';
 
-interface InFlightRequest {
-  requestId: number;
-  promise: Promise<void>;
+/**
+ * `error` means the caller has nothing to render, `stale` means a refresh
+ * failed but last-known-good content is still rendered. Both warrant a
+ * backed-off retry; only `ready` means the cached freshness window is current,
+ * so callers must not schedule off `getNextRefreshAt` for the other outcomes.
+ */
+export type UiSlotsLoadOutcome = 'ready' | 'stale' | 'error' | 'disabled';
+
+/**
+ * The token a screen currently loads under. Only the token still held for a
+ * screen may write state, so a request superseded by a newer locale resolves
+ * without touching anything.
+ */
+interface ActiveRequest {
+  locale: string;
+  promise: Promise<UiSlotsLoadOutcome>;
 }
 
 const metadata: StateMetadata<UiSlotsControllerState> = {
@@ -47,19 +55,7 @@ const metadata: StateMetadata<UiSlotsControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
-  renderedConfigurations: {
-    persist: false,
-    includeInDebugSnapshot: false,
-    includeInStateLogs: false,
-    usedInUi: true,
-  },
-  activeConfigurationKeys: {
-    persist: false,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: false,
-    usedInUi: true,
-  },
-  requestStatus: {
+  activeConfigurations: {
     persist: false,
     includeInDebugSnapshot: true,
     includeInStateLogs: false,
@@ -70,20 +66,22 @@ const metadata: StateMetadata<UiSlotsControllerState> = {
 export const defaultUiSlotsControllerState: UiSlotsControllerState = {
   enabled: false,
   screenConfigurations: {},
-  renderedConfigurations: {},
-  activeConfigurationKeys: {},
-  requestStatus: {},
+  activeConfigurations: {},
 };
+
+const countByCode = (
+  rejections: readonly { code: string }[],
+): Record<string, number> =>
+  rejections.reduce<Record<string, number>>((counts, { code }) => {
+    counts[code] = (counts[code] ?? 0) + 1;
+    return counts;
+  }, {});
 
 export class UiSlotsController extends BaseController<
   typeof UI_SLOTS_CONTROLLER_NAME,
   UiSlotsControllerState,
   UiSlotsControllerMessenger
 > {
-  readonly #clientVersion: string;
-  readonly #platform: UiSlotsPlatform;
-  readonly #contractMajor: number;
-  readonly #capabilityCohort: string;
   #enabled: boolean;
   #rolloutEnabled: boolean;
   #basicFunctionalityEnabled = true;
@@ -91,17 +89,22 @@ export class UiSlotsController extends BaseController<
   readonly #contractRegistry: UiSlotsContractRegistry;
   readonly #now: () => number;
   readonly #diagnostics: UiSlotsDiagnostics;
-  readonly #inFlight = new Map<string, InFlightRequest>();
-  readonly #nextRequestIdByScreen = new Map<UiSlotsScreenId, number>();
-  readonly #latestRequestIdByScreen = new Map<UiSlotsScreenId, number>();
+  readonly #activeRequestByScreen = new Map<UiSlotsScreenId, ActiveRequest>();
   readonly #lastRequestedLocaleByScreen = new Map<UiSlotsScreenId, string>();
+  /**
+   * Responses already parsed against this build's contracts, so a persisted
+   * configuration is validated once per session and its object identity stays
+   * stable afterwards. Held in memory rather than written back to state
+   * because re-parsing yields identical content and every controller write
+   * costs an app-wide state update.
+   */
+  readonly #validatedResponses = new Map<
+    UiSlotsConfigurationKey,
+    UiSlotsScreenResponse
+  >();
 
   constructor({
     messenger,
-    clientVersion,
-    platform,
-    contractMajor,
-    capabilityCohort,
     enabled,
     slotDefinitions,
     contractRegistry,
@@ -110,10 +113,6 @@ export class UiSlotsController extends BaseController<
     state,
   }: {
     messenger: UiSlotsControllerMessenger;
-    clientVersion: string;
-    platform: UiSlotsPlatform;
-    contractMajor: number;
-    capabilityCohort: string;
     enabled: boolean;
     slotDefinitions: UiSlotDefinitions;
     contractRegistry: UiSlotsContractRegistry;
@@ -129,15 +128,9 @@ export class UiSlotsController extends BaseController<
         ...defaultUiSlotsControllerState,
         ...state,
         enabled,
-        renderedConfigurations: {},
-        activeConfigurationKeys: {},
-        requestStatus: {},
+        activeConfigurations: {},
       },
     });
-    this.#clientVersion = clientVersion;
-    this.#platform = platform;
-    this.#contractMajor = contractMajor;
-    this.#capabilityCohort = capabilityCohort;
     this.#enabled = enabled;
     this.#rolloutEnabled = enabled;
     this.#slotDefinitions = slotDefinitions;
@@ -146,35 +139,32 @@ export class UiSlotsController extends BaseController<
     this.#now = now;
   }
 
-  loadScreen(screenId: UiSlotsScreenId, locale: string): Promise<void> {
+  loadScreen(
+    screenId: UiSlotsScreenId,
+    locale: string,
+  ): Promise<UiSlotsLoadOutcome> {
     this.#lastRequestedLocaleByScreen.set(screenId, locale);
     if (!this.#enabled) {
-      this.update((state) => {
-        delete state.activeConfigurationKeys[screenId];
-        state.requestStatus[screenId] = 'idle';
-      });
-      return Promise.resolve();
+      this.#clearActiveConfiguration(screenId);
+      return Promise.resolve('disabled');
     }
 
-    const inFlightKey = `${screenId}:${locale}`;
-    const existing = this.#inFlight.get(inFlightKey);
-    if (existing) {
-      this.#latestRequestIdByScreen.set(screenId, existing.requestId);
-      return existing.promise;
+    const active = this.#activeRequestByScreen.get(screenId);
+    if (active?.locale === locale) {
+      return active.promise;
     }
 
-    const requestId = (this.#nextRequestIdByScreen.get(screenId) ?? 0) + 1;
-    this.#nextRequestIdByScreen.set(screenId, requestId);
-    this.#latestRequestIdByScreen.set(screenId, requestId);
-    const request = this.#loadScreen(screenId, locale, requestId).finally(
+    // The token has to be readable by `#loadScreen` before its promise exists.
+    const request = { locale } as ActiveRequest;
+    this.#activeRequestByScreen.set(screenId, request);
+    request.promise = this.#loadScreen(screenId, locale, request).finally(
       () => {
-        if (this.#inFlight.get(inFlightKey)?.requestId === requestId) {
-          this.#inFlight.delete(inFlightKey);
+        if (this.#activeRequestByScreen.get(screenId) === request) {
+          this.#activeRequestByScreen.delete(screenId);
         }
       },
     );
-    this.#inFlight.set(inFlightKey, { requestId, promise: request });
-    return request;
+    return request.promise;
   }
 
   setEnabled(enabled: boolean): void {
@@ -187,6 +177,24 @@ export class UiSlotsController extends BaseController<
     this.#updateEffectiveEnabled();
   }
 
+  /** When the soft TTL expires and a revalidation becomes worthwhile. */
+  getNextRefreshAt(
+    screenId: UiSlotsScreenId,
+    locale: string,
+  ): number | undefined {
+    if (!this.#enabled) {
+      return undefined;
+    }
+    const cached =
+      this.state.screenConfigurations[
+        buildUiSlotsConfigurationKey({ screenId, locale })
+      ];
+    return typeof cached?.fetchedAt === 'number' &&
+      Number.isFinite(cached.fetchedAt)
+      ? cached.fetchedAt + UI_SLOTS_SOFT_TTL_MS
+      : undefined;
+  }
+
   #updateEffectiveEnabled(): void {
     const enabled = this.#rolloutEnabled && this.#basicFunctionalityEnabled;
     if (this.#enabled === enabled) {
@@ -197,23 +205,13 @@ export class UiSlotsController extends BaseController<
     this.update((state) => {
       state.enabled = enabled;
       if (!enabled) {
-        state.activeConfigurationKeys = {};
-        state.renderedConfigurations = {};
-        for (const screenId of Object.keys(
-          state.requestStatus,
-        ) as UiSlotsScreenId[]) {
-          state.requestStatus[screenId] = 'idle';
-        }
+        state.activeConfigurations = {};
       }
     });
 
     if (!enabled) {
-      for (const screenId of this.#lastRequestedLocaleByScreen.keys()) {
-        const requestId = (this.#nextRequestIdByScreen.get(screenId) ?? 0) + 1;
-        this.#nextRequestIdByScreen.set(screenId, requestId);
-        this.#latestRequestIdByScreen.set(screenId, requestId);
-      }
-      this.#inFlight.clear();
+      // Dropping the tokens discards whatever is still in flight.
+      this.#activeRequestByScreen.clear();
       return;
     }
 
@@ -228,231 +226,87 @@ export class UiSlotsController extends BaseController<
     }
   }
 
-  getNextEvaluationAt(
-    screenId: UiSlotsScreenId,
-    locale: string,
-  ): number | undefined {
-    const candidates = [
-      this.getNextRefreshAt(screenId, locale),
-      this.getNextContentBoundaryAt(screenId, locale),
-    ].filter((value): value is number => value !== undefined);
-    return candidates.length > 0 ? Math.min(...candidates) : undefined;
-  }
-
-  getNextRefreshAt(
-    screenId: UiSlotsScreenId,
-    locale: string,
-  ): number | undefined {
-    if (!this.#enabled) {
-      return undefined;
-    }
-
-    const configurationKey = this.#buildConfigurationKey({
-      screenId,
-      locale,
-    });
-    const cached = this.state.screenConfigurations[configurationKey];
-    if (!cached) {
-      return undefined;
-    }
-    return cached.fetchedAt + UI_SLOTS_SOFT_TTL_MS;
-  }
-
-  getNextContentBoundaryAt(
-    screenId: UiSlotsScreenId,
-    locale: string,
-  ): number | undefined {
-    if (!this.#enabled) {
-      return undefined;
-    }
-    const configurationKey = this.#buildConfigurationKey({
-      screenId,
-      locale,
-    });
-    const cached = this.state.screenConfigurations[configurationKey];
-    if (!cached) {
-      return undefined;
-    }
-    const now = this.#now();
-    const candidates = [cached.fetchedAt + UI_SLOTS_HARD_TTL_MS];
-    for (const slot of cached.response.slots) {
-      for (const boundary of [slot.validity?.from, slot.validity?.until]) {
-        const timestamp = boundary ? Date.parse(boundary) : Number.NaN;
-        if (Number.isFinite(timestamp) && timestamp > now) {
-          candidates.push(timestamp);
-        }
-      }
-    }
-
-    return Math.min(...candidates);
-  }
-
-  evaluateScreen(screenId: UiSlotsScreenId, locale: string): void {
-    if (!this.#enabled) {
-      return;
-    }
-    const configurationKey = this.#buildConfigurationKey({
-      screenId,
-      locale,
-    });
-    const cached = this.state.screenConfigurations[configurationKey];
-    const compatibleCache = cached
-      ? this.#validateCachedConfiguration(cached, screenId, locale, this.#now())
-      : undefined;
-
-    if (compatibleCache) {
-      this.#activateConfiguration(
-        configurationKey,
-        screenId,
-        compatibleCache.response,
-      );
-      return;
-    }
-    if (cached) {
-      this.update((state) => {
-        delete state.screenConfigurations[configurationKey];
-        delete state.renderedConfigurations[configurationKey];
-        if (state.activeConfigurationKeys[screenId] === configurationKey) {
-          delete state.activeConfigurationKeys[screenId];
-        }
-      });
-    }
-  }
-
-  #buildConfigurationKey({
-    screenId,
-    locale,
-  }: {
-    screenId: UiSlotsScreenId;
-    locale: string;
-  }): UiSlotsConfigurationKey {
-    return buildUiSlotsConfigurationKey({
-      screenId,
-      locale,
-      platform: this.#platform,
-      contractMajor: this.#contractMajor,
-      capabilityCohort: this.#capabilityCohort,
-    });
-  }
-
   async #loadScreen(
     screenId: UiSlotsScreenId,
     locale: string,
-    requestId: number,
-  ): Promise<void> {
-    const configurationKey = this.#buildConfigurationKey({
+    request: ActiveRequest,
+  ): Promise<UiSlotsLoadOutcome> {
+    const configurationKey = buildUiSlotsConfigurationKey({
       screenId,
       locale,
     });
-    const now = this.#now();
-    const cached = this.state.screenConfigurations[configurationKey];
-    const compatibleCache = cached
-      ? this.#validateCachedConfiguration(cached, screenId, locale, now)
-      : undefined;
+    const cached = this.#readCachedConfiguration(
+      configurationKey,
+      screenId,
+      locale,
+    );
 
-    if (compatibleCache) {
-      this.#activateConfiguration(
-        configurationKey,
-        screenId,
-        compatibleCache.response,
-      );
-      if (now - compatibleCache.fetchedAt < UI_SLOTS_SOFT_TTL_MS) {
-        return;
+    if (cached) {
+      this.#activateConfiguration(configurationKey, screenId, cached.response);
+      if (this.#now() - cached.fetchedAt < UI_SLOTS_SOFT_TTL_MS) {
+        return 'ready';
       }
     } else {
-      this.update((state) => {
-        delete state.activeConfigurationKeys[screenId];
-        state.requestStatus[screenId] = 'loading';
-        if (cached) {
-          delete state.screenConfigurations[configurationKey];
-          delete state.renderedConfigurations[configurationKey];
-        }
-      });
+      this.#clearActiveConfiguration(screenId);
     }
 
     try {
       const result = await this.messenger.call('UiSlotsDataService:getScreen', {
         screenId,
         locale,
-        etag: compatibleCache?.etag,
+        etag: cached?.etag,
       });
 
-      if (this.#latestRequestIdByScreen.get(screenId) !== requestId) {
-        return;
+      if (this.#activeRequestByScreen.get(screenId) !== request) {
+        return 'ready';
       }
 
       if (result.status === 'not-modified') {
-        const current = this.state.screenConfigurations[configurationKey];
-        if (!current) {
+        if (!cached) {
           throw new Error('UI Slots returned 304 without cached content.');
         }
-
-        const rendered = this.#toRenderedConfiguration(current.response);
-        const evictedKeys = this.#configurationKeysToEvict(configurationKey);
+        // The active configuration already points at this content, so only the
+        // freshness metadata moves. Leaving `response` untouched keeps the
+        // rendered slot identity stable and consumers from re-rendering.
         this.update((state) => {
           const stored = state.screenConfigurations[configurationKey];
+          if (!stored) {
+            return;
+          }
           stored.fetchedAt = this.#now();
           stored.etag = result.etag ?? stored.etag;
-          state.renderedConfigurations[configurationKey] = rendered;
-          state.activeConfigurationKeys[screenId] = configurationKey;
-          state.requestStatus[screenId] = 'ready';
-          this.#evictConfigurationKeys(state, evictedKeys);
         });
-        return;
+        return 'ready';
       }
 
-      const { response, rejectedSlotCount, rejections } = parseUiSlotsResponse(
+      const { response, rejections } = parseUiSlotsResponse(
         result.value,
         this.#contractRegistry,
       );
       if (response.screenId !== screenId || response.locale !== locale) {
         throw new Error('UI Slots response did not match the request.');
       }
-
-      const rendered = this.#toRenderedConfiguration(response, true);
-      const evictedKeys = this.#configurationKeysToEvict(configurationKey);
-      this.update((state) => {
-        state.screenConfigurations[configurationKey] = {
-          response,
-          etag: result.etag,
-          fetchedAt: this.#now(),
-          capabilityCohort: this.#capabilityCohort,
-        };
-        state.renderedConfigurations[configurationKey] = rendered;
-        state.activeConfigurationKeys[screenId] = configurationKey;
-        state.requestStatus[screenId] = 'ready';
-        this.#evictConfigurationKeys(state, evictedKeys);
-      });
-      if (rejectedSlotCount > 0) {
-        const rejectionCounts = rejections.reduce<Record<string, number>>(
-          (counts, { code }) => {
-            counts[code] = (counts[code] ?? 0) + 1;
-            return counts;
-          },
-          {},
-        );
-        this.#diagnostics.log('UI Slots response contained rejected slots', {
-          screenId,
-          configurationVersion: response.configurationVersion,
-          rejectedSlotCount,
-          rejectionCounts,
-        });
-      }
+      this.#reportRejections(
+        'UI Slots response contained rejected slots',
+        response,
+        rejections,
+      );
+      this.#storeConfiguration(
+        configurationKey,
+        screenId,
+        response,
+        result.etag,
+      );
+      return 'ready';
     } catch (error) {
-      if (this.#latestRequestIdByScreen.get(screenId) !== requestId) {
-        return;
+      if (this.#activeRequestByScreen.get(screenId) !== request) {
+        return 'ready';
       }
-      this.update((state) => {
-        state.requestStatus[screenId] = compatibleCache ? 'ready' : 'error';
-      });
       const validationError =
         error instanceof UiSlotsResponseValidationError ? error : undefined;
-      const rejectionCounts = validationError?.rejections.reduce<
-        Record<string, number>
-      >((counts, { code }) => {
-        counts[code] = (counts[code] ?? 0) + 1;
-        return counts;
-      }, {});
+      const rejectionCounts = validationError
+        ? countByCode(validationError.rejections)
+        : undefined;
       this.#diagnostics.error(
         error instanceof Error
           ? error
@@ -471,55 +325,65 @@ export class UiSlotsController extends BaseController<
           },
         },
       );
+      return cached ? 'stale' : 'error';
     }
   }
 
-  #interpret(response: UiSlotsScreenResponse, logRejections = false): UiSlot[] {
-    const interpreted = interpretScreenConfiguration(
-      response,
-      this.#slotDefinitions,
+  /**
+   * Returns cached content that this build can still parse, validating
+   * persisted entries once per session. Anything stale or incompatible is
+   * dropped so the caller falls through to a network read.
+   */
+  #readCachedConfiguration(
+    configurationKey: UiSlotsConfigurationKey,
+    screenId: UiSlotsScreenId,
+    locale: string,
+  ): StoredScreenConfiguration | undefined {
+    const stored = this.state.screenConfigurations[configurationKey];
+    if (!stored) {
+      return undefined;
+    }
+
+    const validatedResponse = this.#validatedResponses.get(configurationKey);
+    if (validatedResponse) {
+      if (this.#now() - stored.fetchedAt >= UI_SLOTS_HARD_TTL_MS) {
+        this.#forgetConfiguration(configurationKey, screenId);
+        return undefined;
+      }
+      return {
+        response: validatedResponse,
+        etag: stored.etag,
+        fetchedAt: stored.fetchedAt,
+      };
+    }
+
+    const validated = this.#validatePersistedConfiguration(
+      stored,
+      screenId,
+      locale,
     );
-    if (logRejections && interpreted.rejections.length > 0) {
-      const rejectionCounts = interpreted.rejections.reduce<
-        Record<string, number>
-      >((counts, { code }) => {
-        counts[code] = (counts[code] ?? 0) + 1;
-        return counts;
-      }, {});
-      this.#diagnostics.log(
-        'UI Slots configuration contained incompatible slots',
-        {
-          screenId: response.screenId,
-          configurationVersion: response.configurationVersion,
-          rejectedSlotCount: interpreted.rejections.length,
-          rejectionCounts,
-        },
-      );
+    if (!validated) {
+      this.#forgetConfiguration(configurationKey, screenId);
+      return undefined;
     }
-    return applyUiSlotsClientRules({
-      slots: interpreted.slots,
-      clientVersion: this.#clientVersion,
-      platform: this.#platform,
-      now: this.#now(),
-    });
+    this.#validatedResponses.set(configurationKey, validated.response);
+    return validated;
   }
 
-  #validateCachedConfiguration(
+  #validatePersistedConfiguration(
     cached: unknown,
     screenId: UiSlotsScreenId,
     locale: string,
-    now: number,
   ): StoredScreenConfiguration | undefined {
     if (typeof cached !== 'object' || cached === null) {
       return undefined;
     }
     const candidate = cached as Partial<StoredScreenConfiguration>;
     if (
-      candidate.capabilityCohort !== this.#capabilityCohort ||
       typeof candidate.fetchedAt !== 'number' ||
       !Number.isFinite(candidate.fetchedAt) ||
       (candidate.etag !== undefined && typeof candidate.etag !== 'string') ||
-      now - candidate.fetchedAt >= UI_SLOTS_HARD_TTL_MS
+      this.#now() - candidate.fetchedAt >= UI_SLOTS_HARD_TTL_MS
     ) {
       return undefined;
     }
@@ -536,7 +400,6 @@ export class UiSlotsController extends BaseController<
         response,
         etag: candidate.etag,
         fetchedAt: candidate.fetchedAt,
-        capabilityCohort: candidate.capabilityCohort,
       };
     } catch (error) {
       this.#diagnostics.error(
@@ -555,32 +418,107 @@ export class UiSlotsController extends BaseController<
     }
   }
 
+  #storeConfiguration(
+    configurationKey: UiSlotsConfigurationKey,
+    screenId: UiSlotsScreenId,
+    response: UiSlotsScreenResponse,
+    etag: string | undefined,
+  ): void {
+    const slotsById = this.#interpret(response, true);
+    const evictedKeys = this.#configurationKeysToEvict(configurationKey);
+    this.#validatedResponses.set(configurationKey, response);
+    for (const key of evictedKeys) {
+      this.#validatedResponses.delete(key);
+    }
+    this.update((state) => {
+      state.screenConfigurations[configurationKey] = {
+        response,
+        etag,
+        fetchedAt: this.#now(),
+      };
+      state.activeConfigurations[screenId] = { configurationKey, slotsById };
+      this.#evictConfigurationKeys(state, evictedKeys);
+    });
+  }
+
+  /**
+   * No-op when the screen already renders this configuration. Without the
+   * guard every screen focus would rewrite state and remount every widget.
+   */
   #activateConfiguration(
     configurationKey: UiSlotsConfigurationKey,
     screenId: UiSlotsScreenId,
     response: UiSlotsScreenResponse,
   ): void {
-    const rendered = this.#toRenderedConfiguration(response);
+    if (
+      this.state.activeConfigurations[screenId]?.configurationKey ===
+      configurationKey
+    ) {
+      return;
+    }
+    const slotsById = this.#interpret(response);
     this.update((state) => {
-      const stored = state.screenConfigurations[configurationKey];
-      if (stored) {
-        stored.response = response;
-      }
-      state.renderedConfigurations[configurationKey] = rendered;
-      state.activeConfigurationKeys[screenId] = configurationKey;
-      state.requestStatus[screenId] = 'ready';
+      state.activeConfigurations[screenId] = { configurationKey, slotsById };
     });
   }
 
-  #toRenderedConfiguration(
+  #clearActiveConfiguration(screenId: UiSlotsScreenId): void {
+    if (!this.state.activeConfigurations[screenId]) {
+      return;
+    }
+    this.update((state) => {
+      delete state.activeConfigurations[screenId];
+    });
+  }
+
+  #forgetConfiguration(
+    configurationKey: UiSlotsConfigurationKey,
+    screenId: UiSlotsScreenId,
+  ): void {
+    this.#validatedResponses.delete(configurationKey);
+    this.update((state) => {
+      delete state.screenConfigurations[configurationKey];
+      if (
+        state.activeConfigurations[screenId]?.configurationKey ===
+        configurationKey
+      ) {
+        delete state.activeConfigurations[screenId];
+      }
+    });
+  }
+
+  #interpret(
     response: UiSlotsScreenResponse,
     logRejections = false,
-  ): RenderedScreenConfiguration {
-    const slots = this.#interpret(response, logRejections);
-    return {
-      slotsById: Object.fromEntries(slots.map((slot) => [slot.slotId, slot])),
-      slotIds: slots.map((slot) => slot.slotId),
-    };
+  ): Record<string, UiSlot> {
+    const { slots, rejections } = interpretScreenConfiguration(
+      response,
+      this.#slotDefinitions,
+    );
+    if (logRejections) {
+      this.#reportRejections(
+        'UI Slots configuration contained incompatible slots',
+        response,
+        rejections,
+      );
+    }
+    return Object.fromEntries(slots.map((slot) => [slot.slotId, slot]));
+  }
+
+  #reportRejections(
+    message: string,
+    response: UiSlotsScreenResponse,
+    rejections: readonly { code: string }[],
+  ): void {
+    if (rejections.length === 0) {
+      return;
+    }
+    this.#diagnostics.log(message, {
+      screenId: response.screenId,
+      configurationVersion: response.configurationVersion,
+      rejectedSlotCount: rejections.length,
+      rejectionCounts: countByCode(rejections),
+    });
   }
 
   #configurationKeysToEvict(
@@ -599,12 +537,11 @@ export class UiSlotsController extends BaseController<
   ): void {
     for (const key of keys) {
       delete state.screenConfigurations[key];
-      delete state.renderedConfigurations[key];
-      for (const [screenId, activeKey] of Object.entries(
-        state.activeConfigurationKeys,
+      for (const [screenId, active] of Object.entries(
+        state.activeConfigurations,
       )) {
-        if (activeKey === key) {
-          delete state.activeConfigurationKeys[screenId as UiSlotsScreenId];
+        if (active?.configurationKey === key) {
+          delete state.activeConfigurations[screenId as UiSlotsScreenId];
         }
       }
     }

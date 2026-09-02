@@ -1,4 +1,5 @@
 import type { UiSlotDataReference } from '../../../../core/Engine/controllers/ui-slots-controller/types';
+import type { PredictHomepageSeriesId } from './seriesRegistry';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictDiscoveryListWidget = {
@@ -9,7 +10,7 @@ export type PredictDiscoveryListWidget = {
 
 export type PredictHomepageMarketSlotReferenceItem =
   | { type: 'event'; id: string; slug: string }
-  | { type: 'series'; seriesId: 'btc-up-or-down-5m' };
+  | { type: 'series'; seriesId: PredictHomepageSeriesId };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictHomepageMarketSlotReference = {

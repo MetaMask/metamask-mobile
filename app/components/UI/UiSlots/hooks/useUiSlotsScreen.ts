@@ -4,12 +4,15 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import type { UiSlotsLoadOutcome } from '../../../../core/Engine/controllers/ui-slots-controller/UiSlotsController';
 import type { UiSlotsScreenId } from '../../../../core/Engine/controllers/ui-slots-controller/types';
 import { selectBasicFunctionalityEnabledForRemoteFlags } from '../../../../selectors/featureFlagController';
 import { selectUiSlotsEnabled } from '../../../../selectors/uiSlotsController';
 import Logger from '../../../../util/Logger';
 
-const MINIMUM_RETRY_DELAY_MS = 60 * 1000;
+const INITIAL_RETRY_DELAY_MS = 60 * 1000;
+const MAX_RETRY_DELAY_MS = 15 * 60 * 1000;
+
 const isAppActive = () =>
   AppState.currentState !== 'background' &&
   AppState.currentState !== 'inactive';
@@ -29,6 +32,10 @@ export const normalizeUiSlotsLocale = (locale: string): string => {
   ].join('-');
 };
 
+/**
+ * Keeps a screen's remote slot assignment loaded while it is focused and the
+ * app is foregrounded, revalidating once the controller's soft TTL expires.
+ */
 export function useUiSlotsScreen(
   screenId: UiSlotsScreenId,
   active = true,
@@ -57,69 +64,33 @@ export function useUiSlotsScreen(
       }
 
       let cancelled = false;
-      let refreshTimer: ReturnType<typeof setTimeout> | undefined;
-      let boundaryTimer: ReturnType<typeof setTimeout> | undefined;
+      let timer: ReturnType<typeof setTimeout> | undefined;
       let generation = 0;
+      let retryDelay = INITIAL_RETRY_DELAY_MS;
 
-      const clearTimers = () => {
-        if (refreshTimer) {
-          clearTimeout(refreshTimer);
-          refreshTimer = undefined;
-        }
-        if (boundaryTimer) {
-          clearTimeout(boundaryTimer);
-          boundaryTimer = undefined;
+      const clearTimer = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = undefined;
         }
       };
-
-      function scheduleTimers() {
-        clearTimers();
-        if (cancelled || !isAppActive()) {
-          return;
-        }
-
-        const nextRefreshAt = Engine.context.UiSlotsController.getNextRefreshAt(
-          screenId,
-          locale,
-        );
-        const refreshRemaining =
-          nextRefreshAt === undefined
-            ? MINIMUM_RETRY_DELAY_MS
-            : nextRefreshAt - Date.now();
-        refreshTimer = setTimeout(
-          () => loadAndSchedule().catch(Logger.error),
-          refreshRemaining > 0 ? refreshRemaining : MINIMUM_RETRY_DELAY_MS,
-        );
-
-        const nextBoundaryAt =
-          Engine.context.UiSlotsController.getNextContentBoundaryAt(
-            screenId,
-            locale,
-          );
-        if (nextBoundaryAt !== undefined) {
-          boundaryTimer = setTimeout(
-            () => {
-              Engine.context.UiSlotsController.evaluateScreen(screenId, locale);
-              scheduleTimers();
-            },
-            Math.max(0, nextBoundaryAt - Date.now()),
-          );
-        }
-      }
 
       async function loadAndSchedule() {
         generation += 1;
         const currentGeneration = generation;
-        clearTimers();
+        clearTimer();
         if (!isAppActive()) {
           return;
         }
 
-        scheduleTimers();
-
+        let outcome: UiSlotsLoadOutcome;
         try {
-          await Engine.context.UiSlotsController.loadScreen(screenId, locale);
+          outcome = await Engine.context.UiSlotsController.loadScreen(
+            screenId,
+            locale,
+          );
         } catch (error) {
+          outcome = 'error' as const;
           Logger.error(
             error instanceof Error
               ? error
@@ -127,10 +98,33 @@ export function useUiSlotsScreen(
           );
         }
 
-        if (cancelled || currentGeneration !== generation) {
+        if (cancelled || currentGeneration !== generation || !isAppActive()) {
           return;
         }
-        scheduleTimers();
+
+        // A stale outcome leaves the soft-TTL boundary in the past, so it must
+        // back off rather than schedule off it, or a failing artifact would be
+        // refetched, and reported, as fast as the network answers.
+        if (outcome === 'error' || outcome === 'stale') {
+          timer = setTimeout(
+            () => loadAndSchedule().catch(Logger.error),
+            retryDelay,
+          );
+          retryDelay = Math.min(retryDelay * 2, MAX_RETRY_DELAY_MS);
+          return;
+        }
+
+        retryDelay = INITIAL_RETRY_DELAY_MS;
+        const nextRefreshAt = Engine.context.UiSlotsController.getNextRefreshAt(
+          screenId,
+          locale,
+        );
+        if (nextRefreshAt !== undefined) {
+          timer = setTimeout(
+            () => loadAndSchedule().catch(Logger.error),
+            Math.max(nextRefreshAt - Date.now(), INITIAL_RETRY_DELAY_MS),
+          );
+        }
       }
 
       const appStateSubscription = AppState.addEventListener(
@@ -140,7 +134,7 @@ export function useUiSlotsScreen(
             loadAndSchedule().catch(Logger.error);
           } else {
             generation += 1;
-            clearTimers();
+            clearTimer();
           }
         },
       );
@@ -149,7 +143,7 @@ export function useUiSlotsScreen(
       return () => {
         cancelled = true;
         generation += 1;
-        clearTimers();
+        clearTimer();
         appStateSubscription.remove();
       };
     }, [active, basicFunctionalityEnabled, enabled, locale, screenId]),

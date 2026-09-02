@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
 import HomepagePredictDiscovery from '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery';
 import {
@@ -42,12 +42,12 @@ function ActivePredictDiscoveryList({
     isDiscoveryFetching: marketSlots.isFetching,
   });
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     registerDiscoveryRefetch(marketSlots.refetch);
     return () => registerDiscoveryRefetch(undefined);
   }, [marketSlots.refetch, registerDiscoveryRefetch]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     reportDiscoveryLoading(isLoading);
     return () => reportDiscoveryLoading(true);
   }, [isLoading, reportDiscoveryLoading]);
@@ -82,19 +82,14 @@ function ResolvedPredictDiscoveryList({
 }
 
 export function PredictDiscoveryListWidget({ slot }: { slot: UiSlot }) {
-  if (slot.widget.type !== 'predict-discovery-list') {
-    throw new Error('Unexpected widget type for Predict discovery list.');
-  }
-
-  const references = slot.dataReferences ?? [];
-  if (
-    references.length !== 1 ||
-    !isPredictHomepageMarketSlotReference(references[0])
-  ) {
+  const reference = slot.dataReferences?.find(
+    isPredictHomepageMarketSlotReference,
+  );
+  if (!reference) {
     throw new Error(
-      'Predict discovery list requires exactly one market slots reference.',
+      'Predict discovery list requires a market slots data reference.',
     );
   }
 
-  return <ResolvedPredictDiscoveryList reference={references[0]} />;
+  return <ResolvedPredictDiscoveryList reference={reference} />;
 }

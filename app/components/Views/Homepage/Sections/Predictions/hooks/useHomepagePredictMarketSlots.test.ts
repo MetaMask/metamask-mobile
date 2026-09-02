@@ -1,9 +1,21 @@
+import { renderHook } from '@testing-library/react-native';
 import {
   Recurrence,
   type PredictMarket,
 } from '../../../../../UI/Predict/types';
-import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../constants/homepagePredictMarketSlots';
-import { orderHomepagePredictEventMarkets } from './useHomepagePredictMarketSlots';
+import { usePredictMarketData } from '../../../../../UI/Predict/hooks/usePredictMarketData';
+import {
+  HOMEPAGE_PREDICT_MARKET_SLOTS,
+  type HomepagePredictMarketSlot,
+} from '../constants/homepagePredictMarketSlots';
+import {
+  orderHomepagePredictEventMarkets,
+  useHomepagePredictMarketSlots,
+} from './useHomepagePredictMarketSlots';
+
+jest.mock('../../../../../UI/Predict/hooks/usePredictMarketData', () => ({
+  usePredictMarketData: jest.fn(),
+}));
 
 const createMarket = (
   id: string,
@@ -77,5 +89,59 @@ describe('orderHomepagePredictEventMarkets', () => {
     const result = orderHomepagePredictEventMarkets([nfl, epl], slots);
 
     expect(result).toEqual([epl, nfl]);
+  });
+});
+
+describe('useHomepagePredictMarketSlots', () => {
+  const lastQueryOptions = () =>
+    jest.mocked(usePredictMarketData).mock.lastCall?.[0];
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('keeps the query options stable while the assigned slots hold', () => {
+    const { rerender } = renderHook(
+      ({ slots }: { slots: readonly HomepagePredictMarketSlot[] }) =>
+        useHomepagePredictMarketSlots({ enabled: true, slots }),
+      { initialProps: { slots: HOMEPAGE_PREDICT_MARKET_SLOTS } },
+    );
+    const first = lastQueryOptions();
+
+    rerender({ slots: HOMEPAGE_PREDICT_MARKET_SLOTS });
+
+    const second = lastQueryOptions();
+    expect(second?.refine).toBe(first?.refine);
+    expect(second?.customQueryParams).toBe(first?.customQueryParams);
+  });
+
+  it('rebuilds the query options when the assigned events change', () => {
+    const { rerender } = renderHook(
+      ({ slots }: { slots: readonly HomepagePredictMarketSlot[] }) =>
+        useHomepagePredictMarketSlots({ enabled: true, slots }),
+      { initialProps: { slots: HOMEPAGE_PREDICT_MARKET_SLOTS } },
+    );
+    const first = lastQueryOptions();
+
+    rerender({
+      slots: [{ type: 'event', id: '1', slug: 'replacement-event' }],
+    });
+
+    const second = lastQueryOptions();
+    expect(second?.refine).not.toBe(first?.refine);
+    expect(second?.customQueryParams).toBe(
+      'active=true&archived=false&closed=false&id=1',
+    );
+  });
+
+  it('skips the query when no event slots are assigned', () => {
+    renderHook(() =>
+      useHomepagePredictMarketSlots({
+        enabled: true,
+        slots: [HOMEPAGE_PREDICT_MARKET_SLOTS[1]],
+      }),
+    );
+
+    expect(lastQueryOptions()?.enabled).toBe(false);
   });
 });

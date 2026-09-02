@@ -1,6 +1,5 @@
-import semver from 'semver';
 import type { UiSlotDefinitions } from './slotDefinitions';
-import type { UiSlot, UiSlotsPlatform, UiSlotsScreenResponse } from './types';
+import type { UiSlot, UiSlotsScreenResponse } from './types';
 
 export type UiSlotsInterpretationRejectionCode =
   | 'missing-required-data-reference'
@@ -14,6 +13,10 @@ export interface UiSlotsInterpretationRejection {
   code: UiSlotsInterpretationRejectionCode;
 }
 
+/**
+ * Drops slots this build cannot render: unknown slot ids, and widgets or
+ * data references outside the capabilities the host declared for the slot.
+ */
 export function interpretScreenConfiguration(
   response: UiSlotsScreenResponse,
   definitions: UiSlotDefinitions,
@@ -64,46 +67,4 @@ export function interpretScreenConfiguration(
     slots.push(slot);
   }
   return { slots, rejections };
-}
-
-export function applyUiSlotsClientRules({
-  slots,
-  clientVersion,
-  platform,
-  now = Date.now(),
-}: {
-  slots: UiSlot[];
-  clientVersion: string;
-  platform: UiSlotsPlatform;
-  now?: number;
-}): UiSlot[] {
-  return slots.filter((slot) => {
-    const minimumVersion = slot.compatibility?.[platform]?.minimumVersion;
-    if (
-      minimumVersion &&
-      (!semver.valid(clientVersion) ||
-        !semver.valid(minimumVersion) ||
-        !semver.gte(clientVersion, minimumVersion))
-    ) {
-      return false;
-    }
-
-    const validFrom = slot.validity?.from
-      ? Date.parse(slot.validity.from)
-      : undefined;
-    const validUntil = slot.validity?.until
-      ? Date.parse(slot.validity.until)
-      : undefined;
-
-    if (
-      (validFrom !== undefined &&
-        (!Number.isFinite(validFrom) || now < validFrom)) ||
-      (validUntil !== undefined &&
-        (!Number.isFinite(validUntil) || now >= validUntil))
-    ) {
-      return false;
-    }
-
-    return true;
-  });
 }

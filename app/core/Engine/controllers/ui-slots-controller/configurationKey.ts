@@ -1,27 +1,19 @@
-import type {
-  UiSlotsConfigurationKey,
-  UiSlotsPlatform,
-  UiSlotsScreenId,
-} from './types';
+import { UI_SLOTS_CONTRACT_MAJOR } from './config';
+import type { UiSlotsConfigurationKey, UiSlotsScreenId } from './types';
 
+/**
+ * Partitions the persisted cache. The contract major is included so an app
+ * update that moves to a new contract cannot read configurations written by the
+ * previous one.
+ */
 export function buildUiSlotsConfigurationKey({
   screenId,
   locale,
-  platform,
-  contractMajor,
-  capabilityCohort,
 }: {
   screenId: UiSlotsScreenId;
   locale: string;
-  platform: UiSlotsPlatform;
-  contractMajor: number;
-  capabilityCohort: string;
 }): UiSlotsConfigurationKey {
-  return [
-    screenId,
-    encodeURIComponent(locale),
-    platform,
-    contractMajor,
-    capabilityCohort,
-  ].join(':');
+  return [screenId, encodeURIComponent(locale), UI_SLOTS_CONTRACT_MAJOR].join(
+    ':',
+  );
 }

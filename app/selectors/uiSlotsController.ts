@@ -12,54 +12,13 @@ export const selectUiSlotsControllerState = (
 ): UiSlotsControllerState | undefined =>
   state.engine.backgroundState.UiSlotsController;
 
-export const makeSelectUiSlot = (screenId: UiSlotsScreenId, slotId: string) =>
-  createSelector(
-    selectUiSlotsControllerState,
-    selectBasicFunctionalityEnabledForRemoteFlags,
-    (state, basicFunctionalityEnabled) => {
-      if (!basicFunctionalityEnabled || !state?.enabled) {
-        return undefined;
-      }
-      const configurationKey = state.activeConfigurationKeys[screenId];
-      return configurationKey
-        ? state.renderedConfigurations[configurationKey]?.slotsById[slotId]
-        : undefined;
-    },
-  );
-
 export type UiSlotResolution =
   | { status: 'fallback' }
   | { status: 'empty' }
   | { status: 'ready'; slot: UiSlot };
 
-export const makeSelectUiSlotResolution = (
-  screenId: UiSlotsScreenId,
-  slotId: string,
-) =>
-  createSelector(
-    selectUiSlotsControllerState,
-    selectBasicFunctionalityEnabledForRemoteFlags,
-    (state, basicFunctionalityEnabled): UiSlotResolution => {
-      if (!basicFunctionalityEnabled || !state?.enabled) {
-        return { status: 'fallback' };
-      }
-      const configurationKey = state.activeConfigurationKeys[screenId];
-      const rendered = configurationKey
-        ? state.renderedConfigurations[configurationKey]
-        : undefined;
-      if (!rendered) {
-        return { status: 'fallback' };
-      }
-      const slot = rendered.slotsById[slotId];
-      return slot ? { status: 'ready', slot } : { status: 'empty' };
-    },
-  );
-
-export const makeSelectUiSlotsRequestStatus = (screenId: UiSlotsScreenId) =>
-  createSelector(
-    selectUiSlotsControllerState,
-    (state) => state?.requestStatus[screenId] ?? 'idle',
-  );
+const FALLBACK_RESOLUTION: UiSlotResolution = { status: 'fallback' };
+const EMPTY_RESOLUTION: UiSlotResolution = { status: 'empty' };
 
 export const selectUiSlotsEnabled = createSelector(
   selectUiSlotsControllerState,
@@ -67,3 +26,28 @@ export const selectUiSlotsEnabled = createSelector(
   (state, basicFunctionalityEnabled) =>
     basicFunctionalityEnabled && (state?.enabled ?? false),
 );
+
+/**
+ * Inputs stay narrowed to the individual slot so unrelated controller writes
+ * (another screen activating, a cache eviction) cannot re-render the host.
+ */
+export const makeSelectUiSlotResolution = (
+  screenId: UiSlotsScreenId,
+  slotId: string,
+) =>
+  createSelector(
+    (state: RootState) =>
+      selectUiSlotsControllerState(state)?.activeConfigurations[screenId]
+        ?.slotsById[slotId],
+    (state: RootState) =>
+      Boolean(
+        selectUiSlotsControllerState(state)?.activeConfigurations[screenId],
+      ),
+    selectUiSlotsEnabled,
+    (slot, hasActiveConfiguration, enabled): UiSlotResolution => {
+      if (!enabled || !hasActiveConfiguration) {
+        return FALLBACK_RESOLUTION;
+      }
+      return slot ? { status: 'ready', slot } : EMPTY_RESOLUTION;
+    },
+  );
