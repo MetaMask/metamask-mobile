@@ -16,6 +16,15 @@ import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
     switch (key) {
@@ -362,7 +371,7 @@ describe('PredictPositionDetail', () => {
       expect(screen.queryByText('5.25%')).toBeNull();
     });
 
-    it('falls back to position currentValue when preview has error', () => {
+    it('falls back to estimated net value when preview has error', () => {
       mockUsePredictOrderPreviewFn.mockReturnValue({
         preview: null,
         error: 'Failed to fetch preview',
@@ -372,13 +381,11 @@ describe('PredictPositionDetail', () => {
 
       renderComponent({ currentValue: 150, initialValue: 100 });
 
-      // Should display position's currentValue when preview errors
-      expect(screen.getByText('$150')).toBeOnTheScreen();
-      // PnL should be calculated from position values: (150-100)/100 = 50%
-      expect(screen.getByText('50%')).toBeOnTheScreen();
+      expect(screen.getByText('$144')).toBeOnTheScreen();
+      expect(screen.getByText('44%')).toBeOnTheScreen();
     });
 
-    it('calculates PnL from position data when preview has error', () => {
+    it('calculates PnL from estimated net value when preview has error', () => {
       mockUsePredictOrderPreviewFn.mockReturnValue({
         preview: null,
         error: 'Network error',
@@ -392,9 +399,8 @@ describe('PredictPositionDetail', () => {
         percentPnl: -5,
       });
 
-      // Should show negative PnL calculated from position data
-      expect(screen.getByText('$95')).toBeOnTheScreen();
-      expect(screen.getByText('-5%')).toBeOnTheScreen();
+      expect(screen.getByText('$91.20')).toBeOnTheScreen();
+      expect(screen.getByText('-8.8%')).toBeOnTheScreen();
     });
   });
 
