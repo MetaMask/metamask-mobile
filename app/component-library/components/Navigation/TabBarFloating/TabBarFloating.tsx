@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { LayoutChangeEvent, View } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -23,7 +22,6 @@ import {
 
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { colorWithOpacity } from '../../../../util/colors';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -48,9 +46,11 @@ export interface TabBarFloatingProps extends TabBarProps {
   onHeightChange?: (height: number) => void;
 }
 
+type TabBarFloatingRoute = TabBarProps['state']['routes'][number];
+
 /**
  * Treatment bottom navigation for the Header & NavBar refresh experiment
- * (TMCU-1276): tabs sit in a floating rounded pill with a separate circular
+ * tabs sit in a floating rounded pill with a separate circular
  * search button alongside it, both over the content rather than on an opaque
  * bar. Control keeps `TabBar`; the navigator picks between them on the flag.
  */
@@ -94,11 +94,6 @@ const TabBarFloating = ({
     setPillHeight(Math.round(event.nativeEvent.layout.height));
   }, []);
 
-  const scrimColors = useMemo(() => {
-    const background = tw.color('bg-default') ?? 'transparent';
-    return [colorWithOpacity(background, 0), colorWithOpacity(background, 0.5)];
-  }, [tw]);
-
   const handleSearchPress = useCallback(() => {
     trackExploreSearchOpened('nav_bar');
     navigation.navigate(Routes.EXPLORE_SEARCH);
@@ -109,7 +104,7 @@ const TabBarFloating = ({
   const previousTabIndexRef = useRef<number>(state.index);
 
   const renderTabBarItem = useCallback(
-    (route: { name: string; key: string }, index: number) => {
+    (route: TabBarFloatingRoute, index: number) => {
       const descriptor = descriptors[route.key];
       if (!descriptor) return null;
       const { options } = descriptor;
@@ -194,12 +189,6 @@ const TabBarFloating = ({
       testID={TAB_BAR_FLOATING_TEST_IDS.CONTAINER}
       onLayout={handleLayout}
     >
-      <LinearGradient
-        pointerEvents="none"
-        colors={scrimColors}
-        style={tw.style('absolute -top-8 bottom-0 left-0 right-0')}
-        testID={TAB_BAR_FLOATING_TEST_IDS.SCRIM}
-      />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -208,11 +197,13 @@ const TabBarFloating = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          twClassName="flex-1 rounded-full border border-muted bg-section px-0"
+          twClassName="flex-1 rounded-full border border-muted bg-section p-1"
           testID={TAB_BAR_FLOATING_TEST_IDS.PILL}
           onLayout={handlePillLayout}
         >
-          {state.routes.map((route, index) => renderTabBarItem(route, index))}
+          {state.routes.map((route: TabBarFloatingRoute, index: number) =>
+            renderTabBarItem(route, index),
+          )}
         </Box>
         <ButtonIcon
           iconName={IconName.Search}

@@ -2065,6 +2065,17 @@ describe('Header and Nav Bar refresh AB test', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
+
+  it('opens the account hub from the account name above the balance', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
 });
 
 describe('Homepage balance breakdown ABC test', () => {

@@ -47,6 +47,14 @@ import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonAnimated,
+  Icon as MMDSIcon,
+  IconColor as MMDSIconColor,
+  IconName as MMDSIconName,
+  IconSize as MMDSIconSize,
   Text as CustomText,
   TextColor,
   TextVariant,
@@ -1103,15 +1111,34 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName = isCompactHeader ? (
-    <CustomText
-      variant={TextVariant.HeadingMd}
+    <ButtonAnimated
+      onPress={handleAccountHubPress}
       style={styles.compactHeaderAccountName}
-      numberOfLines={1}
       onLayout={handleAccountNameLayout}
-      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+      testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
+      accessibilityRole="button"
+      accessibilityLabel={displayName}
     >
-      {displayName}
-    </CustomText>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-1"
+      >
+        <CustomText
+          variant={TextVariant.HeadingLg}
+          numberOfLines={1}
+          twClassName="shrink"
+          testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING}
+        >
+          {displayName}
+        </CustomText>
+        <MMDSIcon
+          name={MMDSIconName.ArrowRight}
+          size={MMDSIconSize.Md}
+          color={MMDSIconColor.IconAlternative}
+        />
+      </Box>
+    </ButtonAnimated>
   ) : null;
 
   const portfolioHeader = balanceBreakdownLayout ? (

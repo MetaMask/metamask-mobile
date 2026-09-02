@@ -181,18 +181,6 @@ describe('TabBarFloating', () => {
     expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
   });
 
-  it('fades content out behind the bar with a transparent-to-background scrim', () => {
-    const { getByTestId } = renderBar();
-
-    const [top, bottom] = getByTestId(TAB_BAR_FLOATING_TEST_IDS.SCRIM).props
-      .colors;
-
-    // Colors arrive processed to ARGB ints, so read the alpha byte. The exact
-    // bottom alpha is a design dial; only the fade direction is asserted.
-    expect(top >>> 24).toBe(0);
-    expect(bottom >>> 24).toBeGreaterThan(0);
-  });
-
   it('highlights only the active tab, and follows it when the tab changes', () => {
     const backgroundOf = (
       view: ReturnType<typeof renderBar>,

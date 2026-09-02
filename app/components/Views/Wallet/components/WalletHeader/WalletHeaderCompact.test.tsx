@@ -53,4 +53,16 @@ describe('WalletHeaderCompact', () => {
 
     expect(handleSearchPress).toHaveBeenCalledTimes(1);
   });
+
+  it('opens the account hub from the collapsed header title', () => {
+    const { getByTestId } = renderWithProvider(
+      <WalletHeaderCompact {...defaultProps} />,
+    );
+
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON),
+    );
+
+    expect(defaultProps.handleAccountHubPress).toHaveBeenCalledTimes(1);
+  });
 });

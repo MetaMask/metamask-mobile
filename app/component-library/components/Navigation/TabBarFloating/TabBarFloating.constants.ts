@@ -40,7 +40,6 @@ export const TAB_BAR_FLOATING_MIN_BOTTOM_PADDING = 16;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
-  SCRIM: 'tab-bar-floating-scrim',
 
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
