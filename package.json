@@ -697,7 +697,7 @@
     "@yarnpkg/types": "^4.0.1",
     "agent-device": "^0.14.8",
     "appium": "3.6.0",
-    "appium-adb": "^9.11.4",
+    "appium-adb": "^14.5.0",
     "appium-chromium-driver": "^2.0.2",
     "appium-uiautomator2-driver": "8.2.2",
     "appium-xcuitest-driver": "12.1.4",
