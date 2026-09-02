@@ -37,9 +37,9 @@ import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPercentage,
   formatPerpsFiat,
-  formatPerpsPrice,
   formatPnl,
   formatPositionSize,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -132,6 +132,7 @@ const KeyValueItem = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
+            testID={valueTestID}
           >
             {valueContent}
           </Box>
@@ -230,18 +231,16 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
-  const hasTakeProfit =
-    Boolean(position.takeProfitPrice) &&
-    parseFloat(position.takeProfitPrice as string) > 0;
-  const hasStopLoss =
-    Boolean(position.stopLossPrice) &&
-    parseFloat(position.stopLossPrice as string) > 0;
-  const tpDisplay = hasTakeProfit
-    ? formatPerpsPrice(position.takeProfitPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
-  const slDisplay = hasStopLoss
-    ? formatPerpsPrice(position.stopLossPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const tpDisplay =
+    formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: position.takeProfitPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+  const slDisplay =
+    formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: position.stopLossPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).
@@ -435,6 +434,7 @@ const PerpsProPositionCard = ({
                 valuePressAccessibilityLabel={strings(
                   'perps.position.card.edit_tpsl',
                 )}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE}
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>

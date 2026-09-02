@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { OrdinaryOrderType } from '@metamask/perps-controller';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
@@ -73,6 +74,73 @@ const baseTransaction: Pick<
   timestamp: 1_765_361_640_000,
   asset: 'BTC',
 };
+
+const orderRowCases = [
+  {
+    orderType: 'market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'limit',
+    executionType: 'limit',
+    limitPrice: '98023',
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'stop_market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: '99000',
+  },
+  {
+    orderType: 'stop_limit',
+    executionType: 'limit',
+    limitPrice: '98023',
+    triggerPrice: '99000',
+  },
+  {
+    orderType: 'take_profit_market',
+    executionType: 'market',
+    limitPrice: undefined,
+    triggerPrice: '101000',
+  },
+  {
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    limitPrice: '102000',
+    triggerPrice: '101000',
+  },
+] as const satisfies readonly {
+  orderType: OrdinaryOrderType;
+  executionType: 'market' | 'limit';
+  limitPrice?: string;
+  triggerPrice?: string;
+}[];
+
+const createOrderTransaction = ({
+  orderType,
+  executionType,
+  limitPrice,
+  triggerPrice,
+}: (typeof orderRowCases)[number]): PerpsTransaction => ({
+  ...baseTransaction,
+  type: 'order',
+  category: 'limit_order',
+  title: `${orderType} order`,
+  order: {
+    orderId: `${orderType}-order`,
+    text: PerpsOrderTransactionStatus.Filled,
+    statusType: PerpsOrderTransactionStatusType.Filled,
+    type: executionType,
+    orderType,
+    size: '10',
+    limitPrice,
+    triggerPrice,
+    filled: '100%',
+  },
+});
 
 /**
  * @param type - Activity kind the row maps to.
@@ -175,6 +243,66 @@ function localPerpsFundsItem(
 describe('PerpsDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it.each(orderRowCases)('renders the $orderType price rows', (orderCase) => {
+    const transaction = createOrderTransaction(orderCase);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    const triggerPriceRow = queryByTestId(
+      ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW,
+    );
+    const limitPriceRow = queryByTestId(
+      ActivityDetailsSelectorsIDs.LIMIT_PRICE_ROW,
+    );
+
+    if (orderCase.triggerPrice) {
+      expect(triggerPriceRow).toBeOnTheScreen();
+    } else {
+      expect(triggerPriceRow).not.toBeOnTheScreen();
+    }
+
+    if (orderCase.limitPrice) {
+      expect(limitPriceRow).toBeOnTheScreen();
+    } else {
+      expect(limitPriceRow).not.toBeOnTheScreen();
+    }
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.FILLED_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders a trigger price row for a legacy stop-market transaction', () => {
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      type: 'order',
+      category: 'limit_order',
+      title: 'Stop market order',
+      order: {
+        orderId: 'legacy-stop-market-order',
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
+        type: 'market',
+        orderType: 'market',
+        size: '10',
+        triggerPrice: '99000',
+        filled: '100%',
+        isTrigger: true,
+        detailedOrderType: 'Stop Market',
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsDetails item={perpsItem('marketShort', transaction)} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.TRIGGER_PRICE_ROW),
+    ).toBeOnTheScreen();
   });
 
   it('renders trade rows and trade-again CTA', () => {
