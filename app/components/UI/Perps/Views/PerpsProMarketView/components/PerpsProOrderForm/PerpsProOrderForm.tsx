@@ -723,13 +723,21 @@ const PerpsProOrderForm = ({
               </FilterButton>
             </SegmentedControl>
             {isOrderBookCollapsed ? (
-              <ButtonIcon
-                iconName={IconName.Book}
-                accessibilityLabel={strings('perps.order_book.expand')}
-                size={ButtonIconSize.Md}
-                onPress={handleExpandOrderBook}
-                testID={PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON}
-              />
+              <Box
+                testID={
+                  PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_CONTAINER
+                }
+              >
+                <ButtonIcon
+                  iconName={IconName.Book}
+                  accessibilityLabel={strings('perps.order_book.expand')}
+                  size={ButtonIconSize.Md}
+                  onPress={handleExpandOrderBook}
+                  testID={
+                    PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON
+                  }
+                />
+              </Box>
             ) : null}
           </Box>
           <Box
