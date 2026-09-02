@@ -41,20 +41,20 @@ const BenefitRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName="py-3 gap-x-4"
+      twClassName="py-2.5 gap-x-3"
     >
       <Icon
         name={IconName.CheckBold}
-        size={IconSize.Lg}
+        size={IconSize.Md}
         color={IconColor.IconDefault}
-        twClassName="shrink-0"
+        twClassName="shrink-0 mt-0.5"
       />
 
-      <Box twClassName="flex-1 flex-col gap-y-1">
+      <Box twClassName="flex-1 flex-col gap-y-0.5">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.title)}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings(subtitleKey)}
         </Text>
       </Box>
