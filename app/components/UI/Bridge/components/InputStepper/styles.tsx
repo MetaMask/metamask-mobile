@@ -40,11 +40,16 @@ export const inputStepperStyles = ({
 export const inputStepperDescriptionRow = StyleSheet.create({
   descriptionRow: {
     flexDirection: 'row',
-    width: '75%',
-    marginHorizontal: 'auto',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    // Matches the design requirement: 8px gap between the warning icon and text.
+    marginRight: 8,
   },
   descriptionTextWrapper: {
-    flex: 1,
+    flexShrink: 1,
   },
   descriptionText: {
     textAlign: 'center',
