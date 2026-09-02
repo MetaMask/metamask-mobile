@@ -1,17 +1,26 @@
 import type { Nft } from '@metamask/assets-controllers';
 import React, { createRef } from 'react';
-import { act, screen } from '@testing-library/react-native';
+import { screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Homepage from './Homepage';
 import { SectionRefreshHandle } from './types';
 import {
+  HOMEPAGE_EARN_SECTION_AB_KEY,
+  HOMEPAGE_EARN_SECTION_VARIANTS,
   HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY,
   HOMEPAGE_PERPS_PILLS_EMPTY_VARIANTS,
+  HomepageEarnSectionVariant,
   HomepagePerpsPillsEmptyVariant,
 } from './abTestConfig';
 
-const defaultUseABTestImplementation = (key: string) => {
+interface MockABTestResult {
+  variant: unknown;
+  variantName: string;
+  isActive: boolean;
+}
+
+const defaultUseABTestImplementation = (key: string): MockABTestResult => {
   if (key === HOMEPAGE_PERPS_PILLS_EMPTY_AB_KEY) {
     return {
       variant:
@@ -50,6 +59,23 @@ jest.mock('../../../hooks', () => ({
     Reflect.apply(mockUseABTest, undefined, args),
 }));
 
+const mockHomepageEarnSection = jest.fn();
+jest.mock('./Sections/EarnSection', () => {
+  const ReactLib = jest.requireActual<typeof import('react')>('react');
+  const { View } =
+    jest.requireActual<typeof import('react-native')>('react-native');
+
+  return {
+    __esModule: true,
+    HomepageEarnSection: ReactLib.forwardRef(
+      (props: Record<string, unknown>, _ref: React.Ref<unknown>) => {
+        mockHomepageEarnSection(props);
+        return <View testID="homepage-earn-section-mock" />;
+      },
+    ),
+  };
+});
+
 const mockUseOwnedNfts = jest.fn((): Nft[] => []);
 jest.mock('./Sections/NFTs/hooks', () => ({
   useOwnedNfts: () => mockUseOwnedNfts(),
@@ -57,6 +83,7 @@ jest.mock('./Sections/NFTs/hooks', () => ({
 
 // Mock feature flags - enable all sections
 const mockPerpsEnabled = true;
+let mockEarnHomeSectionEnabled = false;
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
 }));
@@ -292,7 +319,7 @@ function getUseHomeViewedEventCalls(): [UseHomeViewedEventParamsSnapshot][] {
 }
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
-  selectEarnHomeSectionEnabledFlag: jest.fn(() => false),
+  selectEarnHomeSectionEnabledFlag: jest.fn(() => mockEarnHomeSectionEnabled),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => false),
   selectPooledStakingEnabledFlag: jest.fn(() => false),
   selectStablecoinLendingEnabledFlag: jest.fn(() => false),
@@ -392,7 +419,26 @@ describe('Homepage', () => {
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
+    mockEarnHomeSectionEnabled = false;
   });
+
+  const mockEarnSectionExperiment = (
+    enabled: boolean,
+    variantName: HomepageEarnSectionVariant,
+  ) => {
+    mockEarnHomeSectionEnabled = enabled;
+    mockUseABTest.mockImplementation((key: string) => {
+      if (key === HOMEPAGE_EARN_SECTION_AB_KEY) {
+        return {
+          variant: HOMEPAGE_EARN_SECTION_VARIANTS[variantName],
+          variantName,
+          isActive: true,
+        };
+      }
+
+      return defaultUseABTestImplementation(key);
+    });
+  };
 
   it('uses one enabled Perps connection provider for the homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });
@@ -443,6 +489,49 @@ describe('Homepage', () => {
       screen.queryByTestId('balance-breakdown-section-mock'),
     ).not.toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).not.toHaveBeenCalled();
+  });
+
+  describe('Earn section experiment', () => {
+    it('keeps the Earn section hidden for the control variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Control);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the Earn section for the treatment variant', () => {
+      mockEarnSectionExperiment(true, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.getByTestId('homepage-earn-section-mock'),
+      ).toBeOnTheScreen();
+      expect(mockHomepageEarnSection).toHaveBeenCalledWith(
+        expect.objectContaining({
+          sectionIndex: 2,
+          totalSectionsLoaded: 6,
+        }),
+      );
+    });
+
+    it('keeps the Earn section hidden when its feature flag is disabled', () => {
+      mockEarnSectionExperiment(false, HomepageEarnSectionVariant.Treatment);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(
+        screen.queryByTestId('homepage-earn-section-mock'),
+      ).not.toBeOnTheScreen();
+      expect(mockUseABTest).toHaveBeenCalledWith(
+        HOMEPAGE_EARN_SECTION_AB_KEY,
+        HOMEPAGE_EARN_SECTION_VARIANTS,
+        expect.objectContaining({ trackExposure: false }),
+      );
+    });
   });
 
   it('calls enableAllPopularNetworks when Homepage is focused and a popular network is disabled', () => {

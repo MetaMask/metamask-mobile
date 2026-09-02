@@ -32,6 +32,7 @@ import {
 } from '../constants/perpsCufTags';
 import Logger from '../../../../util/Logger';
 import {
+  ChaseOrderSuspensionError,
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
   PerpsMeasurementName,
@@ -45,8 +46,14 @@ import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
   PERPS_DISK_CACHE_USER_DATA,
+  CHASE_ORDER_UI_CONFIG,
   PERPS_CONNECTION_SOURCE,
 } from '../constants/perpsConfig';
+import { reportSuspendedChaseOrders } from './ChaseOrderSuspensionEvents';
+import {
+  reportChaseOrderStoreReconciliation,
+  type ChaseOrderRouteIdentity,
+} from './ChaseOrderStoreReconciliationEvents';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -104,6 +111,7 @@ class PerpsConnectionManagerClass {
   private connectionGeneration = 0;
   private readonly connectionGenerationListeners = new Set<() => void>();
   private initializedUserContextKey: string | null = null;
+  private initializedChaseRouteIdentity: ChaseOrderRouteIdentity | null = null;
   private readonly initializedUserContextListeners = new Set<() => void>();
   private isDisconnecting = false;
   private error: string | null = null;
@@ -133,6 +141,8 @@ class PerpsConnectionManagerClass {
   private wasOffline = false;
   private networkRestoreRetryTimer: ReturnType<typeof setTimeout> | null = null;
   private networkRestoreRetryCount = 0;
+  private contextChangePreparationPromise: Promise<void> | null = null;
+  private isContextChangePrepared = false;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -157,11 +167,150 @@ class PerpsConnectionManagerClass {
     return `${this.getSelectedMarketContextKey()}|${address}`;
   }
 
+  private getChaseOrderRouteIdentity(): ChaseOrderRouteIdentity {
+    const state = store.getState();
+    return {
+      account:
+        selectSelectedInternalAccountByScope(state)(
+          'eip155:1',
+        )?.address.toLowerCase() ?? '',
+      provider: selectPerpsProvider(state) ?? '',
+      network: selectPerpsNetwork(state) ?? '',
+    };
+  }
+
+  private prepareForContextChange(): Promise<void> {
+    if (this.isContextChangePrepared) {
+      return Promise.resolve();
+    }
+    if (this.contextChangePreparationPromise) {
+      return this.contextChangePreparationPromise;
+    }
+    const preparation = (async () => {
+      const routeIdentity =
+        this.initializedChaseRouteIdentity ?? this.getChaseOrderRouteIdentity();
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeoutError = new Error('Chase context suspension timed out');
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(
+          () => reject(timeoutError),
+          CHASE_ORDER_UI_CONFIG.BackgroundSuspensionTimeoutMs,
+        );
+      });
+      let suspension = Engine.context.PerpsController.suspendChaseOrders();
+      const reportLateSuccess = (pending: typeof suspension) => {
+        pending
+          .then((orders) => {
+            reportSuspendedChaseOrders(orders);
+            reportChaseOrderStoreReconciliation({
+              orders,
+              route: routeIdentity,
+            });
+          })
+          .catch((error) => {
+            if (error instanceof ChaseOrderSuspensionError) {
+              reportSuspendedChaseOrders(error.suspendedOrders);
+              reportChaseOrderStoreReconciliation({
+                orders: error.suspendedOrders,
+                route: routeIdentity,
+              });
+            }
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.lateContextSuspension',
+              ),
+              {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'PerpsConnectionManager',
+                  action: 'late_chase_context_suspension',
+                },
+                context: {
+                  name: 'PerpsConnectionManager.lateContextSuspension',
+                  data: {
+                    partialCount:
+                      error instanceof ChaseOrderSuspensionError
+                        ? error.suspendedOrders.length
+                        : 0,
+                  },
+                },
+              },
+            );
+          });
+      };
+      try {
+        try {
+          const orders = await Promise.race([suspension, timeout]);
+          reportSuspendedChaseOrders(orders);
+        } catch (error) {
+          if (!(error instanceof ChaseOrderSuspensionError)) {
+            if (error === timeoutError) reportLateSuccess(suspension);
+            throw error;
+          }
+          reportSuspendedChaseOrders(error.suspendedOrders);
+          suspension = Engine.context.PerpsController.suspendChaseOrders();
+          try {
+            const retryOrders = await Promise.race([suspension, timeout]);
+            reportSuspendedChaseOrders(retryOrders);
+          } catch (retryError) {
+            if (retryError === timeoutError) reportLateSuccess(suspension);
+            const retryPartialOrders =
+              retryError instanceof ChaseOrderSuspensionError
+                ? retryError.suspendedOrders
+                : [];
+            reportSuspendedChaseOrders(retryPartialOrders);
+            const suspendedOrders = [
+              ...new Map(
+                [...error.suspendedOrders, ...retryPartialOrders].map(
+                  (order) => [order.handle, order],
+                ),
+              ).values(),
+            ];
+            throw new ChaseOrderSuspensionError({
+              suspendedOrders,
+              failures:
+                retryError instanceof ChaseOrderSuspensionError
+                  ? retryError.failures
+                  : error.failures.map((failure) => ({
+                      ...failure,
+                      reason: retryError,
+                    })),
+            });
+          }
+        }
+        this.isContextChangePrepared = true;
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    })().finally(() => {
+      if (this.contextChangePreparationPromise === preparation) {
+        this.contextChangePreparationPromise = null;
+      }
+    });
+    this.contextChangePreparationPromise = preparation;
+    return preparation;
+  }
+
+  async runWithContextChangePreparation<TResult>(
+    transition: () => Promise<TResult>,
+  ): Promise<TResult> {
+    await this.prepareForContextChange();
+    try {
+      return await transition();
+    } finally {
+      this.isContextChangePrepared = false;
+    }
+  }
+
   private setInitializedUserContextKey(key: string | null): void {
     if (this.initializedUserContextKey === key) {
       return;
     }
     this.initializedUserContextKey = key;
+    if (key !== null) {
+      this.initializedChaseRouteIdentity = this.getChaseOrderRouteIdentity();
+    }
     this.initializedUserContextListeners.forEach((listener) => listener());
   }
 
@@ -249,6 +398,7 @@ class PerpsConnectionManagerClass {
 
       // If account, network, provider, or HIP-3 config changed and we're connected, trigger reconnection
       if (hasContextChanged && this.isConnected) {
+        const contextChangePreparation = this.prepareForContextChange();
         DevLogger.log(
           hasHip3Changed
             ? '[DEX:WHITELIST] PerpsConnectionManager: HIP-3 config version CHANGED - triggering reconnection'
@@ -346,9 +496,29 @@ class PerpsConnectionManagerClass {
         if (this.stateChangeDebounceTimer !== null) {
           clearTimeout(this.stateChangeDebounceTimer);
         }
-        this.stateChangeDebounceTimer = setTimeout(() => {
+        this.stateChangeDebounceTimer = setTimeout(async () => {
           this.stateChangeDebounceTimer = null;
-          this.reconnectWithNewContext().catch((error) => {
+          try {
+            await contextChangePreparation;
+          } catch (error) {
+            Logger.error(
+              ensureError(
+                error,
+                'PerpsConnectionManager.accountContextPreparation',
+              ),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+                context: {
+                  name: 'PerpsConnectionManager.accountContextPreparation',
+                  data: { recovery: 'continue_reconnect' },
+                },
+              },
+            );
+          }
+          this.isContextChangePrepared = false;
+          try {
+            await this.reconnectWithNewContext();
+          } catch (error) {
             Logger.error(
               ensureError(error, 'PerpsConnectionManager.setupStateMonitoring'),
               {
@@ -362,7 +532,7 @@ class PerpsConnectionManagerClass {
                 },
               },
             );
-          });
+          }
         }, 50);
       }
 
@@ -536,6 +706,8 @@ class PerpsConnectionManagerClass {
       this.previousHip3Version = 0;
       DevLogger.log('PerpsConnectionManager: State monitoring cleaned up');
     }
+    this.contextChangePreparationPromise = null;
+    this.isContextChangePrepared = false;
   }
 
   /**

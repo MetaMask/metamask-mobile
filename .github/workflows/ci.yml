@@ -759,6 +759,15 @@ jobs:
         run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
 
+  deploy-platform-api-docs:
+    name: Deploy Platform API Docs
+    needs: check-workflows
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-platform-api-docs.yml
+
   # Warms the Namespace cache volume before test shards run. On non-Namespace
   # runners uploads a ci-js-deps artifact so consumers can skip their own install.
   prepare-ci-js-deps:
