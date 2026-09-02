@@ -1,0 +1,35 @@
+name: TEMP Test CI Escalation Wiring
+
+# THROWAWAY, not for merge. Mirrors just the two new jobs added to ci.yml
+# (dependency-audit -> dependency-audit-escalation) without paying for the
+# rest of ci.yml's expensive build/test jobs, to validate the
+# needs/outputs/if/workflow_call/secrets:inherit chain actually threads
+# through to dependency-audit-escalation.yml correctly.
+
+on:
+  push:
+    branches:
+      - test/fake-audit-advisory-e2e
+
+jobs:
+  fake-detect:
+    name: Fake dependency-audit (has-advisories=true)
+    runs-on: ubuntu-latest
+    outputs:
+      has-advisories: ${{ steps.audit.outputs.has-advisories }}
+    steps:
+      - id: audit
+        run: echo "has-advisories=true" >> "$GITHUB_OUTPUT"
+
+  dependency-audit-escalation:
+    name: Dependency audit escalation
+    needs:
+      - fake-detect
+    if: ${{ needs.fake-detect.outputs.has-advisories == 'true' }}
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+      id-token: write
+    uses: ./.github/workflows/dependency-audit-escalation.yml
+    secrets: inherit

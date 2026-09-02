@@ -32,6 +32,13 @@ name: Dependency Audit Escalation
 on:
   workflow_call:
   workflow_dispatch:
+  # TEMPORARY, for e2e smoke tests: direct-push trigger disabled for now so a
+  # push to test/fake-audit-advisory-e2e exercises the new ci.yml ->
+  # workflow_call chain (via test-ci-escalation-wiring.yml) exactly once,
+  # instead of also firing this workflow a second time directly.
+  # push:
+  #   branches:
+  #     - test/fake-audit-advisory-e2e
 
 permissions:
   contents: write
@@ -48,7 +55,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          ref: main
+          # TEMPORARY: real workflow pins `ref: main`. This smoke-test branch
+          # checks out itself instead, since the escalation scripts/config
+          # this test exercises aren't on main yet (still on this open PR).
+          ref: test/fake-audit-advisory-e2e
           fetch-depth: 0 # needed so get-next-semver-version.sh can see all release/* branches
 
       - name: Setup Node.js
@@ -65,27 +75,23 @@ jobs:
           retry_wait_seconds: 30
           command: yarn install --immutable
 
-      - name: Run dependency audit
+      # TEMPORARY: real workflow runs the yarn npm audit command here. This
+      # smoke-test branch injects one obviously-fake advisory instead, so the
+      # rest of the pipeline (Slack messages, collect, AI-assisted fix,
+      # PR/issue creation) can be exercised for real without waiting for/
+      # faking an actual vulnerable dependency. `ms` is a real, transitive
+      # dependency pulled in by multiple different pinned `debug` versions
+      # with conflicting exact ranges (2.0.0 vs 2.1.2) — a good real-world
+      # check that the AI's new `dependents` awareness correctly declines a
+      # `resolutions` pin here rather than forcing one that breaks a consumer.
+      - name: Run dependency audit (FAKED for e2e smoke test)
         id: audit
         shell: bash
         run: |
-          set +e
-          yarn npm audit --environment production --severity moderate --no-deprecations --json > audit.ndjson 2> audit.stderr
-          EXIT="$?"
-          set -e
-          cat audit.stderr >&2 || true
-          # Exit 0 = clean, non-zero = advisories found. Either way audit.ndjson
-          # is what matters; a truncated/empty file on a non-zero exit is a real
-          # script error and should fail the job instead of silently no-oping.
-          if [[ "$EXIT" -ne 0 && ! -s audit.ndjson ]]; then
-            echo "::error::yarn npm audit exited $EXIT with no output; treating as a script failure, not a clean audit."
-            exit "$EXIT"
-          fi
-          if [[ -s audit.ndjson ]]; then
-            echo "has-advisories=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has-advisories=false" >> "$GITHUB_OUTPUT"
-          fi
+          cat > audit.ndjson << 'EOF'
+          {"value":"ms","children":{"ID":"TEST-0008","Issue":"[TEST] Synthetic advisory injected to validate the full escalation loop end-to-end now that the token-exchange-service policy fix is deployed (job_workflow_ref_match). Not a real vulnerability — safe to close/delete anything this produces.","Severity":"high","Vulnerable Versions":"*","URL":"https://github.com/MetaMask/metamask-mobile/pull/35470"}}
+          EOF
+          echo "has-advisories=true" >> "$GITHUB_OUTPUT"
 
       # Idempotent: `gh label create --force` edits the label in place if it
       # already exists instead of erroring, so this is safe to run every time
