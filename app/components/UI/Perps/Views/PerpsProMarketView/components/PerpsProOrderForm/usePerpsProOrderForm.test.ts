@@ -439,6 +439,8 @@ const renderProForm = (
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
     scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
+  const refreshChaseCapability =
+    chaseGate.refresh ?? jest.fn().mockResolvedValue('hyperliquid');
 
   return renderHook(() =>
     usePerpsProOrderForm({
@@ -454,7 +456,7 @@ const renderProForm = (
       checkScaleOrderSupport,
       isChaseEnabled: chaseGate.isEnabled ?? true,
       isChaseAvailabilityPending: chaseGate.isPending ?? false,
-      refreshChaseCapability: chaseGate.refresh ?? (async () => 'hyperliquid'),
+      refreshChaseCapability,
       chaseProviderId:
         chaseGate.isEnabled === false
           ? null
@@ -1479,6 +1481,31 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
+    it('tracks each Chase limit banner episode once', () => {
+      mockOrderForm.type = 'chase';
+      mockChaseOrders = Array.from({ length: 5 }, () => ({
+        status: 'active',
+      }));
+      const form = renderProForm();
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      form.rerender({});
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      mockChaseOrders = mockChaseOrders.slice(0, 4);
+      form.rerender({});
+      mockChaseOrders = [...mockChaseOrders, { status: 'termination_pending' }];
+      form.rerender({});
+
+      expect(mockTrack).toHaveBeenCalledTimes(2);
+      expect(mockTrack).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
+    });
+
     it('blocks a Chase submit when refreshed active and pending sessions reach the venue limit', async () => {
       mockOrderForm.type = 'chase';
       mockGetChaseOrders.mockResolvedValueOnce(
@@ -1494,8 +1521,40 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('tracks a controller Chase limit rejection during execution', async () => {
+      mockOrderForm.type = 'chase';
+      mockExecuteOrder.mockImplementationOnce(async () => {
+        mockExecutionOptions.onError?.(
+          PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED,
+        );
+        return {
+          success: false,
+          error: PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED,
+        };
+      });
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
     it('blocks Chase placement until session context reconnects', async () => {
@@ -1553,6 +1612,51 @@ describe('usePerpsProOrderForm', () => {
       expect(validationError).not.toHaveBeenCalledWith(
         strings('perps.order.validation.chase_route_changed'),
       );
+    });
+
+    it('locks Chase preflight against repeated taps and draft edits', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let firstSubmit: Promise<void> | undefined;
+
+      act(() => {
+        firstSubmit = form.result.current.onPlaceOrderPress();
+      });
+      expect(form.result.current.isPlaceOrderLoading).toBe(true);
+      expect(form.result.current.isPlaceOrderDisabled).toBe(true);
+      await act(async () => form.result.current.onPlaceOrderPress());
+      act(() => form.result.current.onChaseMaxDistanceChange('25'));
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(form.result.current.chaseMaxDistance).toBe('');
+      await act(async () => releaseCompliance?.());
+      await act(async () => firstSubmit);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(form.result.current.isPlaceOrderLoading).toBe(false);
+    });
+
+    it('releases Chase preflight lock after compliance failure', async () => {
+      mockComplianceGate.mockRejectedValueOnce(new Error('compliance failed'));
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+
+      await act(async () => {
+        await expect(form.result.current.onPlaceOrderPress()).rejects.toThrow(
+          'compliance failed',
+        );
+      });
+
+      expect(form.result.current.isPlaceOrderLoading).toBe(false);
+      mockComplianceGate.mockImplementation((action) => action());
+      await act(async () => form.result.current.onPlaceOrderPress());
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
     it('abandons deferred Chase compliance after the symbol-keyed form unmounts', async () => {
@@ -1933,7 +2037,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('abandons Chase submit when the distance unit changes during capability refresh', async () => {
+    it('blocks a Chase distance-unit edit during capability refresh', async () => {
       let resolveRefresh:
         | ((providerId: 'hyperliquid' | null) => void)
         | undefined;
@@ -1953,8 +2057,9 @@ describe('usePerpsProOrderForm', () => {
         { refresh },
       );
 
+      let submission: Promise<void> | undefined;
       act(() => {
-        result.current.onPlaceOrderPress();
+        submission = result.current.onPlaceOrderPress();
       });
       await act(async () => {
         await Promise.resolve();
@@ -1962,15 +2067,13 @@ describe('usePerpsProOrderForm', () => {
       act(() => {
         result.current.onChaseMaxDistanceUnitChange('percent');
       });
+      expect(result.current.chaseMaxDistanceUnit).toBe('usd');
       await act(async () => {
         resolveRefresh?.('hyperliquid');
-        await Promise.resolve();
+        await submission;
       });
 
-      await waitFor(() => {
-        expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
-      });
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
     it('abandons Chase submit when the capability route disappears', async () => {
@@ -2354,7 +2457,7 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
-    it('abandons Chase submit when an explicit size changes during session refresh', async () => {
+    it('blocks an explicit Chase size edit during session refresh', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -2379,21 +2482,16 @@ describe('usePerpsProOrderForm', () => {
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
       act(() => form.result.current.sizeInput.onChange('99'));
-      expect(mockSetAmount).toHaveBeenCalledWith('99');
-      mockContextValue.orderForm = { ...mockOrderForm, amount: '99' };
-      form.rerender({});
+      expect(mockSetAmount).not.toHaveBeenCalled();
       await act(async () => {
         resolveOrders?.([]);
         await submitPromise;
       });
 
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).toHaveBeenCalledWith(
-        strings('perps.order.validation.chase_details_changed'),
-      );
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
-    it('abandons Chase submit when leverage changes during session refresh', async () => {
+    it('blocks a Chase leverage edit during session refresh', async () => {
       let resolveOrders: ((orders: never[]) => void) | undefined;
       mockGetChaseOrders.mockImplementationOnce(
         () =>
@@ -2418,18 +2516,13 @@ describe('usePerpsProOrderForm', () => {
       await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
 
       act(() => form.result.current.onLeverageConfirm(10, 'slider'));
-      expect(mockSetLeverage).toHaveBeenCalledWith(10);
-      mockContextValue.orderForm = { ...mockOrderForm, leverage: 10 };
-      form.rerender({});
+      expect(mockSetLeverage).not.toHaveBeenCalled();
       await act(async () => {
         resolveOrders?.([]);
         await submitPromise;
       });
 
-      expect(mockExecuteOrder).not.toHaveBeenCalled();
-      expect(validationError).toHaveBeenCalledWith(
-        strings('perps.order.validation.chase_details_changed'),
-      );
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
     });
 
     it('aborts when effective price changes during session refresh', async () => {

@@ -1932,6 +1932,53 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('preserves termination pending when an unobserved newer child fills', async () => {
+    const childA = {
+      ...activeOrder,
+      restingOrderId: 'child-a',
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([childA])
+      .mockResolvedValueOnce([]);
+    mockGetOrders.mockResolvedValue([
+      makeHistoricalOrder({
+        orderId: 'child-a',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'canceled',
+        timestamp: 2,
+        lastUpdated: 2,
+      }),
+      makeHistoricalOrder({
+        orderId: 'child-b',
+        size: '1',
+        originalSize: '1',
+        filledSize: '1',
+        remainingSize: '0',
+        status: 'filled',
+        timestamp: 3,
+        lastUpdated: 3,
+      }),
+    ]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([childA]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(childA),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([
+      {
+        ...childA,
+        restingOrderId: null,
+        status: 'termination_pending',
+      },
+    ]);
+    hook.unmount();
+  });
+
   it('retains a proven Filled Chase across empty refresh and screen remount', async () => {
     const runtimeActiveOrder: ChaseOrder = {
       ...activeOrder,

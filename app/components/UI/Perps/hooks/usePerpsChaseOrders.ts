@@ -257,6 +257,7 @@ const mergeAfterSuccessfulCancellation = (
   orders: ChaseOrder[],
   canceledOrder: ChaseOrder,
   filledOrders: ChaseOrder[],
+  hasUnobservedPotentialChild: boolean,
 ) => {
   const mergedOrders = mergeWithAuthoritativeFilledOrders(orders, filledOrders);
   if (
@@ -265,6 +266,18 @@ const mergeAfterSuccessfulCancellation = (
     filledOrders.some((order) => isSameChaseOrder(order, canceledOrder))
   ) {
     return mergedOrders;
+  }
+  if (hasUnobservedPotentialChild) {
+    return mergeWithCachedHistory(
+      [
+        {
+          ...canceledOrder,
+          restingOrderId: null,
+          status: CHASE_ORDER_STATUS.TerminationPending,
+        },
+      ],
+      true,
+    );
   }
   aggregatedOmissionCounts.delete(getChaseOrderIdentity(canceledOrder));
   if (canceledOrder.providerId !== undefined) {
@@ -431,6 +444,7 @@ async function refreshChaseOrders(
           !orders.some((order) => isSameChaseOrder(order, cachedOrder)),
       );
       let filledOrders: ChaseOrder[] = [];
+      let hasUnobservedPotentialChild = false;
       if (missingRetainedOrders.length > 0) {
         // Provider teardown can remove a terminal Chase before Mobile reads its
         // final snapshot. Only the exact child's terminal status proves Filled.
@@ -449,6 +463,21 @@ async function refreshChaseOrders(
           throw new ChaseOrderRequestError('stale_request');
         }
         filledOrders = getOrdersProvenFilled(orders, historicalOrders);
+        if (canceledOrder?.restingOrderId) {
+          // v15 exposes no child lineage after removing a Chase session. A
+          // different same-route child may be a rotation, so keep the session
+          // unresolved instead of attributing one child's cancel to the Chase.
+          hasUnobservedPotentialChild = historicalOrders.some(
+            (historicalOrder) =>
+              historicalOrder.orderId !== canceledOrder.restingOrderId &&
+              historicalOrder.symbol === canceledOrder.symbol &&
+              historicalOrder.side === canceledOrder.side &&
+              historicalOrder.timestamp >= canceledOrder.startedAt &&
+              (canceledOrder.providerId === undefined
+                ? selectedProvider !== 'aggregated'
+                : historicalOrder.providerId === canceledOrder.providerId),
+          );
+        }
       }
       refreshFailureLogged = false;
       cachedRoute = route;
@@ -458,6 +487,7 @@ async function refreshChaseOrders(
               orders,
               canceledOrder,
               filledOrders,
+              hasUnobservedPotentialChild,
             )
           : mergeWithAuthoritativeFilledOrders(orders, filledOrders),
       );

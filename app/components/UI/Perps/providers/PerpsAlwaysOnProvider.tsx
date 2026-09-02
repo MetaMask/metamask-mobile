@@ -28,8 +28,29 @@ import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/
 import { useFeatureNotificationsStatus } from '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus';
 import { subscribeToSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
 import { isChaseOrderHandleVisible } from '../services/ChaseOrderVisibility';
+import {
+  CHASE_METAMETRICS_INTERACTION,
+  CHASE_REPRICE_SAMPLE_INTERVAL,
+} from '../constants/chaseAnalytics';
 
 const MAX_REPORTED_CHASE_HANDLES = 100;
+const observedChaseRepricings = new Map<string, number>();
+
+const retainBoundedAnalyticsKey = <T,>(map: Map<string, T>) => {
+  while (map.size > MAX_REPORTED_CHASE_HANDLES) {
+    const oldestKey = map.keys().next().value;
+    if (oldestKey === undefined) break;
+    map.delete(oldestKey);
+  }
+};
+
+const getChaseAnalyticsKey = ({
+  providerId,
+  handle,
+}: {
+  providerId?: string;
+  handle: string;
+}) => `${providerId ?? 'unknown'}:${handle}`;
 
 const ChaseNotificationPreference = ({
   onChange,
@@ -78,6 +99,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     [],
   );
   const {
+    chaseOrders,
     hasLiveChaseOrders,
     isChaseOrderDiscoveryResolved,
     suspendChaseOrders,
@@ -94,9 +116,11 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   const notifyingBackgroundedChaseHandlesRef = useRef(new Set<string>());
   const notifiedMaxDistanceChaseHandlesRef = useRef(new Set<string>());
   const notifyingMaxDistanceChaseHandlesRef = useRef(new Set<string>());
+  const reportedMaxDistanceAnalyticsKeysRef = useRef(new Set<string>());
   const chaseLifecycleRef = useRef({
     shouldSuspendChaseOrders,
     suspendChaseOrders,
+    chaseOrders,
     track,
     isPushNotificationsEnabled,
   });
@@ -105,6 +129,7 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     chaseLifecycleRef.current = {
       shouldSuspendChaseOrders,
       suspendChaseOrders,
+      chaseOrders,
       track,
       isPushNotificationsEnabled,
     };
@@ -113,8 +138,38 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     isPushNotificationsEnabled,
     shouldSuspendChaseOrders,
     suspendChaseOrders,
+    chaseOrders,
     track,
   ]);
+
+  useEffect(() => {
+    chaseOrders.forEach((order) => {
+      if (!Number.isFinite(order.repricings)) return;
+      const key = `${getChaseAnalyticsKey(order)}:${order.startedAt}`;
+      const previousRepricings = observedChaseRepricings.get(key);
+      if (previousRepricings === undefined) {
+        observedChaseRepricings.set(key, order.repricings);
+        retainBoundedAnalyticsKey(observedChaseRepricings);
+        return;
+      }
+      if (order.repricings <= previousRepricings) return;
+      const firstMilestone =
+        (Math.floor(previousRepricings / CHASE_REPRICE_SAMPLE_INTERVAL) + 1) *
+        CHASE_REPRICE_SAMPLE_INTERVAL;
+      for (
+        let milestone = firstMilestone;
+        milestone <= order.repricings;
+        milestone += CHASE_REPRICE_SAMPLE_INTERVAL
+      ) {
+        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            CHASE_METAMETRICS_INTERACTION.REPRICE,
+          [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
+        });
+      }
+      observedChaseRepricings.set(key, order.repricings);
+    });
+  }, [chaseOrders, track]);
 
   // Track AppState so Perps CUF spans can tag lifecycle_context.
   useEffect(() => initPerpsLifecycleTracking(), []);
@@ -160,6 +215,51 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         });
         reconnectTimer = undefined;
       }, delayMs);
+    };
+
+    const scheduleChaseBackgroundingNotification = (
+      orders: typeof chaseOrders,
+    ) => {
+      if (orders.length === 0) return;
+      // Best effort at the background edge, before suspension can consume the
+      // remaining JS execution window. Mobile has no native/cold-kill Chase
+      // handler, so this does not claim delivery after an immediate force-kill.
+      const handles = orders
+        .map((order) => order.handle)
+        .sort((left, right) => left.localeCompare(right))
+        .join('-');
+      const notificationId = `perps-chase-backgrounded-${handles}`;
+      (async () => {
+        if (
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !isPerpsPushNotificationsEnabledRef.current ||
+          !(await isPushPermissionGranted())
+        ) {
+          return;
+        }
+        if (
+          !chaseLifecycleRef.current.isPushNotificationsEnabled ||
+          !isPerpsPushNotificationsEnabledRef.current
+        ) {
+          return;
+        }
+        await NotificationsService.displayNotification({
+          id: notificationId,
+          title: strings('perps.order.chase.backgrounding_title'),
+          body: strings('perps.order.chase.backgrounding_notification'),
+          data: { notification_id: notificationId },
+        });
+      })().catch((error) => {
+        DevLogger.log(
+          'PerpsAlwaysOnProvider: Chase backgrounding notification failed',
+          {
+            error: ensureError(
+              error,
+              'PerpsAlwaysOnProvider.displayBackgroundingNotification',
+            ).message,
+          },
+        );
+      });
     };
 
     const reportSuspendedChaseOrders = (
@@ -269,6 +369,24 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
     const handleChaseOrderMaxDistanceReached = (
       event: ChaseOrderMaxDistanceReached,
     ) => {
+      const analyticsKey = getChaseAnalyticsKey(event);
+      if (!reportedMaxDistanceAnalyticsKeysRef.current.has(analyticsKey)) {
+        const reportedKeys = reportedMaxDistanceAnalyticsKeysRef.current;
+        reportedKeys.add(analyticsKey);
+        while (reportedKeys.size > MAX_REPORTED_CHASE_HANDLES) {
+          const oldestKey = reportedKeys.values().next().value;
+          if (oldestKey === undefined) break;
+          reportedKeys.delete(oldestKey);
+        }
+        chaseLifecycleRef.current.track(
+          MetaMetricsEvents.PERPS_UI_INTERACTION,
+          {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              CHASE_METAMETRICS_INTERACTION.MAX_DISTANCE_HIT,
+            [PERPS_EVENT_PROPERTY.ASSET]: event.symbol,
+          },
+        );
+      }
       if (
         AppState.currentState === 'active' &&
         isChaseOrderHandleVisible(event.handle)
@@ -384,6 +502,14 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
         prevState !== 'background'
       ) {
         const suspensionGeneration = ++lifecycleGeneration;
+        const currentChaseLifecycle = chaseLifecycleRef.current;
+        scheduleChaseBackgroundingNotification(
+          currentChaseLifecycle.chaseOrders.filter(
+            (order) =>
+              order.status === CHASE_ORDER_STATUS.Active ||
+              order.status === CHASE_ORDER_STATUS.TerminationPending,
+          ),
+        );
         lifecycleQueue = lifecycleQueue.then(async () => {
           if (
             !isActive ||
@@ -392,9 +518,9 @@ export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
           ) {
             return;
           }
-          const currentChaseLifecycle = chaseLifecycleRef.current;
+          const queuedChaseLifecycle = chaseLifecycleRef.current;
           try {
-            const orders = await currentChaseLifecycle.suspendChaseOrders(
+            const orders = await queuedChaseLifecycle.suspendChaseOrders(
               () =>
                 isActive &&
                 suspensionGeneration === lifecycleGeneration &&

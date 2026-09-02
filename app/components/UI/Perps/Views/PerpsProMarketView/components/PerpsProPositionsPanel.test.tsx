@@ -21,6 +21,7 @@ import {
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
 import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import {
+  getPerpsProChaseSideFilterOptionSelector,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
@@ -94,6 +95,11 @@ jest.mock('../../../hooks/usePerpsMarkets', () => ({
 jest.mock('../../../hooks/usePerpsChaseOrders', () => ({
   isExpectedChaseOrderRequestError: () => false,
   usePerpsChaseOrders: jest.fn(),
+}));
+
+const mockTrack = jest.fn();
+jest.mock('../../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
 }));
 
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
@@ -306,6 +312,51 @@ describe('PerpsProPositionsPanel', () => {
       isEnabled: true,
       enableDiscovery: false,
     });
+  });
+
+  it('counts Chase rows after ticker and side filters', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [
+        chaseOrder,
+        { ...chaseOrder, handle: 'chase-btc', symbol: 'BTC' },
+        { ...chaseOrder, handle: 'chase-sol-short', side: 'sell' },
+      ],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    renderPanel('SOL');
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 3 }),
+      ),
+    ).not.toHaveLength(0);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 2 }),
+      ),
+    ).not.toHaveLength(0);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(getPerpsProChaseSideFilterOptionSelector('long')),
+    );
+
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 1 }),
+      ),
+    ).not.toHaveLength(0);
   });
 
   it('reports loading while the market context reconnects', () => {

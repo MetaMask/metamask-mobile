@@ -565,6 +565,28 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeDisabled();
     });
 
+    it('locks every editable Chase control while preflight is loading', () => {
+      renderForm({
+        orderType: 'chase',
+        isPlaceOrderLoading: true,
+        onMarginModePress: jest.fn(),
+        onLeveragePress: jest.fn(),
+      });
+
+      expect(screen.getByTestId(ids.DIRECTION_LONG)).toBeDisabled();
+      expect(screen.getByTestId(ids.DIRECTION_SHORT)).toBeDisabled();
+      expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeDisabled();
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'isDisabled',
+        true,
+      );
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('isDisabled', true);
+      expect(screen.getByTestId(ids.REDUCE_ONLY)).toBeDisabled();
+      expect(screen.getByTestId(ids.PLACE_ORDER_BUTTON)).toBeDisabled();
+    });
+
     it('groups all four divided Scale rows inside the shared order card', () => {
       renderForm({
         orderType: 'scale',

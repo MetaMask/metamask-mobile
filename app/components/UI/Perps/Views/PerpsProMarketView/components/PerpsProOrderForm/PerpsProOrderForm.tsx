@@ -505,7 +505,8 @@ const PerpsProOrderForm = ({
   const sizeInputRef = useRef<TextInput>(null);
   const isLong = direction === 'long';
   const isScaleOrder = orderType === 'scale';
-  const isScaleFormLocked = isScaleOrder && isPlaceOrderLoading;
+  const isScaleFormLocked =
+    (isScaleOrder || orderType === 'chase') && isPlaceOrderLoading;
   const showsTriggerPrice = isTriggerOrderType(orderType);
   const isChase = orderType === 'chase';
   const showsLimitPrice = isLimitExecutionOrderType(orderType);
@@ -865,6 +866,7 @@ const PerpsProOrderForm = ({
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
+                  isDisabled={isScaleFormLocked}
                   variant="inline-labeled"
                   placeholder={chaseMaxDistanceUnit === 'usd' ? '0.00' : '0%'}
                   startAccessory={
@@ -881,6 +883,7 @@ const PerpsProOrderForm = ({
                     <ButtonIcon
                       iconName={IconName.SwapHorizontal}
                       size={ButtonIconSize.Xs}
+                      isDisabled={isScaleFormLocked}
                       hitSlop={CHASE_UNIT_HIT_SLOP}
                       onPress={() =>
                         onChaseMaxDistanceUnitChange(

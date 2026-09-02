@@ -87,6 +87,7 @@ import {
   selectPerpsProvider,
 } from '../../../selectors/perpsController';
 import { CHASE_HISTORY_STATUSES } from '../../../constants/perpsConfig';
+import { CHASE_METAMETRICS_PROPERTY } from '../../../constants/chaseAnalytics';
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
@@ -232,6 +233,7 @@ const PerpsProPositionsPanel = ({
   const [terminatingChaseHandle, setTerminatingChaseHandle] = useState<
     string | null
   >(null);
+  const reportedTerminatedChaseKeysRef = useRef(new Set<string>());
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
   useEffect(() => {
     if (!shouldShowChaseTab && activeIndex === CHASE_TAB_INDEX) {
@@ -502,10 +504,6 @@ const PerpsProPositionsPanel = ({
     () => visibleChaseOrders.filter((order) => !isChaseHistoryOrder(order)),
     [visibleChaseOrders],
   );
-  const allActiveChaseOrders = useMemo(
-    () => chaseOrders.filter((order) => !isChaseHistoryOrder(order)),
-    [chaseOrders],
-  );
   const historyChaseOrders = useMemo(
     () =>
       visibleChaseOrders.filter(
@@ -597,9 +595,9 @@ const PerpsProPositionsPanel = ({
           {
             key: 'chase',
             label:
-              allActiveChaseOrders.length > 0
+              activeChaseOrders.length > 0
                 ? strings('perps.order.chase.tab_with_count', {
-                    count: allActiveChaseOrders.length,
+                    count: activeChaseOrders.length,
                   })
                 : strings('perps.order.chase.tab'),
             content: null,
@@ -773,11 +771,31 @@ const PerpsProPositionsPanel = ({
         // Controller v15 removes a successfully canceled Chase. Any returned
         // row remains authoritative, including a child that filled first.
         await reconcileAcceptedChaseCancellation(order);
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
-          [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
-        });
+        const originalSize = new BigNumber(order.originalSize);
+        const remainingSize = new BigNumber(order.remainingSize);
+        const fillPctAtTerminate = originalSize.isGreaterThan(0)
+          ? BigNumber.maximum(
+              0,
+              BigNumber.minimum(
+                100,
+                originalSize
+                  .minus(remainingSize)
+                  .dividedBy(originalSize)
+                  .multipliedBy(100),
+              ),
+            ).toNumber()
+          : undefined;
+        const analyticsKey = `${order.providerId ?? activeProvider}:${order.handle}`;
+        if (!reportedTerminatedChaseKeysRef.current.has(analyticsKey)) {
+          reportedTerminatedChaseKeysRef.current.add(analyticsKey);
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,
+            [PERPS_EVENT_PROPERTY.ASSET]: order.symbol,
+            [CHASE_METAMETRICS_PROPERTY.FILL_PCT_AT_TERMINATE]:
+              fillPctAtTerminate,
+          });
+        }
       } catch (error) {
         Logger.error(
           ensureError(error, 'PerpsProPositionsPanel.handleTerminateChase'),

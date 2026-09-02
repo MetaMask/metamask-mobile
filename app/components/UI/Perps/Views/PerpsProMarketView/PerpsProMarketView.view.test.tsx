@@ -353,7 +353,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         providerId: 'hyperliquid',
         reason: 'strategy_market_unsupported',
       });
-    (Engine.context.PerpsController.getChaseOrders as jest.Mock)
+    jest
+      .mocked(Engine.context.PerpsController.getChaseOrders)
       .mockReset()
       .mockResolvedValue([]);
   });
@@ -365,11 +366,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'keeps the tabbed Chase flow available when the TWAP flag is absent',
     async () => {
-      const getOrderCapabilities = (
-        Engine.context.PerpsController as unknown as {
-          getOrderCapabilities: jest.Mock;
-        }
-      ).getOrderCapabilities;
+      const getOrderCapabilities = jest.mocked(
+        Engine.context.PerpsController.getOrderCapabilities,
+      );
       getOrderCapabilities.mockResolvedValue({
         status: 'ready',
         providerId: 'hyperliquid',
@@ -452,10 +451,15 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'retains canceled History when the controller omits the terminated session',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
+      jest
+        .mocked(Engine.context.PerpsController.getOrders)
+        .mockResolvedValueOnce([]);
       getChaseOrders.mockResolvedValueOnce([activeChase]).mockResolvedValue([]);
       cancelOrder.mockClear();
       renderFundedProMarket();
@@ -542,10 +546,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ...activeChase,
         status: 'canceled',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       getChaseOrders
         .mockResolvedValueOnce([activeChase])
         .mockResolvedValueOnce([canceledChase]);
@@ -591,12 +597,20 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       let resolveCancellation:
         | ((result: { success: boolean }) => void)
         | undefined;
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const partiallyFilledChase = {
+        ...activeChase,
+        remainingSize: '0.25',
+      };
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
-      getChaseOrders.mockResolvedValueOnce([activeChase]).mockResolvedValue([]);
+      getChaseOrders
+        .mockResolvedValueOnce([partiallyFilledChase])
+        .mockResolvedValue([]);
       cancelOrder.mockImplementationOnce(
         () =>
           new Promise((resolve) => {
@@ -640,6 +654,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
               properties: expect.objectContaining({
                 interaction_type: 'chase_terminated',
                 asset: 'ETH',
+                fill_pct_at_terminate: 75,
               }),
             }),
           ),
@@ -653,10 +668,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'omits Chase termination analytics when cancellation is rejected',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
       getChaseOrders.mockResolvedValue([activeChase]);
       cancelOrder.mockResolvedValueOnce({ success: false, error: 'rejected' });
@@ -703,10 +720,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ...activeChase,
         status: 'termination_pending',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       getChaseOrders.mockResolvedValue([pendingChase]);
       cancelOrder.mockClear();
       renderFundedProMarket();
@@ -753,8 +772,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'registers only handles visible on the active Pro Chase tab',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([activeChase]);
       renderFundedProMarket();
 
@@ -789,8 +809,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'shows every loaded field for an active Chase row',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([activeChase]);
       renderFundedProMarket();
 
@@ -863,8 +884,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         handle: 'chase-view-repriced',
         repricings: 1,
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([repricedChase]);
       renderFundedProMarket();
 
@@ -891,8 +913,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         distanceChasedBps: 25,
         maxDistanceBps: undefined,
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([unlimitedChase]);
       renderFundedProMarket();
 
@@ -923,8 +946,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'hides Chase selection when rollout is off and no session is retained',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([]);
       jest
         .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -981,8 +1005,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'keeps retained Chase lifecycle visible after rollout turns off',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([activeChase]);
       renderPerpsProMarketView({
         streamOverrides: { account: createFundedAccountForViews('1000') },
@@ -1027,8 +1052,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ...activeChase,
         status: 'canceled',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([canceledChase]);
       renderFundedProMarket();
 
@@ -1071,8 +1097,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         ...activeChase,
         status: 'backgrounded',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([backgroundedChase]);
       renderFundedProMarket();
 
@@ -1130,8 +1157,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           ...activeChase,
           status,
         };
-        const getChaseOrders = Engine.context.PerpsController
-          .getChaseOrders as jest.Mock;
+        const getChaseOrders = jest.mocked(
+          Engine.context.PerpsController.getChaseOrders,
+        );
         getChaseOrders.mockResolvedValue([terminalChase]);
         renderFundedProMarket();
 
@@ -1183,8 +1211,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         handle: 'chase-history-filled',
         status: 'filled',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([canceledChase, filledChase]);
       renderFundedProMarket();
 
@@ -1245,9 +1274,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         startedAt: 1_788_274_359_115,
         status: 'filled',
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
       jest
         .mocked(Engine.context.PerpsController.getOrderCapabilities)
         .mockResolvedValue({
@@ -1376,9 +1406,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         timestamp: 1_788_278_742_740,
         lastUpdated: 1_788_278_742_740,
       };
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const getOrders = Engine.context.PerpsController.getOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const getOrders = jest.mocked(Engine.context.PerpsController.getOrders);
       getChaseOrders
         .mockResolvedValueOnce([runtimeActiveChase])
         .mockResolvedValue([]);
@@ -1437,9 +1468,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     let resolveCancel:
       | ((value: { success: boolean; orderId: string }) => void)
       | undefined;
-    const getChaseOrders = Engine.context.PerpsController
-      .getChaseOrders as jest.Mock;
-    const cancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
+    const getChaseOrders = jest.mocked(
+      Engine.context.PerpsController.getChaseOrders,
+    );
+    const cancelOrder = jest.mocked(Engine.context.PerpsController.cancelOrder);
     getChaseOrders.mockResolvedValue([activeChase]);
     cancelOrder.mockImplementationOnce(
       () =>
@@ -1474,10 +1506,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'does not show failure after accepted Chase cancellation when refresh fails',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       const loggerError = jest
         .spyOn(Logger, 'error')
         .mockImplementation(() => undefined);
@@ -1530,10 +1564,12 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'reports an unexpected controller refresh failure after Chase cancellation',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
-      const cancelOrder = Engine.context.PerpsController
-        .cancelOrder as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
       const loggerError = jest
         .spyOn(Logger, 'error')
         .mockImplementation(() => undefined);
@@ -1579,8 +1615,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms('keeps the Chase side filter local to the panel', async () => {
-    const getChaseOrders = Engine.context.PerpsController
-      .getChaseOrders as jest.Mock;
+    const getChaseOrders = jest.mocked(
+      Engine.context.PerpsController.getChaseOrders,
+    );
     const shortChase = {
       ...activeChase,
       handle: 'chase-view-short',
@@ -1636,8 +1673,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'shows Chase side-filter copy when no rows match',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([activeChase]);
       renderFundedProMarket();
       fireEvent.press(
@@ -1666,8 +1704,9 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'shows Chase ticker-filter copy when no rows match',
     async () => {
-      const getChaseOrders = Engine.context.PerpsController
-        .getChaseOrders as jest.Mock;
+      const getChaseOrders = jest.mocked(
+        Engine.context.PerpsController.getChaseOrders,
+      );
       getChaseOrders.mockResolvedValue([
         { ...activeChase, handle: 'chase-btc', symbol: 'BTC' },
       ]);
@@ -1693,7 +1732,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
       );
       const chaseTabLabels = within(chaseTab).getAllByText(
-        strings('perps.order.chase.tab_with_count', { count: 1 }),
+        strings('perps.order.chase.tab'),
       );
       chaseTabLabels.forEach((label) => expect(label).toBeOnTheScreen());
     },
@@ -2102,9 +2141,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'keeps the CTA enabled without loading during live price validation',
     async () => {
-      const validateOrder = Engine.context.PerpsController
-        .validateOrder as jest.Mock;
-      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
       let resolvePendingValidation:
         | ((result: { isValid: boolean }) => void)
         | undefined;
@@ -2538,9 +2578,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'submits a stop-limit order with triggerPrice and limit price',
     async () => {
-      const validateOrder = Engine.context.PerpsController
-        .validateOrder as jest.Mock;
-      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
       validateOrder.mockClear();
       placeOrder.mockClear();
       renderProMarketWithTriggeredOrdersFlag(true);
@@ -2605,9 +2646,10 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'shows the final validation error and skips trigger-limit execution',
     async () => {
-      const validateOrder = Engine.context.PerpsController
-        .validateOrder as jest.Mock;
-      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const validateOrder = jest.mocked(
+        Engine.context.PerpsController.validateOrder,
+      );
+      const placeOrder = jest.mocked(Engine.context.PerpsController.placeOrder);
       validateOrder.mockClear();
       validateOrder.mockResolvedValue({ isValid: true });
       placeOrder.mockClear();

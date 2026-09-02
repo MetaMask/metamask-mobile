@@ -37,6 +37,14 @@ jest.mock('../utils/perpsLifecycleContext', () => ({
 const mockTrack = jest.fn();
 const mockSuspendChaseOrders = jest.fn().mockResolvedValue([]);
 let mockHasLiveChaseOrders = false;
+let mockChaseOrders: {
+  handle: string;
+  symbol: string;
+  status: string;
+  providerId?: PerpsProviderType;
+  repricings?: number;
+  startedAt?: number;
+}[] = [];
 let mockIsChaseOrderDiscoveryResolved = true;
 let mockIsPerpsPushNotificationsEnabled = true;
 const mockUseFeatureNotificationsStatus = jest.fn(() => ({
@@ -44,6 +52,7 @@ const mockUseFeatureNotificationsStatus = jest.fn(() => ({
 }));
 const mockUsePerpsChaseOrders = jest.fn(
   (_options: { isEnabled: boolean; enableDiscovery?: boolean }) => ({
+    chaseOrders: mockChaseOrders,
     hasLiveChaseOrders: mockHasLiveChaseOrders,
     isChaseOrderDiscoveryResolved: mockIsChaseOrderDiscoveryResolved,
     suspendChaseOrders: mockSuspendChaseOrders,
@@ -210,7 +219,7 @@ describe('PerpsAlwaysOnProvider', () => {
         restingPrice: string;
         maxDistanceBps: number;
         timestamp: number;
-        providerId: 'hyperliquid';
+        providerId: PerpsProviderType;
       }) => void)
     | null = null;
   let mockSubscriptionRemove: jest.Mock;
@@ -226,6 +235,7 @@ describe('PerpsAlwaysOnProvider', () => {
     mockIsPushPermissionGranted.mockResolvedValue(true);
     mockSuspendChaseOrders.mockReset().mockResolvedValue([]);
     mockHasLiveChaseOrders = false;
+    mockChaseOrders = [];
     mockIsChaseOrderDiscoveryResolved = true;
     mockIsPerpsPushNotificationsEnabled = true;
     mockProviderChildRenderAction = undefined;
@@ -328,7 +338,60 @@ describe('PerpsAlwaysOnProvider', () => {
     );
   });
 
-  it('notifies a max-distance event once without termination analytics', async () => {
+  it('samples each newly observed tenth Chase reprice without remount backfill', () => {
+    const chase = {
+      handle: 'chase-reprice-sampling',
+      symbol: 'ETH',
+      status: 'active',
+      providerId: 'hyperliquid' as const,
+      repricings: 9,
+      startedAt: 1_711_756_800_000,
+    };
+    mockChaseOrders = [chase];
+    const view = render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockTrack).not.toHaveBeenCalled();
+    mockChaseOrders = [{ ...chase, repricings: 21 }];
+    view.rerender(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      1,
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_reprice',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockTrack).toHaveBeenNthCalledWith(
+      2,
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_reprice',
+        asset: 'ETH',
+      }),
+    );
+    view.unmount();
+    mockTrack.mockClear();
+
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    expect(mockTrack).not.toHaveBeenCalled();
+  });
+
+  it('tracks and notifies a max-distance event once', async () => {
     render(
       <PerpsAlwaysOnProvider>
         <Text>child</Text>
@@ -352,7 +415,14 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_max_distance_hit',
+        asset: 'ETH',
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledWith({
       id: 'perps-chase-max-distance-chase-max-distance',
@@ -365,6 +435,37 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
       'pressActionId',
     );
+  });
+
+  it('dedupes max-distance analytics by provider and Chase handle', async () => {
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+    const event = {
+      handle: 'shared-max-distance-handle',
+      symbol: 'ETH',
+      side: 'buy' as const,
+      restingOrderId: 'resting-shared',
+      restingPrice: '2500',
+      maxDistanceBps: 100,
+      timestamp: 1_711_756_800_000,
+      providerId: 'hyperliquid' as PerpsProviderType,
+    };
+
+    await act(async () => {
+      mockMaxDistanceHandler?.(event);
+      mockMaxDistanceHandler?.(event);
+      mockMaxDistanceHandler?.({
+        ...event,
+        providerId: secondaryProvider,
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(2);
   });
 
   it('suppresses max-distance notification on the visible Chase market screen', async () => {
@@ -393,6 +494,13 @@ describe('PerpsAlwaysOnProvider', () => {
 
     expect(mockIsPushPermissionGranted).not.toHaveBeenCalled();
     expect(mockDisplayNotification).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        interaction_type: 'chase_max_distance_hit',
+        asset: 'ETH',
+      }),
+    );
   });
 
   it.each([
@@ -492,7 +600,7 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
   });
 
@@ -627,7 +735,7 @@ describe('PerpsAlwaysOnProvider', () => {
       await Promise.resolve();
     });
 
-    expect(mockTrack).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledTimes(1);
     expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
   });
 
@@ -1314,6 +1422,84 @@ describe('PerpsAlwaysOnProvider', () => {
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
   });
 
+  it('schedules truthful backgrounding notice before suspension settles', async () => {
+    let resolveSuspension: (() => void) | undefined;
+    mockChaseOrders = [
+      { handle: 'chase-live', symbol: 'ETH', status: 'active' },
+    ];
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSuspension = () => resolve([]);
+        }),
+    );
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenCalledWith({
+      id: 'perps-chase-backgrounded-chase-live',
+      title: 'Securing Chase orders',
+      body: 'MetaMask is stopping Chase repricing before disconnecting.',
+      data: { notification_id: 'perps-chase-backgrounded-chase-live' },
+    });
+    await act(async () => resolveSuspension?.());
+  });
+
+  it('skips the pre-suspension notice without notification permission', async () => {
+    mockChaseOrders = [
+      { handle: 'chase-no-permission', symbol: 'ETH', status: 'active' },
+    ];
+    mockIsPushPermissionGranted.mockResolvedValueOnce(false);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).not.toHaveBeenCalled();
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('continues suspension and disconnect after pre-suspension notice failure', async () => {
+    mockChaseOrders = [
+      { handle: 'chase-notice-failure', symbol: 'ETH', status: 'active' },
+    ];
+    mockDisplayNotification.mockRejectedValueOnce(new Error('display failed'));
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    expect(mockSuspendChaseOrders).toHaveBeenCalledTimes(1);
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
   it('skips queued suspension after repeated background and foreground transitions', async () => {
     let resolveFirstSuspension: (() => void) | undefined;
     mockSuspendChaseOrders.mockImplementationOnce(
@@ -1387,6 +1573,38 @@ describe('PerpsAlwaysOnProvider', () => {
       'pressActionId',
     );
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses final conversion copy only for confirmed Backgrounded orders', async () => {
+    mockSuspendChaseOrders.mockResolvedValueOnce([
+      { handle: 'chase-still-active', symbol: 'BTC', status: 'active' },
+      { handle: 'chase-converted', symbol: 'ETH', status: 'backgrounded' },
+    ]);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ asset: 'ETH' }),
+    );
+    expect(mockDisplayNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'perps-chase-backgrounded-chase-converted',
+        title: 'Chase became a limit order',
+        body: 'Your Chase order is now resting as a limit order at its last chased price.',
+      }),
+    );
   });
 
   it('reports every asset and uses truthful copy for multiple suspended orders', async () => {

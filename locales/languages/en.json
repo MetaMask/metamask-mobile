@@ -1873,6 +1873,8 @@
         "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
         "reference_price_accessibility_value": "{{orderType}}, reference price {{price}}",
         "foreground_notice": "Keep the app open while the Chase order is running.",
+        "backgrounding_title": "Securing Chase orders",
+        "backgrounding_notification": "MetaMask is stopping Chase repricing before disconnecting.",
         "backgrounded_title": "Chase became a limit order",
         "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
         "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
