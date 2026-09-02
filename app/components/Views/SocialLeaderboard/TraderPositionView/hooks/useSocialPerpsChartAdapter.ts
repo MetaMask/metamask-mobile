@@ -173,6 +173,9 @@ export function useSocialPerpsChartAdapter({
     visibleFromMs,
     visibleToMs,
     isLoading: base.isLoading,
+    hasCurrentSeriesData: base.hasCurrentSeriesData,
+    deliveryRevision: base.deliveryRevision,
+    hasFreshCurrentSeriesDelivery: base.hasFreshCurrentSeriesDelivery,
     handleFetchOlderBarsRequest,
   };
 }

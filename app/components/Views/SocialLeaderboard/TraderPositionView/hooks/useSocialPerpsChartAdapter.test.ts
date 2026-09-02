@@ -72,6 +72,9 @@ const setBaseAdapter = (
     visibleFromMs: undefined,
     visibleToMs: ohlcvData[ohlcvData.length - 1]?.time,
     isLoading: false,
+    hasCurrentSeriesData: ohlcvData.length > 0,
+    deliveryRevision: 0,
+    hasFreshCurrentSeriesDelivery: false,
     handleFetchOlderBarsRequest: mockBaseHandleFetchOlderBars,
     ...overrides,
   });
