@@ -33,10 +33,15 @@ export interface UseEarningsLedgerResult {
 export const useEarningsLedger = (
   originTypes: EarningOriginType[],
 ): UseEarningsLedgerResult => {
-  const scopeKey = useMemo(
-    () => [...originTypes].sort().join(','),
-    [originTypes],
+  // Callers pass an array literal, so key on contents rather than identity.
+  // The sorted array is what goes to the request; the joined string is only a
+  // dependency key, so the origin types never round-trip through a string.
+  const scope = useMemo(
+    () => [...originTypes].sort(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [originTypes.join(',')],
   );
+  const scopeKey = useMemo(() => scope.join(','), [scope]);
 
   const fetchPage = useCallback(
     async ({
@@ -51,14 +56,12 @@ export const useEarningsLedger = (
       Engine.controllerMessenger.call(
         'RewardsMoneyController:getEarningsLedger',
         {
-          originTypes: scopeKey
-            ? (scopeKey.split(',') as EarningOriginType[])
-            : [],
+          originTypes: scope,
           cursor,
           forceFresh: isFirstPage ? forceFresh : undefined,
         },
       ),
-    [scopeKey],
+    [scope],
   );
 
   const {

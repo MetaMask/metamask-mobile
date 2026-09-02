@@ -8,6 +8,7 @@ export const getRewardsMoneyControllerDefaultState =
     referralMe: null,
     earningsSummary: {},
     earningsLedgerFirstPage: {},
+    optimisticClaim: null,
   });
 
 export const defaultRewardsMoneyControllerState =

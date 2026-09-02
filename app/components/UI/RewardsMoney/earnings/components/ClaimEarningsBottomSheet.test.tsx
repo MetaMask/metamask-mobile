@@ -11,12 +11,18 @@ import useClaimEarnings, {
   ClaimError,
   type UseClaimEarningsResult,
 } from '../hooks/useClaimEarnings';
+import useEarningsSummary from '../hooks/useEarningsSummary';
 import ClaimEarningsBottomSheet from './ClaimEarningsBottomSheet';
 
 const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: jest.fn() }),
+}));
+
+jest.mock('../hooks/useEarningsSummary', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('../hooks/useClaimEarnings', () => {
@@ -41,6 +47,7 @@ jest.mock('../../../Rewards/hooks/useRewardsToast', () => ({
 }));
 
 const mockedUseClaimEarnings = jest.mocked(useClaimEarnings);
+const mockedUseEarningsSummary = jest.mocked(useEarningsSummary);
 
 const createTotals = (
   overrides: Partial<EarningsSummaryTotals> = {},
@@ -78,25 +85,38 @@ const createClaimState = (
   claim: jest.fn(),
   isClaiming: false,
   hasSubmitted: false,
+  hasConfirmed: false,
   error: null,
   isSubmittable: true,
   reset: jest.fn(),
   ...overrides,
 });
 
+const mockSummaryState = (summary: EarningsSummaryDto | null) => {
+  mockedUseEarningsSummary.mockReturnValue({
+    summary,
+    isLoading: false,
+    error: null,
+    refresh: jest.fn(),
+  });
+};
+
 const renderSheet = (
   summary: EarningsSummaryDto = createSummary(),
   originTypes: EarningOriginType[] = BOTH_TYPES,
-) =>
-  render(
-    <ClaimEarningsBottomSheet route={{ params: { summary, originTypes } }} />,
+) => {
+  mockSummaryState(summary);
+  return render(
+    <ClaimEarningsBottomSheet route={{ params: { originTypes } }} />,
   );
+};
 
 describe('ClaimEarningsBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useRealTimers();
     mockedUseClaimEarnings.mockReturnValue(createClaimState());
+    mockSummaryState(createSummary());
   });
 
   it('renders the same claimable amount the earnings screen shows', () => {
@@ -202,9 +222,9 @@ describe('ClaimEarningsBottomSheet', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows a success toast and closes the sheet once the batch is submitted', () => {
+  it('shows a success toast and closes the sheet once the batch is confirmed', () => {
     mockedUseClaimEarnings.mockReturnValue(
-      createClaimState({ hasSubmitted: true }),
+      createClaimState({ hasSubmitted: true, hasConfirmed: true }),
     );
 
     renderSheet();
@@ -215,6 +235,58 @@ describe('ClaimEarningsBottomSheet', () => {
       }),
     );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the sheet open and reports an error when the batch fails after submission', () => {
+    mockedUseClaimEarnings.mockReturnValue(
+      createClaimState({
+        hasSubmitted: true,
+        error: new ClaimError('SUBMIT_FAILED', 'reverted on chain'),
+      }),
+    );
+
+    renderSheet();
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET),
+    ).toBeOnTheScreen();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: strings('rewards_money.claim.error_title'),
+      }),
+    );
+  });
+
+  it('stays open showing a confirming notice while the batch is on chain', () => {
+    mockedUseClaimEarnings.mockReturnValue(
+      createClaimState({ hasSubmitted: true }),
+    );
+
+    renderSheet();
+
+    expect(
+      screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_CONFIRMING),
+    ).toBeOnTheScreen();
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('reports a closed voucher window rather than a generic failure on timeout', () => {
+    mockedUseClaimEarnings.mockReturnValue(
+      createClaimState({
+        hasSubmitted: true,
+        error: new ClaimError('CONFIRMATION_TIMEOUT', 'timed out'),
+      }),
+    );
+
+    renderSheet();
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: strings('rewards_money.claim.error_confirmation_timeout'),
+      }),
+    );
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('re-enables dismissal when the watchdog fires with no response', () => {

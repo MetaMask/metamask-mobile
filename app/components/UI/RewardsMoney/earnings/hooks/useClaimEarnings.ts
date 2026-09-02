@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { bytesToHex, type Hex } from '@metamask/utils';
@@ -19,9 +19,18 @@ import type {
   EarningOriginType,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { ClaimAlreadyOpenError } from '../../../../../core/Engine/controllers/rewards-money-controller/services';
-import awaitBatchConfirmed from '../utils/awaitBatchConfirmed';
+import awaitBatchConfirmed, {
+  BatchConfirmationFailedError,
+  BatchConfirmationTimeoutError,
+} from '../utils/awaitBatchConfirmed';
 
 const LOG_TAG = '[Rewards Money Claim]';
+
+/**
+ * Settlement grace added on top of the voucher window, so a block landing on
+ * the `valid_before` boundary is not called a timeout.
+ */
+const CONFIRMATION_GRACE_MS = 30_000;
 
 /**
  * Why a claim attempt stopped. Each maps to its own copy, because "it failed"
@@ -33,6 +42,8 @@ export type ClaimFailureReason =
   | 'VOUCHER_EXPIRED'
   | 'NO_VOUCHER'
   | 'SUBMIT_FAILED'
+  | 'CONFIRMATION_FAILED'
+  | 'CONFIRMATION_TIMEOUT'
   | 'UNKNOWN';
 
 export class ClaimError extends Error {
@@ -49,11 +60,16 @@ export interface UseClaimEarningsResult {
   claim: (originTypes: EarningOriginType[]) => Promise<void>;
   isClaiming: boolean;
   /**
-   * True once the batch is submitted. The backend lags the chain — only the
-   * reconciler moves a claim to SETTLED — so callers hold this optimistic state
-   * rather than flashing the pre-claim balance back.
+   * The batch is on chain but has not reached a terminal state yet. This is NOT
+   * success — a submitted batch can still revert, so callers must not report a
+   * completed claim on this alone.
    */
   hasSubmitted: boolean;
+  /**
+   * The batch reached `transactionConfirmed`. This is the only success signal;
+   * it is what a caller should report and close on.
+   */
+  hasConfirmed: boolean;
   error: ClaimError | null;
   /**
    * Whether a claim can be submitted at all right now. Checked BEFORE the
@@ -80,8 +96,20 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
 
   const [isClaiming, setIsClaiming] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasConfirmed, setHasConfirmed] = useState(false);
   const [error, setError] = useState<ClaimError | null>(null);
   const inFlightRef = useRef(false);
+  // Safety net only. The correctness fix is that success is reported on
+  // confirmation rather than submission; this just stops a late settle writing
+  // to an unmounted sheet.
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const chainIdHex = vaultConfig?.chainId as Hex | undefined;
 
@@ -98,6 +126,7 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
   const reset = useCallback(() => {
     setError(null);
     setHasSubmitted(false);
+    setHasConfirmed(false);
   }, []);
 
   const claim = useCallback(
@@ -132,6 +161,8 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
       inFlightRef.current = true;
       setIsClaiming(true);
       setError(null);
+      setHasSubmitted(false);
+      setHasConfirmed(false);
 
       try {
         const result = await Engine.controllerMessenger.call(
@@ -191,6 +222,12 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
 
         await awaitBatchConfirmed({
           messenger: Engine.controllerMessenger,
+          // Bound the wait by the voucher, not by the 5-minute default. Once
+          // `valid_before` passes, the authorization leg can no longer execute,
+          // so a batch still unconfirmed after that plus a short settlement
+          // grace is never going to succeed — and saying "timed out" then is
+          // true, where a generic failure would not be.
+          timeoutMs: confirmationTimeoutMs(voucher),
           submit: async () => {
             await addTransactionBatch({
               batchId,
@@ -208,13 +245,30 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
               skipInitialGasEstimate: true,
               transactions,
             });
-            setHasSubmitted(true);
+            if (isMountedRef.current) {
+              setHasSubmitted(true);
+            }
             return { batchId };
           },
         });
 
+        // Only now is the claim a success. A submitted batch can still revert,
+        // which is exactly what happens against a stub signer, so reporting
+        // success at submission time told the user it worked when it had not.
+        if (isMountedRef.current) {
+          setHasConfirmed(true);
+        }
+
+        // The reconciler is the only thing that moves a claim to SETTLED, so
+        // the server will lag this. Record what the claim paid so the earnings
+        // screen holds the post-claim figure instead of flashing the pre-claim
+        // one back while the server catches up.
         Engine.controllerMessenger.call(
-          'RewardsMoneyController:invalidateRewardsMoneyCache',
+          'RewardsMoneyController:recordOptimisticClaim',
+          {
+            netAmount: voucher.value,
+            originTypes,
+          },
         );
         Engine.controllerMessenger.call(
           'RewardsMoneyController:notifyEarningsUpdated',
@@ -222,16 +276,28 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
       } catch (err) {
         const claimError = toClaimError(err);
         Logger.log(`${LOG_TAG} claim failed`, claimError.message);
-        setError(claimError);
+        if (isMountedRef.current) {
+          setError(claimError);
+        }
       } finally {
         inFlightRef.current = false;
-        setIsClaiming(false);
+        if (isMountedRef.current) {
+          setIsClaiming(false);
+        }
       }
     },
     [isSubmittable, primaryMoneyAccount?.address, vaultConfig],
   );
 
-  return { claim, isClaiming, hasSubmitted, error, isSubmittable, reset };
+  return {
+    claim,
+    isClaiming,
+    hasSubmitted,
+    hasConfirmed,
+    error,
+    isSubmittable,
+    reset,
+  };
 };
 
 /**
@@ -250,6 +316,25 @@ export function assertVoucherIsLive(
   }
 }
 
+/**
+ * How long to wait for confirmation.
+ *
+ * The authorization leg cannot execute once `valid_before` passes, so the
+ * voucher window plus a short settlement grace is the real upper bound. The
+ * grace covers a block landing right on the boundary.
+ *
+ * @param voucher - The claim voucher.
+ * @param now - Reference time in ms, injectable for tests.
+ * @returns Timeout in milliseconds, never below the grace period.
+ */
+export function confirmationTimeoutMs(
+  voucher: ClaimVoucherDto,
+  now: number = Date.now(),
+): number {
+  const remaining = voucher.valid_before * 1000 - now;
+  return Math.max(0, remaining) + CONFIRMATION_GRACE_MS;
+}
+
 function toClaimError(error: unknown): ClaimError {
   if (error instanceof ClaimError) {
     return error;
@@ -259,6 +344,12 @@ function toClaimError(error: unknown): ClaimError {
       'CLAIM_ALREADY_OPEN',
       'A claim is already in progress',
     );
+  }
+  if (error instanceof BatchConfirmationTimeoutError) {
+    return new ClaimError('CONFIRMATION_TIMEOUT', error.message);
+  }
+  if (error instanceof BatchConfirmationFailedError) {
+    return new ClaimError('CONFIRMATION_FAILED', error.message);
   }
   return new ClaimError(
     'SUBMIT_FAILED',

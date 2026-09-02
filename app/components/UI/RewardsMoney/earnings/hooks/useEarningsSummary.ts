@@ -35,10 +35,15 @@ export const useEarningsSummary = (
   const isMountedRef = useRef(true);
 
   // Callers pass an array literal, so key on the contents rather than identity.
-  const scopeKey = useMemo(
-    () => [...originTypes].sort().join(','),
-    [originTypes],
+  // Callers pass an array literal, so key on contents rather than identity.
+  // The sorted array is what goes to the request; the joined string is only a
+  // dependency key, so the origin types never round-trip through a string.
+  const scope = useMemo(
+    () => [...originTypes].sort(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [originTypes.join(',')],
   );
+  const scopeKey = useMemo(() => scope.join(','), [scope]);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -60,9 +65,7 @@ export const useEarningsSummary = (
         const result = await Engine.controllerMessenger.call(
           'RewardsMoneyController:getEarningsSummary',
           {
-            originTypes: scopeKey
-              ? (scopeKey.split(',') as EarningOriginType[])
-              : [],
+            originTypes: scope,
             forceFresh,
           },
         );
@@ -83,7 +86,7 @@ export const useEarningsSummary = (
         }
       }
     },
-    [scopeKey],
+    [scope],
   );
 
   useEffect(() => {

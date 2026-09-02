@@ -2,7 +2,9 @@ import { Messenger } from '@metamask/messenger';
 import { deriveStateFromMetadata } from '@metamask/base-controller';
 import {
   RewardsMoneyController,
+  applyOptimisticClaim,
   originTypeScopeKey,
+  OPTIMISTIC_CLAIM_TTL_MS,
   REFERRAL_ME_CACHE_THRESHOLD_MS,
 } from './RewardsMoneyController';
 import { getRewardsMoneyControllerDefaultState } from './defaultState';
@@ -164,6 +166,49 @@ describe('originTypeScopeKey', () => {
   });
 });
 
+describe('applyOptimisticClaim', () => {
+  it('never drives claimable below zero when the claim exceeds it', () => {
+    const summary = createSummary({ claimable: '5000000', claimed: '0' });
+
+    const result = applyOptimisticClaim(summary, {
+      netAmount: '12500000',
+      originTypes: ['CASHBACK'],
+      baselineClaimed: '0',
+      expiresAt: Number.MAX_SAFE_INTEGER,
+    });
+
+    expect(result.claimable).toBe('0');
+    expect(result.claimed).toBe('5000000');
+  });
+
+  it('leaves per-type figures untouched, since a net cannot be decomposed', () => {
+    const summary = createSummary({
+      claimable: '12500000',
+      by_earning_origin_type: {
+        CASHBACK: {
+          lifetime: '1',
+          claimable: '12500000',
+          pending: '0',
+          claimed: '0',
+          forfeited: '0',
+          blocking_reason: null,
+        },
+      },
+    });
+
+    const result = applyOptimisticClaim(summary, {
+      netAmount: '12500000',
+      originTypes: ['CASHBACK'],
+      baselineClaimed: '0',
+      expiresAt: Number.MAX_SAFE_INTEGER,
+    });
+
+    expect(result.by_earning_origin_type).toStrictEqual(
+      summary.by_earning_origin_type,
+    );
+  });
+});
+
 describe('RewardsMoneyController', () => {
   beforeEach(() => {
     jest.restoreAllMocks();
@@ -182,6 +227,7 @@ describe('RewardsMoneyController', () => {
       expect(Object.keys(persisted).sort()).toStrictEqual([
         'earningsLedgerFirstPage',
         'earningsSummary',
+        'optimisticClaim',
         'referralMe',
       ]);
     });
@@ -407,6 +453,103 @@ describe('RewardsMoneyController', () => {
     });
   });
 
+  describe('recordOptimisticClaim', () => {
+    it('holds the post-claim figure instead of the server total the reconciler has not updated yet', async () => {
+      const { controller, handlers } = createHarness();
+      handlers.getEarningsSummary.mockResolvedValue(
+        createSummary({ claimable: '12500000', claimed: '0' }),
+      );
+      await controller.getEarningsSummary({ originTypes: ['CASHBACK'] });
+
+      controller.recordOptimisticClaim({
+        netAmount: '12500000',
+        originTypes: ['CASHBACK'],
+      });
+      const after = await controller.getEarningsSummary({
+        originTypes: ['CASHBACK'],
+        forceFresh: true,
+      });
+
+      expect(after.claimable).toBe('0');
+      expect(after.claimed).toBe('12500000');
+    });
+
+    it('drops the overlay once the server reports the claim', async () => {
+      const { controller, handlers } = createHarness();
+      handlers.getEarningsSummary.mockResolvedValue(
+        createSummary({ claimable: '12500000', claimed: '0' }),
+      );
+      await controller.getEarningsSummary({ originTypes: ['CASHBACK'] });
+      controller.recordOptimisticClaim({
+        netAmount: '12500000',
+        originTypes: ['CASHBACK'],
+      });
+
+      handlers.getEarningsSummary.mockResolvedValue(
+        createSummary({ claimable: '0', claimed: '12500000' }),
+      );
+      const after = await controller.getEarningsSummary({
+        originTypes: ['CASHBACK'],
+        forceFresh: true,
+      });
+
+      expect(after.claimed).toBe('12500000');
+      expect(controller.state.optimisticClaim).toBeNull();
+    });
+
+    it('drops the overlay once its TTL has passed', async () => {
+      const { controller, handlers } = createHarness();
+      handlers.getEarningsSummary.mockResolvedValue(
+        createSummary({ claimable: '12500000', claimed: '0' }),
+      );
+      controller.recordOptimisticClaim({
+        netAmount: '12500000',
+        originTypes: ['CASHBACK'],
+      });
+      jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.now() + OPTIMISTIC_CLAIM_TTL_MS + 1);
+
+      const after = await controller.getEarningsSummary({
+        originTypes: ['CASHBACK'],
+        forceFresh: true,
+      });
+
+      expect(after.claimable).toBe('12500000');
+      expect(controller.state.optimisticClaim).toBeNull();
+    });
+
+    it('leaves a scope the claim did not touch alone', async () => {
+      const { controller, handlers } = createHarness();
+      handlers.getEarningsSummary.mockResolvedValue(
+        createSummary({ claimable: '8000000', claimed: '0' }),
+      );
+      controller.recordOptimisticClaim({
+        netAmount: '12500000',
+        originTypes: ['CASHBACK'],
+      });
+
+      const after = await controller.getEarningsSummary({
+        originTypes: ['REFERRAL_REV_SHARE'],
+        forceFresh: true,
+      });
+
+      expect(after.claimable).toBe('8000000');
+    });
+
+    it('survives a cache flush, which is when the server is most likely to lag', async () => {
+      const { controller } = createHarness();
+      controller.recordOptimisticClaim({
+        netAmount: '12500000',
+        originTypes: ['CASHBACK'],
+      });
+
+      controller.invalidateRewardsMoneyCache();
+
+      expect(controller.state.optimisticClaim).not.toBeNull();
+    });
+  });
+
   describe('invalidateRewardsMoneyCache', () => {
     it('clears every bucket so nothing leaks across an identity switch', async () => {
       const { controller } = createHarness();
@@ -419,6 +562,7 @@ describe('RewardsMoneyController', () => {
       expect(controller.state).toStrictEqual(
         getRewardsMoneyControllerDefaultState(),
       );
+      expect(controller.state.optimisticClaim).toBeNull();
     });
   });
 

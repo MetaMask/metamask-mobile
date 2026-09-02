@@ -26,6 +26,17 @@ export type RewardsMoneyControllerInvalidateRewardsMoneyCacheAction = {
 };
 
 /**
+ * Record what a confirmed claim paid, so scoped summaries report the
+ * post-claim figure until the server reflects it.
+ *
+ * @param params - The net amount paid and the origin types it covered.
+ */
+export type RewardsMoneyControllerRecordOptimisticClaimAction = {
+  type: `RewardsMoneyController:recordOptimisticClaim`;
+  handler: RewardsMoneyController['recordOptimisticClaim'];
+};
+
+/**
  * Tell open screens their earnings moved. Screens subscribe via
  * `useRewardsMoneyEvents` rather than polling.
  */
@@ -77,6 +88,7 @@ export type RewardsMoneyControllerInitiateClaimAction = {
 export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerResetStateAction
   | RewardsMoneyControllerInvalidateRewardsMoneyCacheAction
+  | RewardsMoneyControllerRecordOptimisticClaimAction
   | RewardsMoneyControllerNotifyEarningsUpdatedAction
   | RewardsMoneyControllerGetReferralMeAction
   | RewardsMoneyControllerGetEarningsSummaryAction

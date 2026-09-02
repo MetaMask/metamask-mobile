@@ -11482,6 +11482,7 @@
       "title": "Claim your earnings",
       "description": "This goes straight into your Money Account.",
       "confirm": "Continue",
+      "confirming": "Confirming on the network. This can take a moment.",
       "success": "Claim sent",
       "partial_notice": "The rest is on hold until your details are verified. You'll get it once that clears.",
       "blocked_suspended": "Your account is on hold, so you can't claim right now.",
@@ -11495,7 +11496,9 @@
       "error_already_open": "You already have a claim in progress. Try again in a minute.",
       "error_voucher_expired": "That took too long and the claim expired. Try again.",
       "error_awaiting_release": "Your last claim is still wrapping up. Try again in a minute.",
-      "error_submit_failed": "Something went wrong sending the claim. Try again."
+      "error_submit_failed": "Something went wrong sending the claim. Try again.",
+      "error_confirmation_failed": "The claim didn't go through on the network. Nothing was taken from your balance — try again.",
+      "error_confirmation_timeout": "The claim didn't confirm in time and its window has closed. Nothing was taken from your balance — try again."
     }
   }
 }

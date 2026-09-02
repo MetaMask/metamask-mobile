@@ -250,12 +250,43 @@ export interface InitiateClaimDto {
   originTypes: EarningOriginType[];
 }
 
+export interface RecordOptimisticClaimDto {
+  /** Net mUSD base units the confirmed claim paid. */
+  netAmount: string;
+  originTypes: EarningOriginType[];
+}
+
 // ─── Controller state ─────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CacheEntry<T> = {
   payload: T;
   lastFetched: number;
+};
+
+/**
+ * What a confirmed claim paid, held locally until the server reflects it.
+ *
+ * The backend has no client-reported submission step — only the reconciler
+ * moves a claim to SETTLED — so a summary fetched right after an on-chain
+ * confirmation still reports the pre-claim totals. This overlay keeps the
+ * post-claim figure on screen instead of flashing the old balance back.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OptimisticClaim = {
+  /** Net mUSD base units the claim paid. */
+  netAmount: string;
+  /** The origin types the claim covered. */
+  originTypes: EarningOriginType[];
+  /**
+   * The `claimed` total as the server last reported it before the claim. The
+   * overlay is dropped once the server's `claimed` reaches this plus
+   * `netAmount`, which is how "the server agrees" is detected without a
+   * client-reported settlement step.
+   */
+  baselineClaimed: string;
+  /** Hard expiry, so a claim the reconciler never settles cannot pin the overlay forever. */
+  expiresAt: number;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -268,6 +299,8 @@ export type RewardsMoneyControllerState = {
   earningsSummary: Record<string, CacheEntry<EarningsSummaryDto>>;
   /** Page 1 only. Later pages are merged in `useCursorPaginatedList`. */
   earningsLedgerFirstPage: Record<string, CacheEntry<EarningsLedgerPageDto>>;
+  /** Post-claim overlay; null when there is nothing outstanding. */
+  optimisticClaim: OptimisticClaim | null;
 };
 
 export type RewardsMoneyControllerGetStateAction = ControllerGetStateAction<

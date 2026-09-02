@@ -99,15 +99,13 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
     refreshLedger();
   }, [refreshSummary, refreshLedger]);
 
+  // Only the scope is passed. The sheet re-reads the summary itself so it can
+  // never render a payload frozen at navigation time.
   const handleClaim = useCallback(() => {
-    if (!summary) {
-      return;
-    }
     navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIM_SHEET, {
-      summary,
       originTypes,
     });
-  }, [navigation, summary, originTypes]);
+  }, [navigation, originTypes]);
 
   const listHeader = useMemo(
     () => (

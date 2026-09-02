@@ -893,7 +893,8 @@
   "RewardsMoneyController": {
     "referralMe": null,
     "earningsSummary": {},
-    "earningsLedgerFirstPage": {}
+    "earningsLedgerFirstPage": {},
+    "optimisticClaim": null
   },
   "PredictController": {
     "eligibility": {

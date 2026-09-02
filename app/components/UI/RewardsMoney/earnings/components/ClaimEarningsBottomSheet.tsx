@@ -26,19 +26,21 @@ import BottomSheet, {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import useRewardsToast from '../../../Rewards/hooks/useRewardsToast';
-import type {
-  EarningOriginType,
-  EarningsSummaryDto,
-} from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { EarningOriginType } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { CLAIM_WATCHDOG_MS, REWARDS_MONEY_TEST_IDS } from '../../constants';
 import { formatMusd } from '../../utils/format';
 import { deriveClaimability } from '../utils/deriveClaimability';
 import useClaimEarnings, {
   type ClaimFailureReason,
 } from '../hooks/useClaimEarnings';
+import useEarningsSummary from '../hooks/useEarningsSummary';
 
+/**
+ * Only the scope crosses the navigation boundary. The summary is re-read from
+ * the controller: a payload frozen into a route param outlives the 60s TTL and
+ * would show an amount that no longer matches what a claim pays.
+ */
 export interface ClaimEarningsBottomSheetParams {
-  summary: EarningsSummaryDto;
   originTypes: EarningOriginType[];
 }
 
@@ -48,6 +50,8 @@ interface ClaimEarningsBottomSheetProps {
 
 const FAILURE_MESSAGE_KEY: Record<ClaimFailureReason, string> = {
   NOT_SUBMITTABLE: 'rewards_money.claim.error_not_submittable',
+  CONFIRMATION_FAILED: 'rewards_money.claim.error_confirmation_failed',
+  CONFIRMATION_TIMEOUT: 'rewards_money.claim.error_confirmation_timeout',
   CLAIM_ALREADY_OPEN: 'rewards_money.claim.error_already_open',
   VOUCHER_EXPIRED: 'rewards_money.claim.error_voucher_expired',
   NO_VOUCHER: 'rewards_money.claim.error_awaiting_release',
@@ -73,12 +77,21 @@ const BLOCKING_REASON_KEY: Record<string, string> = {
 const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
   route,
 }) => {
-  const { summary, originTypes } = route.params;
+  const { originTypes } = route.params;
+  const { summary, isLoading: isSummaryLoading } =
+    useEarningsSummary(originTypes);
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const { claim, isClaiming, hasSubmitted, error, isSubmittable, reset } =
-    useClaimEarnings();
+  const {
+    claim,
+    isClaiming,
+    hasSubmitted,
+    hasConfirmed,
+    error,
+    isSubmittable,
+    reset,
+  } = useClaimEarnings();
 
   // Locking the sheet is separate from `isClaiming` so the watchdog can release
   // it while the request is still outstanding.
@@ -89,6 +102,10 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
     () => deriveClaimability(summary, originTypes),
     [summary, originTypes],
   );
+
+  // On chain but not yet terminal. Shown so the user is not left looking at a
+  // bare spinner while the batch settles.
+  const isConfirming = hasSubmitted && !hasConfirmed && !error;
 
   const clearWatchdog = useCallback(() => {
     if (watchdogRef.current) {
@@ -115,8 +132,11 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
     }
   }, [error, clearWatchdog, showToast, RewardsToastOptions, reset]);
 
+  // Success is reported on confirmation, never on submission. A submitted
+  // batch can still revert — which is what happens against a stub signer — so
+  // closing on submission told the user it worked when it had not.
   useEffect(() => {
-    if (hasSubmitted) {
+    if (hasConfirmed) {
       clearWatchdog();
       setIsLocked(false);
       showToast(
@@ -124,7 +144,7 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
       );
       navigation.goBack();
     }
-  }, [hasSubmitted, clearWatchdog, showToast, RewardsToastOptions, navigation]);
+  }, [hasConfirmed, clearWatchdog, showToast, RewardsToastOptions, navigation]);
 
   const handleClose = useCallback(() => {
     navigation.goBack();
@@ -141,7 +161,8 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
     claim(claimability.claimableTypes);
   }, [claim, claimability.claimableTypes]);
 
-  const canConfirm = claimability.canClaim && isSubmittable && !isClaiming;
+  const canConfirm =
+    claimability.canClaim && isSubmittable && !isClaiming && !isSummaryLoading;
 
   const blockedMessage = (() => {
     if (!isSubmittable) {
@@ -182,8 +203,18 @@ const ClaimEarningsBottomSheet: React.FC<ClaimEarningsBottomSheetProps> = ({
           fontWeight={FontWeight.Bold}
           testID={REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_AMOUNT}
         >
-          {formatMusd(summary.claimable)}
+          {formatMusd(summary?.claimable)}
         </Text>
+
+        {isConfirming ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={REWARDS_MONEY_TEST_IDS.CLAIM_SHEET_CONFIRMING}
+          >
+            {strings('rewards_money.claim.confirming')}
+          </Text>
+        ) : null}
 
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           {strings('rewards_money.claim.description')}

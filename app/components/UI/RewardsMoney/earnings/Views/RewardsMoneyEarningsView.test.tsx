@@ -126,14 +126,14 @@ describe('RewardsMoneyEarningsView', () => {
     ]);
   });
 
-  it('opens the claim sheet with the summary and the screen scope', () => {
+  it('opens the claim sheet with the scope only, never a frozen summary', () => {
     render(<RewardsMoneyEarningsView originTypes={['CASHBACK']} />);
 
     fireEvent.press(screen.getByTestId(REWARDS_MONEY_TEST_IDS.CLAIM_CTA));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.REWARDS_MONEY_CLAIM_SHEET,
-      { summary: createSummary(), originTypes: ['CASHBACK'] },
+      { originTypes: ['CASHBACK'] },
     );
   });
 

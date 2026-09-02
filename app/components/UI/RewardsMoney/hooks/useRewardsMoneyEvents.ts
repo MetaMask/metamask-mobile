@@ -1,7 +1,31 @@
 import { useEffect } from 'react';
 import Engine from '../../../../core/Engine/Engine';
+import type { RewardsMoneyControllerEvents } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 
-type RewardsMoneyEvent = `RewardsMoneyController:${string}`;
+/**
+ * The RewardsMoneyController events a screen may subscribe to.
+ *
+ * Derived from the controller's own event union rather than a `${string}`
+ * template, so a typo is a compile error and no suppression is needed.
+ */
+export type RewardsMoneyEventName = RewardsMoneyControllerEvents['type'];
+
+type RewardsMoneyEventHandler = () => void;
+
+/**
+ * Minimal messenger surface this hook needs. Declared structurally so the
+ * subscription is typed without casting `Engine.controllerMessenger`.
+ */
+interface RewardsMoneyEventMessenger {
+  subscribe(
+    event: RewardsMoneyEventName,
+    handler: RewardsMoneyEventHandler,
+  ): void;
+  unsubscribe(
+    event: RewardsMoneyEventName,
+    handler: RewardsMoneyEventHandler,
+  ): void;
+}
 
 /**
  * Subscribe to RewardsMoneyController events for the life of a screen.
@@ -14,20 +38,17 @@ type RewardsMoneyEvent = `RewardsMoneyController:${string}`;
  * @param callback - Runs on any of them. Must be referentially stable.
  */
 export const useRewardsMoneyEvents = (
-  events: readonly RewardsMoneyEvent[],
-  callback: () => void,
+  events: readonly RewardsMoneyEventName[],
+  callback: RewardsMoneyEventHandler,
 ): void => {
   useEffect(() => {
-    events.forEach((event) => {
-      // @ts-expect-error - The event type is not assignable to the expected type
-      Engine.controllerMessenger.subscribe(event, callback);
-    });
+    const messenger =
+      Engine.controllerMessenger as unknown as RewardsMoneyEventMessenger;
+
+    events.forEach((event) => messenger.subscribe(event, callback));
 
     return () => {
-      events.forEach((event) => {
-        // @ts-expect-error - The event type is not assignable to the expected type
-        Engine.controllerMessenger.unsubscribe(event, callback);
-      });
+      events.forEach((event) => messenger.unsubscribe(event, callback));
     };
   }, [events, callback]);
 };

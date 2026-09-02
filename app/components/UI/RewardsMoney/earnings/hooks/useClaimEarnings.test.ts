@@ -7,9 +7,16 @@ import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureF
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { buildMoneyAccountDepositBatch } from '../../../Money/utils/moneyAccountTransactions';
 import { ClaimAlreadyOpenError } from '../../../../../core/Engine/controllers/rewards-money-controller/services';
-import awaitBatchConfirmed from '../utils/awaitBatchConfirmed';
+import awaitBatchConfirmed, {
+  BatchConfirmationFailedError,
+  BatchConfirmationTimeoutError,
+} from '../utils/awaitBatchConfirmed';
 import type { ClaimVoucherDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { assertVoucherIsLive, useClaimEarnings } from './useClaimEarnings';
+import {
+  assertVoucherIsLive,
+  confirmationTimeoutMs,
+  useClaimEarnings,
+} from './useClaimEarnings';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: unknown) => (selector as () => unknown)(),
@@ -61,6 +68,7 @@ jest.mock('../../../Money/utils/moneyAccountTransactions', () => ({
 
 jest.mock('../utils/awaitBatchConfirmed', () => ({
   __esModule: true,
+  ...jest.requireActual('../utils/awaitBatchConfirmed'),
   default: jest.fn(),
 }));
 
@@ -120,6 +128,24 @@ const setUpHappyPath = () => {
     status: 'LIVE_VOUCHER',
   } as never);
 };
+
+describe('confirmationTimeoutMs', () => {
+  it('bounds the wait by the remaining voucher window plus a grace period', () => {
+    const voucher = createVoucher({ valid_before: 100 });
+
+    const result = confirmationTimeoutMs(voucher, 40_000);
+
+    expect(result).toBe(60_000 + 30_000);
+  });
+
+  it('falls back to the grace period alone once the window has closed', () => {
+    const voucher = createVoucher({ valid_before: 10 });
+
+    const result = confirmationTimeoutMs(voucher, 60_000);
+
+    expect(result).toBe(30_000);
+  });
+});
 
 describe('assertVoucherIsLive', () => {
   it('accepts a voucher whose window is still open', () => {
@@ -233,7 +259,7 @@ describe('useClaimEarnings', () => {
       );
     });
 
-    it('invalidates the cache and announces the update after the batch confirms', async () => {
+    it('announces the update after the batch confirms', async () => {
       const { result } = renderHook(() => useClaimEarnings());
 
       await act(async () => {
@@ -241,14 +267,11 @@ describe('useClaimEarnings', () => {
       });
 
       expect(mockCall).toHaveBeenCalledWith(
-        'RewardsMoneyController:invalidateRewardsMoneyCache',
-      );
-      expect(mockCall).toHaveBeenCalledWith(
         'RewardsMoneyController:notifyEarningsUpdated',
       );
     });
 
-    it('marks the claim submitted so the screen keeps its optimistic state', async () => {
+    it('marks the claim submitted so the sheet can show a confirming notice', async () => {
       const { result } = renderHook(() => useClaimEarnings());
 
       await act(async () => {
@@ -256,6 +279,87 @@ describe('useClaimEarnings', () => {
       });
 
       await waitFor(() => expect(result.current.hasSubmitted).toBe(true));
+    });
+
+    it('reports confirmed only after the batch reaches a terminal state', async () => {
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      await waitFor(() => expect(result.current.hasConfirmed).toBe(true));
+    });
+
+    it('reports submitted but NOT confirmed when the batch reverts after submission', async () => {
+      mockAwaitBatch.mockImplementation(async ({ submit }) => {
+        await submit();
+        throw new BatchConfirmationFailedError('reverted');
+      });
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(result.current.hasSubmitted).toBe(true);
+      expect(result.current.hasConfirmed).toBe(false);
+      expect(result.current.error?.reason).toBe('CONFIRMATION_FAILED');
+    });
+
+    it('reports CONFIRMATION_TIMEOUT distinctly from a generic submit failure', async () => {
+      mockAwaitBatch.mockImplementation(async ({ submit }) => {
+        await submit();
+        throw new BatchConfirmationTimeoutError(1000);
+      });
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(result.current.error?.reason).toBe('CONFIRMATION_TIMEOUT');
+    });
+
+    it('bounds the confirmation wait by the voucher window, not the 5-minute default', async () => {
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      const { timeoutMs } = mockAwaitBatch.mock.calls[0][0];
+      expect(timeoutMs).toBeLessThan(5 * 60 * 1000);
+    });
+
+    it('records what the claim paid so the earnings screen holds the post-claim figure', async () => {
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'RewardsMoneyController:recordOptimisticClaim',
+        { netAmount: '12500000', originTypes: ['CASHBACK'] },
+      );
+    });
+
+    it('does not record an optimistic claim when the batch never confirms', async () => {
+      mockAwaitBatch.mockImplementation(async ({ submit }) => {
+        await submit();
+        throw new BatchConfirmationFailedError('reverted');
+      });
+      const { result } = renderHook(() => useClaimEarnings());
+
+      await act(async () => {
+        await result.current.claim(['CASHBACK']);
+      });
+
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'RewardsMoneyController:recordOptimisticClaim',
+        expect.anything(),
+      );
     });
 
     it('reports NOT_SUBMITTABLE without opening a claim when sponsorship is off', async () => {

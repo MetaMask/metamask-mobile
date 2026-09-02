@@ -51,6 +51,7 @@ export const REWARDS_MONEY_TEST_IDS = {
   CLAIM_SHEET_PARTIAL_NOTICE: 'rewards-money-claim-sheet-partial-notice',
   CLAIM_SHEET_BLOCKED_NOTICE: 'rewards-money-claim-sheet-blocked-notice',
   CLAIM_SHEET_IN_PROGRESS: 'rewards-money-claim-sheet-in-progress',
+  CLAIM_SHEET_CONFIRMING: 'rewards-money-claim-sheet-confirming',
   CLAIM_SHEET_CONFIRM: 'rewards-money-claim-sheet-confirm',
 } as const;
 

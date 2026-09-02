@@ -8,8 +8,13 @@ const BASE_UNITS_PER_MUSD = 10n ** BigInt(MUSD_DECIMALS);
  *
  * The value is parsed as a BigInt because balances exceed
  * `Number.MAX_SAFE_INTEGER`; only the already-truncated whole and fractional
- * parts are handed to `Number` for locale formatting, so no precision is lost
- * in the range that is actually rendered.
+ * parts are handed to `Number` for locale formatting.
+ *
+ * Bound: exact below ~1e14 base units (~100M mUSD), where the double still
+ * holds the whole part plus two decimals. Above that the displayed decimals
+ * degrade and above ~9e15 the whole part does too. Deliberately not addressed
+ * — no real balance approaches it, and only display is affected; every amount
+ * that is signed or sent stays a base-unit string end to end.
  *
  * @param baseUnits - mUSD amount in base units, as a decimal string.
  * @param fractionDigits - Decimal places to show. Defaults to 2.
