@@ -574,6 +574,40 @@ describe('usePerpsToasts', () => {
       });
     });
 
+    describe('orderManagement.chase', () => {
+      it('identifies Chase while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.submitted(
+            'long',
+            '0.5',
+            'ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase order submitted',
+          isBold: true,
+        });
+      });
+
+      it('identifies a running Chase after confirmation', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.confirmed(
+            'short',
+            '1',
+            'BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase started',
+          isBold: true,
+        });
+      });
+    });
+
     describe('orderManagement.twap', () => {
       it('describes the TWAP window while placement is submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());

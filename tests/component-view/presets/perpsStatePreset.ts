@@ -57,6 +57,10 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
         enabled: true,
         minimumVersion: '0.0.0',
       },
+      perpsMobileChase: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
     } as Record<string, unknown>)
     .withOverrides({
       engine: {

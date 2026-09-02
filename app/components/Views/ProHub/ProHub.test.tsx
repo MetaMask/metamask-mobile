@@ -2,8 +2,12 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
-import { BENEFITS, BenefitRowTestIds } from '../shared/pro';
+import {
+  MOCK_NEXT_PAYMENT,
+  MOCK_PRO_HUB_STATS,
+  MOCK_TRADE_ALLOWANCES,
+} from './ProHub.constants';
+import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -144,14 +148,26 @@ describe('ProHub', () => {
       );
     });
 
-    it('renders all benefit rows with correct titles', () => {
+    it('renders member pricing section title and all trade rows', () => {
       const { getByTestId } = renderProHub();
 
-      BENEFITS.forEach((benefit) => {
-        const row = getByTestId(BenefitRowTestIds.ROW(benefit.id));
+      const section = getByTestId(MemberPricingOnTradesTestIds.SECTION);
+      const title = getByTestId(MemberPricingOnTradesTestIds.TITLE);
+
+      expect(section).toBeOnTheScreen();
+      expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
+
+      MOCK_TRADE_ALLOWANCES.forEach((item) => {
+        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(item.id));
+        const progress = getByTestId(
+          MemberPricingOnTradesTestIds.PROGRESS(item.id),
+        );
 
         expect(row).toBeOnTheScreen();
-        expect(row).toHaveTextContent(toRegex(strings(benefit.title)));
+        expect(progress).toBeOnTheScreen();
+        expect(row).toHaveTextContent(
+          toRegex(strings(`pro_hub.member_pricing.${item.id}.label`)),
+        );
       });
     });
 
@@ -216,10 +232,28 @@ describe('ProHub', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
     });
 
-    it('does not navigate when a benefit row is pressed', () => {
+    it('navigates to Earned when the earned card is pressed', () => {
       const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(BenefitRowTestIds.ROW(BENEFITS[0].id)));
+      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
+    });
+
+    it('does not navigate when the physical card is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
+        nativeEvent: { locationX: 40, locationY: 40 },
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when the saved card is pressed', () => {
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });

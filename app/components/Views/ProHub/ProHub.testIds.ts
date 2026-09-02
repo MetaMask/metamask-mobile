@@ -10,7 +10,7 @@ export const ProHubTestIds = {
   PHYSICAL_CARD_BANNER: 'pro-hub-physical-card-banner',
   PHYSICAL_CARD_TITLE: 'pro-hub-physical-card-title',
   PHYSICAL_CARD_DESCRIPTION: 'pro-hub-physical-card-description',
-  BENEFITS_SECTION: 'pro-hub-benefits-section',
+  GET_CARD_BUTTON: 'pro-hub-get-card-button',
   MEMBERSHIP_SECTION: 'pro-hub-membership-section',
   NEXT_PAYMENT_TEXT: 'pro-hub-next-payment-text',
   MANAGE_BUTTON: 'pro-hub-manage-button',
