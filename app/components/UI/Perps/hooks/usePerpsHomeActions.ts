@@ -9,7 +9,7 @@ import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { usePerpsTrading } from './usePerpsTrading';
-import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
+import type { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import {
   PERPS_CONSTANTS,
@@ -150,7 +150,7 @@ export const usePerpsHomeActions = (
       DevLogger.log('[usePerpsHomeActions] Starting add funds flow');
 
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
+        loader: 'customAmount' as ConfirmationLoader,
         stack: Routes.PERPS.ROOT,
       });
 

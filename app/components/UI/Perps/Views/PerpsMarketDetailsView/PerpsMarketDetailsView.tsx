@@ -119,7 +119,7 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
-import { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
+import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
@@ -721,7 +721,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     }
     try {
       navigateToConfirmation({
-        loader: ConfirmationLoader.CustomAmount,
+        loader: 'customAmount' as ConfirmationLoader,
         stack: Routes.PERPS.ROOT,
       });
       if (!depositPrepSessionRef.current) {
