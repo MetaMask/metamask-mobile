@@ -16,27 +16,22 @@ import {
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { refreshTokens, goToAddEvmToken } from './util';
+import { goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
-import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
+import { useRefreshTokens } from './hooks/useRefreshTokens';
 import { TokensEmptyState } from '../TokensEmptyState';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
@@ -99,19 +94,10 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
-    // evm
-    const evmNetworkConfigurationsByChainId = useSelector(
-      selectEvmNetworkConfigurationsByChainId,
-    );
     const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
-    const selectedAccountId = useSelector(selectSelectedInternalAccountId);
-
-    const selectedSolanaAccount =
-      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
-      null;
-    const isSolanaSelected = selectedSolanaAccount !== null;
+    const { refresh: refreshTokensForGroup } = useRefreshTokens();
 
     const shouldExcludeMusdFromMainList = useSelector(
       selectMoneyHubEnabledFlag,
@@ -201,19 +187,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         });
 
         // Then await the actual refresh
-        await refreshTokens({
-          isSolanaSelected,
-          evmNetworkConfigurationsByChainId,
-          selectedAccountId,
-        });
+        await refreshTokensForGroup();
       } finally {
         setRefreshing(false);
       }
-    }, [
-      isSolanaSelected,
-      evmNetworkConfigurationsByChainId,
-      selectedAccountId,
-    ]);
+    }, [refreshTokensForGroup]);
 
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,

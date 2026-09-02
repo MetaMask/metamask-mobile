@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -763,6 +764,7 @@
     "cardHomeData": null,
     "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],

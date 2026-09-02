@@ -206,6 +206,8 @@ const mockLegacyQrKeyring = new LegacyQrKeyring({
   bridge: mockQrKeyringBridge,
 });
 const mockQrKeyring = new QrKeyring({
+  // @ts-expect-error: Property '#private' in type 'QrKeyring' refers to a
+  // different member that cannot be accessed from within type 'QrKeyring'.
   legacyKeyring: mockLegacyQrKeyring,
   entropySource: 'test-entropy-source',
 });

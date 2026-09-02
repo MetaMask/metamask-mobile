@@ -27,13 +27,10 @@ import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/Tok
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { SectionRefreshHandle } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 import { PopularTokensList } from './components';
 import { selectSelectedInternalAccountId } from '../../../../../selectors/accountsController';
-import { toHex } from '@metamask/controller-utils';
-import type { Hex } from '@metamask/utils';
 import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import { useRefreshTokens } from '../../../../UI/Tokens/hooks/useRefreshTokens';
@@ -116,28 +113,9 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       setShowScamWarningModal,
     } = useRemoveToken();
 
-    const evmNetworkConfigurationsByChainId = useSelector(
-      selectEvmNetworkConfigurationsByChainId,
-    );
-
-    // Restrict refresh to popular EVM networks so we only poll/refresh those chains.
-    const evmNetworkConfigurationsForRefresh = useMemo(() => {
-      const allowedEvmChainIds = new Set<string>(
-        popularChainIds
-          .filter((id) => id.startsWith('eip155:'))
-          .map((id) => toHex(id.slice(7)) as Hex),
-      );
-      return Object.fromEntries(
-        Object.entries(evmNetworkConfigurationsByChainId).filter(([chainId]) =>
-          allowedEvmChainIds.has(chainId),
-        ),
-      );
-    }, [evmNetworkConfigurationsByChainId, popularChainIds]);
     const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
-    const { refresh: refreshTokensForGroup } = useRefreshTokens({
-      evmNetworkConfigurationsByChainId: evmNetworkConfigurationsForRefresh,
-    });
+    const { refresh: refreshTokensForGroup } = useRefreshTokens();
 
     const prevAccountIdRef = useRef(selectedAccountId);
     // Reset section error when account changes (not on initial mount) so the new account gets a fresh state

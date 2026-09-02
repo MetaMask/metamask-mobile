@@ -5,9 +5,11 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/types';
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import SearchFeedRow, {
   SearchFeedSkeleton,
   PERPS_ROW_WRAPPER_TEST_ID,
+  getItemId,
 } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
@@ -28,6 +30,14 @@ jest.mock('./TapView', () => ({
       {children}
     </MockPressable>
   ),
+}));
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => false),
 }));
 
 jest.mock('./analytics', () => ({
@@ -78,6 +88,21 @@ jest.mock('../feeds/sites/SiteRowItem', () => ({
   ),
 }));
 
+jest.mock('./EarnSearchRow', () => ({
+  __esModule: true,
+  default: ({ item }: { item: EarnSearchItem }) => (
+    <MockText
+      testID={
+        item.kind === 'money-account'
+          ? 'stub-earn-money-row'
+          : 'stub-earn-search-asset-row'
+      }
+    >
+      {item.id}
+    </MockText>
+  ),
+}));
+
 jest.mock(
   '../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton',
   () => ({
@@ -97,6 +122,15 @@ const mockTrackExploreSearchEvent =
   trackExploreSearchEvent as jest.MockedFunction<
     typeof trackExploreSearchEvent
   >;
+
+const createEarnItem = (itemId: string): EarnSearchItem =>
+  (itemId === 'money-account'
+    ? { kind: 'money-account', id: itemId }
+    : {
+        kind: 'asset',
+        id: itemId,
+        asset: {},
+      }) as unknown as EarnSearchItem;
 
 describe('SearchFeedRow', () => {
   beforeEach(() => {
@@ -135,7 +169,6 @@ describe('SearchFeedRow', () => {
         />,
       );
 
-      expect(getByTestId(rowTestId)).toBeTruthy();
       fireEvent.press(getByTestId('search-feed-tap'));
 
       expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
@@ -197,6 +230,60 @@ describe('SearchFeedRow', () => {
     const payload = mockTrackExploreSearchEvent.mock.calls[0][0];
     expect(payload).not.toHaveProperty('section_name');
   });
+
+  it.each([
+    ['money-account', 'stub-earn-money-row'],
+    ['eip155:1/erc20:usdc', 'stub-earn-search-asset-row'],
+  ] as const)('renders Earn item %s', (itemId, rowTestId) => {
+    const item = createEarnItem(itemId);
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="earn"
+        item={item}
+        index={1}
+        searchQuery="usdc"
+        tabName="all"
+      />,
+    );
+
+    expect(getByTestId(rowTestId)).toBeOnTheScreen();
+  });
+
+  it.each(['money-account', 'eip155:1/erc20:usdc'] as const)(
+    'returns the stable item ID for Earn item %s',
+    (itemId) => {
+      const item = createEarnItem(itemId);
+
+      expect(getItemId('earn', item)).toBe(itemId);
+    },
+  );
+
+  it.each(['money-account', 'eip155:1/erc20:usdc'] as const)(
+    'tracks the item ID when Earn item %s is tapped',
+    (itemId) => {
+      const item = createEarnItem(itemId);
+
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId="earn"
+          item={item}
+          index={1}
+          searchQuery="usdc"
+          tabName="all"
+        />,
+      );
+
+      fireEvent.press(getByTestId('search-feed-tap'));
+
+      expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          section_name: 'earn',
+          item_clicked: itemId,
+        }),
+      );
+    },
+  );
 
   it('uses latest searchQuery from ref when tap fires', () => {
     const token = { assetId: 'x' } as TrendingAsset;
@@ -342,22 +429,28 @@ describe('SearchFeedSkeleton', () => {
     const { getByTestId, rerender } = render(
       <SearchFeedSkeleton feedId="sites" />,
     );
-    expect(getByTestId('stub-site-skeleton')).toBeTruthy();
+    expect(getByTestId('stub-site-skeleton')).toBeOnTheScreen();
 
     rerender(<SearchFeedSkeleton feedId="predictions" />);
-    expect(getByTestId('stub-site-skeleton')).toBeTruthy();
+    expect(getByTestId('stub-site-skeleton')).toBeOnTheScreen();
   });
 
   it('uses token skeleton for tokens, stocks, and perps', () => {
     const { getByTestId, rerender } = render(
       <SearchFeedSkeleton feedId="tokens" />,
     );
-    expect(getByTestId('stub-trending-token-skeleton')).toBeTruthy();
+    expect(getByTestId('stub-trending-token-skeleton')).toBeOnTheScreen();
 
     rerender(<SearchFeedSkeleton feedId="stocks" />);
-    expect(getByTestId('stub-trending-token-skeleton')).toBeTruthy();
+    expect(getByTestId('stub-trending-token-skeleton')).toBeOnTheScreen();
 
     rerender(<SearchFeedSkeleton feedId="perps" />);
-    expect(getByTestId('stub-trending-token-skeleton')).toBeTruthy();
+    expect(getByTestId('stub-trending-token-skeleton')).toBeOnTheScreen();
+  });
+
+  it('uses the Earn row skeleton for Earn', () => {
+    const { getByTestId } = render(<SearchFeedSkeleton feedId="earn" />);
+
+    expect(getByTestId('stub-trending-token-skeleton')).toBeOnTheScreen();
   });
 });

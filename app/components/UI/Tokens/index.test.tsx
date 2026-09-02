@@ -24,11 +24,14 @@ import * as TokenListControlBarModule from './TokenListControlBar/TokenListContr
 // eslint-disable-next-line import-x/no-namespace
 import * as AssetsListSelectorsModule from '../../../selectors/assets/assets-list';
 // eslint-disable-next-line import-x/no-namespace
-import * as RefreshTokensModule from './util/refreshTokens';
-// eslint-disable-next-line import-x/no-namespace
 import * as RemoveEvmTokenModule from './util/removeEvmToken';
 // eslint-disable-next-line import-x/no-namespace
 import * as RemoveNonEvmTokenModule from './util/removeNonEvmToken';
+
+const mockRefreshTokensForGroup = jest.fn().mockResolvedValue(undefined);
+jest.mock('./hooks/useRefreshTokens', () => ({
+  useRefreshTokens: () => ({ refresh: mockRefreshTokensForGroup }),
+}));
 
 // Mocking versioning for some selectors
 jest.mock('react-native-device-info', () => ({
@@ -230,16 +233,12 @@ describe('Tokens', () => {
   });
 
   it('performs token refresh', async () => {
-    const mockRefreshTokens = jest
-      .spyOn(RefreshTokensModule, 'refreshTokens')
-      .mockResolvedValue();
     const { getByTestId } = renderComponent(initialState);
 
     fireEvent.press(getByTestId('MOCK_TEST_REFRESH_BUTTON'));
 
-    // Wait for async refresh to complete
     await waitFor(() => {
-      expect(mockRefreshTokens).toHaveBeenCalled();
+      expect(mockRefreshTokensForGroup).toHaveBeenCalled();
     });
   });
 

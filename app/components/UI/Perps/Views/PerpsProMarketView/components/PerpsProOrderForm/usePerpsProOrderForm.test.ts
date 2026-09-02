@@ -1,23 +1,45 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  PERPS_ERROR_CODES,
+  SCALE_ORDER_COUNT,
+  computeScalePriceLadder,
+  formatHyperLiquidPrice,
   type PerpsMarketData,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
+import { ChaseOrderRequestError } from '../../../../hooks/usePerpsChaseOrders';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
-import { strings } from '../../../../../../../../locales/i18n';
 import { usePerpsProOrderForm } from './usePerpsProOrderForm';
 
 // ---------------------------------------------------------------------------
 // Mock scaffolding
 // ---------------------------------------------------------------------------
 const mockTrack = jest.fn();
+const mockLoggerError = jest.fn();
+const mockInsufficientFundsMessage = strings(
+  'perps.order.validation.insufficient_funds',
+);
 const mockShowToast = jest.fn();
+const mockGetPerpsToastLabels = jest.fn(
+  (primary: string, secondary?: string) => [
+    { label: primary, isBold: true },
+    ...(secondary
+      ? [
+          { label: '\n', isBold: false },
+          { label: secondary, isBold: false },
+        ]
+      : []),
+  ],
+);
 const mockNavigate = jest.fn();
 const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
@@ -26,8 +48,9 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+let mockTotalFee = 5;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
-  totalFee: 5,
+  totalFee: mockTotalFee,
   undiscountedTotalFee: 6,
   protocolFee: 4,
   metamaskFee: 1,
@@ -40,6 +63,7 @@ const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
 const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
   action(),
 );
+let mockComplianceActionDuringRender: (() => void) | undefined;
 
 let mockIsEligible = true;
 
@@ -54,11 +78,13 @@ const mockOrderForm = {
   type: 'market' as
     | 'market'
     | 'limit'
+    | 'scale'
     | 'stop_market'
     | 'stop_limit'
     | 'take_profit_limit'
     | 'take_profit_market'
-    | 'twap',
+    | 'twap'
+    | 'chase',
   amount: '100',
   leverage: 5,
   balancePercent: 10,
@@ -81,6 +107,15 @@ const mockSetOrderType = jest.fn();
 const mockHandlePercentageAmount = jest.fn();
 const mockUpdateOrderForm = jest.fn();
 const mockSetMaxPossibleAmountOverride = jest.fn();
+const mockGetChaseOrders = jest.fn();
+let mockChaseOrders: { status: string }[] = [];
+const mockUsePerpsChaseOrders = jest.fn(
+  (_options: { isEnabled: boolean; enableDiscovery?: boolean }) => ({
+    chaseOrders: mockChaseOrders,
+    getChaseOrders: mockGetChaseOrders,
+  }),
+);
+const mockRefreshChaseCapability = jest.fn().mockResolvedValue(null);
 
 const mockContextValue = {
   orderForm: mockOrderForm,
@@ -119,7 +154,20 @@ const mockValidation = {
   }),
 };
 
+let mockOrderValidationParams:
+  | {
+      marginRequired: string;
+      spendableBalance: number;
+      positionSize: string;
+      originalUsdAmount?: string;
+      providerId?: PerpsProviderType;
+    }
+  | undefined;
+let mockValidateCalculatedMargin = false;
+
 let mockExistingPosition: {
+  symbol?: string;
+  providerId?: PerpsProviderType;
   leverage?: { type?: string; value?: number };
   size?: string;
 } | null = null;
@@ -130,10 +178,19 @@ let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
 let mockLiveMarkPrice = '90000';
+let mockSizeDecimals = 3;
+let mockSelectedAddress = '0xaccount-a';
+let mockPerpsNetwork: 'mainnet' | 'testnet' = 'mainnet';
 
 const submitted = jest.fn(() => ({ id: 'submitted' }));
 const confirmed = jest.fn(() => ({ id: 'confirmed' }));
 const creationFailed = jest.fn(() => ({ id: 'failed' }));
+const limitSubmitted = jest.fn(() => ({ id: 'limit-submitted' }));
+const limitConfirmed = jest.fn(() => ({ id: 'limit-confirmed' }));
+const limitCreationFailed = jest.fn(() => ({ id: 'limit-failed' }));
+const chaseSubmitted = jest.fn(() => ({ id: 'chase-submitted' }));
+const chaseConfirmed = jest.fn(() => ({ id: 'chase-confirmed' }));
+const chaseCreationFailed = jest.fn(() => ({ id: 'chase-failed' }));
 const twapSubmitted = jest.fn(() => ({ id: 'twap-submitted' }));
 const twapConfirmed = jest.fn(() => ({ id: 'twap-confirmed' }));
 const twapCreationFailed = jest.fn(() => ({ id: 'twap-failed' }));
@@ -150,7 +207,16 @@ const limitPriceRequired = { id: 'limitPriceRequired' };
 const mockPerpsToastOptions = {
   orderManagement: {
     market: { submitted, confirmed, creationFailed },
-    limit: { submitted, confirmed, creationFailed },
+    limit: {
+      submitted: limitSubmitted,
+      confirmed: limitConfirmed,
+      creationFailed: limitCreationFailed,
+    },
+    chase: {
+      submitted: chaseSubmitted,
+      confirmed: chaseConfirmed,
+      creationFailed: chaseCreationFailed,
+    },
     twap: {
       submitted: twapSubmitted,
       confirmed: twapConfirmed,
@@ -165,6 +231,11 @@ jest.mock('../../../../contexts/PerpsOrderContext', () => ({
   usePerpsOrderContext: () => mockContextValue,
 }));
 
+jest.mock('../../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: (...args: unknown[]) => mockLoggerError(...args) },
+}));
+
 let mockPositionStreamLoading = false;
 let mockMarketDataLoading = false;
 let mockMarketDataError: string | null = null;
@@ -175,22 +246,48 @@ let mockMarketData: { szDecimals: number; maxLeverage: number } | null = {
 let mockIsPlacing = false;
 
 jest.mock('../../../../hooks', () => ({
+  getPerpsToastLabels: (primary: string, secondary?: string) =>
+    mockGetPerpsToastLabels(primary, secondary),
   useHasExistingPosition: () => ({
     existingPosition: mockExistingPosition,
     isLoading: mockPositionStreamLoading,
   }),
   usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
   usePerpsMarketData: () => ({
-    marketData: mockMarketData,
+    marketData: mockMarketData
+      ? { ...mockMarketData, szDecimals: mockSizeDecimals }
+      : mockMarketData,
     isLoading: mockMarketDataLoading,
     error: mockMarketDataError,
   }),
+  usePerpsNetwork: () => mockPerpsNetwork,
   usePerpsOrderExecution: (opts: typeof mockExecutionOptions) => {
     mockExecutionOptions = opts;
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
-  usePerpsOrderValidation: () => mockValidation,
+  usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
+    mockOrderValidationParams = params;
+    if (mockValidateCalculatedMargin && params) {
+      const hasInsufficientBalance =
+        Number(params.marginRequired) > params.spendableBalance;
+      const errors = hasInsufficientBalance
+        ? [mockInsufficientFundsMessage]
+        : [];
+      return {
+        ...mockValidation,
+        isValid: !hasInsufficientBalance,
+        errors,
+        validateNow: jest.fn().mockResolvedValue({
+          errors,
+          warnings: [],
+          fieldIssues: [],
+          isValid: !hasInsufficientBalance,
+        }),
+      };
+    }
+    return mockValidation;
+  },
   usePerpsToasts: () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
@@ -209,12 +306,15 @@ jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../../../../Compliance', () => ({
-  useComplianceGate: () => ({
-    gate: mockComplianceGate,
-    isBlocked: false,
-    isComplianceEnabled: false,
-    checkCompliance: jest.fn(),
-  }),
+  useComplianceGate: () => {
+    mockComplianceActionDuringRender?.();
+    return {
+      gate: mockComplianceGate,
+      isBlocked: false,
+      isComplianceEnabled: false,
+      checkCompliance: jest.fn(),
+    };
+  },
 }));
 
 jest.mock('../../../../hooks/stream', () => ({
@@ -256,6 +356,24 @@ jest.mock('../../../../hooks/usePerpsOICap', () => ({
   usePerpsOICap: () => ({ isAtCap: mockIsAtCap }),
 }));
 
+jest.mock('../../../../hooks/usePerpsChaseOrders', () => {
+  class MockChaseOrderRequestError extends Error {
+    code: 'context_not_ready' | 'stale_request';
+
+    constructor(code: 'context_not_ready' | 'stale_request') {
+      super(code);
+      this.code = code;
+    }
+  }
+
+  return {
+    ChaseOrderRequestError: MockChaseOrderRequestError,
+    usePerpsChaseOrders: (options: {
+      isEnabled: boolean;
+      enableDiscovery?: boolean;
+    }) => mockUsePerpsChaseOrders(options),
+  };
+});
 jest.mock('../../../../../Rewards/hooks/useVipTier', () => ({
   useVipTier: () => 1,
 }));
@@ -266,11 +384,14 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  useSelector: () => false,
+  useSelector: (selector: { isSelectedAccountSelector?: boolean }) =>
+    selector.isSelectedAccountSelector ? mockSelectedAddress : false,
 }));
 
 jest.mock('../../../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountAddress: jest.fn(),
+  selectSelectedInternalAccountAddress: Object.assign(() => undefined, {
+    isSelectedAccountSelector: true,
+  }),
 }));
 
 jest.mock('../../../../../../../util/haptics');
@@ -294,21 +415,85 @@ const market = {
   providerId: 'hyperliquid',
 } as PerpsMarketData;
 
+interface RenderProFormScaleOptions {
+  enabled?: boolean;
+  pending?: boolean;
+  checkSupport?: () => Promise<boolean>;
+  providerId?: PerpsProviderType;
+}
+
 const renderProForm = (
   isTriggeredOrdersEnabled = true,
   isTwapEnabled = true,
   resolvedTwapProviderId: PerpsProviderType | undefined = 'hyperliquid',
   isTwapAvailabilityPending = false,
-) =>
-  renderHook(() =>
+  scaleOptions: RenderProFormScaleOptions = {},
+  chaseGate: {
+    isEnabled?: boolean;
+    isPending?: boolean;
+    refresh?: () => Promise<PerpsProviderType | null>;
+    providerId?: PerpsProviderType;
+    isScreenFocused?: boolean;
+  } = {},
+) => {
+  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+  const checkScaleOrderSupport =
+    scaleOptions.checkSupport ?? jest.fn().mockResolvedValue(true);
+  const refreshChaseCapability =
+    chaseGate.refresh ?? jest.fn().mockResolvedValue('hyperliquid');
+
+  return renderHook(() =>
     usePerpsProOrderForm({
       market,
       isTriggeredOrdersEnabled,
       isTwapEnabled,
       isTwapAvailabilityPending,
       resolvedTwapProviderId,
+      checkTwapOrderSupport,
+      scaleProviderId: scaleOptions.providerId ?? 'hyperliquid',
+      isScaleOrdersEnabled: scaleOptions.enabled ?? true,
+      isScaleOrderSupportPending: scaleOptions.pending ?? false,
+      checkScaleOrderSupport,
+      isChaseEnabled: chaseGate.isEnabled ?? true,
+      isChaseAvailabilityPending: chaseGate.isPending ?? false,
+      refreshChaseCapability,
+      chaseProviderId:
+        chaseGate.isEnabled === false
+          ? null
+          : (chaseGate.providerId ?? 'hyperliquid'),
+      isScreenFocused: chaseGate.isScreenFocused ?? true,
     }),
   );
+};
+
+interface MutableScaleProps {
+  isScaleOrdersEnabled: boolean;
+  isScaleOrderSupportPending: boolean;
+  scaleProviderId: PerpsProviderType;
+  checkScaleOrderSupport: () => Promise<boolean>;
+}
+
+const renderMutableScaleForm = (initialProps: MutableScaleProps) => {
+  const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
+
+  return renderHook(
+    (props: MutableScaleProps) =>
+      usePerpsProOrderForm({
+        market,
+        isTriggeredOrdersEnabled: true,
+        isTwapEnabled: true,
+        isTwapAvailabilityPending: false,
+        resolvedTwapProviderId: 'hyperliquid',
+        checkTwapOrderSupport,
+        isChaseEnabled: false,
+        isChaseAvailabilityPending: false,
+        refreshChaseCapability: mockRefreshChaseCapability,
+        chaseProviderId: null,
+        ...props,
+      }),
+    { initialProps },
+  );
+};
 
 describe('usePerpsProOrderForm', () => {
   beforeEach(() => {
@@ -318,13 +503,16 @@ describe('usePerpsProOrderForm', () => {
     mockOrderForm.direction = 'long';
     mockOrderForm.amount = '100';
     mockOrderForm.leverage = 5;
+    mockOrderForm.balancePercent = 10;
     mockOrderForm.limitPrice = undefined;
     mockContextValue.triggerPrice = undefined;
     mockContextValue.hasBlurredLimitPrice = false;
     mockContextValue.hasBlurredTriggerPrice = false;
     mockContextValue.pendingReduceOnly = undefined;
+    mockContextValue.maxPossibleAmount = 1000;
     mockOrderForm.takeProfitPrice = undefined;
     mockOrderForm.stopLossPrice = undefined;
+    mockContextValue.orderForm = mockOrderForm;
     mockValidation.isValid = true;
     mockValidation.isValidating = false;
     mockValidation.errors = [];
@@ -342,6 +530,13 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
     mockLiveMarkPrice = '90000';
+    mockTotalFee = 5;
+    mockSizeDecimals = 3;
+    mockSelectedAddress = '0xaccount-a';
+    mockPerpsNetwork = 'mainnet';
+    mockOrderValidationParams = undefined;
+    mockValidateCalculatedMargin = false;
+    mockContextValue.balanceForValidation = 500;
     mockIsInitialized = true;
     mockPositionStreamLoading = false;
     mockMarketDataLoading = false;
@@ -352,6 +547,7 @@ describe('usePerpsProOrderForm', () => {
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
+    mockComplianceActionDuringRender = undefined;
     mockCommitLimitPrice.mockImplementation((price?: string) => {
       mockOrderForm.limitPrice = price;
       mockContextValue.hasBlurredLimitPrice = true;
@@ -365,6 +561,9 @@ describe('usePerpsProOrderForm', () => {
       mockContextValue.hasBlurredTriggerPrice = false;
     });
     mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+    mockExecuteOrder.mockResolvedValue({ success: true });
+    mockChaseOrders = [];
+    mockGetChaseOrders.mockResolvedValue([]);
   });
 
   describe('availableBalance', () => {
@@ -425,6 +624,43 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.feeDiscountPercentage).toBe(10);
       expect(result.current.feeMetamaskFeeRate).toBe(0.01);
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
+    });
+
+    it('routes Scale fees and validation through the concrete provider', () => {
+      mockOrderForm.type = 'scale';
+
+      renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerId: 'myx',
+        }),
+      );
+      expect(mockOrderValidationParams?.providerId).toBe('myx');
+    });
+
+    it('routes Chase fees through its placement provider', () => {
+      mockOrderForm.type = 'chase';
+
+      renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {
+          providerId: 'hyperliquid',
+        },
+      );
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'chase',
+          providerId: 'hyperliquid',
+        }),
+      );
     });
   });
 
@@ -586,10 +822,12 @@ describe('usePerpsProOrderForm', () => {
 
     it('explains why the order is blocked when the live price is unavailable', () => {
       // Arrange
+      mockOrderForm.type = 'chase';
       mockLivePrice = '';
 
       // Act
       const { result } = renderProForm();
+      act(() => result.current.onChaseMaxDistanceChange('1'));
 
       // Assert
       expect(result.current.notices).toContainEqual({
@@ -597,7 +835,15 @@ describe('usePerpsProOrderForm', () => {
         variant: 'banner',
         message: strings('perps.pro_order_form.price_unavailable'),
       });
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.chaseReferencePrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
     });
 
     it('shows a failure message when market data loading fails', () => {
@@ -866,6 +1112,39 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('re-checks selected-route TWAP support immediately before placement', async () => {
+      const checkTwapOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'twap';
+      const { result } = renderHook(() =>
+        usePerpsProOrderForm({
+          market,
+          isTriggeredOrdersEnabled: true,
+          isTwapEnabled: true,
+          isTwapAvailabilityPending: false,
+          resolvedTwapProviderId: 'hyperliquid',
+          checkTwapOrderSupport,
+          scaleProviderId: 'hyperliquid',
+          isScaleOrdersEnabled: true,
+          isScaleOrderSupportPending: false,
+          checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+          isChaseEnabled: false,
+          isChaseAvailabilityPending: false,
+          refreshChaseCapability: mockRefreshChaseCapability,
+          chaseProviderId: null,
+        }),
+      );
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkTwapOrderSupport).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.twap_unavailable'),
+      );
+    });
+
     it('re-checks TWAP rollout after an asynchronous compliance gate', async () => {
       let continuePlacement: (() => Promise<unknown>) | undefined;
       mockComplianceGate.mockImplementation((action) => {
@@ -881,6 +1160,15 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -922,6 +1210,15 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled: true,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: providerId,
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { providerId: 'hyperliquid' } },
       );
@@ -957,6 +1254,15 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -978,6 +1284,15 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending: false,
             resolvedTwapProviderId: 'hyperliquid',
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         { initialProps: { isTwapEnabled: true } },
       );
@@ -1012,6 +1327,15 @@ describe('usePerpsProOrderForm', () => {
             isTwapEnabled,
             isTwapAvailabilityPending,
             resolvedTwapProviderId,
+            checkTwapOrderSupport: jest.fn().mockResolvedValue(true),
+            scaleProviderId: 'hyperliquid',
+            isScaleOrdersEnabled: true,
+            isScaleOrderSupportPending: false,
+            checkScaleOrderSupport: jest.fn().mockResolvedValue(true),
+            isChaseEnabled: false,
+            isChaseAvailabilityPending: false,
+            refreshChaseCapability: mockRefreshChaseCapability,
+            chaseProviderId: null,
           }),
         {
           initialProps: {
@@ -1072,6 +1396,65 @@ describe('usePerpsProOrderForm', () => {
       );
     });
 
+    it('keeps a non-Chase fingerprint out of Chase analytics', async () => {
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+            PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+        }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: expect.anything(),
+        }),
+      );
+      expect(chaseSubmitted).not.toHaveBeenCalled();
+    });
+
+    it('does not show Chase feedback for a stale non-Chase fingerprint', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockContextValue.orderForm = { ...mockOrderForm, type: 'limit' };
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_account_changed'),
+      );
+    });
+
     it('executes order for an eligible compliant user', async () => {
       const { result } = renderProForm();
 
@@ -1084,6 +1467,1146 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('keeps a pending termination in the visible Chase placement limit', () => {
+      mockOrderForm.type = 'chase';
+      mockChaseOrders = [
+        ...Array.from({ length: 4 }, () => ({ status: 'active' })),
+        { status: 'termination_pending' },
+      ];
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('tracks each Chase limit banner episode once', () => {
+      mockOrderForm.type = 'chase';
+      mockChaseOrders = Array.from({ length: 5 }, () => ({
+        status: 'active',
+      }));
+      const form = renderProForm();
+
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      form.rerender({});
+      expect(mockTrack).toHaveBeenCalledTimes(1);
+      mockChaseOrders = mockChaseOrders.slice(0, 4);
+      form.rerender({});
+      mockChaseOrders = [...mockChaseOrders, { status: 'termination_pending' }];
+      form.rerender({});
+
+      expect(mockTrack).toHaveBeenCalledTimes(2);
+      expect(mockTrack).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
+    });
+
+    it('blocks a Chase submit when refreshed active and pending sessions reach the venue limit', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockResolvedValueOnce(
+        Array.from({ length: 5 }, (_, index) => ({
+          handle: `chase-${index}`,
+          status: index === 4 ? 'termination_pending' : 'active',
+        })),
+      );
+      const form = renderProForm();
+
+      await act(async () => {
+        await form.result.current.onPlaceOrderPress();
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      mockChaseOrders = Array.from({ length: 5 }, () => ({
+        status: 'active',
+      }));
+      form.rerender({});
+      const concurrencyEvents = mockTrack.mock.calls.filter(
+        ([, properties]) =>
+          properties.interaction_type === 'chase_concurrency_limit_hit',
+      );
+      expect(concurrencyEvents).toHaveLength(1);
+    });
+
+    it('tracks a controller Chase limit rejection during execution', async () => {
+      mockOrderForm.type = 'chase';
+      mockExecuteOrder.mockImplementationOnce(async () => {
+        mockExecutionOptions.onError?.(
+          PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED,
+        );
+        return {
+          success: false,
+          error: PERPS_ERROR_CODES.ORDER_CHASE_LIMIT_REACHED,
+        };
+      });
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          interaction_type: 'chase_concurrency_limit_hit',
+          asset: 'BTC',
+        }),
+      );
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks Chase placement until session context reconnects', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders
+        .mockRejectedValueOnce(new Error('Chase order context is not ready'))
+        .mockResolvedValueOnce([]);
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(3);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('abandons Chase when compliance resolves after fallback', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+
+      mockContextValue.orderForm = { ...mockOrderForm, type: 'market' };
+      form.rerender({});
+      await act(async () => releaseCompliance?.());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+    });
+
+    it('locks Chase preflight against repeated taps and draft edits', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let firstSubmit: Promise<void> | undefined;
+
+      act(() => {
+        firstSubmit = form.result.current.onPlaceOrderPress();
+      });
+      expect(form.result.current.isPlaceOrderLoading).toBe(true);
+      expect(form.result.current.isPlaceOrderDisabled).toBe(true);
+      await act(async () => form.result.current.onPlaceOrderPress());
+      act(() => form.result.current.onChaseMaxDistanceChange('25'));
+
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+      expect(form.result.current.chaseMaxDistance).toBe('');
+      await act(async () => releaseCompliance?.());
+      await act(async () => firstSubmit);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(form.result.current.isPlaceOrderLoading).toBe(false);
+    });
+
+    it('releases Chase preflight lock after compliance failure', async () => {
+      mockComplianceGate.mockRejectedValueOnce(new Error('compliance failed'));
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+
+      await act(async () => {
+        await expect(form.result.current.onPlaceOrderPress()).rejects.toThrow(
+          'compliance failed',
+        );
+      });
+
+      expect(form.result.current.isPlaceOrderLoading).toBe(false);
+      mockComplianceGate.mockImplementation((action) => action());
+      await act(async () => form.result.current.onPlaceOrderPress());
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('abandons deferred Chase compliance after the symbol-keyed form unmounts', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+
+      form.unmount();
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockTrack).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the Chase form active while disabling its blurred polling consumer', () => {
+      mockOrderForm.type = 'chase';
+      const chaseGate = { isScreenFocused: true };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+        isEnabled: true,
+        enableDiscovery: false,
+      });
+
+      chaseGate.isScreenFocused = false;
+      form.rerender({});
+
+      expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+        isEnabled: false,
+        enableDiscovery: false,
+      });
+      expect(form.result.current.orderType).toBe('chase');
+    });
+
+    it('aborts Chase when the provider changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const chaseGate = { providerId: 'hyperliquid' as PerpsProviderType };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      chaseGate.providerId = 'secondary-provider' as PerpsProviderType;
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts Chase when the Perps network changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockPerpsNetwork = 'testnet';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts Chase when a price tick changes reviewed exposure during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockLivePrice = '45000';
+      mockLiveMarkPrice = '45000';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts Chase when effective token precision changes during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockSizeDecimals = 2;
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('accepts formatting-equivalent prices during compliance', async () => {
+      let releaseCompliance: (() => Promise<void>) | undefined;
+      mockComplianceGate.mockImplementationOnce(
+        (action: () => Promise<unknown>) =>
+          new Promise((resolve) => {
+            releaseCompliance = async () => resolve(await action());
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      mockLivePrice = '90000.0';
+      mockLiveMarkPrice = '90000.00';
+      form.rerender({});
+
+      await act(async () => {
+        await releaseCompliance?.();
+        await submitPromise;
+      });
+
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(validationError).not.toHaveBeenCalled();
+    });
+
+    it('uses committed Chase refs during a render-phase compliance callback', async () => {
+      let capturedAction: (() => Promise<unknown>) | undefined;
+      mockComplianceGate.mockImplementationOnce((action) => {
+        capturedAction = action;
+        return Promise.resolve();
+      });
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        type: 'market',
+        amount: '200',
+      };
+      mockSelectedAddress = '0xaccount-b';
+      let capturedResult: Promise<unknown> | undefined;
+      mockComplianceActionDuringRender = () => {
+        capturedResult = capturedAction?.();
+        mockComplianceActionDuringRender = undefined;
+      };
+
+      form.rerender({});
+      await act(async () => capturedResult);
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('places Chase without an optional max distance', async () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      expect(result.current.chaseMaxDistance).toBe('');
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.not.objectContaining({ chaseMaxDistanceBps: expect.anything() }),
+      );
+      expect(chaseSubmitted).toHaveBeenCalledTimes(1);
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TAP,
+          [PERPS_EVENT_PROPERTY.ORDER_TYPE]: PERPS_EVENT_VALUE.ORDER_TYPE.CHASE,
+          [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: false,
+        }),
+      );
+    });
+
+    it('refreshes Chase history after a successful terminal placement', async () => {
+      const filledChase = {
+        handle: 'chase-75dc4054-7c01-4bff-b31f-2a046c35ffdb',
+        symbol: 'BTC',
+        side: 'buy',
+        originalSize: '0.3',
+        remainingSize: '0',
+        arrivalPrice: '90000',
+        restingPrice: '90000',
+        restingOrderId: null,
+        distanceChasedBps: 0,
+        repricings: 0,
+        startedAt: 1_788_274_359_115,
+        status: 'filled',
+      };
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([filledChase]);
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockGetChaseOrders).toHaveBeenCalledTimes(2);
+      await expect(mockGetChaseOrders.mock.results[1].value).resolves.toEqual([
+        filledChase,
+      ]);
+    });
+
+    it('fails closed before controller placement when Chase is disabled', async () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { isEnabled: false },
+      );
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('re-checks capability and fails closed before controller placement', async () => {
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue(null);
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(mockGetChaseOrders).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('fails closed with feedback when the Chase session refresh fails', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockRejectedValueOnce(new Error('temporary failure'));
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+    });
+
+    it('asks for route review when the Chase session refresh becomes stale', async () => {
+      mockOrderForm.type = 'chase';
+      mockGetChaseOrders.mockRejectedValueOnce(
+        new ChaseOrderRequestError('stale_request'),
+      );
+      const { result } = renderProForm();
+
+      await act(async () => result.current.onPlaceOrderPress());
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_unavailable'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('blocks a Chase distance-unit edit during capability refresh', async () => {
+      let resolveRefresh:
+        | ((providerId: 'hyperliquid' | null) => void)
+        | undefined;
+      const refresh = jest.fn(
+        () =>
+          new Promise<'hyperliquid' | null>((resolve) => {
+            resolveRefresh = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      let submission: Promise<void> | undefined;
+      act(() => {
+        submission = result.current.onPlaceOrderPress();
+      });
+      await act(async () => {
+        await Promise.resolve();
+      });
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+      expect(result.current.chaseMaxDistanceUnit).toBe('usd');
+      await act(async () => {
+        resolveRefresh?.('hyperliquid');
+        await submission;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('abandons Chase submit when the capability route disappears', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      const chaseGate: {
+        refresh: () => Promise<'hyperliquid'>;
+        providerId?: PerpsProviderType;
+        isEnabled?: boolean;
+      } = {
+        refresh: jest.fn().mockResolvedValue('hyperliquid'),
+        providerId: 'hyperliquid',
+      };
+      mockOrderForm.type = 'chase';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => {
+        expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
+      });
+      chaseGate.isEnabled = false;
+      rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_route_changed'),
+      );
+    });
+
+    it('abandons Chase submit when the visible draft changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+
+      act(() => {
+        result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => {
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1);
+      });
+      mockContextValue.orderForm = {
+        ...mockOrderForm,
+        direction: 'short',
+        amount: '200',
+      };
+      rerender({});
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+        result.current.onChaseMaxDistanceChange('25');
+      });
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(playImpact).not.toHaveBeenCalled();
+    });
+
+    it('abandons Chase submit when the selected account changes', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockSelectedAddress = '0xaccount-b';
+      form.rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_account_changed'),
+      );
+      expect(validationError).not.toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('revalidates Chase when spendable balance drops during validation', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      const balanceError = 'Balance dropped below required margin';
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValueOnce({
+          ...validResult,
+          errors: [balanceError],
+          isValid: false,
+        });
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockContextValue.balanceForValidation = 0;
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(validationError).toHaveBeenCalledWith(balanceError);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('revalidates Chase when an existing position becomes cross margin', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '1',
+        leverage: { type: 'cross', value: 5 },
+      };
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+      });
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('revalidates Chase when reduce-only position loading starts', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      mockContextValue.pendingReduceOnly = true;
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '-1',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const form = renderProForm();
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockPositionStreamLoading = true;
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('aborts when validation changes the reviewed Chase size', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirstValidation:
+        | ((value: typeof validResult) => void)
+        | undefined;
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirstValidation = resolve;
+          }),
+        )
+        .mockResolvedValue(validResult);
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submission: Promise<void> | undefined;
+
+      act(() => {
+        submission = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() =>
+        expect(mockValidation.validateNow).toHaveBeenCalledTimes(1),
+      );
+      mockContextValue.balanceForValidation = 400;
+      mockLivePrice = '45000';
+      mockLiveMarkPrice = '45000';
+      form.rerender({});
+      await act(async () => {
+        resolveFirstValidation?.(validResult);
+        await submission;
+      });
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(chaseConfirmed).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('aborts when MAX-derived size changes during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => {
+        form.result.current.sizeSlider.onDragEnd(
+          form.result.current.sizeSlider.maximumValue,
+        );
+      });
+      const committedMaxAmount = String(mockSetAmount.mock.calls.at(-1)?.[0]);
+      const maxOrderForm = {
+        ...mockOrderForm,
+        amount: committedMaxAmount,
+      };
+      mockContextValue.orderForm = maxOrderForm;
+      form.rerender({});
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockContextValue.maxPossibleAmount = 900;
+      mockContextValue.orderForm = { ...maxOrderForm, amount: '900' };
+      form.rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('blocks an explicit Chase size edit during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      act(() => form.result.current.sizeInput.onChange('99'));
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('blocks a Chase leverage edit during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      let submitPromise: Promise<void> | undefined;
+      act(() => {
+        submitPromise = form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      act(() => form.result.current.onLeverageConfirm(10, 'slider'));
+      expect(mockSetLeverage).not.toHaveBeenCalled();
+      await act(async () => {
+        resolveOrders?.([]);
+        await submitPromise;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('aborts when effective price changes during session refresh', async () => {
+      let resolveOrders: ((orders: never[]) => void) | undefined;
+      mockGetChaseOrders.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveOrders = resolve;
+          }),
+      );
+      mockOrderForm.type = 'chase';
+      const refresh = jest.fn().mockResolvedValue('hyperliquid');
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { refresh },
+      );
+      act(() => form.result.current.onChaseMaxDistanceChange('90'));
+      act(() => {
+        form.result.current.onPlaceOrderPress();
+      });
+      await waitFor(() => expect(mockGetChaseOrders).toHaveBeenCalledTimes(1));
+
+      mockLivePrice = '45000';
+      form.rerender({});
+      await act(async () => {
+        resolveOrders?.([]);
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.order.validation.chase_details_changed'),
+      );
+    });
+
+    it('clears the Chase draft after capability resolves unsupported', () => {
+      mockOrderForm.type = 'chase';
+      const chaseGate = { isEnabled: true, isPending: false };
+      const form = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        chaseGate,
+      );
+      act(() => form.result.current.onChaseMaxDistanceChange('25'));
+      expect(form.result.current.chaseMaxDistance).toBe('25');
+
+      chaseGate.isEnabled = false;
+      form.rerender({});
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(form.result.current.chaseMaxDistance).toBe('');
+      expect(form.result.current.chaseMaxDistanceUnit).toBe('usd');
+    });
+
+    it('keeps a selected Chase draft while capability discovery is pending', () => {
+      mockOrderForm.type = 'chase';
+
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        { isEnabled: false, isPending: true },
+      );
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('keeps haptics silent for a duplicate submit', async () => {
@@ -1100,11 +2623,12 @@ describe('usePerpsProOrderForm', () => {
       let firstSubmission: Promise<unknown> | undefined;
       await act(async () => {
         firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
-        await Promise.resolve();
         await result.current.onPlaceOrderPress();
       });
 
-      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      await waitFor(() => {
+        expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      });
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
 
@@ -1683,6 +3207,24 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(confirmed).toHaveBeenCalled();
+      expect(chaseConfirmed).not.toHaveBeenCalled();
+    });
+
+    it('shows Chase confirmation when Chase starts', async () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      act(() => {
+        mockExecutionOptions.onSuccess?.();
+      });
+
+      expect(chaseConfirmed).toHaveBeenCalled();
+      expect(limitConfirmed).not.toHaveBeenCalled();
+      expect(confirmed).not.toHaveBeenCalled();
     });
 
     it('shows the creation-failed toast on error', () => {
@@ -1772,6 +3314,1710 @@ describe('usePerpsProOrderForm', () => {
       const params = mockExecuteOrder.mock.calls[0][0];
       expect(params.price).toBe('12');
       expect(params.orderType).toBe('limit');
+    });
+  });
+
+  describe('scale orders', () => {
+    it('normalizes Scale rungs through the controller precision contract', () => {
+      expect(
+        computeScalePriceLadder({
+          minPrice: 100,
+          maxPrice: 200,
+          count: 3,
+        }).map((price) => formatHyperLiquidPrice({ price, szDecimals: 3 })),
+      ).toEqual(['100', '150', '200']);
+      expect(
+        computeScalePriceLadder({
+          minPrice: 100.123456,
+          maxPrice: 100.123457,
+          count: 3,
+        }).map((price) => formatHyperLiquidPrice({ price, szDecimals: 3 })),
+      ).toEqual(['100.12', '100.12', '100.12']);
+    });
+
+    it('applies HyperLiquid precision for each asset size grid', () => {
+      const ladder = computeScalePriceLadder({
+        minPrice: 1.234567,
+        maxPrice: 1.234568,
+        count: 2,
+      });
+      const threeDecimalPrices = ladder.map((price) =>
+        formatHyperLiquidPrice({ price, szDecimals: 3 }),
+      );
+      const fourDecimalPrices = ladder.map((price) =>
+        formatHyperLiquidPrice({ price, szDecimals: 4 }),
+      );
+
+      expect(threeDecimalPrices).toEqual(['1.235', '1.235']);
+      expect(fourDecimalPrices).toEqual(['1.23', '1.23']);
+    });
+
+    const configureScaleOrder = (
+      result: ReturnType<typeof renderProForm>['result'],
+    ) => {
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100');
+        result.current.scaleOrder.onEndPriceChange('200');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+        result.current.scaleOrder.onSizeSkewChange('2.00');
+      });
+    };
+
+    it('keeps Scale placement disabled for a MYX route', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('starts with a blank Order count to match the default Scale form', () => {
+      mockOrderForm.type = 'scale';
+
+      const { result } = renderProForm();
+
+      expect(result.current.scaleOrder.totalOrders).toBe('');
+    });
+
+    it('keeps the blank Scale default free of validation banners', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '';
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
+    });
+
+    it('restores Scale validation after switching order types', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      const validationNotice = {
+        id: 'scale',
+        variant: 'banner',
+        message: strings(
+          'perps.pro_order_form.scale.validation.invalid_order_count',
+          {
+            minOrderCount: SCALE_ORDER_COUNT.min,
+            maxOrderCount: SCALE_ORDER_COUNT.max,
+          },
+        ),
+      };
+
+      configureScaleOrder(result);
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange(
+          String(SCALE_ORDER_COUNT.min - 1),
+        );
+      });
+
+      expect(result.current.notices).toContainEqual(validationNotice);
+
+      mockOrderForm.type = 'limit';
+      rerender({});
+
+      expect(result.current.notices).not.toContainEqual(validationNotice);
+
+      mockOrderForm.type = 'scale';
+      rerender({});
+
+      expect(result.current.notices).toContainEqual(validationNotice);
+    });
+
+    it('bounds ladder sizing work for an extreme accepted skew', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '999999999';
+      mockSizeDecimals = 2;
+      const { result } = renderProForm();
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('1');
+        result.current.scaleOrder.onEndPriceChange('1000000');
+        result.current.scaleOrder.onTotalOrdersChange('2');
+      });
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0.00000001');
+      });
+
+      expect(result.current.scaleOrder.rungs).toHaveLength(2);
+      expect(
+        result.current.scaleOrder.rungs.every((rung) => Number(rung.size) > 0),
+      ).toBe(true);
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('reports unexpected controller ladder failures', () => {
+      const error = new Error('ladder failed');
+      const perpsController = jest.requireActual<
+        typeof import('@metamask/perps-controller')
+      >('@metamask/perps-controller');
+      const splitScaleSizesSpy = jest
+        .spyOn(perpsController, 'splitScaleSizes')
+        .mockImplementationOnce(() => {
+          throw error;
+        });
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      configureScaleOrder(result);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            component: 'usePerpsProOrderForm',
+            action: 'calculate_scale_ladder',
+          }),
+        }),
+      );
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'scale',
+        variant: 'banner',
+        message: strings('perps.order.validation.error'),
+      });
+      splitScaleSizesSpy.mockRestore();
+    });
+
+    it.each([
+      [
+        PERPS_ERROR_CODES.ORDER_SCALE_RANGE_INVALID,
+        strings('perps.pro_order_form.scale.validation.invalid_range'),
+      ],
+      [
+        PERPS_ERROR_CODES.ORDER_SCALE_COUNT_INVALID,
+        strings('perps.pro_order_form.scale.validation.invalid_order_count', {
+          minOrderCount: SCALE_ORDER_COUNT.min,
+          maxOrderCount: SCALE_ORDER_COUNT.max,
+        }),
+      ],
+    ])(
+      'normalizes controller ladder failure %s into Scale validation',
+      (errorCode, message) => {
+        const perpsController = jest.requireActual<
+          typeof import('@metamask/perps-controller')
+        >('@metamask/perps-controller');
+        const splitScaleSizesSpy = jest
+          .spyOn(perpsController, 'splitScaleSizes')
+          .mockImplementationOnce(() => {
+            throw new Error(errorCode);
+          });
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        const { result } = renderProForm();
+
+        configureScaleOrder(result);
+
+        expect(mockLoggerError).not.toHaveBeenCalled();
+        expect(result.current.notices).toContainEqual({
+          id: 'scale',
+          variant: 'banner',
+          message,
+        });
+        splitScaleSizesSpy.mockRestore();
+      },
+    );
+
+    it('uses controller-owned price formatting for Scale preview', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockSizeDecimals = 3;
+      const hyperliquid = renderProForm();
+      act(() => {
+        hyperliquid.result.current.scaleOrder.onStartPriceChange('100.123456');
+        hyperliquid.result.current.scaleOrder.onEndPriceChange('100.123457');
+        hyperliquid.result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(hyperliquid.result.current.scaleOrder.rungs).toEqual([]);
+      hyperliquid.unmount();
+
+      const myx = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+      act(() => {
+        myx.result.current.scaleOrder.onStartPriceChange('100.123456');
+        myx.result.current.scaleOrder.onEndPriceChange('100.123457');
+        myx.result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(myx.result.current.scaleOrder.rungs).toEqual([]);
+    });
+
+    it('clears limit and trigger drafts when Scale is selected', () => {
+      mockOrderForm.limitPrice = '90000';
+      mockContextValue.triggerPrice = '91000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onOrderTypeSelect('scale');
+      });
+
+      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+    });
+
+    it('clears hidden price and TP/SL drafts when Chase is selected', () => {
+      mockOrderForm.limitPrice = '90000';
+      mockContextValue.triggerPrice = '91000';
+      mockOrderForm.takeProfitPrice = '95000';
+      mockOrderForm.stopLossPrice = '85000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onOrderTypeSelect('chase');
+      });
+
+      expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetTakeProfitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetStopLossPrice).toHaveBeenCalledWith(undefined);
+    });
+
+    it('submits one controller Scale request with canonical strategy parameters', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          scaleMinPrice: '100',
+          scaleMaxPrice: '200',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+          providerId: 'hyperliquid',
+          reduceOnly: false,
+        }),
+      );
+      const params = mockExecuteOrder.mock.calls[0][0];
+      expect(params.size).toBe('3.725');
+      expect(params).not.toHaveProperty('usdAmount');
+      expect(params).not.toHaveProperty('timeInForce');
+      expect(params).not.toHaveProperty('clientOrderId');
+      expect(params).not.toHaveProperty('price');
+    });
+
+    it('rejects an unsupported Scale provider before placement', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        providerId: 'myx',
+      });
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('keeps Scale USD sizing consistent when market and ladder prices differ', async () => {
+      mockOrderForm.amount = '90000';
+      mockLivePrice = '90000';
+      const { result, rerender } = renderProForm();
+
+      act(() => {
+        result.current.sizeInput.onToggleDenomination();
+      });
+      expect(result.current.sizeInput.value).toBe('1');
+      expect(result.current.sizeInput.denomination).toEqual({
+        unit: 'asset',
+        symbol: 'BTC',
+      });
+
+      mockOrderForm.type = 'scale';
+      rerender({});
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('50000');
+        result.current.scaleOrder.onEndPriceChange('80000');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(result.current.sizeInput.value).toBe('90000');
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.sizeInput.canToggleDenomination).toBe(false);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          size: '1.386',
+          scaleMinPrice: '50000',
+          scaleMaxPrice: '80000',
+          scaleNumOrders: 3,
+        }),
+      );
+    });
+
+    it('resets Scale configuration after controller placement succeeds', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(mockUpdateOrderForm.mock.calls[0][0]).not.toHaveProperty('type');
+      expect(result.current.scaleOrder.startPrice).toBe('');
+      expect(result.current.scaleOrder.endPrice).toBe('');
+      expect(result.current.scaleOrder.totalOrders).toBe('');
+      expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
+
+      mockOrderForm.type = 'limit';
+      rerender({});
+      mockOrderForm.type = 'scale';
+      rerender({});
+
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+    });
+
+    it.each([
+      ['full', ['101', '102', '103']],
+      ['partial', ['101', '102']],
+    ])(
+      'clears limit and trigger drafts after %s Scale placement',
+      async (_placement, childOrderIds) => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        mockOrderForm.limitPrice = '90000';
+        mockContextValue.triggerPrice = '91000';
+        mockExecuteOrder.mockResolvedValueOnce({
+          success: true,
+          childOrderIds,
+          submittedSize: '2.222',
+        });
+        const { result } = renderProForm();
+        configureScaleOrder(result);
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockSetLimitPrice).toHaveBeenCalledWith(undefined);
+        expect(mockSetTriggerPrice).toHaveBeenCalledWith(undefined);
+      },
+    );
+
+    it('shows localized Scale-specific copy while the ladder is submitted', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockShowToast).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('perps.pro_order_form.scale.orders_submitted'),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
+            },
+            {
+              label: strings('perps.pro_order_form.scale.submission_summary', {
+                totalCount: 3,
+                size: '3.725',
+                assetSymbol: 'BTC',
+              }),
+              isBold: false,
+            },
+          ],
+        }),
+      );
+    });
+
+    it('shows localized Scale-specific copy when the full ladder is placed', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102', '103'],
+        submittedSize: '3.725',
+        acceptedSize: '3.725',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'resting' },
+          { orderId: '103', state: 'resting' },
+        ],
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings('perps.pro_order_form.scale.orders_placed'),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
+            },
+            {
+              label: strings('perps.pro_order_form.scale.placement_summary', {
+                submittedCount: 3,
+                totalCount: 3,
+                size: '3.725',
+                assetSymbol: 'BTC',
+              }),
+              isBold: false,
+            },
+          ],
+        }),
+      );
+    });
+
+    it('shows localized Scale-specific copy for a partial controller result', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101'],
+        submittedSize: '3.725',
+        acceptedSize: '2.222',
+        acceptedChildren: [
+          { orderId: '101', state: 'resting' },
+          { orderId: '102', state: 'filled' },
+        ],
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockShowToast).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              label: strings(
+                'perps.pro_order_form.scale.orders_partially_placed',
+              ),
+              isBold: true,
+            },
+            {
+              label: '\n',
+              isBold: false,
+            },
+            {
+              label: strings(
+                'perps.pro_order_form.scale.partial_placement_summary',
+                {
+                  submittedCount: 2,
+                  totalCount: 3,
+                  size: '2.222',
+                  assetSymbol: 'BTC',
+                },
+              ),
+              isBold: false,
+            },
+          ],
+        }),
+      );
+    });
+
+    it.each([
+      {
+        fallback: 'requested ladder for empty child arrays',
+        orderResult: {
+          success: true,
+          childOrderIds: [],
+          acceptedChildren: [],
+          submittedSize: '3.725',
+          acceptedSize: '3.725',
+        },
+        titleKey: 'perps.pro_order_form.scale.orders_placed',
+        summaryKey: 'perps.pro_order_form.scale.placement_summary',
+        acceptedCount: 3,
+        acceptedSize: '3.725',
+      },
+      {
+        fallback: 'legacy submitted size when accepted size is absent',
+        orderResult: {
+          success: true,
+          childOrderIds: ['101', '102'],
+          submittedSize: '2.222',
+        },
+        titleKey: 'perps.pro_order_form.scale.orders_partially_placed',
+        summaryKey: 'perps.pro_order_form.scale.partial_placement_summary',
+        acceptedCount: 2,
+        acceptedSize: '2.222',
+      },
+    ] as const)(
+      'uses $fallback in the confirmation copy',
+      async ({
+        orderResult,
+        titleKey,
+        summaryKey,
+        acceptedCount,
+        acceptedSize,
+      }) => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.amount = '600';
+        mockExecuteOrder.mockResolvedValueOnce(orderResult);
+        const { result } = renderProForm();
+        configureScaleOrder(result);
+
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockShowToast).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            labelOptions: [
+              {
+                label: strings(titleKey),
+                isBold: true,
+              },
+              {
+                label: '\n',
+                isBold: false,
+              },
+              {
+                label: strings(summaryKey, {
+                  submittedCount: acceptedCount,
+                  totalCount: 3,
+                  size: acceptedSize,
+                  assetSymbol: 'BTC',
+                }),
+                isBold: false,
+              },
+            ],
+          }),
+        );
+      },
+    );
+
+    it('uses resting-order failure copy when Scale placement fails', () => {
+      mockOrderForm.type = 'scale';
+      renderProForm();
+
+      act(() => {
+        mockExecutionOptions.onError?.('Scale order rejected');
+      });
+
+      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(creationFailed).not.toHaveBeenCalled();
+    });
+
+    it('uses Scale failure copy after a Chase placement', async () => {
+      mockOrderForm.type = 'chase';
+      mockExecuteOrder
+        .mockResolvedValueOnce({ success: true })
+        .mockImplementationOnce(async () => {
+          mockExecutionOptions.onError?.('Scale order rejected');
+          return { success: false, error: 'Scale order rejected' };
+        });
+      const hook = renderProForm();
+      await act(async () => {
+        await hook.result.current.onPlaceOrderPress();
+      });
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      hook.rerender({});
+      configureScaleOrder(hook.result);
+
+      await act(async () => {
+        await hook.result.current.onPlaceOrderPress();
+      });
+
+      expect(limitCreationFailed).toHaveBeenCalledWith('Scale order rejected');
+      expect(chaseCreationFailed).not.toHaveBeenCalled();
+    });
+
+    it('does not submit a duplicate Scale request while placement is pending', async () => {
+      let resolveOrder:
+        | ((value: { success: boolean; error?: string }) => void)
+        | undefined;
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      let firstSubmission: Promise<unknown> | undefined;
+      await act(async () => {
+        firstSubmission = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        resolveOrder?.({ success: false, error: 'rejected' });
+        await firstSubmission;
+      });
+    });
+
+    it('resets Scale configuration after a partial controller result', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102'],
+        submittedSize: '2.222',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockUpdateOrderForm).toHaveBeenCalledWith({
+        amount: '',
+        direction: 'long',
+        balancePercent: 0,
+        limitPrice: undefined,
+        takeProfitPrice: undefined,
+        stopLossPrice: undefined,
+      });
+      expect(mockUpdateOrderForm.mock.calls[0][0]).not.toHaveProperty('type');
+      expect(result.current.scaleOrder.startPrice).toBe('');
+      expect(result.current.notices).not.toContainEqual(
+        expect.objectContaining({ id: 'scale' }),
+      );
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+        }),
+      );
+    });
+
+    it('does not retry placed children after a partial Scale success', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        childOrderIds: ['101', '102'],
+        submittedSize: '2.222',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+        await Promise.resolve();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(result.current.scaleOrder.startPrice).toBe('');
+    });
+
+    it('retains Scale configuration when the controller rejects the placement', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'Scale order rejected',
+      });
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+      expect(result.current.scaleOrder.startPrice).toBe('100');
+    });
+
+    it('keeps the previous Scale order count when a fractional edit arrives', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange('3.5');
+      });
+
+      expect(result.current.scaleOrder.totalOrders).toBe('3');
+    });
+
+    it('blocks and tracks an out-of-range Scale order count', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onTotalOrdersChange(
+          String(SCALE_ORDER_COUNT.min - 1),
+        );
+      });
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toContainEqual({
+        id: 'scale',
+        variant: 'banner',
+        message: strings(
+          'perps.pro_order_form.scale.validation.invalid_order_count',
+          {
+            minOrderCount: SCALE_ORDER_COUNT.min,
+            maxOrderCount: SCALE_ORDER_COUNT.max,
+          },
+        ),
+      });
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_VALIDATION_ERROR_SHOWN,
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]: 'invalid_order_count',
+        }),
+      );
+    });
+
+    it('rejects a ladder when a rung is below the controller minimum', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '20';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: strings(
+              'perps.pro_order_form.scale.validation.minimum_lot',
+            ),
+          }),
+        ]),
+      );
+    });
+
+    it('asks for a Scale size before applying minimum-lot validation', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: strings(
+              'perps.pro_order_form.scale.validation.size_required',
+            ),
+          }),
+        ]),
+      );
+    });
+
+    it('validates margin from the whole rounded Scale ladder notional', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockContextValue.balanceForValidation = 120;
+      mockValidateCalculatedMargin = true;
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockOrderValidationParams).toMatchObject({
+        marginRequired: '120.02',
+        spendableBalance: 120,
+        positionSize: '3.725',
+        originalUsdAmount: undefined,
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('blocks a Reduce Only Scale order when no position can be reduced', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(
+        result.current.notices.find((notice) => notice.id === 'reduce-only')
+          ?.message,
+      ).toBe(strings('perps.order.validation.reduce_only_no_position'));
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('renders the controller-formatted Scale price ladder', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(first.price).toBe('100');
+      expect(middle.price).toBe('150');
+      expect(last.price).toBe('200');
+    });
+
+    it('weights an above-one Scale skew toward the end of the range', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(Number(first.size)).toBeLessThan(Number(middle.size));
+      expect(Number(middle.size)).toBeLessThan(Number(last.size));
+    });
+
+    it('builds the per-rung Scale margin range', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.scaleOrder.marginRange).toContain('→');
+      expect(result.current.scaleOrder.marginRange).not.toBe('$ -');
+    });
+
+    it('weights a below-one Scale skew toward the start of the range', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0.50');
+      });
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(Number(first.size)).toBeGreaterThan(Number(middle.size));
+      expect(Number(middle.size)).toBeGreaterThan(Number(last.size));
+    });
+
+    it('keeps an exactly-one Scale skew evenly sized', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '599.85';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('1.00');
+      });
+
+      const [first, middle, last] = result.current.scaleOrder.rungs;
+      expect(first.size).toBe(middle.size);
+      expect(middle.size).toBe(last.size);
+    });
+
+    it('rejects a third Scale skew decimal while typing', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('2.34');
+        result.current.scaleOrder.onSizeSkewChange('2.345');
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('2.34');
+    });
+
+    it('restores the default Scale skew when an empty draft blurs', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('1.00');
+    });
+
+    it('preserves an invalid Scale skew on blur for validation', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('0');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(result.current.scaleOrder.sizeSkew).toBe('0');
+      expect(result.current.notices).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: 'scale',
+            message: strings(
+              'perps.pro_order_form.scale.validation.invalid_skew',
+            ),
+          }),
+        ]),
+      );
+    });
+
+    it('tracks a Scale configuration interaction', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewChange('2.34');
+      });
+      act(() => {
+        result.current.scaleOrder.onSizeSkewBlur();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.SCALE_CONFIG_CHANGED,
+          [PERPS_EVENT_PROPERTY.SETTING_TYPE]:
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_SIZE_SKEW,
+          [PERPS_EVENT_PROPERTY.SCALE_SKEW]: 2.34,
+        }),
+      );
+    });
+
+    it('opens the Size skew tooltip', () => {
+      mockOrderForm.type = 'scale';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.scaleOrder.onSizeSkewInfoPress();
+      });
+
+      expect(result.current.selectedTooltip).toBe('size_skew');
+    });
+
+    it('preserves a supported Scale draft while capability refresh is pending', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: true,
+        pending: true,
+      });
+      configureScaleOrder(result);
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('preserves an initial persisted Scale draft while capability support is pending', async () => {
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+        pending: true,
+        checkSupport: checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('market');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('resets a selected Scale draft after capability resolves unsupported', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+
+      renderProForm(true, true, 'hyperliquid', false, { enabled: false });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+    });
+
+    it('blocks Scale selection when the remote flag is disabled', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+      });
+
+      act(() => {
+        result.current.onOrderTypeSelect('scale');
+      });
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(mockSetOrderType).not.toHaveBeenCalledWith('scale');
+    });
+
+    it('blocks Scale placement when the remote flag is disabled', async () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        enabled: false,
+      });
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.unavailable'),
+      );
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('re-checks selected-route Scale support immediately before placement', async () => {
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(false);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        checkSupport: checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(checkScaleOrderSupport).toHaveBeenCalledTimes(1);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'validationError' }),
+      );
+    });
+
+    it('restarts Scale validation when the live position changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockExistingPosition = {
+        size: '-1',
+        leverage: { type: 'cross', value: 5 },
+      };
+      rerender({});
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(3);
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.CROSS_MARGIN_WARNING,
+      });
+    });
+
+    it('ignores live mid-price ticks during Scale validation', async () => {
+      const validResult = {
+        errors: [],
+        warnings: [],
+        fieldIssues: [] as OrderFormFieldIssue[],
+        isValid: true,
+      };
+      let resolveFirst: ((value: typeof validResult) => void) | undefined;
+      let resolveSecond: ((value: typeof validResult) => void) | undefined;
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+      mockValidation.validateNow.mockReset();
+      mockValidation.validateNow
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+        )
+        .mockReturnValueOnce(
+          new Promise((resolve) => {
+            resolveSecond = resolve;
+          }),
+        );
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockLivePrice = '90001';
+      rerender({});
+      await act(async () => {
+        resolveFirst?.(validResult);
+        await Promise.resolve();
+      });
+      mockLivePrice = '90002';
+      rerender({});
+      await act(async () => {
+        resolveSecond?.(validResult);
+        await placement;
+      });
+
+      expect(mockValidation.validateNow).toHaveBeenCalledTimes(2);
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+      expect(validationError).not.toHaveBeenCalled();
+    });
+
+    it('uses fresh reduce-only position state after the Scale capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockExistingPosition = {
+        size: '-10',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      act(() => {
+        result.current.onReduceOnlyChange(true);
+      });
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockExistingPosition = {
+        size: '10',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+    });
+
+    it('uses fresh sizing and fee inputs after the Scale capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockSizeDecimals = 2;
+      mockTotalFee = 9;
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      const submittedParams = mockExecuteOrder.mock.calls[0][0];
+      expect(submittedParams.size).not.toBe('3.725');
+      expect(submittedParams.trackingData.totalFee).toBe(9);
+    });
+
+    it('uses a fresh Scale ladder after the capability gap', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        { checkSupport: checkScaleOrderSupport },
+      );
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      mockOrderForm.amount = '20';
+      rerender({});
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.minimum_lot'),
+      );
+    });
+
+    it('locks retained Scale callbacks before deferred compliance completes', async () => {
+      let continueCompliance: (() => Promise<void>) | undefined;
+      let resolveCompliance: (() => void) | undefined;
+      mockComplianceGate.mockImplementation(
+        (action: () => Promise<unknown>) =>
+          new Promise<void>((resolve) => {
+            resolveCompliance = resolve;
+            continueCompliance = async () => {
+              await action();
+              resolveCompliance?.();
+            };
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderProForm();
+      configureScaleOrder(result);
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      const staleOnDirectionChange = result.current.onDirectionChange;
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      mockSetAmount.mockClear();
+      mockSetDirection.mockClear();
+      act(() => {
+        staleScaleOrder.onStartPriceChange('999');
+        staleSizeInput.onChange('900');
+        staleOnDirectionChange('short');
+      });
+
+      expect(result.current.scaleOrder.startPrice).toBe('100');
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(result.current.direction).toBe('long');
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetDirection).not.toHaveBeenCalled();
+      mockTotalFee = 9;
+      rerender({});
+
+      await act(async () => {
+        await continueCompliance?.();
+        await placement;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          isBuy: true,
+          size: '3.725',
+          scaleMinPrice: '100',
+          trackingData: expect.objectContaining({ totalFee: 9 }),
+        }),
+      );
+    });
+
+    it('blocks Scale placement when its flag turns off during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      mockSetOrderType.mockClear();
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      rerender({
+        isScaleOrdersEnabled: false,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.unavailable'),
+      );
+    });
+
+    it('blocks Scale placement when its provider changes during validation', async () => {
+      let resolveValidation:
+        | ((value: {
+            errors: string[];
+            warnings: string[];
+            fieldIssues: OrderFormFieldIssue[];
+            isValid: boolean;
+          }) => void)
+        | undefined;
+      mockValidation.validateNow.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveValidation = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+      rerender({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'myx',
+        checkScaleOrderSupport,
+      });
+      await act(async () => {
+        resolveValidation?.({
+          errors: [],
+          warnings: [],
+          fieldIssues: [],
+          isValid: true,
+        });
+        await placement;
+      });
+
+      expect(checkScaleOrderSupport).not.toHaveBeenCalled();
+      expect(mockExecuteOrder).not.toHaveBeenCalled();
+      expect(validationError).toHaveBeenCalledWith(
+        strings('perps.pro_order_form.scale.validation.unavailable'),
+      );
+    });
+
+    it('keeps Scale locked when capability support is lost during placement', async () => {
+      let resolveOrder:
+        | ((value: { success: boolean; childOrderIds: string[] }) => void)
+        | undefined;
+      mockExecuteOrder.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveOrder = resolve;
+        }),
+      );
+      const checkScaleOrderSupport = jest.fn().mockResolvedValue(true);
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result, rerender } = renderMutableScaleForm({
+        isScaleOrdersEnabled: true,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      mockSetOrderType.mockClear();
+      mockUpdateOrderForm.mockClear();
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(mockExecuteOrder).toHaveBeenCalledTimes(1);
+
+      rerender({
+        isScaleOrdersEnabled: false,
+        isScaleOrderSupportPending: false,
+        scaleProviderId: 'hyperliquid',
+        checkScaleOrderSupport,
+      });
+      mockSetAmount.mockClear();
+      act(() => {
+        staleScaleOrder.onEndPriceChange('999');
+        staleSizeInput.onChange('900');
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      expect(result.current.scaleOrder.endPrice).toBe('200');
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(mockUpdateOrderForm).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveOrder?.({ success: true, childOrderIds: ['1', '2', '3'] });
+        await placement;
+      });
+
+      expect(result.current.isPlaceOrderLoading).toBe(false);
+      expect(mockSetOrderType).toHaveBeenCalledWith('market');
+    });
+
+    it('rejects stale Scale mutations during the capability recheck and submits the original snapshot', async () => {
+      let resolveSupport: ((isSupported: boolean) => void) | undefined;
+      const checkScaleOrderSupport = jest.fn(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveSupport = resolve;
+          }),
+      );
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm(true, true, 'hyperliquid', false, {
+        checkSupport: checkScaleOrderSupport,
+      });
+      configureScaleOrder(result);
+
+      const staleScaleOrder = result.current.scaleOrder;
+      const staleSizeInput = result.current.sizeInput;
+      const staleSizeSlider = result.current.sizeSlider;
+      const staleOnDirectionChange = result.current.onDirectionChange;
+      const staleOnLeveragePress = result.current.onLeveragePress;
+      const staleOnLeverageConfirm = result.current.onLeverageConfirm;
+      const staleOnOrderTypeButtonPress = result.current.onOrderTypeButtonPress;
+      const staleOnOrderTypeSelect = result.current.onOrderTypeSelect;
+      const staleOnReduceOnlyChange = result.current.onReduceOnlyChange;
+      let placement: Promise<unknown> | undefined;
+
+      await act(async () => {
+        placement = Promise.resolve(result.current.onPlaceOrderPress());
+        await Promise.resolve();
+      });
+
+      expect(checkScaleOrderSupport).toHaveBeenCalledTimes(1);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+      mockSetAmount.mockClear();
+      mockSetDirection.mockClear();
+      mockSetLeverage.mockClear();
+      mockSetOrderType.mockClear();
+
+      act(() => {
+        staleScaleOrder.onStartPriceChange('999');
+        staleScaleOrder.onStartPriceBlur();
+        staleScaleOrder.onEndPriceChange('1000');
+        staleScaleOrder.onEndPriceBlur();
+        staleScaleOrder.onTotalOrdersChange('20');
+        staleScaleOrder.onTotalOrdersBlur();
+        staleScaleOrder.onSizeSkewChange('9.00');
+        staleScaleOrder.onSizeSkewBlur();
+        staleScaleOrder.onSizeSkewInfoPress();
+        staleSizeInput.onChange('900');
+        staleSizeInput.onFocus();
+        staleSizeInput.onBlur();
+        staleSizeInput.onToggleDenomination();
+        staleSizeSlider.onValueChange(900);
+        staleSizeSlider.onDragEnd(900);
+        staleSizeSlider.onDragCancel();
+        staleOnDirectionChange('short');
+        staleOnLeveragePress();
+        staleOnLeverageConfirm(9);
+        staleOnOrderTypeButtonPress();
+        staleOnOrderTypeSelect('market');
+        staleOnReduceOnlyChange(true);
+      });
+
+      expect(result.current.scaleOrder).toMatchObject({
+        startPrice: '100',
+        endPrice: '200',
+        totalOrders: '3',
+        sizeSkew: '2.00',
+      });
+      expect(result.current.sizeInput.value).toBe('600');
+      expect(result.current.sizeInput.denomination).toEqual({ unit: 'usd' });
+      expect(result.current.direction).toBe('long');
+      expect(result.current.leverage).toBe(5);
+      expect(result.current.orderType).toBe('scale');
+      expect(result.current.reduceOnly).toBe(false);
+      expect(result.current.isLeverageVisible).toBe(false);
+      expect(result.current.isOrderTypeVisible).toBe(false);
+      expect(result.current.selectedTooltip).toBeNull();
+      expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockSetDirection).not.toHaveBeenCalled();
+      expect(mockSetLeverage).not.toHaveBeenCalled();
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveSupport?.(true);
+        await placement;
+      });
+
+      expect(mockExecuteOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'scale',
+          isBuy: true,
+          leverage: 5,
+          size: '3.725',
+          scaleMinPrice: '100',
+          scaleMaxPrice: '200',
+          scaleNumOrders: 3,
+          scaleSkew: 2,
+        }),
+      );
     });
   });
 
@@ -2307,6 +5553,15 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('summary slippage', () => {
+    it('hides the slippage row for Chase orders', () => {
+      mockOrderForm.type = 'chase';
+      mockEstimatedSlippageBps = 50;
+      const { result } = renderProForm();
+
+      expect(result.current.summary.slippage).toBeUndefined();
+      expect(result.current.summary.onSlippagePress).toBeUndefined();
+    });
+
     it('hides the slippage row for limit orders', () => {
       // Arrange: limit orders force DefaultLimitSlippageBps in buildPerpsOrderParams
       // so the user-configured cap has no effect; the row is hidden to avoid misrepresentation.
@@ -3014,6 +6269,89 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(mockSetLimitPrice).not.toHaveBeenCalled();
+    });
+
+    it.each(['1abc', '1.2.3'])(
+      'rejects malformed Chase max distance input %s',
+      (value) => {
+        mockOrderForm.type = 'chase';
+        const { result } = renderProForm();
+
+        act(() => result.current.onChaseMaxDistanceChange(value));
+
+        expect(result.current.chaseMaxDistance).toBe('');
+        expect(
+          result.current.notices.find(
+            (notice) => notice.id === 'chase-max-distance',
+          ),
+        ).toBeUndefined();
+      },
+    );
+
+    it('normalizes Chase max distance and enforces the shared digit cap', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => result.current.onChaseMaxDistanceChange('0012,5'));
+      expect(result.current.chaseMaxDistance).toBe('12.5');
+
+      act(() => result.current.onChaseMaxDistanceChange('1234567890'));
+      expect(result.current.chaseMaxDistance).toBe('12.5');
+    });
+
+    it('clears Chase max distance only when its unit changes', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceChange('25');
+        result.current.onChaseMaxDistanceUnitChange('usd');
+      });
+      expect(result.current.chaseMaxDistance).toBe('25');
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      expect(result.current.chaseMaxDistanceUnit).toBe('percent');
+      expect(result.current.chaseMaxDistance).toBe('');
+    });
+
+    it('accepts a Chase percentage below the basis-point divisor', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+        result.current.onChaseMaxDistanceChange('99.99');
+      });
+
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('rejects a Chase percentage at the basis-point divisor', () => {
+      mockOrderForm.type = 'chase';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+        result.current.onChaseMaxDistanceChange('100');
+      });
+
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toEqual({
+        id: 'chase-max-distance',
+        variant: 'banner',
+        message: strings('perps.order.validation.chase_max_distance_percent'),
+      });
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('finalizes a trailing decimal separator from the limit price on blur', () => {
