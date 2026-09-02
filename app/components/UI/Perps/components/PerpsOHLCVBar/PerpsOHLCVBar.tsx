@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPerpsFiat,
-  formatVolume,
+  formatCoinVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOHLCVBar.styles';
@@ -70,8 +70,8 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       stripTrailingZeros: true,
     });
 
-    // Format volume with K/M/B/T suffixes (if provided)
-    const formattedVolume = volume ? formatVolume(volume) : null;
+    // Candle volume is base-asset size (coins), not USD.
+    const formattedVolume = volume ? formatCoinVolume(volume) : null;
 
     return {
       open: formattedOpen,
