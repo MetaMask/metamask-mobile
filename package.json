@@ -253,7 +253,6 @@
     "@metamask/network-enablement-controller@npm:^5.4.1": "patch:@metamask/network-enablement-controller@npm%3A5.4.1#~/.yarn/patches/@metamask-network-enablement-controller-npm-5.4.1-020a82a308.patch",
     "@ledgerhq/context-module/ethers": "^6.16.0",
     "@ledgerhq/device-signer-kit-ethereum/ethers": "^6.16.0",
-    "@metamask/assets-controller@npm:^14.0.2": "patch:@metamask/assets-controller@npm%3A14.0.2#~/.yarn/patches/@metamask-assets-controller-npm-14.0.2-3eec54a369.patch",
     "@metamask/eth-sig-util": "^9.0.0",
     "@metamask/bridge-controller@npm:^80.1.0": "patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch"
   },
