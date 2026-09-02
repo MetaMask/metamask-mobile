@@ -1,28 +1,16 @@
 import React from 'react';
-import { StyleSheet, Text as RNText, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
-import { useTheme } from '../../../util/theme';
 
 const styles = StyleSheet.create({
   urlIcon: {
     marginTop: 2,
     alignSelf: 'center',
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  buttonText: {
-    fontSize: 14,
-    fontFamily: 'Geist-SemiBold',
-    textAlign: 'center',
   },
 });
 
@@ -40,37 +28,13 @@ export const MaliciousDappUrlIcon = () => (
 );
 
 /**
- * Content for the red "Connect" button on Step 1 of the malicious-dapp
- * warning flow.  Renders a danger triangle to the left of the "Connect" label.
- */
-export const DangerConnectButtonContent = () => {
-  const { colors } = useTheme();
-
-  return (
-    <View style={styles.buttonContent}>
-      <Icon
-        name={IconName.Danger}
-        size={IconSize.Sm}
-        color={IconColor.Inverse}
-      />
-      <RNText style={[styles.buttonText, { color: colors.primary.inverse }]}>
-        {strings('accounts.connect')}
-      </RNText>
-    </View>
-  );
-};
-
-/**
  * Returns the appropriate label for the confirm/connect button based on
- * whether the dApp is malicious and whether this is a network switch.
+ * whether this is a network switch.
  */
 export const getConnectButtonContent = (
-  isMaliciousDapp: boolean,
+  _isMaliciousDapp: boolean,
   isNetworkSwitch: boolean,
-): React.ReactNode => {
-  if (isMaliciousDapp && !isNetworkSwitch) {
-    return <DangerConnectButtonContent />;
-  }
+): string => {
   if (isNetworkSwitch) {
     return strings('confirmation_modal.confirm_cta');
   }
