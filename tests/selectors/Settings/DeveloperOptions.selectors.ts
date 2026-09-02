@@ -7,7 +7,3 @@ export const DeveloperOptionsSelectorsText = {
   SAMPLE_FEATURE_DESC:
     enContent.app_settings.developer_options.sample_feature_desc,
 } as const;
-
-export const DeveloperOptionsSelectorsIDs = {
-  CONTAINER: 'developer-options-screen',
-} as const;
