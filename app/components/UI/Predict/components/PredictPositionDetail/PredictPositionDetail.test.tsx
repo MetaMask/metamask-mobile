@@ -16,14 +16,18 @@ import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
-jest.mock('../../selectors/featureFlags', () => ({
-  ...jest.requireActual('../../selectors/featureFlags'),
-  selectPredictFeeCollectionFlag: jest.fn(() => ({
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
     enabled: true,
     metamaskFee: 0.02,
     providerFee: 0.02,
-  })),
-}));
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string | number>) => {
@@ -264,19 +268,22 @@ describe('PredictPositionDetail', () => {
   });
 
   it.each([
-    { value: -3.5, expected: '-3.5%' },
-    { value: 0, expected: '0%' },
-    { value: 7.5, expected: '7.5%' },
-  ])('formats percentPnl %p as %p for open market', ({ value, expected }) => {
-    const initialValue = basePosition.initialValue;
-    const currentValue = initialValue * (1 + value / 100);
+    { minAmountReceived: 80, initialValue: 100, expected: '-20%' },
+    { minAmountReceived: 100, initialValue: 100, expected: '0%' },
+    { minAmountReceived: 110, initialValue: 100, expected: '10%' },
+  ])(
+    'formats derived percent PnL from net proceeds for minAmountReceived $minAmountReceived',
+    ({ minAmountReceived, initialValue, expected }) => {
+      renderComponent(
+        { initialValue, currentValue: minAmountReceived },
+        undefined,
+        undefined,
+        { minAmountReceived },
+      );
 
-    renderComponent({ percentPnl: value, currentValue }, undefined, undefined, {
-      minAmountReceived: currentValue,
-    });
-
-    expect(screen.getByText(expected)).toBeOnTheScreen();
-  });
+      expect(screen.getByText(expected)).toBeOnTheScreen();
+    },
+  );
 
   it('renders initial value line and avgPrice cents', () => {
     renderComponent({

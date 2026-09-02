@@ -19,14 +19,18 @@ import PredictSellPreview from './PredictSellPreview';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
-jest.mock('../../selectors/featureFlags', () => ({
-  ...jest.requireActual('../../selectors/featureFlags'),
-  selectPredictFeeCollectionFlag: jest.fn(() => ({
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
     enabled: true,
     metamaskFee: 0.02,
     providerFee: 0.02,
-  })),
-}));
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 /**
  * Mock Strategy:
  * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)

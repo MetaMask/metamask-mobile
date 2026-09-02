@@ -52,14 +52,18 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
 }));
 
-jest.mock('../../selectors/featureFlags', () => ({
-  ...jest.requireActual('../../selectors/featureFlags'),
-  selectPredictFeeCollectionFlag: jest.fn(() => ({
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
     enabled: true,
     metamaskFee: 0.02,
     providerFee: 0.02,
-  })),
-}));
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
 
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
