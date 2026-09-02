@@ -1354,7 +1354,10 @@ export const usePerpsProOrderForm = ({
     asset: orderForm.asset,
   });
 
-  const { preview: positionModifyPreview } = usePerpsPositionModifyPreview({
+  const {
+    preview: positionModifyPreview,
+    isCalculating: isPositionModifyPreviewCalculating,
+  } = usePerpsPositionModifyPreview({
     position: currentMarketPosition,
     direction: orderForm.direction,
     size: submissionPositionSize,
@@ -2768,6 +2771,7 @@ export const usePerpsProOrderForm = ({
     !orderValidation.isValid ||
     isAtCap ||
     isPlacing ||
+    isPositionModifyPreviewCalculating ||
     isScalePlacementPending ||
     isMarketDataBlocking ||
     isReduceOnlyPositionLoading ||

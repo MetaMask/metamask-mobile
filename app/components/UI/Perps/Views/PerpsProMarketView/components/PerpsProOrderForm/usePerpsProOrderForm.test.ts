@@ -180,6 +180,7 @@ let mockPositionModifyPreview: {
   };
   resultingDirection?: 'long' | 'short';
 } = { status: 'none' };
+let mockIsPositionModifyPreviewCalculating = false;
 
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
@@ -289,7 +290,7 @@ jest.mock('../../../../hooks', () => ({
   },
   usePerpsPositionModifyPreview: () => ({
     preview: mockPositionModifyPreview,
-    isCalculating: false,
+    isCalculating: mockIsPositionModifyPreviewCalculating,
     error: null,
   }),
   usePerpsToasts: () => ({
@@ -481,6 +482,7 @@ describe('usePerpsProOrderForm', () => {
     });
     mockExistingPosition = null;
     mockPositionModifyPreview = { status: 'none' };
+    mockIsPositionModifyPreviewCalculating = false;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -1767,6 +1769,23 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
       expect(result.current.isPlaceOrderLoading).toBe(false);
+    });
+
+    it('disables the CTA while a position modify preview is recalculating', () => {
+      mockExistingPosition = {
+        symbol: 'BTC',
+        size: '1',
+        positionValue: '90000',
+        marginUsed: '18000',
+        liquidationPrice: '72000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockIsPositionModifyPreviewCalculating = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('runs current validation before executing a pending order', async () => {

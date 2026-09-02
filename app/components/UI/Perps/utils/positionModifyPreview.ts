@@ -96,6 +96,7 @@ export const getPositionModifySummaryDisplay = ({
         fallback,
       )
     : fallback;
+  const hasResultingLiquidation = preview.resulting.liquidationPrice.available;
 
   return {
     showBeforeAfter: true,
@@ -103,9 +104,11 @@ export const getPositionModifySummaryDisplay = ({
     resultingMarginDisplay,
     currentLiquidationDisplay,
     resultingLiquidationDisplay,
-    tpslLiquidationPrice: preview.resulting.liquidationPrice.available
+    tpslLiquidationPrice: hasResultingLiquidation
       ? String(preview.resulting.liquidationPrice.value)
       : undefined,
-    tpslDirection: preview.resulting.direction,
+    tpslDirection: hasResultingLiquidation
+      ? preview.resulting.direction
+      : undefined,
   };
 };

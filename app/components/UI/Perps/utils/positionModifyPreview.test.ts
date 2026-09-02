@@ -96,6 +96,41 @@ describe('getPositionModifySummaryDisplay', () => {
     expect(result.tpslLiquidationPrice).toBe('1640');
   });
 
+  it.each([
+    ['decrease', 'long'],
+    ['flip', 'short'],
+  ] as const)(
+    'keeps TP/SL direction and liquidation atomic for %s when liquidation is unavailable',
+    (kind, direction) => {
+      const preview: PositionModifyPreviewResult = {
+        status: 'open',
+        kind,
+        current: {
+          margin: { available: true, value: 400 },
+          liquidationPrice: { available: true, value: 1640 },
+        },
+        resulting: {
+          direction,
+          size: 0.5,
+          entryPrice: 2000,
+          leverage: 5,
+          margin: { available: true, value: 200 },
+          liquidationPrice: { available: false },
+        },
+      };
+
+      const result = getPositionModifySummaryDisplay({
+        preview,
+        formatMargin: formatUsd,
+        formatLiquidation: formatUsd,
+        hasValidAmount: true,
+      });
+
+      expect(result.tpslLiquidationPrice).toBeUndefined();
+      expect(result.tpslDirection).toBeUndefined();
+    },
+  );
+
   it('maps a full close to zero margin and unavailable after-liquidation', () => {
     const preview: PositionModifyPreviewResult = {
       status: 'full_close',
