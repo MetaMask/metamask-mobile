@@ -286,18 +286,25 @@ export function buildAndroidEmulatorPoolArgs(options: {
   const bootMode = options.bootMode ?? 'snapshot-resume';
   return Array.from({ length: options.poolSize }, (_, index) => {
     const port = androidEmulatorConsolePortForIndex(index);
+    const args = buildAndroidEmulatorArgs({
+      avdName: options.avdName,
+      isCI: options.isCI,
+      bootMode,
+      cores: options.cores,
+      skin: options.skin,
+      snapshotReadOnly: true,
+      port,
+    });
+    // Cold pool boots run sequentially. Only the first process may wipe the
+    // shared AVD; later read-only instances open the initialized data.
+    const poolArgs =
+      bootMode === 'cold' && index > 0
+        ? args.filter((arg) => arg !== '-wipe-data')
+        : args;
     return {
       serial: androidEmulatorSerialForIndex(index),
       port,
-      args: buildAndroidEmulatorArgs({
-        avdName: options.avdName,
-        isCI: options.isCI,
-        bootMode,
-        cores: options.cores,
-        skin: options.skin,
-        snapshotReadOnly: true,
-        port,
-      }),
+      args: poolArgs,
     };
   });
 }

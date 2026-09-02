@@ -131,5 +131,17 @@ describe('e2eWorkerPorts', () => {
       expect(worker0).toBe('emulator-5554');
       expect(worker1).toBe('emulator-5556');
     });
+
+    it('rejects a worker index outside the configured pool', () => {
+      const resolveMissingWorker = () =>
+        resolveWorkerAndroidSerial({
+          ANDROID_DEVICE_POOL_SIZE: '2',
+          TEST_PARALLEL_INDEX: '2',
+        });
+
+      expect(resolveMissingWorker).toThrow(
+        'Android worker 2 has no device in ANDROID_DEVICE_POOL (2 devices).',
+      );
+    });
   });
 });

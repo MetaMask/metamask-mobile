@@ -66,15 +66,21 @@ export function setupAdbReverse(
   devicePort: number,
   hostPort: number = devicePort,
 ): void {
+  const deviceArgs = adbDeviceArgs();
   try {
     execFileSync(
       'adb',
-      [...adbDeviceArgs(), 'reverse', `tcp:${devicePort}`, `tcp:${hostPort}`],
+      [...deviceArgs, 'reverse', `tcp:${devicePort}`, `tcp:${hostPort}`],
       { stdio: 'pipe' },
     );
     logger.info(`ADB reverse tcp:${devicePort} → tcp:${hostPort} configured`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+    if (deviceArgs.length > 0) {
+      throw new Error(
+        `Could not set up ADB reverse tcp:${devicePort} → tcp:${hostPort}: ${message}`,
+      );
+    }
     logger.warn(
       `Could not set up ADB reverse (may be expected on iOS): ${message}`,
     );
@@ -101,6 +107,7 @@ export async function startLocalDappServerOnWorker(
   server: {
     setServerPort: (port: number) => void;
     start: () => Promise<void>;
+    stop: () => Promise<void>;
   },
   devicePort: number,
 ): Promise<void> {
@@ -108,7 +115,12 @@ export async function startLocalDappServerOnWorker(
   server.setServerPort(hostPort);
   await server.start();
   await waitForDappServerReady(hostPort);
-  setupAdbReverse(devicePort, hostPort);
+  try {
+    setupAdbReverse(devicePort, hostPort);
+  } catch (error) {
+    await server.stop();
+    throw error;
+  }
 }
 
 export async function stopLocalDappServerOnWorker(

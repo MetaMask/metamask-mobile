@@ -37,6 +37,9 @@ reads hit the sibling emulator.
 Workers pin those serials from `ANDROID_DEVICE_POOL_SIZE` (Playwright
 `globalSetup` cannot export `ANDROID_DEVICE_POOL` into worker processes).
 `ANDROID_DEVICE_POOL` remains a local override for `SKIP_DEVICE_BOOT`.
+Pool mode fails during global setup unless `E2E_WORKERS` matches
+`ANDROID_DEVICE_POOL_SIZE`; Playwright reads its worker count before device
+boot, so global setup cannot repair a mismatch.
 
 The `deviceProvider` worker fixture exports `E2E_WORKER_INDEX` and
 `ANDROID_SERIAL`, but Playwright creates worker fixtures lazily, so a
@@ -64,8 +67,10 @@ yarn appium-smoke:android --grep SmokeAccounts
 ```
 
 `E2E_WORKERS` must be set before Playwright loads config. Both emulators
-cold-boot the same AVD with `-read-only` and `-port 5554` / `5556`. Apple
-Silicon needs an arm64 main-e2e APK; CI x86_64 APKs will not install.
+cold-boot the same AVD with `-read-only` and `-port 5554` / `5556`. Cold pool
+boots are sequential: only the first process wipes the shared AVD before the
+second read-only instance starts. Apple Silicon needs an arm64 main-e2e APK;
+CI x86_64 APKs will not install.
 
 Use the Node version in `.nvmrc`. On Node 26 every Appium session dies with
 `UND_ERR_INVALID_ARG` on `POST /session`, because `webdriver` hands global

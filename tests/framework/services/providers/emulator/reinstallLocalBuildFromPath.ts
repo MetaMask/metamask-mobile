@@ -6,7 +6,7 @@ import type { Logger } from '../../../logger.ts';
 import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { resolveAndroidAdbUdidForDevice } from './android/resolveAndroidAdbUdid';
-import { parseAndroidDevicePool } from './android/androidDevicePool.ts';
+import { androidDevicePoolSerials } from './android/androidDevicePool.ts';
 import { getIosSimulatorUdid } from '../../appium/EmulatorHelpers';
 
 const execFileAsync = promisify(execFile);
@@ -62,7 +62,7 @@ export async function reinstallFromBuildPathForProject(
         'Android: set `use.device.name` (AVD) or `use.device.udid` to reinstall from `use.app.buildPath` in global setup.',
       );
     }
-    const poolSerials = parseAndroidDevicePool(process.env.ANDROID_DEVICE_POOL);
+    const poolSerials = androidDevicePoolSerials();
     const adbSerials =
       poolSerials.length > 0
         ? poolSerials

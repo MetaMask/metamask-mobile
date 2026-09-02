@@ -715,6 +715,41 @@ export async function ensureAndroidEmulatorReady(
  * for each expected adb serial, avoiding AVD-name matching when multiple
  * read-only instances share the same AVD.
  */
+export async function runAndroidPoolTasks<T, R>(
+  bootMode: 'cold' | 'snapshot-resume',
+  tasks: T[],
+  run: (task: T) => Promise<R>,
+): Promise<R[]> {
+  if (bootMode === 'snapshot-resume') {
+    return Promise.all(tasks.map(run));
+  }
+
+  const results: R[] = [];
+  for (const task of tasks) {
+    results.push(await run(task));
+  }
+  return results;
+}
+
+export function isReusableAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return state === 'device' && actualAvdName === expectedAvdName;
+}
+
+export function shouldWaitForAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return (
+    (state === 'offline' || state === 'authorizing') &&
+    (actualAvdName === undefined || actualAvdName === expectedAvdName)
+  );
+}
+
 export async function startAndroidEmulatorPool(
   avdName: string,
   poolSize: number,
@@ -757,12 +792,46 @@ export async function startAndroidEmulatorPool(
   const existingDevices = await listAdbDevices();
 
   const bootStartedAt = Date.now();
-  const serials = await Promise.all(
-    boots.map(async ({ serial: expectedSerial, args }) => {
+  const serials = await runAndroidPoolTasks(
+    useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+    boots,
+    async ({ serial: expectedSerial, args }) => {
       const existing = existingDevices.find(
         (adbDevice) => adbDevice.serial === expectedSerial,
       );
       let serial = expectedSerial;
+      let spawned = false;
+      let bootWaitCompleted = false;
+      if (existing) {
+        const existingAvdName = await getEmulatorAvdName(existing.serial);
+        if (
+          !isReusableAndroidPoolDevice(existing.state, avdName, existingAvdName)
+        ) {
+          if (
+            shouldWaitForAndroidPoolDevice(
+              existing.state,
+              avdName,
+              existingAvdName,
+            )
+          ) {
+            await waitForEmulatorBoot(existing.serial, {
+              postBoot: useGoldenSnapshot ? 'light' : 'full',
+              bootTimeoutMs: timeoutMs,
+            });
+            bootWaitCompleted = true;
+            const bootedAvdName = await getEmulatorAvdName(existing.serial);
+            if (bootedAvdName !== avdName) {
+              throw new Error(
+                `Android pool serial ${existing.serial} booted AVD "${bootedAvdName ?? 'unknown'}"; expected "${avdName}".`,
+              );
+            }
+          } else {
+            throw new Error(
+              `Android pool serial ${existing.serial} is already ${existing.state} for AVD "${existingAvdName ?? 'unknown'}"; expected a ready "${avdName}" device.`,
+            );
+          }
+        }
+      }
       if (!existing) {
         const spawnedSerial = await spawnEmulatorAndAwaitSerial({
           emulatorBin,
@@ -777,19 +846,24 @@ export async function startAndroidEmulatorPool(
           );
         }
         serial = spawnedSerial;
+        spawned = true;
       }
 
-      await waitForEmulatorBoot(serial, {
-        postBoot: useGoldenSnapshot ? 'light' : 'full',
-        bootTimeoutMs: timeoutMs,
-      });
+      if (!bootWaitCompleted) {
+        await waitForEmulatorBoot(serial, {
+          postBoot: useGoldenSnapshot ? 'light' : 'full',
+          bootTimeoutMs: timeoutMs,
+        });
+      }
       logger.info(
-        useGoldenSnapshot
-          ? `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`
-          : `Android emulator "${avdName}" cold-booted for pool (${serial}).`,
+        spawned
+          ? useGoldenSnapshot
+            ? `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`
+            : `Android emulator "${avdName}" cold-booted for pool (${serial}).`
+          : `Using existing Android pool emulator "${avdName}" (${serial}).`,
       );
       return serial;
-    }),
+    },
   );
   logger.info(
     `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,

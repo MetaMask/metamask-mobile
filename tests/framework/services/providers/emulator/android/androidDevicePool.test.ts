@@ -1,5 +1,6 @@
 import {
   applyAndroidDevicePoolToWorker,
+  assertAndroidDevicePoolMatchesWorkers,
   deviceForWorker,
   parseAndroidDevicePool,
   resolveAndroidDevicePoolSize,
@@ -52,6 +53,37 @@ describe('androidDevicePool', () => {
 
       expect(resolveZero).toThrow(
         'Invalid ANDROID_DEVICE_POOL_SIZE "0". Expected a positive integer.',
+      );
+    });
+  });
+
+  describe('assertAndroidDevicePoolMatchesWorkers', () => {
+    it('accepts matching pool and worker counts', () => {
+      expect(() =>
+        assertAndroidDevicePoolMatchesWorkers({
+          ANDROID_DEVICE_POOL_SIZE: '2',
+          E2E_WORKERS: '2',
+        }),
+      ).not.toThrow();
+    });
+
+    it('rejects mismatched pool and worker counts', () => {
+      expect(() =>
+        assertAndroidDevicePoolMatchesWorkers({
+          ANDROID_DEVICE_POOL_SIZE: '2',
+          E2E_WORKERS: '1',
+        }),
+      ).toThrow(
+        'ANDROID_DEVICE_POOL_SIZE (2) must match E2E_WORKERS (1) in pool mode.',
+      );
+
+      expect(() =>
+        assertAndroidDevicePoolMatchesWorkers({
+          ANDROID_DEVICE_POOL_SIZE: '1',
+          E2E_WORKERS: '2',
+        }),
+      ).toThrow(
+        'ANDROID_DEVICE_POOL_SIZE (1) must match E2E_WORKERS (2) in pool mode.',
       );
     });
   });

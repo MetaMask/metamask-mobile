@@ -5,7 +5,7 @@
  * Device-facing ports stay on worker 0's values; adb reverse maps them to the
  * worker's host listen port.
  */
-import { androidDevicePoolSerials } from './services/providers/emulator/android/androidDevicePool.ts';
+import { deviceForWorker } from './services/providers/emulator/android/androidDevicePool.ts';
 
 const DAPP_HOST_PORT_STRIDE = 100;
 const CDP_FORWARD_STRIDE = 10;
@@ -79,7 +79,7 @@ export function resolveWorkerAndroidSerial(
   if (explicit) {
     return explicit;
   }
-  return androidDevicePoolSerials(env)[resolveE2eWorkerIndex(env)];
+  return deviceForWorker(resolveE2eWorkerIndex(env), env)?.serial;
 }
 
 export function adbDeviceArgs(

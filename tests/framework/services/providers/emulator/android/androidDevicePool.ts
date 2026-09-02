@@ -30,6 +30,29 @@ export function resolveAndroidDevicePoolSize(
 }
 
 /**
+ * Pool mode requires one Playwright worker per emulator. Playwright reads its
+ * worker count before global setup, so changing E2E_WORKERS during boot cannot
+ * repair a mismatch.
+ */
+export function assertAndroidDevicePoolMatchesWorkers(
+  env: Record<string, string | undefined> = process.env,
+): void {
+  const poolSize = resolveAndroidDevicePoolSize(env);
+  const rawWorkers = env.E2E_WORKERS?.trim() || '1';
+  const workers = Number(rawWorkers);
+  if (!Number.isInteger(workers) || workers < 1) {
+    throw new Error(
+      `Invalid E2E_WORKERS "${rawWorkers}". Expected a positive integer.`,
+    );
+  }
+  if ((poolSize > 1 || workers > 1) && poolSize !== workers) {
+    throw new Error(
+      `ANDROID_DEVICE_POOL_SIZE (${poolSize}) must match E2E_WORKERS (${workers}) in pool mode.`,
+    );
+  }
+}
+
+/**
  * Parse the ordered adb serial list exported by Android pool setup.
  */
 export function parseAndroidDevicePool(rawPool: string | undefined): string[] {

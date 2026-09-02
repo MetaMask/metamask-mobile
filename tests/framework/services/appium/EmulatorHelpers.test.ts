@@ -7,6 +7,9 @@ import {
   findAnrDialogRecoveryTapPoint,
   findAnrDialogWaitTapPoint,
   isAndroidPingSuccessful,
+  isReusableAndroidPoolDevice,
+  runAndroidPoolTasks,
+  shouldWaitForAndroidPoolDevice,
   shouldWaitForOfflineEmulator,
   shouldWaitForUnidentifiedOfflineEmulator,
 } from './EmulatorHelpers.ts';
@@ -22,6 +25,80 @@ import {
 } from './AndroidGoldenSnapshot.ts';
 
 describe('EmulatorHelpers', () => {
+  describe('Android pool boot policy', () => {
+    it('runs cold boots sequentially', async () => {
+      let active = 0;
+      let maxActive = 0;
+
+      const results = await runAndroidPoolTasks(
+        'cold',
+        [0, 1],
+        async (task) => {
+          active += 1;
+          maxActive = Math.max(maxActive, active);
+          await Promise.resolve();
+          active -= 1;
+          return task;
+        },
+      );
+
+      expect(results).toEqual([0, 1]);
+      expect(maxActive).toBe(1);
+    });
+
+    it('only wipes shared AVD data before the first cold pool boot', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        avdName: 'appium_smoke_avd',
+        isCI: true,
+        poolSize: 2,
+        bootMode: 'cold',
+      });
+
+      expect(boots[0].args).toContain('-wipe-data');
+      expect(boots[1].args).not.toContain('-wipe-data');
+    });
+
+    it('only reuses a ready device from the expected AVD', () => {
+      expect(
+        isReusableAndroidPoolDevice(
+          'device',
+          'appium_smoke_avd',
+          'appium_smoke_avd',
+        ),
+      ).toBe(true);
+      expect(
+        isReusableAndroidPoolDevice('offline', 'appium_smoke_avd', undefined),
+      ).toBe(false);
+      expect(
+        isReusableAndroidPoolDevice('device', 'appium_smoke_avd', 'personal'),
+      ).toBe(false);
+    });
+
+    it('waits for an expected pool serial that is still starting', () => {
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'offline',
+          'appium_smoke_avd',
+          undefined,
+        ),
+      ).toBe(true);
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'authorizing',
+          'appium_smoke_avd',
+          'appium_smoke_avd',
+        ),
+      ).toBe(true);
+      expect(
+        shouldWaitForAndroidPoolDevice(
+          'offline',
+          'appium_smoke_avd',
+          'personal',
+        ),
+      ).toBe(false);
+    });
+  });
+
   describe('shouldWaitForOfflineEmulator', () => {
     it('returns true only when resolved AVD matches the request', () => {
       expect(

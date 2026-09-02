@@ -20,6 +20,7 @@ import {
   shouldSkipAppReinstallFromEnv,
 } from './reinstallLocalBuildFromPath';
 import {
+  assertAndroidDevicePoolMatchesWorkers,
   parseAndroidDevicePool,
   resolveAndroidDevicePoolSize,
 } from './android/androidDevicePool.ts';
@@ -171,6 +172,9 @@ export class EmulatorProvider extends BaseServiceProvider {
    * adb / simctl which require a running device.
    */
   private async bootDevice(): Promise<void> {
+    if (this.project.use.platform === Platform.ANDROID) {
+      assertAndroidDevicePoolMatchesWorkers();
+    }
     if (process.env.SKIP_DEVICE_BOOT === 'true') {
       this.logger.info('SKIP_DEVICE_BOOT=true — skipping device boot.');
       return;
