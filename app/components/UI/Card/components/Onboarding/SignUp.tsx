@@ -70,7 +70,6 @@ import { HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import useImmersveSupportedRegions from '../../hooks/useImmersveSupportedRegions';
 import ImmersveLegalClickwrap from './ImmersveLegalClickwrap';
-import { useCardSDK } from '../../sdk';
 import type { CardOnboardingStackParamList } from '../../types/navigation';
 import Logger from '../../../../../util/Logger';
 
@@ -119,7 +118,6 @@ const SignUp = () => {
     useRoute<RouteProp<CardOnboardingStackParamList, 'CardOnboardingSignUp'>>();
   const fromMigration = Boolean(route.params?.fromMigration);
   const dispatch = useDispatch();
-  const { sdk } = useCardSDK();
   const [email, setEmail] = useState('');
   const [isEmailError, setIsEmailError] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -233,18 +231,12 @@ const SignUp = () => {
 
   // Best-effort contact prefill for UK migration while Baanx is still active.
   useEffect(() => {
-    if (
-      !fromMigration ||
-      !sdk ||
-      !allRegions.length ||
-      hasPrefillAttempted.current
-    ) {
+    if (!fromMigration || !allRegions.length || hasPrefillAttempted.current) {
       return;
     }
 
     let cancelled = false;
-    sdk
-      .getUserDetails()
+    Engine.context.CardController.getUserDetails()
       .then((user) => {
         if (cancelled || hasPrefillAttempted.current) {
           return;
@@ -268,10 +260,7 @@ const SignUp = () => {
             callingCode,
             allRegions,
             getRegionByCode,
-            {
-              fromMigration,
-              selectedCountryKey: selectedCountry?.key,
-            },
+            { fromMigration },
           );
           if (matchedPhoneRegion) {
             setPhoneRegion(matchedPhoneRegion);
@@ -295,7 +284,9 @@ const SignUp = () => {
     return () => {
       cancelled = true;
     };
-  }, [allRegions, fromMigration, sdk, getRegionByCode, selectedCountry?.key]);
+    // Intentionally omit selectedCountry: migration prefers GB via fromMigration,
+    // and depending on selectedCountry re-fires this effect after UK auto-select.
+  }, [allRegions, fromMigration, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {

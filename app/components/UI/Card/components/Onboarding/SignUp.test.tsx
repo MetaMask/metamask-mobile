@@ -116,21 +116,6 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 
-const mockGetUserDetails = jest.fn();
-jest.mock('../../sdk', () => ({
-  useCardSDK: () => ({
-    sdk: {
-      getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
-    },
-    isLoading: false,
-    user: null,
-    setUser: jest.fn(),
-    logoutFromProvider: jest.fn(),
-    fetchUserData: jest.fn(),
-    isReturningSession: false,
-  }),
-}));
-
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -202,6 +187,7 @@ jest.mock('../../util/validatePassword');
 const mockSetUserLocation = jest.fn();
 const mockSetSelectedCountry = jest.fn();
 const mockLogout = jest.fn();
+const mockGetUserDetails = jest.fn();
 const mockCreateFundingSource = jest.fn();
 const mockGetFundingSources = jest.fn();
 const mockGetResumeCardInfo = jest.fn();
@@ -214,6 +200,7 @@ jest.mock('../../../../../core/Engine', () => ({
       setSelectedCountry: (...args: unknown[]) =>
         mockSetSelectedCountry(...args),
       logout: (...args: unknown[]) => mockLogout(...args),
+      getUserDetails: (...args: unknown[]) => mockGetUserDetails(...args),
       createFundingSource: (...args: unknown[]) =>
         mockCreateFundingSource(...args),
       getFundingSources: (...args: unknown[]) => mockGetFundingSources(...args),
@@ -1562,11 +1549,18 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
+      // Wait for prefill (not only UK auto-select) so a first-match +44 region
+      // would fail if GB preference were missing.
       await waitFor(() => {
-        expect(
-          getByTestId('signup-immersve-phone-area-code-select'),
-        ).toHaveTextContent(/🇬🇧/);
+        expect(mockGetUserDetails).toHaveBeenCalled();
+        expect(getByTestId('signup-immersve-phone-number-input')).toHaveProp(
+          'value',
+          '7581572277',
+        );
       });
+      expect(
+        getByTestId('signup-immersve-phone-area-code-select'),
+      ).toHaveTextContent(/🇬🇧/);
       expect(
         getByTestId('signup-immersve-phone-area-code-select'),
       ).not.toHaveTextContent(/🏴/);
@@ -1605,6 +1599,8 @@ describe('SignUp Component', () => {
       expect(
         getByTestId('signup-immersve-phone-area-code-select'),
       ).toHaveTextContent(/\+44/);
+      // UK auto-select must not re-trigger prefill (selectedCountry is not a dep).
+      expect(mockGetUserDetails).toHaveBeenCalledTimes(1);
     });
 
     it('does not overwrite user edits when prefill resolves late', async () => {
