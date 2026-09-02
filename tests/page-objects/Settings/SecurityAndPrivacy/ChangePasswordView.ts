@@ -48,29 +48,16 @@ class ChangePasswordView {
 
   /**
    * Shared field id for "current password" (step 1) and "new password" (step 2).
-   * Match via Android content-desc / catch-all like CreatePasswordView.
    */
   get passwordInput(): Promise<AppiumElement> {
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByAndroidUIAutomator(
-        `.description("${ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}")`,
-      );
-    }
-    return Matchers.getElementByNativeXPath(
-      this.getCatchAllXPath(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
   }
 
   get confirmPasswordInput(): Promise<AppiumElement> {
-    if (PlatformDetector.isAndroid()) {
-      return Matchers.getElementByAndroidUIAutomator(
-        `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
-      );
-    }
-    return Matchers.getElementByNativeXPath(
-      this.getCatchAllXPath(
-        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-      ),
+    return Matchers.getElementByID(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
   }
 
@@ -116,13 +103,6 @@ class ChangePasswordView {
     );
   }
 
-  private getCatchAllXPath(identifier: string): string {
-    if (PlatformDetector.isAndroid()) {
-      return `//*[contains(@resource-id,'${identifier}') or contains(@text,'${identifier}') or contains(@content-desc,'${identifier}')]`;
-    }
-    return `//*[contains(@name,'${identifier}') or contains(@label,'${identifier}') or contains(@text,'${identifier}')]`;
-  }
-
   /**
    * Wait until ResetPassword body is mounted (after biometry loader if any).
    * Uses screen testID — not the Settings "Change password" button text.
@@ -159,22 +139,17 @@ class ChangePasswordView {
   }
 
   async expectNewPasswordFormVisible(): Promise<void> {
-    // Container / "New password" label are ResetForm-only and more reliable on
-    // iOS than XPath against the confirm TextField wrapper.
-    await Assertions.expectElementToBeVisible(this.container, {
-      description: 'Change password new-password form container',
-      timeout: 30000,
-    });
+    // Prefer "New password" text over container testID — iOS often reports
+    // ~create-password-screen as not displayed while child text is visible
+    // (same pattern as seedless create-password readiness helpers).
     await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
-      description: 'New password label should be visible',
-      timeout: 10000,
+      description: 'New password label should be visible (ResetForm)',
+      timeout: 30000,
     });
     await Assertions.expectElementToBeVisible(this.iUnderstandCheckBox, {
       description: 'I understand checkbox should be visible',
       timeout: 10000,
     });
-    // Confirm field last — iOS wrapper testID can be flaky; form chrome is enough
-    // to know ResetForm mounted before we type into it.
     await Assertions.expectElementToBeVisible(this.confirmPasswordInput, {
       description: 'Confirm new password input should be visible',
       timeout: 15000,
@@ -187,8 +162,8 @@ class ChangePasswordView {
    */
   private async isNewPasswordFormShowing(): Promise<boolean> {
     try {
-      await Assertions.expectElementToBeVisible(this.container, {
-        description: 'Probe for new-password form container',
+      await Assertions.expectElementToBeVisible(this.newPasswordLabel, {
+        description: 'Probe for new-password label',
         timeout: 3000,
       });
       return true;
@@ -197,26 +172,55 @@ class ChangePasswordView {
     }
   }
 
-  private async expectNoIncorrectPasswordWarning(): Promise<void> {
+  private async diagnoseFailedTransitionToResetForm(
+    formError: unknown,
+  ): Promise<never> {
     try {
       await Assertions.expectElementToBeVisible(this.incorrectPasswordWarning, {
         description: 'Probe for incorrect-password warning',
         timeout: 1500,
       });
-    } catch {
-      return;
+      throw new Error(
+        'Change password: still on current-password step with "Incorrect password" after Confirm — new-password form did not appear',
+      );
+    } catch (warningError) {
+      if (
+        warningError instanceof Error &&
+        warningError.message.includes('Incorrect password')
+      ) {
+        throw warningError;
+      }
     }
-    throw new Error(
-      'Change password: still on current-password step with "Incorrect password" after Confirm — new-password form did not appear',
-    );
+
+    try {
+      await Assertions.expectElementToBeVisible(
+        this.enterCurrentPasswordLabel,
+        {
+          description: 'Probe: still on current-password step',
+          timeout: 1500,
+        },
+      );
+      throw new Error(
+        'Change password: still on current-password step after Confirm (password likely not applied to React state, or Confirm did not run verify). ResetForm / New password never appeared.',
+      );
+    } catch (stepError) {
+      if (
+        stepError instanceof Error &&
+        stepError.message.includes('still on current-password')
+      ) {
+        throw stepError;
+      }
+    }
+
+    throw formError;
   }
 
   async enterCurrentPassword(password: string): Promise<void> {
-    // Do not append newline alone without ensuring React state updates — Confirm
-    // is disabled until onChangeText fires. iOS: per-character addValue.
+    // iOS: per-character addValue so controlled TextField onChangeText fires.
+    // Do not hideKeyboard before Confirm — tapOutside can race the enable state.
+    // Mirror LoginView: leave keyboard up, then tap the enabled Confirm button.
     if (PlatformDetector.isIOS()) {
       await Gestures.typeTextByCharacters(this.passwordInput, password);
-      await Gestures.hideKeyboard();
       return;
     }
     await Gestures.typeText(this.passwordInput, password, {
@@ -226,21 +230,12 @@ class ChangePasswordView {
   }
 
   async tapConfirmCurrentPassword(): Promise<void> {
-    // Prefer label — more stable than shared submit-button id across steps.
-    const confirmByLabel = Matchers.getElementByText(
-      ChangePasswordViewSelectorsText.CONFIRM_CURRENT_PASSWORD,
-    );
-    try {
-      await Gestures.waitAndTap(confirmByLabel, {
-        elemDescription: 'Change password - Confirm current password (label)',
-        checkEnabled: true,
-      });
-    } catch {
-      await Gestures.waitAndTap(this.confirmCurrentPasswordButton, {
-        elemDescription: 'Change password - Confirm current password (id)',
-        checkEnabled: true,
-      });
-    }
+    await Gestures.waitAndTap(this.confirmCurrentPasswordButton, {
+      elemDescription: 'Change password - Confirm current password',
+      checkEnabled: true,
+      waitForInteractive: true,
+      timeout: 15000,
+    });
   }
 
   async enterNewPassword(password: string): Promise<void> {
@@ -316,8 +311,7 @@ class ChangePasswordView {
       try {
         await this.expectNewPasswordFormVisible();
       } catch (error) {
-        await this.expectNoIncorrectPasswordWarning();
-        throw error;
+        await this.diagnoseFailedTransitionToResetForm(error);
       }
     }
 

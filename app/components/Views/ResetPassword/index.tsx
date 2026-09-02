@@ -147,6 +147,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const confirmPasswordInput = useRef<TextInput | null>(null);
 
   const reauthenticate = useCallback(async (pwd?: string) => {
+    // E2E builds: never fall through to keychain Face ID when no password was
+    // typed (empty React state + Confirm tap). That hangs the simulator and
+    // leaves create-password-screen never mounted.
+    if (hasTestOverrides && !pwd) {
+      setView(ViewState.ConfirmCurrent);
+      setReady(true);
+      return;
+    }
+
     setReady(false);
     let reauthError: Error | undefined;
     try {
@@ -168,6 +177,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           strings('reveal_credential.warning_incorrect_password'),
         );
       }
+      setView(ViewState.ConfirmCurrent);
     }
     setReady(true);
   }, []);
@@ -412,6 +422,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation]);
 
   const reauthenticateWithPassword = useCallback(() => {
+    if (!password) {
+      return;
+    }
     reauthenticate(password);
   }, [reauthenticate, password]);
 
