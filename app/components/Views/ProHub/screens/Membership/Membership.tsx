@@ -206,6 +206,10 @@ const Membership = () => {
     setActiveSheet('saved');
   }, []);
 
+  const handleInvoices = useCallback(() => {
+    // TODO: navigate to invoices
+  }, []);
+
   const handleContactSupport = useCallback(() => {
     // TODO: navigate to support
   }, []);
@@ -260,6 +264,7 @@ const Membership = () => {
             onPress={handleEarnedPress}
             testID={MembershipTestIds.EARNED_ROW}
           />
+          {/* TODO: re-enable saved this month row
           <InfoRow
             label={strings('pro_hub.membership.saved_this_month')}
             value={MOCK_MEMBERSHIP_STATS.savedThisMonth}
@@ -267,6 +272,7 @@ const Membership = () => {
             onPress={handleSavedPress}
             testID={MembershipTestIds.SAVED_ROW}
           />
+          */}
         </Box>
 
         <SectionDivider />
@@ -382,6 +388,11 @@ const Membership = () => {
           >
             {strings('pro_hub.membership.manage')}
           </Text>
+          <ManageRow
+            label={strings('pro_hub.membership.invoices')}
+            onPress={handleInvoices}
+            testID={MembershipTestIds.INVOICES_ROW}
+          />
           <ManageRow
             label={strings('pro_hub.membership.contact_support')}
             onPress={handleContactSupport}
