@@ -511,8 +511,8 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      # N=1: specs start a local dapp in beforeAll on a shared host port
-      # (EADDRINUSE at N=2). Restore the workflow input in #35647.
+      # Local dapp servers bind a shared host port. Keep N=1 until the
+      # worker-aware startLocalDappServerOnWorker follow-up lands.
       android-device-pool-size: 1
     secrets: inherit
 
@@ -543,7 +543,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      # N=1: specs start a local dapp in beforeAll on a shared host port
-      # (EADDRINUSE at N=2). Restore the workflow input in #35647.
+      # Local dapp servers bind a shared host port. Keep N=1 until the
+      # worker-aware startLocalDappServerOnWorker follow-up lands.
       android-device-pool-size: 1
     secrets: inherit
