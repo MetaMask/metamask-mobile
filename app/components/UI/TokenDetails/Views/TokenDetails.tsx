@@ -325,12 +325,33 @@ const TokenDetails: React.FC<{
     endTrace({
       name: TraceName.AssetDetails,
       data: {
-        asset_id: caip19AssetId ?? undefined,
-        historical_prices_api_ms: historicalPricesApiMs,
-        exchange_rate_api_ms: exchangeRateApiMs,
+        ...(caip19AssetId ? { asset_id: caip19AssetId } : {}),
+        ...(historicalPricesApiMs !== undefined
+          ? { historical_prices_api_ms: historicalPricesApiMs }
+          : {}),
+        ...(exchangeRateApiMs !== undefined
+          ? { exchange_rate_api_ms: exchangeRateApiMs }
+          : {}),
       },
     });
   }, [isLoading, caip19AssetId, historicalPricesApiMs, exchangeRateApiMs]);
+
+  // If the screen unmounts before price data finishes loading, close the
+  // pending span here instead of leaving it open. Otherwise it stays pending
+  // until the next `AssetDetails` trace is started (e.g. opening another
+  // asset), which silently finishes it as a normal completion with a
+  // duration measuring time-until-next-open and no API timing data,
+  // skewing Asset Details performance metrics.
+  useEffect(
+    () => () => {
+      if (hasEndedAssetDetailsTraceRef.current) {
+        return;
+      }
+      hasEndedAssetDetailsTraceRef.current = true;
+      endTrace({ name: TraceName.AssetDetails });
+    },
+    [],
+  );
 
   const currentPriceUsd = useMemo(() => {
     if (!Number.isFinite(currentPrice)) {

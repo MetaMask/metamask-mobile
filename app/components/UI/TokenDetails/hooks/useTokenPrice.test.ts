@@ -11,6 +11,7 @@ import { isAssetFromSearch } from '../../../../selectors/tokenSearchDiscoveryDat
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import useTokenHistoricalPrices from '../../../hooks/useTokenHistoricalPrices';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
+import { type MarketDataDetails } from '@metamask/assets-controllers';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -112,6 +113,7 @@ describe('useTokenPrice', () => {
       data: undefined,
       error: undefined,
       hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -145,6 +147,7 @@ describe('useTokenPrice', () => {
       isLoading: false,
       error: undefined,
       hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -220,6 +223,7 @@ describe('useTokenPrice', () => {
       isLoading: false,
       error: undefined,
       hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() =>
@@ -244,6 +248,7 @@ describe('useTokenPrice', () => {
       isLoading: false,
       error: undefined,
       hasInsufficientCoverage: true,
+      apiDurationMs: undefined,
     });
 
     const { result } = renderHook(() => useTokenPrice({ token }));
@@ -269,6 +274,7 @@ describe('useTokenPrice', () => {
       isLoading: false,
       error: undefined,
       hasInsufficientCoverage: false,
+      apiDurationMs: undefined,
     });
 
     let resolveA!: (v: unknown) => void;
@@ -342,7 +348,7 @@ describe('useTokenPrice', () => {
     mockGetTokenExchangeRate.mockResolvedValue({
       price: 1,
       pricePercentChange1d: 0,
-    });
+    } as unknown as MarketDataDetails);
 
     const { result } = renderHook(() => useTokenPrice({ token }));
 

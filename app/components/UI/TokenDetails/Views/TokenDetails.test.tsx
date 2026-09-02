@@ -104,8 +104,8 @@ const defaultUseTokenPriceReturn = {
   chartNavigationButtons: ['1d', '1w', '1m'],
   currentCurrency: 'USD',
   hasInsufficientCoverage: false,
-  historicalPricesApiMs: undefined,
-  exchangeRateApiMs: undefined,
+  historicalPricesApiMs: undefined as number | undefined,
+  exchangeRateApiMs: undefined as number | undefined,
 };
 const mockUseTokenPrice = jest.fn(() => defaultUseTokenPriceReturn);
 jest.mock('../hooks/useTokenPrice', () => ({
@@ -598,16 +598,21 @@ describe('TokenDetails', () => {
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
     });
 
-    it('does not end the trace if the screen unmounts before price finishes loading', () => {
+    it('ends the trace on unmount if the screen unmounts before price finishes loading, so it is not left pending', () => {
       mockUseTokenPrice.mockReturnValue({
         ...defaultUseTokenPriceReturn,
         isLoading: true,
       });
 
       const { unmount } = render(<TokenDetails />);
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
       unmount();
 
-      expect(mockEndTrace).not.toHaveBeenCalled();
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.AssetDetails,
+      });
     });
 
     it('does not end the trace a second time if it unmounts after already ending successfully', () => {
