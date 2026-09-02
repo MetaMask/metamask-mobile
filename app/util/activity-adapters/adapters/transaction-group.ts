@@ -4,6 +4,7 @@
  * TODO: Replace with shared @metamask/activity-adapters package when published.
  */
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import type { TransactionData } from '@metamask/transaction-pay-controller';
 import type { ActivityFee, Status, TokenAmount } from '../types';
 
 export interface TransactionGroup {
@@ -27,6 +28,15 @@ export interface TransactionGroup {
   contractTokenMetadata?: { symbol?: string; decimals?: number };
   /** Whether the signing account cannot use gas sponsorship. */
   isHardwareWalletAccount?: boolean;
+  /** EOA whose Activity feed is rendering this group, when different from the signer. */
+  activityAccountAddress?: string;
+  /** Required MetaMask Pay child transactions associated with the parent intent. */
+  relatedTransactions?: TransactionMeta[];
+  /** Ephemeral Pay data used to render the pending EOA-facing token. */
+  transactionPayData?: Pick<
+    TransactionData,
+    'isPostQuote' | 'paymentToken' | 'sourceAmounts'
+  >;
   /** Precomputed fees for `@metamask/client-utils` mapLocalTransaction. */
   fees?: ActivityFee[];
 }

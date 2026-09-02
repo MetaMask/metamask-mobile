@@ -3332,6 +3332,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  crossmintApplePayCheckout: {
+    name: 'crossmintApplePayCheckout',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   depositConfig: {
     name: 'depositConfig',
     type: FeatureFlagType.Remote,
@@ -4114,6 +4122,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   perpsMobileTwap: {
     name: 'perpsMobileTwap',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsMobileChase: {
+    name: 'perpsMobileChase',
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: {
@@ -5200,6 +5219,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  mobileUxBftcConsolidation: {
+    name: 'mobileUxBftcConsolidation',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.10.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsDefaultPayTokenWhenNoBalanceEnabled: {
     name: 'perpsDefaultPayTokenWhenNoBalanceEnabled',
     type: FeatureFlagType.Remote,
@@ -5207,29 +5237,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  swapsSWAPS4784AbtestCTAButtonColor: {
-    name: 'swapsSWAPS4784AbtestCTAButtonColor',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0.5,
-        },
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
     status: FeatureFlagStatus.Active,
   },
 

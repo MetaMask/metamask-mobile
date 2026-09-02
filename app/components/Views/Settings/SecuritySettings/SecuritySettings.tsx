@@ -72,6 +72,7 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -89,6 +90,9 @@ const Settings: React.FC = () => {
   const [hintText, setHintText] = useState('');
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
+  );
+  const isBasicFunctionalityConsolidationEnabled = useSelector(
+    selectIsBasicFunctionalityConsolidationEnabled,
   );
   const scrollViewRef = useRef<ScrollView>(null);
   const metaMetricsSectionRef = useRef<View>(null);
@@ -379,7 +383,7 @@ const Settings: React.FC = () => {
           <ChangePassword />
           <AutoLock />
           <DeviceSecurityToggle />
-          <BlockaidSettings />
+          {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.privacy_heading')}
           </Text>
@@ -392,21 +396,33 @@ const Settings: React.FC = () => {
           <ClearPrivacy />
           {renderClearBrowserHistorySection()}
           <ClearCookiesSection />
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.network_provider')}
-          </Text>
-          <NetworkDetailsCheckSettings />
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.transactions_subheading')}
-          </Text>
-          <BatchAccountBalanceSettings />
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.network_provider')}
+              </Text>
+              <NetworkDetailsCheckSettings />
+            </>
+          )}
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.transactions_subheading')}
+              </Text>
+              <BatchAccountBalanceSettings />
+              {renderUseTransactionSimulations()}
+            </>
+          )}
           {renderHistoryModal()}
-          {renderUseTransactionSimulations()}
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.token_nft_ens_subheading')}
-          </Text>
-          <DisplayNFTMediaSettings />
-          {isMainnet && <AutoDetectNFTSettings />}
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <>
+              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+                {strings('app_settings.token_nft_ens_subheading')}
+              </Text>
+              <DisplayNFTMediaSettings />
+              {isMainnet && <AutoDetectNFTSettings />}
+            </>
+          )}
           <IPFSGatewaySettings />
           <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
             {strings('app_settings.analytics_subheading')}

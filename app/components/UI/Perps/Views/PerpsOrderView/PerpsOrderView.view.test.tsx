@@ -382,9 +382,11 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
     emitEthPrice(stream);
 
+    // The balance cannot cover the margin either, so the shared
+    // insufficient-funds banner owns that message and the CTA keeps its label.
     expect(
       await screen.findByText(
-        strings('perps.order.validation.insufficient_funds'),
+        strings('perps.order.validation.insufficient_funds_to_cover_trade'),
       ),
     ).toBeOnTheScreen();
     const placeOrderButton = await screen.findByTestId(
@@ -395,6 +397,77 @@ describe('PerpsOrderView', () => {
     fireEvent.press(placeOrderButton);
 
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('shows a single insufficient-funds treatment when the balance cannot cover the margin', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The footer validation line renders the interpolated balance error; match
+    // the invariant prefix so the assertion cannot pass on a formatting change.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(
+      screen.queryByText(strings('perps.order.validation.insufficient_funds')),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('keeps a blocking minimum-amount error visible next to the insufficient-funds banner', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '5',
+        leverage: 1,
+      },
+      streamOverrides: {
+        account: accountWithBalance('0.00004'),
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    await waitFor(() => {
+      expect(
+        screen.queryAllByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toHaveLength(1);
+    });
+    // The banner covers the balance message only; the minimum-amount error is a
+    // separate blocking reason and must still reach the trader.
+    expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+    expect(screen.getByText(/^Minimum order size/)).toBeOnTheScreen();
   });
 
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
