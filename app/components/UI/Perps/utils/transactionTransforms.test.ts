@@ -1367,8 +1367,8 @@ describe('transactionTransforms', () => {
       },
     );
 
-    // Buy is fixed for TAT-3860; the Activity adapter matrix and Activity
-    // Details tests cover the complementary sell and close-long paths.
+    // Buy is fixed for TAT-3860 so this matrix isolates trigger type and
+    // reduceOnly. Sell direction and Activity kinds are covered separately.
     it.each([
       {
         detailedOrderType: 'Stop Limit',

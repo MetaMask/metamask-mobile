@@ -643,6 +643,21 @@ describe('mapPerpsTransaction', () => {
       expect(result?.type).toBe('marketLong');
     });
 
+    it('classifies normalized stop-market metadata without provider display text', () => {
+      const result = mapFromOrder(
+        makeOrder({
+          orderType: 'limit',
+          triggerOrderType: 'stop_market',
+          side: 'sell',
+          reduceOnly: true,
+          isTrigger: true,
+          detailedOrderType: undefined,
+        }),
+      );
+
+      expect(result?.type).toBe('stopMarketCloseLong');
+    });
+
     it.each([
       ['Stop Limit', 'limit', false, 'stop_limit'],
       ['Stop Market', 'market', true, 'stop_market'],

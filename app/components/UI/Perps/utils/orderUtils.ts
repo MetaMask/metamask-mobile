@@ -724,7 +724,6 @@ const formatOrderTypeString = (typeString: string): string => {
 const getLocalizedOrderDirectionLabel = (
   order: Order,
   isClosing: boolean,
-  inline: boolean,
 ): string => {
   const direction = resolveOrderDirection(order.side, isClosing);
   const key = isClosing
@@ -736,18 +735,11 @@ const getLocalizedOrderDirectionLabel = (
       : 'perps.market.short_lowercase';
   const label = strings(key);
 
-  // English close labels use title case when standalone and sentence case
+  // English close labels are capitalized as standalone copy but sentence case
   // inline. Other locales retain their translated casing.
-  if (isClosing && I18n.locale?.toLowerCase().startsWith('en')) {
-    return inline
-      ? label.toLocaleLowerCase('en')
-      : label
-          .split(' ')
-          .map((word: string) => capitalize(word))
-          .join(' ');
-  }
-
-  return label;
+  return isClosing && I18n.locale?.toLowerCase().startsWith('en')
+    ? label.toLocaleLowerCase('en')
+    : label;
 };
 
 /**
@@ -775,7 +767,7 @@ export const formatOrderLabel = (order: Order): string => {
     ? formatOrderTypeString(resolvedTypeString)
     : resolvedTypeString;
   const localizedDirection = isTrigger
-    ? getLocalizedOrderDirectionLabel(order, isClosing, true)
+    ? getLocalizedOrderDirectionLabel(order, isClosing)
     : direction;
 
   // Build the label: [Type] [Close?] [Direction]
@@ -809,12 +801,18 @@ export const formatOrderTypeLabel = (order: Order): string =>
  */
 export const getOrderLabelDirection = (order: Order): string => {
   const isClosing = isClosingOrder(order);
-  return getLocalizedOrderDirectionLabel(order, isClosing, false);
+  const direction = resolveOrderDirection(order.side, isClosing);
+
+  if (isClosing) {
+    return direction === 'long' ? 'Close Long' : 'Close Short';
+  }
+
+  return direction;
 };
 
 export const getInlineOrderLabelDirection = (order: Order): string => {
   const isClosing = isClosingOrder(order);
-  return getLocalizedOrderDirectionLabel(order, isClosing, true);
+  return getLocalizedOrderDirectionLabel(order, isClosing);
 };
 
 /**

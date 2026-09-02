@@ -152,7 +152,7 @@ function mapOrderStatus(
 function mapOrderKind(
   order: NonNullable<PerpsTransaction['order']>,
 ): ActivityListItem['type'] | null {
-  const { side, detailedOrderType, type } = order;
+  const { side, type } = order;
   if (side !== 'buy' && side !== 'sell') {
     return null;
   }
@@ -163,8 +163,7 @@ function mapOrderKind(
   const direction = resolveOrderDirection(side, isClosing);
   const isLimit = type === 'limit';
 
-  const isStopMarket =
-    Boolean(detailedOrderType?.toLowerCase().includes('stop')) && !isLimit;
+  const isStopMarket = order.orderType === 'stop_market';
 
   if (isStopMarket && isClosing) {
     return direction === 'long'
