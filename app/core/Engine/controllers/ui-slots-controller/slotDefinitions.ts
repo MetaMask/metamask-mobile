@@ -1,8 +1,7 @@
-import type { UiSlotAction, UiSlotDataReference, UiSlotWidget } from './types';
+import type { UiSlotDataReference, UiSlotWidget } from './types';
 
 export interface UiSlotDefinition {
   widgetTypes: readonly UiSlotWidget['type'][];
-  actionIds: readonly UiSlotAction['actionId'][];
   dataReferenceTypes: readonly UiSlotDataReference['type'][];
   requiredDataReferenceTypes?: readonly UiSlotDataReference['type'][];
 }

@@ -777,8 +777,7 @@
     "screenConfigurations": {},
     "renderedConfigurations": {},
     "activeConfigurationKeys": {},
-    "requestStatus": {},
-    "dismissedContentIds": {}
+    "requestStatus": {}
   },
   "ConfigRegistryController": {
     "configs": {

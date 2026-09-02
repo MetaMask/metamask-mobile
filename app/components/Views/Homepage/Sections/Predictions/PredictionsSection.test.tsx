@@ -12,6 +12,7 @@ import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MAX_POSITIONS_DISPLAYED } from './predictionsSectionConstants';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from './constants/homepagePredictMarketSlots';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -345,6 +346,22 @@ describe('PredictionsSection', () => {
     });
   });
 
+  it('keeps sports mode on the bundled sports-only discovery path', () => {
+    renderWithProvider(
+      <PredictionsSection
+        mode="sports"
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+      />,
+    );
+
+    expect(mockUsePredictMarketsForHomepage).not.toHaveBeenCalled();
+    expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
+      enabled: true,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
+    });
+  });
+
   it('skips trending market fetches for treatment discovery', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -355,6 +372,7 @@ describe('PredictionsSection', () => {
     });
     expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
       enabled: true,
+      slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
     });
   });
 
@@ -378,9 +396,7 @@ describe('PredictionsSection', () => {
     expect(mockUsePredictMarketsForHomepage).toHaveBeenCalledWith(5, {
       enabled: true,
     });
-    expect(mockUseHomepagePredictMarketSlots).toHaveBeenCalledWith({
-      enabled: false,
-    });
+    expect(mockUseHomepagePredictMarketSlots).not.toHaveBeenCalled();
   });
 
   it.each([true, false])(
@@ -466,6 +482,17 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
         expect(screen.getByText('Test Position 2')).toBeOnTheScreen();
       });
+    });
+
+    it('does not wait for unmounted empty-state discovery data', () => {
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(mockUseHomepagePredictMarketSlots).not.toHaveBeenCalled();
+      expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ isLoading: false }),
+      );
     });
 
     it('renders the current active position values from the hook data', async () => {

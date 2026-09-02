@@ -2,7 +2,6 @@ import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import {
   UI_SLOTS_HARD_TTL_MS,
   UI_SLOTS_MAX_CONFIGURATIONS,
-  UI_SLOTS_MAX_DISMISSALS,
   UI_SLOTS_SOFT_TTL_MS,
 } from './config';
 import { buildUiSlotsConfigurationKey } from './configurationKey';
@@ -66,12 +65,6 @@ const metadata: StateMetadata<UiSlotsControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
-  dismissedContentIds: {
-    persist: true,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: false,
-    usedInUi: true,
-  },
 };
 
 export const defaultUiSlotsControllerState: UiSlotsControllerState = {
@@ -80,7 +73,6 @@ export const defaultUiSlotsControllerState: UiSlotsControllerState = {
   renderedConfigurations: {},
   activeConfigurationKeys: {},
   requestStatus: {},
-  dismissedContentIds: {},
 };
 
 export class UiSlotsController extends BaseController<
@@ -103,14 +95,6 @@ export class UiSlotsController extends BaseController<
   readonly #nextRequestIdByScreen = new Map<UiSlotsScreenId, number>();
   readonly #latestRequestIdByScreen = new Map<UiSlotsScreenId, number>();
   readonly #lastRequestedLocaleByScreen = new Map<UiSlotsScreenId, string>();
-  readonly #contentLocations = new Map<
-    string,
-    Map<UiSlotsConfigurationKey, string>
-  >();
-  readonly #indexedContentIdsByConfiguration = new Map<
-    UiSlotsConfigurationKey,
-    Set<string>
-  >();
 
   constructor({
     messenger,
@@ -230,8 +214,6 @@ export class UiSlotsController extends BaseController<
         this.#latestRequestIdByScreen.set(screenId, requestId);
       }
       this.#inFlight.clear();
-      this.#contentLocations.clear();
-      this.#indexedContentIdsByConfiguration.clear();
       return;
     }
 
@@ -334,28 +316,7 @@ export class UiSlotsController extends BaseController<
           delete state.activeConfigurationKeys[screenId];
         }
       });
-      this.#removeConfigurationIndex(configurationKey);
     }
-  }
-
-  dismissContent(contentId: string): void {
-    const locations = this.#contentLocations.get(contentId);
-    this.update((state) => {
-      state.dismissedContentIds[contentId] = this.#now();
-      this.#pruneDismissals(state.dismissedContentIds);
-
-      for (const [configurationKey, slotId] of locations ?? []) {
-        const rendered = state.renderedConfigurations[configurationKey];
-        if (!rendered) {
-          continue;
-        }
-        delete rendered.slotsById[slotId];
-        rendered.slotIds = rendered.slotIds.filter(
-          (candidate) => candidate !== slotId,
-        );
-      }
-    });
-    this.#contentLocations.delete(contentId);
   }
 
   #buildConfigurationKey({
@@ -407,9 +368,6 @@ export class UiSlotsController extends BaseController<
           delete state.renderedConfigurations[configurationKey];
         }
       });
-      if (cached) {
-        this.#removeConfigurationIndex(configurationKey);
-      }
     }
 
     try {
@@ -440,8 +398,6 @@ export class UiSlotsController extends BaseController<
           state.requestStatus[screenId] = 'ready';
           this.#evictConfigurationKeys(state, evictedKeys);
         });
-        this.#replaceConfigurationIndex(configurationKey, rendered);
-        evictedKeys.forEach((key) => this.#removeConfigurationIndex(key));
         return;
       }
 
@@ -467,9 +423,6 @@ export class UiSlotsController extends BaseController<
         state.requestStatus[screenId] = 'ready';
         this.#evictConfigurationKeys(state, evictedKeys);
       });
-      this.#replaceConfigurationIndex(configurationKey, rendered);
-      evictedKeys.forEach((key) => this.#removeConfigurationIndex(key));
-
       if (rejectedSlotCount > 0) {
         const rejectionCounts = rejections.reduce<Record<string, number>>(
           (counts, { code }) => {
@@ -545,7 +498,6 @@ export class UiSlotsController extends BaseController<
     }
     return applyUiSlotsClientRules({
       slots: interpreted.slots,
-      dismissedContentIds: this.state.dismissedContentIds,
       clientVersion: this.#clientVersion,
       platform: this.#platform,
       now: this.#now(),
@@ -618,7 +570,6 @@ export class UiSlotsController extends BaseController<
       state.activeConfigurationKeys[screenId] = configurationKey;
       state.requestStatus[screenId] = 'ready';
     });
-    this.#replaceConfigurationIndex(configurationKey, rendered);
   }
 
   #toRenderedConfiguration(
@@ -630,38 +581,6 @@ export class UiSlotsController extends BaseController<
       slotsById: Object.fromEntries(slots.map((slot) => [slot.slotId, slot])),
       slotIds: slots.map((slot) => slot.slotId),
     };
-  }
-
-  #replaceConfigurationIndex(
-    configurationKey: UiSlotsConfigurationKey,
-    rendered: RenderedScreenConfiguration,
-  ): void {
-    this.#removeConfigurationIndex(configurationKey);
-    const contentIds = new Set<string>();
-
-    for (const slot of Object.values(rendered.slotsById)) {
-      contentIds.add(slot.contentId);
-      const locations =
-        this.#contentLocations.get(slot.contentId) ??
-        new Map<UiSlotsConfigurationKey, string>();
-      locations.set(configurationKey, slot.slotId);
-      this.#contentLocations.set(slot.contentId, locations);
-    }
-
-    this.#indexedContentIdsByConfiguration.set(configurationKey, contentIds);
-  }
-
-  #removeConfigurationIndex(configurationKey: UiSlotsConfigurationKey): void {
-    const contentIds =
-      this.#indexedContentIdsByConfiguration.get(configurationKey);
-    for (const contentId of contentIds ?? []) {
-      const locations = this.#contentLocations.get(contentId);
-      locations?.delete(configurationKey);
-      if (locations?.size === 0) {
-        this.#contentLocations.delete(contentId);
-      }
-    }
-    this.#indexedContentIdsByConfiguration.delete(configurationKey);
   }
 
   #configurationKeysToEvict(
@@ -689,17 +608,5 @@ export class UiSlotsController extends BaseController<
         }
       }
     }
-  }
-
-  #pruneDismissals(dismissals: Record<string, number>): void {
-    const entries = Object.entries(dismissals);
-    if (entries.length <= UI_SLOTS_MAX_DISMISSALS) {
-      return;
-    }
-
-    entries
-      .sort(([, first], [, second]) => first - second)
-      .slice(0, entries.length - UI_SLOTS_MAX_DISMISSALS)
-      .forEach(([contentId]) => delete dismissals[contentId]);
   }
 }

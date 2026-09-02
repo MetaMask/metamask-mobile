@@ -21,10 +21,6 @@ export interface UiSlotWidgetMap {}
 
 export type UiSlotWidget = UiSlotWidgetMap[keyof UiSlotWidgetMap];
 
-export interface UiSlotActionMap {}
-
-export type UiSlotAction = UiSlotActionMap[keyof UiSlotActionMap];
-
 /**
  * Feature modules extend this map with their owned data-reference contracts.
  * The controller remains feature-agnostic while retaining a concrete,
@@ -53,7 +49,6 @@ export type UiSlot = {
     until?: string;
   };
   widget: UiSlotWidget;
-  actions?: UiSlotAction[];
   dataReferences?: UiSlotDataReference[];
 };
 
@@ -103,7 +98,6 @@ export type UiSlotsControllerState = {
     Record<UiSlotsScreenId, UiSlotsConfigurationKey>
   >;
   requestStatus: Partial<Record<UiSlotsScreenId, UiSlotsRequestStatus>>;
-  dismissedContentIds: Record<string, number>;
 };
 
 export type UiSlotsControllerActions =

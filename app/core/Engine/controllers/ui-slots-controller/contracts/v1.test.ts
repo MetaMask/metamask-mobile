@@ -1,75 +1,76 @@
-import { parseUiSlotsResponse } from './v1';
 import { MOBILE_UI_SLOTS_CONTRACT_REGISTRY } from '../../../../../components/UI/UiSlots/mobileContractRegistry';
+import { parseUiSlotsResponse } from './v1';
 
 const makeResponse = (slots: unknown[]) => ({
   contractVersion: 1,
   configurationVersion: 'config-1',
-  screenId: 'predict-home',
+  screenId: 'wallet-home',
   locale: 'en',
-  publishedAt: '2026-08-13T10:00:00.000Z',
+  publishedAt: '2026-09-02T10:00:00.000Z',
   ignoredEnvelopeField: true,
   slots,
 });
 
-const validBanner = {
-  slotId: 'predict-home.before-portfolio',
-  contentId: 'banner-1',
+const validDiscovery = {
+  slotId: 'wallet-home.predict-empty-state',
+  contentId: 'predict-empty-state-1',
   revision: 1,
   ignoredSlotField: true,
   widget: {
-    type: 'alert-banner',
-    schemaVersion: 1,
-    ignoredWidgetField: true,
-    props: {
-      tone: 'info',
-      title: 'Title',
-      description: 'Description',
-      ignoredProp: true,
-    },
-  },
-};
-
-const validMarketCarousel = {
-  slotId: 'predict-home.live-now',
-  contentId: 'carousel-1',
-  revision: 1,
-  widget: {
-    type: 'market-carousel',
+    type: 'predict-discovery-list',
     schemaVersion: 1,
     props: {},
   },
   dataReferences: [
     {
       id: 'markets',
-      type: 'predict-feed',
+      type: 'predict-homepage-market-slots',
       params: {
         venue: 'polymarket',
-        feedId: 'popular-open',
+        items: [
+          {
+            type: 'series',
+            seriesId: 'btc-up-or-down-5m',
+          },
+        ],
       },
     },
   ],
 };
 
 describe('parseUiSlotsResponse', () => {
-  it('strips additive unknown fields', () => {
+  it('rejects responses above the slot-count bound', () => {
+    const slots = Array.from({ length: 21 }, (_, index) => ({
+      ...validDiscovery,
+      slotId: `wallet-home.slot-${index}`,
+      contentId: `content-${index}`,
+    }));
+
+    expect(() =>
+      parseUiSlotsResponse(
+        makeResponse(slots),
+        MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
+      ),
+    ).toThrow('invalid-slot-structure');
+  });
+
+  it('strips additive envelope and slot fields', () => {
     const { response } = parseUiSlotsResponse(
-      makeResponse([validBanner]),
+      makeResponse([validDiscovery]),
       MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
     );
 
     expect(response).not.toHaveProperty('ignoredEnvelopeField');
     expect(response.slots[0]).not.toHaveProperty('ignoredSlotField');
-    expect(response.slots[0].widget).not.toHaveProperty('ignoredWidgetField');
-    expect(response.slots[0].widget.props).not.toHaveProperty('ignoredProp');
   });
 
   it('rejects one malformed slot without invalidating valid slots', () => {
     const parsed = parseUiSlotsResponse(
       makeResponse([
-        validBanner,
+        validDiscovery,
         {
-          ...validBanner,
-          slotId: 'predict-home.after-portfolio',
+          ...validDiscovery,
+          slotId: 'wallet-home.unknown',
           contentId: 'unknown-1',
           widget: { type: 'unknown-widget', schemaVersion: 1, props: {} },
         },
@@ -78,32 +79,31 @@ describe('parseUiSlotsResponse', () => {
     );
 
     expect(parsed.response.slots).toHaveLength(1);
-    expect(parsed.rejectedSlotCount).toBe(1);
     expect(parsed.rejections).toEqual([{ index: 1, code: 'unknown-widget' }]);
   });
 
-  it('parses a feature-owned venue-qualified feed reference', () => {
+  it('parses the Predict homepage market slots reference', () => {
     const { response } = parseUiSlotsResponse(
-      makeResponse([validMarketCarousel]),
+      makeResponse([validDiscovery]),
       MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
     );
 
     expect(response.slots[0].dataReferences?.[0]).toEqual(
-      validMarketCarousel.dataReferences[0],
+      validDiscovery.dataReferences[0],
     );
   });
 
-  it('publishes an empty configuration for an unknown feed reference', () => {
+  it('publishes an empty configuration for an unsupported venue', () => {
     const parsed = parseUiSlotsResponse(
       makeResponse([
         {
-          ...validMarketCarousel,
+          ...validDiscovery,
           dataReferences: [
             {
-              ...validMarketCarousel.dataReferences[0],
+              ...validDiscovery.dataReferences[0],
               params: {
-                ...validMarketCarousel.dataReferences[0].params,
-                feedId: 'future-feed',
+                ...validDiscovery.dataReferences[0].params,
+                venue: 'unknown-venue',
               },
             },
           ],
@@ -118,98 +118,77 @@ describe('parseUiSlotsResponse', () => {
     ]);
   });
 
-  it('rejects an unsupported Predict venue with a reason code', () => {
+  it('rejects duplicate data reference IDs', () => {
     const parsed = parseUiSlotsResponse(
       makeResponse([
-        validBanner,
         {
-          ...validMarketCarousel,
+          ...validDiscovery,
           dataReferences: [
-            {
-              ...validMarketCarousel.dataReferences[0],
-              params: {
-                ...validMarketCarousel.dataReferences[0].params,
-                venue: 'unknown-venue',
+            validDiscovery.dataReferences[0],
+            validDiscovery.dataReferences[0],
+          ],
+        },
+      ]),
+      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
+    );
+
+    expect(parsed.response.slots).toEqual([]);
+    expect(parsed.rejections).toEqual([
+      { index: 0, code: 'invalid-data-reference' },
+    ]);
+  });
+
+  it('rejects slots above the data-reference-count bound', () => {
+    const parsed = parseUiSlotsResponse(
+      makeResponse([
+        {
+          ...validDiscovery,
+          dataReferences: Array.from(
+            { length: 11 },
+            () => validDiscovery.dataReferences[0],
+          ),
+        },
+      ]),
+      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
+    );
+
+    expect(parsed.response.slots).toEqual([]);
+    expect(parsed.rejections).toEqual([
+      { index: 0, code: 'invalid-data-reference' },
+    ]);
+  });
+
+  it.each([undefined, true])(
+    'rejects remote actions when required is %s',
+    (required) => {
+      const parsed = parseUiSlotsResponse(
+        makeResponse([
+          {
+            ...validDiscovery,
+            actions: [
+              {
+                actionId: 'future-action',
+                trigger: 'press',
+                params: {},
+                required,
               },
-            },
-          ],
-        },
-      ]),
-      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-    );
+            ],
+          },
+        ]),
+        MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
+      );
 
-    expect(parsed.response.slots).toHaveLength(1);
-    expect(parsed.rejections).toEqual([
-      { index: 1, code: 'invalid-data-reference' },
-    ]);
-  });
-
-  it('removes an unknown optional action without rejecting the slot', () => {
-    const parsed = parseUiSlotsResponse(
-      makeResponse([
-        {
-          ...validBanner,
-          actions: [
-            {
-              actionId: 'future-action',
-              trigger: 'press',
-              params: {},
-            },
-          ],
-        },
-      ]),
-      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-    );
-
-    expect(parsed.response.slots[0].actions).toEqual([]);
-    expect(parsed.rejectedSlotCount).toBe(0);
-  });
-
-  it('publishes an empty configuration for an unknown required action', () => {
-    const parsed = parseUiSlotsResponse(
-      makeResponse([
-        {
-          ...validBanner,
-          actions: [
-            {
-              actionId: 'future-action',
-              trigger: 'press',
-              params: {},
-              required: true,
-            },
-          ],
-        },
-      ]),
-      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-    );
-
-    expect(parsed.response.slots).toEqual([]);
-    expect(parsed.rejections).toEqual([
-      { index: 0, code: 'unknown-required-action' },
-    ]);
-  });
-
-  it('publishes an empty configuration when every slot is incompatible', () => {
-    const parsed = parseUiSlotsResponse(
-      makeResponse([
-        {
-          ...validBanner,
-          widget: { type: 'unknown-widget', schemaVersion: 1, props: {} },
-        },
-      ]),
-      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-    );
-
-    expect(parsed.response.slots).toEqual([]);
-    expect(parsed.rejections).toEqual([{ index: 0, code: 'unknown-widget' }]);
-  });
+      expect(parsed.response.slots).toEqual([]);
+      expect(parsed.rejections).toEqual([{ index: 0, code: 'invalid-action' }]);
+    },
+  );
 
   it.each(['slotId', 'contentId', 'revision'] as const)(
     'rejects the complete response when %s is missing',
     (field) => {
       expect(() =>
         parseUiSlotsResponse(
-          makeResponse([{ ...validBanner, [field]: undefined }]),
+          makeResponse([{ ...validDiscovery, [field]: undefined }]),
           MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
         ),
       ).toThrow('invalid-slot-structure');
@@ -220,10 +199,10 @@ describe('parseUiSlotsResponse', () => {
     expect(() =>
       parseUiSlotsResponse(
         makeResponse([
-          validBanner,
+          validDiscovery,
           {
-            ...validBanner,
-            contentId: 'banner-2',
+            ...validDiscovery,
+            contentId: 'predict-empty-state-2',
             widget: {
               type: 'unknown-widget',
               schemaVersion: 1,
@@ -237,19 +216,19 @@ describe('parseUiSlotsResponse', () => {
   });
 
   it.each([
-    ['slotId', 'predict-home.before-portfolio', 'duplicate-slot-id'],
-    ['contentId', 'banner-1', 'duplicate-content-id'],
+    ['slotId', 'wallet-home.predict-empty-state', 'duplicate-slot-id'],
+    ['contentId', 'predict-empty-state-1', 'duplicate-content-id'],
   ] as const)(
     'rejects duplicate %s values as a structural invariant',
     (field, value, expectedCode) => {
       expect(() =>
         parseUiSlotsResponse(
           makeResponse([
-            validBanner,
+            validDiscovery,
             {
-              ...validBanner,
-              slotId: 'predict-home.after-portfolio',
-              contentId: 'banner-2',
+              ...validDiscovery,
+              slotId: 'wallet-home.other',
+              contentId: 'predict-empty-state-2',
               [field]: value,
             },
           ]),

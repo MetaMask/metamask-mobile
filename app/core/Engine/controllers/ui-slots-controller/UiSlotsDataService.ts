@@ -6,10 +6,10 @@ import {
 } from '@metamask/base-data-service';
 import { handleWhen } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
-import type { Json } from '@metamask/utils';
 import {
   UiSlotsHttpError,
   UiSlotsInvalidResponseError,
+  UiSlotsTimeoutError,
   type FetchUiSlotsScreenRequest,
   type FetchUiSlotsScreenResult,
   type UiSlotsReadTransport,
@@ -40,6 +40,7 @@ export type UiSlotsDataServiceMessenger = Messenger<
 
 export const isRetryableUiSlotsError = (error: unknown): boolean =>
   error instanceof UiSlotsInvalidResponseError ||
+  error instanceof UiSlotsTimeoutError ||
   (error instanceof UiSlotsHttpError
     ? error.status === 429 || error.status >= 500
     : error instanceof TypeError);
@@ -86,7 +87,7 @@ export class UiSlotsDataService extends BaseDataService<
         this.#transport.fetchScreen({
           ...request,
           signal,
-        }) as Promise<Json & FetchUiSlotsScreenResult>,
+        }),
     });
   }
 }

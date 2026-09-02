@@ -1,6 +1,5 @@
 import {
   array,
-  boolean,
   integer,
   literal,
   mask,
@@ -9,8 +8,11 @@ import {
   string,
   unknown,
 } from '@metamask/superstruct';
-import type { UiSlot, UiSlotAction, UiSlotsScreenResponse } from '../types';
+import type { UiSlot, UiSlotsScreenResponse } from '../types';
 import type { UiSlotsContractRegistry } from './registry';
+
+const MAX_SLOTS_PER_RESPONSE = 20;
+const MAX_DATA_REFERENCES_PER_SLOT = 10;
 
 export type UiSlotsRejectionCode =
   | 'invalid-action'
@@ -18,7 +20,6 @@ export type UiSlotsRejectionCode =
   | 'invalid-slot'
   | 'invalid-widget'
   | 'unknown-data-reference'
-  | 'unknown-required-action'
   | 'unknown-widget';
 
 export interface UiSlotsRejection {
@@ -111,37 +112,6 @@ function parseWidget(value: unknown, registry: UiSlotsContractRegistry) {
   }
 }
 
-function parseAction(
-  value: unknown,
-  registry: UiSlotsContractRegistry,
-): UiSlotAction | undefined {
-  let base: { actionId: string; required?: boolean };
-  try {
-    base = mask(
-      value,
-      object({
-        actionId: string(),
-        required: optional(boolean()),
-      }),
-    );
-  } catch {
-    throw new UiSlotsContractError('invalid-action');
-  }
-
-  const parser = registry.actions[base.actionId];
-  if (parser) {
-    try {
-      return parser(value);
-    } catch {
-      throw new UiSlotsContractError('invalid-action');
-    }
-  }
-  if (base.required) {
-    throw new UiSlotsContractError('unknown-required-action');
-  }
-  return undefined;
-}
-
 function parseDataReference(value: unknown, registry: UiSlotsContractRegistry) {
   let base: { type: string };
   try {
@@ -168,6 +138,26 @@ function parseUiSlot(
   base: ReturnType<typeof parseSlotBase>,
   registry: UiSlotsContractRegistry,
 ): UiSlot {
+  if (base.actions?.length) {
+    throw new UiSlotsContractError('invalid-action');
+  }
+  if (
+    base.dataReferences &&
+    base.dataReferences.length > MAX_DATA_REFERENCES_PER_SLOT
+  ) {
+    throw new UiSlotsContractError('invalid-data-reference');
+  }
+  const dataReferences = base.dataReferences?.map((reference) =>
+    parseDataReference(reference, registry),
+  );
+  if (
+    dataReferences &&
+    new Set(dataReferences.map((reference) => reference.id)).size !==
+      dataReferences.length
+  ) {
+    throw new UiSlotsContractError('invalid-data-reference');
+  }
+
   return {
     slotId: base.slotId,
     contentId: base.contentId,
@@ -175,12 +165,7 @@ function parseUiSlot(
     compatibility: base.compatibility,
     validity: base.validity,
     widget: parseWidget(base.widget, registry),
-    actions: base.actions
-      ?.map((action) => parseAction(action, registry))
-      .filter((action): action is UiSlotAction => action !== undefined),
-    dataReferences: base.dataReferences?.map((reference) =>
-      parseDataReference(reference, registry),
-    ),
+    dataReferences,
   };
 }
 
@@ -193,6 +178,9 @@ export function parseUiSlotsResponse(
   rejections: UiSlotsRejection[];
 } {
   const envelope = mask(value, envelopeSchema);
+  if (envelope.slots.length > MAX_SLOTS_PER_RESPONSE) {
+    throw new UiSlotsResponseValidationError('invalid-slot-structure');
+  }
   const slots: UiSlot[] = [];
   const rejections: UiSlotsRejection[] = [];
   const candidates = envelope.slots.map((candidate, index) => {

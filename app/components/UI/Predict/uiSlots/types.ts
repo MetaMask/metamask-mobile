@@ -1,29 +1,41 @@
 import type { UiSlotDataReference } from '../../../../core/Engine/controllers/ui-slots-controller/types';
-import type { PredictFeedReference } from '../types/references';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type PredictMarketCarouselWidget = {
-  type: 'market-carousel';
+export type PredictDiscoveryListWidget = {
+  type: 'predict-discovery-list';
   schemaVersion: 1;
-  props: {
-    title?: string;
+  props: Record<string, never>;
+};
+
+export type PredictHomepageMarketSlotReferenceItem =
+  | { type: 'event'; id: string; slug: string }
+  | { type: 'series'; seriesId: 'btc-up-or-down-5m' };
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictHomepageMarketSlotReference = {
+  id: 'markets';
+  type: 'predict-homepage-market-slots';
+  params: {
+    venue: 'polymarket';
+    items: PredictHomepageMarketSlotReferenceItem[];
   };
 };
 
 declare module '../../../../core/Engine/controllers/ui-slots-controller/types' {
   interface UiSlotsScreenIdMap {
-    'predict-home': 'predict-home';
+    'wallet-home': 'wallet-home';
   }
 
   interface UiSlotWidgetMap {
-    'market-carousel': PredictMarketCarouselWidget;
+    'predict-discovery-list': PredictDiscoveryListWidget;
   }
 
   interface UiSlotDataReferenceMap {
-    'predict-feed': PredictFeedReference;
+    'predict-homepage-market-slots': PredictHomepageMarketSlotReference;
   }
 }
 
-export const isPredictFeedReference = (
+export const isPredictHomepageMarketSlotReference = (
   reference: UiSlotDataReference,
-): reference is PredictFeedReference => reference.type === 'predict-feed';
+): reference is PredictHomepageMarketSlotReference =>
+  reference.type === 'predict-homepage-market-slots';

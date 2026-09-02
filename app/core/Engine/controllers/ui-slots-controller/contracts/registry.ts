@@ -1,8 +1,7 @@
-import type { UiSlotAction, UiSlotDataReference, UiSlotWidget } from '../types';
+import type { UiSlotDataReference, UiSlotWidget } from '../types';
 
 export interface UiSlotsContractRegistry {
   widgets: Record<string, (value: unknown) => UiSlotWidget>;
-  actions: Record<string, (value: unknown) => UiSlotAction>;
   dataReferences: Record<string, (value: unknown) => UiSlotDataReference>;
 }
 
@@ -15,7 +14,6 @@ export function composeUiSlotsContractRegistry(
 ): UiSlotsContractRegistry {
   const result: UiSlotsContractRegistry = {
     widgets: {},
-    actions: {},
     dataReferences: {},
   };
 

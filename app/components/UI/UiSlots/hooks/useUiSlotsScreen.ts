@@ -1,8 +1,8 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import I18n from '../../../../../locales/i18n';
+import I18n, { I18nEvents } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import type { UiSlotsScreenId } from '../../../../core/Engine/controllers/ui-slots-controller/types';
 import { selectBasicFunctionalityEnabledForRemoteFlags } from '../../../../selectors/featureFlagController';
@@ -13,9 +13,32 @@ const MINIMUM_RETRY_DELAY_MS = 60 * 1000;
 const isAppActive = () =>
   AppState.currentState !== 'background' &&
   AppState.currentState !== 'inactive';
+const subscribeToLocale = (onLocaleChanged: () => void) => {
+  I18nEvents.addListener('localeChanged', onLocaleChanged);
+  return () => I18nEvents.removeListener('localeChanged', onLocaleChanged);
+};
+const getLocaleSnapshot = () => I18n.locale;
 
-export function useUiSlotsScreen(screenId: UiSlotsScreenId): void {
-  const locale = I18n.locale;
+export const normalizeUiSlotsLocale = (locale: string): string => {
+  const [language, ...subtags] = locale.replace(/_/gu, '-').split('-');
+  return [
+    (language || 'en').toLowerCase(),
+    ...subtags.map((subtag) =>
+      /^[a-z]{2}$/iu.test(subtag) ? subtag.toUpperCase() : subtag,
+    ),
+  ].join('-');
+};
+
+export function useUiSlotsScreen(
+  screenId: UiSlotsScreenId,
+  active = true,
+): void {
+  const selectedLocale = useSyncExternalStore(
+    subscribeToLocale,
+    getLocaleSnapshot,
+    getLocaleSnapshot,
+  );
+  const locale = normalizeUiSlotsLocale(selectedLocale);
   const enabled = useSelector(selectUiSlotsEnabled);
   const basicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabledForRemoteFlags,
@@ -29,7 +52,7 @@ export function useUiSlotsScreen(screenId: UiSlotsScreenId): void {
 
   useFocusEffect(
     useCallback(() => {
-      if (!enabled || !basicFunctionalityEnabled) {
+      if (!active || !enabled || !basicFunctionalityEnabled) {
         return undefined;
       }
 
@@ -75,7 +98,10 @@ export function useUiSlotsScreen(screenId: UiSlotsScreenId): void {
           );
         if (nextBoundaryAt !== undefined) {
           boundaryTimer = setTimeout(
-            () => loadAndSchedule().catch(Logger.error),
+            () => {
+              Engine.context.UiSlotsController.evaluateScreen(screenId, locale);
+              scheduleTimers();
+            },
             Math.max(0, nextBoundaryAt - Date.now()),
           );
         }
@@ -89,7 +115,6 @@ export function useUiSlotsScreen(screenId: UiSlotsScreenId): void {
           return;
         }
 
-        Engine.context.UiSlotsController.evaluateScreen(screenId, locale);
         scheduleTimers();
 
         try {
@@ -127,6 +152,6 @@ export function useUiSlotsScreen(screenId: UiSlotsScreenId): void {
         clearTimers();
         appStateSubscription.remove();
       };
-    }, [basicFunctionalityEnabled, enabled, locale, screenId]),
+    }, [active, basicFunctionalityEnabled, enabled, locale, screenId]),
   );
 }

@@ -9,10 +9,12 @@ export function UiSlotRenderer({
   screenId,
   slotId,
   fallback = null,
+  fallbackOnEmpty = false,
 }: {
   screenId: UiSlotsScreenId;
   slotId: string;
   fallback?: ReactNode;
+  fallbackOnEmpty?: boolean;
 }) {
   const selector = useMemo(
     () => makeSelectUiSlotResolution(screenId, slotId),
@@ -24,7 +26,7 @@ export function UiSlotRenderer({
     return fallback;
   }
   if (resolution.status === 'empty') {
-    return null;
+    return fallbackOnEmpty ? fallback : null;
   }
   const { slot } = resolution;
 

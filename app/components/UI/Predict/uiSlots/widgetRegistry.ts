@@ -1,6 +1,6 @@
 import type { UiSlotWidgetRegistry } from '../../UiSlots/widgets/widgetRegistry';
-import { MarketCarouselWidget } from './widgets/MarketCarouselWidget';
+import { PredictDiscoveryListWidget } from './widgets/PredictDiscoveryListWidget';
 
 export const PREDICT_UI_SLOT_WIDGET_REGISTRY = {
-  'market-carousel': MarketCarouselWidget,
+  'predict-discovery-list': PredictDiscoveryListWidget,
 } satisfies UiSlotWidgetRegistry;

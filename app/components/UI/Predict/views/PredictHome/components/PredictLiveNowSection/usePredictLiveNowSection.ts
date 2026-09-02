@@ -13,10 +13,6 @@ import {
 } from '../../../../selectors/featureFlags';
 import type { PredictMarket, PredictMarketListParams } from '../../../../types';
 import type { PredictFeedCarouselConfig } from '../../../../types/flags';
-import type {
-  PredictFeedId,
-  PredictFeedReference,
-} from '../../../../types/references';
 import { isCryptoUpDown } from '../../../../utils/cryptoUpDown';
 import { interleaveLiveNowMarkets } from './liveNowInterleave';
 import { applySeriesPriorityOrder } from './liveNowPriorityOrder';
@@ -40,24 +36,6 @@ export const LIVE_NOW_LIVE_LIMIT = 7;
 /** Max cards displayed when the carousel uses a custom content source. */
 export const CUSTOM_FEED_CAROUSEL_LIMIT = 10;
 
-const PREDICT_FEED_CONTENT_SOURCES = {
-  'live-now': {
-    composition: 'live-now',
-    queryParams: '',
-    excludedMarketIds: [],
-  },
-  'popular-open': {
-    composition: 'query-results',
-    queryParams: '',
-    excludedMarketIds: [],
-  },
-  'tennis-open': {
-    composition: 'query-results',
-    queryParams: 'tag_slug=tennis',
-    excludedMarketIds: [],
-  },
-} satisfies Record<PredictFeedId, PredictFeedCarouselConfig['contentSource']>;
-
 const excludeMarkets = (
   markets: PredictMarket[],
   excludedMarketIds: ReadonlySet<string>,
@@ -74,17 +52,6 @@ export interface UsePredictLiveNowSectionResult {
   /** Validated remote configuration used by the section header and query. */
   config: PredictFeedCarouselConfig;
 }
-
-export const resolvePredictFeedReference = (
-  reference: PredictFeedReference,
-  title?: string,
-): PredictFeedCarouselConfig => ({
-  enabled: true,
-  minimumVersion: '0.0.0',
-  mode: 'custom',
-  title,
-  contentSource: PREDICT_FEED_CONTENT_SOURCES[reference.params.feedId],
-});
 
 /**
  * Data source for the configurable Predict home feed carousel.
@@ -112,21 +79,9 @@ export const resolvePredictFeedReference = (
  * throwing, so a failed fetch collapses to the empty (hidden) state and never
  * blocks the home screen.
  */
-export const usePredictLiveNowSection = (
-  configOverride?: PredictFeedCarouselConfig,
-  feedReferenceOverride?: PredictFeedReference,
-  titleOverride?: string,
-): UsePredictLiveNowSectionResult => {
+export const usePredictLiveNowSection = (): UsePredictLiveNowSectionResult => {
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const remoteConfig = useSelector(selectPredictFeedCarouselConfig);
-  const referencedConfig = useMemo(
-    () =>
-      feedReferenceOverride
-        ? resolvePredictFeedReference(feedReferenceOverride, titleOverride)
-        : undefined,
-    [feedReferenceOverride, titleOverride],
-  );
-  const config = referencedConfig ?? configOverride ?? remoteConfig;
+  const config = useSelector(selectPredictFeedCarouselConfig);
   const isCustom = config.mode === 'custom';
   const usesLiveNowComposition =
     !isCustom || config.contentSource.composition === 'live-now';

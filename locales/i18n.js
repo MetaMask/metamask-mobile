@@ -144,6 +144,7 @@ async function getUserPreferableLocale() {
   const locale = await StorageWrapper.getItem(LANGUAGE);
   if (locale) {
     I18n.locale = locale;
+    I18nEvents.emit('localeChanged', locale);
   }
 }
 

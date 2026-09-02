@@ -41,6 +41,7 @@ import {
   HOMEPAGE_EARN_SECTION_VARIANTS,
 } from './abTestConfig';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
+import { useUiSlotsScreen } from '../../UI/UiSlots/hooks/useUiSlotsScreen';
 
 /**
  * Homepage component - Main view for the redesigned wallet homepage.
@@ -65,6 +66,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+    useUiSlotsScreen('wallet-home', isPredictEnabled);
     const isDeFiV1Enabled = useSelector(selectDeFiPositionsSectionEnabled);
     const isDeFiV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);
     const isDeFiEnabled = isDeFiV1Enabled || isDeFiV2Enabled;

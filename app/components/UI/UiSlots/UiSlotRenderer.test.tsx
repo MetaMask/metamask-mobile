@@ -6,56 +6,60 @@ import renderWithProvider, {
 import type { RootState } from '../../../reducers';
 import { UiSlotRenderer } from './UiSlotRenderer';
 
-jest.mock('./mobileActionRegistry', () => ({
-  executeUiSlotAction: jest.fn(),
-}));
+const mockPredictDiscoveryListWidget = jest.fn(() => (
+  <Text>Remote discovery</Text>
+));
 
-const mockMarketCarouselWidget = jest.fn(() => null);
-
-jest.mock('../Predict/uiSlots/widgets/MarketCarouselWidget', () => ({
-  MarketCarouselWidget: () => mockMarketCarouselWidget(),
+jest.mock('../Predict/uiSlots/widgets/PredictDiscoveryListWidget', () => ({
+  PredictDiscoveryListWidget: () => mockPredictDiscoveryListWidget(),
 }));
 jest.mock('../../../util/Logger');
 
-const createState = (
-  widgetType = 'alert-banner',
+const createState = ({
   hasActiveConfiguration = true,
-): DeepPartial<RootState> => ({
+  widgetType = 'predict-discovery-list',
+}: {
+  hasActiveConfiguration?: boolean;
+  widgetType?: string;
+} = {}): DeepPartial<RootState> => ({
   engine: {
     backgroundState: {
       UiSlotsController: {
         enabled: true,
         screenConfigurations: {},
-        requestStatus: { 'predict-home': 'ready' },
-        dismissedContentIds: {},
+        requestStatus: { 'wallet-home': 'ready' },
         activeConfigurationKeys: hasActiveConfiguration
-          ? { 'predict-home': 'predict-home-key' }
+          ? { 'wallet-home': 'wallet-home-key' }
           : {},
         renderedConfigurations: hasActiveConfiguration
           ? {
-              'predict-home-key': {
-                slotIds: ['predict-home.before-portfolio'],
+              'wallet-home-key': {
+                slotIds: ['wallet-home.predict-empty-state'],
                 slotsById: {
-                  'predict-home.before-portfolio': {
-                    slotId: 'predict-home.before-portfolio',
-                    contentId: 'banner-1',
+                  'wallet-home.predict-empty-state': {
+                    slotId: 'wallet-home.predict-empty-state',
+                    contentId: 'predict-empty-state-1',
                     revision: 1,
-                    widget:
-                      widgetType === 'alert-banner'
-                        ? {
-                            type: 'alert-banner',
-                            schemaVersion: 1,
-                            props: {
-                              tone: 'info',
-                              title: 'UI Slots title',
-                              description: 'UI Slots description',
+                    widget: {
+                      type: widgetType,
+                      schemaVersion: 1,
+                      props: {},
+                    } as never,
+                    dataReferences: [
+                      {
+                        id: 'markets',
+                        type: 'predict-homepage-market-slots',
+                        params: {
+                          venue: 'polymarket',
+                          items: [
+                            {
+                              type: 'series',
+                              seriesId: 'btc-up-or-down-5m',
                             },
-                          }
-                        : ({
-                            type: widgetType,
-                            schemaVersion: 1,
-                            props: {},
-                          } as never),
+                          ],
+                        },
+                      },
+                    ],
                   },
                 },
               },
@@ -67,51 +71,71 @@ const createState = (
 });
 
 describe('UiSlotRenderer', () => {
-  it('renders the registered widget selected by slot ID', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPredictDiscoveryListWidget.mockImplementation(() => (
+      <Text>Remote discovery</Text>
+    ));
+  });
+
+  it('renders the registered Wallet Predict widget', () => {
     const { getByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.before-portfolio"
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
       />,
       { state: createState() },
     );
 
-    expect(getByText('UI Slots title')).toBeOnTheScreen();
-    expect(getByText('UI Slots description')).toBeOnTheScreen();
+    expect(getByText('Remote discovery')).toBeOnTheScreen();
   });
 
   it('renders fallback when no compatible configuration is active', () => {
     const { getByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.missing"
-        fallback={<Text>Legacy content</Text>}
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
+        fallback={<Text>Bundled discovery</Text>}
       />,
-      { state: createState('alert-banner', false) },
+      { state: createState({ hasActiveConfiguration: false }) },
     );
 
-    expect(getByText('Legacy content')).toBeOnTheScreen();
+    expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
 
   it('renders nothing when the active configuration leaves a slot empty', () => {
     const { queryByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.missing"
-        fallback={<Text>Legacy content</Text>}
+        screenId="wallet-home"
+        slotId="wallet-home.missing"
+        fallback={<Text>Bundled discovery</Text>}
       />,
       { state: createState() },
     );
 
-    expect(queryByText('Legacy content')).toBeNull();
+    expect(queryByText('Bundled discovery')).toBeNull();
+  });
+
+  it('renders fallback for an empty resolution when requested by the host', () => {
+    const { getByText } = renderWithProvider(
+      <UiSlotRenderer
+        screenId="wallet-home"
+        slotId="wallet-home.missing"
+        fallback={<Text>Bundled discovery</Text>}
+        fallbackOnEmpty
+      />,
+      { state: createState() },
+    );
+
+    expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
 
   it('renders fallback immediately when basic functionality is disabled', () => {
     const { getByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.before-portfolio"
-        fallback={<Text>Legacy content</Text>}
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
+        fallback={<Text>Bundled discovery</Text>}
       />,
       {
         state: {
@@ -121,37 +145,37 @@ describe('UiSlotRenderer', () => {
       },
     );
 
-    expect(getByText('Legacy content')).toBeOnTheScreen();
+    expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
 
   it('renders fallback for an unregistered widget type', () => {
     const { getByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.before-portfolio"
-        fallback={<Text>Safe fallback</Text>}
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
+        fallback={<Text>Bundled discovery</Text>}
       />,
-      { state: createState('future-widget') },
+      { state: createState({ widgetType: 'future-widget' }) },
     );
 
-    expect(getByText('Safe fallback')).toBeOnTheScreen();
+    expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
 
   it('isolates widget render failures and renders fallback', () => {
-    mockMarketCarouselWidget.mockImplementation(() => {
+    mockPredictDiscoveryListWidget.mockImplementation(() => {
       throw new Error('Widget failed');
     });
 
     const { getByText } = renderWithProvider(
       <UiSlotRenderer
-        screenId="predict-home"
-        slotId="predict-home.before-portfolio"
-        fallback={<Text>Safe fallback</Text>}
+        screenId="wallet-home"
+        slotId="wallet-home.predict-empty-state"
+        fallback={<Text>Bundled discovery</Text>}
       />,
-      { state: createState('market-carousel') },
+      { state: createState() },
     );
 
-    expect(mockMarketCarouselWidget).toHaveBeenCalled();
-    expect(getByText('Safe fallback')).toBeOnTheScreen();
+    expect(mockPredictDiscoveryListWidget).toHaveBeenCalled();
+    expect(getByText('Bundled discovery')).toBeOnTheScreen();
   });
 });

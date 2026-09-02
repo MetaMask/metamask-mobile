@@ -1,5 +1,5 @@
-import defaultPredictHomeFixture from './screens/predict-home.json';
-import dismissibleBannerFixture from './screens/predict-home.dismissible-banner.json';
+import walletHomeFixture from './screens/wallet-home.json';
+import type { Json } from '@metamask/utils';
 import {
   UiSlotsHttpError,
   type FetchUiSlotsScreenRequest,
@@ -47,19 +47,15 @@ export class UiSlotsMockTransport implements UiSlotsReadTransport {
         break;
     }
 
-    if (screenId !== 'predict-home') {
+    if (screenId !== 'wallet-home') {
       throw new UiSlotsHttpError(404);
     }
 
-    const fixture =
-      process.env.MM_UI_SLOTS_MOCK_FIXTURE === 'dismissible-banner'
-        ? dismissibleBannerFixture
-        : defaultPredictHomeFixture;
     const localizedFixture = {
-      ...fixture,
+      ...walletHomeFixture,
       locale,
     };
-    const currentEtag = `"${fixture.configurationVersion}"`;
+    const currentEtag = `"${walletHomeFixture.configurationVersion}"`;
 
     if (etag === currentEtag) {
       return {
@@ -71,7 +67,7 @@ export class UiSlotsMockTransport implements UiSlotsReadTransport {
     return {
       status: 'modified',
       etag: currentEtag,
-      value: localizedFixture,
+      value: localizedFixture as unknown as Json,
     };
   }
 }

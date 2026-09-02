@@ -13,7 +13,6 @@ import {
   PredictFeedBannerSeverity,
 } from '../../constants/feedBanner';
 import { PredictFeedBannerSelectorsIDs } from './PredictFeedBanner.testIds';
-import { UiSlotRenderer } from '../../../UiSlots/UiSlotRenderer';
 
 const DISMISSAL_KEY_PREFIX = 'predict-feed-banner:';
 
@@ -23,18 +22,6 @@ const BANNER_ALERT_SEVERITY = {
   [PredictFeedBannerSeverity.Success]: BannerAlertSeverity.Success,
   [PredictFeedBannerSeverity.Warning]: BannerAlertSeverity.Warning,
   [PredictFeedBannerSeverity.Danger]: BannerAlertSeverity.Danger,
-};
-
-const UI_SLOT_BY_BANNER_POSITION: Partial<
-  Record<PredictFeedBannerPosition, string>
-> = {
-  [PredictFeedBannerPosition.BeforePortfolio]: 'predict-home.before-portfolio',
-  [PredictFeedBannerPosition.AfterPortfolio]: 'predict-home.after-portfolio',
-  [PredictFeedBannerPosition.AfterLiveNow]: 'predict-home.after-live-now',
-  [PredictFeedBannerPosition.AfterCategories]: 'predict-home.after-categories',
-  [PredictFeedBannerPosition.AfterPopularToday]:
-    'predict-home.after-popular-today',
-  [PredictFeedBannerPosition.AfterTrending]: 'predict-home.after-trending',
 };
 
 export const getPredictFeedBannerDismissalKey = (messageId: string) =>
@@ -54,16 +41,19 @@ const PredictFeedBanner: React.FC<PredictFeedBannerProps> = ({
   const dismissedBanners = useSelector(selectDismissedBanners);
   const dismissalKey = getPredictFeedBannerDismissalKey(config.id);
 
-  const shouldHideLegacy =
+  if (
     !config.enabled ||
     config.position !== position ||
-    dismissedBanners.includes(dismissalKey);
+    dismissedBanners.includes(dismissalKey)
+  ) {
+    return null;
+  }
 
   const handleDismiss = config.dismissible
     ? () => dispatch(dismissBanner(dismissalKey))
     : undefined;
 
-  const legacyBanner = shouldHideLegacy ? null : (
+  return (
     <Box twClassName={containerClassName}>
       <BannerAlert
         severity={BANNER_ALERT_SEVERITY[config.severity]}
@@ -76,19 +66,6 @@ const PredictFeedBanner: React.FC<PredictFeedBannerProps> = ({
         testID={PredictFeedBannerSelectorsIDs.BANNER}
       />
     </Box>
-  );
-
-  const slotId = UI_SLOT_BY_BANNER_POSITION[position];
-  if (!slotId) {
-    return legacyBanner;
-  }
-
-  return (
-    <UiSlotRenderer
-      screenId="predict-home"
-      slotId={slotId}
-      fallback={legacyBanner}
-    />
   );
 };
 

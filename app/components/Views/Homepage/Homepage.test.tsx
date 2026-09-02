@@ -196,6 +196,14 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   })),
 }));
 
+jest.mock('../../UI/UiSlots/hooks/useUiSlotsScreen', () => ({
+  useUiSlotsScreen: jest.fn(),
+}));
+
+jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({
+  UiSlotRenderer: ({ fallback }: { fallback: React.ReactNode }) => fallback,
+}));
+
 jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
@@ -438,6 +446,15 @@ describe('Homepage', () => {
       return defaultUseABTestImplementation(key);
     });
   };
+
+  it('loads the Wallet UI Slots assignment', () => {
+    renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+    const { useUiSlotsScreen } = jest.requireMock(
+      '../../UI/UiSlots/hooks/useUiSlotsScreen',
+    ) as { useUiSlotsScreen: jest.Mock };
+    expect(useUiSlotsScreen).toHaveBeenCalledWith('wallet-home', true);
+  });
 
   it('uses one enabled Perps connection provider for the homepage', () => {
     renderWithProvider(<Homepage />, { state: stateWithPreferences });

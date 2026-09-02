@@ -6,7 +6,6 @@ export type UiSlotsInterpretationRejectionCode =
   | 'missing-required-data-reference'
   | 'unknown-slot'
   | 'unsupported-data-reference'
-  | 'unsupported-required-action'
   | 'unsupported-widget';
 
 export interface UiSlotsInterpretationRejection {
@@ -42,14 +41,6 @@ export function interpretScreenConfiguration(
       continue;
     }
 
-    const unsupportedActions = (slot.actions ?? []).filter(
-      (action) => !definition.actionIds.includes(action.actionId),
-    );
-    if (unsupportedActions.some((action) => action.required)) {
-      reject('unsupported-required-action');
-      continue;
-    }
-
     if (
       !(slot.dataReferences ?? []).every((reference) =>
         definition.dataReferenceTypes.includes(reference.type),
@@ -70,34 +61,23 @@ export function interpretScreenConfiguration(
       continue;
     }
 
-    slots.push({
-      ...slot,
-      actions: (slot.actions ?? []).filter((action) =>
-        definition.actionIds.includes(action.actionId),
-      ),
-    });
+    slots.push(slot);
   }
   return { slots, rejections };
 }
 
 export function applyUiSlotsClientRules({
   slots,
-  dismissedContentIds,
   clientVersion,
   platform,
   now = Date.now(),
 }: {
   slots: UiSlot[];
-  dismissedContentIds: Record<string, number>;
   clientVersion: string;
   platform: UiSlotsPlatform;
   now?: number;
 }): UiSlot[] {
   return slots.filter((slot) => {
-    if (dismissedContentIds[slot.contentId]) {
-      return false;
-    }
-
     const minimumVersion = slot.compatibility?.[platform]?.minimumVersion;
     if (
       minimumVersion &&

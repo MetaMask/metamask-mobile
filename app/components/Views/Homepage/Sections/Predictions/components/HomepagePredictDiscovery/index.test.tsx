@@ -11,6 +11,7 @@ import {
 } from '../../../../abTestConfig';
 import {
   HOMEPAGE_PREDICT_EVENT_SLOTS,
+  HOMEPAGE_PREDICT_MARKET_SLOTS,
   HOMEPAGE_PREDICT_SERIES_SLOT,
 } from '../../constants/homepagePredictMarketSlots';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
@@ -52,7 +53,9 @@ jest.mock('../../../../../../UI/Predict/hooks/usePredictNavigation', () => ({
 }));
 
 interface MockBtcLiveRowProps {
+  series: typeof HOMEPAGE_PREDICT_SERIES_SLOT.series;
   onPress: (
+    series: typeof HOMEPAGE_PREDICT_SERIES_SLOT.series,
     marketId: string | undefined,
     market: PredictMarket | undefined,
   ) => void;
@@ -117,6 +120,7 @@ const defaultProps: HomepagePredictDiscoveryProps = {
   title: 'Predictions',
   onViewAll: jest.fn(),
   headerTestIdKey: 'predictions',
+  slots: HOMEPAGE_PREDICT_MARKET_SLOTS,
   marketSlots: createMarketSlots(),
 };
 
@@ -186,6 +190,22 @@ describe('HomepagePredictDiscovery', () => {
         'homepage-predict-discovery-market-slot-3',
       ]);
       expect(mockBtcLiveRow).toHaveBeenCalledTimes(1);
+      expect(getBtcLiveRowProps().series).toBe(
+        HOMEPAGE_PREDICT_SERIES_SLOT.series,
+      );
+    });
+
+    it('renders a supplied series-event layout in exact order', () => {
+      renderComponent({
+        slots: [HOMEPAGE_PREDICT_SERIES_SLOT, HOMEPAGE_PREDICT_MARKET_SLOTS[0]],
+      });
+
+      expect(mockBtcLiveRow.mock.invocationCallOrder[0]).toBeLessThan(
+        mockChampionshipRow.mock.invocationCallOrder[0],
+      );
+      expect(getChampionshipRowProps()[0].testID).toBe(
+        'homepage-predict-discovery-market-slot-2',
+      );
     });
 
     it('rejects a market whose slug does not match its configured slot', () => {
@@ -223,7 +243,11 @@ describe('HomepagePredictDiscovery', () => {
       });
       renderComponent({ transactionActiveAbTests });
 
-      getBtcLiveRowProps().onPress(market.id, market);
+      getBtcLiveRowProps().onPress(
+        HOMEPAGE_PREDICT_SERIES_SLOT.series,
+        market.id,
+        market,
+      );
 
       expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
         {
@@ -240,7 +264,11 @@ describe('HomepagePredictDiscovery', () => {
     it('uses the configured series title when BTC market data is missing', () => {
       renderComponent();
 
-      getBtcLiveRowProps().onPress('btc-market', undefined);
+      getBtcLiveRowProps().onPress(
+        HOMEPAGE_PREDICT_SERIES_SLOT.series,
+        'btc-market',
+        undefined,
+      );
 
       expect(mockNavigateToMarketDetails).toHaveBeenCalledWith(
         {
@@ -256,7 +284,11 @@ describe('HomepagePredictDiscovery', () => {
     it('opens the crypto market list when no BTC market is available', () => {
       renderComponent({ transactionActiveAbTests });
 
-      getBtcLiveRowProps().onPress(undefined, undefined);
+      getBtcLiveRowProps().onPress(
+        HOMEPAGE_PREDICT_SERIES_SLOT.series,
+        undefined,
+        undefined,
+      );
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.MARKET_LIST,
@@ -275,7 +307,11 @@ describe('HomepagePredictDiscovery', () => {
       >();
       renderComponent({ onTreatmentCtaClick });
 
-      getBtcLiveRowProps().onPress(undefined, undefined);
+      getBtcLiveRowProps().onPress(
+        HOMEPAGE_PREDICT_SERIES_SLOT.series,
+        undefined,
+        undefined,
+      );
 
       expect(onTreatmentCtaClick).toHaveBeenCalledWith(
         PREDICT_EMPTY_STATE_CTA_NAMES.BROWSE_CATEGORY,

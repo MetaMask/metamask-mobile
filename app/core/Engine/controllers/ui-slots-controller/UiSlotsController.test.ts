@@ -19,7 +19,7 @@ const buildConfigurationKey = ({
   screenId,
   locale,
 }: {
-  screenId: 'predict-home';
+  screenId: 'wallet-home';
   locale: string;
 }) =>
   buildUiSlotsConfigurationKey({
@@ -33,28 +33,27 @@ const buildConfigurationKey = ({
 const makeResponse = (overrides: Record<string, unknown> = {}) => ({
   contractVersion: 1,
   configurationVersion: 'config-1',
-  screenId: 'predict-home',
+  screenId: 'wallet-home',
   locale: 'en',
   publishedAt: '2026-08-13T10:00:00.000Z',
   slots: [
     {
-      slotId: 'predict-home.before-portfolio',
-      contentId: 'banner-1',
+      slotId: 'wallet-home.predict-empty-state',
+      contentId: 'predict-empty-state-1',
       revision: 1,
       widget: {
-        type: 'alert-banner',
+        type: 'predict-discovery-list',
         schemaVersion: 1,
-        props: {
-          tone: 'info',
-          title: 'Title',
-          description: 'Description',
-        },
+        props: {},
       },
-      actions: [
+      dataReferences: [
         {
-          actionId: 'dismiss',
-          trigger: 'close',
-          params: { scope: 'content' },
+          id: 'markets',
+          type: 'predict-homepage-market-slots',
+          params: {
+            venue: 'polymarket',
+            items: [{ type: 'series', seriesId: 'btc-up-or-down-5m' }],
+          },
         },
       ],
     },
@@ -92,7 +91,7 @@ const controllerOptions = {
 };
 
 function getRenderedSlots(controller: UiSlotsController) {
-  const key = controller.state.activeConfigurationKeys['predict-home'];
+  const key = controller.state.activeConfigurationKeys['wallet-home'];
   return key
     ? Object.values(controller.state.renderedConfigurations[key].slotsById)
     : [];
@@ -112,12 +111,12 @@ describe('UiSlotsController', () => {
       ...controllerOptions,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['predict-home']).toBe('ready');
+    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
     expect(getRenderedSlots(controller)).toHaveLength(1);
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     expect(controller.state.screenConfigurations[configurationKey]?.etag).toBe(
@@ -136,8 +135,8 @@ describe('UiSlotsController', () => {
       ...controllerOptions,
     });
 
-    const first = controller.loadScreen('predict-home', 'en');
-    const second = controller.loadScreen('predict-home', 'en');
+    const first = controller.loadScreen('wallet-home', 'en');
+    const second = controller.loadScreen('wallet-home', 'en');
     resolveRequest?.({
       status: 'modified',
       value: makeResponse(),
@@ -155,11 +154,11 @@ describe('UiSlotsController', () => {
       messenger: buildMessenger(call),
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(call).not.toHaveBeenCalled();
     expect(controller.state.activeConfigurationKeys).toEqual({});
-    expect(controller.state.requestStatus['predict-home']).toBe('idle');
+    expect(controller.state.requestStatus['wallet-home']).toBe('idle');
   });
 
   it('immediately removes active content when dynamically disabled', async () => {
@@ -172,7 +171,7 @@ describe('UiSlotsController', () => {
         }),
       ),
     });
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     controller.setEnabled(false);
 
@@ -191,7 +190,7 @@ describe('UiSlotsController', () => {
         }),
       ),
     });
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     controller.setBasicFunctionalityEnabled(false);
     controller.setEnabled(true);
@@ -213,8 +212,8 @@ describe('UiSlotsController', () => {
       messenger: buildMessenger(call),
     });
 
-    const englishRequest = controller.loadScreen('predict-home', 'en');
-    const frenchRequest = controller.loadScreen('predict-home', 'fr');
+    const englishRequest = controller.loadScreen('wallet-home', 'en');
+    const frenchRequest = controller.loadScreen('wallet-home', 'fr');
     resolvers.get('fr')?.({
       status: 'modified',
       value: makeResponse({ locale: 'fr' }),
@@ -226,9 +225,9 @@ describe('UiSlotsController', () => {
     });
     await englishRequest;
 
-    expect(controller.state.activeConfigurationKeys['predict-home']).toBe(
+    expect(controller.state.activeConfigurationKeys['wallet-home']).toBe(
       buildConfigurationKey({
-        screenId: 'predict-home',
+        screenId: 'wallet-home',
         locale: 'fr',
       }),
     );
@@ -247,9 +246,9 @@ describe('UiSlotsController', () => {
       messenger: buildMessenger(call),
     });
 
-    const firstEnglishRequest = controller.loadScreen('predict-home', 'en');
-    const frenchRequest = controller.loadScreen('predict-home', 'fr');
-    const latestEnglishRequest = controller.loadScreen('predict-home', 'en');
+    const firstEnglishRequest = controller.loadScreen('wallet-home', 'en');
+    const frenchRequest = controller.loadScreen('wallet-home', 'fr');
+    const latestEnglishRequest = controller.loadScreen('wallet-home', 'en');
     resolvers.get('fr')?.({
       status: 'modified',
       value: makeResponse({ locale: 'fr' }),
@@ -262,9 +261,9 @@ describe('UiSlotsController', () => {
     await Promise.all([firstEnglishRequest, latestEnglishRequest]);
 
     expect(call).toHaveBeenCalledTimes(2);
-    expect(controller.state.activeConfigurationKeys['predict-home']).toBe(
+    expect(controller.state.activeConfigurationKeys['wallet-home']).toBe(
       buildConfigurationKey({
-        screenId: 'predict-home',
+        screenId: 'wallet-home',
         locale: 'en',
       }),
     );
@@ -273,7 +272,7 @@ describe('UiSlotsController', () => {
   it('revalidates malformed persisted configuration before activation', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const call = jest.fn().mockResolvedValue({
@@ -296,10 +295,10 @@ describe('UiSlotsController', () => {
       } as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(call).toHaveBeenCalledWith('UiSlotsDataService:getScreen', {
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
       etag: undefined,
     });
@@ -309,7 +308,7 @@ describe('UiSlotsController', () => {
   it('rejects malformed persisted cache metadata before activation', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const call = jest.fn().mockResolvedValue({
@@ -333,10 +332,10 @@ describe('UiSlotsController', () => {
       } as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(call).toHaveBeenCalledWith('UiSlotsDataService:getScreen', {
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
       etag: undefined,
     });
@@ -362,9 +361,9 @@ describe('UiSlotsController', () => {
         }),
       ),
     });
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.getNextEvaluationAt('predict-home', 'en')).toBe(
+    expect(controller.getNextEvaluationAt('wallet-home', 'en')).toBe(
       Math.min(now + UI_SLOTS_SOFT_TTL_MS, validUntil),
     );
   });
@@ -388,11 +387,11 @@ describe('UiSlotsController', () => {
         }),
       ),
     });
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
     expect(getRenderedSlots(controller)).toHaveLength(1);
 
     now = 2_000;
-    controller.evaluateScreen('predict-home', 'en');
+    controller.evaluateScreen('wallet-home', 'en');
 
     expect(getRenderedSlots(controller)).toEqual([]);
   });
@@ -400,7 +399,7 @@ describe('UiSlotsController', () => {
   it('reapplies validity rules after a 304 response', async () => {
     let now = 1_000;
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const response = makeResponse({
@@ -435,7 +434,7 @@ describe('UiSlotsController', () => {
       } as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(getRenderedSlots(controller)).toEqual([]);
   });
@@ -444,7 +443,7 @@ describe('UiSlotsController', () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
     const response = makeResponse();
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const state = {
@@ -465,16 +464,16 @@ describe('UiSlotsController', () => {
       state: state as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['predict-home']).toBe('ready');
+    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
     expect(getRenderedSlots(controller)).toHaveLength(1);
   });
 
   it('replaces stale content with an empty compatible configuration', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const controller = new UiSlotsController({
@@ -511,9 +510,9 @@ describe('UiSlotsController', () => {
       } as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['predict-home']).toBe('ready');
+    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
     expect(getRenderedSlots(controller)).toEqual([]);
     expect(
       controller.state.screenConfigurations[configurationKey].response.slots,
@@ -523,7 +522,7 @@ describe('UiSlotsController', () => {
   it('retains last-known-good content for a structurally malformed slot', async () => {
     const now = Date.parse('2026-08-13T10:00:00.000Z');
     const configurationKey = buildConfigurationKey({
-      screenId: 'predict-home',
+      screenId: 'wallet-home',
       locale: 'en',
     });
     const controller = new UiSlotsController({
@@ -551,9 +550,9 @@ describe('UiSlotsController', () => {
       } as never,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
-    expect(controller.state.requestStatus['predict-home']).toBe('ready');
+    expect(controller.state.requestStatus['wallet-home']).toBe('ready');
     expect(getRenderedSlots(controller)).toHaveLength(1);
     expect(
       controller.state.screenConfigurations[configurationKey].response
@@ -561,27 +560,7 @@ describe('UiSlotsController', () => {
     ).toBe('config-1');
   });
 
-  it('removes dismissed content by content ID', async () => {
-    const controller = new UiSlotsController({
-      messenger: buildMessenger(
-        jest.fn().mockResolvedValue({
-          status: 'modified',
-          value: makeResponse(),
-        }),
-      ),
-      ...controllerOptions,
-    });
-    await controller.loadScreen('predict-home', 'en');
-
-    controller.dismissContent('banner-1');
-
-    expect(controller.state.dismissedContentIds['banner-1']).toEqual(
-      expect.any(Number),
-    );
-    expect(getRenderedSlots(controller)).toEqual([]);
-  });
-
-  it('bounds persisted configurations and dismissal history', async () => {
+  it('bounds persisted configurations', async () => {
     let now = Date.parse('2026-08-13T10:00:00.000Z');
     const controller = new UiSlotsController({
       ...controllerOptions,
@@ -598,17 +577,9 @@ describe('UiSlotsController', () => {
 
     for (let index = 0; index < 21; index += 1) {
       now += 1;
-      await controller.loadScreen('predict-home', `locale-${index}`);
+      await controller.loadScreen('wallet-home', `locale-${index}`);
     }
-    for (let index = 0; index < 501; index += 1) {
-      now += 1;
-      controller.dismissContent(`content-${index}`);
-    }
-
     expect(Object.keys(controller.state.screenConfigurations)).toHaveLength(20);
-    expect(Object.keys(controller.state.dismissedContentIds)).toHaveLength(500);
-    expect(controller.state.dismissedContentIds['content-0']).toBeUndefined();
-    expect(controller.state.dismissedContentIds['content-500']).toBeDefined();
   });
 
   it('filters expired and minimum-version-incompatible content', async () => {
@@ -639,7 +610,7 @@ describe('UiSlotsController', () => {
       now: () => now,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(getRenderedSlots(controller)).toEqual([]);
   });
@@ -652,11 +623,11 @@ describe('UiSlotsController', () => {
           value: makeResponse({
             slots: [
               {
-                slotId: 'predict-home.live-now',
-                contentId: 'carousel-without-markets',
+                slotId: 'wallet-home.predict-empty-state',
+                contentId: 'discovery-without-markets',
                 revision: 1,
                 widget: {
-                  type: 'market-carousel',
+                  type: 'predict-discovery-list',
                   schemaVersion: 1,
                   props: {},
                 },
@@ -668,7 +639,7 @@ describe('UiSlotsController', () => {
       ...controllerOptions,
     });
 
-    await controller.loadScreen('predict-home', 'en');
+    await controller.loadScreen('wallet-home', 'en');
 
     expect(getRenderedSlots(controller)).toEqual([]);
   });

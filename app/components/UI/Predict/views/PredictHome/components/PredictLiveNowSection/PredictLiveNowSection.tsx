@@ -24,8 +24,6 @@ import PredictMarketSkeleton from '../../../../components/PredictMarketSkeleton'
 import { PaginationDots } from '../../../../components/PaginationDots/PaginationDots';
 import { PredictEventValues } from '../../../../constants/eventNames';
 import type { PredictMarket as PredictMarketType } from '../../../../types';
-import type { PredictFeedCarouselConfig } from '../../../../types/flags';
-import type { PredictFeedReference } from '../../../../types/references';
 import { PREDICT_LIVE_NOW_SECTION_TEST_IDS } from './PredictLiveNowSection.testIds';
 import { usePredictLiveNowSection } from './usePredictLiveNowSection';
 
@@ -38,10 +36,6 @@ const SKELETON_COUNT = 3;
 
 interface PredictLiveNowSectionProps {
   testID?: string;
-  configOverride?: PredictFeedCarouselConfig;
-  feedReferenceOverride?: PredictFeedReference;
-  titleOverride?: string;
-  onHeaderPressOverride?: () => void;
 }
 
 type CarouselItem = PredictMarketType | undefined;
@@ -55,10 +49,6 @@ type CarouselItem = PredictMarketType | undefined;
  */
 const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   testID = PREDICT_LIVE_NOW_SECTION_TEST_IDS.SECTION,
-  configOverride,
-  feedReferenceOverride,
-  titleOverride,
-  onHeaderPressOverride,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -70,15 +60,10 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   // Cards snap on width + gap, so the active-dot math must divide by the same
   // interval (not just cardWidth) to stay in sync with the snapped card.
   const snapInterval = useMemo(() => cardWidth + CARD_GAP, [cardWidth]);
-  const { items, isLoading, isEmpty, config } = usePredictLiveNowSection(
-    configOverride,
-    feedReferenceOverride,
-    titleOverride,
-  );
+  const { items, isLoading, isEmpty, config } = usePredictLiveNowSection();
   const [activeIndex, setActiveIndex] = useState(0);
   const isCustom = config.mode === 'custom';
-  const isHeaderInteractive =
-    Boolean(onHeaderPressOverride) || !isCustom || Boolean(config.deeplink);
+  const isHeaderInteractive = !isCustom || Boolean(config.deeplink);
 
   const handleHeaderPress = useCallback(() => {
     Engine.context.PredictController.trackHomeSectionInteraction({
@@ -86,11 +71,6 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
       actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
       entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
-
-    if (onHeaderPressOverride) {
-      onHeaderPressOverride();
-      return;
-    }
 
     if (isCustom && config.deeplink) {
       SharedDeeplinkManager.getInstance()
@@ -110,7 +90,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
     });
-  }, [config.deeplink, isCustom, navigation, onHeaderPressOverride]);
+  }, [config.deeplink, isCustom, navigation]);
 
   useEffect(() => {
     const lastIndex = items.length - 1;
