@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from 'react-native';
+import { Modal, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -116,6 +116,7 @@ const defaultProps = {
   metric: 'total' as const,
   grouping: 1,
   groupingOptions: [0.1, 1, 10, 100, 1000],
+  layout: 'left' as const,
   onApply: jest.fn(),
   onClose: jest.fn(),
   testID: 'config-sheet',
@@ -157,6 +158,118 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(getByTestId('config-sheet-grouping-1000')).toBeOnTheScreen();
   });
 
+  it('marks the selected option in each FilterButton section', () => {
+    const { getByTestId } = renderSheet({
+      currency: 'usd',
+      metric: 'total',
+      grouping: 1,
+    });
+
+    const selectedState = (id: string) =>
+      getByTestId(id).props.accessibilityState;
+
+    expect(selectedState('config-sheet-currency-usd')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(selectedState('config-sheet-currency-base')).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+    expect(selectedState('config-sheet-metric-total')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(selectedState('config-sheet-metric-size')).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+    expect(selectedState('config-sheet-grouping-1')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+  });
+
+  it('renders the order-book layout options with the current side selected', () => {
+    const { getByTestId, getByText } = renderSheet({ layout: 'right' });
+
+    expect(getByText('Order book layout')).toBeOnTheScreen();
+    expect(getByTestId('config-sheet-layout-left')).toHaveProp(
+      'accessibilityState',
+      { selected: false },
+    );
+    expect(getByTestId('config-sheet-layout-right')).toHaveProp(
+      'accessibilityState',
+      { selected: true },
+    );
+  });
+
+  it('styles the layout options like the FilterButton sections', () => {
+    const { getByTestId } = renderSheet({ layout: 'right' });
+
+    const optionStyle = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style);
+
+    expect(optionStyle('config-sheet-layout-right').borderWidth).toBeFalsy();
+    expect(optionStyle('config-sheet-layout-left').borderWidth).toBeFalsy();
+    expect(
+      optionStyle('config-sheet-layout-right').backgroundColor,
+    ).toBeTruthy();
+    expect(optionStyle('config-sheet-layout-left').backgroundColor).toBeFalsy();
+  });
+
+  it('applies the drafted order-book side on Save', () => {
+    const onApply = jest.fn();
+    const { getByTestId } = renderSheet({ onApply });
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+    fireEvent.press(getByTestId('config-sheet-apply'));
+
+    expect(onApply).toHaveBeenCalledWith({
+      currency: 'usd',
+      metric: 'total',
+      grouping: 1,
+      layout: 'right',
+    });
+    expect(playSelection).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not apply a drafted order-book side when dismissed', () => {
+    const onApply = jest.fn();
+    const { getByTestId } = renderSheet({ onApply });
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+    fireEvent.press(getByTestId('config-sheet-close'));
+
+    expect(onApply).not.toHaveBeenCalled();
+  });
+
+  it('resets a drafted order-book side when the sheet reopens', () => {
+    const onApply = jest.fn();
+    const { getByTestId, rerender } = renderWithProvider(
+      <PerpsProOrderBookConfigSheet {...defaultProps} onApply={onApply} />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId('config-sheet-layout-right'));
+
+    rerender(
+      <PerpsProOrderBookConfigSheet
+        {...defaultProps}
+        isVisible={false}
+        onApply={onApply}
+      />,
+    );
+    rerender(
+      <PerpsProOrderBookConfigSheet
+        {...defaultProps}
+        isVisible
+        onApply={onApply}
+      />,
+    );
+
+    fireEvent.press(getByTestId('config-sheet-apply'));
+
+    expect(onApply).toHaveBeenCalledWith(
+      expect.objectContaining({ layout: 'left' }),
+    );
+  });
+
   it('renders order-book settings inside the Android modal gesture root', () => {
     const { getByTestId } = renderSheet();
 
@@ -187,6 +300,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'base',
       metric: 'size',
       grouping: 10,
+      layout: 'left',
     });
     expect(onClose).toHaveBeenCalled();
     // Three changed chip picks + the primary save commit.
@@ -262,6 +376,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'usd',
       metric: 'total',
       grouping: 100,
+      layout: 'left',
     });
   });
 
@@ -301,6 +416,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       currency: 'usd',
       metric: 'total',
       grouping: 1,
+      layout: 'left',
     });
   });
 });

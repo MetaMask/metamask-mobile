@@ -16,10 +16,21 @@ class PredictBalance {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.WITHDRAW_BUTTON);
   }
 
+  get positionsButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PredictBalanceSelectorsIDs.POSITIONS_BUTTON);
+  }
+
   async tapWithdraw(): Promise<void> {
     await Utilities.waitForElementToBeEnabled(this.withdrawButton, 15000);
     await Gestures.waitAndTap(this.withdrawButton, {
       elemDescription: 'Predict Withdraw button',
+    });
+  }
+
+  async tapPositions(): Promise<void> {
+    await Utilities.waitForElementToBeEnabled(this.positionsButton, 15000);
+    await Gestures.waitAndTap(this.positionsButton, {
+      elemDescription: 'Predict Positions button',
     });
   }
 

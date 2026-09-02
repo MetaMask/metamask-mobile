@@ -7,19 +7,26 @@ import {
   FontWeight,
   type BottomSheetRef,
   ListItemSelect,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { OrderType, TriggerOrderType } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type { SvgProps } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
+import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
+import type { TabItem } from '../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { useAssetFromTheme, useTheme } from '../../../../../util/theme';
 import LimitIconDark from '../../../../../images/perps/order-types/limit.svg';
 import LimitIconLight from '../../../../../images/perps/order-types/limit-light.svg';
 import MarketIconDark from '../../../../../images/perps/order-types/market.svg';
 import MarketIconLight from '../../../../../images/perps/order-types/market-light.svg';
+import ScaleIconDark from '../../../../../images/perps/order-types/scale.svg';
+import ScaleIconLight from '../../../../../images/perps/order-types/scale-light.svg';
 import StopLimitIconDark from '../../../../../images/perps/order-types/stop-limit.svg';
 import StopLimitIconLight from '../../../../../images/perps/order-types/stop-limit-light.svg';
 import StopMarketIconDark from '../../../../../images/perps/order-types/stop-market.svg';
@@ -28,6 +35,8 @@ import TakeLimitIconDark from '../../../../../images/perps/order-types/take-limi
 import TakeLimitIconLight from '../../../../../images/perps/order-types/take-limit-light.svg';
 import TakeMarketIconDark from '../../../../../images/perps/order-types/take-market.svg';
 import TakeMarketIconLight from '../../../../../images/perps/order-types/take-market-light.svg';
+import TwapIconDark from '../../../../../images/perps/order-types/twap.svg';
+import TwapIconLight from '../../../../../images/perps/order-types/twap-light.svg';
 import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 type OrderTypeIcon = React.FC<SvgProps & { name: string }>;
@@ -63,6 +72,15 @@ const BASIC_ORDER_TYPES: readonly OrderTypeOption[] = [
     testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
   },
 ];
+
+const SCALE_ORDER_TYPE: OrderTypeOption = {
+  type: 'scale',
+  titleKey: 'perps.order.type.scale.title',
+  descriptionKey: 'perps.order.type.scale.description',
+  LightIcon: ScaleIconLight,
+  DarkIcon: ScaleIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.SCALE_OPTION,
+};
 
 const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
   type: TriggerOrderType;
@@ -101,6 +119,59 @@ const TRIGGERED_ORDER_TYPES: readonly (OrderTypeOption & {
   },
 ];
 
+const TWAP_ORDER_TYPE: OrderTypeOption = {
+  type: 'twap',
+  titleKey: 'perps.order.type.twap.title',
+  descriptionKey: 'perps.order.type.twap.description',
+  LightIcon: TwapIconLight,
+  DarkIcon: TwapIconDark,
+  testID: PerpsOrderTypeBottomSheetSelectorsIDs.TWAP_OPTION,
+};
+
+type OrderTypeCategoryKey = 'basic' | 'triggered' | 'advanced';
+
+interface OrderTypeCategory {
+  key: OrderTypeCategoryKey;
+  labelKey: string;
+  orderTypes: readonly OrderType[];
+  testID: string;
+}
+
+const ORDER_TYPE_OPTIONS = new Map<OrderType, OrderTypeOption>(
+  [
+    ...BASIC_ORDER_TYPES,
+    ...TRIGGERED_ORDER_TYPES,
+    TWAP_ORDER_TYPE,
+    SCALE_ORDER_TYPE,
+  ].map((option): [OrderType, OrderTypeOption] => [option.type, option]),
+);
+
+const ORDER_TYPE_CATEGORIES: readonly OrderTypeCategory[] = [
+  {
+    key: 'basic',
+    labelKey: 'perps.order.type.basic',
+    orderTypes: ['market', 'limit'],
+    testID: PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_TAB,
+  },
+  {
+    key: 'triggered',
+    labelKey: 'perps.order.type.triggered',
+    orderTypes: [
+      'stop_limit',
+      'stop_market',
+      'take_profit_limit',
+      'take_profit_market',
+    ],
+    testID: PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_TAB,
+  },
+  {
+    key: 'advanced',
+    labelKey: 'perps.order.type.advanced',
+    orderTypes: ['twap', 'scale'],
+    testID: PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+  },
+];
+
 const OrderTypeStartAccessory = ({
   LightIcon,
   DarkIcon,
@@ -134,8 +205,9 @@ export interface PerpsOrderTypeBottomSheetViewProps {
   onSelect: (orderType: OrderType) => void;
   currentOrderType?: OrderType;
   title?: string;
-  showSelectedIcon?: boolean;
-  showTriggeredTypes?: boolean;
+  showOrderTypeIcons?: boolean;
+  /** Ordered types available in the Pro picker. Omit for the Basic-only sheet. */
+  availableOrderTypes?: readonly OrderType[];
   sheetRef?: React.RefObject<BottomSheetRef | null>;
 }
 
@@ -145,13 +217,67 @@ const PerpsOrderTypeBottomSheetView = ({
   onSelect,
   currentOrderType,
   title = strings('perps.order.type.title'),
-  showSelectedIcon = false,
-  showTriggeredTypes = false,
+  showOrderTypeIcons = false,
+  availableOrderTypes,
   sheetRef: externalSheetRef,
 }: PerpsOrderTypeBottomSheetViewProps) => {
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef ?? internalSheetRef;
-  const shouldShowSelectedIcon = showSelectedIcon || showTriggeredTypes;
+  const shouldShowOrderTypeIcon =
+    showOrderTypeIcons || availableOrderTypes !== undefined;
+  const availableOrderTypeSet = useMemo(
+    () =>
+      new Set<OrderType>(
+        availableOrderTypes ?? BASIC_ORDER_TYPES.map(({ type }) => type),
+      ),
+    [availableOrderTypes],
+  );
+  const visibleCategories = useMemo(
+    () =>
+      ORDER_TYPE_CATEGORIES.map((category) => ({
+        ...category,
+        options: category.orderTypes
+          .filter((type) => availableOrderTypeSet.has(type))
+          .map((type) => ORDER_TYPE_OPTIONS.get(type))
+          .filter((option): option is OrderTypeOption => option !== undefined),
+      })).filter(({ options }) => options.length > 0),
+    [availableOrderTypeSet],
+  );
+  const selectedCategoryKey = visibleCategories.find(({ options }) =>
+    options.some(({ type }) => type === currentOrderType),
+  )?.key;
+  const fallbackCategoryKey =
+    selectedCategoryKey ?? visibleCategories[0]?.key ?? 'basic';
+  const [activeCategoryKey, setActiveCategoryKey] =
+    useState<OrderTypeCategoryKey>(fallbackCategoryKey);
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+    setActiveCategoryKey((currentKey) => {
+      const currentCategoryExists = visibleCategories.some(
+        ({ key }) => key === currentKey,
+      );
+      return currentCategoryExists ? currentKey : fallbackCategoryKey;
+    });
+  }, [fallbackCategoryKey, isVisible, visibleCategories]);
+
+  const activeCategoryIndex = Math.max(
+    0,
+    visibleCategories.findIndex(({ key }) => key === activeCategoryKey),
+  );
+  const activeCategory = visibleCategories[activeCategoryIndex];
+  const categoryTabs = useMemo<TabItem[]>(
+    () =>
+      visibleCategories.map(({ key, labelKey, testID }) => ({
+        key,
+        label: strings(labelKey),
+        content: null,
+        testID,
+      })),
+    [visibleCategories],
+  );
 
   useEffect(() => {
     if (isVisible && !externalSheetRef) {
@@ -171,18 +297,6 @@ const PerpsOrderTypeBottomSheetView = ({
     [handleClose, onSelect],
   );
 
-  const renderSectionHeader = (label: string, testID?: string) => (
-    <Box paddingHorizontal={4} paddingTop={2} paddingBottom={3} testID={testID}>
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Regular}
-        color={TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  );
-
   const renderOrderType = (orderType: OrderTypeOption) => (
     <ListItemSelect
       key={orderType.type}
@@ -191,7 +305,7 @@ const PerpsOrderTypeBottomSheetView = ({
       descriptionProps={DESCRIPTION_PROPS}
       accessoryGap={2}
       startAccessory={
-        shouldShowSelectedIcon ? (
+        shouldShowOrderTypeIcon ? (
           <OrderTypeStartAccessory
             LightIcon={orderType.LightIcon}
             DarkIcon={orderType.DarkIcon}
@@ -201,12 +315,10 @@ const PerpsOrderTypeBottomSheetView = ({
         ) : undefined
       }
       isSelected={currentOrderType === orderType.type}
-      showSelectedIcon={shouldShowSelectedIcon}
-      // The Pro design uses a checkmark without a selected-row fill. Shared
-      // sheets without checkmarks retain ListItemSelect's selected background.
-      twClassName={shouldShowSelectedIcon ? 'bg-transparent' : undefined}
+      showSelectedIcon={false}
       onPress={() => handleSelect(orderType.type)}
       testID={orderType.testID}
+      twClassName="min-h-[78px] py-4"
     />
   );
 
@@ -229,18 +341,20 @@ const PerpsOrderTypeBottomSheetView = ({
       >
         {title}
       </BottomSheetHeader>
-      {showTriggeredTypes &&
-        renderSectionHeader(
-          strings('perps.order.type.basic'),
-          PerpsOrderTypeBottomSheetSelectorsIDs.BASIC_SECTION_HEADER,
-        )}
-      {BASIC_ORDER_TYPES.map(renderOrderType)}
-      {showTriggeredTypes &&
-        renderSectionHeader(
-          strings('perps.order.type.triggered'),
-          PerpsOrderTypeBottomSheetSelectorsIDs.TRIGGERED_SECTION_HEADER,
-        )}
-      {showTriggeredTypes && TRIGGERED_ORDER_TYPES.map(renderOrderType)}
+      {availableOrderTypes !== undefined && visibleCategories.length > 1 ? (
+        <TabsBar
+          tabs={categoryTabs}
+          activeIndex={activeCategoryIndex}
+          onTabPress={(index) => {
+            const category = visibleCategories[index];
+            if (category) {
+              setActiveCategoryKey(category.key);
+            }
+          }}
+          testID={PerpsOrderTypeBottomSheetSelectorsIDs.TABS}
+        />
+      ) : null}
+      {activeCategory?.options.map(renderOrderType)}
     </BottomSheet>
   );
 };

@@ -7,7 +7,7 @@ import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
 import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
-import { EntropySourceId } from '@metamask/keyring-api';
+import { EntropySourceId, EthAccountType } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
@@ -143,18 +143,20 @@ jest.mock('../../core/Engine', () => ({
 
 jest.mocked(Engine);
 
+const mockEvmAccount = {
+  address: mockAddress,
+  type: EthAccountType.Eoa,
+};
+
 const mockMultichainAccountGroup = {
-  getAccounts: jest.fn().mockReturnValue([
-    {
-      address: mockAddress,
-    },
-  ]),
+  getAccounts: jest.fn().mockReturnValue([mockEvmAccount]),
+  get: jest.fn().mockReturnValue(mockEvmAccount),
 };
 
 const mockMultichainAccountWallet = {
   id: toMultichainAccountWalletId(mockEntropySource),
   entropySource: mockEntropySource,
-  getAccountGroup: () => mockMultichainAccountGroup,
+  getMultichainAccountGroup: () => mockMultichainAccountGroup,
 };
 
 describe('MultiSRP Actions', () => {
