@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { StyleSheet } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import {
   AvatarAccount,
@@ -49,6 +50,10 @@ export interface WalletHeaderCompactProps {
   handleSearchPress?: () => void;
 }
 
+const styles = StyleSheet.create({
+  badgeWrapperCenter: { alignSelf: 'center' },
+});
+
 const WalletHeaderCompact = ({
   accountAddress,
   avatarAccountType,
@@ -92,23 +97,24 @@ const WalletHeaderCompact = ({
           accessibilityRole="button"
           accessibilityLabel={displayName}
         >
-          <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-            badge={
-              hasUnreadNotifications ? (
-                <BadgeStatus status={BadgeStatusStatus.Attention} />
-              ) : null
-            }
-          >
-            <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-section">
+          <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-section">
+            <BadgeWrapper
+              style={styles.badgeWrapperCenter}
+              position={BadgeWrapperPosition.BottomRight}
+              positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+              badge={
+                hasUnreadNotifications ? (
+                  <BadgeStatus status={BadgeStatusStatus.Attention} />
+                ) : null
+              }
+            >
               <AvatarAccount
                 address={accountAddress}
                 variant={getAvatarAccountVariant(avatarAccountType)}
                 size={AvatarAccountSize.Sm}
               />
-            </Box>
-          </BadgeWrapper>
+            </BadgeWrapper>
+          </Box>
         </ButtonAnimated>
       }
       endAccessory={
