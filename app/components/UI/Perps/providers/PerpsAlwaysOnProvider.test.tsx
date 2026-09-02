@@ -428,10 +428,9 @@ describe('PerpsAlwaysOnProvider', () => {
       id: 'perps-chase-max-distance-chase-max-distance',
       title: 'Chase max distance reached',
       body: 'Your ETH Chase order reached its max distance and is now resting as a limit order.',
-      data: {
-        notification_id: 'perps-chase-max-distance-chase-max-distance',
-      },
+      throwOnError: true,
     });
+    expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty('data');
     expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
       'pressActionId',
     );
@@ -1631,6 +1630,7 @@ describe('PerpsAlwaysOnProvider', () => {
           notification_type: 'chase_backgrounded',
         },
         title: 'Chase became a limit order',
+        throwOnError: true,
       }),
     );
     expect(mockDisplayNotification.mock.calls[0][0]).not.toHaveProperty(
