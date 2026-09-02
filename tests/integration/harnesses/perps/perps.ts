@@ -372,6 +372,10 @@ export function buildPerpsIntegrationHarness(
     isSelectedHardwareWallet: jest.fn().mockReturnValue(false),
   } as unknown as jest.Mocked<HyperLiquidWalletService>;
 
+  // Shared by every cached-position read on the mock subscription service so a
+  // test only has to seed one mock.
+  const getCachedPositions = jest.fn().mockReturnValue([]);
+
   const subscription = {
     subscribeToPrices: jest.fn().mockResolvedValue(jest.fn()),
     subscribeToPositions: jest.fn().mockReturnValue(jest.fn()),
@@ -381,7 +385,12 @@ export function buildPerpsIntegrationHarness(
     clearAll: jest.fn(),
     updateFeatureFlags: jest.fn().mockResolvedValue(undefined),
     isPositionsCacheInitialized: jest.fn().mockReturnValue(true),
-    getCachedPositions: jest.fn().mockReturnValue([]),
+    getCachedPositions,
+    // v15+ reads positions per-DEX (single-symbol path) or across every DEX
+    // (whole-list path). This harness models a single DEX, so both resolve to
+    // the same cache.
+    getCachedPositionsForDex: jest.fn(() => getCachedPositions()),
+    getFreshPositionsForAllDexs: jest.fn(() => getCachedPositions()),
     isOrdersCacheInitialized: jest.fn().mockReturnValue(false),
     getCachedOrders: jest.fn().mockReturnValue([]),
     getOrdersCacheIfInitialized: jest.fn().mockReturnValue(null),
