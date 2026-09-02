@@ -8,6 +8,7 @@ import {
   formatHyperLiquidPrice,
   type PerpsMarketData,
   type PerpsProviderType,
+  type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -162,6 +163,9 @@ let mockExistingPosition: {
   positionValue?: string;
 } | null = null;
 
+let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
+let mockIsAwaitingPositionModifyPreview = false;
+
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
@@ -272,22 +276,13 @@ jest.mock('../../../../hooks', () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
-  usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
-}));
-
-jest.mock('./usePerpsProPositionModifyPreview', () => ({
-  usePerpsProPositionModifyPreview: () => ({
-    summaryDisplay: {
-      showBeforeAfter: false,
-      currentMarginDisplay: '--',
-      resultingMarginDisplay: '--',
-      currentLiquidationDisplay: '--',
-      resultingLiquidationDisplay: '--',
-      tpslLiquidationPrice: undefined,
-      tpslDirection: undefined,
-    },
-    isAwaitingFirstPreview: false,
+  usePerpsPositionModifyPreview: () => ({
+    preview: mockPositionModifyPreview,
+    isCalculating: mockIsAwaitingPositionModifyPreview,
+    isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
+    error: null,
   }),
+  usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
 }));
 
 jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
@@ -471,6 +466,8 @@ describe('usePerpsProOrderForm', () => {
       isValid: true,
     });
     mockExistingPosition = null;
+    mockPositionModifyPreview = { status: 'none' };
+    mockIsAwaitingPositionModifyPreview = false;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -547,6 +544,67 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('shows margin and liquidation before-and-after values from the controller preview', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 48000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 1.002,
+          entryPrice: 50010,
+          leverage: 5,
+          margin: { available: true, value: 1015 },
+          liquidationPrice: { available: true, value: 47000 },
+        },
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).toMatch(/→/);
+      expect(result.current.summary.margin).toMatch(/\$1,000/);
+      expect(result.current.summary.liquidationPrice).toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+    });
+
+    it('keeps single-value summary when the controller returns no preview', () => {
+      mockPositionModifyPreview = { status: 'none' };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
+    });
+
+    it('keeps single-value summary for unsupported cross-margin previews', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'cross', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'unsupported',
+        reason: 'cross_margin',
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
     it('uses the controller fee result unchanged for a TWAP order', () => {
@@ -4333,6 +4391,14 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('is disabled while awaiting the first position-modify preview', () => {
+      mockIsAwaitingPositionModifyPreview = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('is disabled when the stop loss risks liquidation', () => {

@@ -181,6 +181,7 @@ export const usePerpsPositionModifyPreview = (
   useEffect(() => {
     // A different position invalidates the retained preview, so the next
     // request counts as a first load again. Order/price changes do not.
+    setPreview(IDLE_PREVIEW);
     setHasSettledPreview(false);
   }, [previewTarget]);
 

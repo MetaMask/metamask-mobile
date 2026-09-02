@@ -369,6 +369,7 @@ describe('usePerpsPositionModifyPreview', () => {
     await waitFor(() => {
       expect(result.current.isAwaitingFirstPreview).toBe(true);
     });
+    expect(result.current.preview).toEqual({ status: 'none' });
 
     await act(async () => {
       nextPositionRequest.resolve({ status: 'none' });
