@@ -45,9 +45,8 @@ import {
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { formatCents, formatPrice } from '../../utils/format';
 import {
-  estimatePredictSellNetValue,
   getPredictPositionDisplay,
-  getPredictSellNetProceeds,
+  getPredictPositionNetValue,
 } from '../../utils/orders';
 
 const AUTO_REFRESH_TIMEOUT = 5000;
@@ -114,12 +113,12 @@ const PredictCryptoUpDownPosition: React.FC<
     position.avgPrice,
   )}`;
 
-  const netValue = preview
-    ? getPredictSellNetProceeds(preview)
-    : estimatePredictSellNetValue({
-        grossValue: position.currentValue,
-        feeCollection,
-      });
+  const netValue = getPredictPositionNetValue({
+    sellable: isOpen,
+    grossValue: position.currentValue,
+    preview,
+    feeCollection,
+  });
   const { value: currentValue, cashPnl } = getPredictPositionDisplay({
     initialValue: position.initialValue,
     netValue,

@@ -122,6 +122,28 @@ export function estimatePredictSellNetValue(args: {
 }
 
 /**
+ * Open (sellable) positions show cash-out proceeds. Resolved positions redeem
+ * the gross value — selling fees do not apply to claims.
+ */
+export function getPredictPositionNetValue(args: {
+  sellable: boolean;
+  grossValue: number;
+  preview?: OrderPreview | null;
+  feeCollection: { enabled: boolean; metamaskFee: number; providerFee: number };
+}): number {
+  if (!args.sellable) {
+    return roundDownToCents(args.grossValue);
+  }
+
+  return args.preview
+    ? getPredictSellNetProceeds(args.preview)
+    : estimatePredictSellNetValue({
+        grossValue: args.grossValue,
+        feeCollection: args.feeCollection,
+      });
+}
+
+/**
  * Builds fee breakdown sheet amounts whose itemized rows sum exactly to the
  * displayed total: each row is snapped to cents, and the exchange fee absorbs
  * the rounding remainder. BUY rows add up to the total; SELL rows subtract
@@ -156,21 +178,34 @@ export function buildPredictFeeBreakdownAmounts(args: {
       total: 0,
     };
   }
-  const orderCents = Math.round(snappedOrder * CENTS_PER_UNIT);
-  const metamaskFeeCents = Math.round(snappedMetamaskFee * CENTS_PER_UNIT);
+  let orderCents = Math.round(snappedOrder * CENTS_PER_UNIT);
+  let metamaskFeeCents = Math.round(snappedMetamaskFee * CENTS_PER_UNIT);
   const depositFeeCents = includeDeposit
     ? Math.round(snappedDepositFee * CENTS_PER_UNIT)
     : 0;
   const totalCents = Math.round(snappedTotal * CENTS_PER_UNIT);
-  const exchangeFee =
-    (side === Side.BUY
+  let exchangeFeeCents =
+    side === Side.BUY
       ? totalCents - orderCents - metamaskFeeCents - depositFeeCents
-      : orderCents - metamaskFeeCents - totalCents) / CENTS_PER_UNIT;
+      : orderCents - metamaskFeeCents - totalCents;
+
+  if (exchangeFeeCents < 0) {
+    if (side === Side.BUY) {
+      orderCents += exchangeFeeCents;
+    } else {
+      metamaskFeeCents += exchangeFeeCents;
+    }
+    exchangeFeeCents = 0;
+  }
+
+  const orderAmount = orderCents / CENTS_PER_UNIT;
+  const metamaskFeeAmount = metamaskFeeCents / CENTS_PER_UNIT;
+  const exchangeFee = exchangeFeeCents / CENTS_PER_UNIT;
 
   if (includeDeposit) {
     return {
-      order: snappedOrder,
-      metamaskFee: snappedMetamaskFee,
+      order: orderAmount,
+      metamaskFee: metamaskFeeAmount,
       exchangeFee,
       depositFee: snappedDepositFee,
       total: snappedTotal,
@@ -178,8 +213,8 @@ export function buildPredictFeeBreakdownAmounts(args: {
   }
 
   return {
-    order: snappedOrder,
-    metamaskFee: snappedMetamaskFee,
+    order: orderAmount,
+    metamaskFee: metamaskFeeAmount,
     exchangeFee,
     total: snappedTotal,
   };

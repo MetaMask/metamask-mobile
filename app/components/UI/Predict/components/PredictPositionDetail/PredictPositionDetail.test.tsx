@@ -305,7 +305,7 @@ describe('PredictPositionDetail', () => {
       { percentPnl: 12.34, currentValue: 500 },
       { status: 'closed' },
       PredictMarketStatus.CLOSED,
-      { minAmountReceived: 500 },
+      { minAmountReceived: 400 },
     );
 
     expect(screen.getByText('Won $500')).toBeOnTheScreen();

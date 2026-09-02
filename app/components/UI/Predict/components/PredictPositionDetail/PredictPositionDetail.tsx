@@ -33,9 +33,8 @@ import {
 } from '../../types';
 import { formatPercentage, formatPrice } from '../../utils/format';
 import {
-  estimatePredictSellNetValue,
   getPredictPositionDisplay,
-  getPredictSellNetProceeds,
+  getPredictPositionNetValue,
 } from '../../utils/orders';
 import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -81,12 +80,12 @@ const PredictPosition: React.FC<PredictPositionProps> = ({
     autoRefreshTimeout,
   });
 
-  const netValue = preview
-    ? getPredictSellNetProceeds(preview)
-    : estimatePredictSellNetValue({
-        grossValue: position.currentValue,
-        feeCollection,
-      });
+  const netValue = getPredictPositionNetValue({
+    sellable: marketStatus === PredictMarketStatus.OPEN,
+    grossValue: position.currentValue,
+    preview,
+    feeCollection,
+  });
   const { value: currentValue, percentPnl } = getPredictPositionDisplay({
     initialValue,
     netValue,

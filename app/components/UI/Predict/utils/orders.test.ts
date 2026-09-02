@@ -8,6 +8,7 @@ import {
   getPredictExchangeFee,
   getPredictMarketFee,
   getPredictPositionDisplay,
+  getPredictPositionNetValue,
   getPredictSellNetProceeds,
   roundToFiveDecimals,
   roundUpToCents,
@@ -264,6 +265,69 @@ describe('orders utils', () => {
     });
   });
 
+  describe('getPredictPositionNetValue', () => {
+    const feeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.02,
+    };
+
+    it('returns floored gross value when the position is not sellable', () => {
+      const result = getPredictPositionNetValue({
+        sellable: false,
+        grossValue: 101.019,
+        preview: {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          timestamp: 1,
+          side: Side.SELL,
+          sharePrice: 1,
+          maxAmountSpent: 0,
+          minAmountReceived: 80,
+          slippage: 0,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+        },
+        feeCollection,
+      });
+
+      expect(result).toBe(101.01);
+    });
+
+    it('returns preview proceeds when sellable and a preview exists', () => {
+      const result = getPredictPositionNetValue({
+        sellable: true,
+        grossValue: 100,
+        preview: {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          timestamp: 1,
+          side: Side.SELL,
+          sharePrice: 0.5,
+          maxAmountSpent: 0,
+          minAmountReceived: 20,
+          slippage: 0,
+          tickSize: 0.01,
+          minOrderSize: 1,
+          negRisk: false,
+          fees: {
+            metamaskFee: 0.1,
+            providerFee: 0.1,
+            totalFee: 0.2,
+            totalFeePercentage: 1,
+            collector: '0x0',
+          },
+        },
+        feeCollection,
+      });
+
+      expect(result).toBe(19.8);
+    });
+  });
+
   describe('buildPredictFeeBreakdownAmounts', () => {
     it('snaps buy rows so the remainder exchange fee makes the total identity hold', () => {
       const result = buildPredictFeeBreakdownAmounts({
@@ -355,6 +419,40 @@ describe('orders utils', () => {
 
       expect(result.depositFee).toBeUndefined();
       expect(result.order + result.metamaskFee + result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('keeps buy exchange fee non-negative when rounded rows exceed the total', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 10.001,
+        metamaskFee: 0.004,
+        total: 10.01,
+      });
+
+      expect(result.exchangeFee).toBeGreaterThanOrEqual(0);
+      expect(result).toEqual({
+        order: 10,
+        metamaskFee: 0.01,
+        exchangeFee: 0,
+        total: 10.01,
+      });
+      expect(result.order + result.metamaskFee + result.exchangeFee).toBe(
+        result.total,
+      );
+    });
+
+    it('keeps sell exchange fee non-negative when rounded fees exceed the spread', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.SELL,
+        order: 10.019,
+        metamaskFee: 0.02,
+        total: 10,
+      });
+
+      expect(result.exchangeFee).toBeGreaterThanOrEqual(0);
+      expect(result.order - result.metamaskFee - result.exchangeFee).toBe(
         result.total,
       );
     });

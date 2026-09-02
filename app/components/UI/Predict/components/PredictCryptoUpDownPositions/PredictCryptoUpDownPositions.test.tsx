@@ -300,7 +300,7 @@ describe('PredictCryptoUpDownPosition', () => {
       marketStatus: PredictMarketStatus.RESOLVED,
     });
 
-    expect(screen.getByText(/Won \$168/u)).toBeOnTheScreen();
+    expect(screen.getByText(/Won \$175/u)).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
         getPredictCryptoUpDownPositionSelector.cashOutButton(position.id),
@@ -318,6 +318,28 @@ describe('PredictCryptoUpDownPosition', () => {
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
     expect(mockClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a thin winning claim visible after resolution', () => {
+    const position = createPosition({
+      id: 'position-thin-win',
+      claimable: true,
+      currentValue: 101,
+      initialValue: 100,
+      status: PredictPositionStatus.WON,
+    });
+
+    renderPosition({
+      position,
+      marketStatus: PredictMarketStatus.RESOLVED,
+    });
+
+    expect(screen.getByText(/Won \$101/u)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPredictCryptoUpDownPositionSelector.claimButton(position.id),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('does not call claim when the guarded claim action is blocked', () => {
