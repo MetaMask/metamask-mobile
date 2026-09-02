@@ -380,18 +380,36 @@ class PerpsProMarketView {
   }
 
   /**
-   * Taps the size InputAccessoryView Done control (`Keyboard.dismiss`).
+   * Taps an InputAccessoryView Done control (`Keyboard.dismiss`) for a Pro form input.
    */
-  async tapSizeKeyboardDone(): Promise<void> {
+  async tapOrderFormKeyboardDone(inputTestID: string): Promise<void> {
     await Gestures.waitAndTap(
       Matchers.getElementByID(
-        `${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${PerpsProOrderFormSelectorsIDs.SIZE_INPUT}`,
+        `${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${inputTestID}`,
       ),
       {
-        elemDescription: 'Pro size keyboard Done',
+        elemDescription: `Pro order form keyboard Done (${inputTestID})`,
         checkForDisplayed: false,
         timeout: 10000,
       },
+    );
+  }
+
+  /**
+   * Taps the size InputAccessoryView Done control (`Keyboard.dismiss`).
+   */
+  async tapSizeKeyboardDone(): Promise<void> {
+    await this.tapOrderFormKeyboardDone(
+      PerpsProOrderFormSelectorsIDs.SIZE_INPUT,
+    );
+  }
+
+  /**
+   * Taps the limit-price InputAccessoryView Done control (`Keyboard.dismiss`).
+   */
+  async tapLimitPriceKeyboardDone(): Promise<void> {
+    await this.tapOrderFormKeyboardDone(
+      PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT,
     );
   }
 
@@ -487,6 +505,10 @@ class PerpsProMarketView {
       elemDescription: 'Pro order form limit price value',
       timeout: 15000,
     });
+    if (PlatformDetector.isIOS()) {
+      await this.tapLimitPriceKeyboardDone();
+      return;
+    }
     await this.dismissOrderFormKeyboard();
   }
 
