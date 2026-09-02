@@ -7,6 +7,7 @@ import { transactionApprovalControllerMock } from '../../../__mocks__/controller
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -48,6 +49,9 @@ describe('TotalRow', () => {
   const useTransactionPayIsMaxAmountMock = jest.mocked(
     useTransactionPayIsMaxAmount,
   );
+  const useTransactionPayRequiredTokensMock = jest.mocked(
+    useTransactionPayRequiredTokens,
+  );
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
 
   beforeEach(() => {
@@ -57,6 +61,7 @@ describe('TotalRow', () => {
       total: { usd: '123.456' },
       targetAmount: { usd: '99.38', fiat: '99.38' },
     } as unknown as TransactionPayTotals);
+    useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
 
@@ -166,7 +171,7 @@ describe('TotalRow', () => {
       expect(getByTestId('receive-row-skeleton')).toBeDefined();
     });
 
-    it('renders the target amount even when it is zero', () => {
+    it('renders the target amount even when it is zero and no required amount exists', () => {
       useTransactionPayWithdrawMock.mockReturnValue({
         isWithdraw: true,
         canSelectWithdrawToken: true,
@@ -175,10 +180,33 @@ describe('TotalRow', () => {
         total: { usd: '123.456' },
         targetAmount: { usd: '0', fiat: '0' },
       } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([]);
 
       const { getByText } = render();
 
       expect(getByText('$0')).toBeOnTheScreen();
+    });
+
+    it('falls back to required token amount when targetAmount is 0 for direct withdraw routes', () => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '0' },
+        targetAmount: { usd: '0', fiat: '0' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          amountUsd: '27.51',
+          skipIfBalance: false,
+        },
+      ] as never);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('$27.51')).toBeOnTheScreen();
+      expect(queryByText('$0')).toBeNull();
     });
   });
 });

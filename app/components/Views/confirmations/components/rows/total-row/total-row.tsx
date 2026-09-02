@@ -6,6 +6,7 @@ import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
+  useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -92,23 +93,41 @@ function TotalFeesRow() {
 /**
  * Displays "You'll receive" for withdrawal, input-based, and Max flows.
  *
- * The net received amount is the target amount computed by the Transaction Pay
- * controller (after all provider, network, and MetaMask fees), so this row
- * simply renders `totals.targetAmount.usd` rather than re-deriving it from the
- * input amount.
+ * Prefers `totals.targetAmount.usd` from executable quotes (after fees). Direct
+ * same-token routes only produce a None-strategy no-op quote, which is excluded
+ * from totals and leaves targetAmount at 0 — fall back to the required token
+ * amount so same-chain Money Account mUSD withdraws still show the real receive
+ * value (mirrors activity-hero targetFiat === '0' handling).
  */
 function ReceiveRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const requiredTokens = useTransactionPayRequiredTokens();
 
   const receiveUsd = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
+    const targetBn =
+      targetAmountUsd == null ? null : new BigNumber(targetAmountUsd);
 
-    if (targetAmountUsd == null) return '';
+    if (targetBn?.gt(0)) {
+      return formatFiat(targetBn);
+    }
 
-    return formatFiat(new BigNumber(targetAmountUsd));
-  }, [totals?.targetAmount?.usd, formatFiat]);
+    const requiredAmountUsd = (requiredTokens ?? [])
+      .filter((token) => !token.skipIfBalance)
+      .reduce((sum, token) => sum.plus(token.amountUsd ?? 0), new BigNumber(0));
+
+    if (requiredAmountUsd.gt(0)) {
+      return formatFiat(requiredAmountUsd);
+    }
+
+    if (targetBn == null) {
+      return '';
+    }
+
+    return formatFiat(targetBn);
+  }, [formatFiat, requiredTokens, totals?.targetAmount?.usd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;
