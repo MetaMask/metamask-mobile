@@ -13,6 +13,7 @@ import {
 import {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
   computeAndroidSystemImageFingerprint,
   getGoldenSnapshotDir,
   hasGoldenSnapshot,
@@ -156,14 +157,14 @@ describe('EmulatorHelpers', () => {
   describe('buildAndroidEmulatorArgs', () => {
     const base = { avdName: 'appium_smoke_avd', isCI: true };
 
-    it('cold mode reproduces the historical CI flag set exactly', () => {
+    it('cold mode locks the CI default flag set', () => {
       expect(buildAndroidEmulatorArgs({ ...base, bootMode: 'cold' })).toEqual([
         '-avd',
         'appium_smoke_avd',
         '-skin',
         '1440x3120',
         '-memory',
-        '12288',
+        '10240',
         '-cores',
         '8',
         '-dns-server',
@@ -232,6 +233,89 @@ describe('EmulatorHelpers', () => {
         snapshotName: 'my_snapshot',
       });
       expect(args[args.indexOf('-snapshot') + 1]).toBe('my_snapshot');
+    });
+
+    it('snapshot-resume pins the requested emulator console port', () => {
+      const args = buildAndroidEmulatorArgs({
+        ...base,
+        bootMode: 'snapshot-resume',
+        port: 5556,
+      });
+
+      expect(args).toContain('-port');
+      expect(args[args.indexOf('-port') + 1]).toBe('5556');
+    });
+
+    it('builds two read-only golden resumes on distinct ports', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        ...base,
+        poolSize: 2,
+        cores: '4',
+      });
+
+      expect(boots.map(({ serial }) => serial)).toEqual([
+        'emulator-5554',
+        'emulator-5556',
+      ]);
+      expect(boots.map(({ port }) => port)).toEqual([5554, 5556]);
+      for (const boot of boots) {
+        expect(boot.args).toContain('-read-only');
+        expect(boot.args).toContain('-snapshot');
+        expect(boot.args[boot.args.indexOf('-memory') + 1]).toBe('10240');
+        expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
+          String(boot.port),
+        );
+      }
+    });
+
+    it('builds two cold pool boots on distinct ports without loading a snapshot', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        ...base,
+        poolSize: 2,
+        bootMode: 'cold',
+        cores: '4',
+      });
+
+      expect(boots.map(({ serial }) => serial)).toEqual([
+        'emulator-5554',
+        'emulator-5556',
+      ]);
+      for (const boot of boots) {
+        expect(boot.args).toContain('-read-only');
+        expect(boot.args).toContain('-no-snapshot-load');
+        expect(boot.args).not.toContain('-snapshot');
+        expect(boot.args[boot.args.indexOf('-port') + 1]).toBe(
+          String(boot.port),
+        );
+      }
+    });
+
+    it('local cold pool boots pin ports and stay read-only', () => {
+      const boots = buildAndroidEmulatorPoolArgs({
+        avdName: 'Pixel_5_Pro_API_34',
+        isCI: false,
+        poolSize: 2,
+        bootMode: 'cold',
+      });
+
+      expect(boots.map(({ args }) => args)).toEqual([
+        [
+          '-avd',
+          'Pixel_5_Pro_API_34',
+          '-no-snapshot-load',
+          '-read-only',
+          '-port',
+          '5554',
+        ],
+        [
+          '-avd',
+          'Pixel_5_Pro_API_34',
+          '-no-snapshot-load',
+          '-read-only',
+          '-port',
+          '5556',
+        ],
+      ]);
     });
 
     it('snapshot-prime boots writable with wipe-data and snapshot save enabled', () => {

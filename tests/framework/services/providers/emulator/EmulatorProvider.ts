@@ -3,7 +3,11 @@ import fs from 'fs';
 import { remote, type Browser } from 'webdriverio';
 import { BaseServiceProvider } from '../../common/base/BaseServiceProvider';
 import type { ProjectConfig } from '../../common/types';
-import { startAppiumServer, stopAppiumServer } from '../../appium';
+import {
+  shouldSkipAppiumStop,
+  startAppiumServer,
+  stopAppiumServer,
+} from '../../appium';
 import { EmulatorConfigBuilder } from './EmulatorConfigBuilder';
 import { Platform, type EmulatorConfig } from '../../../types';
 import {
@@ -16,7 +20,11 @@ import {
   shouldSkipAppReinstallFromEnv,
 } from './reinstallLocalBuildFromPath';
 import {
-  startAndroidEmulator,
+  parseAndroidDevicePool,
+  resolveAndroidDevicePoolSize,
+} from './android/androidDevicePool.ts';
+import {
+  startAndroidEmulatorPool,
   ensureAndroidEmulatorReady,
   ensureIosSimulatorReady,
   getIosSimulatorUdid,
@@ -176,6 +184,21 @@ export class EmulatorProvider extends BaseServiceProvider {
           'Android device boot requires `use.device.name` (AVD name) or `use.device.udid` (adb serial) in the project config.',
         );
       }
+      const poolSize = resolveAndroidDevicePoolSize();
+      if (poolSize > 1) {
+        if (!avdName) {
+          throw new Error(
+            'Android device pool boot requires `use.device.name` (AVD name).',
+          );
+        }
+        const serials = await startAndroidEmulatorPool(avdName, poolSize);
+        process.env.ANDROID_DEVICE_POOL = serials.join(',');
+        process.env.E2E_WORKERS = String(poolSize);
+        this.logger.info(
+          `Android device pool ready: ANDROID_DEVICE_POOL=${process.env.ANDROID_DEVICE_POOL}, E2E_WORKERS=${process.env.E2E_WORKERS}`,
+        );
+        return;
+      }
       const serial = await ensureAndroidEmulatorReady(
         avdName ?? '',
         emulatorDevice.udid,
@@ -249,6 +272,7 @@ export class EmulatorProvider extends BaseServiceProvider {
       this.logger.info('App is installed on the device');
     }
 
+    await startAppiumServer();
     this.logger.debug('Emulator global setup complete');
   }
 
@@ -272,6 +296,10 @@ export class EmulatorProvider extends BaseServiceProvider {
       const serial = await ensureAndroidEmulatorReady(
         emulatorDevice.name ?? '',
         emulatorDevice.udid,
+        {
+          preserveSiblingEmulators:
+            parseAndroidDevicePool(process.env.ANDROID_DEVICE_POOL).length > 1,
+        },
       );
       this.persistAndroidEmulatorSerial(serial, emulatorDevice);
       await applyResolvedAndroidAdbToDevice(emulatorDevice, {
@@ -348,7 +376,11 @@ export class EmulatorProvider extends BaseServiceProvider {
     this.logger.debug('Cleaning up emulator provider (Appium server)');
     try {
       await stopAppiumServer();
-      this.logger.info('Appium server stopped successfully');
+      this.logger.info(
+        shouldSkipAppiumStop()
+          ? 'Appium server left running for the remaining workers'
+          : 'Appium server stopped successfully',
+      );
     } catch (error) {
       this.logger.error('Failed to stop Appium server:', error);
       throw error;

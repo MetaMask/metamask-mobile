@@ -11,6 +11,7 @@ const logger = createLogger({ name: 'AndroidGoldenSnapshot' });
 const ANDROID_EMULATOR_CI_CORES_DEFAULT = '8';
 const ANDROID_EMULATOR_CI_DNS_SERVER = '8.8.8.8';
 const ANDROID_EMULATOR_CI_SKIN = '1440x3120';
+const ANDROID_EMULATOR_CI_MEMORY_MB = '10240';
 
 /** Named quick-boot snapshot shared by Appium CI shards. */
 export const ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME = 'e2e_golden';
@@ -21,6 +22,34 @@ export type AndroidEmulatorArgMode =
   | 'cold'
   | 'snapshot-prime'
   | 'snapshot-resume';
+
+export interface AndroidEmulatorPoolBoot {
+  serial: string;
+  port: number;
+  args: string[];
+}
+
+/** Console port / adb serial for pool index 0 (`emulator-5554`). */
+export const ANDROID_EMULATOR_CONSOLE_PORT_BASE = 5554;
+
+export function androidEmulatorConsolePortForIndex(index: number): number {
+  return ANDROID_EMULATOR_CONSOLE_PORT_BASE + index * 2;
+}
+
+export function androidEmulatorSerialForIndex(index: number): string {
+  return `emulator-${androidEmulatorConsolePortForIndex(index)}`;
+}
+
+export function androidEmulatorSerialsForPoolSize(poolSize: number): string[] {
+  if (!Number.isInteger(poolSize) || poolSize < 1) {
+    throw new Error(
+      `Invalid Android emulator pool size "${poolSize}". Expected a positive integer.`,
+    );
+  }
+  return Array.from({ length: poolSize }, (_, index) =>
+    androidEmulatorSerialForIndex(index),
+  );
+}
 
 function execAsync(cmd: string): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
@@ -167,10 +196,23 @@ export function buildAndroidEmulatorArgs(options: {
   skin?: string;
   snapshotName?: string;
   snapshotReadOnly?: boolean;
+  port?: number;
 }): string[] {
   const { avdName, isCI, bootMode = 'cold' } = options;
+  const portFlags =
+    options.port === undefined ? [] : ['-port', String(options.port)];
   if (!isCI) {
-    return ['-avd', avdName, '-no-snapshot-load'];
+    const readOnlyFlags =
+      options.snapshotReadOnly === true || options.port !== undefined
+        ? ['-read-only']
+        : [];
+    return [
+      '-avd',
+      avdName,
+      '-no-snapshot-load',
+      ...readOnlyFlags,
+      ...portFlags,
+    ];
   }
 
   const cores = options.cores?.trim() || ANDROID_EMULATOR_CI_CORES_DEFAULT;
@@ -184,7 +226,7 @@ export function buildAndroidEmulatorArgs(options: {
     '-skin',
     skin,
     '-memory',
-    '12288',
+    ANDROID_EMULATOR_CI_MEMORY_MB,
     '-cores',
     cores,
     '-dns-server',
@@ -219,7 +261,45 @@ export function buildAndroidEmulatorArgs(options: {
     ],
   };
 
-  return [...head, ...modeFlags[bootMode], ...tail];
+  return [...head, ...modeFlags[bootMode], ...portFlags, ...tail];
+}
+
+/**
+ * Build deterministic pool boot commands. Golden resume is the CI default;
+ * `bootMode: 'cold'` shares the same AVD on distinct console ports with
+ * `-read-only` so two QEMU instances can start without a snapshot.
+ */
+export function buildAndroidEmulatorPoolArgs(options: {
+  avdName: string;
+  isCI: boolean;
+  poolSize: number;
+  cores?: string;
+  skin?: string;
+  bootMode?: Extract<AndroidEmulatorArgMode, 'cold' | 'snapshot-resume'>;
+}): AndroidEmulatorPoolBoot[] {
+  if (!Number.isInteger(options.poolSize) || options.poolSize < 1) {
+    throw new Error(
+      `Invalid Android emulator pool size "${options.poolSize}". Expected a positive integer.`,
+    );
+  }
+
+  const bootMode = options.bootMode ?? 'snapshot-resume';
+  return Array.from({ length: options.poolSize }, (_, index) => {
+    const port = androidEmulatorConsolePortForIndex(index);
+    return {
+      serial: androidEmulatorSerialForIndex(index),
+      port,
+      args: buildAndroidEmulatorArgs({
+        avdName: options.avdName,
+        isCI: options.isCI,
+        bootMode,
+        cores: options.cores,
+        skin: options.skin,
+        snapshotReadOnly: true,
+        port,
+      }),
+    };
+  });
 }
 
 /** Hash of system-image metadata, emulator version, and CI prime boot args. */

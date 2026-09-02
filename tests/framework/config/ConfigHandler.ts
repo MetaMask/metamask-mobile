@@ -17,6 +17,12 @@ const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 
 const isCI = process.env.CI === 'true';
 
+export function resolveE2EWorkers(
+  env: Record<string, string | undefined> = process.env,
+): number {
+  return Number(env.E2E_WORKERS ?? 1);
+}
+
 const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   globalSetup: resolveGlobalSetup(),
   testDir: './tests',
@@ -25,7 +31,7 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   fullyParallel: false,
   forbidOnly: false,
   retries: isCI ? 2 : 0,
-  workers: 1,
+  workers: resolveE2EWorkers(),
   reporter: [['list'], ['html', { open: 'always' }]],
   timeout: resolveE2EWaitTimeoutMs(300_000),
 };

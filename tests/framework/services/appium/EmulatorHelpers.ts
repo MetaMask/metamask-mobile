@@ -6,6 +6,7 @@ import { createLogger } from '../../logger.ts';
 import {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
   getGoldenSnapshotDir,
   hasGoldenSnapshot,
   isGoldenSnapshotUsable,
@@ -17,6 +18,7 @@ import {
 export {
   ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
   buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
   computeAndroidSystemImageFingerprint,
   getAndroidAvdHome,
   getGoldenSnapshotDir,
@@ -129,6 +131,7 @@ async function spawnEmulatorAndAwaitSerial(options: {
   args: string[];
   avdName: string;
   timeoutMs: number;
+  expectedSerial?: string;
 }): Promise<string | undefined> {
   const emulatorProcess = spawn(options.emulatorBin, options.args, {
     stdio: 'ignore',
@@ -146,11 +149,17 @@ async function spawnEmulatorAndAwaitSerial(options: {
     if (processExited) {
       return undefined;
     }
-    const serial = await findEmulatorSerialForAvd(options.avdName, [
-      'offline',
-      'authorizing',
-      'device',
-    ]);
+    const serial = options.expectedSerial
+      ? (await listAdbDevices()).find(
+          (adbDevice) =>
+            adbDevice.serial === options.expectedSerial &&
+            ['offline', 'authorizing', 'device'].includes(adbDevice.state),
+        )?.serial
+      : await findEmulatorSerialForAvd(options.avdName, [
+          'offline',
+          'authorizing',
+          'device',
+        ]);
     if (serial) {
       return serial;
     }
@@ -629,6 +638,7 @@ async function killAndroidEmulatorsForAvd(avdName: string): Promise<void> {
 export async function ensureAndroidEmulatorReady(
   avdName: string,
   preferredSerial?: string,
+  options?: { preserveSiblingEmulators?: boolean },
 ): Promise<string> {
   const serial =
     preferredSerial?.trim() || process.env.ANDROID_DEVICE_UDID?.trim();
@@ -663,12 +673,101 @@ export async function ensureAndroidEmulatorReady(
       await waitForEmulatorBoot(serial);
       return serial;
     }
+    if (options?.preserveSiblingEmulators) {
+      throw new Error(
+        `Configured pooled Android emulator ${serial} is missing from adb; leaving sibling emulators running.`,
+      );
+    }
     logger.warn(
       `Configured Android serial ${serial} not found in adb devices — restarting emulator for AVD "${avdName}".`,
     );
     await killAndroidEmulatorsForAvd(avdName);
   }
   return startAndroidEmulator(avdName);
+}
+
+/**
+ * Boot a fixed emulator pool on deterministic console ports. Pool mode waits
+ * for each expected adb serial, avoiding AVD-name matching when multiple
+ * read-only instances share the same AVD.
+ */
+export async function startAndroidEmulatorPool(
+  avdName: string,
+  poolSize: number,
+): Promise<string[]> {
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+
+  const bootMode = resolveAndroidBootMode();
+  const useGoldenSnapshot =
+    bootMode !== 'cold' && isGoldenSnapshotUsable(avdName);
+  if (bootMode === 'snapshot' && !useGoldenSnapshot) {
+    throw new Error(
+      `ANDROID_EMULATOR_BOOT_MODE=snapshot but no usable golden snapshot for AVD "${avdName}".`,
+    );
+  }
+
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+  const boots = buildAndroidEmulatorPoolArgs({
+    avdName,
+    isCI,
+    poolSize,
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+    bootMode: useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+  });
+  const timeoutMs = useGoldenSnapshot
+    ? resolveSnapshotBootTimeoutMs()
+    : resolveAndroidBootTimeoutMs();
+
+  logger.info(
+    `Booting Android emulator pool size=${poolSize} mode=${useGoldenSnapshot ? 'golden-snapshot' : 'cold'}.`,
+  );
+
+  const bootStartedAt = Date.now();
+  const serials = await Promise.all(
+    boots.map(async ({ serial: expectedSerial, args }) => {
+      const existing = (await listAdbDevices()).find(
+        (adbDevice) => adbDevice.serial === expectedSerial,
+      );
+      let serial = expectedSerial;
+      if (!existing) {
+        const spawnedSerial = await spawnEmulatorAndAwaitSerial({
+          emulatorBin,
+          args,
+          avdName,
+          timeoutMs,
+          expectedSerial,
+        });
+        if (!spawnedSerial) {
+          throw new Error(
+            `Android emulator ${expectedSerial} did not appear in adb within ${timeoutMs / 1000}s.`,
+          );
+        }
+        serial = spawnedSerial;
+      }
+
+      await waitForEmulatorBoot(serial, {
+        postBoot: useGoldenSnapshot ? 'light' : 'full',
+        bootTimeoutMs: timeoutMs,
+      });
+      logger.info(
+        useGoldenSnapshot
+          ? `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`
+          : `Android emulator "${avdName}" cold-booted for pool (${serial}).`,
+      );
+      return serial;
+    }),
+  );
+  logger.info(
+    `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,
+  );
+  return serials;
 }
 
 /**
