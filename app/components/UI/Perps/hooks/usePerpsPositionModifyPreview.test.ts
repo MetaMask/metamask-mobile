@@ -182,6 +182,33 @@ describe('usePerpsPositionModifyPreview', () => {
     );
   });
 
+  it('does not re-preview when the position object identity changes with the same fields', async () => {
+    const { rerender } = renderHook(
+      (props: { position: Position }) =>
+        usePerpsPositionModifyPreview({
+          position: props.position,
+          direction: 'long',
+          size: '1',
+          price: '2000',
+          leverage: 10,
+          reduceOnly: false,
+        }),
+      { initialProps: { position: isolatedPosition() } },
+    );
+
+    await waitFor(() => {
+      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
+    });
+
+    await act(async () => {
+      rerender({
+        position: isolatedPosition({ unrealizedPnl: '-12' }),
+      });
+    });
+
+    expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
+  });
+
   it('discards a superseded preview response', async () => {
     const firstRequest = createDeferred<PositionModifyPreviewResult>();
     const latestPreview: PositionModifyPreviewResult = {
@@ -318,24 +345,26 @@ describe('usePerpsPositionModifyPreview', () => {
 
   it('gates submission again when the previewed position changes', async () => {
     const nextPositionRequest = createDeferred<PositionModifyPreviewResult>();
+    const ethPosition = isolatedPosition({ symbol: 'ETH' });
+    const btcPosition = isolatedPosition({ symbol: 'BTC' });
     const { result, rerender } = renderHook(
-      (props: { symbol: string }) =>
+      (props: { position: Position }) =>
         usePerpsPositionModifyPreview({
-          position: isolatedPosition({ symbol: props.symbol }),
+          position: props.position,
           direction: 'long',
           size: '1',
           price: '2000',
           leverage: 10,
           reduceOnly: false,
         }),
-      { initialProps: { symbol: 'ETH' } },
+      { initialProps: { position: ethPosition } },
     );
     await waitFor(() => {
       expect(result.current.isAwaitingFirstPreview).toBe(false);
     });
 
     mockPreviewPositionModify.mockReturnValueOnce(nextPositionRequest.promise);
-    rerender({ symbol: 'BTC' });
+    rerender({ position: btcPosition });
 
     await waitFor(() => {
       expect(result.current.isAwaitingFirstPreview).toBe(true);
@@ -344,7 +373,9 @@ describe('usePerpsPositionModifyPreview', () => {
     await act(async () => {
       nextPositionRequest.resolve({ status: 'none' });
     });
-    expect(result.current.isAwaitingFirstPreview).toBe(false);
+    await waitFor(() => {
+      expect(result.current.isAwaitingFirstPreview).toBe(false);
+    });
   });
 
   it('discards a superseded preview rejection', async () => {
@@ -377,6 +408,8 @@ describe('usePerpsPositionModifyPreview', () => {
       firstRequest.reject(new Error('stale failure'));
     });
 
-    expect(result.current.error).toBeNull();
+    await waitFor(() => {
+      expect(result.current.error).toBeNull();
+    });
   });
 });

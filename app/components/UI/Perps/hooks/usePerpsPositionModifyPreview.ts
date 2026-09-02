@@ -77,24 +77,44 @@ export const usePerpsPositionModifyPreview = (
     enabled = true,
   } = params;
 
+  const positionRef = useRef(position);
+  positionRef.current = position;
+
+  // Streamed Position objects get a new identity on every tick. Key on the
+  // fields that actually change isolated resize math so PnL-only updates do
+  // not cancel in-flight previews.
+  const positionKey = position
+    ? [
+        position.symbol,
+        position.size,
+        position.entryPrice,
+        position.marginUsed,
+        position.liquidationPrice ?? '',
+        position.leverage.type,
+        String(position.leverage.value),
+        position.providerId ?? '',
+      ].join('|')
+    : '';
+
   const requestParams = useMemo((): PositionModifyPreviewParams | null => {
-    if (!enabled || !position) {
+    const currentPosition = positionRef.current;
+    if (!enabled || !currentPosition || positionKey.length === 0) {
       return null;
     }
 
     return {
-      position,
+      position: currentPosition,
       direction,
       size,
       price,
       leverage,
       reduceOnly,
       feeAmountUsd,
-      providerId: providerId ?? position.providerId,
+      providerId: providerId ?? currentPosition.providerId,
     };
   }, [
     enabled,
-    position,
+    positionKey,
     direction,
     size,
     price,
