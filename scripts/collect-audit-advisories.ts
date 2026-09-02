@@ -68,14 +68,17 @@ export function parseAuditNdjson(raw: string): AuditAdvisory[] {
     const pkg = node.value;
     const children = node.children;
     if (!pkg || !children) continue;
+    // `yarn npm audit --json` emits ID as a number (the npm advisory
+    // database ID, e.g. 1094464) — normalize to a string since that's what
+    // the rest of this script (and the skip-list marker) works with.
     const id = children.ID;
     const title = children.Issue;
     const severity = children.Severity;
     const url = children.URL;
-    if (typeof pkg !== 'string' || typeof id !== 'string' || typeof title !== 'string' || typeof severity !== 'string') {
+    if (typeof pkg !== 'string' || (typeof id !== 'string' && typeof id !== 'number') || typeof title !== 'string' || typeof severity !== 'string') {
       continue;
     }
-    advisories.push({ pkg, id, title, url: typeof url === 'string' ? url : undefined, severity });
+    advisories.push({ pkg, id: String(id), title, url: typeof url === 'string' ? url : undefined, severity });
   }
   return advisories;
 }

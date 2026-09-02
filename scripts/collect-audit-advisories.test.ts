@@ -56,6 +56,28 @@ describe('parseAuditNdjson', () => {
     expect(parseAuditNdjson(raw)).toHaveLength(2);
   });
 
+  it('accepts a numeric ID and normalizes it to a string (real `yarn npm audit --json` shape)', () => {
+    const raw = ndjsonLine({
+      value: 'browserify-sign',
+      children: {
+        ID: 1094464,
+        Issue: 'browserify-sign upper bound check issue in `dsaVerify`',
+        URL: 'https://github.com/advisories/GHSA-x9w5-v3q2-3rhw',
+        Severity: 'high',
+      },
+    });
+
+    expect(parseAuditNdjson(raw)).toEqual([
+      {
+        pkg: 'browserify-sign',
+        id: '1094464',
+        title: 'browserify-sign upper bound check issue in `dsaVerify`',
+        url: 'https://github.com/advisories/GHSA-x9w5-v3q2-3rhw',
+        severity: 'high',
+      },
+    ]);
+  });
+
   it('drops a line missing required fields', () => {
     const raw = ndjsonLine({ value: 'lodash', children: { Issue: 'a', Severity: 'low' } }); // no ID
 
