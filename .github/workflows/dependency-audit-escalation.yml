@@ -92,7 +92,7 @@ jobs:
       # rather than only on first setup.
       - name: Ensure dependency-audit labels exist
         id: labels
-        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,7 +110,7 @@ jobs:
         # here for them. This step only dedupes against advisories that are
         # mid-flight (already tracked by an open fix PR or manual-review
         # issue from a previous run).
-        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -133,7 +133,7 @@ jobs:
 
       - name: Collect advisories for AI-assisted review
         id: collect
-        if: ${{ steps.audit.outputs.has-advisories == 'true' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         run: |
           yarn ts-node --transpile-only scripts/collect-audit-advisories.ts audit.ndjson skip-ids.json
@@ -145,7 +145,7 @@ jobs:
         # Fires right away, before the AI step runs (which can take a few
         # minutes), so the owner doesn't wait until a PR/issue already exists
         # just to learn something was found.
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -166,7 +166,7 @@ jobs:
 
       - name: Read audit owner
         id: owner
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         run: |
           OWNER_GH=$(node -e "console.log(require('js-yaml').load(require('fs').readFileSync('.github/audit-owners.yml','utf8')).owner.github)")
@@ -174,14 +174,14 @@ jobs:
 
       - name: Get the next semver version
         id: next-semver
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         env:
           FORCE_NEXT_SEMVER_VERSION: ${{ vars.FORCE_NEXT_SEMVER_VERSION }}
         run: ./.github/scripts/get-next-semver-version.sh "$FORCE_NEXT_SEMVER_VERSION"
 
       - name: Get token
         id: get-token
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         uses: MetaMask/github-tools/.github/actions/get-token@v1
         with:
           token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
@@ -204,7 +204,7 @@ jobs:
       # this commit.
       - name: Checkout AI Analyzer
         id: checkout-ai-analyzer
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
@@ -214,13 +214,13 @@ jobs:
 
       - name: Install AI Analyzer dependencies
         id: install-ai-analyzer-deps
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         working-directory: .ai-analyzer-action
         run: npm ci
 
       - name: Attempt AI-assisted fix
         id: fix
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
           LITELLM_API_KEY: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
@@ -240,7 +240,7 @@ jobs:
 
       - name: File or update tracking issue for advisories needing manual review
         id: manual-issue
-        if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.fix.outputs.manual-count != '0' }}
         shell: bash
         env:
           GH_TOKEN: ${{ steps.get-token.outputs.token }}
@@ -333,8 +333,17 @@ jobs:
       # mirrors that same "any previous step failed" check, so the owner
       # still gets a dedicated alert instead of just the "detected" message
       # with no follow-up.
+      #
+      # Deliberately does NOT also check steps.collect.outputs.manual-count
+      # (unlike every step above): if "Collect advisories" itself is what
+      # failed, that output was never set, and GitHub Actions silently
+      # evaluates the *whole* `if:` to false when a later step's condition
+      # references an output from a step that failed before setting it —
+      # even with failure() also present. That would skip this exact alert
+      # in exactly the case it exists for. has-advisories == 'true' is
+      # enough: nothing past "Run dependency audit" can fail without it.
       - name: Notify Slack (failure)
-        if: ${{ failure() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        if: ${{ failure() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
