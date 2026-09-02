@@ -49,7 +49,6 @@ describe('aiDigestControllerInit', () => {
 
     expect(jest.mocked(AiDigestController)).toHaveBeenCalledWith({
       messenger: expect.any(Object),
-      state: undefined,
       digestService: expect.any(AiDigestService),
     });
   });

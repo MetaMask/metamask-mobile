@@ -20,6 +20,7 @@ import {
 import { AnimationDuration } from '@metamask/design-tokens';
 import {
   useNavigation,
+  useIsFocused,
   useRoute,
   type NavigationProp,
   type RouteProp,
@@ -42,7 +43,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { useHaptics } from '../../../../../util/haptics';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
+import { CandlePeriodBottomSheet } from '../../../Charts/CandlePeriodSelector';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
 import { usePerpsMarketData } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
@@ -211,6 +212,7 @@ const PerpsProMarketView = ({
   const { playSelection } = useHaptics();
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const isScreenFocused = useIsFocused();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
@@ -363,6 +365,7 @@ const PerpsProMarketView = ({
   }, []);
 
   const appNavigation = useNavigation<AppNavigationProp>();
+  const { track } = usePerpsEventTracking();
 
   const handleHistoryPress = useCallback(() => {
     appNavigation.navigate(Routes.PERPS.ACTIVITY, {
@@ -611,6 +614,7 @@ const PerpsProMarketView = ({
                 // required field at runtime.
                 <PerpsProOrderFormPanel
                   market={market as PerpsMarketData}
+                  isScreenFocused={isScreenFocused}
                   isOrderBookCollapsed={isOrderBookCollapsed}
                   onExpandOrderBook={handleExpandOrderBook}
                   onRequestScrollBy={handleRequestScrollBy}
@@ -637,17 +641,27 @@ const PerpsProMarketView = ({
             onSelectMarket={handleSelectMarket}
             onHistoryPress={handleHistoryPress}
             onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
+            isScreenFocused={isScreenFocused}
           />
         </Animated.View>
       </Animated.ScrollView>
-      <PerpsCandlePeriodBottomSheet
+      <CandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={() => setIsMoreCandlePeriodsVisible(false)}
         selectedPeriod={selectedCandlePeriod}
         selectedDuration={TimeDuration.YearToDate}
         onPeriodChange={handleProCandlePeriodChange}
         showAllPeriods
-        asset={market.symbol}
+        onViewed={(period) => {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
+            [PERPS_EVENT_PROPERTY.ASSET]: market.symbol || '',
+            [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: period,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          });
+        }}
         testID={PerpsProMarketViewSelectorsIDs.CHART_MORE_PERIODS_SHEET}
       />
       <PerpsBalanceBottomSheet

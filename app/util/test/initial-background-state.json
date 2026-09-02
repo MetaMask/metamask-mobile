@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -915,10 +916,7 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
     "userRegion": null,
     "countries": {

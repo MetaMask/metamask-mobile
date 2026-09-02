@@ -1,6 +1,7 @@
 {
   "asyncState": {
     "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:PUSH_PRE_PROMPT_SHOWN": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
@@ -674,7 +675,6 @@
             "stxMigrationCancel": "sentinel on",
             "stxMigrationGetFees": "sentinel on",
             "stxMigrationSubmitTransactions": "sentinel on",
-            "swapsSWAPS4784AbtestCTAButtonColor": "control",
             "swapsSWAPS4825AbtestChainValueOrder": "control",
             "tokenDetailsV2AbTest": "Control is OFF",
             "trendingTokens": "feature is ON"

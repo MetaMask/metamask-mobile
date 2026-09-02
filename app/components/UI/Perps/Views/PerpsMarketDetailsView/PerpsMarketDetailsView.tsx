@@ -56,14 +56,17 @@ import { Skeleton } from '../../../../../component-library/components-temp/Skele
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { trace, TraceName, TraceOperation } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip';
 import type { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import PerpsCandlePeriodSelector from '../../components/PerpsCandlePeriodSelector';
+import {
+  CandlePeriodBottomSheet,
+  CandlePeriodSelector,
+} from '../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
@@ -118,8 +121,15 @@ import {
   usePerpsMarketAboutTracking,
 } from '../../hooks';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import type { ConfirmationLoader } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import { useConfirmNavigation } from '../../../../Views/confirmations/hooks/useConfirmNavigation';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
+import {
+  createDepositConfirmationGuard,
+  createDepositPrepSession,
+  type DepositConfirmationNavigation,
+  type DepositPrepSession,
+} from '../../utils/depositConfirmationGuard';
 import {
   usePerpsLiveAccount,
   usePerpsLiveOrders,
@@ -365,6 +375,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
+  const depositPrepSessionRef = useRef<DepositPrepSession | null>(null);
   const scrollViewRef = useRef<Animated.ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
@@ -690,7 +701,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     (spendableBalance >= PERPS_MIN_BALANCE_THRESHOLD ||
       defaultPayTokenWhenNoPerpsBalance !== null);
 
-  const handleAddFunds = useCallback(async () => {
+  const clearDepositPrepSession = useCallback(() => {
+    depositPrepSessionRef.current?.dispose();
+    depositPrepSessionRef.current = null;
+  }, []);
+
+  useEffect(() => clearDepositPrepSession, [clearDepositPrepSession]);
+
+  const handleAddFunds = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+
     if (!isEligible) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -702,9 +722,36 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       return;
     }
     try {
-      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
-      await withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
-        depositWithConfirmation(),
+      navigateToConfirmation({
+        loader: 'customAmount' as ConfirmationLoader,
+        stack: Routes.PERPS.ROOT,
+      });
+      if (!depositPrepSessionRef.current) {
+        depositPrepSessionRef.current = createDepositPrepSession();
+      }
+      depositPrepSessionRef.current.attachGuard(
+        createDepositConfirmationGuard(
+          navigation as unknown as DepositConfirmationNavigation,
+        ),
+      );
+      depositPrepSessionRef.current.ensureScheduled(
+        () =>
+          withPendingTransactionActiveAbTests(transactionActiveAbTests, () =>
+            depositWithConfirmation(),
+          ),
+        {
+          onSuccess: () => {
+            depositPrepSessionRef.current = null;
+          },
+          onFailure: (err) => {
+            Logger.error(
+              ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'),
+              {
+                tags: { feature: PERPS_CONSTANTS.FeatureName },
+              },
+            );
+          },
+        },
       );
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
@@ -714,6 +761,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   }, [
     isEligible,
     track,
+    navigation,
     navigateToConfirmation,
     depositWithConfirmation,
     transactionActiveAbTests,
@@ -1880,7 +1928,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             </ComponentErrorBoundary>
 
             {/* Candle Period Selector */}
-            <PerpsCandlePeriodSelector
+            <CandlePeriodSelector
               selectedPeriod={selectedCandlePeriod}
               onPeriodChange={handleCandlePeriodChange}
               onMorePress={handleMorePress}
@@ -2087,14 +2135,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       )}
 
       {/* More Candle Periods Bottom Sheet - Rendered at root level */}
-      <PerpsCandlePeriodBottomSheet
+      <CandlePeriodBottomSheet
         isVisible={isMoreCandlePeriodsVisible}
         onClose={handleMoreCandlePeriodsClose}
         selectedPeriod={selectedCandlePeriod}
         selectedDuration={TimeDuration.YearToDate} // Not used when showAllPeriods is true
         onPeriodChange={handleCandlePeriodChange}
         showAllPeriods
-        asset={market?.symbol}
+        onViewed={(period) => {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
+            [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+            [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: period,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
+          });
+        }}
         testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-more-candle-periods-bottom-sheet`}
       />
 

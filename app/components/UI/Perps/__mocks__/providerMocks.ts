@@ -39,6 +39,7 @@ export const createMockHyperLiquidProvider =
       disconnect: jest.fn(),
       updatePositionTPSL: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       calculateFees: jest.fn(),

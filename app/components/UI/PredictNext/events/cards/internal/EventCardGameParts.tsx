@@ -119,32 +119,35 @@ const TeamLogo = ({
   const tw = useTailwind();
   const [failed, setFailed] = useState(false);
   const showImage = team.logoUrl && !failed;
-  const sizeClassName = size === 'large' ? 'h-10 w-10' : 'h-8 w-8';
-  const imageSizeClassName = size === 'large' ? 'h-12 w-12' : 'h-9 w-9';
+  const sizeClassName = size === 'large' ? 'h-12 w-12' : 'h-8 w-8';
 
   return (
     <Box
-      twClassName={`${sizeClassName} items-center justify-center overflow-hidden rounded-full bg-muted`}
+      twClassName={`${sizeClassName} items-center justify-center`}
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
     >
       {showImage ? (
         <ExpoImage
           source={team.logoUrl}
-          style={tw.style(imageSizeClassName)}
+          style={tw.style(sizeClassName)}
           contentFit="contain"
           recyclingKey={team.logoUrl}
           onError={() => setFailed(true)}
           testID={`predict-next-game-logo-${event.id}-${selection}`}
         />
       ) : (
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          testID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
+        <Box
+          twClassName={`${sizeClassName} items-center justify-center rounded-full bg-muted`}
         >
-          {abbreviation}
-        </Text>
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            testID={`predict-next-game-logo-fallback-${event.id}-${selection}`}
+          >
+            {abbreviation}
+          </Text>
+        </Box>
       )}
     </Box>
   );
@@ -281,7 +284,7 @@ const Matchup = ({ children }: { children: React.ReactNode }) => {
   const { event } = useGameCard();
   return (
     <Box
-      twClassName="h-20 flex-row items-center justify-between pb-4"
+      twClassName="h-24 flex-row items-center justify-between pb-4"
       testID={`predict-next-game-matchup-${event.id}`}
     >
       {children}
