@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -10,6 +10,7 @@ import { createStyles } from './PerpsOHLCVBar.styles';
 import type { PerpsOHLCVBarProps } from './PerpsOHLCVBar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * PerpsOHLCVBar Component
@@ -80,6 +81,18 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       volume: formattedVolume,
     };
   }, [open, high, low, close, volume]);
+
+  useEffect(() => {
+    if (formattedValues.volume && formattedValues.volume.includes('$')) {
+      DevLogger.log(
+        '[PR-TAT-3867] BUG_MARKER: HLOCV volume formatted as USD while candle volume is coin-denominated',
+        {
+          formattedVolume: formattedValues.volume,
+          rawVolume: volume,
+        },
+      );
+    }
+  }, [formattedValues.volume, volume]);
 
   return (
     <View style={styles.container} testID={testID}>
