@@ -59,6 +59,14 @@ describe('formatTwapProgressPercent', () => {
     expect(result).toBe('25%');
   });
 
+  it('keeps an active schedule below one hundred percent', () => {
+    // Arrange / Act
+    const result = formatTwapProgressPercent(9999);
+
+    // Assert
+    expect(result).toBe('99.99%');
+  });
+
   it('clamps above the full range', () => {
     // Arrange / Act
     const result = formatTwapProgressPercent(12000);

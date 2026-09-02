@@ -234,6 +234,7 @@ const PerpsProTwapCard = ({
                   'perps.pro_positions_panel.twap_card.total_size',
                 )}
                 value={`${totalSize} ${displaySymbol}`}
+                isHidden={privacyMode}
                 testID={PerpsProMarketViewSelectorsIDs.TWAP_SIZE}
               />
               <KeyValueItem
@@ -241,6 +242,7 @@ const PerpsProTwapCard = ({
                   'perps.pro_positions_panel.twap_card.filled_size',
                 )}
                 value={`${executedSize} ${displaySymbol}`}
+                isHidden={privacyMode}
                 testID={PerpsProMarketViewSelectorsIDs.TWAP_FILLED_SIZE}
               />
               <KeyValueItem

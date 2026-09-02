@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 
@@ -43,6 +44,11 @@ const buildFill = (overrides: Partial<TwapOrderFill> = {}): TwapOrderFill => ({
 });
 
 describe('PerpsProTwapFillRow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue(false);
+  });
+
   it('names the parent market of the slice', () => {
     // Arrange / Act
     render(<PerpsProTwapFillRowItem row={{ fill: buildFill(), twapOrder }} />);

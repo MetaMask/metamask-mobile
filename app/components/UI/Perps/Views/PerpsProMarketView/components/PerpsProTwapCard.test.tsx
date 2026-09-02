@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
@@ -63,8 +64,14 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
 });
 
 const ids = PerpsProMarketViewSelectorsIDs;
+const DOTS_SHORT = '•'.repeat(6);
 
 describe('PerpsProTwapCard', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue(false);
+  });
+
   it('renders the schedule market and size', () => {
     // Arrange / Act
     render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
@@ -72,6 +79,22 @@ describe('PerpsProTwapCard', () => {
     // Assert
     expect(screen.getByTestId(ids.TWAP_MARKET)).toHaveTextContent('BTC');
     expect(screen.getByTestId(ids.TWAP_SIZE)).toHaveTextContent('10 BTC');
+  });
+
+  it('hides total and filled sizes in privacy mode', () => {
+    // Arrange
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    // Act
+    render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
+
+    // Assert
+    expect(screen.queryByText('10 BTC')).toBeNull();
+    expect(screen.queryByText('4 BTC')).toBeNull();
+    expect(screen.getByTestId(ids.TWAP_SIZE)).toHaveTextContent(DOTS_SHORT);
+    expect(screen.getByTestId(ids.TWAP_FILLED_SIZE)).toHaveTextContent(
+      DOTS_SHORT,
+    );
   });
 
   it('shows fill progress as a whole percent', () => {

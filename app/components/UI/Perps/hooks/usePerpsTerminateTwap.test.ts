@@ -50,6 +50,7 @@ const twapOrder: TwapOrder = {
   startedAt: 1_000,
   lastUpdated: 2_000,
   fills: [],
+  providerId: 'hyperliquid',
 };
 
 const mockCancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
@@ -75,9 +76,26 @@ describe('usePerpsTerminateTwap', () => {
       orderId: 'twap-1',
       symbol: 'BTC',
       orderType: 'twap',
+      providerId: 'hyperliquid',
     });
     expect(onSuccess).toHaveBeenCalledWith(twapOrder);
     expect(result.current.terminatingOrderId).toBeNull();
+  });
+
+  it('routes cancellation to the provider that owns the schedule', async () => {
+    // Arrange
+    const { result } = renderHook(() => usePerpsTerminateTwap());
+    const routedOrder = { ...twapOrder, providerId: 'myx' as const };
+
+    // Act
+    await act(async () => {
+      await result.current.terminateTwap(routedOrder);
+    });
+
+    // Assert
+    expect(mockCancelOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'myx' }),
+    );
   });
 
   it('names the filled size in the success toast', async () => {
@@ -113,6 +131,25 @@ describe('usePerpsTerminateTwap', () => {
     // Assert
     expect(mockCancellationSuccess).toHaveBeenCalledWith(
       false,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+  });
+
+  it('omits directional fill copy for a reduce-only schedule', async () => {
+    // Arrange
+    const { result } = renderHook(() => usePerpsTerminateTwap());
+
+    // Act
+    await act(async () => {
+      await result.current.terminateTwap({ ...twapOrder, reduceOnly: true });
+    });
+
+    // Assert
+    expect(mockCancellationSuccess).toHaveBeenCalledWith(
+      true,
       undefined,
       undefined,
       undefined,

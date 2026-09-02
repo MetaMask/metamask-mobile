@@ -1,6 +1,15 @@
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
@@ -18,6 +27,13 @@ import {
   type ProTwapView,
 } from '../utils/proTwapViews';
 
+const FILL_HISTORY_PAGE_SIZE = 50;
+
+export interface PerpsProTwapEmptyMetadata {
+  filteredTicker?: string;
+  filteredSideDescriptionKey?: string;
+}
+
 interface PerpsProTwapPanelProps {
   /** Active schedules, already ticker- and side-filtered by the caller. */
   activeTwapOrders: TwapOrder[];
@@ -28,10 +44,11 @@ interface PerpsProTwapPanelProps {
   onSelectMarket?: (twapOrder: TwapOrder) => void;
   onTerminate: (twapOrder: TwapOrder) => void;
   terminatingOrderId: string | null;
-  /** Ticker whose filter emptied the list, for the empty-state copy. */
-  filteredTicker?: string;
-  /** Side-filter empty copy key, for the empty-state copy. */
-  filteredSideDescriptionKey?: string;
+  /** Load failure from the most recent REST read. */
+  error: string | null;
+  onRetry: () => void;
+  /** Filter-specific empty copy derived independently for each subview. */
+  emptyMetadataByView?: Partial<Record<ProTwapView, PerpsProTwapEmptyMetadata>>;
 }
 
 const VIEW_LABEL_KEYS: Record<ProTwapView, string> = {
@@ -61,16 +78,32 @@ const PerpsProTwapPanel = ({
   onSelectMarket,
   onTerminate,
   terminatingOrderId,
-  filteredTicker,
-  filteredSideDescriptionKey,
+  error,
+  onRetry,
+  emptyMetadataByView,
 }: PerpsProTwapPanelProps) => {
   const [activeViewIndex, setActiveViewIndex] = useState(0);
+  const [fillHistoryPage, setFillHistoryPage] = useState(0);
   const activeView = PRO_TWAP_VIEWS[activeViewIndex] ?? 'active';
 
   const fillRows = useMemo(
     () => selectTwapFillRows([...activeTwapOrders, ...historicalTwapOrders]),
     [activeTwapOrders, historicalTwapOrders],
   );
+  const fillHistoryPageCount = Math.max(
+    1,
+    Math.ceil(fillRows.length / FILL_HISTORY_PAGE_SIZE),
+  );
+  const visibleFillRows = fillRows.slice(
+    fillHistoryPage * FILL_HISTORY_PAGE_SIZE,
+    (fillHistoryPage + 1) * FILL_HISTORY_PAGE_SIZE,
+  );
+
+  useEffect(() => {
+    setFillHistoryPage((currentPage) =>
+      Math.min(currentPage, fillHistoryPageCount - 1),
+    );
+  }, [fillHistoryPageCount]);
 
   const viewTabs: TabItem[] = useMemo(
     () =>
@@ -85,16 +118,18 @@ const PerpsProTwapPanel = ({
 
   const renderEmptyState = () => {
     // Avoid flashing the empty state while the first fetch is still pending.
-    if (isInitialLoading) {
+    if (isInitialLoading || error) {
       return null;
     }
+
+    const emptyMetadata = emptyMetadataByView?.[activeView];
 
     return (
       <Box twClassName="items-center justify-center px-2 pt-6">
         <PerpsProTwapEmptyState
           view={activeView}
-          filteredTicker={filteredTicker}
-          filteredSideDescriptionKey={filteredSideDescriptionKey}
+          filteredTicker={emptyMetadata?.filteredTicker}
+          filteredSideDescriptionKey={emptyMetadata?.filteredSideDescriptionKey}
         />
       </Box>
     );
@@ -131,13 +166,37 @@ const PerpsProTwapPanel = ({
 
     return (
       <Box testID={PerpsProMarketViewSelectorsIDs.TWAP_LIST}>
-        {fillRows.map((row) => (
+        {visibleFillRows.map((row) => (
           <PerpsProTwapFillRowItem
             key={row.fill.fillId}
             row={row}
             testID={getPerpsProTwapFillRowSelector(row.fill.fillId)}
           />
         ))}
+        {fillHistoryPageCount > 1 ? (
+          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              twClassName="flex-1"
+              isDisabled={fillHistoryPage === 0}
+              onPress={() => setFillHistoryPage((page) => page - 1)}
+              testID={PerpsProMarketViewSelectorsIDs.TWAP_FILL_PREVIOUS}
+            >
+              {strings('perps.pro_positions_panel.twap_views.previous_fills')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Sm}
+              twClassName="flex-1"
+              isDisabled={fillHistoryPage >= fillHistoryPageCount - 1}
+              onPress={() => setFillHistoryPage((page) => page + 1)}
+              testID={PerpsProMarketViewSelectorsIDs.TWAP_FILL_NEXT}
+            >
+              {strings('perps.pro_positions_panel.twap_views.next_fills')}
+            </Button>
+          </Box>
+        ) : null}
       </Box>
     );
   };
@@ -161,6 +220,24 @@ const PerpsProTwapPanel = ({
         twClassName="-mx-2"
         testID={PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS}
       />
+      {error ? (
+        <Box
+          twClassName="mx-2 mt-3 gap-2 rounded-xl bg-error-muted p-3"
+          testID={PerpsProMarketViewSelectorsIDs.TWAP_ERROR}
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+            {strings('perps.pro_positions_panel.twap_load_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={onRetry}
+            testID={PerpsProMarketViewSelectorsIDs.TWAP_RETRY}
+          >
+            {strings('perps.pro_positions_panel.twap_retry')}
+          </Button>
+        </Box>
+      ) : null}
       {renderActiveView()}
     </Box>
   );

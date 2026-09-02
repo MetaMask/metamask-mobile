@@ -42,6 +42,7 @@ export const usePerpsTerminateTwap = (
           orderId: twapOrder.orderId,
           symbol: twapOrder.symbol,
           orderType: 'twap',
+          providerId: twapOrder.providerId,
         });
 
         if (!result.success) {
@@ -58,13 +59,15 @@ export const usePerpsTerminateTwap = (
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             twapOrder.reduceOnly,
             undefined,
-            hasFills
+            hasFills && !twapOrder.reduceOnly
               ? twapOrder.side === 'buy'
                 ? 'long'
                 : 'short'
               : undefined,
-            hasFills ? twapOrder.executedSize : undefined,
-            hasFills ? twapOrder.symbol : undefined,
+            hasFills && !twapOrder.reduceOnly
+              ? twapOrder.executedSize
+              : undefined,
+            hasFills && !twapOrder.reduceOnly ? twapOrder.symbol : undefined,
           ),
         );
         onSuccess?.(twapOrder);

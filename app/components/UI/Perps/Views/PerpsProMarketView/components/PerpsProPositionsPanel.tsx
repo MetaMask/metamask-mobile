@@ -108,7 +108,9 @@ import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProTabEmptyState from './PerpsProTabEmptyState';
-import PerpsProTwapPanel from './PerpsProTwapPanel';
+import PerpsProTwapPanel, {
+  type PerpsProTwapEmptyMetadata,
+} from './PerpsProTwapPanel';
 import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
@@ -128,13 +130,13 @@ import { sortProPositions } from '../utils/proPositionSort';
 import {
   selectActiveTwapOrders,
   selectHistoricalTwapOrders,
+  type ProTwapView,
 } from '../utils/proTwapViews';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
 
-const POSITIONS_TAB_INDEX = 0;
-const ORDERS_TAB_INDEX = 1;
-const CHASE_TAB_INDEX = 2;
+type ProPositionsPanelTabKey = 'positions' | 'orders' | 'chase' | 'twap';
+type ProPositionsPanelTab = TabItem & { key: ProPositionsPanelTabKey };
 type ChaseActivityFilter = 'active' | 'history';
 
 const isChaseHistoryOrder = (order: ChaseOrder) =>
@@ -241,11 +243,13 @@ const PerpsProPositionsPanel = ({
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
+  const isTwapTabEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const { chaseOrders, reconcileCanceledChaseOrder } = usePerpsChaseOrders({
     isEnabled: isScreenFocused,
     enableDiscovery: false,
   });
-  const [activeIndex, setActiveIndex] = useState(POSITIONS_TAB_INDEX);
+  const [activeTabKey, setActiveTabKey] =
+    useState<ProPositionsPanelTabKey>('positions');
   const [isTickerOnly, setIsTickerOnly] = useState(false);
   const [chaseSideFilter, setChaseSideFilter] = useState(
     DEFAULT_PRO_ORDER_SIDE_FILTER,
@@ -260,16 +264,14 @@ const PerpsProPositionsPanel = ({
   >(null);
   const reportedTerminatedChaseKeysRef = useRef(new Set<string>());
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
-  // Chase occupies index 2 when visible. TWAP follows it, or sits at 2 when
-  // Chase is hidden, so TabsBar activeIndex stays aligned with the tab list.
-  const twapTabIndex = shouldShowChaseTab
-    ? CHASE_TAB_INDEX + 1
-    : CHASE_TAB_INDEX;
   useEffect(() => {
-    if (!shouldShowChaseTab && activeIndex === CHASE_TAB_INDEX) {
-      setActiveIndex(ORDERS_TAB_INDEX);
+    if (
+      (activeTabKey === 'chase' && !shouldShowChaseTab) ||
+      (activeTabKey === 'twap' && !isTwapTabEnabled)
+    ) {
+      setActiveTabKey('orders');
     }
-  }, [activeIndex, shouldShowChaseTab]);
+  }, [activeTabKey, isTwapTabEnabled, shouldShowChaseTab]);
   // Positions and Orders persist their side filter on the controller; TWAP has
   // no such field on `ProLayoutPreferences`, so it stays local for now.
   const [twapSideFilter, setTwapSideFilter] = useState<ProOrderSideFilter>(
@@ -385,19 +387,19 @@ const PerpsProPositionsPanel = ({
   );
   const { markets } = usePerpsMarkets();
 
-  const isTwapTabEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const [terminatingTwapOrder, setTerminatingTwapOrder] =
     useState<TwapOrder | null>(null);
   const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
   // Only the active view needs to track a running schedule, and the tab has to
   // be both enabled and selected before it is worth spending venue calls.
-  const isTwapTabActive = isTwapTabEnabled && activeIndex === twapTabIndex;
+  const isTwapTabActive = isTwapTabEnabled && activeTabKey === 'twap';
   const {
     twapOrders,
     isLoading: areTwapOrdersInitiallyLoading,
+    error: twapOrdersError,
     refresh: refreshTwapOrders,
   } = usePerpsTwapOrders({
-    enablePolling: isTwapTabActive,
+    enablePolling: isScreenFocused && isTwapTabActive,
     pollingInterval: TWAP_POLL_INTERVAL_MS,
     skipInitialFetch: !isTwapTabEnabled,
   });
@@ -530,24 +532,30 @@ const PerpsProPositionsPanel = ({
     [isTickerOnly, twapOrders, symbol],
   );
 
-  const sideFilteredTwapOrders = useMemo(
-    () => filterProTwapOrdersBySide(visibleTwapOrders, twapSideFilter),
-    [twapSideFilter, visibleTwapOrders],
+  const visibleActiveTwapOrders = useMemo(
+    () => selectActiveTwapOrders(visibleTwapOrders),
+    [visibleTwapOrders],
+  );
+
+  const visibleHistoricalTwapOrders = useMemo(
+    () => selectHistoricalTwapOrders(visibleTwapOrders),
+    [visibleTwapOrders],
   );
 
   const activeTwapOrders = useMemo(
-    () => selectActiveTwapOrders(sideFilteredTwapOrders),
-    [sideFilteredTwapOrders],
+    () => filterProTwapOrdersBySide(visibleActiveTwapOrders, twapSideFilter),
+    [twapSideFilter, visibleActiveTwapOrders],
   );
 
   const historicalTwapOrders = useMemo(
-    () => selectHistoricalTwapOrders(sideFilteredTwapOrders),
-    [sideFilteredTwapOrders],
+    () =>
+      filterProTwapOrdersBySide(visibleHistoricalTwapOrders, twapSideFilter),
+    [twapSideFilter, visibleHistoricalTwapOrders],
   );
 
-  const isOrdersTab = activeIndex === ORDERS_TAB_INDEX;
-  const isChaseTab = activeIndex === CHASE_TAB_INDEX && shouldShowChaseTab;
-  const isTwapTab = activeIndex === twapTabIndex && isTwapTabEnabled;
+  const isOrdersTab = activeTabKey === 'orders';
+  const isChaseTab = activeTabKey === 'chase' && shouldShowChaseTab;
+  const isTwapTab = activeTabKey === 'twap' && isTwapTabEnabled;
   let activeSideFilter = positionsSideFilter;
   let setActiveSideFilter = setPositionsSideFilter;
   if (isTwapTab) {
@@ -691,7 +699,7 @@ const PerpsProPositionsPanel = ({
         })
       : strings('perps.pro_positions_panel.twap');
 
-  const tabs: TabItem[] = [
+  const tabs: ProPositionsPanelTab[] = [
     {
       key: 'positions',
       label: positionsTabLabel,
@@ -704,32 +712,38 @@ const PerpsProPositionsPanel = ({
       content: null,
       testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
     },
-    ...(shouldShowChaseTab
-      ? [
-          {
-            key: 'chase',
-            label:
-              activeChaseOrders.length > 0
-                ? strings('perps.order.chase.tab_with_count', {
-                    count: activeChaseOrders.length,
-                  })
-                : strings('perps.order.chase.tab'),
-            content: null,
-            testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
-          },
-        ]
-      : []),
-    ...(isTwapTabEnabled
-      ? [
-          {
-            key: 'twap',
-            label: twapTabLabel,
-            content: null,
-            testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
-          },
-        ]
-      : []),
   ];
+  if (shouldShowChaseTab) {
+    tabs.push({
+      key: 'chase',
+      label:
+        activeChaseOrders.length > 0
+          ? strings('perps.order.chase.tab_with_count', {
+              count: activeChaseOrders.length,
+            })
+          : strings('perps.order.chase.tab'),
+      content: null,
+      testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+    });
+  }
+  if (isTwapTabEnabled) {
+    tabs.push({
+      key: 'twap',
+      label: twapTabLabel,
+      content: null,
+      testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+    });
+  }
+  const activeTabIndex = Math.max(
+    0,
+    tabs.findIndex((tab) => tab.key === activeTabKey),
+  );
+  const handleTabPress = (tabIndex: number) => {
+    const selectedTab = tabs[tabIndex];
+    if (selectedTab) {
+      setActiveTabKey(selectedTab.key);
+    }
+  };
 
   const hasPositions = sortedVisiblePositions.length > 0;
   const hasAnyPositions = positions.length > 0;
@@ -764,21 +778,61 @@ const PerpsProPositionsPanel = ({
       ? displaySymbol
       : undefined;
 
-  const hasAnyTwapOrders = twapOrders.length > 0;
-  const isTwapSideFilterEmpty =
-    twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
-    sideFilteredTwapOrders.length === 0 &&
-    visibleTwapOrders.length > 0;
-  const twapSideFilterEmptyDescriptionKey = isTwapSideFilterEmpty
-    ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
-    : undefined;
-  const filteredTwapTicker =
-    isTickerOnly &&
-    hasAnyTwapOrders &&
-    visibleTwapOrders.length === 0 &&
-    !isTwapSideFilterEmpty
-      ? displaySymbol
-      : undefined;
+  const allActiveTwapOrders = selectActiveTwapOrders(twapOrders);
+  const allHistoricalTwapOrders = selectHistoricalTwapOrders(twapOrders);
+  const allFillTwapOrders = twapOrders.filter(
+    (twapOrder) => twapOrder.fills.length > 0,
+  );
+  const visibleFillTwapOrders = visibleTwapOrders.filter(
+    (twapOrder) => twapOrder.fills.length > 0,
+  );
+  const sideFilteredFillTwapOrders = filterProTwapOrdersBySide(
+    visibleFillTwapOrders,
+    twapSideFilter,
+  );
+  const getTwapEmptyMetadata = (
+    allViewOrders: TwapOrder[],
+    visibleViewOrders: TwapOrder[],
+    sideFilteredViewOrders: TwapOrder[],
+  ): PerpsProTwapEmptyMetadata => {
+    const isTwapViewSideFilterEmpty =
+      twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
+      visibleViewOrders.length > 0 &&
+      sideFilteredViewOrders.length === 0;
+
+    return {
+      filteredSideDescriptionKey: isTwapViewSideFilterEmpty
+        ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
+        : undefined,
+      filteredTicker:
+        isTickerOnly &&
+        allViewOrders.length > 0 &&
+        visibleViewOrders.length === 0 &&
+        !isTwapViewSideFilterEmpty
+          ? displaySymbol
+          : undefined,
+    };
+  };
+  const twapEmptyMetadataByView: Record<
+    ProTwapView,
+    PerpsProTwapEmptyMetadata
+  > = {
+    active: getTwapEmptyMetadata(
+      allActiveTwapOrders,
+      visibleActiveTwapOrders,
+      activeTwapOrders,
+    ),
+    history: getTwapEmptyMetadata(
+      allHistoricalTwapOrders,
+      visibleHistoricalTwapOrders,
+      historicalTwapOrders,
+    ),
+    fill_history: getTwapEmptyMetadata(
+      allFillTwapOrders,
+      visibleFillTwapOrders,
+      sideFilteredFillTwapOrders,
+    ),
+  };
 
   const renderPositionsTab = () => {
     if (hasPositions) {
@@ -881,11 +935,12 @@ const PerpsProPositionsPanel = ({
       activeTwapOrders={activeTwapOrders}
       historicalTwapOrders={historicalTwapOrders}
       isInitialLoading={areTwapOrdersInitiallyLoading}
+      error={twapOrdersError}
+      onRetry={refreshTwapOrders}
       onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
       onTerminate={setTerminatingTwapOrder}
       terminatingOrderId={terminatingOrderId}
-      filteredTicker={filteredTwapTicker}
-      filteredSideDescriptionKey={twapSideFilterEmptyDescriptionKey}
+      emptyMetadataByView={twapEmptyMetadataByView}
     />
   );
 
@@ -1262,8 +1317,8 @@ const PerpsProPositionsPanel = ({
           <TabsBar
             key={shouldShowChaseTab ? 'chase-visible' : 'chase-hidden'}
             tabs={tabs}
-            activeIndex={activeIndex}
-            onTabPress={setActiveIndex}
+            activeIndex={activeTabIndex}
+            onTabPress={handleTabPress}
             twClassName="-mx-2"
             testID={PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TABS}
           />
@@ -1316,7 +1371,7 @@ const PerpsProPositionsPanel = ({
             <ButtonIcon
               iconName={IconName.Customize}
               accessibilityLabel={strings(
-                activeIndex === ORDERS_TAB_INDEX
+                isOrdersTab
                   ? 'perps.pro_positions_panel.sort.orders_settings_accessibility'
                   : 'perps.pro_positions_panel.sort.settings_accessibility',
               )}
@@ -1361,7 +1416,7 @@ const PerpsProPositionsPanel = ({
         sideFilteredOrders,
         areOrdersFiltered,
       )}
-      {activeIndex === ORDERS_TAB_INDEX ? (
+      {activeTabKey === 'orders' ? (
         <PerpsProOrdersSortSheet
           isVisible={isSortSheetOpen}
           sortConfig={orderSortConfig}
@@ -1369,7 +1424,7 @@ const PerpsProPositionsPanel = ({
           onClose={() => setIsSortSheetOpen(false)}
           testID={PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}
         />
-      ) : activeIndex === POSITIONS_TAB_INDEX ? (
+      ) : activeTabKey === 'positions' ? (
         <PerpsProPositionsSortSheet
           isVisible={isSortSheetOpen}
           sortConfig={sortConfig}

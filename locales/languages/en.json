@@ -1663,6 +1663,8 @@
       "twap_empty_short": "No short TWAPs.",
       "twap_history_empty": "Your completed TWAPs will appear here.",
       "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "All sides",
         "long": "Long",
@@ -1707,7 +1709,9 @@
       "twap_views": {
         "active": "Active",
         "history": "History",
-        "fill_history": "Fill history"
+        "fill_history": "Fill history",
+        "previous_fills": "Previous",
+        "next_fills": "Next"
       },
       "twap_card": {
         "total_size": "Total size",

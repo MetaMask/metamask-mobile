@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TwapOrder } from '@metamask/perps-controller';
+import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
-
-/**
- * `PerpsController.subscribeToTwapOrders` ships in a controller release after
- * the one currently pinned here, so it is described locally as optional. Drop
- * this shim once the dependency is upgraded and call the method directly.
- *
- * @see https://github.com/MetaMask/core/pull/10056
- */
-type SubscribeToTwapOrders = (params: {
-  callback: (twapOrders: TwapOrder[], isSnapshot?: boolean) => void;
-}) => () => void;
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 
 export interface UsePerpsTwapOrdersResult {
   /** Current and terminal TWAP schedules, newest first. */
@@ -70,13 +65,44 @@ export const usePerpsTwapOrders = (
     skipInitialFetch = false,
   } = options;
 
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
+  const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}`;
+
   const [twapOrders, setTwapOrders] = useState<TwapOrder[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedIdentityKey, setResolvedIdentityKey] = useState(identityKey);
+  const lifecycleGenerationRef = useRef(0);
+  const requestGenerationRef = useRef(0);
+
+  useEffect(() => {
+    const lifecycleGeneration = ++lifecycleGenerationRef.current;
+    requestGenerationRef.current += 1;
+    setTwapOrders([]);
+    setResolvedIdentityKey(identityKey);
+    setIsLoading(!skipInitialFetch);
+    setIsRefreshing(false);
+    setError(null);
+
+    return () => {
+      if (lifecycleGenerationRef.current === lifecycleGeneration) {
+        lifecycleGenerationRef.current += 1;
+      }
+      requestGenerationRef.current += 1;
+    };
+  }, [identityKey, skipInitialFetch]);
 
   const fetchTwapOrders = useCallback(
     async (isRefresh = false): Promise<void> => {
+      const lifecycleGeneration = lifecycleGenerationRef.current;
+      const requestGeneration = ++requestGenerationRef.current;
+      const isCurrentRequest = () =>
+        lifecycleGenerationRef.current === lifecycleGeneration &&
+        requestGenerationRef.current === requestGeneration;
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -87,23 +113,27 @@ export const usePerpsTwapOrders = (
       try {
         const orders = await Engine.context.PerpsController.getTwapOrders();
 
+        if (!isCurrentRequest()) {
+          return;
+        }
         setTwapOrders(orders || []);
+        setResolvedIdentityKey(identityKey);
       } catch (err) {
+        if (!isCurrentRequest()) {
+          return;
+        }
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown error occurred';
         setError(errorMessage);
         DevLogger.log('Perps: Failed to fetch TWAP orders', err);
-
-        // Keep the last good list on a failed poll so the card does not flash.
-        if (!isRefresh) {
-          setTwapOrders([]);
-        }
       } finally {
-        setIsLoading(false);
-        setIsRefreshing(false);
+        if (isCurrentRequest()) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
       }
     },
-    [],
+    [identityKey],
   );
 
   const refresh = useCallback(
@@ -122,19 +152,20 @@ export const usePerpsTwapOrders = (
       return undefined;
     }
 
-    let isStreaming = false;
-    // `subscribeToTwapOrders` lands in a later controller release than the one
-    // this app pins, so detect it rather than requiring the upgrade to ship
-    // first. Until then the poll below is the only path; once the controller
-    // upgrade lands this starts streaming with no further change here.
-    const subscribeToTwapOrders: SubscribeToTwapOrders | undefined =
-      Reflect.get(
-        Engine.context.PerpsController,
-        'subscribeToTwapOrders',
-      )?.bind(Engine.context.PerpsController);
-    const unsubscribe = subscribeToTwapOrders?.({
+    const lifecycleGeneration = lifecycleGenerationRef.current;
+
+    // Refresh immediately when the TWAP tab becomes active. The subscription
+    // supplies schedule deltas, while this read supplies slice fills and the
+    // aggregated provider view.
+    fetchTwapOrders(true);
+
+    const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
       callback: (streamedOrders) => {
-        isStreaming = true;
+        if (lifecycleGenerationRef.current !== lifecycleGeneration) {
+          return;
+        }
+        // A stream commit is newer than reads already in flight.
+        requestGenerationRef.current += 1;
         // The stream omits slice fills, so carry forward the ones the last
         // read resolved for each schedule.
         setTwapOrders((previousOrders) => {
@@ -147,30 +178,33 @@ export const usePerpsTwapOrders = (
               : { ...order, fills: fillsByOrderId.get(order.orderId) ?? [] },
           );
         });
+        setResolvedIdentityKey(identityKey);
+        setError(null);
         setIsLoading(false);
+        setIsRefreshing(false);
       },
     });
 
-    // A provider without a push channel returns a no-op cleanup and never
-    // calls back, so poll until the first streamed update proves otherwise.
-    // Read once up front: waiting a full interval would leave the list and the
-    // tab count on their mount-time snapshot, so a TWAP placed from another
-    // tab stays invisible for seconds after switching here.
-    if (!subscribeToTwapOrders) {
-      fetchTwapOrders(true);
-    }
-
+    // The venue's TWAP schedule stream does not contain slice-fill updates.
+    // Keep this bounded REST refresh even after streaming starts so Fill
+    // History and executed-size details cannot freeze.
     const intervalId = setInterval(() => {
-      if (!isStreaming) {
-        fetchTwapOrders(true);
-      }
+      fetchTwapOrders(true);
     }, pollingInterval);
 
     return () => {
-      unsubscribe?.();
+      unsubscribe();
       clearInterval(intervalId);
     };
-  }, [enablePolling, pollingInterval, fetchTwapOrders]);
+  }, [enablePolling, pollingInterval, fetchTwapOrders, identityKey]);
 
-  return { twapOrders, isLoading, error, refresh, isRefreshing };
+  const isCurrentIdentity = resolvedIdentityKey === identityKey;
+
+  return {
+    twapOrders: isCurrentIdentity ? twapOrders : [],
+    isLoading: !isCurrentIdentity || isLoading,
+    error: isCurrentIdentity ? error : null,
+    refresh,
+    isRefreshing: isCurrentIdentity && isRefreshing,
+  };
 };

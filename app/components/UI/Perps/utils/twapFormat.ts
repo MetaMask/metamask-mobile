@@ -56,10 +56,11 @@ export const formatTwapDuration = (durationMinutes: number): string => {
 };
 
 /**
- * Render basis points as a whole-percent string, e.g. 2500 -> `25%`.
+ * Render basis points as a percent string, e.g. 2500 -> `25%`.
  * The controller reports TWAP fill and time progress in bps.
  */
 export const formatTwapProgressPercent = (bps: number): string => {
-  const clamped = Math.min(Math.max(bps, 0), 10000);
-  return `${Math.round(clamped / 100)}%`;
+  const clampedBps = Math.trunc(Math.min(Math.max(bps, 0), 10000));
+  const percentage = Number((clampedBps / 100).toFixed(2));
+  return `${percentage}%`;
 };
