@@ -16,7 +16,7 @@ describe('showDevErrorAlert', () => {
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
   });
 
-  it.each(['rc', 'exp', 'dev', 'test'])(
+  it.each(['rc', 'rc-nightly', 'exp', 'dev', 'test'])(
     'shows an alert with the stack trace in %s environment',
     (env) => {
       const error = new Error('something went wrong');
