@@ -35,6 +35,11 @@ const PlanSelectorCard = ({
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
 
+  let radioIndicatorBgClass = 'bg-background-section border';
+  if (isSelected) {
+    radioIndicatorBgClass = isDark ? 'bg-white' : 'bg-black';
+  }
+
   return (
     <TouchableOpacity
       onPress={() => onPress(plan.id)}
@@ -85,7 +90,7 @@ const PlanSelectorCard = ({
 
         {/* Radio indicator */}
         <Box
-          twClassName={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${isSelected ? (isDark ? 'bg-white' : 'bg-black') : 'bg-background-section border'} border-border-muted`}
+          twClassName={`w-8 h-8 shrink-0 rounded-full items-center justify-center ${radioIndicatorBgClass} border-border-muted`}
         >
           {isSelected && (
             <Icon
