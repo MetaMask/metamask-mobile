@@ -1979,6 +1979,51 @@ describe('usePerpsChaseOrders', () => {
     hook.unmount();
   });
 
+  it('ignores an older rotated child when the current child cancellation is newer', async () => {
+    const childA = {
+      ...activeOrder,
+      restingOrderId: 'child-current',
+    };
+    mockGetChaseOrders
+      .mockResolvedValueOnce([childA])
+      .mockResolvedValueOnce([]);
+    mockGetOrders.mockResolvedValue([
+      makeHistoricalOrder({
+        orderId: 'child-older',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'canceled',
+        timestamp: 2,
+        lastUpdated: 2,
+      }),
+      makeHistoricalOrder({
+        orderId: 'child-current',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'canceled',
+        timestamp: 3,
+        lastUpdated: 3,
+      }),
+    ]);
+    const hook = renderHook(() => usePerpsChaseOrders({ isEnabled: true }));
+    await waitFor(() =>
+      expect(hook.result.current.chaseOrders).toEqual([childA]),
+    );
+
+    await act(async () =>
+      hook.result.current.reconcileCanceledChaseOrder(childA),
+    );
+
+    expect(hook.result.current.chaseOrders).toEqual([
+      {
+        ...childA,
+        restingOrderId: null,
+        status: 'canceled',
+      },
+    ]);
+    hook.unmount();
+  });
+
   it('retains a proven Filled Chase across empty refresh and screen remount', async () => {
     const runtimeActiveOrder: ChaseOrder = {
       ...activeOrder,

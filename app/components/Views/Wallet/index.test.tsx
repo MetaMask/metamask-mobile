@@ -73,6 +73,7 @@ jest.mock(
 
 jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
   usePerpsChaseOrders: () => ({
+    chaseOrders: [],
     hasLiveChaseOrders: false,
     isChaseOrderDiscoveryResolved: true,
     suspendChaseOrders: jest.fn().mockResolvedValue([]),

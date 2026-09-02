@@ -1455,6 +1455,70 @@ describe('PerpsAlwaysOnProvider', () => {
     await act(async () => resolveSuspension?.());
   });
 
+  it('writes final conversion copy after a pending preliminary notification', async () => {
+    let resolvePreliminaryNotification: (() => void) | undefined;
+    let resolveSuspension:
+      | ((orders: { handle: string; symbol: string; status: string }[]) => void)
+      | undefined;
+    mockChaseOrders = [
+      { handle: 'chase-serialized', symbol: 'ETH', status: 'active' },
+    ];
+    mockSuspendChaseOrders.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveSuspension = resolve;
+        }),
+    );
+    mockDisplayNotification
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolvePreliminaryNotification = () => resolve(undefined);
+          }),
+      )
+      .mockResolvedValueOnce(undefined);
+    render(
+      <PerpsAlwaysOnProvider>
+        <Text>child</Text>
+      </PerpsAlwaysOnProvider>,
+    );
+
+    await act(async () => {
+      mockAppStateListener?.('background');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    expect(mockDisplayNotification).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ title: 'Securing Chase orders' }),
+    );
+    await act(async () => {
+      resolveSuspension?.([
+        {
+          handle: 'chase-serialized',
+          symbol: 'ETH',
+          status: 'backgrounded',
+        },
+      ]);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolvePreliminaryNotification?.();
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockDisplayNotification).toHaveBeenCalledTimes(2);
+    expect(mockDisplayNotification).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ title: 'Chase became a limit order' }),
+    );
+  });
+
   it('skips the pre-suspension notice without notification permission', async () => {
     mockChaseOrders = [
       { handle: 'chase-no-permission', symbol: 'ETH', status: 'active' },

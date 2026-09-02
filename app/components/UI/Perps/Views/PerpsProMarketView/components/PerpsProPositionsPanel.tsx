@@ -87,7 +87,10 @@ import {
   selectPerpsProvider,
 } from '../../../selectors/perpsController';
 import { CHASE_HISTORY_STATUSES } from '../../../constants/perpsConfig';
-import { CHASE_METAMETRICS_PROPERTY } from '../../../constants/chaseAnalytics';
+import {
+  addBoundedChaseAnalyticsKey,
+  CHASE_METAMETRICS_PROPERTY,
+} from '../../../constants/chaseAnalytics';
 import usePerpsToasts from '../../../hooks/usePerpsToasts';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
@@ -787,7 +790,10 @@ const PerpsProPositionsPanel = ({
           : undefined;
         const analyticsKey = `${order.providerId ?? activeProvider}:${order.handle}`;
         if (!reportedTerminatedChaseKeysRef.current.has(analyticsKey)) {
-          reportedTerminatedChaseKeysRef.current.add(analyticsKey);
+          addBoundedChaseAnalyticsKey(
+            reportedTerminatedChaseKeysRef.current,
+            analyticsKey,
+          );
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.CHASE_TERMINATED,

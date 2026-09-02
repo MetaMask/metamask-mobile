@@ -467,12 +467,32 @@ async function refreshChaseOrders(
           // v15 exposes no child lineage after removing a Chase session. A
           // different same-route child may be a rotation, so keep the session
           // unresolved instead of attributing one child's cancel to the Chase.
+          const canceledChildTimestamps = historicalOrders
+            .filter(
+              (historicalOrder) =>
+                historicalOrder.orderId === canceledOrder.restingOrderId &&
+                historicalOrder.symbol === canceledOrder.symbol &&
+                historicalOrder.side === canceledOrder.side &&
+                (canceledOrder.providerId === undefined
+                  ? selectedProvider !== 'aggregated'
+                  : historicalOrder.providerId === canceledOrder.providerId),
+            )
+            .map(
+              (historicalOrder) =>
+                historicalOrder.lastUpdated ?? historicalOrder.timestamp,
+            );
+          const canceledChildTimestamp =
+            canceledChildTimestamps.length > 0
+              ? Math.max(...canceledChildTimestamps)
+              : undefined;
           hasUnobservedPotentialChild = historicalOrders.some(
             (historicalOrder) =>
               historicalOrder.orderId !== canceledOrder.restingOrderId &&
               historicalOrder.symbol === canceledOrder.symbol &&
               historicalOrder.side === canceledOrder.side &&
-              historicalOrder.timestamp >= canceledOrder.startedAt &&
+              (canceledChildTimestamp === undefined ||
+                (historicalOrder.lastUpdated ?? historicalOrder.timestamp) >
+                  canceledChildTimestamp) &&
               (canceledOrder.providerId === undefined
                 ? selectedProvider !== 'aggregated'
                 : historicalOrder.providerId === canceledOrder.providerId),

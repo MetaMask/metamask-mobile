@@ -1514,10 +1514,10 @@ describe('usePerpsProOrderForm', () => {
           status: index === 4 ? 'termination_pending' : 'active',
         })),
       );
-      const { result } = renderProForm();
+      const form = renderProForm();
 
       await act(async () => {
-        await result.current.onPlaceOrderPress();
+        await form.result.current.onPlaceOrderPress();
       });
 
       expect(mockGetChaseOrders).toHaveBeenCalledTimes(1);
@@ -1530,6 +1530,15 @@ describe('usePerpsProOrderForm', () => {
       );
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockExecuteOrder).not.toHaveBeenCalled();
+      mockChaseOrders = Array.from({ length: 5 }, () => ({
+        status: 'active',
+      }));
+      form.rerender({});
+      const concurrencyEvents = mockTrack.mock.calls.filter(
+        ([, properties]) =>
+          properties.interaction_type === 'chase_concurrency_limit_hit',
+      );
+      expect(concurrencyEvents).toHaveLength(1);
     });
 
     it('tracks a controller Chase limit rejection during execution', async () => {

@@ -644,20 +644,6 @@ export const usePerpsProOrderForm = ({
   const isChaseLimitBannerVisible =
     orderForm.type === 'chase' &&
     activeChaseCount >= CHASE_ORDER_CONFIG.MaxActiveSessions;
-  const wasChaseLimitBannerVisibleRef = useRef(false);
-  const trackChaseConcurrencyLimitHit = useCallback(() => {
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        CHASE_METAMETRICS_INTERACTION.CONCURRENCY_LIMIT_HIT,
-      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
-    });
-  }, [orderForm.asset, track]);
-  useEffect(() => {
-    if (isChaseLimitBannerVisible && !wasChaseLimitBannerVisibleRef.current) {
-      trackChaseConcurrencyLimitHit();
-    }
-    wasChaseLimitBannerVisibleRef.current = isChaseLimitBannerVisible;
-  }, [isChaseLimitBannerVisible, trackChaseConcurrencyLimitHit]);
   const parsedChaseMaxDistance = Number.parseFloat(chaseMaxDistance);
   const isChaseMaxDistanceNumeric = /^(?:\d+(?:\.\d*)?|\.\d+)$/u.test(
     chaseMaxDistance.trim(),
@@ -761,6 +747,26 @@ export const usePerpsProOrderForm = ({
     showErrorToast: false,
   });
   const network = usePerpsNetwork();
+  const chaseLimitEpisodeKey = `${orderForm.asset}:${chaseProviderId ?? 'unknown'}:${network}`;
+  const trackedChaseLimitEpisodeKeyRef = useRef<string | null>(null);
+  const wasChaseLimitBannerVisibleRef = useRef(false);
+  const trackChaseConcurrencyLimitHit = useCallback(() => {
+    if (trackedChaseLimitEpisodeKeyRef.current === chaseLimitEpisodeKey) return;
+    trackedChaseLimitEpisodeKeyRef.current = chaseLimitEpisodeKey;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        CHASE_METAMETRICS_INTERACTION.CONCURRENCY_LIMIT_HIT,
+      [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+    });
+  }, [chaseLimitEpisodeKey, orderForm.asset, track]);
+  useEffect(() => {
+    if (isChaseLimitBannerVisible) {
+      trackChaseConcurrencyLimitHit();
+    } else if (wasChaseLimitBannerVisibleRef.current) {
+      trackedChaseLimitEpisodeKeyRef.current = null;
+    }
+    wasChaseLimitBannerVisibleRef.current = isChaseLimitBannerVisible;
+  }, [isChaseLimitBannerVisible, trackChaseConcurrencyLimitHit]);
   const networkRef = useRef(network);
   useLayoutEffect(() => {
     networkRef.current = network;
@@ -3429,6 +3435,9 @@ export const usePerpsProOrderForm = ({
     const expectedChaseProviderId = chaseProviderIdRef.current;
     const expectedNetwork = networkRef.current;
     const expectedLifecycleGeneration = lifecycleGenerationRef.current;
+    if (isChaseSubmission && !isChaseLimitBannerVisible) {
+      trackedChaseLimitEpisodeKeyRef.current = null;
+    }
     if (isScaleOrder) {
       setHasScaleValidationInteraction(true);
     }
@@ -3500,6 +3509,7 @@ export const usePerpsProOrderForm = ({
   }, [
     commitPendingSliderPreview,
     gate,
+    isChaseLimitBannerVisible,
     isEligible,
     orderForm.type,
     PerpsToastOptions.formValidation.orderForm,
