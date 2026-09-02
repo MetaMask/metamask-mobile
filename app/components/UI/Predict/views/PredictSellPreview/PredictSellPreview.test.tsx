@@ -31,13 +31,6 @@ jest.mock('../../selectors/featureFlags', () => {
     selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
   };
 });
-/**
- * Mock Strategy:
- * - Only mock external dependencies (Engine, Alert, navigation, hooks with API calls)
- * - Do NOT mock: Internal components, design system, styling hooks, format utilities
- * - Navigation and order hooks are mocked because they have external side effects
- * and we're testing the component's orchestration and user interaction logic
- */
 
 // Mock Engine for analytics tracking
 jest.mock('../../../../../core/Engine', () => ({
@@ -367,8 +360,6 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.9) = $57.30
-      // cashPnl = 57.30 - initialValue(50) = 7.30, percentPnl = 14.6%
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
@@ -491,7 +482,6 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // Should not show the current value when loading
       expect(screen.queryByText('$60')).toBeNull();
     });
 
@@ -614,7 +604,6 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
-      // net proceeds = 60 - 1.8 - 0.9 = $57.30; cashPnl = 57.30 - 50 = $7.30 (14.6%)
       expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
@@ -679,7 +668,6 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      // minAmountReceived(60) - metamaskFee(1.8) - providerFee(0.6) - marketFee(0.3) = $57.30
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
     });
 
