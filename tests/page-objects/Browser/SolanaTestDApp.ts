@@ -235,6 +235,11 @@ class SolanaTestDApp {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (attempt > 1) {
         await this.reloadDapp();
+        // A slow first-attempt approve or reload auto-reconnect may have
+        // already succeeded — exit early before re-opening the adapter.
+        if (await this.isConnectionStatus('Connected', 2_000)) {
+          return;
+        }
       }
 
       await this.waitForSolanaWalletRegistered(attempt === 1 ? 15_000 : 8_000);
