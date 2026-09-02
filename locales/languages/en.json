@@ -169,7 +169,7 @@
       },
       "warning": {
         "message": "Security partners don't have enough reliable history to verify this address.",
-        "title": "Limited or mixed address signals"
+        "title": "Limited address signals"
       }
     },
     "url_trust_signal": {
@@ -1027,7 +1027,7 @@
       "description": "Card purchases typically take a few minutes",
       "bank_transfer_description": "Bank transfers typically take a few business days",
       "success_title": "Deposit complete",
-      "success_description": "Your deposit of {{amount}} {{currency}} was successful!",
+      "success_description": "Your deposit of {{amount}} {{currency}} was successful",
       "error_title": "Deposit failed",
       "error_description": "We were unable to complete your deposit",
       "cancel_order_description": "You requested a cancellation of your deposit.",
@@ -1080,7 +1080,7 @@
       "deposit_failed_description": "Verify your payment method and card support",
       "deposit_cancelled_title": "Your deposit was cancelled",
       "deposit_cancelled_description": "You requested a cancellation of your deposit.",
-      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful!",
+      "deposit_completed_title": "Your deposit of {{amount}} {{currency}} was successful",
       "deposit_completed_description": "Your {{currency}} is now available in your wallet",
       "deposit_pending_title": "Processing your deposit of {{currency}}",
       "deposit_pending_description": "This should only take a few minutes..."
@@ -1456,7 +1456,7 @@
       "processing": {
         "title": "Processing deposit"
       },
-      "deposit_completed": "Deposit completed successfully!",
+      "deposit_completed": "Deposit completed successfully",
       "deposit_failed": "Deposit failed",
       "retry_deposit": "Retry deposit",
       "go_back": "Go back",
@@ -1486,7 +1486,7 @@
       "bridge_quote_timeout": "Unable to fetch bridge quote. Please try again or select a different token.",
       "no_quotes_available": "No routes available for this swap. Try a different token or amount.",
       "success": {
-        "title": "Deposit successful!",
+        "title": "Deposit successful",
         "description": "Your USDC has been successfully deposited to your HyperLiquid trading account",
         "amount": "Amount",
         "processing_time": "Processing time",
@@ -5043,13 +5043,13 @@
     "malicious_token_description_no_symbol": "Security partners flag this token as high risk.",
     "malicious_token_banner_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_banner_description_no_symbol": "Security partners flag this token as high risk.",
-    "suspicious_token_description": "{{symbol}} has limited history or risk signals.",
-    "suspicious_token_description_no_symbol": "This token has limited history or risk signals.",
+    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "verified_token_title": "Verified token",
     "verified_token_description": "{{symbol}} is actively traded and is widely recognized. Verification is not an endorsement by MetaMask.",
     "risky_token_title": "Suspicious token",
-    "risky_token_description": "{{symbol}} has limited history or risk signals.",
-    "risky_token_description_no_symbol": "This token has limited history or risk signals.",
+    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "malicious_token_sheet_description": "Security partners flag {{symbol}} as high risk.",
     "malicious_token_sheet_description_no_symbol": "Security partners flag this token as high risk.",
     "got_it": "Got it",
@@ -5059,7 +5059,7 @@
     "data_unavailable": "Security data unavailable",
     "subtitle_known": "No risk signals detected. Always research any asset before trading.",
     "subtitle_no_issues": "No risk signals detected. Always research any asset before trading.",
-    "subtitle_suspicious": "This token has limited history or risk signals.",
+    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
     "subtitle_malicious": "Security partners flag this token as high risk.",
     "subtitle_unavailable": "Security analysis could not be loaded for this token.",
     "token_distribution": "Token distribution",
@@ -5238,7 +5238,7 @@
     "sign_with_keystone": "Sign with hardware wallet",
     "sign_with_ledger": "Sign with Ledger",
     "from": "From",
-    "gas_fee": "Gas fee",
+    "gas_fee": "Network fee",
     "gas_fee_fast": "Fast",
     "gas_fee_average": "Average",
     "gas_fee_slow": "Slow",
@@ -5273,7 +5273,7 @@
     "invalid_amount": "Invalid amount",
     "invalid_gas": "Invalid gas amount",
     "invalid_gas_price": "Invalid gas price",
-    "high_gas_price": "Your gas fee may be set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
+    "high_gas_price": "Your network fee may be set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
     "low_gas_price": "Gas price extremely low",
     "invalid_collectible_ownership": "You don't own this collectible",
     "known_asset_contract": "Known asset contract address",
@@ -5299,15 +5299,15 @@
     "cancel_speedup_cancel_title": "Cancel Transaction",
     "cancel_speedup_speedup_message": "This network fee will replace the original.",
     "cancel_speedup_cancel_message": "This transaction will be canceled and this network fee will replace the original.",
-    "edit_network_fee": "Edit gas fee",
+    "edit_network_fee": "Edit network fee",
     "edit_priority": "Edit priority",
     "gas_cancel_fee": "Gas cancellation fee",
     "gas_speedup_fee": "Gas speed up fee",
     "use_max": "Use max",
     "set_gas": "Set",
     "cancel_gas": "Cancel",
-    "transaction_fee_estimated": "Estimated gas fee",
-    "transaction_fee": "Gas fee",
+    "transaction_fee_estimated": "Estimated network fee",
+    "transaction_fee": "Network fee",
     "transaction_fee_less": "No fee",
     "total_amount": "Total amount",
     "view_data": "View data",
@@ -5345,8 +5345,8 @@
     "confusable_msg": "We have detected a confusable character in the ENS name. Check the ENS name to avoid a potential scam.",
     "similar_to": "is similar to",
     "contains_zero_width": "contains zero width character",
-    "dapp_suggested_gas": "This gas fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this gas fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
-    "dapp_suggested_eip1559_gas": "This gas fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
     "address_invalid": "Recipient address is invalid.",
     "ens_not_found": "No address has been set for this name.",
     "unknown_qr_code": "Invalid QR code. Please retry.",
@@ -5701,7 +5701,7 @@
     "status_submitting_past_estimated_deadline_header": "Sorry for the wait",
     "status_submitting_past_estimated_deadline_description": "If your transaction is not finalized within {{timeLeft}}, it will be canceled and you will not be charged for gas.",
     "status_cancelled_header": "Your transaction was canceled",
-    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary gas fees.",
+    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
     "status_failed_header": "Your transaction failed",
     "status_failed_description": "Sudden market changes can cause failures. If the problem continues, reach out to MetaMask customer support.",
     "view_transaction": "View transaction",
@@ -6092,7 +6092,7 @@
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
     "cta_text": "Confirm phrase",
-    "modal_title": "Secret Recovery Phrase confirmed!",
+    "modal_title": "Secret Recovery Phrase confirmed",
     "modal_text": "This was to ensure you follow this security measure",
     "modal_button": "Next"
   },
@@ -6258,10 +6258,10 @@
     "pending_deposit_title": "Deposit in progress",
     "pending_withdrawal_title": "Withdrawal in progress",
     "cancelled_title": "Transaction cancelled",
-    "success_title": "Transaction #{{nonce}} Complete!",
+    "success_title": "Transaction #{{nonce}} complete",
     "speedup_title": "Speeding up #{{nonce}}",
-    "success_deposit_title": "Deposit complete!",
-    "success_withdrawal_title": "Withdrawal complete!",
+    "success_deposit_title": "Deposit complete",
+    "success_withdrawal_title": "Withdrawal complete",
     "error_title": "Oops, something went wrong :/",
     "received_title": "You received {{amount}} {{assetType}}",
     "erc20_sent_title": "Funds sent",
@@ -6693,7 +6693,7 @@
       "what_to_expect": "What to expect",
       "quotes": "Our buy crypto feature aggregates quotes from integrated vendors, providing quotes from those sources to get crypto directly into your wallet with no waiting period.",
       "quotes_sell": "Now you can cash out directly in MetaMask! Get up-to-the-minute quotes from trusted providers while we guide you every step of the way.",
-      "benefits": "Fewer gas fees to pay, and numerous networks, tokens, and payment methods supported",
+      "benefits": "Fewer network fees to pay, and numerous networks, tokens, and payment methods supported",
       "benefits_sell": "Off-ramping from crypto to your local currency is now easier than ever.",
       "get_started": "Get started"
     },
@@ -6735,6 +6735,7 @@
     "most_reliable": "Most reliable",
     "quotes_timeout": "Quotes timeout",
     "request_new_quotes": "Please request new quotes to get the latest best rate.",
+    "wallet_pay_terms": "By continuing, you accept Crossmint's",
     "terms_of_service": "Terms of Service",
     "amount_to_buy": "Buy",
     "amount_to_sell": "Sell",
@@ -6764,10 +6765,10 @@
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "insufficient_balance": "This amount is higher than your balance",
-    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
-    "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
     "max": "Max",
     "try_again": "Try again",
     "error": "Error",
@@ -7020,10 +7021,10 @@
     "saving": "Saving",
     "n_quotes": "{{numberOfQuotes}} quotes",
     "view_details": "View details",
-    "estimated_gas_fee": "Estimated gas fee",
-    "gas_fee": "Gas fee",
+    "estimated_gas_fee": "Estimated network fee",
+    "gas_fee": "Network fee",
     "included": "included",
-    "max_gas_fee": "Max gas fee",
+    "max_gas_fee": "Max network fee",
     "edit": "Edit",
     "quotes_include_fee": "Quotes include a {{fee}}% MetaMask fee",
     "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
@@ -7051,7 +7052,7 @@
     "rate": "Rate",
     "quote_details_max_slippage": "Max slippage",
     "source": "Source",
-    "estimated_network_fees": "Estimated gas fees",
+    "estimated_network_fees": "Estimated network fees",
     "guaranteed_amount": "Guaranteed amount",
     "quote_source_dex": {
       "1": "This quote comes directly from a",
@@ -7095,9 +7096,9 @@
     "medium_selected_warning": "Swaps are time sensitive. “Medium” is not recommended.",
     "high_recommendation": "Swaps are typically time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "recommended": "Recommended",
-    "recommended_gas": "Recommended gas fee",
-    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
-    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
+    "recommended_gas": "Recommended network fee",
+    "gas_included_tooltip_explanation": "This quote incorporates network fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about network fees",
     "gas_education_title": "Estimated gas fees",
     "gas_education_1": "Gas fees are paid to crypto miners who process transactions on the ",
     "gas_education_2_ethereum": "Ethereum network.",
@@ -7225,7 +7226,7 @@
     "max_priority_fee": "Max priority fee",
     "max_fee": "Max fee",
     "estimate": "Estimate",
-    "recommended_gas_fee": "Recommended gas fee",
+    "recommended_gas_fee": "Recommended network fee",
     "swaps_warning": "Swaps are very time sensitive. “High” will help avoid potential losses due to changes in market conditions.",
     "priority_fee_at_least_0_error": "Priority fee must be at least 1 GWEI",
     "learn_more": {
@@ -7252,8 +7253,8 @@
     "learn_more_gas_limit": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Max priority fee” and “Max fee”. ",
     "learn_more_max_priority_fee": "Max priority fee (aka “miner tip”) goes directly to miners and incentivizes them to prioritize your transaction. You’ll most often pay your max setting. ",
     "learn_more_max_fee": "The max fee is the most you’ll pay (base fee + priority fee). ",
-    "learn_more_new_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 10% (required by the network). ",
-    "learn_more_cancel_gas_fee": "We have updated the gas fee based on current network conditions and have increased it by at least 50% (required by the network). ",
+    "learn_more_new_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 10% (required by the network). ",
+    "learn_more_cancel_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 50% (required by the network). ",
     "low": "Low",
     "medium": "Medium",
     "high": "High",
@@ -7263,8 +7264,8 @@
     "edit_priority": "Edit priority",
     "speed_up_transaction": "Speed up transaction",
     "cancel_transaction": "Cancel transaction",
-    "new_gas_fee": "New gas fee",
-    "edit_suggested_gas_fee": "Edit suggested gas fee",
+    "new_gas_fee": "New network fee",
+    "edit_suggested_gas_fee": "Edit suggested network fee",
     "gas_price": "Gas price",
     "learn_more_gas_limit_legacy": "Gas limit is the maximum units of gas you are willing to use. Units of gas are a multiplier to “Gas price”.",
     "learn_more_gas_price": "This network requires a “Gas price” field when submitting a transaction. Gas price is the maximum amount you are willing to pay per unit of gas.",
@@ -7272,19 +7273,19 @@
     "gas_price_high": "Gas price is higher than necessary"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "Estimated gas fee",
+    "estimated_gas_fee": "Estimated network fee",
     "network_fee": "Network fee",
     "max_fee": "Max fee",
     "total": "Total",
     "max_amount": "Max amount",
-    "estimated_gas_fee_tooltip": "What are gas fees?",
+    "estimated_gas_fee_tooltip": "What are network fees?",
     "estimated_gas_fee_tooltip_text_1": "Gas fees are paid to crypto miners who process transactions on the",
     "estimated_gas_fee_tooltip_text_2": " Ethereum",
     "estimated_gas_fee_tooltip_text_3": " network.",
     "estimated_gas_fee_tooltip_text_4": "MetaMask does not profit from gas fees.",
     "estimated_gas_fee_tooltip_text_5": "Gas fees are set by the network and fluctuate based on network traffic and transaction complexity.",
-    "learn_more": "Learn more about gas fees",
-    "legacy_gas_suggestion_tooltip": "This gas fee suggestion is using legacy gas estimation which may be inaccurate."
+    "learn_more": "Learn more about network fees",
+    "legacy_gas_suggestion_tooltip": "This network fee suggestion is using legacy gas estimation which may be inaccurate."
   },
   "times_eip1559": {
     "unknown": "Unknown processing time",
@@ -7294,8 +7295,8 @@
     "very_likely": "Very likely in <",
     "at_least": "At least",
     "less_than": "Less than",
-    "warning_very_likely": "This gas fee is much higher than the other options available.",
-    "warning_very_likely_title": "Gas fees too high",
+    "warning_very_likely": "This network fee is much higher than the other options available.",
+    "warning_very_likely_title": "Network fees too high",
     "warning_unknown": "Your max fee or max priority fee may be low for current market conditions. We don’t know when (or if) your transaction will be processed.",
     "warning_low": "This lowers your maximum fee but if network traffic increases your transaction may be delayed or fail.",
     "warning_low_title": "Low priority",
@@ -7328,10 +7329,10 @@
   "network_information": {
     "things_to_keep_in_mind": "Things to keep in mind",
     "testnet_network": "{{type}} testnet",
-    "first_description": "The native token on this network is {{ticker}}. It is the token used for gas fees.",
+    "first_description": "The native token on this network is {{ticker}}. It is the token used for network fees.",
     "second_description": "If you attempt to send assets directly from one network to another, this may result in permanent asset loss. Make sure to use a bridge.",
     "third_description": "Your tokens may not automatically show up in your wallet.",
-    "private_network": "This network is unknown and may use a special token for gas fees.",
+    "private_network": "This network is unknown and may use a special token for network fees.",
     "unknown_network": "Unknown network",
     "switched_network": "You have switched to",
     "learn_more": "Learn more",
@@ -7660,61 +7661,43 @@
   "earn": {
     "strategy_selection": {
       "title": "Choose how to earn",
-      "subtitle": "Choose an earning strategy for your {{asset}}.",
       "tags": {
         "recommended": "Recommended",
         "low_risk": "Low risk",
         "medium_risk": "Medium risk",
         "high_risk": "High risk"
       },
+      "up_to": "Up to",
       "toasts": {
         "deposit_navigation": {
-          "failed": "Failed to navigate to deposit screen for selected strategy"
+          "failed": "Failed to navigate to deposit screen for selected asset"
         } 
       },
       "strategies": {
+        "rate_unavailable_subtitle": "Earn on your balance",
         "money": {
-          "subtitle": "Money account",
-          "tertiary_text": "Variable yield · auto-earning"
+          "title": "Money account",
+          "subtitle": "Variable yield · auto-earning",
+          "info_rows": {
+            "row_1": "Earn up to ~{{percentage}}% APY on your balance",
+            "row_2": "No lockups—trade or withdraw anytime",
+            "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
+          }
         },
-        "lending": {
-          "subtitle": "Lend {{asset}}",
-          "tertiary_text": "Variable yield"
-        },
-        "pooled_staking": {
-          "subtitle": "Stake {{asset}}",
-          "tertiary_text": "Pooled staking · variable yield"
-        },
-        "trx_staking": {
-          "subtitle": "Stake {{asset}}",
-          "tertiary_text": "TRON staking · variable yield"
-        }
-      },
-      "info_rows": {
-        "money_account": {
-          "row_1": "Unlock {{percentage}}% APY — auto-earning, compounding yield",
-          "row_1_unavailable": "Rate unavailable — auto-earning, compounding yield",
-          "row_2": "Full liquidity, no lockups — trade or withdraw anytime",
-          "row_3": "Secured in mUSD, a 1:1 dollar-backed stablecoin you can send across your MetaMask wallets"
-        },
-        "lending": {
-          "row_1": "Earn variable interest by lending stablecoins through the Aave protocol.",
-          "row_2": "Withdraw your funds at any time, subject to available market liquidity.",
-          "row_3": "Rates can change with market demand, and smart contract risks apply."
+        "stablecoin_lending": {
+          "title": "Lend {{asset}}",
+          "subtitle": "Lend your {{asset}} to earn up to {{percentage}}% APY. Withdraw anytime."
         },
         "pooled_staking": {
-          "row_1": "Earn variable staking rewards on your ETH.",
-          "row_2": "Your ETH is pooled with other MetaMask users.",
-          "row_3": "Staking rewards and withdrawal times can vary."
+          "title": "Stake ETH",
+          "subtitle": "Stake your ETH to earn up to {{percentage}}% APR. Unstake anytime."
         },
         "trx_staking": {
-          "row_1": "Earn variable rewards by staking TRX.",
-          "row_2": "Staked TRX supports the TRON network.",
-          "row_3": "Staking rewards and withdrawal times can vary."
+          "title": "Stake TRX",
+          "subtitle": "Stake your TRX to earn up to {{percentage}}% APR. Unstake anytime."
         }
       },
-      "get_started": "Get started",
-      "learn_more": "Learn more"
+      "get_started": "Get started"
     },
     "claimable_bonus_tooltip": "The annualized bonus you’ve earned for holding mUSD. Your bonus is claimable daily on Linea.",
     "earn_a_percentage_bonus": "Earn a {{percentage}}% bonus",
@@ -8401,7 +8384,7 @@
     "max_modal": {
       "title": "Max",
       "eth": {
-        "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+        "description": "Max is the total amount of ETH you have, minus the network fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
       }
     },
     "use_max": "Use max",
@@ -8501,10 +8484,10 @@
       "tooltip": "Expected yearly increase in the value of your stake, based on the reward rate over the past week."
     },
     "estimated_gas_fee": {
-      "title": "Estimated gas fee",
+      "title": "Estimated network fee",
       "gas_recipient": "Gas fees are paid to crypto miners who process transactions on Ethereum network. MetaMask does not profit from gas fees.",
       "gas_fluctuation": "Gas fees are estimated and will fluctuate based on network traffic and transaction complexity.",
-      "gas_learn_more": "Learn more about gas fees"
+      "gas_learn_more": "Learn more about network fees"
     },
     "reward_frequency": {
       "title": "Reward frequency",
@@ -9083,7 +9066,7 @@
     "status": "Status",
     "date": "Date",
     "network": "Network",
-    "total_gas_fee": "Total gas fee",
+    "total_gas_fee": "Total network fee",
     "estimated_completion": "Est. completion",
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
     "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
@@ -10901,7 +10884,7 @@
     "bandwidth_fee": "Bandwidth",
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
-    "gas_token_fee": "Gas fee",
+    "gas_token_fee": "Network fee",
     "transaction_fee": "Transaction fee",
     "unknown_token": "Unknown",
     "total_amount": "Total amount",
