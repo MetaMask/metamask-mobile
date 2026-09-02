@@ -470,6 +470,28 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     });
   });
 
+  it('seeds the market price for a new pair sharing the same quoted fiat rate and counter decimals', () => {
+    const usdt = createMockToken({
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      decimals: 6,
+    });
+    mockUseTokenFiatRate.mockImplementation((token) =>
+      token?.symbol === 'ETH' ? 2000 : 1,
+    );
+
+    const { result, rerender } = renderPriceAdjustHook();
+
+    expect(result.current.limitPrice).toBe('1');
+
+    rerender({
+      destToken: usdt,
+      sourceToken,
+    });
+
+    expect(result.current.limitPrice).toBe('1');
+  });
+
   it('resets price fields when the token pair changes', () => {
     const { result, rerender } = renderPriceAdjustHook();
 

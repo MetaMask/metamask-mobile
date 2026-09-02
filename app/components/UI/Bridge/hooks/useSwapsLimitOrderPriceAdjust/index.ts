@@ -142,9 +142,13 @@ export const useSwapsLimitOrderPriceAdjust = ({
       limitPrice: nextLimitPrice,
     });
   }, [
+    destToken?.address,
+    destToken?.chainId,
     executionType, // flipSide clears limitPrice even when quotedFiatRate is unchanged
     getLimitPriceFromSignedPercent,
     isTrackingMarket,
+    sourceToken?.address,
+    sourceToken?.chainId,
   ]);
 
   const canToggleLimitPrice = Boolean(
