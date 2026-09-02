@@ -953,6 +953,13 @@ describe('SwapsMarketOrderConfirmButton', () => {
     });
 
     it('enables confirmation after the custom-slippage quote settles', () => {
+      const initialSlippageQuote = {
+        ...mockActiveQuote,
+        quote: {
+          ...mockActiveQuote.quote,
+          slippage: 2,
+        },
+      };
       const customSlippageQuote = {
         ...mockActiveQuote,
         quote: {
@@ -962,7 +969,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
       };
       let quoteData = {
         ...mockUseBridgeQuoteData,
-        activeQuote: mockActiveQuote,
+        activeQuote: initialSlippageQuote,
         isLoading: false,
       };
       jest
@@ -972,17 +979,20 @@ describe('SwapsMarketOrderConfirmButton', () => {
         ...mockState,
         bridge: {
           ...mockState.bridge,
-          slippage: '3.5',
+          slippage: '2',
           isSlippageUserOverride: true,
         },
       };
-      const { getByTestId, rerender } = renderWithProvider(
+      const { getByTestId, rerender, store } = renderWithProvider(
         <SwapsMarketOrderConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
           location={MetaMetricsSwapsEventSource.MainView}
         />,
         { state },
       );
+      act(() => {
+        store.dispatch(setSlippageUserOverride('3.5'));
+      });
       quoteData = {
         ...quoteData,
         isLoading: true,
