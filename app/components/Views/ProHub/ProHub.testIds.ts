@@ -10,9 +10,10 @@ export const ProHubTestIds = {
   PHYSICAL_CARD_TITLE: 'pro-hub-physical-card-title',
   PHYSICAL_CARD_DESCRIPTION: 'pro-hub-physical-card-description',
   GET_CARD_BUTTON: 'pro-hub-get-card-button',
-  BENEFITS_SECTION: 'pro-hub-benefits-section',
   ALSO_INCLUDED_SECTION: 'pro-hub-also-included-section',
   ALSO_INCLUDED_ROW: (id: string) => `pro-hub-also-included-row-${id}`,
+  MEMBERSHIP_SECTION: 'pro-hub-membership-section',
+  NEXT_PAYMENT_TEXT: 'pro-hub-next-payment-text',
   MANAGE_BUTTON: 'pro-hub-manage-button',
   DISCLAIMER_TEXT: 'pro-hub-disclaimer-text',
 } as const;

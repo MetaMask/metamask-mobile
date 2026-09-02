@@ -29,7 +29,7 @@ import { ProHubTestIds } from './ProHub.testIds';
 import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import AlsoIncludedRow from './components/AlsoIncludedRow';
 import PhysicalCardPreview from './components/PhysicalCardPreview';
-import { BENEFITS, BenefitRow } from '../shared/pro';
+import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
 interface StatCardProps {
   iconName: IconName;
@@ -205,18 +205,7 @@ const ProHub = () => {
 
         <SectionDivider marginVertical={6} />
 
-        <Box testID={ProHubTestIds.BENEFITS_SECTION}>
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {strings('pro_hub.your_benefits')}
-          </Text>
-          {BENEFITS.map((item) => (
-            <BenefitRow key={item.id} item={item} showArrow={false} />
-          ))}
-        </Box>
+        <MemberPricingOnTrades />
 
         <SectionDivider marginVertical={6} />
 
