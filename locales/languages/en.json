@@ -6146,7 +6146,7 @@
   },
   "account_backup_step_5": {
     "error_title": "Incorrect word order",
-    "error_message": "The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+    "error_message": "Please make sure you wrote it down correctly and go to the previous screen if it is necessary.",
     "back": "Back",
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
