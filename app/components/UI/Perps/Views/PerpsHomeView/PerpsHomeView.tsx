@@ -7,7 +7,6 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -47,6 +46,7 @@ import {
 } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
+  useBottomSafeAreaInset,
   usePerpsHomeData,
   usePerpsNavigation,
   usePerpsMeasurement,
@@ -110,6 +110,11 @@ import styleSheet from './PerpsHomeView.styles';
 import { TraceName } from '../../../../../util/trace';
 import { buildPerpsCufStartTags } from '../../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_VARIANT } from '../../constants/perpsCufTags';
+import type { NavigationAnalyticsRouteParams } from '../../../../../util/analytics/navigationAnalyticsAttribution';
+import {
+  FIXED_BOTTOM_CONTAINER_BASE_HEIGHT,
+  FIXED_BOTTOM_CONTAINER_PADDING,
+} from '../../constants/perpsUIConfig';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -138,11 +143,14 @@ import {
 
 const PerpsHomeView = () => {
   const { styles } = useStyles(styleSheet, {});
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsMarketListView'>>();
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const analyticsContext = (
+    route.params as NavigationAnalyticsRouteParams | undefined
+  )?.analyticsContext;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -501,6 +509,9 @@ const PerpsHomeView = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
+    navigationAnalyticsContext: route.params?.source
+      ? undefined
+      : analyticsContext,
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
@@ -842,6 +853,7 @@ const PerpsHomeView = () => {
         ),
         content: (
           <PerpsMarketTypeSection
+            testID={PerpsHomeViewSelectorsIDs.EXPLORE_CRYPTO_SECTION}
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
             marketType="crypto"
@@ -1000,9 +1012,9 @@ const PerpsHomeView = () => {
     setShowCancelAllSheet(false);
   }, []);
 
-  // Calculate actual footer dimensions
-  // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
-  const footerHeight = 80 + insets.bottom;
+  // Calculate actual footer dimensions: the base footer geometry plus the
+  // system navigation-bar inset added to its bottom padding at runtime.
+  const footerHeight = FIXED_BOTTOM_CONTAINER_BASE_HEIGHT + bottomSafeAreaInset;
 
   const showsFixedFooter =
     !isBalanceEmpty &&
@@ -1013,15 +1025,22 @@ const PerpsHomeView = () => {
   const bottomSpacerStyle = useMemo(
     () => ({
       // Reserve space for the fixed footer only when it is rendered.
-      height: showsFixedFooter ? footerHeight + 16 : 16,
+      height: showsFixedFooter
+        ? footerHeight + FIXED_BOTTOM_CONTAINER_PADDING
+        : FIXED_BOTTOM_CONTAINER_PADDING,
     }),
     [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
   const fixedFooterStyle = useMemo(
-    () => [styles.fixedFooter, { paddingBottom: 16 + insets.bottom }],
-    [styles.fixedFooter, insets.bottom],
+    () => [
+      styles.fixedFooter,
+      {
+        paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+      },
+    ],
+    [styles.fixedFooter, bottomSafeAreaInset],
   );
 
   const scrollContentContainerStyle = useMemo(
@@ -1029,9 +1048,11 @@ const PerpsHomeView = () => {
       styles.scrollViewContent,
       showsFixedFooter
         ? { paddingBottom: 0 }
-        : { paddingBottom: 16 + insets.bottom },
+        : {
+            paddingBottom: FIXED_BOTTOM_CONTAINER_PADDING + bottomSafeAreaInset,
+          },
     ],
-    [styles.scrollViewContent, showsFixedFooter, insets.bottom],
+    [styles.scrollViewContent, showsFixedFooter, bottomSafeAreaInset],
   );
 
   const titleEndAccessory = useMemo(() => {
@@ -1187,7 +1208,10 @@ const PerpsHomeView = () => {
         <PerpsHomeSectionList sections={homeSections} />
 
         {/* Bottom spacing for tab bar */}
-        <View style={bottomSpacerStyle} />
+        <View
+          style={bottomSpacerStyle}
+          testID={PerpsHomeViewSelectorsIDs.BOTTOM_SPACER}
+        />
       </Reanimated.ScrollView>
 
       {/* Close All Positions Bottom Sheet */}
@@ -1208,7 +1232,10 @@ const PerpsHomeView = () => {
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
       {showsFixedFooter && (
-        <View style={fixedFooterStyle}>
+        <View
+          style={fixedFooterStyle}
+          testID={PerpsHomeViewSelectorsIDs.FIXED_FOOTER}
+        >
           <View style={styles.footerButtonsContainer} accessible={false}>
             <Button
               variant={ButtonVariant.Secondary}

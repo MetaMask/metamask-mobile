@@ -5,7 +5,16 @@ import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
 
 jest.mock('./usePerpsProModeEnabled');
 
+const mockUseRoute = jest.fn();
+const mockSetParams = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ setParams: mockSetParams }),
+  useRoute: () => mockUseRoute(),
+}));
+
 const mockSafeAreaMount = jest.fn();
+const mockProProps = jest.fn();
+const mockLiteProps = jest.fn();
 
 jest.mock('react-native-safe-area-context', () => {
   const { View } = jest.requireActual('react-native');
@@ -27,7 +36,10 @@ jest.mock('../PerpsProMarketView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-pro-market-view" />,
+    default: (props: object) => {
+      mockProProps(props);
+      return <View testID="mock-pro-market-view" />;
+    },
   };
 });
 
@@ -35,13 +47,22 @@ jest.mock('../PerpsMarketDetailsView', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () => <View testID="mock-lite-market-details-view" />,
+    default: (props: object) => {
+      mockLiteProps(props);
+      return <View testID="mock-lite-market-details-view" />;
+    },
   };
 });
 
 const mockUsePerpsProModeEnabled = jest.mocked(usePerpsProModeEnabled);
 
 describe('PerpsMarketDetailsRouter', () => {
+  beforeEach(() => {
+    mockUseRoute.mockReturnValue({
+      params: { market: { symbol: 'ETH' } },
+    });
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -90,5 +111,45 @@ describe('PerpsMarketDetailsRouter', () => {
     // Remounting it would re-run the native inset layout pass, dropping the
     // header under the status bar until that pass lands.
     expect(mockSafeAreaMount).toHaveBeenCalledTimes(1);
+    expect(mockProProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ generationTrigger: 'mode_switch' }),
+    );
+  });
+
+  it('forwards an explicit header-picker market switch trigger', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+
+    render(<PerpsMarketDetailsRouter />);
+
+    expect(mockProProps).toHaveBeenCalledWith(
+      expect.objectContaining({ generationTrigger: 'market_switch' }),
+    );
+    expect(mockSetParams).toHaveBeenCalledWith({
+      detailGenerationTrigger: undefined,
+    });
+  });
+
+  it('consumes the header-picker trigger before a later mode switch', () => {
+    mockUsePerpsProModeEnabled.mockReturnValue(true);
+    mockUseRoute.mockReturnValue({
+      params: {
+        market: { symbol: 'BTC' },
+        detailGenerationTrigger: 'market_switch',
+      },
+    });
+    const { rerender } = render(<PerpsMarketDetailsRouter />);
+
+    mockUsePerpsProModeEnabled.mockReturnValue(false);
+    rerender(<PerpsMarketDetailsRouter />);
+
+    expect(mockLiteProps).toHaveBeenLastCalledWith(
+      expect.objectContaining({ generationTrigger: 'mode_switch' }),
+    );
   });
 });

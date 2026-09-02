@@ -1,24 +1,24 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolve } from '../../framework/Selector';
 import { ImportSRPIDs } from '../../../app/components/Views/ImportNewSecretRecoveryPhrase/SRPImport.testIds';
 
 class ImportSrpView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportSRPIDs.CONTAINER);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportSRPIDs.SCREEN_TITLE_ID);
   }
 
-  get importButton(): EncapsulatedElementType {
+  get importButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportSRPIDs.IMPORT_BUTTON);
   }
 
-  get textareaInput(): EncapsulatedElementType {
+  get textareaInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportSRPIDs.SEED_PHRASE_INPUT_ID);
   }
 
@@ -30,14 +30,13 @@ class ImportSrpView {
     return `//XCUIElementTypeOther[@name="textfield" and @label="${index + 1}."]`;
   }
 
-  seedPhraseInput(index: number): EncapsulatedElementType {
+  seedPhraseInput(index: number): Promise<AppiumElement> {
     const testID =
       index === 0
         ? ImportSRPIDs.SEED_PHRASE_INPUT_ID
         : `${ImportSRPIDs.SEED_PHRASE_INPUT_ID}_${index}`;
 
     return resolve({
-      detoxTestID: testID,
       androidAppiumTestID: testID,
       iosAppiumXPath: this.getAppiumIosSeedPhraseXPath(index),
     });

@@ -28,6 +28,16 @@ on:
         required: false
         type: string
         default: '["ALL"]'
+      changed_spec_files:
+        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        required: false
+        type: string
+        default: ''
+      android-emulator-boot-mode:
+        description: 'Android emulator boot mode: auto (snapshot when cached, else cold), snapshot (require), cold (kill switch)'
+        required: false
+        type: string
+        default: 'auto'
   workflow_dispatch:
     inputs:
       build_type:
@@ -50,15 +60,41 @@ on:
         required: false
         type: string
         default: '["ALL"]'
+      changed_spec_files:
+        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        required: false
+        type: string
+        default: ''
+      android-emulator-boot-mode:
+        description: 'Android emulator boot mode: auto (snapshot when cached, else cold), snapshot (require), cold (kill switch)'
+        required: false
+        type: string
+        default: 'auto'
 
 permissions:
   contents: read
   checks: write
+  # write: nested prime workflow saves golden AVD via actions/cache.
+  actions: write
+  pull-requests: read
 
 jobs:
+  # Boots/stabilizes/saves the golden emulator snapshot once per system image
+  # onto the shared cache volume, so shards quick-boot instead of paying a
+  # wiped cold boot per shard. Shards tolerate this job failing: their
+  # emulator boot mode `auto` then falls back to the historical cold boot.
+  prime-android-emulator-snapshot:
+    if: ${{ !cancelled() }}
+    uses: ./.github/workflows/prime-appium-e2e-android-emulator.yml
+    with:
+      runner_provider: ${{ inputs.runner_provider }}
+
   appium-accounts-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeAccounts'))
@@ -78,6 +114,8 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-profiler-android-smoke:
@@ -101,8 +139,11 @@ jobs:
     secrets: inherit
 
   appium-perps-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokePerps'))
@@ -122,11 +163,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-predictions-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokePredictions'))
@@ -146,11 +192,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-seedless-onboarding-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSeedlessOnboarding'))
@@ -170,11 +221,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-snaps-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSnaps'))
@@ -195,11 +251,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-network-abstractions-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeNetworkAbstractions'))
@@ -218,11 +279,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-wallet-platform-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform'))
@@ -242,11 +308,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-swap-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeSwap'))
@@ -266,11 +337,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-stake-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeStake'))
@@ -290,6 +366,8 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   # appium-mmconnect-android-smoke:
@@ -318,8 +396,11 @@ jobs:
   #   secrets: inherit
 
   appium-money-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeMoney'))
@@ -339,11 +420,16 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-browser-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeBrowser'))
@@ -363,18 +449,23 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-confirmations-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeConfirmations'))
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -382,23 +473,28 @@ jobs:
       platform: android
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-multichain-api-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeMultiChainAPI'))
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -406,16 +502,21 @@ jobs:
       platform: android
       test_suite_tag: SmokeMultiChainAPI
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit
 
   appium-network-expansion-android-smoke:
+    needs: prime-android-emulator-snapshot
+    # always(): run even when priming failed — boot mode auto falls back to cold.
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         (contains(fromJson(inputs.selected_tags), 'ALL') ||
          contains(fromJson(inputs.selected_tags), 'SmokeNetworkExpansion'))
@@ -435,4 +536,6 @@ jobs:
       build_type: ${{ inputs.build_type }}
       metamask_environment: ${{ inputs.metamask_environment }}
       runner_provider: ${{ inputs.runner_provider }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
+      android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
     secrets: inherit

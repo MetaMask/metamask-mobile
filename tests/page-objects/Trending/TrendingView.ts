@@ -4,7 +4,7 @@ import {
   Assertions,
   PlatformDetector,
   type ScrollOptions,
-  EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 import {
   TrendingViewSelectorsIDs,
@@ -20,80 +20,84 @@ import BrowserView from '../Browser/BrowserView';
 class TrendingView {
   private activeScrollViewID: string = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
 
-  get searchButton(): EncapsulatedElementType {
+  get searchButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BUTTON);
   }
 
-  get browserButton(): EncapsulatedElementType {
+  get browserButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.BROWSER_BUTTON);
   }
 
-  get searchInputContainer(): EncapsulatedElementType {
+  get searchInputContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_INPUT);
   }
 
-  get searchInput(): EncapsulatedElementType {
+  get searchInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_TEXT_INPUT);
   }
 
-  get searchCancelButton(): EncapsulatedElementType {
+  get searchBackButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_BACK_BUTTON);
+  }
+
+  get searchBrowserTabsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_CANCEL_BUTTON,
+      TrendingViewSelectorsIDs.SEARCH_BROWSER_TABS_BUTTON,
     );
   }
 
-  get searchAllPill(): EncapsulatedElementType {
+  get searchAllPill(): Promise<AppiumElement> {
     return Matchers.getElementByID(TrendingViewSelectorsIDs.SEARCH_PILL_ALL);
   }
 
-  get searchCryptosPill(): EncapsulatedElementType {
+  get searchCryptosPill(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_PILL_CRYPTOS,
     );
   }
 
-  get searchResultsList(): EncapsulatedElementType {
+  get searchResultsList(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST,
     );
   }
 
-  getTokenRow(assetId: string): EncapsulatedElementType {
+  getTokenRow(assetId: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.TOKEN_ROW_ITEM_PREFIX}${assetId}`,
       0,
     );
   }
 
-  getPerpRow(symbol: string): EncapsulatedElementType {
+  getPerpRow(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PERPS_ROW_ITEM_PREFIX}${symbol}`,
       0,
     );
   }
 
-  getPredictionRow(id: string): EncapsulatedElementType {
+  getPredictionRow(id: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.PREDICTIONS_ROW_ITEM_PREFIX}${id}`,
       0,
     );
   }
 
-  getSiteRow(name: string): EncapsulatedElementType {
+  getSiteRow(name: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${TrendingViewSelectorsIDs.SITE_ROW_ITEM_PREFIX}${name}`,
       0,
     );
   }
 
-  getSectionHeader(title: string): EncapsulatedElementType {
+  getSectionHeader(title: string): Promise<AppiumElement> {
     return Matchers.getElementByText(title);
   }
 
   /**
    * Get section header by testID (for full view headers)
    */
-  getSectionHeaderByTestID(title: string): EncapsulatedElementType | null {
+  getSectionHeaderByTestID(title: string): Promise<AppiumElement> | null {
     const headerTestID = SECTION_FULL_VIEW_HEADERS[title];
     if (!headerTestID) {
       return null;
@@ -101,7 +105,7 @@ class TrendingView {
     return Matchers.getElementByID(headerTestID);
   }
 
-  getBackButton(testID: string): EncapsulatedElementType {
+  getBackButton(testID: string): Promise<AppiumElement> {
     return Matchers.getElementByID(testID);
   }
 
@@ -157,9 +161,9 @@ class TrendingView {
     });
   }
 
-  async tapSearchCancelButton(): Promise<void> {
-    await Gestures.tap(this.searchCancelButton, {
-      elemDescription: 'Tap Search Cancel button',
+  async tapSearchBackButton(): Promise<void> {
+    await Gestures.tap(this.searchBackButton, {
+      elemDescription: 'Tap Search Back button',
     });
   }
 
@@ -168,7 +172,7 @@ class TrendingView {
    * Uses Gestures.scrollToElement which retries scroll + visibility check until the element is on screen.
    */
   private async scrollToElementInFeed(
-    targetElement: EncapsulatedElementType,
+    targetElement: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: Partial<ScrollOptions> = {},
@@ -287,7 +291,7 @@ class TrendingView {
    * @param itemType - Type of item for description ('token', 'perp', 'prediction', 'site')
    */
   private async verifyItemVisible(
-    getElement: () => EncapsulatedElementType,
+    getElement: () => Promise<AppiumElement>,
     identifier: string,
     itemType: string,
     options: Partial<ScrollOptions> = {},
@@ -311,7 +315,7 @@ class TrendingView {
    * Gestures.scrollToElement retries scroll until the element is visible.
    */
   private async tapItemRow(
-    getElement: () => EncapsulatedElementType,
+    getElement: () => Promise<AppiumElement>,
     identifier: string,
     itemType: string,
   ): Promise<void> {

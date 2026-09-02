@@ -38,6 +38,10 @@ const createStyles = (params: {
       flexDirection: 'row',
       minHeight: 200,
     },
+    emptyStateColumn: {
+      flex: 1,
+      flexDirection: 'column',
+    },
     sectionHeader: {
       paddingHorizontal: 16,
       paddingVertical: 8,

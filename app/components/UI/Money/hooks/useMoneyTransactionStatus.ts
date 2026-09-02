@@ -45,13 +45,21 @@ const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
   'function transfer(address to, uint256 amount)',
 ]);
 
-function decodeErc20TransferRecipient(
+interface DecodedErc20Transfer {
+  recipient: string;
+  amount: bigint;
+}
+
+function decodeErc20Transfer(
   data: string | undefined,
-): string | undefined {
+): DecodedErc20Transfer | undefined {
   if (!data) return undefined;
   try {
-    const [to] = ERC20_TRANSFER_INTERFACE.decodeFunctionData('transfer', data);
-    return to as string;
+    const [to, amount] = ERC20_TRANSFER_INTERFACE.decodeFunctionData(
+      'transfer',
+      data,
+    );
+    return { recipient: to as string, amount: BigInt(amount.toString()) };
   } catch (error) {
     Logger.error(
       error as Error,
@@ -62,13 +70,8 @@ function decodeErc20TransferRecipient(
 }
 
 function resolveWithdrawDestination(
-  transactionMeta: TransactionMeta,
+  recipient: string | undefined,
 ): string | undefined {
-  const transferNested = nestedTxWithType(
-    transactionMeta,
-    TransactionType.tokenMethodTransfer,
-  );
-  const recipient = decodeErc20TransferRecipient(transferNested?.data);
   if (!recipient) return undefined;
   const state = store.getState();
   const account = getMemoizedInternalAccountByAddress(state, recipient);
@@ -83,27 +86,20 @@ function resolveWithdrawDestination(
   );
 }
 
-function decodeTellerAmount(
-  type: TransactionType,
+function decodeTellerDepositAmount(
   data: string | undefined,
 ): bigint | undefined {
   if (!data) return undefined;
   try {
-    if (type === TransactionType.moneyAccountDeposit) {
-      const decoded = TELLER_INTERFACE.decodeFunctionData('deposit', data);
-      return BigInt(decoded[1].toString());
-    }
-    if (type === TransactionType.moneyAccountWithdraw) {
-      const decoded = TELLER_INTERFACE.decodeFunctionData('withdraw', data);
-      return BigInt(decoded[1].toString());
-    }
+    const decoded = TELLER_INTERFACE.decodeFunctionData('deposit', data);
+    return BigInt(decoded[1].toString());
   } catch (error) {
     Logger.error(
       error as Error,
       'useMoneyTransactionStatus: failed to decode teller calldata',
     );
+    return undefined;
   }
-  return undefined;
 }
 
 export function formatMusdAmountForToast(amountWei: bigint): string {
@@ -291,28 +287,19 @@ export const useMoneyTransactionStatus = () => {
         return;
       }
 
-      const depositNested = nestedTxWithType(
-        transactionMeta,
-        TransactionType.moneyAccountDeposit,
-      );
-      const withdrawNested = nestedTxWithType(
-        transactionMeta,
-        TransactionType.moneyAccountWithdraw,
-      );
-      const nestedMatch = depositNested ?? withdrawNested;
-      const decodeType =
-        nestedMatch?.type ?? (transactionMeta.type as TransactionType);
-      const decodeData =
-        nestedMatch?.data ??
-        (transactionMeta.txParams?.data as string | undefined);
-
-      const amountBaseUnit = decodeTellerAmount(decodeType, decodeData);
-      const amountFiat =
-        amountBaseUnit !== undefined
-          ? formatMusdAmountForToast(amountBaseUnit)
-          : undefined;
-
       if (isMoneyDepositTx(transactionMeta)) {
+        const depositNested = nestedTxWithType(
+          transactionMeta,
+          TransactionType.moneyAccountDeposit,
+        );
+        const amountBaseUnit = decodeTellerDepositAmount(
+          depositNested?.data ??
+            (transactionMeta.txParams?.data as string | undefined),
+        );
+        const amountFiat =
+          amountBaseUnit !== undefined
+            ? formatMusdAmountForToast(amountBaseUnit)
+            : undefined;
         // A first deposit is confirmed by the full-page animation takeover
         // instead of a toast, so the lingering in-progress toast must be
         // closed explicitly rather than replaced by the success toast.
@@ -333,8 +320,19 @@ export const useMoneyTransactionStatus = () => {
         }
         clearMoneyAccountDepositIntent(transactionMeta.batchId);
       } else {
+        // The teller withdraw's amount param is denominated in vault shares,
+        // which is below the dollar amount whenever the share rate exceeds 1.
+        // The nested ERC-20 transfer carries the exact dollar amount the
+        // recipient receives, so that's what the toast must show.
+        const transfer = decodeErc20Transfer(
+          nestedTxWithType(transactionMeta, TransactionType.tokenMethodTransfer)
+            ?.data,
+        );
+        const amountFiat = transfer
+          ? formatMusdAmountForToast(transfer.amount)
+          : undefined;
         const destination =
-          resolveWithdrawDestination(transactionMeta) ??
+          resolveWithdrawDestination(transfer?.recipient) ??
           strings('money.toasts.withdraw_fallback_destination');
         showToast(
           MoneyToastOptions.withdraw.success({ amountFiat, destination }),

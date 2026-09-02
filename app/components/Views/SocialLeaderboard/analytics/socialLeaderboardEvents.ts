@@ -46,10 +46,16 @@ export const SocialLeaderboardEventValues = {
     FOLLOW: 'follow',
     UNFOLLOW: 'unfollow',
   },
+  /**
+   * Position-lifecycle stage of the trade a feed row announces. Asset-agnostic
+   * — pair with `trade_type` to tell a perp open from a token buy. Replaces
+   * the earlier `bought`/`sold`/`opened`/`closed` set, which conflated a
+   * partial exit with a full close and could not express an add.
+   */
   FEED_ACTION: {
-    BOUGHT: 'bought',
-    SOLD: 'sold',
     OPENED: 'opened',
+    ADDED: 'added',
+    REDUCED: 'reduced',
     CLOSED: 'closed',
   },
   FEED_AUDIENCE: {

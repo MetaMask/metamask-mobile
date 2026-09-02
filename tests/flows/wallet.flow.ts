@@ -37,9 +37,7 @@ import {
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
-import PlaywrightUtilities, {
-  getDriver,
-} from '../framework/PlaywrightUtilities';
+import AppiumUtilities, { getDriver } from '../framework/AppiumUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
@@ -220,7 +218,7 @@ const getLocalhostUrl = () => {
 
   let port: number;
 
-  if (device.getPlatform() === 'android') {
+  if (PlatformDetector.isAndroid()) {
     // Android: Must use fallback port (adb reverse maps fallback→actual)
     // Example: adb reverse tcp:8545 tcp:45466 means device connects to 8545, reaches host's 45466
     port = anvilPort
@@ -259,7 +257,7 @@ export const addLocalhostNetwork = async (): Promise<void> => {
   await NetworkView.typeInChainId('1337');
   await NetworkView.typeInNetworkSymbol('ETH\n');
 
-  if (device.getPlatform() === 'ios') {
+  if (PlatformDetector.isIOS()) {
     // await NetworkView.swipeToRPCTitleAndDismissKeyboard(); // Focus outside of text input field
     await NetworkView.tapRpcNetworkAddButton();
   }
@@ -739,24 +737,23 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 /**
  * Logs into the application using the provided password or a default password.
  *
+ * Default fixtures suppress push / marketing pre-prompts, so this path does
+ * not probe or dismiss those sheets (MMQA-2214). Call
+ * {@link dismissPushNotificationExistingUserSheet} /
+ * {@link dismissExperienceEnhancerModal} explicitly when a flow needs them.
+ *
  * @async
  * @function loginToAppPlaywright
  */
 export const loginToAppPlaywright = async (
-  options: { scenarioType?: string; dismissModals?: boolean } = {},
+  options: { scenarioType?: string } = {},
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
-  const dismissPostLoginModals = async (): Promise<void> => {
-    startPhase('modal_dismissal');
-    try {
-      await PlaywrightUtilities.wait(500);
-      await dismissPushNotificationExistingUserSheet();
-      await dismissExperienceEnhancerModal();
-    } finally {
-      // Resume test_body after login + modals (exclusive phases).
+  const afterWalletHomeReady = async (): Promise<void> => {
+    await completeUnlockedWalletHome(async () => {
       startPhase('test_body');
-    }
+    });
   };
 
   startPhase('login');
@@ -764,14 +761,14 @@ export const loginToAppPlaywright = async (
   await dismissAndroidSystemOverlaysPlaywright();
 
   if (await isUnlockedWalletHomeReady()) {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
   const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
 
   if (readyScreen === 'wallet') {
-    await completeUnlockedWalletHome(dismissPostLoginModals);
+    await afterWalletHomeReady();
     return;
   }
 
@@ -796,7 +793,7 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
-  await dismissPostLoginModals();
+  startPhase('test_body');
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;
@@ -805,7 +802,7 @@ const MM_CONNECT_LOCK_GONE_TIMEOUT_MS = 10_000;
 async function dismissUnlockBlockers(): Promise<void> {
   // Play services heads-up on google_apis CI emulators covers Unlock and
   // makes the control non-interactive until the banner is dismissed.
-  PlaywrightUtilities.dismissAndroidHeadsUpNotifications();
+  AppiumUtilities.dismissAndroidHeadsUpNotifications();
   await dismissAndroidSystemOverlaysPlaywright();
 }
 
@@ -925,25 +922,13 @@ export const ensureAccountGroupsFinishedLoading = async (
 export const loginAndOpenAccountList = async (
   options: {
     scenarioType?: string;
-    dismissModals?: boolean;
-    accountListDescription?: string;
   } = {},
 ): Promise<void> => {
-  const {
-    accountListDescription = 'Account list should be visible',
-    ...loginOptions
-  } = options;
+  await loginToAppPlaywright(options);
 
-  await loginToAppPlaywright(loginOptions);
-
-  await WalletView.tapIdenticon();
-
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: accountListDescription,
-    },
-  );
+  // After skipping post-login modal probes, wallet chrome can still be settling
+  // when the first identicon tap lands as a no-op — retry until the list opens.
+  await ensureAccountListOpenPlaywright();
 };
 
 /**
@@ -956,7 +941,7 @@ export const loginAndOpenAccountList = async (
 export const selectAccountByDevice = async (
   deviceName: string,
 ): Promise<void> => {
-  const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
+  const deviceAccountMapping = AppiumUtilities.buildDeviceAccountMapping();
   const accountName = deviceAccountMapping[deviceName];
 
   if (!(deviceName in deviceAccountMapping)) {
@@ -972,8 +957,7 @@ export const selectAccountByDevice = async (
 
   logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
 
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);

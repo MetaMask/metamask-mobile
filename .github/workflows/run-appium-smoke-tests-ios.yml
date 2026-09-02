@@ -29,10 +29,17 @@ on:
         required: false
         type: string
         default: '["ALL"]'
+      changed_spec_files:
+        description: 'Space-separated changed E2E specs for PR flakiness detection'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: read
   checks: write
+  actions: read
+  pull-requests: read
 
 jobs:
   appium-accounts-ios-smoke:
@@ -57,6 +64,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-profiler-ios-smoke:
@@ -101,6 +109,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-predictions-ios-smoke:
@@ -125,6 +134,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-seedless-onboarding-ios-smoke:
@@ -149,6 +159,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-snaps-ios-smoke:
@@ -174,6 +185,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-network-abstractions-ios-smoke:
@@ -197,6 +209,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-wallet-platform-ios-smoke:
@@ -221,6 +234,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-swap-ios-smoke:
@@ -245,6 +259,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-stake-ios-smoke:
@@ -269,6 +284,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-money-ios-smoke:
@@ -293,6 +309,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-browser-ios-smoke:
@@ -317,6 +334,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-confirmations-ios-smoke:
@@ -328,7 +346,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -336,11 +354,12 @@ jobs:
       platform: ios
       test_suite_tag: SmokeConfirmations
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-multichain-api-ios-smoke:
@@ -352,7 +371,7 @@ jobs:
       }}
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1, 2, 3]
       fail-fast: false
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
@@ -360,11 +379,12 @@ jobs:
       platform: ios
       test_suite_tag: SmokeMultiChainAPI
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 3
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
   appium-network-expansion-ios-smoke:
@@ -389,4 +409,5 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit

@@ -69,6 +69,7 @@ const {
   FEES_ROW,
   PNL_ROW,
   LIMIT_PRICE_ROW,
+  TRIGGER_PRICE_ROW,
   FILLED_ROW,
   TOTAL_FEE_ROW,
   RATE_ROW,
@@ -724,16 +725,35 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
       within(sizeRow).getByText(getPerpsPriceValue(order?.size) ?? ''),
     ).toBeOnTheScreen();
 
-    const limitPriceRow = getByTestId(LIMIT_PRICE_ROW);
-    expect(limitPriceRow).toHaveTextContent(
-      strings('perps.transactions.order.limit_price'),
-      { exact: false },
-    );
-    expect(
-      within(limitPriceRow).getByText(
-        getPerpsPriceValue(order?.limitPrice) ?? '',
-      ),
-    ).toBeOnTheScreen();
+    if (order?.triggerPrice) {
+      const triggerPriceRow = getByTestId(TRIGGER_PRICE_ROW);
+      expect(triggerPriceRow).toHaveTextContent(
+        strings('perps.order.trigger_price'),
+        { exact: false },
+      );
+      expect(
+        within(triggerPriceRow).getByText(
+          getPerpsPriceValue(order.triggerPrice) ?? '',
+        ),
+      ).toBeOnTheScreen();
+    } else {
+      expect(queryByTestId(TRIGGER_PRICE_ROW)).not.toBeOnTheScreen();
+    }
+
+    if (order?.limitPrice) {
+      const limitPriceRow = getByTestId(LIMIT_PRICE_ROW);
+      expect(limitPriceRow).toHaveTextContent(
+        strings('perps.transactions.order.limit_price'),
+        { exact: false },
+      );
+      expect(
+        within(limitPriceRow).getByText(
+          getPerpsPriceValue(order.limitPrice) ?? '',
+        ),
+      ).toBeOnTheScreen();
+    } else {
+      expect(queryByTestId(LIMIT_PRICE_ROW)).not.toBeOnTheScreen();
+    }
 
     expect(getByTestId(FILLED_ROW)).toHaveTextContent(filled, {
       exact: false,
