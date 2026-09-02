@@ -981,6 +981,71 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     });
   });
 
+  describe('without a pay balance source', () => {
+    beforeEach(() => {
+      // A plain ERC-20 send: the pay controller still derives a required token
+      // from the transfer calldata, but nothing is funded through MetaMask Pay.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayTotalsMock.mockReturnValue(undefined);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-transfer',
+        chainId: '0x2105',
+        type: TransactionType.tokenMethodTransfer,
+      } as unknown as TransactionMeta);
+    });
+
+    it('returns no alert for a token transfer without a pay token', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '1.06' },
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when native balance is below gas on a non-pay transfer', () => {
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '1.06' },
+      ]);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns the input alert once a pay token is selected', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: { ...PAY_TOKEN_MOCK, balanceUsd: '0.5' },
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '1.06' },
+      ]);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+  });
+
   describe('fiat payment', () => {
     it('returns no alerts when fiat payment method is selected', () => {
       useTransactionPayTokenMock.mockReturnValue({

@@ -141,10 +141,21 @@ export function useInsufficientPayTokenBalanceAlert({
   //   flow (`!isPostQuote`), where gas is sponsored by the override path rather
   //   than paid from the user's native balance. Post-quote (withdrawal) flows
   //   still pay gas on the source chain, so the override alone is not enough.
+  const isMoneyAccountOverride =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
   const isGaslessSourceChain =
     sourceChainId === CHAIN_IDS.MONAD ||
     isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
-    (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount);
+    (!isPostQuote && isMoneyAccountOverride);
+
+  // Mirrors the balance sources in `useTransactionPayBalance`: the wallet
+  // balance is only meaningful once a pay token is selected, while withdrawals
+  // and money-account overrides draw from their own balances. Without any of
+  // these the transaction is not funded through MetaMask Pay (e.g. a plain
+  // ERC-20 send still yields a required token), so no balance check applies.
+  const hasPayBalanceSource =
+    Boolean(payToken) || isPostQuote || isMoneyAccountOverride;
 
   // For non-gasless source chains we still need to check the user has enough
   // native token to pay for gas on the source network (e.g., POL for Polygon).
@@ -172,7 +183,7 @@ export function useInsufficientPayTokenBalanceAlert({
       isBlocking: true,
     };
 
-    if (selectedFiatPaymentMethod) {
+    if (selectedFiatPaymentMethod || !hasPayBalanceSource) {
       return [];
     }
 
@@ -219,6 +230,7 @@ export function useInsufficientPayTokenBalanceAlert({
 
     return [];
   }, [
+    hasPayBalanceSource,
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
