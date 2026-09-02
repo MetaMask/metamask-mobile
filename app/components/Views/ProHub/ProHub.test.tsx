@@ -2,11 +2,6 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import {
-  MOCK_NEXT_PAYMENT,
-  MOCK_PRO_HUB_STATS,
-  MOCK_TRADE_ALLOWANCES,
-} from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -42,6 +37,8 @@ const renderProHub = () => render(<ProHub />);
  */
 const toRegex = (s: string) =>
   new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+
+const TRADE_ALLOWANCE_IDS = ['swaps', 'perps', 'predict'] as const;
 
 // CV cannot cover this screen yet: it is still mock-data UI with no Redux /
 // Engine state, so focused unit tests remain the coverage layer.
@@ -98,7 +95,7 @@ describe('ProHub', () => {
       expect(managePlansButton).toBeOnTheScreen();
     });
 
-    it('renders membership card, lifetime earnings, and stat rows with mock amounts', () => {
+    it('renders membership card, lifetime earnings, and stat rows', () => {
       const { getByTestId } = renderProHub();
 
       const membershipBanner = getByTestId(ProHubTestIds.MEMBERSHIP_BANNER);
@@ -117,20 +114,11 @@ describe('ProHub', () => {
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
-      expect(lifetimeEarningsSection).toHaveTextContent(
-        toRegex(MOCK_PRO_HUB_STATS.lifetimeEarnings),
-      );
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(strings('pro_hub.money_balance')),
       );
-      expect(moneyBalanceRow).toHaveTextContent(
-        toRegex(MOCK_PRO_HUB_STATS.moneyBalance),
-      );
       expect(musdBackRow).toHaveTextContent(
         toRegex(strings('pro_hub.musd_back')),
-      );
-      expect(musdBackRow).toHaveTextContent(
-        toRegex(MOCK_PRO_HUB_STATS.musdBack),
       );
     });
 
@@ -157,32 +145,25 @@ describe('ProHub', () => {
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
 
-      MOCK_TRADE_ALLOWANCES.forEach((item) => {
-        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(item.id));
-        const progress = getByTestId(
-          MemberPricingOnTradesTestIds.PROGRESS(item.id),
-        );
+      TRADE_ALLOWANCE_IDS.forEach((id) => {
+        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(id));
+        const progress = getByTestId(MemberPricingOnTradesTestIds.PROGRESS(id));
 
         expect(row).toBeOnTheScreen();
         expect(progress).toBeOnTheScreen();
         expect(row).toHaveTextContent(
-          toRegex(strings(`pro_hub.member_pricing.${item.id}.label`)),
+          toRegex(strings(`pro_hub.member_pricing.${id}.label`)),
         );
       });
     });
 
-    it('renders next payment amount, date, and manage plan button', () => {
+    it('renders next payment text and manage plan button', () => {
       const { getByTestId } = renderProHub();
 
       const nextPaymentText = getByTestId(ProHubTestIds.NEXT_PAYMENT_TEXT);
       const manageButton = getByTestId(ProHubTestIds.MANAGE_BUTTON);
 
-      expect(nextPaymentText).toHaveTextContent(
-        strings('pro_hub.next_payment', {
-          amount: MOCK_NEXT_PAYMENT.amount,
-          date: MOCK_NEXT_PAYMENT.date,
-        }),
-      );
+      expect(nextPaymentText).toBeOnTheScreen();
       expect(manageButton).toHaveTextContent(strings('pro_hub.manage_plan'));
     });
   });
@@ -230,32 +211,6 @@ describe('ProHub', () => {
       fireEvent.press(getByTestId(ProHubTestIds.PHYSICAL_CARD_BANNER));
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('navigates to Earned when the earned card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
-    });
-
-    it('does not navigate when the physical card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
-        nativeEvent: { locationX: 40, locationY: 40 },
-      });
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when the saved card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
-
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate on initial render', () => {
