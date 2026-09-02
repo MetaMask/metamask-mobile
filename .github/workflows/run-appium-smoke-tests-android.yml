@@ -512,9 +512,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      # Local dapp servers bind a shared host port. Keep N=1 until the
-      # worker-aware startLocalDappServerOnWorker follow-up lands.
-      android-device-pool-size: 1
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-network-expansion-android-smoke:
@@ -544,7 +542,5 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
-      # Local dapp servers bind a shared host port. Keep N=1 until the
-      # worker-aware startLocalDappServerOnWorker follow-up lands.
-      android-device-pool-size: 1
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
