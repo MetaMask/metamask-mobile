@@ -29,6 +29,20 @@ Notes:
 - iOS ignores "save to downloads" and always writes to Caches; use Export to share it.
 - Android copies to Downloads when profiling stops.
 
+#### Performance-test APKs (Appium, no shake)
+
+BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. Those APKs mount invisible Appium controls that call the same `startProfiling` / `stopProfiling` APIs as the shake UI — smoke e2e and production builds do not get these hooks.
+
+From a performance Appium scenario:
+
+1. Click `~performance-profiler-start` (or `id=performance-profiler-start`).
+2. Wait for `~performance-profiler-recording-ready`.
+3. Run the journey under test.
+4. Click `~performance-profiler-stop`.
+5. Wait for `~performance-profiler-result-ready` (accessibility label includes the on-device `.cpuprofile` path). On Android the file is under Downloads.
+
+Constants live in `PERFORMANCE_PROFILER_TEST_IDS` inside `app/components/UI/ProfilerManager/ProfilerManager.tsx`.
+
 ### 3) Convert and view in Chrome tracing
 
 Chrome's tracing UI expects a JSON trace. Convert the `.cpuprofile` first:
