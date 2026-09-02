@@ -1721,9 +1721,32 @@ describe('PerpsProOrderForm', () => {
     it('uses 20-point summary row height', () => {
       renderForm();
 
-      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+      expect(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).toHaveStyle({
         height: 20,
       });
+    });
+
+    it('treats 20 points as a minimum on the rows that carry a before → after pair', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+        minHeight: 20,
+      });
+      expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toHaveStyle({
+        minHeight: 20,
+      });
+    });
+
+    it('wraps a long before → after pair instead of clipping it', () => {
+      const pair = '$1,234,567.89 → $1,250,000.00';
+      renderForm({ summary: { margin: pair, liquidationPrice: pair } });
+
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
     });
 
     it('uses no horizontal padding on summary rows so they align with the form', () => {
