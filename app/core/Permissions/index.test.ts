@@ -1129,9 +1129,7 @@ describe('Permission Utility Functions', () => {
       mockIsUnlocked.mockReturnValue(false);
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
-      const result = getPermittedAccounts('https://example.com', {
-        ignoreLock: true,
-      });
+      const result = getPermittedAccounts('https://example.com');
       expect(result).toEqual(sortedAccounts);
     });
 

@@ -504,17 +504,11 @@ export const removePermittedChain = (
  * return permitted accounts to the dapp when the wallet is locked.
  *
  * @param {string} origin - The origin whose exposed accounts to retrieve.
- * @param {object} [options] - The options object
- * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
  * @returns {string[]} The origin's permitted accounts, or an empty
  * array.
  */
-export const getPermittedAccounts = (
-  origin: string,
-  { ignoreLock }: { ignoreLock?: boolean } = {},
-) => {
-  const { AccountsController, PermissionController, KeyringController } =
-    Engine.context;
+export const getPermittedAccounts = (origin: string) => {
+  const { AccountsController, PermissionController } = Engine.context;
 
   let caveat;
   try {
@@ -537,10 +531,6 @@ export const getPermittedAccounts = (
       return [];
     }
     throw err;
-  }
-
-  if (!KeyringController.isUnlocked() && !ignoreLock) {
-    return [];
   }
 
   const ethAccounts = getEthAccounts(caveat.value);

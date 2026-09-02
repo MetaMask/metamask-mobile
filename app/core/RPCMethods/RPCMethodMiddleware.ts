@@ -568,7 +568,7 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
-              getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+              getAccounts: () => getPermittedAccounts(origin),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
