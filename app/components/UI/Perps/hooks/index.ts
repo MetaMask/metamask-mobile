@@ -1,4 +1,5 @@
 // Core hooks (direct controller access)
+export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -23,6 +24,8 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 export { usePerpsMode } from './usePerpsMode';
 export { usePerpsProChartExpanded } from './usePerpsProChartExpanded';
+export { usePerpsProOrderBookExpanded } from './usePerpsProOrderBookExpanded';
+export { usePerpsProOrderBookPosition } from './usePerpsProOrderBookPosition';
 export { usePerpsOrderBookPreferences } from './usePerpsOrderBookPreferences';
 export { usePerpsProOrdersPreferences } from './usePerpsProOrdersPreferences';
 export { usePerpsProPositionsPreferences } from './usePerpsProPositionsPreferences';
@@ -89,7 +92,10 @@ export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
 export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 export { usePerpsTPSLForm } from './usePerpsTPSLForm';
-export { default as usePerpsToasts } from './usePerpsToasts';
+export {
+  default as usePerpsToasts,
+  getPerpsToastLabels,
+} from './usePerpsToasts';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

@@ -2,6 +2,12 @@ import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
 
+export interface ScaleOrderRung {
+  index: number;
+  price: string;
+  size: string;
+}
+
 export type PerpsProOrderDirection = 'long' | 'short';
 
 /**
@@ -67,6 +73,40 @@ export interface PerpsProTwapModel {
   onRandomizeChange: (value: boolean) => void;
 }
 
+export interface PerpsProScaleOrderModel {
+  startPrice: string;
+  endPrice: string;
+  totalOrders: string;
+  sizeSkew: string;
+  onStartPriceChange: (value: string) => void;
+  onStartPriceBlur: () => void;
+  onEndPriceChange: (value: string) => void;
+  onEndPriceBlur: () => void;
+  onTotalOrdersChange: (value: string) => void;
+  onTotalOrdersBlur: () => void;
+  onSizeSkewChange: (value: string) => void;
+  onSizeSkewBlur: () => void;
+  onSizeSkewInfoPress: () => void;
+  rungs: ScaleOrderRung[];
+  marginRange: string;
+  liquidationRange: string;
+  fees: string;
+}
+
+export interface PerpsProFieldKeyboardScroll {
+  cardRef: Ref<View>;
+  onFocus: () => void;
+  onBlur: () => void;
+  realign: () => void;
+}
+
+export interface PerpsProScaleKeyboardScroll {
+  startPrice: PerpsProFieldKeyboardScroll;
+  endPrice: PerpsProFieldKeyboardScroll;
+  totalOrders: PerpsProFieldKeyboardScroll;
+  sizeSkew: PerpsProFieldKeyboardScroll;
+}
+
 export interface PerpsProOrderFormProps {
   direction: PerpsProOrderDirection;
   onDirectionChange: (direction: PerpsProOrderDirection) => void;
@@ -82,6 +122,10 @@ export interface PerpsProOrderFormProps {
   leverageLabel: string;
   onLeveragePress?: () => void;
   orderType: OrderType;
+  scaleOrder: PerpsProScaleOrderModel;
+  /** Live controller count used by the Chase limit guard. */
+  activeChaseCount?: number;
+  scaleKeyboardScroll?: PerpsProScaleKeyboardScroll;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
   onLimitPriceChange: (value: string) => void;
@@ -95,6 +139,11 @@ export interface PerpsProOrderFormProps {
   /** Fires on every limit price field tap, including while already focused. */
   onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
+  chaseMaxDistance?: string;
+  onChaseMaxDistanceChange?: (value: string) => void;
+  chaseMaxDistanceUnit?: 'usd' | 'percent';
+  onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
+  chaseReferencePrice?: string;
   triggerPrice?: string;
   onTriggerPriceChange?: (value: string) => void;
   onTriggerPriceFocus?: () => void;
@@ -128,5 +177,5 @@ export interface PerpsProOrderFormProps {
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;
   isPlaceOrderLoading?: boolean;
-  onPlaceOrderPress: () => void;
+  onPlaceOrderPress: () => Promise<void>;
 }

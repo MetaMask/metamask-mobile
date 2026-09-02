@@ -207,7 +207,11 @@ describe('MoneyPotentialEarningsView', () => {
       MoneyPotentialEarningsViewTestIds.DESCRIPTION,
     );
     expect(description).toBeOnTheScreen();
-    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(
+      new RegExp(
+        strings('money.potential_earnings.description_with_amounts_prefix'),
+      ),
+    );
     expect(description).toHaveTextContent(/in one year\./);
     // green-highlighted projected amount renders inline with a "+" prefix
     expect(description).toHaveTextContent(/\+\$/);

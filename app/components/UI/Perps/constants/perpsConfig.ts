@@ -9,7 +9,11 @@
  * - Mobile-specific exports (TokenI)
  */
 import type { Hex } from '@metamask/utils';
-import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
+import {
+  CHASE_ORDER_STATUS,
+  HYPERLIQUID_TWAP_LIMITS,
+  type ChaseOrder,
+} from '@metamask/perps-controller';
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
@@ -140,6 +144,29 @@ export const PERPS_TWAP_UI_CONFIG = {
     randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
   },
 } as const;
+
+export const CHASE_ORDER_UI_CONFIG = {
+  RefreshIntervalMs: 1000,
+  DiscoveryRetryMaxAttempts: 4,
+  DiscoveryRetryMaxDelayMs: 8000,
+  BackgroundSuspensionTimeoutMs: 3000,
+  TerminalHistoryLimit: 50,
+  AggregatedOmissionGraceReads: 1,
+} as const;
+
+export const CHASE_HISTORY_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set([
+    CHASE_ORDER_STATUS.Backgrounded,
+    CHASE_ORDER_STATUS.Canceled,
+    CHASE_ORDER_STATUS.DurationReached,
+    CHASE_ORDER_STATUS.Failed,
+    CHASE_ORDER_STATUS.Filled,
+    CHASE_ORDER_STATUS.MaxDistanceReached,
+    CHASE_ORDER_STATUS.RepricingLimitReached,
+  ]);
+
+export const CHASE_RETAINED_STATUSES: ReadonlySet<ChaseOrder['status']> =
+  new Set([CHASE_ORDER_STATUS.Active, CHASE_ORDER_STATUS.TerminationPending]);
 
 /**
  * Decimal places used when displaying how far a position's current price sits
@@ -400,4 +427,18 @@ export const PERPS_CONNECTION_SOURCE = {
   PERPS_FULLSCREEN_ENTRY: 'perps_fullscreen_entry',
   PERPS_CONNECTION_PROVIDER: 'perps_connection_provider',
   UNSPECIFIED: 'unspecified',
+} as const;
+
+/**
+ * Pro-mode layout defaults that intentionally differ from the shared controller
+ * defaults. Mobile shows the order-book column pinned right; Extension opens its
+ * slide-in panel closed on the left. Confirmed as a deliberate per-platform
+ * split, so mobile overrides rather than changing the shared default.
+ *
+ * Applied to fresh installs at controller init; migration 151 moves installs
+ * that were created before the split.
+ */
+export const MOBILE_PRO_LAYOUT_DEFAULTS = {
+  orderBookExpanded: true,
+  orderBookPosition: 'right',
 } as const;

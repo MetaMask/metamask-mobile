@@ -3,7 +3,7 @@ import { LimitOrderExecutionType } from '../constants/limitOrders';
 export interface LimitOrderPriceAdjustState {
   limitPrice: string | undefined;
   isLimitFiatMode: boolean;
-  hasUserEditedLimitPrice: boolean;
+  isTrackingMarket: boolean;
   executionType: LimitOrderExecutionType;
   isCustomActive: boolean;
   customValue: string | undefined;
@@ -11,9 +11,15 @@ export interface LimitOrderPriceAdjustState {
 
 export type LimitOrderPriceAdjustAction =
   | { type: 'setLimitPrice'; limitPrice: string | undefined }
-  | { type: 'applyPreset'; limitPrice?: string }
+  | { type: 'applyPreset'; limitPrice?: string; isTrackingMarket: boolean }
+  | {
+      type: 'commitCustomPercent';
+      limitPrice: string;
+      isTrackingMarket: boolean;
+    }
   | { type: 'seedFromMarket'; limitPrice: string }
   | { type: 'enterCustom' }
+  | { type: 'exitCustom' }
   | { type: 'setCustomValue'; value: string | undefined }
   | {
       type: 'toggleFiatMode';
@@ -25,7 +31,7 @@ export type LimitOrderPriceAdjustAction =
 const PRICE_FIELDS_RESET = {
   limitPrice: undefined,
   isLimitFiatMode: true,
-  hasUserEditedLimitPrice: false,
+  isTrackingMarket: true,
   isCustomActive: false,
   customValue: undefined,
 } as const satisfies Omit<LimitOrderPriceAdjustState, 'executionType'>;
@@ -43,7 +49,7 @@ export const limitOrderPriceAdjustReducer = (
     case 'setLimitPrice':
       return {
         ...state,
-        hasUserEditedLimitPrice: true,
+        isTrackingMarket: false,
         limitPrice: action.limitPrice,
       };
     case 'applyPreset':
@@ -51,22 +57,35 @@ export const limitOrderPriceAdjustReducer = (
         ...state,
         isCustomActive: false,
         customValue: undefined,
+        isTrackingMarket: action.isTrackingMarket,
         ...(action.limitPrice !== undefined
-          ? {
-              hasUserEditedLimitPrice: true,
-              limitPrice: action.limitPrice,
-            }
+          ? { limitPrice: action.limitPrice }
           : {}),
       };
-    case 'seedFromMarket':
+    case 'commitCustomPercent':
       return {
         ...state,
+        isTrackingMarket: action.isTrackingMarket,
         limitPrice: action.limitPrice,
       };
+    case 'seedFromMarket':
+      // A market refresh that rounds to the same string is not a state change.
+      return state.limitPrice === action.limitPrice
+        ? state
+        : {
+            ...state,
+            limitPrice: action.limitPrice,
+          };
     case 'enterCustom':
       return {
         ...state,
         isCustomActive: true,
+      };
+    case 'exitCustom':
+      return {
+        ...state,
+        isCustomActive: false,
+        customValue: undefined,
       };
     case 'setCustomValue':
       return {
@@ -76,7 +95,7 @@ export const limitOrderPriceAdjustReducer = (
     case 'toggleFiatMode':
       return {
         ...state,
-        hasUserEditedLimitPrice: true,
+        isTrackingMarket: false,
         isLimitFiatMode: !state.isLimitFiatMode,
         limitPrice: action.convertLimitPrice(state.limitPrice),
       };

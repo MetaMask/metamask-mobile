@@ -210,6 +210,16 @@ function createMockInfoClient() {
     perpDexs: jest.fn().mockResolvedValue([null]),
     allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
     frontendOpenOrders: jest.fn().mockResolvedValue([]),
+    l2Book: jest.fn().mockResolvedValue({
+      levels: [
+        [{ px: '49999', sz: '1', n: 1 }],
+        [{ px: '50001', sz: '1', n: 1 }],
+      ],
+    }),
+    orderStatus: jest.fn().mockResolvedValue({
+      status: 'order',
+      order: { status: 'open', order: { sz: '0.1' } },
+    }),
     referral: jest.fn().mockResolvedValue({
       referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
     }),
@@ -236,7 +246,7 @@ function createMockInfoClient() {
 }
 
 /**
- * Minimal SDK exchange-client mock — covers .order / .twapOrder / .modify / .cancel and
+ * Minimal SDK exchange-client mock — covers order placement/cancellation and
  * the readiness setup methods (approveBuilderFee, setReferrer, etc.). Default
  * .order() returns success with orderId 123. Tests that need failure responses
  * use `mocks.exchangeClient.order.mockResolvedValueOnce({ status: 'error', ... })`.
@@ -259,6 +269,14 @@ function createMockExchangeClient() {
       status: 'ok',
       response: { data: { statuses: ['success'] } },
     }),
+    cancelByCloid: jest
+      .fn()
+      .mockImplementation(({ cancels }: { cancels: unknown[] }) =>
+        Promise.resolve({
+          status: 'ok',
+          response: { data: { statuses: cancels.map(() => 'success') } },
+        }),
+      ),
     withdraw3: jest.fn().mockResolvedValue({ status: 'ok' }),
     updateLeverage: jest.fn().mockResolvedValue({ status: 'ok' }),
     approveBuilderFee: jest.fn().mockResolvedValue({ status: 'ok' }),

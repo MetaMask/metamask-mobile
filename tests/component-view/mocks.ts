@@ -276,6 +276,9 @@ jest.mock('../../app/core/Engine', () => {
         // react-query layers run for real in component-view tests.
         getProviders: jest.fn().mockResolvedValue({ providers: [] }),
         getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getPaymentMethodsForContext: jest
+          .fn()
+          .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
@@ -353,6 +356,10 @@ jest.mock('../../app/core/Engine', () => {
         setLocation: jest.fn(),
         setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
+        fetchQuotes: jest.fn().mockResolvedValue([]),
+      },
+      BridgeStatusController: {
+        submitTx: jest.fn().mockResolvedValue({ success: true }),
       },
       PredictNextController: {},
       PredictController: {
@@ -438,7 +445,7 @@ jest.mock('../../app/core/Engine', () => {
         getOrderCapabilities: jest.fn().mockResolvedValue({
           status: 'ready',
           providerId: 'hyperliquid',
-          supportedStrategies: ['twap'],
+          supportedStrategies: ['twap', 'scale', 'chase'],
         }),
         subscribeToPrices: jest.fn(() => () => undefined),
         subscribeToOrderFills: jest.fn(() => () => undefined),
@@ -452,6 +459,8 @@ jest.mock('../../app/core/Engine', () => {
           success: true,
           orderId: 'component-view-edit-order',
         }),
+        getChaseOrders: jest.fn().mockResolvedValue([]),
+        suspendChaseOrders: jest.fn().mockResolvedValue([]),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {

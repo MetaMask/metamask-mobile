@@ -210,6 +210,49 @@ export default class AppiumAssertions {
   }
 
   /**
+   * Asserts that a target element leaves (or never enters) the hierarchy.
+   * Prefer this over {@link expectElementToNotBeVisible} when the element may
+   * legitimately be mounted off screen: list rows below the fold report
+   * isDisplayed=false, so absence from the viewport does not prove removal.
+   */
+  static async expectElementToNotExist(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await targetElement;
+    const timeout = this.getTimeout(options);
+    const description = options.description ?? 'element';
+    const start = Date.now();
+
+    const gone = await withImplicitWait(
+      this.POLL_IMPLICIT_WAIT_MS,
+      async () => {
+        while (Date.now() - start < timeout) {
+          try {
+            if (!(await el.unwrap().isExisting())) {
+              return true;
+            }
+          } catch {
+            return true;
+          }
+          const remaining = timeout - (Date.now() - start);
+          if (remaining <= 0) {
+            break;
+          }
+          await sleep(Math.min(this.POLL_INTERVAL_MS, remaining));
+        }
+        return false;
+      },
+    );
+
+    if (!gone) {
+      throw new Error(
+        `Element "${description}" still in hierarchy after ${timeout}ms`,
+      );
+    }
+  }
+
+  /**
    * Waits until an element stays enabled (and on Android, native attrs are not false).
    * Prefer waitForInteractive on waitAndTap for tap flows.
    */

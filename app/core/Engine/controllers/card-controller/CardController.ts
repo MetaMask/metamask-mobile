@@ -21,6 +21,8 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type CardHomeDataError,
+  type CardHomeDataErrorReason,
   type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
@@ -178,6 +180,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  cardHomeDataError: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
   cardHomeDataFetchedThisSession: {
     persist: false,
     includeInDebugSnapshot: false,
@@ -203,6 +211,7 @@ export const defaultCardControllerState: CardControllerState = {
   cardHomeData: null,
   cardHomeDataAddress: null,
   cardHomeDataStatus: 'idle',
+  cardHomeDataError: null,
   cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
 };
@@ -287,6 +296,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -308,9 +318,8 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed).
-    // The selector traverses all wallet→group→account IDs so the handler fires
-    // for both new wallets and new accounts added within an existing wallet.
+    // Re-check when the account tree changes (account added/removed) or the
+    // selected group changes. Membership alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
@@ -319,14 +328,17 @@ export class CardController extends BaseController<
         this.#handleAccountSwitch();
       },
       (state) =>
-        Object.values(state.accountTree?.wallets ?? {})
-          .flatMap((wallet) =>
-            Object.values(wallet.groups ?? {}).flatMap(
-              (group) => group.accounts ?? [],
-            ),
-          )
-          .sort()
-          .join(','),
+        [
+          state.selectedAccountGroup ?? '',
+          Object.values(state.accountTree?.wallets ?? {})
+            .flatMap((wallet) =>
+              Object.values(wallet.groups ?? {}).flatMap(
+                (group) => group.accounts ?? [],
+              ),
+            )
+            .sort()
+            .join(','),
+        ].join('|'),
     );
 
     this.messenger.subscribe(
@@ -360,6 +372,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -632,8 +645,19 @@ export class CardController extends BaseController<
       // fetch: doing so stops `useCardHomeData` retrying once an address
       // exists, stranding restored data until a forced refresh.
       if (!hasRestoredCardHomeData) {
+        const cardHomeDataError =
+          this.#buildCardHomeDataError('no_evm_address');
+        Logger.error(new Error('CardHomeData fetch aborted: no EVM address'), {
+          tags: { feature: 'card', reason: 'no_evm_address' },
+          context: {
+            name: 'CardController',
+            data: { method: 'fetchCardHomeData' },
+          },
+        });
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
+          (s as unknown as CardControllerState).cardHomeDataError =
+            cardHomeDataError as unknown as Record<string, Json>;
         });
       }
       return;
@@ -665,25 +689,41 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataAddress = address;
           s.cardHomeDataStatus = 'success';
+          s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
+        const cardHomeDataError = this.#classifyCardHomeError(error);
         Logger.error(error as Error, {
-          tags: { feature: 'card' },
+          tags: {
+            feature: 'card',
+            reason: cardHomeDataError.reason,
+          },
           context: {
             name: 'CardController',
-            data: { method: 'fetchCardHomeData' },
+            data: {
+              method: 'fetchCardHomeData',
+              code: cardHomeDataError.code,
+              statusCode: cardHomeDataError.statusCode,
+            },
           },
         });
+        // Read at completion so a joined forced call's failure stays visible.
+        const recordsFailure = !this.#silentRevalidation;
         this.update((s) => {
-          // Read at completion so a joined forced call's failure stays visible.
-          if (!this.#silentRevalidation) {
+          if (recordsFailure) {
             s.cardHomeDataStatus = 'error';
+            (s as unknown as CardControllerState).cardHomeDataError =
+              cardHomeDataError as unknown as Record<string, Json>;
           }
         });
-        this.#lastFetchedAt = Date.now();
+        // A swallowed failure leaves restored data on screen with no error to
+        // retry from, so the freshness window must not suppress the next fetch.
+        if (recordsFailure) {
+          this.#lastFetchedAt = Date.now();
+        }
       }
     }
   }
@@ -705,12 +745,101 @@ export class CardController extends BaseController<
           annotateTrace(context, { success: true });
           return data;
         } catch (error) {
+          const classified = this.#classifyCardHomeError(error);
           annotateTrace(context, {
             success: false,
             error_name: (error as Error)?.name ?? 'unknown',
+            reason: classified.reason,
+            ...(typeof classified.statusCode === 'number'
+              ? { statusCode: classified.statusCode }
+              : {}),
+            ...(typeof classified.code === 'string'
+              ? { code: classified.code }
+              : {}),
           });
           throw error;
         }
+      },
+    );
+  }
+
+  #buildCardHomeDataError(
+    reason: CardHomeDataErrorReason,
+    extras: { code?: string; statusCode?: number } = {},
+  ): CardHomeDataError {
+    return {
+      reason,
+      code: extras.code ?? null,
+      statusCode: extras.statusCode ?? null,
+      at: Date.now(),
+    };
+  }
+
+  #getCardHomeErrorStatusCode(error: unknown): number | undefined {
+    if (error instanceof CardProviderError || error instanceof CardApiError) {
+      return error.statusCode;
+    }
+    const statusCode = (error as { statusCode?: unknown })?.statusCode;
+    return typeof statusCode === 'number' ? statusCode : undefined;
+  }
+
+  #getCardHomeErrorCode(error: unknown): string | undefined {
+    if (error instanceof CardProviderError) {
+      return error.code;
+    }
+    if (error instanceof CardApiError) {
+      return error.errorCode;
+    }
+    return undefined;
+  }
+
+  #classifyCardHomeErrorReason(
+    error: unknown,
+    statusCode: number | undefined,
+  ): CardHomeDataErrorReason {
+    const providerCode =
+      error instanceof CardProviderError ? error.code : undefined;
+
+    if (
+      error instanceof CardProviderError &&
+      error.message.startsWith('No active provider')
+    ) {
+      return 'no_active_provider';
+    }
+    if (
+      statusCode === 401 ||
+      providerCode === CardProviderErrorCode.InvalidCredentials
+    ) {
+      return 'auth_expired';
+    }
+    if (statusCode === 429) {
+      return 'rate_limited';
+    }
+    if (
+      statusCode === 0 ||
+      statusCode === 408 ||
+      providerCode === CardProviderErrorCode.Network ||
+      providerCode === CardProviderErrorCode.Timeout
+    ) {
+      return 'network';
+    }
+    if (
+      (statusCode !== undefined && statusCode >= 500) ||
+      providerCode === CardProviderErrorCode.ServerError
+    ) {
+      return 'server_error';
+    }
+    return 'unknown';
+  }
+
+  #classifyCardHomeError(error: unknown): CardHomeDataError {
+    const statusCode = this.#getCardHomeErrorStatusCode(error);
+    const code = this.#getCardHomeErrorCode(error);
+    return this.#buildCardHomeDataError(
+      this.#classifyCardHomeErrorReason(error, statusCode),
+      {
+        ...(code !== undefined ? { code } : {}),
+        ...(statusCode !== undefined ? { statusCode } : {}),
       },
     );
   }
@@ -730,6 +859,18 @@ export class CardController extends BaseController<
     const { internalAccounts } = this.messenger.call(
       'AccountsController:getState',
     );
+
+    try {
+      const groupAccount = this.messenger.call(
+        'AccountTreeController:getAccountFromSelectedAccountGroup',
+      );
+      if (groupAccount && isEthAccount(groupAccount)) {
+        return groupAccount.address;
+      }
+    } catch {
+      // Fall through to the legacy selectedAccount pointer.
+    }
+
     const selected =
       internalAccounts.accounts[internalAccounts.selectedAccount];
     if (!selected || !isEthAccount(selected)) return null;
@@ -807,6 +948,7 @@ export class CardController extends BaseController<
         s.cardHomeData = null;
         s.cardHomeDataAddress = null;
         s.cardHomeDataStatus = 'idle';
+        s.cardHomeDataError = null;
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
         ] = { location: tokenSet.location };
@@ -867,6 +1009,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
       if (pid) {
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid

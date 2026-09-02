@@ -369,6 +369,7 @@ tests/*.js                                                      @MetaMask/qa
 tests/*.ts                                                      @MetaMask/qa
 tests/api-mocking/                                              @MetaMask/qa
 tests/component-view/                                           @MetaMask/qa
+tests/component-view/fixtures/predictNext.ts                    @MetaMask/qa @MetaMask/predict
 tests/component-view/renderers/predictNext.ts                   @MetaMask/qa @MetaMask/predict
 tests/controller-mocking/                                       @MetaMask/qa
 tests/feature-flags/                                            @MetaMask/qa
@@ -385,11 +386,15 @@ tests/websocket/                                                @MetaMask/qa
 # QA Team - CI
 .github/guidelines/E2E_DECISION_TREE.md                         @MetaMask/qa
 .github/actions/smart-e2e-selection/                            @MetaMask/qa
+.github/actions/download-e2e-artifact/                          @MetaMask/qa
+.github/actions/dual-upload-e2e-artifact/                       @MetaMask/qa
+.github/actions/setup-e2e-env/                                  @MetaMask/qa
 .github/workflows/ai-pr-risk-analysis.yml                       @MetaMask/qa
 .github/workflows/auto-label-not-ready-for-e2e.yml              @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
+.github/workflows/prime-appium-e2e-android-emulator.yml         @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa
@@ -399,8 +404,11 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-performance-e2e.yml                       @MetaMask/qa
 .github/workflows/run-performance-e2e-manual.yml                @MetaMask/qa
 .github/workflows/run-system-tests.yml                          @MetaMask/qa
-.github/scripts/e2e-*.mjs                                       @MetaMask/qa
-.github/scripts/collect-qa-stats.mjs                            @MetaMask/qa
+.github/scripts/qa-automation/**                                @MetaMask/qa
+
+# CI co-owned files
+.github/workflows/get-requirements.yml      @MetaMask/mobile-platform @MetaMask/qa
+.github/rules/filter-rules.yml              @MetaMask/mobile-platform @MetaMask/qa
 
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
