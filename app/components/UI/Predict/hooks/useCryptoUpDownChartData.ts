@@ -347,12 +347,7 @@ export const useCryptoUpDownChartData = (
         const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
           liveMarketRef.current;
 
-        if (
-          !pendingUpdate ||
-          liveMarketId !== marketIdRef.current ||
-          (frozenRef.current &&
-            frozenMarketIdRef.current === marketIdRef.current)
-        ) {
+        if (!pendingUpdate || liveMarketId !== marketIdRef.current) {
           return;
         }
 

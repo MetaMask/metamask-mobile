@@ -1418,6 +1418,50 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
     });
 
+    it('commits a pending update when the chart freezes before its timer runs', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T00:00:00.100Z',
+      });
+      historicalData = [];
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 50000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 101,
+        });
+      });
+      act(() => {
+        jest.setSystemTime(new Date('2026-01-01T00:00:00.101Z'));
+        rerender({ activeMarket: market });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 101, value: 51000 },
+      ]);
+      expect(result.current.value).toBe(51000);
+      expect(result.current.isLive).toBe(false);
+    });
+
     it('accepts live updates after switching from an expired market', () => {
       const { Wrapper } = createWrapper();
       const expiredMarket = createMarket({
