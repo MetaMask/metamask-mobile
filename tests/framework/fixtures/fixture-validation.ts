@@ -308,6 +308,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.NetworkEnablementController',
     'engine.backgroundState.PredictController',
     'engine.backgroundState.RewardsController',
+    'engine.backgroundState.RewardsMoneyController',
     'engine.backgroundState.SeedlessOnboardingController',
     'engine.backgroundState.SelectedNetworkController',
     'engine.backgroundState.SignatureController',
