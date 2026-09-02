@@ -73,6 +73,17 @@ class PerpsProMarketView {
     );
   }
 
+  /**
+   * Empty inline limit-price fields hide the native TextInput from TalkBack
+   * (`importantForAccessibility="no"`). The Pressable `-field` is the control
+   * that focuses and reveals the input.
+   */
+  get limitPriceField(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT}-field`,
+    );
+  }
+
   get midPriceButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsProOrderFormSelectorsIDs.MID_PRICE_BUTTON,
@@ -285,6 +296,11 @@ class PerpsProMarketView {
       checkForDisplayed: true,
       timeout: 10000,
     });
+    // Wait for the Limit row to mount (Mid chip / empty-field pressable).
+    await Assertions.expectElementToBeVisible(this.limitPriceField, {
+      description: 'Pro limit price field after selecting Limit',
+      timeout: 15000,
+    });
   }
 
   async tapMidPriceButton(): Promise<void> {
@@ -301,13 +317,19 @@ class PerpsProMarketView {
   }
 
   async enterLimitPrice(price: string): Promise<void> {
+    // Empty Limit fields expose `-field`, not the TextInput testID. Tap the
+    // field first so the native input mounts into the a11y tree, then type.
     await this.scrollUntilVisible(
-      this.limitPriceInput,
-      'Pro order form limit price input',
+      this.limitPriceField,
+      'Pro order form limit price field',
     );
-    await Gestures.waitAndTap(this.limitPriceInput, {
-      elemDescription: 'Pro order form limit price input',
+    await Gestures.waitAndTap(this.limitPriceField, {
+      elemDescription: 'Pro order form limit price field',
       checkForDisplayed: true,
+      timeout: 10000,
+    });
+    await Assertions.expectElementToBeVisible(this.limitPriceInput, {
+      description: 'Pro limit price TextInput after focusing field',
       timeout: 10000,
     });
     await Gestures.typeText(this.limitPriceInput, price, {
