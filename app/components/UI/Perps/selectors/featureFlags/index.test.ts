@@ -26,6 +26,7 @@ import {
   selectPerpsShowFullAssetNamesFlag,
   selectPerpsClosePositionLimitOrderEnabledFlag,
   PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
+  selectPerpsMobileChaseEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -73,6 +74,59 @@ describe('Perps Feature Flag Selectors', () => {
   afterEach(() => {
     process.env = originalEnv;
     mockHasMinimumRequiredVersion?.mockRestore();
+  });
+
+  describe('selectPerpsMobileChaseEnabledFlag', () => {
+    const stateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: flag ? { perpsMobileChase: flag } : {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults off when the remote flag is absent', () => {
+      expect(selectPerpsMobileChaseEnabledFlag(stateWithFlag())).toBe(false);
+    });
+
+    it('returns true for an enabled flag at the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false below the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = stateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+    });
+
+    it.each([null, true, { enabled: 'yes' }, { minimumVersion: '1.0.0' }])(
+      'returns false for malformed flag %p',
+      (flag) => {
+        const state = stateWithFlag(flag as Json);
+
+        expect(selectPerpsMobileChaseEnabledFlag(state)).toBe(false);
+      },
+    );
   });
 
   describe('selectPerpsEnabledFlag', () => {

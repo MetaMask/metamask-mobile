@@ -45,15 +45,6 @@ const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
-    buttonPositioning: {
-      flex: 1,
-    },
-    cancelButton: {
-      marginRight: 8,
-    },
-    confirmButton: {
-      marginLeft: 8,
-    },
     networkPermissionRequestInfoCard: {
       marginHorizontal: 24,
       marginTop: 8,

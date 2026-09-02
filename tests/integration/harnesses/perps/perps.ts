@@ -210,6 +210,16 @@ function createMockInfoClient() {
     perpDexs: jest.fn().mockResolvedValue([null]),
     allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
     frontendOpenOrders: jest.fn().mockResolvedValue([]),
+    l2Book: jest.fn().mockResolvedValue({
+      levels: [
+        [{ px: '49999', sz: '1', n: 1 }],
+        [{ px: '50001', sz: '1', n: 1 }],
+      ],
+    }),
+    orderStatus: jest.fn().mockResolvedValue({
+      status: 'order',
+      order: { status: 'open', order: { sz: '0.1' } },
+    }),
     referral: jest.fn().mockResolvedValue({
       referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
     }),
