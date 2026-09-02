@@ -58,7 +58,7 @@ import {
 } from '@metamask/assets-controllers';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import { getAssetTestId } from '../../../../../../tests/selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../../AssetElement/AssetElement.testIds';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
 import {
   TOKEN_BALANCE_LOADING,
