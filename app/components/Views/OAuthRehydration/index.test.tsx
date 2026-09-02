@@ -95,22 +95,10 @@ jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
 jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
 
 jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
   trace: jest.fn((_config, fn) => (fn ? fn() : Promise.resolve())),
   endTrace: jest.fn(),
   getTraceContext: jest.fn(),
-  TraceName: {
-    LoginUserInteraction: 'LoginUserInteraction',
-    AuthenticateUser: 'AuthenticateUser',
-    OnboardingPasswordLoginAttempt: 'OnboardingPasswordLoginAttempt',
-    OnboardingPasswordLoginError: 'OnboardingPasswordLoginError',
-    OnboardingExistingSocialLogin: 'OnboardingExistingSocialLogin',
-    OnboardingJourneyOverall: 'OnboardingJourneyOverall',
-  },
-  TraceOperation: {
-    Login: 'Login',
-    OnboardingUserJourney: 'OnboardingUserJourney',
-    OnboardingError: 'OnboardingError',
-  },
 }));
 
 import {
