@@ -122,6 +122,7 @@ describe('androidDevicePool', () => {
       expect(env).toMatchObject({
         ANDROID_DEVICE_UDID: 'emulator-5556',
         ANDROID_SERIAL: 'emulator-5556',
+        E2E_WORKER_INDEX: '1',
         ANDROID_UIAUTOMATOR2_SYSTEM_PORT: '8201',
         ANDROID_CHROMEDRIVER_PORT: '9101',
         ANDROID_MJPEG_SERVER_PORT: '7811',

@@ -22,13 +22,23 @@ Each pooled emulator resumes `e2e_golden` with `-read-only`. Console ports are
 fixed so adb serials and Appium auxiliary ports never overlap:
 
 - Worker 0: `-port 5554`, `emulator-5554`, `systemPort=8200`,
-  `chromedriverPort=9100`, `mjpegServerPort=7810`
+  `chromedriverPort=9100`, `mjpegServerPort=7810`, Chrome CDP `9222`,
+  WebView CDP `9223`
 - Worker 1: `-port 5556`, `emulator-5556`, `systemPort=8201`,
-  `chromedriverPort=9101`, `mjpegServerPort=7811`
+  `chromedriverPort=9101`, `mjpegServerPort=7811`, Chrome CDP `9232`,
+  WebView CDP `9233`
+
+Local test-dapp servers keep the **device** URL (`localhost:8093` and similar)
+and listen on a worker-offset **host** port (`8093` / `8193`). `adb reverse`
+maps the device port to that host port. Snaps smokes load GitHub Pages, not a
+local dapp; they still need per-worker WebView CDP forwards or `#installedSnapsResult`
+reads hit the sibling emulator.
 
 Workers pin those serials from `ANDROID_DEVICE_POOL_SIZE` (Playwright
 `globalSetup` cannot export `ANDROID_DEVICE_POOL` into worker processes).
 `ANDROID_DEVICE_POOL` remains a local override for `SKIP_DEVICE_BOOT`.
+`E2E_WORKER_INDEX` is set with the worker assignment so dapp and CDP helpers
+can pick host ports.
 
 ## Local cold pool
 

@@ -1,10 +1,14 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import fs from 'fs';
 import { sleep, createLogger } from '../../framework';
 import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
 import type { CurrentDeviceDetails } from '../../framework/fixtures/playwright';
+import {
+  adbDeviceArgs,
+  hostListenPortForDevicePort,
+} from '../../framework/e2eWorkerPorts.ts';
 
 const logger = createLogger({
   name: 'MMConnectUtils',
@@ -55,12 +59,20 @@ export function getDappUrlForBrowser(
 }
 
 /**
- * Set up ADB reverse port forwarding for Android emulator.
+ * Set up ADB reverse so the emulator's `devicePort` reaches `hostPort` on the
+ * worker host. Worker 1 listens on a shifted host port to avoid EADDRINUSE.
  */
-export function setupAdbReverse(port: number): void {
+export function setupAdbReverse(
+  devicePort: number,
+  hostPort: number = devicePort,
+): void {
   try {
-    execSync(`adb reverse tcp:${port} tcp:${port}`, { stdio: 'pipe' });
-    logger.info(`ADB reverse port ${port} configured`);
+    execFileSync(
+      'adb',
+      [...adbDeviceArgs(), 'reverse', `tcp:${devicePort}`, `tcp:${hostPort}`],
+      { stdio: 'pipe' },
+    );
+    logger.info(`ADB reverse tcp:${devicePort} → tcp:${hostPort} configured`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     logger.warn(
@@ -70,15 +82,41 @@ export function setupAdbReverse(port: number): void {
 }
 
 /**
- * Clean up ADB reverse port forwarding.
+ * Clean up ADB reverse port forwarding for the device-facing port.
  */
-export function cleanupAdbReverse(port: number): void {
+export function cleanupAdbReverse(devicePort: number): void {
   try {
-    execSync(`adb reverse --remove tcp:${port}`, { stdio: 'pipe' });
-    logger.info(`ADB reverse port ${port} removed`);
+    execFileSync(
+      'adb',
+      [...adbDeviceArgs(), 'reverse', '--remove', `tcp:${devicePort}`],
+      { stdio: 'pipe' },
+    );
+    logger.info(`ADB reverse port ${devicePort} removed`);
   } catch {
     // Ignore cleanup errors
   }
+}
+
+export async function startLocalDappServerOnWorker(
+  server: {
+    setServerPort: (port: number) => void;
+    start: () => Promise<void>;
+  },
+  devicePort: number,
+): Promise<void> {
+  const hostPort = hostListenPortForDevicePort(devicePort);
+  server.setServerPort(hostPort);
+  await server.start();
+  await waitForDappServerReady(hostPort);
+  setupAdbReverse(devicePort, hostPort);
+}
+
+export async function stopLocalDappServerOnWorker(
+  server: { stop: () => Promise<void> },
+  devicePort: number,
+): Promise<void> {
+  cleanupAdbReverse(devicePort);
+  await server.stop();
 }
 
 // Candidate paths for the playground release APK, checked in priority order:
@@ -132,7 +170,13 @@ export function ensurePlaygroundInstalled(
 
   // Uninstall any existing version (debug or release) to guarantee a clean state
   try {
-    execSync(`adb uninstall ${PLAYGROUND_PACKAGE_ID}`, { stdio: 'pipe' });
+    execFileSync(
+      'adb',
+      [...adbDeviceArgs(), 'uninstall', PLAYGROUND_PACKAGE_ID],
+      {
+        stdio: 'pipe',
+      },
+    );
     logger.info(`Uninstalled existing ${PLAYGROUND_PACKAGE_ID}`);
   } catch {
     // Package was not installed; nothing to uninstall
@@ -140,7 +184,9 @@ export function ensurePlaygroundInstalled(
 
   logger.info(`Installing playground release APK from ${apkPath}...`);
   try {
-    execSync(`adb install "${apkPath}"`, { stdio: 'pipe' });
+    execFileSync('adb', [...adbDeviceArgs(), 'install', apkPath], {
+      stdio: 'pipe',
+    });
     logger.info('Playground APK installed successfully');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

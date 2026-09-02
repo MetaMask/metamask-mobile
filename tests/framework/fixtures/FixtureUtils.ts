@@ -75,10 +75,8 @@ export async function cleanupAllAndroidPortForwarding(): Promise<void> {
     return;
   }
 
-  // Get device ID to target specific device (important for CI with multiple devices)
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  const deviceFlag = '';
+  const serial = process.env.ANDROID_SERIAL?.trim();
+  const deviceFlag = serial ? `-s ${serial}` : '';
 
   // Clean up only the specific fallback ports we use
   // This prevents conflicts with Detox's own port management
@@ -178,10 +176,8 @@ async function setupAndroidPortForwarding(
     fallbackPort += instanceIndex;
   }
 
-  // Get device ID to target specific device (important for CI with multiple devices)
-  // In Appium/Playwright: unqualified `adb` uses `process.env.ANDROID_SERIAL` when set
-  // (see `applyResolvedAndroidAdbToDevice` in the Playwright `currentDeviceDetails` / emulator driver path).
-  const deviceFlag = '';
+  const serial = process.env.ANDROID_SERIAL?.trim();
+  const deviceFlag = serial ? `-s ${serial}` : '';
 
   const command = `adb ${deviceFlag} reverse tcp:${fallbackPort} tcp:${actualPort}`;
 

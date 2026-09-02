@@ -122,6 +122,7 @@ export function applyAndroidDevicePoolToWorker(
 
   env.ANDROID_DEVICE_UDID = assignment.serial;
   env.ANDROID_SERIAL = assignment.serial;
+  env.E2E_WORKER_INDEX = String(workerIndex);
   env.ANDROID_UIAUTOMATOR2_SYSTEM_PORT = String(assignment.systemPort);
   env.ANDROID_CHROMEDRIVER_PORT = String(assignment.chromedriverPort);
   env.ANDROID_MJPEG_SERVER_PORT = String(assignment.mjpegServerPort);
