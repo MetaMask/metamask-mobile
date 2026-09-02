@@ -387,8 +387,8 @@ describe('ResetPassword', () => {
     // Earlier tests use persistent getType spies (mockResolvedValue); reset so
     // later cases do not inherit Face ID auto-reauth.
     jest.mocked(Authentication.getType).mockResolvedValue({
-      currentAuthType: 'passcode',
-      availableBiometryType: null,
+      currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
+      availableBiometryType: undefined,
     });
     jest
       .mocked(Authentication.reauthenticate)
