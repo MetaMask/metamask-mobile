@@ -4,7 +4,9 @@ import {
   type AccountWalletPayloadId,
   type AccountGroupPayloadId,
 } from '@metamask/account-tree-controller';
-import { decodeMnemonicWords } from '@metamask/keyring-sdk';
+import { decodeMnemonicWords, toEntropySourceId } from '@metamask/keyring-sdk';
+import { mnemonicToEntropy } from '@metamask/scure-bip39';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
@@ -45,6 +47,33 @@ import {
   QrSyncTelemetrySources,
   reportQrSyncFailure,
 } from './qrSyncTelemetry';
+
+/**
+ * Computes the deterministic wallet payload ID for a BIP-39 mnemonic.
+ *
+ * This MUST match the ID that `AccountTreeController` assigns to the primary
+ * wallet after vault creation. The controller derives the ID via
+ * `HdKeyring.toEntropySourceId()`, which runs
+ * HMAC-SHA256(rawEntropy, "metamask:fingerprint"), takes the first 16 bytes,
+ * and formats the result as `wallet:entropy:mnemonic:<uuid>`.
+ *
+ * During `AccountTreeController:importState`, `findLocalWalletMnemonicFromPayloadId`
+ * compares the payload's wallet ID against every local wallet by strict string
+ * equality. A mismatch causes it to attempt a second SRP import — which throws
+ * because the keyring already contains that mnemonic — and the whole onboarding
+ * flow fails before MetaMetrics is ever shown.
+ *
+ * The real MetaMask extension always sends the correct entropy-derived ID.
+ * E2E payloads must do the same — a synthetic/mock ID cannot be used here
+ * because the ID must be stable and consistent with what `initializeAccountTree`
+ * already stored in the account tree before `importState` runs.
+ */
+async function computeWalletPayloadId(
+  mnemonic: string,
+): Promise<AccountWalletPayloadId> {
+  const rawEntropy = mnemonicToEntropy(mnemonic, wordlist);
+  return `wallet:${await toEntropySourceId('mnemonic', rawEntropy)}` as AccountWalletPayloadId;
+}
 
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
@@ -218,7 +247,9 @@ export class QrSyncController extends BaseController<
    * @throws If `HAS_TEST_OVERRIDES` is not enabled, or onboarding requires a
    * primary mnemonic and the payload omits it.
    */
-  public applyTestSyncReadyPayload(payload: QrSyncTestSyncReadyPayload): void {
+  public async applyTestSyncReadyPayload(
+    payload: QrSyncTestSyncReadyPayload,
+  ): Promise<void> {
     if (!hasTestOverrides) {
       throw new Error(
         'QrSyncController.applyTestSyncReadyPayload is only available when HAS_TEST_OVERRIDES=true',
@@ -232,17 +263,18 @@ export class QrSyncController extends BaseController<
       );
     }
 
+    const walletId = await computeWalletPayloadId(mnemonic);
     const pendingPayload: AccountTreePayload = {
       version: 1,
       wallets: [
         {
-          id: 'wallet:test-primary' as AccountWalletPayloadId,
+          id: walletId,
           type: 'mnemonic',
           value: Array.from(decodeMnemonicWords(mnemonic)),
           metadata: { name: payload.walletName ?? 'Extension Wallet' },
           groups: [
             {
-              id: 'wallet:test-primary/0' as AccountGroupPayloadId,
+              id: `${walletId}/0` as AccountGroupPayloadId,
               groupIndex: 0,
               metadata: {
                 name: payload.accountName ?? 'Account 1',

@@ -56,7 +56,7 @@ function parseApplySyncReadyPayload(
   };
 }
 
-function handleE2EQrSyncUrl(incomingUrl = ''): void {
+async function handleE2EQrSyncUrl(incomingUrl = ''): Promise<void> {
   if (!incomingUrl) {
     return;
   }
@@ -92,7 +92,7 @@ function handleE2EQrSyncUrl(incomingUrl = ''): void {
 
   try {
     const payload = parseApplySyncReadyPayload(queryString);
-    controller.applyTestSyncReadyPayload(payload);
+    await controller.applyTestSyncReadyPayload(payload);
     processedDeepLinks.add(incomingUrl);
     Logger.log('[E2E QR Sync] Applied test sync-ready payload');
   } catch (error) {
@@ -144,6 +144,6 @@ export function __resetE2EQrSyncBridgeForTests(): void {
 }
 
 /** @internal test helper */
-export function __handleE2EQrSyncUrlForTests(url: string): void {
-  handleE2EQrSyncUrl(url);
+export async function __handleE2EQrSyncUrlForTests(url: string): Promise<void> {
+  await handleE2EQrSyncUrl(url);
 }

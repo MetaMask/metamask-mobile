@@ -44,10 +44,10 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     mockHasTestOverrides.mockReturnValue(true);
   });
 
-  it('sets awaiting_password state and stores AccountTreePayload for new-user', () => {
+  it('sets awaiting_password state and stores AccountTreePayload for new-user', async () => {
     const controller = buildController(() => false);
 
-    controller.applyTestSyncReadyPayload({
+    await controller.applyTestSyncReadyPayload({
       mnemonic: TEST_MNEMONIC,
       walletName: 'Extension Wallet',
       accountName: 'Synced Account',
@@ -71,10 +71,10 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
   });
 
-  it('uses default wallet and account names when omitted', () => {
+  it('uses default wallet and account names when omitted', async () => {
     const controller = buildController(() => true);
 
-    controller.applyTestSyncReadyPayload({
+    await controller.applyTestSyncReadyPayload({
       mnemonic: `  ${TEST_MNEMONIC}  `,
     });
 
@@ -87,34 +87,34 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     });
   });
 
-  it('rejects onboarding payloads without a primary mnemonic value', () => {
+  it('rejects onboarding payloads without a primary mnemonic value', async () => {
     const controller = buildController(() => false);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
         mnemonic: '',
       }),
-    ).toThrow(/non-empty mnemonic/);
+    ).rejects.toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects empty mnemonic payloads', () => {
+  it('rejects empty mnemonic payloads', async () => {
     const controller = buildController(() => true);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
         mnemonic: '   ',
       }),
-    ).toThrow(/non-empty mnemonic/);
+    ).rejects.toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects when HAS_TEST_OVERRIDES is disabled', () => {
+  it('rejects when HAS_TEST_OVERRIDES is disabled', async () => {
     mockHasTestOverrides.mockReturnValue(false);
     const controller = buildController(() => true);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
         mnemonic: TEST_MNEMONIC,
       }),
-    ).toThrow(/HAS_TEST_OVERRIDES/);
+    ).rejects.toThrow(/HAS_TEST_OVERRIDES/);
   });
 });
