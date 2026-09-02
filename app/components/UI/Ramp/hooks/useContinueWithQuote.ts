@@ -8,6 +8,7 @@ import {
 } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+import type { QuotesResponse } from '@metamask/ramps-controller';
 import type { CaipChainId } from '@metamask/utils';
 
 import { strings } from '../../../../../locales/i18n';
@@ -37,6 +38,7 @@ import { useRampsController } from './useRampsController';
 import { useTransakController } from './useTransakController';
 import { useTransakRouting } from './useTransakRouting';
 import useRampAccountAddress from './useRampAccountAddress';
+import type { GetQuotesOptions } from './useRampsQuotes';
 import {
   endOpenRampsBuyCufChildrenByName,
   endRampsBuyCufChildTrace,
@@ -48,6 +50,55 @@ import {
   RAMPS_BUY_CUF_TAG,
 } from '../constants/rampsBuyCufTags';
 import { TraceName } from '../../../../util/trace';
+
+/**
+ * When the quote amount already matches the checkout amount, return it as-is.
+ * Otherwise force-refresh that provider's quote so checkout charges the amount
+ * shown to the user.
+ */
+async function resolveCheckoutQuoteForAmount({
+  quote,
+  amount,
+  assetId,
+  walletAddress,
+  paymentMethodId,
+  fiat,
+  redirectUrl,
+  getQuotes,
+}: {
+  quote: Quote;
+  amount: number;
+  assetId: string;
+  walletAddress: string;
+  paymentMethodId?: string;
+  fiat: string;
+  redirectUrl: string;
+  getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
+}): Promise<Quote> {
+  if (Number(quote.quote.amountIn) === amount) {
+    return quote;
+  }
+
+  const refreshedQuotes = await getQuotes({
+    assetId,
+    amount,
+    walletAddress,
+    paymentMethods: [paymentMethodId ?? quote.quote.paymentMethod],
+    providers: [quote.provider],
+    fiat,
+    redirectUrl,
+    forceRefresh: true,
+  });
+  const refreshedQuote = refreshedQuotes.success?.find(
+    (candidate) => candidate.provider === quote.provider,
+  );
+
+  if (!refreshedQuote) {
+    throw new Error('No refreshed widget quote available');
+  }
+
+  return refreshedQuote;
+}
 
 export interface ContinueWithQuoteContext {
   amount: number;
@@ -308,30 +359,16 @@ export function useContinueWithQuote(
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
         redirectUrl = redirectConfig.redirectUrl;
-        let checkoutQuote = quote;
-        const quotedAmount = Number(quote.quote.amountIn);
-
-        if (quotedAmount !== ctx.amount) {
-          const refreshedQuotes = await getQuotes({
-            assetId: ctx.assetId,
-            amount: ctx.amount,
-            walletAddress: effectiveWalletAddress ?? '',
-            paymentMethods: [ctx.paymentMethodId ?? quote.quote.paymentMethod],
-            providers: [quote.provider],
-            fiat: effectiveCurrency,
-            redirectUrl,
-            forceRefresh: true,
-          });
-          const refreshedQuote = refreshedQuotes.success?.find(
-            (candidate) => candidate.provider === quote.provider,
-          );
-
-          if (!refreshedQuote) {
-            throw new Error('No refreshed widget quote available');
-          }
-          checkoutQuote = refreshedQuote;
-        }
-
+        const checkoutQuote = await resolveCheckoutQuoteForAmount({
+          quote,
+          amount: ctx.amount,
+          assetId: ctx.assetId,
+          walletAddress: effectiveWalletAddress ?? '',
+          paymentMethodId: ctx.paymentMethodId,
+          fiat: effectiveCurrency,
+          redirectUrl,
+          getQuotes,
+        });
         const quoteForWidget = buildQuoteWithRedirectUrl(
           checkoutQuote,
           redirectUrl,
