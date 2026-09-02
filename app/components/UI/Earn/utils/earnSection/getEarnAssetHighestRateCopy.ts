@@ -4,12 +4,12 @@ import { isEarnAssetBalanceBelowMinDepositAmount } from '../earnAssets/earnAsset
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
 
 /**
- * Gets localized rate copy for a ranked Earn asset.
+ * Gets localized highest-rate copy for a ranked Earn asset.
  *
- * @param asset - Ranked Earn asset whose rate copy should be generated.
+ * @param asset - Ranked Earn asset whose highest-rate copy should be generated.
  * @returns Localized rate copy, including unavailable or get-started copy.
  */
-export const getEarnAssetRateCopy = ({
+export const getEarnAssetHighestRateCopy = ({
   asset,
 }: {
   asset: EarnSectionRankedAsset;
@@ -21,13 +21,19 @@ export const getEarnAssetRateCopy = ({
   }
 
   const isApr = asset.highestRateExperience?.rate.type === 'APR';
-  const key = hasMinDepositAmount
-    ? isApr
-      ? 'earn_module.get_rate_apr'
-      : 'earn_module.get_rate_apy'
-    : isApr
-      ? 'earn_module.rate_apr'
-      : 'earn_module.rate_apy';
+  let key = 'earn_module.rate_apy';
+
+  if (isApr) {
+    key = 'earn_module.rate_apr';
+  }
+
+  if (hasMinDepositAmount) {
+    key = 'earn_module.get_rate_apy';
+  }
+
+  if (hasMinDepositAmount && isApr) {
+    key = 'earn_module.get_rate_apr';
+  }
 
   return strings(key, {
     percentage: truncateNumber(asset.highestRatePercent),

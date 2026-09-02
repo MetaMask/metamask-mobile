@@ -1,6 +1,5 @@
 import type { ABTestAnalyticsMapping } from './abTestAnalytics.types';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
-import { SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/haptics/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import {
   HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING,
@@ -29,7 +28,6 @@ import {
 export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
   // Swaps
   SWAP_DISCOVERY_FEED_REVAMP_AB_TEST_ANALYTICS_MAPPING,
-  SWAPS_HAPTICS_AB_TEST_ANALYTICS_MAPPING,
   CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING,
 
   // Homepage

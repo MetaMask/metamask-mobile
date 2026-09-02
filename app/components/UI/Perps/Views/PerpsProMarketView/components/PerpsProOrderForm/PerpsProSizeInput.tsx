@@ -162,7 +162,7 @@ const PerpsProSizeInput = ({
   return (
     <Box
       ref={containerRef}
-      twClassName="overflow-visible rounded-2xl border border-muted bg-muted"
+      twClassName="overflow-visible rounded-xl bg-muted"
       testID={ids.SIZE_CARD}
     >
       <Box twClassName="relative">
