@@ -137,6 +137,14 @@ function parseAuditNdjson(raw: string): AuditAdvisory[] {
 /** Re-runs the audit and returns true if `id` no longer appears for `pkg`. */
 function isAdvisoryCleared(pkg: string, id: string): boolean {
   const result = tryShQuiet('yarn', AUDIT_JSON_ARGS);
+  // `yarn npm audit` exits non-zero whenever ANY advisory remains anywhere in
+  // the tree, not just this one — so result.ok === false is the expected,
+  // parseable case for a batch with more than one advisory outstanding. Only
+  // treat this as a real command failure (and therefore fail closed, i.e.
+  // NOT cleared) when it produced no output at all to parse, which is what a
+  // transient/infra failure looks like; otherwise a flaky audit run could
+  // silently mark a still-vulnerable advisory as fixed.
+  if (!result.ok && !result.output.trim()) return false;
   const remaining = parseAuditNdjson(result.output);
   return !remaining.some((advisory) => advisory.pkg === pkg && advisory.id === id);
 }
@@ -168,8 +176,26 @@ function getResolvedVersions(pkg: string): string[] {
   return [...versions];
 }
 
-function revertLockfileChanges(): void {
-  tryShQuiet('git', ['checkout', '--', 'package.json', 'yarn.lock']);
+/**
+ * Snapshots package.json/yarn.lock so a failed attempt can be undone without
+ * disturbing anything else. Deliberately NOT `git checkout -- <paths>`: this
+ * script processes advisories one at a time in the same working tree without
+ * committing between them, so a plain `git checkout` (back to HEAD) would
+ * wipe out any *earlier* advisory's already-verified fix too, not just the
+ * current attempt's — see applyProposedFix()'s caller for why that matters.
+ */
+function snapshotLockfiles(): () => void {
+  const paths = ['package.json', 'yarn.lock'];
+  const snapshots = paths.map((path) => ({
+    path,
+    existed: existsSync(path),
+    content: existsSync(path) ? readFileSync(path, 'utf8') : '',
+  }));
+  return () => {
+    for (const { path, existed, content } of snapshots) {
+      if (existed) writeFileSync(path, content);
+    }
+  };
 }
 
 interface Dependent {
@@ -293,6 +319,10 @@ function runAnalyzer(manual: ManualEntry[]): AiProposedFix[] | null {
 function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry | null {
   const { pkg, id, severity, title, url } = advisory;
   const beforeVersions = getResolvedVersions(pkg);
+  // Taken before any mutation below, so a revert restores exactly this
+  // advisory's starting point — including any earlier advisory's already-
+  // verified fix still sitting uncommitted in the same working tree.
+  const restore = snapshotLockfiles();
 
   if (fix.action === 'no-safe-fix') {
     console.log(`[${id}] ${pkg}: AI analyzer found no safe fix — ${fix.reasoning}`);
@@ -311,7 +341,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
     const upResult = tryShQuiet('yarn', ['up', `${pkg}@${fix.target}`]);
     if (!upResult.ok) {
       console.log(`[${id}] ${pkg}: "yarn up ${pkg}@${fix.target}" failed, reverting`);
-      revertLockfileChanges();
+      restore();
       advisory.reason = `AI proposed bumping to ${fix.target}, but "yarn up ${pkg}@${fix.target}" failed to apply.`;
       return null;
     }
@@ -338,7 +368,11 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
   }
 
   const installResult = tryShQuiet('yarn', ['install', '--mode=update-lockfile']);
-  if (installResult.ok && isAdvisoryCleared(pkg, id) && verifyTreeIsClean()) {
+  // verifyTreeIsClean() (dedupe + constraints) must run before the re-audit,
+  // not after — dedupe can itself rewrite yarn.lock, and re-checking after
+  // that rewrite is the only way isAdvisoryCleared() reflects what will
+  // actually be committed rather than a pre-dedupe snapshot.
+  if (installResult.ok && verifyTreeIsClean() && isAdvisoryCleared(pkg, id)) {
     const afterVersions = getResolvedVersions(pkg);
     console.log(`[${id}] ${pkg}: verified fixed via ${fix.action} (${beforeVersions.join(', ')} -> ${afterVersions.join(', ')})`);
     return {
@@ -354,7 +388,7 @@ function applyProposedFix(advisory: ManualEntry, fix: AiProposedFix): FixedEntry
   }
 
   console.log(`[${id}] ${pkg}: AI-proposed ${fix.action} did not clear the advisory cleanly, reverting`);
-  revertLockfileChanges();
+  restore();
   advisory.reason = `AI proposed ${fix.action} to ${fix.target}, but it didn't independently verify (yarn dedupe/constraints/re-audit) after applying it.`;
   return null;
 }

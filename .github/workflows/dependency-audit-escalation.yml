@@ -91,6 +91,7 @@ jobs:
       # already exists instead of erroring, so this is safe to run every time
       # rather than only on first setup.
       - name: Ensure dependency-audit labels exist
+        id: labels
         if: ${{ steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         env:
@@ -202,6 +203,7 @@ jobs:
       # (untracked, no diff yet) can never satisfy. That check is gone as of
       # this commit.
       - name: Checkout AI Analyzer
+        id: checkout-ai-analyzer
         if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         uses: actions/checkout@v6
         with:
@@ -211,6 +213,7 @@ jobs:
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
       - name: Install AI Analyzer dependencies
+        id: install-ai-analyzer-deps
         if: ${{ steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -244,27 +247,53 @@ jobs:
           OWNER_GH: ${{ steps.owner.outputs.github }}
         run: |
           set -euo pipefail
-          IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
-          BODY_FILE="$(mktemp)"
-          {
-            echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
-            echo
-            node -e "
-              const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;
-              for (const e of entries) {
-                console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title}\`);
-                console.log(\`  - Reason: \${e.reason}\`);
-              }
-            "
-            echo
-            echo "<!-- audit-ids: ${IDS} -->"
-          } > "$BODY_FILE"
+          NEW_IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
+          NEW_SECTION="$(mktemp)"
+          node -e "
+            const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;
+            for (const e of entries) {
+              console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title}\`);
+              console.log(\`  - Reason: \${e.reason}\`);
+            }
+          " > "$NEW_SECTION"
 
           EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json number --jq '.[0].number // empty')
           if [[ -n "$EXISTING" ]]; then
-            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+            # The skip-list step (above) only scans issue *bodies* for the
+            # `<!-- audit-ids: ... -->` marker, not comments. Posting a
+            # comment alone would leave every ID mentioned only there
+            # invisible to that dedupe, so it gets re-collected, re-notified
+            # in Slack, and re-sent to the AI on every subsequent run even
+            # though it's already tracked here. Rewrite the body instead,
+            # merging this run's IDs into the existing marker — the comment
+            # below is just for a human-readable changelog of what changed.
+            OLD_BODY=$(gh issue view "$EXISTING" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')
+            OLD_IDS=$(printf '%s' "$OLD_BODY" | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' || true)
+            MERGED_IDS=$(OLD_IDS="$OLD_IDS" NEW_IDS="$NEW_IDS" node -e "
+              const old = (process.env.OLD_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              const fresh = (process.env.NEW_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              console.log([...new Set([...old, ...fresh])].join(','));
+            ")
+            BODY_FILE="$(mktemp)"
+            {
+              printf '%s' "$OLD_BODY" | sed -E '/<!-- audit-ids: .* -->/d'
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${MERGED_IDS} -->"
+            } > "$BODY_FILE"
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE"
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$NEW_SECTION"
             ISSUE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${EXISTING}"
           else
+            BODY_FILE="$(mktemp)"
+            {
+              echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically (no safe version bump or resolutions pin, or the fix broke \`yarn dedupe\`/\`yarn constraints\`). See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${NEW_IDS} -->"
+            } > "$BODY_FILE"
             ISSUE_URL=$(gh issue create \
               --repo "$GITHUB_REPOSITORY" \
               --title "Dependency audit: manual review needed" \
@@ -275,13 +304,16 @@ jobs:
           echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
 
       - name: Notify Slack (result)
-        # Deliberately excludes a fix/Get token failure: "Notify Slack
-        # (failure)" below covers that case with its own dedicated alert,
-        # and this step's own audit-fix-result.json would otherwise still
-        # look like a normal (if unhelpful) "needs manual review" result —
-        # misleadingly implying the run finished, when it actually means the
-        # fix attempt and tracking issue never ran at all.
-        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' && steps.fix.outcome != 'failure' && steps.get-token.outcome != 'failure' }}
+        # `success()` (not always()) is deliberate: a bare `if:` on a custom
+        # expression drops GitHub Actions' implicit success-only gate
+        # entirely, so without spelling it out here this step would still
+        # fire even after e.g. "Read audit owner" or "Checkout AI Analyzer"
+        # failed — not just a fix/Get token failure — misleadingly implying
+        # the run finished when it actually means the fix attempt and/or
+        # tracking issue never ran at all. "Notify Slack (failure)" below
+        # covers every one of those failure cases with its own dedicated
+        # alert instead.
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
@@ -295,18 +327,50 @@ jobs:
           SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
         run: node scripts/slack-audit-notification.mjs
 
-      # "Notify Slack (result)" above deliberately skips itself on a fix/Get
-      # token failure (see its own comment), so without this step the owner
-      # would be left with only the "detected" message and no indication
-      # anything went wrong afterward. This step exists purely to close that
-      # gap with its own explicit, unambiguous check.
+      # "Notify Slack (result)" above uses success(), so it skips itself on
+      # ANY upstream failure, not just fix/Get token (see its own comment).
+      # This step exists purely to close the resulting gap: `failure()`
+      # mirrors that same "any previous step failed" check, so the owner
+      # still gets a dedicated alert instead of just the "detected" message
+      # with no follow-up.
       - name: Notify Slack (failure)
-        if: ${{ always() && !cancelled() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' && (steps.fix.outcome == 'failure' || steps.get-token.outcome == 'failure') }}
+        if: ${{ failure() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         shell: bash
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_STAGE: failure
-          FAILED_STEP: ${{ steps.fix.outcome == 'failure' && 'Attempt AI-assisted fix' || 'Get token' }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
-        run: node scripts/slack-audit-notification.mjs
+          STEP_LABELS: ${{ steps.labels.outcome }}
+          STEP_SKIP_LIST: ${{ steps.skip-list.outcome }}
+          STEP_COLLECT: ${{ steps.collect.outcome }}
+          STEP_OWNER: ${{ steps.owner.outcome }}
+          STEP_NEXT_SEMVER: ${{ steps['next-semver'].outcome }}
+          STEP_GET_TOKEN: ${{ steps.get-token.outcome }}
+          STEP_CHECKOUT_AI_ANALYZER: ${{ steps['checkout-ai-analyzer'].outcome }}
+          STEP_INSTALL_AI_ANALYZER_DEPS: ${{ steps['install-ai-analyzer-deps'].outcome }}
+          STEP_FIX: ${{ steps.fix.outcome }}
+          STEP_MANUAL_ISSUE: ${{ steps['manual-issue'].outcome }}
+        run: |
+          # Picks the first step (in job order) whose outcome is "failure" so
+          # the alert names something more useful than "an unknown step" —
+          # failure() firing this step at all no longer tells us which one on
+          # its own, now that it covers every step above instead of just fix/
+          # Get token.
+          FAILED_STEP=$(node -e "
+            const steps = [
+              ['STEP_LABELS', 'Ensure dependency-audit labels exist'],
+              ['STEP_SKIP_LIST', 'Build skip-list from open PRs/issues'],
+              ['STEP_COLLECT', 'Collect advisories for AI-assisted review'],
+              ['STEP_OWNER', 'Read audit owner'],
+              ['STEP_NEXT_SEMVER', 'Get the next semver version'],
+              ['STEP_GET_TOKEN', 'Get token'],
+              ['STEP_CHECKOUT_AI_ANALYZER', 'Checkout AI Analyzer'],
+              ['STEP_INSTALL_AI_ANALYZER_DEPS', 'Install AI Analyzer dependencies'],
+              ['STEP_FIX', 'Attempt AI-assisted fix'],
+              ['STEP_MANUAL_ISSUE', 'File or update tracking issue for advisories needing manual review'],
+            ];
+            const failed = steps.find(([key]) => process.env[key] === 'failure');
+            console.log(failed ? failed[1] : '');
+          ")
+          FAILED_STEP="$FAILED_STEP" node scripts/slack-audit-notification.mjs
