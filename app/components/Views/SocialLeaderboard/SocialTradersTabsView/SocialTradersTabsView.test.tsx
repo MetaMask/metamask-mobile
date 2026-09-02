@@ -12,6 +12,9 @@ const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+// True by default: these tests cover the pushed presentation. The tab-root case
+// (Social in the treatment NavBar) overrides it below.
+const mockCanGoBack = jest.fn(() => true);
 const mockOpenSystemSettings = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => false);
 let mockRouteParams: {
@@ -73,12 +76,18 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
-  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
+  let navigation:
+    | { goBack: jest.Mock; navigate: jest.Mock; canGoBack: jest.Mock }
+    | undefined;
   return {
     ...actual,
     useNavigation: () => {
       if (!navigation) {
-        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+        navigation = {
+          goBack: mockGoBack,
+          navigate: mockNavigate,
+          canGoBack: mockCanGoBack,
+        };
       }
       return navigation;
     },
@@ -268,6 +277,43 @@ describe('SocialTradersTabsView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('as a tab root rather than a pushed screen', () => {
+    beforeEach(() => mockCanGoBack.mockReturnValue(false));
+    afterEach(() => mockCanGoBack.mockReturnValue(true));
+
+    it('renders no back button, since there is nothing to pop', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.queryByTestId(SocialTradersTabsViewSelectorsIDs.BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('titles the static header for the tab rather than the surface', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
+      ).toHaveTextContent('bottom_nav.social');
+    });
+
+    it('keeps the notification bell, tabs and the large surface title', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(
+          SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TABS),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+      ).toHaveTextContent('social_leaderboard.feed.title');
+    });
   });
 
   it('navigates to the socialAI notification settings section when the bell is pressed and preferences exist', () => {

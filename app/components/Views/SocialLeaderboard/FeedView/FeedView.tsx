@@ -39,6 +39,7 @@ import {
   type SectionListRenderItemInfo,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   ImpactMoment,
@@ -448,6 +449,14 @@ const FeedView: React.FC<FeedViewProps> = ({
     }
   }, [hasNextPage, loadMore]);
 
+  // pb-6 plus whatever the floating NavBar overlays, so the last row stays
+  // reachable. The inset is 0 on control and wherever the navigator hides it.
+  const floatingTabBarInset = useFloatingTabBarInset();
+  const listBottomPadding = useMemo(
+    () => ({ paddingBottom: 24 + floatingTabBarInset }),
+    [floatingTabBarInset],
+  );
+
   const refreshControl = useMemo(
     () => (
       <RefreshControl
@@ -543,7 +552,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         <Animated.ScrollView
           ref={skeletonScrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('pb-6')}
+          contentContainerStyle={listBottomPadding}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           scrollEventThrottle={16}
@@ -575,7 +584,7 @@ const FeedView: React.FC<FeedViewProps> = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
-        contentContainerStyle={tw.style('pb-6 flex-grow')}
+        contentContainerStyle={[tw.style('flex-grow'), listBottomPadding]}
         extraData={now}
         refreshControl={refreshControl}
         testID={FeedViewSelectorsIDs.LIST}
@@ -596,6 +605,7 @@ const FeedView: React.FC<FeedViewProps> = ({
     onScroll,
     tw,
     now,
+    listBottomPadding,
   ]);
 
   return (
