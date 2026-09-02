@@ -101,7 +101,6 @@ const BridgeLimitOrderViewContent = ({
     value,
   } = useSwapsLimitOrderPriceAdjust({
     destToken,
-    destTokenAmount,
     sourceToken,
   });
   const {
