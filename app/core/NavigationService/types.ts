@@ -1012,6 +1012,7 @@ export type RootStackParamList = {
         landingFeedAudience?: 'all' | 'following';
       }
     | undefined;
+  SocialLeaderboardTab: RootStackParamList['TopTradersView'];
   TraderProfileView: {
     traderId: string;
     traderName: string;

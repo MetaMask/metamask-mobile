@@ -12,6 +12,9 @@ const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
+let mockRouteName = 'TopTradersView';
 const mockOpenSystemSettings = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => false);
 let mockRouteParams: {
@@ -73,16 +76,22 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
-  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
+  let navigation:
+    | { goBack: jest.Mock; navigate: jest.Mock; canGoBack: jest.Mock }
+    | undefined;
   return {
     ...actual,
     useNavigation: () => {
       if (!navigation) {
-        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+        navigation = {
+          goBack: mockGoBack,
+          navigate: mockNavigate,
+          canGoBack: mockCanGoBack,
+        };
       }
       return navigation;
     },
-    useRoute: () => ({ params: mockRouteParams, name: 'TopTradersView' }),
+    useRoute: () => ({ params: mockRouteParams, name: mockRouteName }),
   };
 });
 
@@ -268,6 +277,49 @@ describe('SocialTradersTabsView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  describe('as a tab root rather than a pushed screen', () => {
+    beforeEach(() => {
+      mockRouteName = Routes.SOCIAL_LEADERBOARD.TAB;
+    });
+    afterEach(() => {
+      mockRouteName = 'TopTradersView';
+    });
+
+    it('renders a bare header with only the surface title', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
+      ).toHaveTextContent('social_leaderboard.feed.title');
+      for (const absent of [
+        SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
+        SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
+      ]) {
+        expect(screen.queryByTestId(absent)).not.toBeOnTheScreen();
+      }
+    });
+
+    it('drops the in-content title so it is not shown twice', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      expect(
+        screen.queryByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still renders the tabs and both pages', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      for (const present of [
+        SocialTradersTabsViewSelectorsIDs.TABS,
+        SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE,
+        SocialTradersTabsViewSelectorsIDs.FEED_PAGE,
+      ]) {
+        expect(screen.getByTestId(present)).toBeOnTheScreen();
+      }
+    });
   });
 
   it('navigates to the socialAI notification settings section when the bell is pressed and preferences exist', () => {
