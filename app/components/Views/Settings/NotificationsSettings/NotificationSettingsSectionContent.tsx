@@ -23,6 +23,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events
 import { NotificationChannel } from '../../../../core/Analytics/events/channels';
 import Logger from '../../../../util/Logger';
 import { useOptimisticToggleValue } from './hooks/useOptimisticToggleValue';
+import {
+  isChannelEnabledForAusKeys,
+  targetAusKeysInPreferences,
+  type NotificationPreferenceChannelKey,
+} from '../../../../util/notifications/categories';
 
 type NotificationSettingsStyles = ReturnType<typeof styleSheet>;
 
@@ -46,15 +51,14 @@ type SectionDefinition =
       Content: React.ComponentType<ListSectionContentProps>;
     };
 
-const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
-  {
-    walletActivity: 'wallet_activity',
-    perps: 'perps',
-    agenticCli: 'agentic_cli',
-    socialAI: 'social_ai',
-    marketing: 'marketing',
-    priceAlerts: 'price_alerts',
-  };
+const SETTINGS_TYPE_BY_CATEGORY: Record<string, string> = {
+  walletActivity: 'wallet_activity',
+  perps: 'perps',
+  agenticCli: 'agentic_cli',
+  socialAI: 'social_ai',
+  marketing: 'marketing',
+  priceAlerts: 'price_alerts',
+};
 
 const WalletActivitySectionContent = ({
   styles,
@@ -90,7 +94,7 @@ const WalletActivitySectionContent = ({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
         .addProperties({
-          settings_type: SETTINGS_TYPE_BY_SECTION.walletActivity,
+          settings_type: SETTINGS_TYPE_BY_CATEGORY.walletActivity,
           notification_channel: NotificationChannel.ALL,
           enabled: nextEnabled,
         })
@@ -209,36 +213,50 @@ const MarketingSectionContent = ({
   </View>
 );
 
-const SECTION_DEFINITIONS: Record<
-  NotificationPreferenceSection,
-  SectionDefinition
-> = {
-  walletActivity: {
-    layout: 'list',
-    Content: WalletActivitySectionContent,
+// Sections with dedicated content resolve by their backing AUS keys so a
+// BE-driven category keeps working even when its categoryId differs from the
+// underlying storage key. Categories with no matcher fall back to the plain
+// scroll layout (e.g. perps, agenticCli, priceAlerts).
+const SECTION_DEFINITION_MATCHERS: {
+  matches: (ausKeys: string[]) => boolean;
+  definition: SectionDefinition;
+}[] = [
+  {
+    matches: (ausKeys) => ausKeys.includes('walletActivity'),
+    definition: {
+      layout: 'list',
+      Content: WalletActivitySectionContent,
+    },
   },
-  socialAI: {
-    layout: 'scroll',
-    Content: SocialAISectionContent,
+  {
+    matches: (ausKeys) => ausKeys.includes('socialAI'),
+    definition: {
+      layout: 'scroll',
+      Content: SocialAISectionContent,
+    },
   },
-  marketing: {
-    layout: 'scroll',
-    Content: MarketingSectionContent,
+  {
+    matches: (ausKeys) => ausKeys.includes('marketing'),
+    definition: {
+      layout: 'scroll',
+      Content: MarketingSectionContent,
+    },
   },
-  perps: { layout: 'scroll' },
-  agenticCli: { layout: 'scroll' },
-  priceAlerts: { layout: 'scroll' },
-};
+];
+
+const DEFAULT_SECTION_DEFINITION: SectionDefinition = { layout: 'scroll' };
 
 export interface NotificationSettingsSectionContentProps {
-  type: NotificationPreferenceSection;
+  categoryId: string;
+  ausKeys: string[];
   title?: string;
   description?: string;
   disabled?: boolean;
 }
 
 export const NotificationSettingsSectionContent = ({
-  type,
+  categoryId,
+  ausKeys,
   title,
   description,
   disabled,
@@ -248,66 +266,99 @@ export const NotificationSettingsSectionContent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
-  const sectionPrefs = preferences?.[type];
-  const sectionDefinition = SECTION_DEFINITIONS[type];
+  const targetAusKeys = useMemo(
+    () => targetAusKeysInPreferences(ausKeys, preferences),
+    [ausKeys, preferences],
+  );
+  const sectionExists = targetAusKeys.length > 0;
+  const sectionPrefs = sectionExists
+    ? {
+        pushNotificationsEnabled: isChannelEnabledForAusKeys(
+          preferences,
+          ausKeys,
+          'pushNotificationsEnabled',
+        ),
+        inAppNotificationsEnabled: isChannelEnabledForAusKeys(
+          preferences,
+          ausKeys,
+          'inAppNotificationsEnabled',
+        ),
+      }
+    : undefined;
+  const sectionDefinition =
+    SECTION_DEFINITION_MATCHERS.find((matcher) => matcher.matches(ausKeys))
+      ?.definition ?? DEFAULT_SECTION_DEFINITION;
 
   const trackChannelUpdate = useCallback(
     (channel: NotificationChannel, enabled: boolean) => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.NOTIFICATIONS_SETTINGS_UPDATED)
           .addProperties({
-            settings_type: SETTINGS_TYPE_BY_SECTION[type],
+            settings_type: SETTINGS_TYPE_BY_CATEGORY[categoryId] ?? categoryId,
             notification_channel: channel,
             enabled,
           })
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, type],
+    [trackEvent, createEventBuilder, categoryId],
+  );
+
+  const persistChannel = useCallback(
+    async (
+      channel: NotificationPreferenceChannelKey,
+      nextValue: boolean,
+      notificationChannel: NotificationChannel,
+    ) => {
+      try {
+        await Promise.all(
+          targetAusKeys.map((ausKey) =>
+            updateSectionChannel(
+              ausKey as NotificationPreferenceSection,
+              channel,
+              nextValue,
+            ),
+          ),
+        );
+        trackChannelUpdate(notificationChannel, nextValue);
+      } catch (e) {
+        Logger.error(
+          new Error('Failed to update notification section channel'),
+          {
+            message:
+              'NotificationSettingsSectionContent: update channel failed',
+            categoryId,
+            ausKeys,
+            channel,
+            nextValue,
+          },
+        );
+        throw e;
+      }
+    },
+    [
+      targetAusKeys,
+      updateSectionChannel,
+      trackChannelUpdate,
+      categoryId,
+      ausKeys,
+    ],
   );
 
   const persistPush = useCallback(
-    async (v: boolean) => {
-      try {
-        await updateSectionChannel(type, 'pushNotificationsEnabled', v);
-        trackChannelUpdate(NotificationChannel.PUSH, v);
-      } catch (e) {
-        Logger.error(
-          new Error('Failed to update notification section channel'),
-          {
-            message:
-              'NotificationSettingsSectionContent: update channel failed',
-            type,
-            channel: 'pushNotificationsEnabled',
-            nextValue: v,
-          },
-        );
-        throw e;
-      }
-    },
-    [updateSectionChannel, type, trackChannelUpdate],
+    (v: boolean) =>
+      persistChannel('pushNotificationsEnabled', v, NotificationChannel.PUSH),
+    [persistChannel],
   );
 
   const persistInApp = useCallback(
-    async (v: boolean) => {
-      try {
-        await updateSectionChannel(type, 'inAppNotificationsEnabled', v);
-        trackChannelUpdate(NotificationChannel.IN_APP, v);
-      } catch (e) {
-        Logger.error(
-          new Error('Failed to update notification section channel'),
-          {
-            message:
-              'NotificationSettingsSectionContent: update channel failed',
-            type,
-            channel: 'inAppNotificationsEnabled',
-            nextValue: v,
-          },
-        );
-        throw e;
-      }
-    },
-    [updateSectionChannel, type, trackChannelUpdate],
+    (v: boolean) =>
+      persistChannel(
+        'inAppNotificationsEnabled',
+        v,
+        NotificationChannel.IN_APP,
+      ),
+    [persistChannel],
   );
 
   const push = useOptimisticToggleValue({

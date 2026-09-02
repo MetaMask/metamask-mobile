@@ -102,7 +102,11 @@ const renderContent = (
   > = {},
 ) =>
   renderWithProvider(
-    <NotificationSettingsSectionContent type="priceAlerts" {...props} />,
+    <NotificationSettingsSectionContent
+      categoryId="priceAlerts"
+      ausKeys={['priceAlerts']}
+      {...props}
+    />,
   );
 
 describe('NotificationSettingsSectionContent', () => {
@@ -164,7 +168,8 @@ describe('NotificationSettingsSectionContent', () => {
 
   it('uses the wallet activity list as the only section scroller', () => {
     renderContent({
-      type: 'walletActivity',
+      categoryId: 'walletActivity',
+      ausKeys: ['walletActivity'],
       title: 'Wallet activity',
       description: 'Buy, sells, transfers, and swaps',
     });
@@ -293,7 +298,8 @@ describe('NotificationSettingsSectionContent', () => {
       expect.objectContaining({
         channel: 'pushNotificationsEnabled',
         nextValue: false,
-        type: 'priceAlerts',
+        categoryId: 'priceAlerts',
+        ausKeys: ['priceAlerts'],
       }),
     );
   });
@@ -328,13 +334,14 @@ describe('NotificationSettingsSectionContent', () => {
       expect.objectContaining({
         channel: 'inAppNotificationsEnabled',
         nextValue: false,
-        type: 'priceAlerts',
+        categoryId: 'priceAlerts',
+        ausKeys: ['priceAlerts'],
       }),
     );
   });
 
   it('renders the marketing disclaimer for the marketing section', () => {
-    renderContent({ type: 'marketing' });
+    renderContent({ categoryId: 'marketing', ausKeys: ['marketing'] });
 
     expect(
       screen.getByText(

@@ -63,7 +63,10 @@ describe('useOpenSocialNotificationPreferences', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
-      params: expect.objectContaining({ type: 'socialAI' }),
+      params: expect.objectContaining({
+        categoryId: 'socialAI',
+        ausKeys: ['socialAI'],
+      }),
     });
   });
 });

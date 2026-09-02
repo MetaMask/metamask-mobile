@@ -281,7 +281,8 @@ describe('SocialTradersTabsView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION,
       params: {
-        type: 'socialAI',
+        categoryId: 'socialAI',
+        ausKeys: ['socialAI'],
         title: 'app_settings.notifications_opts.social_ai_title',
         description: 'app_settings.notifications_opts.social_ai_desc',
       },
