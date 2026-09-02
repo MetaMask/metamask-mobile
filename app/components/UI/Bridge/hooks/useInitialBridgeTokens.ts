@@ -9,7 +9,7 @@ import {
   tokenToIncludeAsset,
 } from '../utils/tokenUtils';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
-import type { IncludeAsset } from '../types';
+import type { BridgeToken, IncludeAsset } from '../types';
 import { getMinimalIncludedAssets } from '../utils/cacheUtils';
 import { ARC_CAIP_CHAIN_ID } from '../../../../enablement/assets/arc';
 import { BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN } from '../constants/default-swap-dest-tokens';
@@ -39,6 +39,16 @@ const dedupeIncludeAssets = (
 
   return [...uniqueAssets.values()];
 };
+
+/**
+ * Narrows optional bridge-token entries to defined tokens.
+ *
+ * @param token - Candidate bridge token.
+ * @returns True when the token is defined.
+ */
+const isDefinedBridgeToken = (
+  token: BridgeToken | undefined,
+): token is BridgeToken => token !== undefined;
 
 /**
  * Custom hook to fetch popular tokens from the Bridge API with caching
@@ -89,7 +99,7 @@ export const useInitialBridgeTokens = (
     return [
       BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN[ARC_CAIP_CHAIN_ID],
       getDefaultDestToken(ARC_CAIP_CHAIN_ID),
-    ].filter((token) => token !== undefined);
+    ].filter(isDefinedBridgeToken);
   }, [chainIdsToFetch]);
 
   // Create includeAssets array from tokens with balance to be sent to API
