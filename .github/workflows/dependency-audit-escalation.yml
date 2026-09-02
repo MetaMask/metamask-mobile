@@ -89,7 +89,7 @@ jobs:
         shell: bash
         run: |
           cat > audit.ndjson << 'EOF'
-          {"value":"ms","children":{"ID":"TEST-0009","Issue":"[TEST] Synthetic advisory injected to confirm the tracking issue now shows the AI's real reasoning instead of the static 'Pending AI-assisted review.' placeholder. Not a real vulnerability — safe to close/delete anything this produces.","Severity":"high","Vulnerable Versions":"*","URL":"https://github.com/MetaMask/metamask-mobile/pull/35470"}}
+          {"value":"ms","children":{"ID":"TEST-0010","Issue":"[TEST] Synthetic advisory injected to confirm the Bugbot fixes (tracking-issue body dedupe, per-advisory revert, dedupe-before-audit ordering, success()/failure()-based Slack gating). Not a real vulnerability — safe to close/delete anything this produces.","Severity":"high","Vulnerable Versions":"*","URL":"https://github.com/MetaMask/metamask-mobile/pull/35470"}}
           EOF
           echo "has-advisories=true" >> "$GITHUB_OUTPUT"
 
