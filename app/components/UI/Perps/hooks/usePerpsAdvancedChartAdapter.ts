@@ -27,6 +27,7 @@ export const INTERVAL_MS: Partial<Record<string, number>> = {
   '1d': 24 * 60 * 60_000,
   '3d': 3 * 24 * 60 * 60_000,
   '1w': 7 * 24 * 60 * 60_000,
+  '1M': 30 * 24 * 60 * 60_000,
 };
 
 export const PREWARM_CANDLE_PERIODS = [
