@@ -38,6 +38,14 @@ on:
         required: false
         type: string
         default: 'auto'
+      prime-android-emulator:
+        description: >-
+          Run the nested golden AVD prime job. CI sets this false because it
+          primes once in parallel with the Android APK build and shares that
+          snapshot with smoke shards and fixture validation.
+        required: false
+        type: boolean
+        default: true
   workflow_dispatch:
     inputs:
       build_type:
@@ -70,6 +78,11 @@ on:
         required: false
         type: string
         default: 'auto'
+      prime-android-emulator:
+        description: 'Prime the golden Android emulator snapshot before shards'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -83,8 +96,10 @@ jobs:
   # onto the shared cache volume, so shards quick-boot instead of paying a
   # wiped cold boot per shard. Shards tolerate this job failing: their
   # emulator boot mode `auto` then falls back to the historical cold boot.
+  # Skipped when the caller already primed (ci.yml) so we do not pay for two
+  # prime jobs in the same run.
   prime-android-emulator-snapshot:
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && inputs.prime-android-emulator }}
     uses: ./.github/workflows/prime-appium-e2e-android-emulator.yml
     with:
       runner_provider: ${{ inputs.runner_provider }}

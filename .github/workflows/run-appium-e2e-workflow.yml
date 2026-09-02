@@ -78,8 +78,8 @@ on:
       cache-android-golden-snapshot:
         description: >-
           Restore the primed golden AVD from actions/cache (fingerprint key)
-          and attempt snapshot resume. Set false for jobs that always cold-boot
-          (e.g. fixture validation).
+          and attempt snapshot resume. Set false only for jobs that must always
+          cold-boot.
         required: false
         type: boolean
         default: true

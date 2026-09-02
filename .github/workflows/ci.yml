@@ -1559,6 +1559,30 @@ jobs:
   # Detox Android E2E smoke workflow removed — tags fully migrated to Appium
   # (run-appium-smoke-tests-android.yml).
 
+  # Prime once per CI run (in parallel with the APK build) so Android smoke
+  # shards and fixture validation restore the same golden AVD instead of each
+  # paying a wiped cold boot.
+  prime-android-emulator-snapshot:
+    name: 'Prime Android Emulator Snapshot'
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.get_requirements.outputs.android_e2e_needed == 'true' &&
+        !(fromJSON(needs.smart-e2e-selection.outputs.ai_confidence || '0') >= 85 && needs.smart-e2e-selection.outputs.ai_e2e_test_tags == '[]')
+      }}
+    permissions:
+      contents: read
+      # Nested prime workflow saves the golden AVD with actions/cache.
+      actions: write
+    needs: [get_requirements, smart-e2e-selection]
+    uses: ./.github/workflows/prime-appium-e2e-android-emulator.yml
+    with:
+      runner_provider: >-
+        ${{
+          inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+        }}
+
   build-ios-apps:
     name: 'Build iOS Apps'
     # PRs into main do not build iOS from path filters alone — it has to be
@@ -1607,6 +1631,7 @@ jobs:
     name: 'Appium Smoke Tests (Android)'
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' ||
@@ -1618,15 +1643,17 @@ jobs:
       checks: write
       id-token: write
       # Nested smoke workflows need these; callers cannot inherit from this job alone.
-      # write: prime job persists golden AVD with actions/cache (nested cannot elevate).
+      # write: standalone/manual smoke still primes; CI primes in the parent job.
       actions: write
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    # always() + prime in needs: shards still start if priming failed (auto → cold).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements, prime-android-emulator-snapshot]
     uses: ./.github/workflows/run-appium-smoke-tests-android.yml
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
+      prime-android-emulator: false
       # Mirrors build-android-apks' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-
@@ -1711,6 +1738,7 @@ jobs:
     name: 'Validate E2E Fixtures'
     if: >-
       ${{
+        always() &&
         !cancelled() &&
         needs.build-android-apks.result == 'success' &&
         (needs.prepare-e2e-timings.result == 'success' ||
@@ -1725,7 +1753,9 @@ jobs:
       actions: read
       pull-requests: read
     # Include prepare to avoid a timings race; failure/skipped still run (equal-count fallback).
-    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements]
+    # Wait for the shared prime job so this can restore the golden AVD. always()
+    # keeps validation running if priming failed (boot-mode auto → cold).
+    needs: [build-android-apks, smart-e2e-selection, prepare-e2e-timings, get_requirements, prime-android-emulator-snapshot]
     uses: ./.github/workflows/run-appium-e2e-workflow.yml
     with:
       test-suite-name: validate-e2e-fixtures
@@ -1736,9 +1766,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: 'main'
       metamask_environment: 'e2e'
-      # Skip golden AVD cache restore; boot-mode cold keeps intent explicit.
-      cache-android-golden-snapshot: false
-      android-emulator-boot-mode: cold
+      # Restore the primed golden AVD and resume it (auto falls back to cold).
       # Mirrors build-android-apps' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-
