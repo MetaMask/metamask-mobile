@@ -1,4 +1,5 @@
 import enContent from '../../../../../../../locales/languages/en.json';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 
 export const BuildQuoteSelectors = {
   AMOUNT_INPUT: 'amount-input',
@@ -18,7 +19,7 @@ export const BuildQuoteSelectors = {
   MIN_LIMIT_ERROR: 'min-limit-error',
   MAX_LIMIT_ERROR: 'max-limit-error',
   INSUFFICIENT_BALANCE_ERROR: 'insufficient-balance-error',
-  KEYPAD_DELETE_BUTTON: 'keypad-delete-button',
+  KEYPAD_DELETE_BUTTON: KeypadTestIds.DELETE_BUTTON,
   AMOUNT_KEYPAD_BOTTOM_SHEET: 'build-quote-amount-keypad-bottom-sheet',
   AMOUNT_KEYPAD_CONFIRM_BUTTON: 'build-quote-amount-keypad-confirm-button',
 };
