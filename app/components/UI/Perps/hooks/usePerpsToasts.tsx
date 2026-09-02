@@ -140,6 +140,19 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       editFailed: (error?: string) => PerpsToastOptions;
     };
+    chase: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
+    };
     twap: {
       submitted: (
         direction: OrderDirection,
@@ -723,6 +736,50 @@ const usePerpsToasts = (): {
                 error,
                 fallbackMessage: strings(
                   'perps.order.order_update_failed_subtitle',
+                ),
+              }),
+            ),
+          }),
+        },
+        chase: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_submitted'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_started'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          creationFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
                 ),
               }),
             ),

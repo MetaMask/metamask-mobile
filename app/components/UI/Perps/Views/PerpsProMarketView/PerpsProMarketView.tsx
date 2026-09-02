@@ -20,6 +20,7 @@ import {
 import { AnimationDuration } from '@metamask/design-tokens';
 import {
   useNavigation,
+  useIsFocused,
   useRoute,
   type NavigationProp,
   type RouteProp,
@@ -211,6 +212,7 @@ const PerpsProMarketView = ({
   const { playSelection } = useHaptics();
   const navigation =
     useNavigation<NavigationProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
+  const isScreenFocused = useIsFocused();
   const route =
     useRoute<RouteProp<PerpsStackParamList, 'PerpsMarketDetails'>>();
   const routeMarket = route.params?.market;
@@ -611,6 +613,7 @@ const PerpsProMarketView = ({
                 // required field at runtime.
                 <PerpsProOrderFormPanel
                   market={market as PerpsMarketData}
+                  isScreenFocused={isScreenFocused}
                   isOrderBookCollapsed={isOrderBookCollapsed}
                   onExpandOrderBook={handleExpandOrderBook}
                   onRequestScrollBy={handleRequestScrollBy}
@@ -637,6 +640,7 @@ const PerpsProMarketView = ({
             onSelectMarket={handleSelectMarket}
             onHistoryPress={handleHistoryPress}
             onResolvedStateChange={handlePositionsOrdersResolvedStateChange}
+            isScreenFocused={isScreenFocused}
           />
         </Animated.View>
       </Animated.ScrollView>

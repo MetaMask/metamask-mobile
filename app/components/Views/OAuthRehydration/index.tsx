@@ -611,21 +611,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             password,
             authPreference: authData,
             onBeforeNavigate: async () => {
-              await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // End the onboarding-journey spans with success BEFORE unlockWallet
-              // navigates to home. Navigation resets the stack and unmounts the
-              // Onboarding screen, whose cleanup ends OnboardingJourneyOverall with
-              // success:false. unlockWallet awaits onBeforeNavigate prior to that
-              // navigation, so ending the spans here guarantees the success value is
-              // recorded first and the later unmount cleanup (and the no-longer-needed
-              // post-return endTrace calls) safely no-op — otherwise a completed social
-              // login would be misrecorded as abandoned.
+              // End unlock/journey spans before the biometric keychain upgrade so
+              // human biometric wait is excluded from Password Login Attempt (and
+              // parent journey) duration. Still must finish before unlockWallet
+              // navigates home: navigation unmounts Onboarding, whose cleanup would
+              // otherwise end OnboardingJourneyOverall with success:false.
               if (passwordLoginAttemptTraceCtxRef.current) {
                 endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
                 passwordLoginAttemptTraceCtxRef.current = null;
               }
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
+              await upgradeKeychainAuthAfterSuccessfulUnlock();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
             parentContext: passwordLoginAttemptCtx ?? journeyCtx,
