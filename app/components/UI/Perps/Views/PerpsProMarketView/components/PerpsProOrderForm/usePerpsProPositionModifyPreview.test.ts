@@ -1,7 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
-import type {
-  Position,
-  PositionModifyPreviewResult,
+import {
+  PERFORMANCE_CONFIG,
+  type Position,
+  type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { usePerpsPositionModifyPreview } from '../../../../hooks';
 import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
@@ -122,16 +123,19 @@ describe('usePerpsProPositionModifyPreview', () => {
     const { result } = renderPreview();
 
     expect(result.current.isAwaitingFirstPreview).toBe(true);
-    expect(mockUsePerpsPositionModifyPreview).toHaveBeenCalledWith({
-      position,
-      direction: 'long',
-      size: '0.1',
-      price: '90000',
-      leverage: 5,
-      reduceOnly: false,
-      feeAmountUsd: 2,
-      providerId: 'hyperliquid',
-      enabled: true,
-    });
+    expect(mockUsePerpsPositionModifyPreview).toHaveBeenCalledWith(
+      {
+        position,
+        direction: 'long',
+        size: '0.1',
+        price: '90000',
+        leverage: 5,
+        reduceOnly: false,
+        feeAmountUsd: 2,
+        providerId: 'hyperliquid',
+        enabled: true,
+      },
+      { debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs },
+    );
   });
 });

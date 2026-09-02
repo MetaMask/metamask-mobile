@@ -1,5 +1,9 @@
 import { useMemo } from 'react';
-import type { PerpsProviderType, Position } from '@metamask/perps-controller';
+import {
+  PERFORMANCE_CONFIG,
+  type PerpsProviderType,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsPositionModifyPreview } from '../../../../hooks';
 import {
   formatPerpsFiat,
@@ -41,17 +45,23 @@ export const usePerpsProPositionModifyPreview = ({
   hasValidAmount,
   enabled,
 }: UsePerpsProPositionModifyPreviewParams) => {
-  const { preview, isAwaitingFirstPreview } = usePerpsPositionModifyPreview({
-    position,
-    direction,
-    size,
-    price: String(price),
-    leverage,
-    reduceOnly,
-    feeAmountUsd,
-    providerId: providerId ?? position?.providerId,
-    enabled,
-  });
+  const { preview, isAwaitingFirstPreview } = usePerpsPositionModifyPreview(
+    {
+      position,
+      direction,
+      size,
+      price: String(price),
+      leverage,
+      reduceOnly,
+      feeAmountUsd,
+      providerId: providerId ?? position?.providerId,
+      enabled,
+    },
+    // Live mid/mark and fee ticks re-request this preview while the form is
+    // open on a held market. ValidationDebounceMs (300ms) coalesces those
+    // estimates without a perceptible lag on typed size/leverage.
+    { debounceMs: PERFORMANCE_CONFIG.ValidationDebounceMs },
+  );
 
   const summaryDisplay = useMemo(
     () =>

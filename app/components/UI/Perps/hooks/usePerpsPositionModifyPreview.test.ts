@@ -413,4 +413,47 @@ describe('usePerpsPositionModifyPreview', () => {
       expect(result.current.error).toBeNull();
     });
   });
+
+  describe('debounceMs', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('coalesces rapid price ticks into one controller call', async () => {
+      const position = isolatedPosition();
+      const { rerender } = renderHook(
+        (props: { price: string }) =>
+          usePerpsPositionModifyPreview(
+            {
+              position,
+              direction: 'long',
+              size: '1',
+              price: props.price,
+              leverage: 10,
+              reduceOnly: false,
+            },
+            { debounceMs: 300 },
+          ),
+        { initialProps: { price: '2000' } },
+      );
+
+      rerender({ price: '2100' });
+      rerender({ price: '2200' });
+      expect(mockPreviewPositionModify).not.toHaveBeenCalled();
+
+      await act(async () => {
+        jest.advanceTimersByTime(300);
+        await Promise.resolve();
+      });
+
+      expect(mockPreviewPositionModify).toHaveBeenCalledTimes(1);
+      expect(mockPreviewPositionModify).toHaveBeenCalledWith(
+        expect.objectContaining({ price: '2200' }),
+      );
+    });
+  });
 });

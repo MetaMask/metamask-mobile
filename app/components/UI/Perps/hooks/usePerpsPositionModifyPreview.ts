@@ -47,10 +47,11 @@ export interface UsePerpsPositionModifyPreviewOptions {
  * overwrite a newer preview. The last successful preview is kept until the
  * next result arrives (no idle flash on every param tick).
  *
- * Live prices and fees re-request the preview roughly every second, so
- * `isCalculating` is true most of the time a position is open. Gate submission
- * on `isAwaitingFirstPreview`, which is only true until a result exists for the
- * current position.
+ * Live prices and fees re-request the preview roughly every second. Pass
+ * `debounceMs` (Pro uses `PERFORMANCE_CONFIG.ValidationDebounceMs`) so those
+ * ticks coalesce; `isCalculating` is otherwise true most of the time a position
+ * is open. Gate submission on `isAwaitingFirstPreview`, which is only true
+ * until a result exists for the current position.
  */
 export const usePerpsPositionModifyPreview = (
   params: UsePerpsPositionModifyPreviewParams,
