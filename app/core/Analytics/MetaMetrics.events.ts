@@ -29,6 +29,7 @@ enum EVENT_NAME {
   // App
   APP_OPENED = 'App Opened',
   APP_INSTALLED = 'App Installed',
+  APP_UNLOCKED_FAILED = 'App Unlocked Failed',
 
   // Error
   ERROR = 'Error occurred',
@@ -898,6 +899,7 @@ export enum PERMISSION_TYPE {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   APP_INSTALLED: generateOpt(EVENT_NAME.APP_INSTALLED),
+  APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)

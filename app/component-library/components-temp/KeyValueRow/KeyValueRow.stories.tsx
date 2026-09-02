@@ -38,7 +38,7 @@ export const KeyValueRow = {
               text: 'Sample key text',
             },
           }}
-          value={{ label: { text: 'Sample Value Text' } }}
+          value={{ label: { text: 'Sample value text' } }}
         />
         <KeyValueRowComponent
           field={{
@@ -50,12 +50,12 @@ export const KeyValueRow = {
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
               variant: TextVariant.BodySMBold,
               color: TextColor.Success,
             },
             tooltip: {
-              title: 'Sample Title',
+              title: 'Sample title',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
@@ -67,14 +67,14 @@ export const KeyValueRow = {
               text: 'Sample key text',
             },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
           }}
         />
@@ -92,7 +92,7 @@ export const KeyValueRow = {
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
             icon: {
               name: IconName.Wifi,
@@ -108,7 +108,7 @@ export const KeyValueRow = {
             label: { text: 'Sample key' },
             icon: { name: IconName.UserCircleAdd, color: IconColor.Primary },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },

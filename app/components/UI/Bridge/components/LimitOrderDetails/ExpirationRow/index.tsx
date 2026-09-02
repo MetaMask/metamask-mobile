@@ -28,8 +28,9 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
     variant={KeyValueRowVariant.Summary}
     keyLabel={strings('bridge.limit.expires')}
     keyTextProps={{
-      variant: TextVariant.BodySm,
+      variant: TextVariant.BodyMd,
       color: TextColor.TextAlternative,
+      fontWeight: FontWeight.Regular,
     }}
     value={
       <TouchableOpacity
@@ -45,9 +46,8 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
           gap={1}
         >
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             testID={ExpirationRowSelectorsIDs.VALUE}
           >
             {value}
@@ -56,6 +56,7 @@ const ExpirationRow: React.FC<ExpirationRowProps> = ({
             name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            twClassName="mt-1"
           />
         </Box>
       </TouchableOpacity>

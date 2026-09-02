@@ -1,6 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSourceAmountInput } from './index';
-import { useABTest } from '../../../../../hooks';
 import { playSelection } from '../../../../../util/haptics';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 
@@ -9,9 +8,6 @@ jest.mock('../../components/TokenInputArea', () => ({
 }));
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector({}),
-}));
-jest.mock('../../../../../hooks', () => ({
-  useABTest: jest.fn(),
 }));
 jest.mock('../../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
@@ -62,17 +58,11 @@ jest.mock('../../utils/formatAmountWithLocaleSeparators', () => ({
   formatAmountWithLocaleSeparators: (value: string) => value,
 }));
 
-const mockUseABTest = jest.mocked(useABTest);
 const mockPlaySelection = jest.mocked(playSelection);
 const mockUseTokenFiatRate = jest.mocked(useTokenFiatRate);
 
 describe('useSourceAmountInput haptics', () => {
-  it('plays selection haptic when toggling fiat mode under treatment', () => {
-    mockUseABTest.mockReturnValue({
-      variant: { enableSwapHaptics: true },
-      variantName: 'treatment',
-      isActive: true,
-    } as ReturnType<typeof useABTest>);
+  it('plays selection haptic when toggling fiat mode', () => {
     mockUseTokenFiatRate.mockReturnValue(2000);
     mockPlaySelection.mockResolvedValue(undefined);
     const { result } = renderHook(() =>
