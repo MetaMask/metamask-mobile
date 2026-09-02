@@ -343,6 +343,12 @@ class BitcoinTestDapp {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      // A slow first-attempt approve or reload auto-reconnect may have
+      // already succeeded — exit early before re-opening the modal.
+      if (attempt > 1 && (await this.isConnectionStatus('Connected', 2_000))) {
+        return;
+      }
+
       try {
         await this.openWalletSelectionModal();
         await this.attemptApproveConnection();
