@@ -15,6 +15,7 @@ export const TrendingViewSelectorsIDs = {
   CLOSE_BUTTON: 'close-button',
   TRENDING_TOKENS_HEADER_SEARCH_TOGGLE: 'trending-tokens-header-search-toggle',
   EXPLORE_SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
+  EXPLORE_SEARCH_BACK_BUTTON: 'explore-search-back-button',
   SECTION_HEADER_VIEW_ALL_STOCKS: 'section-header-view-all-stocks',
   SECTION_HEADER_VIEW_ALL_SITES: 'section-header-view-all-sites',
   RWA_TOKENS_HEADER: 'rwa-tokens-header',

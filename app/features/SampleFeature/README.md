@@ -219,21 +219,15 @@ Events are defined in `analytics/events.ts` following the event builder pattern:
 
 ### Privacy Considerations
 
-> [!WARNING] > **Critical Privacy Risk**: Even when using `addSensitiveProperties` for anonymous events, linking sensitive data in the same event creates significant privacy risks.
->
-> **Example Risk**: Sending a name and address in the same anonymous event allows correlation between the two pieces of data, even if the user identity is unknown.
->
-> **Best Practice**: Avoid tracking multiple sensitive data points in the same event. Instead, track aggregate data, metadata, or separate events for different sensitive information.
+> [!WARNING]
+> Put only aggregate or public metadata on events. A name and an address on the same event can be correlated even without a user id. New tracking uses `addProperties` only.
 
-**Safe Tracking Examples:**
+**Safe tracking examples:**
 
-- ✅ `totalPetNames` (aggregate count)
-- ✅ `chainId` (public network info)
+- `totalPetNames` (aggregate count)
+- `chainId` (public network info)
 
-**Unsafe Tracking Examples:**
-
-- ❌ Name
-- ❌ Address
+Keep names, addresses, and other personal data off event properties.
 
 ## Performance Tracing
 
