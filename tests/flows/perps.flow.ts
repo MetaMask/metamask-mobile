@@ -84,7 +84,9 @@ export const dismissPerpsNotificationTooltipIfPresent =
     const turnOnEl = Matchers.getElementByID(
       PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON,
     );
-    if (!(await Utilities.isElementVisible(turnOnEl, PERPS_OPTIONAL_UI_PROBE_MS))) {
+    if (
+      !(await Utilities.isElementVisible(turnOnEl, PERPS_OPTIONAL_UI_PROBE_MS))
+    ) {
       return;
     }
 

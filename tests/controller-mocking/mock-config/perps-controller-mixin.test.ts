@@ -99,9 +99,7 @@ describe('createE2EMockStreamManager', () => {
       const getLastDeliveredAt = manager[channel]?.getLastDeliveredAt;
 
       expect(typeof getLastDeliveredAt).toBe('function');
-      expect(() =>
-        (getLastDeliveredAt as () => number | null)(),
-      ).not.toThrow();
+      expect(() => (getLastDeliveredAt as () => number | null)()).not.toThrow();
     },
   );
 

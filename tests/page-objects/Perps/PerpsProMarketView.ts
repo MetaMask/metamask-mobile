@@ -549,10 +549,13 @@ class PerpsProMarketView {
           `Pro order row ${symbol}[${index}]`,
           8000,
         );
-        await Assertions.expectElementToBeVisible(this.orderRow(symbol, index), {
-          description: `Pro order row ${symbol}[${index}]`,
-          timeout: 3000,
-        });
+        await Assertions.expectElementToBeVisible(
+          this.orderRow(symbol, index),
+          {
+            description: `Pro order row ${symbol}[${index}]`,
+            timeout: 3000,
+          },
+        );
       },
       { interval: 1000, timeout },
     );

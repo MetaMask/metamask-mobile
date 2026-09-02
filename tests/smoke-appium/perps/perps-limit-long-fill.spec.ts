@@ -110,7 +110,9 @@ appiumTest.describe(SmokePerps('Perps Pro - ETH limit long fill'), () => {
           await commandQueueServer.getExportedState();
 
           // Scrolls to Positions panel and waits for the filled position row.
-          await PerpsProMarketView.waitForPositionRow(PERPS_SMOKE_MARKET_SYMBOL);
+          await PerpsProMarketView.waitForPositionRow(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
         },
       );
     },

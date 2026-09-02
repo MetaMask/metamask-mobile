@@ -107,7 +107,9 @@ appiumTest.describe(SmokePerps('Perps Pro - ETH limit short fill'), () => {
           commandQueueServer.requestStateExport();
           await commandQueueServer.getExportedState();
 
-          await PerpsProMarketView.waitForPositionRow(PERPS_SMOKE_MARKET_SYMBOL);
+          await PerpsProMarketView.waitForPositionRow(
+            PERPS_SMOKE_MARKET_SYMBOL,
+          );
         },
       );
     },
