@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProTwapPanel from './PerpsProTwapPanel';
 
@@ -67,6 +68,11 @@ const renderPanel = (
   );
 
 describe('PerpsProTwapPanel', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useSelector).mockReturnValue(false);
+  });
+
   it('offers all three views', () => {
     // Arrange / Act
     renderPanel();

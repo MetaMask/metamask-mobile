@@ -42,8 +42,7 @@ const mockController: {
 describe('usePerpsTwapOrders', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    delete (mockController as { subscribeToTwapOrders?: unknown })
-      .subscribeToTwapOrders;
+    mockController.subscribeToTwapOrders = undefined;
     mockController.getTwapOrders.mockResolvedValue([buildTwapOrder()]);
   });
 
@@ -158,20 +157,26 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]);
   });
 
-  it('falls back to polling when the provider has no push channel', async () => {
-    // Arrange
-    jest.useFakeTimers();
-
-    // Act
-    renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true, pollingInterval: 1000 }),
-    );
-    await act(async () => {
-      jest.advanceTimersByTime(2500);
+  describe('polling fallback', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
     });
 
-    // Assert: the initial read plus two poll ticks
-    expect(mockController.getTwapOrders.mock.calls.length).toBeGreaterThan(1);
-    jest.useRealTimers();
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('falls back to polling when the provider has no push channel', async () => {
+      // Act
+      renderHook(() =>
+        usePerpsTwapOrders({ enablePolling: true, pollingInterval: 1000 }),
+      );
+      await act(async () => {
+        jest.advanceTimersByTime(2500);
+      });
+
+      // Assert: the initial read plus two poll ticks
+      expect(mockController.getTwapOrders.mock.calls.length).toBeGreaterThan(1);
+    });
   });
 });

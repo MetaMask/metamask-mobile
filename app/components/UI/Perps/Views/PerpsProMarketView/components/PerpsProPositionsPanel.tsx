@@ -83,7 +83,7 @@ import {
   isExpectedChaseOrderRequestError,
   usePerpsChaseOrders,
 } from '../../../hooks/usePerpsChaseOrders';
-import { selectPerpsMobileChaseEnabledFlag } from '../../../selectors/featureFlags';
+import { selectPerpsMobileChaseEnabledFlag , selectPerpsProTwapEnabledFlag } from '../../../selectors/featureFlags';
 import {
   selectPerpsNetwork,
   selectPerpsProvider,
@@ -128,7 +128,6 @@ import {
 } from '../utils/proTwapViews';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
-import { selectPerpsProTwapEnabledFlag } from '../../../selectors/featureFlags';
 
 const POSITIONS_TAB_INDEX = 0;
 const ORDERS_TAB_INDEX = 1;
@@ -260,7 +259,9 @@ const PerpsProPositionsPanel = ({
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
   // Chase occupies index 2 when visible. TWAP follows it, or sits at 2 when
   // Chase is hidden, so TabsBar activeIndex stays aligned with the tab list.
-  const twapTabIndex = shouldShowChaseTab ? CHASE_TAB_INDEX + 1 : CHASE_TAB_INDEX;
+  const twapTabIndex = shouldShowChaseTab
+    ? CHASE_TAB_INDEX + 1
+    : CHASE_TAB_INDEX;
   useEffect(() => {
     if (!shouldShowChaseTab && activeIndex === CHASE_TAB_INDEX) {
       setActiveIndex(ORDERS_TAB_INDEX);
@@ -885,19 +886,6 @@ const PerpsProPositionsPanel = ({
     />
   );
 
-  const renderActiveTab = () => {
-    if (isTwapTab) {
-      return renderTwapTab();
-    }
-    if (isChaseTab) {
-      return renderChaseTab();
-    }
-    if (isOrdersTab) {
-      return renderOrdersTab();
-    }
-    return renderPositionsTab();
-  };
-
   const renderTickerOnlyCheckbox = () => (
     <Checkbox
       label={strings('perps.pro_positions_panel.ticker_only', {
@@ -1238,6 +1226,19 @@ const PerpsProPositionsPanel = ({
       )}
     </Box>
   );
+
+  const renderActiveTab = () => {
+    if (isTwapTab) {
+      return renderTwapTab();
+    }
+    if (isChaseTab) {
+      return renderChaseTab();
+    }
+    if (isOrdersTab) {
+      return renderOrdersTab();
+    }
+    return renderPositionsTab();
+  };
 
   return (
     <Box
