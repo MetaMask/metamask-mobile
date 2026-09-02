@@ -54,7 +54,6 @@ import { selectPredictFeeCollectionFlag } from '../../selectors/featureFlags';
 import {
   buildPredictFeeBreakdownAmounts,
   estimatePredictSellNetValue,
-  getPredictExchangeFee,
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
 } from '../../utils/orders';
@@ -227,13 +226,11 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const { avgPrice } = position;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const exchangeFee = getPredictExchangeFee(preview?.fees);
   const total = currentValue;
   const feeBreakdown = buildPredictFeeBreakdownAmounts({
     side: Side.SELL,
     order: preview?.minAmountReceived ?? 0,
     metamaskFee,
-    exchangeFee,
     total,
   });
 

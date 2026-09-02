@@ -270,7 +270,6 @@ describe('orders utils', () => {
         side: Side.BUY,
         order: 10.001,
         metamaskFee: 0.004,
-        exchangeFee: 0.2,
         depositFee: 0.003,
         total: 10.03,
       });
@@ -295,7 +294,6 @@ describe('orders utils', () => {
         side: Side.SELL,
         order: 10.019,
         metamaskFee: 0.014,
-        exchangeFee: 0.2,
         total: 9.995,
       });
 
@@ -315,7 +313,6 @@ describe('orders utils', () => {
         side: Side.BUY,
         order: 10.001,
         metamaskFee: 0.001,
-        exchangeFee: 0.001,
         total: 10.02,
       });
 
@@ -331,12 +328,27 @@ describe('orders utils', () => {
       );
     });
 
+    it('returns zero buy rows when stake and total are zero', () => {
+      const result = buildPredictFeeBreakdownAmounts({
+        side: Side.BUY,
+        order: 0,
+        metamaskFee: 0.5,
+        total: 0,
+      });
+
+      expect(result).toEqual({
+        order: 0,
+        metamaskFee: 0,
+        exchangeFee: 0,
+        total: 0,
+      });
+    });
+
     it('omits depositFee when the input is zero', () => {
       const result = buildPredictFeeBreakdownAmounts({
         side: Side.BUY,
         order: 10,
         metamaskFee: 0.1,
-        exchangeFee: 0.1,
         depositFee: 0,
         total: 10.2,
       });

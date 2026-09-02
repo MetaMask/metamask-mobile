@@ -78,7 +78,6 @@ import { MINIMUM_BET } from '../../constants/transactions';
 import {
   buildPredictFeeBreakdownAmounts,
   getPredictBuyAllInCost,
-  getPredictExchangeFee,
   roundUpToCents,
 } from '../../utils/orders';
 import { usePredictMaxBetAmount } from '../../hooks/usePredictMaxBetAmount';
@@ -272,7 +271,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const isRateLimited = preview?.rateLimited ?? false;
 
   const metamaskFee = preview?.fees?.metamaskFee ?? 0;
-  const exchangeFee = getPredictExchangeFee(preview?.fees);
   const previewAllInCost = getPredictBuyAllInCost(preview);
   const total =
     currentValue > 0 && preview
@@ -282,7 +280,6 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     side: Side.BUY,
     order: currentValue,
     metamaskFee,
-    exchangeFee,
     total,
   });
 
