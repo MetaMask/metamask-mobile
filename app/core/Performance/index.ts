@@ -5,6 +5,8 @@ export {
   getLastAppProfilePath,
   isAppProfilingRecording,
   isPerformanceProfilingEnabled,
+  PERFORMANCE_PROFILE_ANDROID_FILENAME,
+  PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH,
   startAppProfiling,
   stopAppProfiling,
 } from './appProfiling';

@@ -9,10 +9,21 @@
  * `react-native-release-profiler` in app code, gated to performance APKs.
  */
 
+import { Platform } from 'react-native';
+import RNFS from 'react-native-fs';
 import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
+
+/**
+ * Stable Android Downloads filename so Appium can `pullFile` without discovering
+ * the unique name returned by `stopProfiling`.
+ */
+export const PERFORMANCE_PROFILE_ANDROID_FILENAME =
+  'metamask-performance-latest.cpuprofile';
+
+export const PERFORMANCE_PROFILE_ANDROID_REMOTE_PATH = `/sdcard/Download/${PERFORMANCE_PROFILE_ANDROID_FILENAME}`;
 
 let isRecording = false;
 let lastProfilePath: string | null = null;
@@ -36,7 +47,8 @@ export async function startAppProfiling(
 
 /**
  * Stops the active profiling session and returns the on-device profile path.
- * On Android, `stopProfiling(true)` copies the `.cpuprofile` to Downloads.
+ * On Android, `stopProfiling(true)` copies the `.cpuprofile` to Downloads, then
+ * we also copy it to {@link PERFORMANCE_PROFILE_ANDROID_FILENAME} for Appium pull.
  * No-ops unless this is a performance-test APK with an active session.
  */
 export async function stopAppProfiling(
@@ -49,13 +61,20 @@ export async function stopAppProfiling(
   const path = await stopProfiling(true);
   isRecording = false;
 
-  if (typeof path === 'string' && path.length > 0) {
-    lastProfilePath = path;
+  if (typeof path !== 'string' || path.length === 0) {
+    lastProfilePath = null;
+    return null;
+  }
+
+  if (Platform.OS === 'android') {
+    const stablePath = `${RNFS.DownloadDirectoryPath}/${PERFORMANCE_PROFILE_ANDROID_FILENAME}`;
+    await RNFS.copyFile(path, stablePath);
+    lastProfilePath = stablePath;
     return lastProfilePath;
   }
 
-  lastProfilePath = null;
-  return null;
+  lastProfilePath = path;
+  return lastProfilePath;
 }
 
 export function isAppProfilingRecording(): boolean {

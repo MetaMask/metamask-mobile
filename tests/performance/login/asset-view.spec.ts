@@ -6,6 +6,7 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import {
   startAppProfilingFromTest,
+  stopAndCollectAppProfiling,
   stopAppProfilingFromTest,
 } from '../helpers/appProfiling';
 import {
@@ -21,7 +22,7 @@ perfTest.describe(
     perfTest(
       'Asset View, SRP 1 + SRP 2 + SRP 3',
       { tag: '@assets-dev-team' },
-      async ({ currentDeviceDetails, performanceTracker }) => {
+      async ({ currentDeviceDetails, performanceTracker }, testInfo) => {
         await startAppProfilingFromTest();
 
         try {
@@ -45,11 +46,21 @@ perfTest.describe(
             );
           });
 
-          await stopAppProfilingFromTest();
+          await stopAndCollectAppProfiling(
+            testInfo,
+            currentDeviceDetails.platform,
+          );
 
           performanceTracker.addTimer(assetViewScreen);
         } catch (error) {
-          await stopAppProfilingFromTest();
+          try {
+            await stopAndCollectAppProfiling(
+              testInfo,
+              currentDeviceDetails.platform,
+            );
+          } catch {
+            await stopAppProfilingFromTest();
+          }
           throw error;
         }
       },
