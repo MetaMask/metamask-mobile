@@ -48,8 +48,7 @@ export const getHighestReadyRateEntry = <T>(
     }
 
     const highestRate = highest && getRate(highest);
-    return highestRate &&
-      highestRate.status === 'ready' &&
+    return highestRate?.status === 'ready' &&
       highestRate.percentage >= rate.percentage
       ? highest
       : entry;
