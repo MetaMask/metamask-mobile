@@ -5,7 +5,7 @@ import {
   hasEarnAssetSubsidizedFee,
 } from '.';
 import { isEarnAssetBalanceBelowMinDepositAmount } from './earnAssetBalance';
-import { getEarnAssetRateCopy } from '../earnSection/getEarnAssetRateCopy';
+import { getEarnAssetHighestRateCopy } from '../earnSection/getEarnAssetHighestRateCopy';
 import type { EarnSectionRankedAsset } from '../earnSection';
 
 /** Derived display values shared by Earn asset cards and search rows. */
@@ -18,8 +18,8 @@ export interface EarnAssetDisplayData {
   hasMinDepositAmount: boolean;
   /** Whether any available Earn experience waives fees. */
   hasSubsidizedFee: boolean;
-  /** Localized APY/APR or unavailable-rate copy. */
-  rateCopy: string;
+  /** Localized highest-rate copy of all supported experiences */
+  highestRateCopy: string;
 }
 
 /**
@@ -40,6 +40,6 @@ export const deriveEarnAssetDisplayData = (
       fiatBalance !== undefined &&
       !isEarnAssetBalanceBelowMinDepositAmount(asset),
     hasSubsidizedFee: hasEarnAssetSubsidizedFee(asset),
-    rateCopy: getEarnAssetRateCopy({ asset }),
+    highestRateCopy: getEarnAssetHighestRateCopy({ asset }),
   };
 };

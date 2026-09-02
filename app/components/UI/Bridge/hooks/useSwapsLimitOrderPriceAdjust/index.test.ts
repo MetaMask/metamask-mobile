@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { useTokenFiatRate } from '../useTokenFiatRate';
 import { createMockToken } from '../../testUtils/fixtures';
 import { LimitOrderExecutionType } from '../../constants/limitOrders';
+import { getSwapsLimitOrderPriceMarketComparison } from '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison';
 import { useSwapsLimitOrderPriceAdjust } from './index';
 
 jest.mock('react-redux', () => ({
@@ -13,8 +14,18 @@ jest.mock('../useTokenFiatRate', () => ({
   useTokenFiatRate: jest.fn(),
 }));
 
+jest.mock('../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison');
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseTokenFiatRate = jest.mocked(useTokenFiatRate);
+const mockGetSwapsLimitOrderPriceMarketComparison = jest.mocked(
+  getSwapsLimitOrderPriceMarketComparison,
+);
+const actualGetSwapsLimitOrderPriceMarketComparison = jest.requireActual<{
+  getSwapsLimitOrderPriceMarketComparison: typeof getSwapsLimitOrderPriceMarketComparison;
+}>(
+  '../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison',
+).getSwapsLimitOrderPriceMarketComparison;
 
 const sourceToken = createMockToken({
   address: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
@@ -49,14 +60,12 @@ function mockFiatRates({
 function renderPriceAdjustHook(
   overrides: {
     destToken?: typeof destToken;
-    destTokenAmount?: string | undefined;
     sourceToken?: typeof sourceToken;
   } = {},
 ) {
   return renderHook((props) => useSwapsLimitOrderPriceAdjust(props), {
     initialProps: {
       destToken: overrides.destToken ?? destToken,
-      destTokenAmount: overrides.destTokenAmount ?? '1.5',
       sourceToken: overrides.sourceToken ?? sourceToken,
     },
   });
@@ -67,9 +76,12 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue('usd');
     mockFiatRates();
+    mockGetSwapsLimitOrderPriceMarketComparison.mockImplementation(
+      actualGetSwapsLimitOrderPriceMarketComparison,
+    );
   });
 
-  it('starts in buy mode with market price seeded from the quoted token fiat rate', () => {
+  it('starts in buy mode with market price seeded from the quoted token fiat rate, with no source amount entered', () => {
     const { result } = renderPriceAdjustHook();
 
     expect(result.current.executionType).toBe(LimitOrderExecutionType.BUY);
@@ -88,7 +100,6 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     mockUseTokenFiatRate.mockImplementation(() => 1);
 
     const { result } = renderPriceAdjustHook({
-      destTokenAmount: '10',
       sourceToken: usdt,
     });
 
@@ -110,9 +121,10 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       result.current.handleLimitPriceChange('2');
     });
 
+    mockFiatRates({ destRate: 1.2 });
+
     rerender({
       destToken,
-      destTokenAmount: '2.0',
       sourceToken,
     });
 
@@ -120,9 +132,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('applies market preset on handleMarketPress', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.handleMarketPress();
@@ -142,9 +152,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('applies negative percent preset in buy mode', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.handlePercentPress(5);
@@ -154,9 +162,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('applies positive percent preset in sell mode', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.onQuoteUnitPress?.();
@@ -172,9 +178,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('commits a valid custom percent into the limit price', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.handleCustomPress();
@@ -190,9 +194,7 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
   });
 
   it('exits custom mode without changing the limit price when custom percent is empty', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.handleLimitPriceChange('3');
@@ -209,10 +211,8 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.customValue).toBe('');
   });
 
-  it('exits custom mode without changing the limit price when custom percent is zero', () => {
-    const { result } = renderPriceAdjustHook({
-      destTokenAmount: undefined,
-    });
+  it('commits a zero custom percent as the market price', () => {
+    const { result } = renderPriceAdjustHook();
 
     act(() => {
       result.current.handleLimitPriceChange('3');
@@ -224,9 +224,9 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       result.current.commitCustomPercent();
     });
 
-    expect(result.current.limitPrice).toBe('3');
-    expect(result.current.isCustomActive).toBe(false);
-    expect(result.current.customValue).toBe('');
+    expect(result.current.limitPrice).toBe('1');
+    expect(result.current.isCustomActive).toBe(true);
+    expect(result.current.customValue).toBe('0');
   });
 
   it('toggles fiat mode when both token fiat rates are available', () => {
@@ -259,21 +259,45 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.secondaryValue).toBe('$0.95');
   });
 
-  it('keeps counter-token denomination after destTokenAmount updates', () => {
-    const { result, rerender } = renderPriceAdjustHook();
+  it('seeds the new pair market price when the selected assets change', () => {
+    const dai = createMockToken({
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      symbol: 'DAI',
+      decimals: 18,
+    });
+    mockUseTokenFiatRate.mockImplementation((token) => {
+      if (token?.symbol === 'ETH') {
+        return 2000;
+      }
+      if (token?.symbol === 'DAI') {
+        return 1;
+      }
+      return undefined;
+    });
 
-    act(() => {
-      result.current.onAmountTypeTogglePress?.();
+    const { result, rerender } = renderPriceAdjustHook({
+      destToken: dai,
+    });
+
+    expect(result.current.limitPrice).toBe('1');
+
+    const usdc = destToken;
+    mockUseTokenFiatRate.mockImplementation((token) => {
+      if (token?.symbol === 'ETH') {
+        return 2000;
+      }
+      if (token?.symbol === 'USDC') {
+        return 1.5;
+      }
+      return undefined;
     });
 
     rerender({
-      destToken,
-      destTokenAmount: '2.0',
+      destToken: usdc,
       sourceToken,
     });
 
-    expect(result.current.isLimitFiatMode).toBe(false);
-    expect(result.current.limitPrice).toBe('0.0005');
+    expect(result.current.limitPrice).toBe('1.5');
   });
 
   it('keeps counter-token denomination after quoted fiat rate updates', () => {
@@ -287,7 +311,6 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     rerender({
       destToken,
-      destTokenAmount: '1.5',
       sourceToken,
     });
 
@@ -302,6 +325,173 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     expect(result.current.onAmountTypeTogglePress).toBeUndefined();
   });
 
+  describe('live market tracking', () => {
+    it('suppresses market comparison while tracking market, even if the raw comparison would show one', () => {
+      // Simulates the one-render lag right after a market data update, where
+      // limitPrice hasn't resynced yet and the raw comparison would report a
+      // false divergence. isTrackingMarket must suppress it unconditionally.
+      mockGetSwapsLimitOrderPriceMarketComparison.mockReturnValue({
+        label: 'stale comparison',
+        isNegative: true,
+      });
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.marketComparison).toBeUndefined();
+    });
+
+    it('surfaces the market comparison once tracking market stops', () => {
+      mockGetSwapsLimitOrderPriceMarketComparison.mockReturnValue({
+        label: 'real comparison',
+        isNegative: true,
+      });
+
+      const { result } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleLimitPriceChange('2');
+      });
+
+      expect(result.current.marketComparison).toEqual({
+        label: 'real comparison',
+        isNegative: true,
+      });
+    });
+
+    it('follows the market rate while the price sits at market', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      expect(result.current.limitPrice).toBe('1');
+
+      mockFiatRates({ destRate: 1.2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('1.2');
+    });
+
+    it('stops following the market after a percent preset, and resumes after the market preset', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handlePercentPress(5);
+      });
+
+      expect(result.current.limitPrice).toBe('0.95');
+
+      mockFiatRates({ destRate: 1.2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('0.95');
+
+      act(() => {
+        result.current.handleMarketPress();
+      });
+
+      expect(result.current.limitPrice).toBe('1.2');
+
+      mockFiatRates({ destRate: 1.5 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('1.5');
+    });
+
+    it('follows the market after a zero custom percent is committed', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleCustomPress();
+        result.current.handleCustomValueChange('0');
+      });
+
+      act(() => {
+        result.current.commitCustomPercent();
+      });
+
+      mockFiatRates({ destRate: 1.2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('1.2');
+      expect(result.current.isCustomActive).toBe(true);
+    });
+
+    it('stops following the market after a non-zero custom percent is committed', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.handleCustomPress();
+        result.current.handleCustomValueChange('5');
+      });
+
+      act(() => {
+        result.current.commitCustomPercent();
+      });
+
+      expect(result.current.limitPrice).toBe('0.95');
+
+      mockFiatRates({ destRate: 1.2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('0.95');
+    });
+
+    it('stops following the market after the denomination is toggled', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.onAmountTypeTogglePress?.();
+      });
+
+      expect(result.current.limitPrice).toBe('0.0005');
+
+      mockFiatRates({ destRate: 1.2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('0.0005');
+    });
+
+    it('follows the market in counter-token denomination after the market preset', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      act(() => {
+        result.current.onAmountTypeTogglePress?.();
+      });
+
+      act(() => {
+        result.current.handleMarketPress();
+      });
+
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.limitPrice).toBe('0.0005');
+
+      mockFiatRates({ destRate: 2 });
+      rerender({ destToken, sourceToken });
+
+      expect(result.current.limitPrice).toBe('0.001');
+    });
+  });
+
+  it('seeds the market price for a new pair sharing the same quoted fiat rate and counter decimals', () => {
+    const usdt = createMockToken({
+      address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+      symbol: 'USDT',
+      decimals: 6,
+    });
+    mockUseTokenFiatRate.mockImplementation((token) =>
+      token?.symbol === 'ETH' ? 2000 : 1,
+    );
+
+    const { result, rerender } = renderPriceAdjustHook();
+
+    expect(result.current.limitPrice).toBe('1');
+
+    rerender({
+      destToken: usdt,
+      sourceToken,
+    });
+
+    expect(result.current.limitPrice).toBe('1');
+  });
+
   it('resets price fields when the token pair changes', () => {
     const { result, rerender } = renderPriceAdjustHook();
 
@@ -311,7 +501,6 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     rerender({
       destToken,
-      destTokenAmount: '1.5',
       sourceToken: {
         ...sourceToken,
         address: '0x0000000000000000000000000000000000000001',

@@ -466,6 +466,7 @@ export const BrowserPure = (props) => {
               isInTabsView={shouldShowTabs}
               homePageUrl={homePageUrl()}
               fromTrending={route.params?.fromTrending}
+              fromExploreSearch={route.params?.fromExploreSearch}
               fromPerps={route.params?.fromPerps}
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
@@ -495,6 +496,7 @@ export const BrowserPure = (props) => {
       updateTabInfo,
       showTabsView,
       route.params?.fromTrending,
+      route.params?.fromExploreSearch,
       route.params?.fromPerps,
       route.params?.fromBenefit,
       route.params?.fromCard,

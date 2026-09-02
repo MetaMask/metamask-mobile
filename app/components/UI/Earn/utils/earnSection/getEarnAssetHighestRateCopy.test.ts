@@ -4,7 +4,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import type { EarnAssetId, EarnExperience } from '../../types/earnAssets';
 import type { EarnSectionRankedAsset } from './rankEarnSectionAssets';
-import { getEarnAssetRateCopy } from './getEarnAssetRateCopy';
+import { getEarnAssetHighestRateCopy } from './getEarnAssetHighestRateCopy';
 
 const createExperience = (
   type: 'APR' | 'APY',
@@ -83,7 +83,7 @@ const createAsset = ({
   };
 };
 
-describe('getEarnAssetRateCopy', () => {
+describe('getEarnAssetHighestRateCopy', () => {
   it('returns unavailable copy when no rate is available', () => {
     const asset = {
       ...createAsset(),
@@ -91,7 +91,7 @@ describe('getEarnAssetRateCopy', () => {
       highestRateExperience: undefined,
     };
 
-    const result = getEarnAssetRateCopy({ asset });
+    const result = getEarnAssetHighestRateCopy({ asset });
 
     expect(result).toBe(strings('earn_module.rate_unavailable'));
   });
@@ -102,7 +102,7 @@ describe('getEarnAssetRateCopy', () => {
   ] as const)('returns %s copy for a discovery asset', (rateType, key) => {
     const asset = createAsset({ rateType });
 
-    const result = getEarnAssetRateCopy({ asset });
+    const result = getEarnAssetHighestRateCopy({ asset });
 
     expect(result).toBe(strings(`earn_module.${key}`, { percentage: '4.2' }));
   });
@@ -110,7 +110,7 @@ describe('getEarnAssetRateCopy', () => {
   it('returns get-started copy for a held asset with enough balance', () => {
     const asset = createAsset({ kind: 'held', fiatBalance: 1 });
 
-    const result = getEarnAssetRateCopy({ asset });
+    const result = getEarnAssetHighestRateCopy({ asset });
 
     expect(result).toBe(
       strings('earn_module.get_rate_apy', { percentage: '4.2' }),
@@ -120,7 +120,7 @@ describe('getEarnAssetRateCopy', () => {
   it('returns rate copy for a discovery asset', () => {
     const asset = createAsset({ kind: 'discovery' });
 
-    const result = getEarnAssetRateCopy({ asset });
+    const result = getEarnAssetHighestRateCopy({ asset });
 
     expect(result).toBe(strings('earn_module.rate_apy', { percentage: '4.2' }));
   });
@@ -128,7 +128,7 @@ describe('getEarnAssetRateCopy', () => {
   it('truncates the displayed percentage to two decimal places', () => {
     const asset = createAsset({ percentage: 4.219 });
 
-    const result = getEarnAssetRateCopy({ asset });
+    const result = getEarnAssetHighestRateCopy({ asset });
 
     expect(result).toBe(
       strings('earn_module.rate_apy', { percentage: '4.21' }),
