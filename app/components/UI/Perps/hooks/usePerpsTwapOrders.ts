@@ -108,7 +108,6 @@ export const usePerpsTwapOrders = (
       } else {
         setIsLoading(true);
       }
-      setError(null);
 
       try {
         const orders = await Engine.context.PerpsController.getTwapOrders();
@@ -118,6 +117,7 @@ export const usePerpsTwapOrders = (
         }
         setTwapOrders(orders || []);
         setResolvedIdentityKey(identityKey);
+        setError(null);
       } catch (err) {
         if (!isCurrentRequest()) {
           return;

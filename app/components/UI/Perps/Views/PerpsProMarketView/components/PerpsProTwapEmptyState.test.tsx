@@ -39,12 +39,26 @@ describe('PerpsProTwapEmptyState', () => {
     );
   });
 
-  it('passes a ticker filter through to the shared empty state', () => {
+  it.each([
+    ['active', 'perps.pro_positions_panel.twap_empty_filtered'],
+    ['history', 'perps.pro_positions_panel.twap_history_empty_filtered'],
+    [
+      'fill_history',
+      'perps.pro_positions_panel.twap_fill_history_empty_filtered',
+    ],
+  ])('uses filtered ticker copy for the %s view', (view, expectedKey) => {
     // Arrange / Act
-    render(<PerpsProTwapEmptyState view="active" filteredTicker="BTC" />);
+    render(
+      <PerpsProTwapEmptyState
+        view={view as ProTwapView}
+        filteredTicker="BTC"
+      />,
+    );
 
     // Assert
-    expect(screen.getByTestId('tab-empty-state')).toHaveTextContent(/BTC/u);
+    expect(screen.getByTestId('tab-empty-state')).toHaveTextContent(
+      new RegExp(`"filteredTickerDescriptionKey":"${expectedKey}"`, 'u'),
+    );
   });
 
   it('passes a side-filter copy key through to the shared empty state', () => {

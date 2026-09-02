@@ -17,6 +17,12 @@ const EMPTY_DESCRIPTION_KEYS: Record<ProTwapView, string> = {
   fill_history: 'perps.pro_positions_panel.twap_fill_history_empty',
 };
 
+const FILTERED_TICKER_DESCRIPTION_KEYS: Record<ProTwapView, string> = {
+  active: 'perps.pro_positions_panel.twap_empty_filtered',
+  history: 'perps.pro_positions_panel.twap_history_empty_filtered',
+  fill_history: 'perps.pro_positions_panel.twap_fill_history_empty_filtered',
+};
+
 /**
  * Empty state for the Pro-mode TWAP tab. Each of the three views has its own
  * copy, since "no active TWAPs" and "no TWAP history" mean different things.
@@ -30,7 +36,7 @@ const PerpsProTwapEmptyState = ({
     filteredTicker={filteredTicker}
     filteredSideDescriptionKey={filteredSideDescriptionKey}
     emptyDescriptionKey={EMPTY_DESCRIPTION_KEYS[view]}
-    filteredTickerDescriptionKey="perps.pro_positions_panel.twap_empty_filtered"
+    filteredTickerDescriptionKey={FILTERED_TICKER_DESCRIPTION_KEYS[view]}
   />
 );
 

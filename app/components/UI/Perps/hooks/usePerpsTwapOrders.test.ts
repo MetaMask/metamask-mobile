@@ -102,6 +102,39 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([]);
   });
 
+  it('keeps a read error visible until a refresh succeeds', async () => {
+    // Arrange
+    let resolveRefresh: ((orders: TwapOrder[]) => void) | undefined;
+    const refreshRead = new Promise<TwapOrder[]>((resolve) => {
+      resolveRefresh = resolve;
+    });
+    mockController.getTwapOrders
+      .mockRejectedValueOnce(new Error('venue down'))
+      .mockReturnValueOnce(refreshRead);
+    const { result } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() => expect(result.current.error).toBe('venue down'));
+
+    // Act
+    let refreshPromise: Promise<void> | undefined;
+    act(() => {
+      refreshPromise = result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.error).toBe('venue down');
+    expect(result.current.isRefreshing).toBe(true);
+
+    // Act
+    resolveRefresh?.([buildTwapOrder()]);
+    await act(async () => {
+      await refreshPromise;
+    });
+
+    // Assert
+    expect(result.current.error).toBeNull();
+    expect(result.current.isRefreshing).toBe(false);
+  });
+
   it('refetches on refresh', async () => {
     // Arrange
     const { result } = renderHook(() => usePerpsTwapOrders());
