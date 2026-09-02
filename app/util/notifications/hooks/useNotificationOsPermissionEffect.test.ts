@@ -1,8 +1,11 @@
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import { renderHook } from '@testing-library/react-native';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../selectors/notifications';
 import { syncPushNotificationOsPermission } from '../utils/push-notification-os-permission-sync';
-import { useNotificationOsPermissionEffect } from './useNotificationOsPermissionEffect';
+import {
+  ANDROID_OS_PERMISSION_REFRESH_DELAY_MS,
+  useNotificationOsPermissionEffect,
+} from './useNotificationOsPermissionEffect';
 
 jest.mock('../utils/push-notification-os-permission-sync', () => ({
   syncPushNotificationOsPermission: jest.fn(),
@@ -18,10 +21,12 @@ const mockSync = jest.mocked(syncPushNotificationOsPermission);
 describe('useNotificationOsPermissionEffect', () => {
   let changeHandler: (state: AppStateStatus) => void;
   const removeSpy = jest.fn();
+  const originalPlatformOS = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(false);
+    Platform.OS = 'ios';
     jest
       .spyOn(AppState, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -33,6 +38,8 @@ describe('useNotificationOsPermissionEffect', () => {
   });
 
   afterEach(() => {
+    Platform.OS = originalPlatformOS;
+    jest.useRealTimers();
     // clearAllMocks does not restore spies; restore so the AppState spy does not
     // leak into other suites sharing this Jest worker.
     jest.restoreAllMocks();
@@ -119,5 +126,47 @@ describe('useNotificationOsPermissionEffect', () => {
     unmount();
 
     expect(removeSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not schedule a delayed re-sync on iOS after returning to active', () => {
+    jest.useFakeTimers();
+    renderHook(() => useNotificationOsPermissionEffect());
+    mockSync.mockClear();
+
+    changeHandler('background');
+    changeHandler('active');
+    jest.advanceTimersByTime(ANDROID_OS_PERMISSION_REFRESH_DELAY_MS);
+
+    expect(mockSync).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-runs the sync on Android after returning to active once the permission refresh delay elapses', () => {
+    Platform.OS = 'android';
+    jest.useFakeTimers();
+    renderHook(() => useNotificationOsPermissionEffect());
+    mockSync.mockClear();
+
+    changeHandler('background');
+    changeHandler('active');
+
+    expect(mockSync).toHaveBeenCalledTimes(1);
+
+    jest.advanceTimersByTime(ANDROID_OS_PERMISSION_REFRESH_DELAY_MS);
+
+    expect(mockSync).toHaveBeenCalledTimes(2);
+  });
+
+  it('cancels the Android permission refresh delay on unmount', () => {
+    Platform.OS = 'android';
+    jest.useFakeTimers();
+    const { unmount } = renderHook(() => useNotificationOsPermissionEffect());
+    mockSync.mockClear();
+
+    changeHandler('background');
+    changeHandler('active');
+    unmount();
+    jest.advanceTimersByTime(ANDROID_OS_PERMISSION_REFRESH_DELAY_MS);
+
+    expect(mockSync).toHaveBeenCalledTimes(1);
   });
 });
