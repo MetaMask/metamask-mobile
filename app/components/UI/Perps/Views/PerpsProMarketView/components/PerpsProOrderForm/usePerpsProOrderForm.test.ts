@@ -1103,6 +1103,50 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.isPlaceOrderDisabled).toBe(false);
     });
 
+    it('phrases the stop loss wrong-side warning for the remaining position, not the order', () => {
+      // Arrange: long decrease of a short leaves a short. SL below market is
+      // wrong for that short; the notice must say "above", not long's "below".
+      mockOrderForm.direction = 'long';
+      mockOrderForm.stopLossPrice = '85000';
+      mockExistingPosition = {
+        size: '-1',
+        marginUsed: '1000',
+        liquidationPrice: '105000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'decrease',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+        resulting: {
+          direction: 'short',
+          size: 0.5,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 500 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-invalid')
+          ?.message,
+      ).toBe(
+        strings('perps.tpsl.stop_loss_wrong_side_warning', {
+          direction: strings('perps.tpsl.above'),
+          priceType: 'current',
+        }),
+      );
+    });
+
     it('warns when the stop loss sits past the projected liquidation price', () => {
       // Arrange: the current liquidation (80000) keeps a 85000 stop loss safe,
       // but the resize projects liquidation up to 86000.

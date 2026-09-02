@@ -1832,6 +1832,8 @@ export const usePerpsProOrderForm = ({
     track,
   ]);
 
+  const tpslDirection =
+    positionModifySummaryDisplay.tpslDirection ?? orderForm.direction;
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -1840,8 +1842,7 @@ export const usePerpsProOrderForm = ({
   } = getPerpsOrderTpSlWarnings({
     orderType: orderForm.type,
     limitPrice: normalizedLimitPrice,
-    direction:
-      positionModifySummaryDisplay.tpslDirection ?? orderForm.direction,
+    direction: tpslDirection,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
     liquidationPrice:
@@ -2964,7 +2965,7 @@ export const usePerpsProOrderForm = ({
       }),
       ...getTpslNotices({
         reduceOnly: reduceOnly || isTriggerOrderType(orderForm.type),
-        direction: orderForm.direction,
+        direction: tpslDirection,
         doesStopLossRiskLiquidation,
         isTakeProfitPriceInvalid,
         isStopLossPriceInvalid,
@@ -3038,7 +3039,7 @@ export const usePerpsProOrderForm = ({
     isTakeProfitPriceInvalid,
     isStopLossPriceInvalid,
     isAtCap,
-    orderForm.direction,
+    tpslDirection,
     orderForm.type,
     tpslPriceType,
     twapDurationMissing,
