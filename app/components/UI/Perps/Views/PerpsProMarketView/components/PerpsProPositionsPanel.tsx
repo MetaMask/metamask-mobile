@@ -185,8 +185,9 @@ const ChaseKeyValueItem = ({
 );
 
 /**
- * Poll cadence for TWAP. Slower than the 1s streamed panels because each tick
- * is two venue REST calls; TWAP has no push channel to subscribe to.
+ * REST reconciliation cadence for TWAP. The controller subscription supplies
+ * schedule changes, while each slower REST tick supplies slice fills and the
+ * aggregate execution details omitted by the stream.
  */
 const TWAP_POLL_INTERVAL_MS = 5000;
 
@@ -243,7 +244,7 @@ const PerpsProPositionsPanel = ({
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);
-  const isTwapTabEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const isTwapPlacementEnabled = useSelector(selectPerpsProTwapEnabledFlag);
   const { chaseOrders, reconcileCanceledChaseOrder } = usePerpsChaseOrders({
     isEnabled: isScreenFocused,
     enableDiscovery: false,
@@ -264,14 +265,6 @@ const PerpsProPositionsPanel = ({
   >(null);
   const reportedTerminatedChaseKeysRef = useRef(new Set<string>());
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
-  useEffect(() => {
-    if (
-      (activeTabKey === 'chase' && !shouldShowChaseTab) ||
-      (activeTabKey === 'twap' && !isTwapTabEnabled)
-    ) {
-      setActiveTabKey('orders');
-    }
-  }, [activeTabKey, isTwapTabEnabled, shouldShowChaseTab]);
   // Positions and Orders persist their side filter on the controller; TWAP has
   // no such field on `ProLayoutPreferences`, so it stays local for now.
   const [twapSideFilter, setTwapSideFilter] = useState<ProOrderSideFilter>(
@@ -390,19 +383,38 @@ const PerpsProPositionsPanel = ({
   const [terminatingTwapOrder, setTerminatingTwapOrder] =
     useState<TwapOrder | null>(null);
   const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
-  // Only the active view needs to track a running schedule, and the tab has to
-  // be both enabled and selected before it is worth spending venue calls.
-  const isTwapTabActive = isTwapTabEnabled && activeTabKey === 'twap';
+  const isTwapTabSelected = activeTabKey === 'twap';
   const {
     twapOrders,
     isLoading: areTwapOrdersInitiallyLoading,
     error: twapOrdersError,
     refresh: refreshTwapOrders,
   } = usePerpsTwapOrders({
-    enablePolling: isScreenFocused && isTwapTabActive,
+    // Discovery is independent of the placement rollout: users must retain a
+    // termination surface for venue-native schedules after a flag rollback.
+    enablePolling: isScreenFocused && isTwapTabSelected,
     pollingInterval: TWAP_POLL_INTERVAL_MS,
-    skipInitialFetch: !isTwapTabEnabled,
   });
+  const allActiveTwapOrders = useMemo(
+    () => selectActiveTwapOrders(twapOrders),
+    [twapOrders],
+  );
+  const allHistoricalTwapOrders = useMemo(
+    () => selectHistoricalTwapOrders(twapOrders),
+    [twapOrders],
+  );
+  const shouldShowTwapTab =
+    isTwapPlacementEnabled || allActiveTwapOrders.length > 0;
+
+  useEffect(() => {
+    if (
+      (activeTabKey === 'chase' && !shouldShowChaseTab) ||
+      (activeTabKey === 'twap' && !shouldShowTwapTab)
+    ) {
+      setActiveTabKey('orders');
+    }
+  }, [activeTabKey, shouldShowChaseTab, shouldShowTwapTab]);
+
   const { terminatingOrderId, terminateTwap } = usePerpsTerminateTwap({
     onSuccess: () => {
       setTerminatingTwapOrder(null);
@@ -555,7 +567,7 @@ const PerpsProPositionsPanel = ({
 
   const isOrdersTab = activeTabKey === 'orders';
   const isChaseTab = activeTabKey === 'chase' && shouldShowChaseTab;
-  const isTwapTab = activeTabKey === 'twap' && isTwapTabEnabled;
+  const isTwapTab = isTwapTabSelected && shouldShowTwapTab;
   let activeSideFilter = positionsSideFilter;
   let setActiveSideFilter = setPositionsSideFilter;
   if (isTwapTab) {
@@ -726,7 +738,7 @@ const PerpsProPositionsPanel = ({
       testID: PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
     });
   }
-  if (isTwapTabEnabled) {
+  if (shouldShowTwapTab) {
     tabs.push({
       key: 'twap',
       label: twapTabLabel,
@@ -778,61 +790,76 @@ const PerpsProPositionsPanel = ({
       ? displaySymbol
       : undefined;
 
-  const allActiveTwapOrders = selectActiveTwapOrders(twapOrders);
-  const allHistoricalTwapOrders = selectHistoricalTwapOrders(twapOrders);
-  const allFillTwapOrders = twapOrders.filter(
-    (twapOrder) => twapOrder.fills.length > 0,
+  const allFillTwapOrders = useMemo(
+    () => twapOrders.filter((twapOrder) => twapOrder.fills.length > 0),
+    [twapOrders],
   );
-  const visibleFillTwapOrders = visibleTwapOrders.filter(
-    (twapOrder) => twapOrder.fills.length > 0,
+  const visibleFillTwapOrders = useMemo(
+    () => visibleTwapOrders.filter((twapOrder) => twapOrder.fills.length > 0),
+    [visibleTwapOrders],
   );
-  const sideFilteredFillTwapOrders = filterProTwapOrdersBySide(
-    visibleFillTwapOrders,
-    twapSideFilter,
+  const sideFilteredFillTwapOrders = useMemo(
+    () => filterProTwapOrdersBySide(visibleFillTwapOrders, twapSideFilter),
+    [twapSideFilter, visibleFillTwapOrders],
   );
-  const getTwapEmptyMetadata = (
-    allViewOrders: TwapOrder[],
-    visibleViewOrders: TwapOrder[],
-    sideFilteredViewOrders: TwapOrder[],
-  ): PerpsProTwapEmptyMetadata => {
-    const isTwapViewSideFilterEmpty =
-      twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
-      visibleViewOrders.length > 0 &&
-      sideFilteredViewOrders.length === 0;
+  const twapEmptyMetadataByView = useMemo<
+    Record<ProTwapView, PerpsProTwapEmptyMetadata>
+  >(() => {
+    const getTwapEmptyMetadata = (
+      allViewOrders: TwapOrder[],
+      visibleViewOrders: TwapOrder[],
+      sideFilteredViewOrders: TwapOrder[],
+    ): PerpsProTwapEmptyMetadata => {
+      const isTwapViewSideFilterEmpty =
+        twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
+        visibleViewOrders.length > 0 &&
+        sideFilteredViewOrders.length === 0;
+
+      return {
+        filteredSideDescriptionKey: isTwapViewSideFilterEmpty
+          ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
+          : undefined,
+        filteredTicker:
+          isTickerOnly &&
+          allViewOrders.length > 0 &&
+          visibleViewOrders.length === 0 &&
+          !isTwapViewSideFilterEmpty
+            ? displaySymbol
+            : undefined,
+      };
+    };
 
     return {
-      filteredSideDescriptionKey: isTwapViewSideFilterEmpty
-        ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
-        : undefined,
-      filteredTicker:
-        isTickerOnly &&
-        allViewOrders.length > 0 &&
-        visibleViewOrders.length === 0 &&
-        !isTwapViewSideFilterEmpty
-          ? displaySymbol
-          : undefined,
+      active: getTwapEmptyMetadata(
+        allActiveTwapOrders,
+        visibleActiveTwapOrders,
+        activeTwapOrders,
+      ),
+      history: getTwapEmptyMetadata(
+        allHistoricalTwapOrders,
+        visibleHistoricalTwapOrders,
+        historicalTwapOrders,
+      ),
+      fill_history: getTwapEmptyMetadata(
+        allFillTwapOrders,
+        visibleFillTwapOrders,
+        sideFilteredFillTwapOrders,
+      ),
     };
-  };
-  const twapEmptyMetadataByView: Record<
-    ProTwapView,
-    PerpsProTwapEmptyMetadata
-  > = {
-    active: getTwapEmptyMetadata(
-      allActiveTwapOrders,
-      visibleActiveTwapOrders,
-      activeTwapOrders,
-    ),
-    history: getTwapEmptyMetadata(
-      allHistoricalTwapOrders,
-      visibleHistoricalTwapOrders,
-      historicalTwapOrders,
-    ),
-    fill_history: getTwapEmptyMetadata(
-      allFillTwapOrders,
-      visibleFillTwapOrders,
-      sideFilteredFillTwapOrders,
-    ),
-  };
+  }, [
+    activeTwapOrders,
+    allActiveTwapOrders,
+    allFillTwapOrders,
+    allHistoricalTwapOrders,
+    displaySymbol,
+    historicalTwapOrders,
+    isTickerOnly,
+    sideFilteredFillTwapOrders,
+    twapSideFilter,
+    visibleActiveTwapOrders,
+    visibleFillTwapOrders,
+    visibleHistoricalTwapOrders,
+  ]);
 
   const renderPositionsTab = () => {
     if (hasPositions) {
@@ -1315,7 +1342,6 @@ const PerpsProPositionsPanel = ({
       >
         <Box twClassName="flex-1">
           <TabsBar
-            key={shouldShowChaseTab ? 'chase-visible' : 'chase-hidden'}
             tabs={tabs}
             activeIndex={activeTabIndex}
             onTabPress={handleTabPress}

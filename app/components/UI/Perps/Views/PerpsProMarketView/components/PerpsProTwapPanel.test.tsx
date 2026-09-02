@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  getPerpsProTwapTerminateSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import PerpsProTwapPanel from './PerpsProTwapPanel';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -107,7 +110,9 @@ describe('PerpsProTwapPanel', () => {
 
     // Assert
     expect(screen.getByTestId(ids.TWAP_LIST)).toBeOnTheScreen();
-    expect(screen.getByTestId(ids.TWAP_TERMINATE)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    ).toBeOnTheScreen();
   });
 
   it('switches to terminal schedules on the history view', () => {
@@ -139,7 +144,9 @@ describe('PerpsProTwapPanel', () => {
     fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
 
     // Assert: a finished schedule has nothing left to stop
-    expect(screen.queryByTestId(ids.TWAP_TERMINATE)).toBeNull();
+    expect(
+      screen.queryByTestId(getPerpsProTwapTerminateSelector('done')),
+    ).toBeNull();
   });
 
   it('flattens slice fills on the fill-history view', () => {
@@ -161,7 +168,9 @@ describe('PerpsProTwapPanel', () => {
     // Assert: both slices of the one schedule are now listed individually
     expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f1`)).toBeOnTheScreen();
     expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f2`)).toBeOnTheScreen();
-    expect(screen.queryByTestId(ids.TWAP_TERMINATE)).toBeNull();
+    expect(
+      screen.queryByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    ).toBeNull();
   });
 
   it('renders at most one page of fill history at a time', () => {
@@ -272,7 +281,9 @@ describe('PerpsProTwapPanel', () => {
     renderPanel({ onTerminate, terminatingOrderId: 'twap-1' });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE));
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    );
 
     // Assert
     expect(onTerminate).not.toHaveBeenCalled();
@@ -284,7 +295,9 @@ describe('PerpsProTwapPanel', () => {
     renderPanel({ onTerminate });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE));
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    );
 
     // Assert
     expect(onTerminate).toHaveBeenCalledWith(

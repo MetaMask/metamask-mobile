@@ -637,6 +637,9 @@ export const getPerpsProChaseTerminateSelector = (
 export const getPerpsProTwapRowSelector = (orderId: string) =>
   `${PerpsProMarketViewSelectorsIDs.TWAP_ROW}-${orderId}`;
 
+export const getPerpsProTwapTerminateSelector = (orderId: string) =>
+  `${PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE}-${orderId}`;
+
 export const getPerpsProTwapFillRowSelector = (fillId: string) =>
   `${PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW}-${fillId}`;
 

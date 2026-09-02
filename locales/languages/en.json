@@ -1721,19 +1721,14 @@
         "average_price": "Avg. fill price",
         "progress": "Progress",
         "elapsed": "Elapsed",
-        "duration": "Duration",
         "reduce_only": "Reduce only",
         "randomize": "Randomized",
-        "created_at": "Created",
         "terminate": "Terminate",
         "status_active": "Active",
         "status_completed": "Completed",
         "status_completed_underfilled": "Completed underfilled",
         "status_canceled": "Terminated",
-        "status_failed": "Failed",
-        "fill_price": "Fill price",
-        "fill_size": "Size",
-        "fill_fee": "Fee"
+        "status_failed": "Failed"
       },
       "twap_terminate": {
         "title": "Terminate {{symbol}} TWAP?",

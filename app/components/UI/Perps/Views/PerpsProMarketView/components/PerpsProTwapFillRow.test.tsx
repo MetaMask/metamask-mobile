@@ -57,12 +57,25 @@ describe('PerpsProTwapFillRow', () => {
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
-  it('renders the slice size against its market', () => {
+  it('renders the slice price and size against its market', () => {
     // Arrange / Act
     render(<PerpsProTwapFillRowItem row={{ fill: buildFill(), twapOrder }} />);
 
     // Assert
+    expect(screen.getByText('$50,000')).toBeOnTheScreen();
     expect(screen.getByText(/1\.5 BTC/u)).toBeOnTheScreen();
+  });
+
+  it('hides the slice price and size in privacy mode', () => {
+    // Arrange
+    jest.mocked(useSelector).mockReturnValue(true);
+
+    // Act
+    render(<PerpsProTwapFillRowItem row={{ fill: buildFill(), twapOrder }} />);
+
+    // Assert
+    expect(screen.queryByText('$50,000')).toBeNull();
+    expect(screen.queryByText(/1\.5 BTC/u)).toBeNull();
   });
 
   it('labels a buy slice long and a sell slice short', () => {

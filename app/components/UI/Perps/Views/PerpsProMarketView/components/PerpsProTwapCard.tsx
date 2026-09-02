@@ -27,7 +27,10 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  getPerpsProTwapTerminateSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import {
   formatPerpsFiat,
   formatPositionSize,
@@ -297,7 +300,7 @@ const PerpsProTwapCard = ({
               twClassName="flex-1"
               onPress={() => onTerminate(twapOrder)}
               isDisabled={isTerminateDisabled}
-              testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE}
+              testID={getPerpsProTwapTerminateSelector(twapOrder.orderId)}
             >
               {strings('perps.pro_positions_panel.twap_card.terminate')}
             </Button>

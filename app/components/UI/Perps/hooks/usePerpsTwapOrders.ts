@@ -24,16 +24,16 @@ export interface UsePerpsTwapOrdersResult {
 
 export interface UsePerpsTwapOrdersOptions {
   /**
-   * Keep the list current. Prefers the controller's TWAP subscription and
-   * falls back to polling when the active provider has no push channel.
+   * Keep the list current through the controller's TWAP subscription plus
+   * bounded REST reconciliation for slice fills omitted by stream updates.
    *
    * @default false
    */
   enablePolling?: boolean;
   /**
-   * Poll interval in milliseconds, used only on the fallback path. Each tick
-   * is two venue REST calls (`twapHistory` + `userTwapSliceFills`), so this is
-   * deliberately slower than the 1s cadence the streamed panels use.
+   * REST reconciliation interval in milliseconds. Each tick is two venue
+   * calls (`twapHistory` + `userTwapSliceFills`), so this is deliberately
+   * slower than the 1s cadence the streamed panels use.
    *
    * @default 5000
    */
@@ -50,11 +50,10 @@ export interface UsePerpsTwapOrdersOptions {
  * from this single source. Providers without native TWAP history return an
  * empty list rather than throwing, so an empty result is a normal state.
  *
- * Live updates prefer `subscribeToTwapOrders`. The venue streams schedule
- * state without slice fills, so a pushed schedule keeps the fills the last
- * read supplied rather than blanking Fill History between refreshes.
- * Providers without a push channel return a no-op cleanup, and the polling
- * fallback takes over.
+ * `subscribeToTwapOrders` supplies schedule state without slice fills, so a
+ * pushed schedule keeps the fills the last REST read supplied rather than
+ * blanking Fill History. Bounded REST reconciliation remains active alongside
+ * the subscription so fills and aggregate execution details stay current.
  */
 export const usePerpsTwapOrders = (
   options: UsePerpsTwapOrdersOptions = {},
@@ -77,10 +76,17 @@ export const usePerpsTwapOrders = (
   const [resolvedIdentityKey, setResolvedIdentityKey] = useState(identityKey);
   const lifecycleGenerationRef = useRef(0);
   const requestGenerationRef = useRef(0);
+  const currentIdentityKeyRef = useRef(identityKey);
+  const inFlightFetchRef = useRef<{
+    identityKey: string;
+    promise: Promise<void>;
+  } | null>(null);
+  currentIdentityKeyRef.current = identityKey;
 
   useEffect(() => {
     const lifecycleGeneration = ++lifecycleGenerationRef.current;
     requestGenerationRef.current += 1;
+    inFlightFetchRef.current = null;
     setTwapOrders([]);
     setResolvedIdentityKey(identityKey);
     setIsLoading(!skipInitialFetch);
@@ -97,9 +103,20 @@ export const usePerpsTwapOrders = (
 
   const fetchTwapOrders = useCallback(
     async (isRefresh = false): Promise<void> => {
+      if (currentIdentityKeyRef.current !== identityKey) {
+        return;
+      }
+
+      const inFlightFetch = inFlightFetchRef.current;
+      if (inFlightFetch?.identityKey === identityKey) {
+        await inFlightFetch.promise;
+        return;
+      }
+
       const lifecycleGeneration = lifecycleGenerationRef.current;
       const requestGeneration = ++requestGenerationRef.current;
       const isCurrentRequest = () =>
+        currentIdentityKeyRef.current === identityKey &&
         lifecycleGenerationRef.current === lifecycleGeneration &&
         requestGenerationRef.current === requestGeneration;
 
@@ -109,27 +126,39 @@ export const usePerpsTwapOrders = (
         setIsLoading(true);
       }
 
-      try {
-        const orders = await Engine.context.PerpsController.getTwapOrders();
+      const requestPromise = (async () => {
+        try {
+          const orders = await Engine.context.PerpsController.getTwapOrders();
 
-        if (!isCurrentRequest()) {
-          return;
+          if (!isCurrentRequest()) {
+            return;
+          }
+          setTwapOrders(orders || []);
+          setResolvedIdentityKey(identityKey);
+          setError(null);
+        } catch (err) {
+          if (!isCurrentRequest()) {
+            return;
+          }
+          const errorMessage =
+            err instanceof Error ? err.message : 'Unknown error occurred';
+          setError(errorMessage);
+          DevLogger.log('Perps: Failed to fetch TWAP orders', err);
+        } finally {
+          if (isCurrentRequest()) {
+            setIsLoading(false);
+            setIsRefreshing(false);
+          }
         }
-        setTwapOrders(orders || []);
-        setResolvedIdentityKey(identityKey);
-        setError(null);
-      } catch (err) {
-        if (!isCurrentRequest()) {
-          return;
-        }
-        const errorMessage =
-          err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(errorMessage);
-        DevLogger.log('Perps: Failed to fetch TWAP orders', err);
+      })();
+      const request = { identityKey, promise: requestPromise };
+      inFlightFetchRef.current = request;
+
+      try {
+        await requestPromise;
       } finally {
-        if (isCurrentRequest()) {
-          setIsLoading(false);
-          setIsRefreshing(false);
+        if (inFlightFetchRef.current === request) {
+          inFlightFetchRef.current = null;
         }
       }
     },
@@ -161,7 +190,10 @@ export const usePerpsTwapOrders = (
 
     const unsubscribe = Engine.context.PerpsController.subscribeToTwapOrders({
       callback: (streamedOrders) => {
-        if (lifecycleGenerationRef.current !== lifecycleGeneration) {
+        if (
+          currentIdentityKeyRef.current !== identityKey ||
+          lifecycleGenerationRef.current !== lifecycleGeneration
+        ) {
           return;
         }
         // A stream commit is newer than reads already in flight.

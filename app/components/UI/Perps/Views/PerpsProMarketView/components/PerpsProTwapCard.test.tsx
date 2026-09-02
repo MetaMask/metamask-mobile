@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import {
+  getPerpsProTwapTerminateSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -207,13 +210,15 @@ describe('PerpsProTwapCard', () => {
   });
 
   it('offers Terminate only when a handler is supplied', () => {
+    const terminateTestId = getPerpsProTwapTerminateSelector('twap-1');
+
     // Arrange / Act
     const { rerender } = render(
       <PerpsProTwapCard twapOrder={buildTwapOrder()} />,
     );
 
     // Assert: a terminal schedule has nothing to terminate
-    expect(screen.queryByTestId(ids.TWAP_TERMINATE)).toBeNull();
+    expect(screen.queryByTestId(terminateTestId)).toBeNull();
 
     // Act
     rerender(
@@ -221,7 +226,7 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_TERMINATE)).toBeOnTheScreen();
+    expect(screen.getByTestId(terminateTestId)).toBeOnTheScreen();
   });
 
   it('passes the schedule to the terminate handler', () => {
@@ -233,7 +238,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE));
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector(twapOrder.orderId)),
+    );
 
     // Assert
     expect(onTerminate).toHaveBeenCalledWith(twapOrder);
@@ -251,10 +258,34 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_TERMINATE));
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    );
 
     // Assert
     expect(onTerminate).not.toHaveBeenCalled();
+  });
+
+  it('targets one schedule when multiple cards can be terminated', () => {
+    // Arrange
+    const onTerminate = jest.fn();
+    const firstOrder = buildTwapOrder({ orderId: 'twap-1' });
+    const secondOrder = buildTwapOrder({ orderId: 'twap-2' });
+    render(
+      <>
+        <PerpsProTwapCard twapOrder={firstOrder} onTerminate={onTerminate} />
+        <PerpsProTwapCard twapOrder={secondOrder} onTerminate={onTerminate} />
+      </>,
+    );
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-2')),
+    );
+
+    // Assert
+    expect(onTerminate).toHaveBeenCalledTimes(1);
+    expect(onTerminate).toHaveBeenCalledWith(secondOrder);
   });
 
   it('passes the schedule to the press handler', () => {

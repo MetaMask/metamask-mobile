@@ -27,6 +27,7 @@ import {
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
+  getPerpsProTwapTerminateSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
@@ -107,6 +108,20 @@ jest.mock('../../../hooks/usePerpsTwapOrders', () => ({
 jest.mock('../../../hooks/usePerpsTerminateTwap', () => ({
   usePerpsTerminateTwap: jest.fn(),
 }));
+
+let mockTwapEnabledFlag: boolean | undefined;
+jest.mock('../../../selectors/featureFlags', () => {
+  const actual = jest.requireActual(
+    '../../../selectors/featureFlags',
+  ) as typeof import('../../../selectors/featureFlags');
+
+  return {
+    ...actual,
+    selectPerpsProTwapEnabledFlag: (
+      state: Parameters<typeof actual.selectPerpsProTwapEnabledFlag>[0],
+    ) => mockTwapEnabledFlag ?? actual.selectPerpsProTwapEnabledFlag(state),
+  };
+});
 
 const mockTrack = jest.fn();
 jest.mock('../../../hooks/usePerpsEventTracking', () => ({
@@ -279,6 +294,7 @@ describe('PerpsProPositionsPanel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTwapEnabledFlag = undefined;
     mockUsePerpsLiveOrders.mockReturnValue({
       orders: [],
       isInitialLoading: false,
@@ -398,6 +414,67 @@ describe('PerpsProPositionsPanel', () => {
     // Assert
     expect(
       screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+  });
+
+  it('retains active TWAP termination when the placement flag rolls back', () => {
+    // Arrange
+    mockTwapEnabledFlag = true;
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder()],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Act
+    mockTwapEnabledFlag = false;
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+    ).toBeOnTheScreen();
+  });
+
+  it('discovers active TWAP termination on a cold-start flag rollback', () => {
+    // Arrange
+    mockTwapEnabledFlag = false;
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder()],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+
+    // Act
+    renderPanel('SOL');
+
+    // Assert
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith({
+      enablePolling: false,
+      pollingInterval: 5000,
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    expect(
+      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
     ).toBeOnTheScreen();
   });
 

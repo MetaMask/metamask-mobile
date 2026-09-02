@@ -34,7 +34,7 @@ interface PerpsProTwapFillRowProps {
 /**
  * One executed TWAP slice in the Fill History view. Slices are the individual
  * child fills a schedule expands into, so each row names its parent market and
- * side alongside the fill's own price, size, and fee.
+ * side alongside the fill's price, size, and execution time.
  */
 const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);

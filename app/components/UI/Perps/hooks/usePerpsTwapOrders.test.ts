@@ -79,6 +79,34 @@ describe('usePerpsTwapOrders', () => {
     expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
   });
 
+  it('coalesces the initial subscription read after each identity start', async () => {
+    // Arrange
+    const firstIdentityOrder = buildTwapOrder({ orderId: 'first-identity' });
+    const secondIdentityOrder = buildTwapOrder({ orderId: 'second-identity' });
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([firstIdentityOrder])
+      .mockResolvedValueOnce([secondIdentityOrder]);
+    const { result, rerender } = renderHook(() =>
+      usePerpsTwapOrders({ enablePolling: true }),
+    );
+
+    // Assert
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([firstIdentityOrder]),
+    );
+    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
+
+    // Act
+    mockSelectedAddress = '0xdef';
+    rerender();
+
+    // Assert
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([secondIdentityOrder]),
+    );
+    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
+  });
+
   it('skips the initial read when asked', async () => {
     // Arrange / Act
     const { result } = renderHook(() =>
@@ -149,35 +177,33 @@ describe('usePerpsTwapOrders', () => {
     expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
   });
 
-  it('discards a read that resolves after a newer refresh', async () => {
+  it('coalesces overlapping manual refreshes', async () => {
     // Arrange
-    let resolveFirstRead: ((orders: TwapOrder[]) => void) | undefined;
-    const firstRead = new Promise<TwapOrder[]>((resolve) => {
-      resolveFirstRead = resolve;
+    let resolveRead: ((orders: TwapOrder[]) => void) | undefined;
+    const pendingRead = new Promise<TwapOrder[]>((resolve) => {
+      resolveRead = resolve;
     });
-    const newerOrder = buildTwapOrder({ orderId: 'newer' });
-    mockController.getTwapOrders
-      .mockReturnValueOnce(firstRead)
-      .mockResolvedValueOnce([newerOrder]);
+    const refreshedOrder = buildTwapOrder({ orderId: 'refreshed' });
+    mockController.getTwapOrders.mockReturnValueOnce(pendingRead);
     const { result } = renderHook(() =>
       usePerpsTwapOrders({ skipInitialFetch: true }),
     );
     let firstRefresh: Promise<void> | undefined;
+    let secondRefresh: Promise<void> | undefined;
 
     // Act
     act(() => {
       firstRefresh = result.current.refresh();
+      secondRefresh = result.current.refresh();
     });
     await act(async () => {
-      await result.current.refresh();
-    });
-    await act(async () => {
-      resolveFirstRead?.([buildTwapOrder({ orderId: 'older' })]);
-      await firstRefresh;
+      resolveRead?.([refreshedOrder]);
+      await Promise.all([firstRefresh, secondRefresh]);
     });
 
     // Assert
-    expect(result.current.twapOrders).toStrictEqual([newerOrder]);
+    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
+    expect(result.current.twapOrders).toStrictEqual([refreshedOrder]);
   });
 
   it('commits a controller stream ahead of an older REST read', async () => {
@@ -298,6 +324,33 @@ describe('usePerpsTwapOrders', () => {
       resolveNextAccount?.([]);
       await nextAccountRead;
     });
+  });
+
+  it('rejects a refresh callback captured before an identity change', async () => {
+    // Arrange
+    const firstIdentityOrder = buildTwapOrder({ orderId: 'first-identity' });
+    const secondIdentityOrder = buildTwapOrder({ orderId: 'second-identity' });
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([firstIdentityOrder])
+      .mockResolvedValueOnce([secondIdentityOrder]);
+    const { result, rerender } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([firstIdentityOrder]),
+    );
+    const staleRefresh = result.current.refresh;
+
+    // Act
+    mockProvider = 'aggregated';
+    rerender();
+    await act(async () => {
+      await staleRefresh();
+    });
+
+    // Assert
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([secondIdentityOrder]),
+    );
+    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(2);
   });
 
   it.each([
