@@ -127,6 +127,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
 }));
 
 jest.mock('../../../../UI/Predict/hooks/useLiveCryptoPrices', () => ({
@@ -473,8 +478,8 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
       });
 
-      expect(screen.getByText('$99')).toBeOnTheScreen();
-      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.getByText('$95.04')).toBeOnTheScreen();
+      expect(screen.getByText('850.4%')).toBeOnTheScreen();
       expect(screen.queryByText('$12')).not.toBeOnTheScreen();
     });
 
