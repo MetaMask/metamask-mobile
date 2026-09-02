@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import {
   useNavigation,
   useRoute,
@@ -7,6 +7,7 @@ import {
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
 import PerpsProMarketView from '../PerpsProMarketView';
 import { usePerpsProModeEnabled } from './usePerpsProModeEnabled';
@@ -68,6 +69,15 @@ const PerpsMarketDetailsRouter: React.FC = () => {
     symbol,
     mode,
   );
+
+  useEffect(() => {
+    const stack = navigation.getState()?.routes?.map((entry) => entry.name);
+    DevLogger.log(
+      `[PR-TAT-3906] BUG_MARKER: market details mounted over stack ${JSON.stringify(
+        stack,
+      )}`,
+    );
+  }, [navigation]);
 
   useLayoutEffect(() => {
     previousIdentityRef.current = { symbol, mode };
