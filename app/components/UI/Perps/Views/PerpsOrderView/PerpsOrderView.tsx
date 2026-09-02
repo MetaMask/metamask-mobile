@@ -442,7 +442,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
   const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
 
-  // A/B Testing: Button color test (TAT-1937)
+  // A/B Testing: Button color test
   const {
     variantName: buttonColorVariant,
     isActive: isButtonColorTestEnabled,
@@ -544,7 +544,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return unsubscribe;
   }, [isDataReady, isInitialized, orderForm.asset, subscribeToPrices]);
 
-  // Fast focused price via activeAssetCtx projection (~0.5 s, TAT-3334)
+  // Fast focused price via activeAssetCtx projection (~0.5 s)
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({
     symbol: isDataReady ? orderForm.asset : '',
     enabled: isDataReady,
@@ -1508,6 +1508,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               monitorPositions,
             },
           },
+          // The market page the user came from is still below this screen, so pop
+          // back to it. Without `pop` React Navigation pushes a duplicate market
+          // page, leaving this order screen underneath so Back returns to it.
+          pop: true,
         });
 
         // Execute order using the new hook

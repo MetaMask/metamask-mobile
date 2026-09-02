@@ -418,9 +418,12 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
+      // `pop` returns to the Perps screen the deposit confirmation was opened
+      // from; without it the confirmation stays underneath and Back reopens it.
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.PERPS_HOME,
         params: {},
+        pop: true,
       });
     });
 

@@ -13,7 +13,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
- * Default market a user lands on when switching to Pro mode (TAT-3551, AC #4).
+ * Default market a user lands on when switching to Pro mode.
  */
 export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
 
@@ -64,7 +64,7 @@ export interface PerpsHomeNavigationTarget {
  * pass the mode they selected rather than reading it back from a selector that
  * has not re-rendered yet.
  *
- * While Pro mode is active, `PerpsHomeView` must never be shown (TAT-3612):
+ * While Pro mode is active, `PerpsHomeView` must never be shown:
  * every entry point instead lands on the default Pro market, so the user
  * only ever moves between a market page and the market list. Centralizing
  * this here keeps every entry point (Trade sheet, Wallet actions, Homepage
@@ -125,11 +125,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
  * in `usePerpsNavigationHandlers.ts`, or `app/components/UI/Rewards/utils.ts`).
  * Centralized here so every "go to Perps home" call site shares one
  * reviewed assertion instead of repeating it.
+ *
+ * Pass `pop: true` when the destination is already below the caller in the
+ * Perps stack: React Navigation pushes a duplicate entry otherwise.
  */
 export const toPerpsNavigatorScreenParams = (
   target: PerpsHomeNavigationTarget,
+  options: { pop?: boolean } = {},
 ): NavigatorScreenParams<PerpsStackParamList> =>
-  target as unknown as NavigatorScreenParams<PerpsStackParamList>;
+  ({
+    ...target,
+    ...options,
+  }) as unknown as NavigatorScreenParams<PerpsStackParamList>;
 
 /**
  * Navigates directly (not nested under `Routes.PERPS.ROOT`) to a resolved
@@ -156,7 +163,7 @@ export const navigateToPerpsHomeTarget = (
  * Switching to Pro from a market screen swaps the rendered layout in place —
  * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
  * user came through stays in history and the back button would reveal the Lite
- * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * hub while Pro is active. Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
  */
 export const dropPerpsHomeFromStackHistory = (navigation: {
@@ -237,7 +244,11 @@ export const useNavigateToPerpsHome = (): ((
 
       navigate(
         Routes.PERPS.ROOT,
-        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+        // Callers reach here from a screen stacked on top of the Perps home
+        // target (e.g. the deposit confirmation), so pop back to it. Without
+        // `pop` React Navigation pushes a duplicate, leaving that confirmation
+        // underneath so Back returns to it.
+        toPerpsNavigatorScreenParams(getTarget(extraParams), { pop: true }),
       );
     },
     [navigation, getTarget],

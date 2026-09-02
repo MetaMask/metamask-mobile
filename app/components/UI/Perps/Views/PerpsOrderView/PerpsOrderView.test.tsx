@@ -39,6 +39,7 @@ jest.mock('react-native-gesture-handler', () => {
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
+import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
@@ -1385,6 +1386,39 @@ describe('PerpsOrderView', () => {
         }),
       }),
     );
+  });
+
+  // The market page the trader came from is still below this screen, so the
+  // post-order navigation has to pop back to it. Pushing a duplicate leaves the
+  // order screen underneath and Back returns here instead of to Perps home.
+  it('pops back to the market page instead of stacking a duplicate over the order screen', async () => {
+    // Arrange
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    // Act
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    // Assert
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          pop: true,
+        }),
+      );
+    });
   });
 
   it('shows standard submitted toast when using perps balance', async () => {
