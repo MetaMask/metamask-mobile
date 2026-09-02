@@ -35,27 +35,27 @@ export const KeyValueRow = {
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
           }}
-          value={{ label: { text: 'Sample Value Text' } }}
+          value={{ label: { text: 'Sample value text' } }}
         />
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
               variant: TextVariant.BodySM,
               color: TextColor.Alternative,
             },
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
               variant: TextVariant.BodySMBold,
               color: TextColor.Success,
             },
             tooltip: {
-              title: 'Sample Title',
+              title: 'Sample title',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
@@ -64,24 +64,24 @@ export const KeyValueRow = {
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
           }}
         />
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
             icon: {
               name: IconName.Wifi,
@@ -92,7 +92,7 @@ export const KeyValueRow = {
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
             icon: {
               name: IconName.Wifi,
@@ -105,10 +105,10 @@ export const KeyValueRow = {
         {/* Using Custom ReactNode */}
         <KeyValueRowComponent
           field={{
-            label: { text: 'Sample Key' },
+            label: { text: 'Sample key' },
             icon: { name: IconName.UserCircleAdd, color: IconColor.Primary },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },

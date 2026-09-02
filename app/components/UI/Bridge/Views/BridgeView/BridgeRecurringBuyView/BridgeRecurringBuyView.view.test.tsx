@@ -836,6 +836,9 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
           ),
         ).toBeOnTheScreen();
       });
+      expect(
+        renderResult.getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+      ).toHaveTextContent(strings('bridge.recurring.preview_order'));
       expect(renderResult.queryByText('25%')).not.toBeOnTheScreen();
     });
 

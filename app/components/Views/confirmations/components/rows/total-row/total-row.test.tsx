@@ -76,21 +76,25 @@ describe('TotalRow', () => {
       expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
     });
 
+    it('renders the total amount for an explicitly output-based quote', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        isInputBased: false,
+        total: { usd: '123.456' },
+        targetAmount: { usd: '99.38', fiat: '99.38' },
+      } as unknown as TransactionPayTotals);
+
+      const { getByTestId, getByText } = render();
+
+      expect(getByTestId('total-row')).toBeOnTheScreen();
+      expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
+    });
+
     it('renders skeleton when quotes are loading', () => {
       useIsTransactionPayLoadingMock.mockReturnValue(true);
 
       const { getByTestId } = render();
 
       expect(getByTestId('total-row-skeleton')).toBeDefined();
-    });
-
-    it('renders nothing for musd conversion transactions', () => {
-      const { queryByTestId, queryByText } = render({
-        type: TransactionType.musdConversion,
-      });
-
-      expect(queryByTestId('total-row')).toBeNull();
-      expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
     });
 
     it('renders the total row when Max is selected on a withdraw flow', () => {
@@ -118,6 +122,20 @@ describe('TotalRow', () => {
         isWithdraw: true,
         canSelectWithdrawToken: true,
       });
+
+      const { getByTestId, getByText, queryByTestId } = render();
+
+      expect(getByTestId('receive-row')).toBeOnTheScreen();
+      expect(getByText(RECEIVE_FIAT_MOCK)).toBeOnTheScreen();
+      expect(queryByTestId('total-row')).toBeNull();
+    });
+
+    it('renders the receive row for input-based quotes', () => {
+      useTransactionPayTotalsMock.mockReturnValue({
+        isInputBased: true,
+        total: { usd: '100', fiat: '100' },
+        targetAmount: { usd: '99.38', fiat: '99.38' },
+      } as unknown as TransactionPayTotals);
 
       const { getByTestId, getByText, queryByTestId } = render();
 

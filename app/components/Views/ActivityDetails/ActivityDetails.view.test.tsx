@@ -1502,9 +1502,12 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
     await act(async () => undefined);
     expect(within(amountHeader).getByText('-1 SOL')).toBeOnTheScreen();
     expect(within(amountHeader).getByText('+100 USDC')).toBeOnTheScreen();
-    expect(getByTestId(TOTAL_ROW)).toHaveTextContent('$4.00', {
-      exact: false,
-    });
+    const totalRow = await findByTestId(TOTAL_ROW);
+    // 1 SOL × multichain rate 4 → $4.00. The row can render before the rate
+    // resolves, so poll for the converted value (same pattern as Solana send).
+    await waitFor(() =>
+      expect(within(totalRow).getByText('$4.00')).toBeOnTheScreen(),
+    );
 
     expect(getByTestId(BLOCK_EXPLORER_BUTTON)).toHaveTextContent(
       strings('activity_details.view_on_block_explorer'),

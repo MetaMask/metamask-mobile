@@ -15,20 +15,46 @@ inputs:
   runner-provider:
     description: 'Runner provider or runner label. Namespace download is used when this contains `namespace`.'
     required: true
+  run-id:
+    description: 'Optional workflow run ID to download from. Defaults to the current run.'
+    required: false
+    default: ''
+  github-token:
+    description: 'GitHub token required when downloading from another workflow run.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
   steps:
-    - name: Download from Namespace
-      if: ${{ contains(inputs.runner-provider, 'namespace') }}
+    - name: Download from Namespace (current run)
+      if: ${{ contains(inputs.runner-provider, 'namespace') && inputs.run-id == '' }}
       uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
       with:
         name: ${{ inputs.name }}
         path: ${{ inputs.path }}
 
-    - name: Download from GitHub
-      if: ${{ !contains(inputs.runner-provider, 'namespace') }}
+    - name: Download from Namespace (specified run)
+      if: ${{ contains(inputs.runner-provider, 'namespace') && inputs.run-id != '' }}
+      uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        run-id: ${{ inputs.run-id }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Download from GitHub (current run)
+      if: ${{ !contains(inputs.runner-provider, 'namespace') && inputs.run-id == '' }}
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.name }}
         path: ${{ inputs.path }}
+
+    - name: Download from GitHub (specified run)
+      if: ${{ !contains(inputs.runner-provider, 'namespace') && inputs.run-id != '' }}
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}
+        run-id: ${{ inputs.run-id }}
+        github-token: ${{ inputs.github-token }}

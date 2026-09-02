@@ -14,10 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 import {
   Box,
@@ -100,11 +97,13 @@ import {
 } from '@metamask/perps-controller/constants';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import { bpsToPercent } from '../../constants/slippageConfig';
+import { FIXED_BOTTOM_CONTAINER_PADDING } from '../../constants/perpsUIConfig';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import {
+  useBottomSafeAreaInset,
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
@@ -241,7 +240,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,
@@ -265,13 +264,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const styles = createStyles(colors);
 
-  // Dynamic bottom padding for fixed container: safe area inset + 16px visual padding
+  // Dynamic bottom padding for fixed container: system navigation-bar inset plus
+  // the visual padding, so the CTA is never drawn under the navigation bar.
   const fixedBottomContainerStyle = useMemo(
     () => ({
       ...styles.fixedBottomContainer,
-      paddingBottom: insets.bottom + 16,
+      paddingBottom: bottomSafeAreaInset + FIXED_BOTTOM_CONTAINER_PADDING,
     }),
-    [styles.fixedBottomContainer, insets.bottom],
+    [styles.fixedBottomContainer, bottomSafeAreaInset],
   );
 
   // Deferred loading: Load non-critical data after UI renders
@@ -1162,6 +1162,20 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     return orderValidation.errors.filter((err) => err !== sizePositiveMsg);
   }, [orderValidation.errors]);
 
+  const { insufficientBalanceErrors } = orderValidation;
+  const hasInsufficientFundsError =
+    hasInsufficientPayTokenBalance || insufficientBalanceErrors.length > 0;
+
+  // The banner above already states the insufficient-funds condition, so drop
+  // only those messages here — any other blocking error stays visible.
+  const footerErrors = useMemo(() => {
+    if (insufficientBalanceErrors.length === 0) {
+      return filteredErrors;
+    }
+    const covered = new Set(insufficientBalanceErrors);
+    return filteredErrors.filter((error) => !covered.has(error));
+  }, [filteredErrors, insufficientBalanceErrors]);
+
   // Handlers
   const handleTPSLPress = useCallback(() => {
     if (orderForm.type === 'limit' && !orderForm.limitPrice) {
@@ -1723,11 +1737,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       : 'perps.order.button.short';
   const isInsufficientFunds =
     !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
-  const placeOrderLabel = isInsufficientFunds
-    ? strings('perps.order.validation.insufficient_funds')
-    : strings(orderButtonKey, {
-        asset: getPerpsDisplaySymbol(orderForm.asset),
-      });
+  const placeOrderLabel =
+    isInsufficientFunds && !hasInsufficientFundsError
+      ? strings('perps.order.validation.insufficient_funds')
+      : strings(orderButtonKey, {
+          asset: getPerpsDisplaySymbol(orderForm.asset),
+        });
 
   const {
     doesStopLossRiskLiquidation,
@@ -1870,7 +1885,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 />
               )}
             </View>
-            {hasInsufficientPayTokenBalance && (
+            {hasInsufficientFundsError && (
               <View style={styles.insufficientPayTokenWarning}>
                 <Text
                   variant={TextVariant.BodySm}
@@ -2150,11 +2165,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Fixed Place Order Button - Hide when keypad is active or at OI cap */}
       {!isInputFocused && !isAtOICap && (
         <View style={fixedBottomContainerStyle}>
-          {filteredErrors.length > 0 &&
+          {footerErrors.length > 0 &&
             !isLoadingMarketData &&
             currentPrice != null && (
               <View style={styles.validationContainer}>
-                {filteredErrors.map((error) => (
+                {footerErrors.map((error) => (
                   <Text
                     key={error}
                     variant={TextVariant.BodySm}

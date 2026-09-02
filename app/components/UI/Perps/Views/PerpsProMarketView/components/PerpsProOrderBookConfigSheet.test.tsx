@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from 'react-native';
+import { Modal, StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
@@ -158,6 +158,33 @@ describe('PerpsProOrderBookConfigSheet', () => {
     expect(getByTestId('config-sheet-grouping-1000')).toBeOnTheScreen();
   });
 
+  it('marks the selected option in each FilterButton section', () => {
+    const { getByTestId } = renderSheet({
+      currency: 'usd',
+      metric: 'total',
+      grouping: 1,
+    });
+
+    const selectedState = (id: string) =>
+      getByTestId(id).props.accessibilityState;
+
+    expect(selectedState('config-sheet-currency-usd')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(selectedState('config-sheet-currency-base')).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+    expect(selectedState('config-sheet-metric-total')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+    expect(selectedState('config-sheet-metric-size')).toEqual(
+      expect.objectContaining({ selected: false }),
+    );
+    expect(selectedState('config-sheet-grouping-1')).toEqual(
+      expect.objectContaining({ selected: true }),
+    );
+  });
+
   it('renders the order-book layout options with the current side selected', () => {
     const { getByTestId, getByText } = renderSheet({ layout: 'right' });
 
@@ -170,6 +197,20 @@ describe('PerpsProOrderBookConfigSheet', () => {
       'accessibilityState',
       { selected: true },
     );
+  });
+
+  it('styles the layout options like the FilterButton sections', () => {
+    const { getByTestId } = renderSheet({ layout: 'right' });
+
+    const optionStyle = (id: string) =>
+      StyleSheet.flatten(getByTestId(id).props.style);
+
+    expect(optionStyle('config-sheet-layout-right').borderWidth).toBeFalsy();
+    expect(optionStyle('config-sheet-layout-left').borderWidth).toBeFalsy();
+    expect(
+      optionStyle('config-sheet-layout-right').backgroundColor,
+    ).toBeTruthy();
+    expect(optionStyle('config-sheet-layout-left').backgroundColor).toBeFalsy();
   });
 
   it('applies the drafted order-book side on Save', () => {

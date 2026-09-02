@@ -128,7 +128,10 @@ const EXPLORE_SCREENS: Record<
         readParam(urlParams, 'q', nonempty(string())) ??
         readParam(urlParams, 'query', nonempty(string()));
 
-      return { ...(query && { initialQuery: query }) };
+      return {
+        ...(query && { initialQuery: query }),
+        entryPoint: 'deeplink',
+      };
     },
   },
 };

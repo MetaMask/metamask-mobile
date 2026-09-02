@@ -71,11 +71,10 @@ describe('PredictNextController', () => {
 
     controller.initialize();
 
-    expect(Logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'PredictNext configuration is missing.',
-      }),
+    expect(Logger.log).toHaveBeenCalledWith(
+      expect.stringContaining('PredictNext configuration is missing.'),
     );
+    expect(Logger.error).not.toHaveBeenCalled();
     expect(() =>
       messenger.call('PredictMarketDataService:getVenueStatus', status.venueId),
     ).toThrow();

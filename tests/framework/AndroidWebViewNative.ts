@@ -319,6 +319,12 @@ export async function readAndroidWebIdText(
     if (cdpText !== undefined) {
       return cdpText;
     }
+    // Prefer a fast CDP miss over UiAutomator getText. Falling back finds the
+    // node then fails with stale/not-found during snap result polls (e.g.
+    // bip44Result), burning the outer retry budget on one native attempt.
+    throw new Error(
+      `CDP WebView read missed #${webId} (element not in DOM yet)`,
+    );
   }
 
   const elem = await scrollAndroidWebIdIntoView(webId, options);

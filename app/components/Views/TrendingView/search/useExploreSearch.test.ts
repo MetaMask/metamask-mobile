@@ -20,9 +20,11 @@ const mockPerpsData = [{ market: { symbol: 'BTC' } }];
 const mockStocksData = [{ assetId: 'stock-1' }];
 const mockPredictionsData = [{ id: 'pred-1' }];
 const mockSitesData = [{ url: 'https://example.com' }];
+const mockEarnData = [{ kind: 'money-account', id: 'money-account' }];
 const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
 const mockStocksLoadMore = jest.fn();
+let mockIsEarnEnabled = false;
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({
@@ -63,6 +65,18 @@ jest.mock('../feeds/sites/useSitesFeed', () => ({
   useSitesFeed: jest.fn(() => ({ data: mockSitesData, isLoading: false })),
 }));
 
+jest.mock('../feeds/earn/useEarnSearchFeed', () => ({
+  useEarnSearchFeed: jest.fn(() => ({
+    data: mockEarnData,
+    isLoading: false,
+  })),
+}));
+
+jest.mock('../../../UI/Earn/selectors/featureFlags', () => ({
+  selectExploreEarnSectionEnabledFlag: (state: { earnEnabled: boolean }) =>
+    state.earnEnabled,
+}));
+
 // ---------------------------------------------------------------------------
 // Redux / selector mocks
 // ---------------------------------------------------------------------------
@@ -71,7 +85,10 @@ let mockIsPerpsEnabled = true;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (s: unknown) => unknown) =>
-    selector({ perpsEnabled: mockIsPerpsEnabled }),
+    selector({
+      perpsEnabled: mockIsPerpsEnabled,
+      earnEnabled: mockIsEarnEnabled,
+    }),
   ),
 }));
 
@@ -97,6 +114,7 @@ import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
+import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 
 const renderExploreSearch = (query = '') =>
   renderHook(() => useExploreSearch(query, { exposePagination: true }));
@@ -109,6 +127,7 @@ describe('useExploreSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
+    mockIsEarnEnabled = false;
     (useTokensFeed as jest.Mock).mockReturnValue({
       data: mockTokensData,
       isLoading: false,
@@ -138,6 +157,33 @@ describe('useExploreSearch', () => {
       expect(feedIds).toEqual(['tokens', 'stocks', 'predictions', 'sites']);
       expect(feedIds).not.toContain('perps');
     });
+
+    it('inserts Earn after Perps when the Explore Earn flag is enabled', () => {
+      mockIsEarnEnabled = true;
+
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'earn',
+        'stocks',
+        'predictions',
+        'sites',
+      ]);
+    });
+
+    it('omits Earn when the Explore Earn flag is disabled', () => {
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'stocks',
+        'predictions',
+        'sites',
+      ]);
+    });
   });
 
   describe('section items', () => {
@@ -161,6 +207,19 @@ describe('useExploreSearch', () => {
       expect(perpsSection?.items).toEqual([mockPerpsData[0].market]);
       expect(stocksSection?.items).toEqual(mockStocksData);
       expect(sitesSection?.items).toEqual(mockSitesData);
+    });
+
+    it('maps Earn feed data without changing other feed sections', () => {
+      mockIsEarnEnabled = true;
+
+      const { result } = renderExploreSearch();
+      const earnSection = result.current.sections.find(
+        (section) => section.feedId === 'earn',
+      );
+
+      expect(earnSection?.items).toEqual(mockEarnData);
+      expect(earnSection?.isLoading).toBe(false);
+      expect(earnSection?.total).toBe(mockEarnData.length);
     });
   });
 
@@ -373,6 +432,26 @@ describe('useExploreSearch', () => {
         }),
       );
       expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
+    });
+
+    it('passes the enabled Earn flag to the Earn feed', () => {
+      mockIsEarnEnabled = true;
+
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: true,
+      });
+    });
+
+    it('passes disabled state to the Earn feed when the flag is disabled', () => {
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: false,
+      });
     });
   });
 });

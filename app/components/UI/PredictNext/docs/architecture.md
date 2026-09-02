@@ -40,7 +40,7 @@ Do not add a forwarding layer that only repeats another module's interface. Do n
 
 Product-facing modules use the language in [`../CONTEXT.md`](../CONTEXT.md): Event, Market, Outcome, Order, Position, Predict User, Funding Wallet, and Venue Account. Kalshi DTO names and protocol mechanics remain inside the adapter/backend boundary.
 
-Every root Feed, Event, query, route, and operation is Venue-qualified. A canonical Event maps to exactly one Venue Event; Feeds may combine discovery results but never merge Markets from multiple Venue Events into one Event. Nested Category, Series, Market, and Outcome identifiers inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
+Every root Feed, Event, query, route, and operation is Venue-qualified. A canonical Event has one parent Venue Event; Feeds may combine discovery results but never merge Markets from multiple Venue Events. An immutable Game detail read may append validated sibling Markets while retaining the requested parent identity. Nested Category, Series, Market, and Outcome identifiers inherit Venue and parent scope through containment; raw Venue identifiers are not globally unique.
 
 The public read-model direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Feed and detail reads initially share the complete Event model. An Event may have one product-owned Category and one genuine Venue-backed Series; synthetic singleton Series are not created merely to make the hierarchy uniform.
 

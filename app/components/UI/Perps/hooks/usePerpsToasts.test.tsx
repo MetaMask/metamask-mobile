@@ -2,7 +2,10 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
-import usePerpsToasts, { PerpsToastOptions } from './usePerpsToasts';
+import usePerpsToasts, {
+  getPerpsToastLabels,
+  PerpsToastOptions,
+} from './usePerpsToasts';
 import {
   ButtonIconVariant,
   ToastVariants,
@@ -79,6 +82,18 @@ jest.mock('../utils/translatePerpsError', () => ({
     fallbackMessage: string;
   }) => error || fallbackMessage,
 }));
+
+describe('getPerpsToastLabels', () => {
+  it('separates the emphasized title from the secondary copy', () => {
+    const labels = getPerpsToastLabels('Scale orders placed', '3 orders');
+
+    expect(labels).toEqual([
+      { label: 'Scale orders placed', isBold: true },
+      { label: '\n', isBold: false },
+      { label: '3 orders', isBold: false },
+    ]);
+  });
+});
 
 describe('usePerpsToasts', () => {
   let mockShowToast: jest.Mock;
@@ -555,6 +570,40 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'Long 5 BTC',
           isBold: false,
+        });
+      });
+    });
+
+    describe('orderManagement.chase', () => {
+      it('identifies Chase while placement is submitted', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.submitted(
+            'long',
+            '0.5',
+            'ETH',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase order submitted',
+          isBold: true,
+        });
+      });
+
+      it('identifies a running Chase after confirmation', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.orderManagement.chase.confirmed(
+            'short',
+            '1',
+            'BTC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Chase started',
+          isBold: true,
         });
       });
     });
@@ -1449,6 +1498,21 @@ describe('usePerpsToasts', () => {
         });
         expect(config.labelOptions).toEqual([
           { label: 'Failed to add market to watchlist', isBold: true },
+        ]);
+      });
+
+      it('returns remove error configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config = result.current.PerpsToastOptions.watchlist.removeError;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Failed to remove market from watchlist', isBold: true },
         ]);
       });
 

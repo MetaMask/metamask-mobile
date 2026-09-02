@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { Pressable, Text } from 'react-native';
+import { Keyboard, Pressable, Text } from 'react-native';
+import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 import PerpsProCompactInput, {
   getPerpsProInputAccessoryID,
+  PerpsProInputKeyboardAccessory,
 } from './PerpsProCompactInput';
 
 // Mock Input to expose a spyable `focus` via its forwarded ref, mirroring the
@@ -40,6 +42,7 @@ const defaultProps = {
   onChangeText: jest.fn(),
   testID: 'size-input',
 };
+const ids = PerpsProOrderFormSelectorsIDs;
 
 describe('PerpsProCompactInput', () => {
   beforeEach(() => {
@@ -48,6 +51,10 @@ describe('PerpsProCompactInput', () => {
     // constant — not just `mockInputFocus`, so stale call counts can't bleed
     // between tests.
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('focuses the input when the label is pressed', () => {
@@ -116,6 +123,30 @@ describe('PerpsProCompactInput', () => {
   });
 
   describe('inline field press target', () => {
+    it.each(['inline', 'inline-labeled'] as const)(
+      'uses the shared 54px compact-row height and 4px vertical padding for %s fields',
+      (variant) => {
+        render(<PerpsProCompactInput {...defaultProps} variant={variant} />);
+
+        expect(
+          screen.getByTestId(`${defaultProps.testID}-container`),
+        ).toHaveStyle({ height: 54, paddingTop: 4, paddingBottom: 4 });
+      },
+    );
+
+    it('hides the inline-labeled decorative label from assistive technology', () => {
+      render(
+        <PerpsProCompactInput {...defaultProps} variant="inline-labeled" />,
+      );
+
+      const label = screen.getByText(defaultProps.label);
+      const input = screen.getByTestId(defaultProps.testID);
+
+      expect(label).toHaveProp('accessible', false);
+      expect(label).toHaveProp('importantForAccessibility', 'no');
+      expect(input).toHaveProp('accessibilityLabel', defaultProps.label);
+    });
+
     it('shrinks the label and reveals the input when the row is pressed', () => {
       render(
         <PerpsProCompactInput
@@ -274,6 +305,73 @@ describe('PerpsProCompactInput', () => {
     expect(screen.getByTestId(defaultProps.testID)).not.toHaveProp(
       'onSubmitEditing',
     );
+  });
+
+  describe('keyboard accessory', () => {
+    it('routes Up and Down while disabling missing boundaries', () => {
+      const onNext = jest.fn();
+      const { rerender } = render(
+        <PerpsProInputKeyboardAccessory inputTestID="start" onNext={onNext} />,
+      );
+
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-start`),
+      ).toBeDisabled();
+      expect(
+        screen.getByTestId(`${ids.KEYBOARD_DONE}-start`),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_NEXT}-start`));
+      expect(onNext).toHaveBeenCalledTimes(1);
+
+      const onPrevious = jest.fn();
+      rerender(
+        <PerpsProInputKeyboardAccessory
+          inputTestID="end"
+          onPrevious={onPrevious}
+        />,
+      );
+
+      expect(screen.getByTestId(`${ids.KEYBOARD_NEXT}-end`)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_PREVIOUS}-end`));
+      expect(onPrevious).toHaveBeenCalledTimes(1);
+    });
+
+    it('dismisses the keyboard from Done', () => {
+      const dismissSpy = jest
+        .spyOn(Keyboard, 'dismiss')
+        .mockImplementation(jest.fn());
+      render(<PerpsProInputKeyboardAccessory inputTestID="size" />);
+
+      fireEvent.press(screen.getByTestId(`${ids.KEYBOARD_DONE}-size`));
+
+      expect(dismissSpy).toHaveBeenCalledTimes(1);
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_PREVIOUS}-size`),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(`${ids.KEYBOARD_NEXT}-size`),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('delegates disabled field events to the design-system input', () => {
+    const onFieldPress = jest.fn();
+    render(
+      <PerpsProCompactInput
+        {...defaultProps}
+        onFieldPress={onFieldPress}
+        isDisabled
+      />,
+    );
+
+    fireEvent.press(screen.getByText(defaultProps.label));
+
+    expect(screen.getByTestId(defaultProps.testID)).toHaveProp(
+      'isDisabled',
+      true,
+    );
+    expect(onFieldPress).not.toHaveBeenCalled();
+    expect(mockInputFocus).not.toHaveBeenCalled();
   });
 
   it('adds top spacing above the footer to match the Figma slider row', () => {

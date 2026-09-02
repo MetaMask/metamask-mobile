@@ -198,10 +198,11 @@ function setupV2Hooks(
   (Engine.context.RampsController.getProviders as jest.Mock)
     .mockReset()
     .mockResolvedValue({ providers });
-  (Engine.context.RampsController.getPaymentMethods as jest.Mock)
+  (Engine.context.RampsController.getPaymentMethodsForContext as jest.Mock)
     .mockReset()
     .mockResolvedValue({
-      payments: [DEBIT_CARD_PAYMENT_METHOD, APPLE_PAY_PAYMENT_METHOD],
+      methods: [DEBIT_CARD_PAYMENT_METHOD, APPLE_PAY_PAYMENT_METHOD],
+      selected: DEBIT_CARD_PAYMENT_METHOD,
     });
 
   const getQuotesMock = Engine.context.RampsController.getQuotes as jest.Mock;

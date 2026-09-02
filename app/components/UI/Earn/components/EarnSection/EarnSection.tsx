@@ -10,9 +10,6 @@ import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   BannerAlert,
   BannerAlertSeverity,
   Box,
@@ -24,16 +21,15 @@ import {
   IconSize,
   SectionDivider,
   SectionHeader,
+  SensitiveText,
+  SensitiveTextLength,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { getNetworkImageSource } from '../../../../../util/networks';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
 import { strings } from '../../../../../../locales/i18n';
-import type { TokenI } from '../../../Tokens/types';
-import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import EarnSectionAssetCard from '../EarnSectionAssetCard';
 import EarnSectionCard from '../EarnSectionCard';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -44,25 +40,24 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import { useNavigation } from '@react-navigation/native';
+import EarnAssetIcon from '../EarnAssetIcon/EarnAssetIcon';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import { truncateNumber } from '../../utils';
-import {
-  earnAssetToToken,
-  getEarnAssetFiatDisplay,
-  getEarnAssetMetadata,
-} from '../../utils/earnAssets';
+import { deriveEarnAssetDisplayData } from '../../utils/earnAssets';
+import type { EarnAssetDisplayData } from '../../utils/earnAssets/deriveEarnAssetDisplayData';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import type { EarnAsset } from '../../types/earnAssets';
 import EarnNewTag from '../EarnNewTag';
-import EarnNoFeeTag from '../EarnNoFeeTag';
 import Logger from '../../../../../util/Logger';
-import { isEarnAssetBalanceBelowMinDepositAmount } from '../../utils/earnAssets/earnAssetBalance';
 import Routes from '../../../../../constants/navigation/Routes';
 import { RefreshConfig } from '../../../../Views/TrendingView/hooks/useExploreRefresh';
 import { useFeedRefresh } from '../../../../Views/TrendingView/hooks/useFeedRefresh';
+import { EarnSectionTestIds } from './EarnSection.testIds';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 interface EarnSectionHomeAnalytics {
   sectionIndex: number;
@@ -76,27 +71,6 @@ export interface EarnSectionProps {
   refresh?: RefreshConfig;
   enabled?: boolean;
 }
-
-const renderEarnAssetIcon = (token: TokenI) => {
-  const networkImageSource = token.chainId
-    ? getNetworkImageSource({ chainId: token.chainId })
-    : undefined;
-
-  return (
-    <BadgeWrapper
-      position={BadgeWrapperPosition.BottomRight}
-      badge={
-        <BadgeNetwork
-          name={token.chainId ?? ''}
-          src={networkImageSource}
-          twClassName="rounded-1"
-        />
-      }
-    >
-      <AssetLogo asset={token} />
-    </BadgeWrapper>
-  );
-};
 
 const renderAssetCardSkeleton = (key: string) => (
   <EarnSectionCard key={key} testID={key}>
@@ -126,6 +100,34 @@ const renderUnavailableAssetCard = (key: string) => (
   />
 );
 
+const renderAssetSecondaryText = ({
+  hasMinDepositAmount,
+  fiatBalance,
+  metadata,
+  privacyMode,
+}: Pick<
+  EarnAssetDisplayData,
+  'hasMinDepositAmount' | 'fiatBalance' | 'metadata'
+> & { privacyMode: boolean }) => {
+  if (!hasMinDepositAmount) {
+    return metadata.name ?? metadata.ticker ?? metadata.symbol;
+  }
+
+  if (!fiatBalance) {
+    return strings('earn_module.balance_unavailable');
+  }
+
+  return (
+    <SensitiveText
+      variant={TextVariant.BodyMd}
+      isHidden={privacyMode}
+      length={SensitiveTextLength.Medium}
+    >
+      {fiatBalance}
+    </SensitiveText>
+  );
+};
+
 // Module-level promise to prevent multiple concurrent refreshes.
 let refreshPromise: Promise<void> | undefined;
 
@@ -146,11 +148,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   ) => {
     const tw = useTailwind();
     const navigation = useNavigation<AppNavigationProp>();
+    const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
     const isHomepageSection = homeAnalytics !== undefined;
     const homepageTelemetryEnabled = isHomepageSection && enabled;
     const sectionIndex = homeAnalytics?.sectionIndex ?? -1;
     const totalSectionsLoaded = homeAnalytics?.totalSectionsLoaded ?? 0;
 
+    const privacyMode = useSelector(selectPrivacyMode);
     const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
 
     const sectionViewRef = useRef<View>(null);
@@ -234,48 +238,16 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       enabled: homepageTelemetryEnabled,
     });
 
-    const handleHeaderPress = () => {
-      // eslint-disable-next-line no-alert
-      alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
-      );
-    };
+    const handleViewAll = useCallback(() => {
+      navigation.navigate(Routes.EARN.ROOT, {
+        screen: Routes.EARN.SEARCH_LIST,
+      });
+    }, [navigation]);
 
     const handleAssetCardPress = useCallback(
-      (asset: EarnAsset) => {
-        const token = earnAssetToToken(asset);
-        if (isEarnAssetBalanceBelowMinDepositAmount(asset)) {
-          navigation.navigate('Asset', {
-            address: token.address,
-            chainId: token.chainId,
-            symbol: token.symbol,
-            name: token.name,
-            decimals: token.decimals,
-            image: token.image,
-            balance: token.balance,
-            isNative: token.isNative,
-            isETH: token.isETH,
-            aggregators: token.aggregators,
-            rwaData: token.rwaData,
-            source: tokenDetailsSource,
-          });
-          return;
-        }
-
-        navigation.navigate(Routes.EARN.ROOT, {
-          screen: Routes.EARN.STRATEGY_SELECTION,
-          params: { assetId: asset.assetId },
-        });
-      },
-      [navigation, tokenDetailsSource],
+      (asset: EarnAsset) => navigateFromEarnAsset(asset, tokenDetailsSource),
+      [navigateFromEarnAsset, tokenDetailsSource],
     );
-
-    const handleViewMoreCardPress = () => {
-      // eslint-disable-next-line no-alert
-      alert(
-        'Under construction 🚧 - Implement when adding Earn Section to Explore search page',
-      );
-    };
 
     const moneyAccountCardSecondaryText = useMemo(() => {
       if (isOnboardingRedirectNeeded && moneyAccountBalanceRaw === '0') {
@@ -286,13 +258,24 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         return strings('money.asset_overview.cta.start_earning');
       }
 
+      if (!moneyAccountBalanceFiat) {
+        return strings('earn_module.balance_unavailable');
+      }
+
       return (
-        moneyAccountBalanceFiat ?? strings('earn_module.balance_unavailable')
+        <SensitiveText
+          variant={TextVariant.BodyMd}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+        >
+          {moneyAccountBalanceFiat}
+        </SensitiveText>
       );
     }, [
       isOnboardingRedirectNeeded,
       moneyAccountBalanceFiat,
       moneyAccountBalanceRaw,
+      privacyMode,
     ]);
 
     const handleMoneyAccountCardPress = useCallback(() => {
@@ -328,54 +311,31 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           }
 
           const { asset } = slot;
-          const metadata = getEarnAssetMetadata(asset);
-          const hasMinDepositAmount =
-            !isEarnAssetBalanceBelowMinDepositAmount(asset);
-          const hasSubsidizedFee = asset.experiences.some(
-            ({ isFeeSubsidized }) => isFeeSubsidized,
-          );
-          const isApr = asset.highestRateExperience?.rate.type === 'APR';
-          const rateText =
-            asset.highestRatePercent === undefined
-              ? strings('earn_module.rate_unavailable')
-              : strings(
-                  hasMinDepositAmount
-                    ? isApr
-                      ? 'earn_module.get_rate_apr'
-                      : 'earn_module.get_rate_apy'
-                    : isApr
-                      ? 'earn_module.rate_apr'
-                      : 'earn_module.rate_apy',
-                  {
-                    percentage: truncateNumber(asset.highestRatePercent),
-                  },
-                );
+          const {
+            metadata,
+            hasMinDepositAmount,
+            fiatBalance,
+            highestRateCopy,
+          } = deriveEarnAssetDisplayData(asset);
 
           return (
             <EarnSectionAssetCard
               key={slot.key}
-              icon={renderEarnAssetIcon(earnAssetToToken(asset))}
-              tag={
-                hasSubsidizedFee ? (
-                  <EarnNoFeeTag
-                    testID={`earn-section-asset-${index}-no-fee-tag`}
-                  />
-                ) : undefined
-              }
+              icon={<EarnAssetIcon asset={asset} />}
               primaryText={metadata.ticker ?? metadata.symbol}
-              secondaryText={
-                hasMinDepositAmount
-                  ? (getEarnAssetFiatDisplay(asset) ??
-                    strings('earn_module.balance_unavailable'))
-                  : (metadata.name ?? metadata.ticker ?? metadata.symbol)
-              }
-              tertiaryText={rateText}
-              testID={`earn-section-asset-${index}-card`}
+              secondaryText={renderAssetSecondaryText({
+                hasMinDepositAmount,
+                fiatBalance,
+                metadata,
+                privacyMode,
+              })}
+              tertiaryText={highestRateCopy}
+              testID={EarnSectionTestIds.ASSET_CARD(index)}
               onPress={() => handleAssetCardPress(asset)}
             />
           );
         }),
-      [assetSlots, handleAssetCardPress],
+      [assetSlots, handleAssetCardPress, privacyMode],
     );
 
     return (
@@ -385,7 +345,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           <SectionHeader
             title={strings('homepage.sections.earn')}
             isInteractive
-            onPress={handleHeaderPress}
+            onPress={handleViewAll}
             testID={homepageSectionTitleTestId(HomeSectionNames.EARN)}
           />
           {hasError && (
@@ -397,9 +357,9 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               actionButtonProps={{
                 isDisabled: isRetrying,
                 isLoading: isRetrying,
-                testID: 'earn-section-error-retry-button',
+                testID: EarnSectionTestIds.ERROR_RETRY_BUTTON,
               }}
-              testID="earn-section-error"
+              testID={EarnSectionTestIds.ERROR}
               twClassName="mx-4 mt-3"
             />
           )}
@@ -427,7 +387,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     <Skeleton
                       height={20}
                       width={85}
-                      testID="earn-section-money-account-balance-skeleton"
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_BALANCE_SKELETON}
                     />
                   ) : (
                     moneyAccountCardSecondaryText
@@ -438,7 +398,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     <Skeleton
                       height={20}
                       width={70}
-                      testID="earn-section-money-account-apy-skeleton"
+                      testID={EarnSectionTestIds.MONEY_ACCOUNT_APY_SKELETON}
                     />
                   ) : moneyApyPercent === undefined ? (
                     strings('earn_module.rate_unavailable')
@@ -448,7 +408,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
                     })
                   )
                 }
-                testID="earn-section-money-account-card"
+                testID={EarnSectionTestIds.MONEY_ACCOUNT_CARD}
                 onPress={handleMoneyAccountCardPress}
               />
             )}
@@ -457,8 +417,8 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
               : renderedAssetCards}
             {!isLoading && hasMoreAssets && (
               <EarnSectionCard
-                testID="earn-section-view-more-card"
-                onPress={handleViewMoreCardPress}
+                testID={EarnSectionTestIds.VIEW_MORE_CARD}
+                onPress={handleViewAll}
               >
                 <Box
                   alignItems={BoxAlignItems.Center}
