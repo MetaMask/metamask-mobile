@@ -706,18 +706,6 @@ export const getRpcMethodMiddleware = ({
                       },
                     },
                   ),
-                getUnlockPromise: () => {
-                  if (Engine.context.KeyringController.isUnlocked()) {
-                    return Promise.resolve();
-                  }
-                  return new Promise((resolveUnlock) => {
-                    Engine.controllerMessenger.subscribeOnceIf(
-                      'KeyringController:unlock',
-                      resolveUnlock,
-                      () => true,
-                    );
-                  });
-                },
               },
             )
             ?.then(resolve)
