@@ -15,7 +15,6 @@ import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
 import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
 import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
-import { SWAPS_CTA_BUTTON_COLOR_AB_KEY } from '../../../components/UI/Bridge/components/SwapsMarketOrderConfirmButton/abTestConfig';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
 type BridgeQuoteResponse = QuoteResponse;
@@ -109,11 +108,9 @@ const expectedDefaultQuotesReceivedContext = expect.objectContaining({
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
     ambientColor = inactiveABTestResult,
-    ctaButtonColor = inactiveABTestResult,
     chainValueOrder = inactiveABTestResult,
   }: {
     ambientColor?: MockABTestResult;
-    ctaButtonColor?: MockABTestResult;
     chainValueOrder?: MockABTestResult;
   } = {}) => {
     jest
@@ -121,7 +118,6 @@ describe('useSubmitBridgeTx', () => {
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
       .mockReturnValueOnce(ambientColor)
-      .mockReturnValueOnce(ctaButtonColor)
       .mockReturnValueOnce(chainValueOrder);
   };
 
@@ -603,59 +599,6 @@ describe('useSubmitBridgeTx', () => {
       undefined,
       undefined,
       transactionActiveAbTests,
-      null,
-      undefined,
-      'token_amount',
-      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-    );
-  });
-
-  it('forwards CTA button color A/B test assignment via submitTx', async () => {
-    mockABTests({
-      ctaButtonColor: {
-        variant: {},
-        variantName: 'treatment',
-        isActive: true,
-      },
-    });
-    const mockQuoteResponse = {
-      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
-      ...DummyQuoteMetadata,
-    };
-    mockSubmitTx.mockResolvedValueOnce({
-      chainId: '0x1',
-      id: '1',
-      networkClientId: '1',
-      status: 'submitted',
-      time: Date.now(),
-      txParams: {
-        from: '0x1234567890123456789012345678901234567890',
-      },
-    } as TransactionMeta);
-    const { result } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper(),
-    });
-
-    await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
-    });
-
-    expect(mockSubmitTx).toHaveBeenLastCalledWith(
-      '0x1234567890123456789012345678901234567890',
-      {
-        ...mockQuoteResponse,
-        approval: undefined,
-      },
-      true,
-      expectedDefaultQuotesReceivedContext,
-      undefined,
-      undefined,
-      [
-        createActiveABTestAssignment(
-          SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-          'treatment',
-        ),
-      ],
       null,
       undefined,
       'token_amount',

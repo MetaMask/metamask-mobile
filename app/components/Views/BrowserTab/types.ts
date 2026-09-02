@@ -128,6 +128,11 @@ export type BrowserTabProps = SharedTabProps & {
    */
   fromTrending?: boolean;
   /**
+   * Whether browser was opened from the Explore search screen, which lives in
+   * the root stack — closing must pop back to it, not jump to the Explore tab.
+   */
+  fromExploreSearch?: boolean;
+  /**
    * Whether browser was opened from Perps view
    */
   fromPerps?: boolean;

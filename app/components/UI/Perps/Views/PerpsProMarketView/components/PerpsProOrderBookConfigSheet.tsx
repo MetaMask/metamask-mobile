@@ -5,6 +5,9 @@ import {
   BottomSheetRef,
   Box,
   BoxFlexDirection,
+  FilterButton,
+  FilterButtonSize,
+  FilterButtonVariant,
   Text,
   TextColor,
   TextVariant,
@@ -61,28 +64,19 @@ const chunkOptions = <T,>(items: T[], size: number): T[][] => {
   return rows;
 };
 
-const createChipStyles = (colors: Colors) =>
+const createThumbnailOptionStyles = (colors: Colors) =>
   StyleSheet.create({
-    chip: {
+    option: {
       flex: 1,
-      height: 40,
       borderRadius: 12,
-      borderWidth: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 12,
-    },
-    chipSelected: {
-      backgroundColor: colors.background.muted,
-      borderColor: colors.border.default,
-    },
-    chipUnselected: {
-      borderColor: colors.border.muted,
-    },
-    chipWithThumbnail: {
-      height: 'auto',
       paddingVertical: 12,
       gap: 8,
+    },
+    optionSelected: {
+      backgroundColor: colors.background.muted,
     },
     thumbnail: {
       flexDirection: 'row',
@@ -90,29 +84,54 @@ const createChipStyles = (colors: Colors) =>
     },
   });
 
-interface OptionChipProps {
+interface OptionFilterButtonProps {
   label: string;
   isSelected: boolean;
   onPress: () => void;
   testID: string;
-  /** Optional thumbnail rendered above the label (layout picker). */
-  thumbnail?: React.ReactNode;
+}
+
+/** `FilterButton` never sets `accessibilityState`, so it is passed here. */
+const OptionFilterButton = ({
+  label,
+  isSelected,
+  onPress,
+  testID,
+}: OptionFilterButtonProps) => (
+  <FilterButton
+    isSelected={isSelected}
+    variant={FilterButtonVariant.Secondary}
+    size={FilterButtonSize.Lg}
+    onPress={onPress}
+    accessibilityState={{ selected: isSelected }}
+    twClassName="flex-1"
+    testID={testID}
+  >
+    {label}
+  </FilterButton>
+);
+
+interface ThumbnailOptionProps {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+  testID: string;
+  thumbnail: React.ReactNode;
 }
 
 /**
- * Outlined option chip matching Figma FilterButton states:
- * - selected: muted fill + border-default + text-default
- * - unselected: transparent + border-muted + text-alternative
+ * Not a `FilterButton`: that renders children in a row and cannot stack the
+ * thumbnail above the label. Matches its states by hand instead.
  */
-const OptionChip = ({
+const ThumbnailOption = ({
   label,
   isSelected,
   onPress,
   testID,
   thumbnail,
-}: OptionChipProps) => {
+}: ThumbnailOptionProps) => {
   const { colors } = useTheme();
-  const styles = useMemo(() => createChipStyles(colors), [colors]);
+  const styles = useMemo(() => createThumbnailOptionStyles(colors), [colors]);
 
   return (
     <Pressable
@@ -120,13 +139,9 @@ const OptionChip = ({
       accessibilityState={{ selected: isSelected }}
       onPress={onPress}
       testID={testID}
-      style={[
-        styles.chip,
-        isSelected ? styles.chipSelected : styles.chipUnselected,
-        thumbnail ? styles.chipWithThumbnail : null,
-      ]}
+      style={[styles.option, isSelected ? styles.optionSelected : null]}
     >
-      {thumbnail ? <View style={styles.thumbnail}>{thumbnail}</View> : null}
+      <View style={styles.thumbnail}>{thumbnail}</View>
       <Text
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
@@ -291,7 +306,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                color={TextColor.TextAlternative}
               >
                 {strings('perps.order_book.listed_by')}
               </Text>
@@ -302,13 +317,13 @@ const PerpsProOrderBookConfigSheet = ({
                 twClassName="w-full gap-2 px-4"
                 testID={`${testID}-currency`}
               >
-                <OptionChip
+                <OptionFilterButton
                   label={baseSymbol}
                   isSelected={draftCurrency === 'base'}
                   onPress={() => handleCurrencySelect('base')}
                   testID={`${testID}-currency-base`}
                 />
-                <OptionChip
+                <OptionFilterButton
                   label="USD"
                   isSelected={draftCurrency === 'usd'}
                   onPress={() => handleCurrencySelect('usd')}
@@ -320,13 +335,13 @@ const PerpsProOrderBookConfigSheet = ({
                 twClassName="w-full gap-2 px-4"
                 testID={`${testID}-metric`}
               >
-                <OptionChip
+                <OptionFilterButton
                   label={strings('perps.order_book.size')}
                   isSelected={draftMetric === 'size'}
                   onPress={() => handleMetricSelect('size')}
                   testID={`${testID}-metric-size`}
                 />
-                <OptionChip
+                <OptionFilterButton
                   label={strings('perps.order_book.total')}
                   isSelected={draftMetric === 'total'}
                   onPress={() => handleMetricSelect('total')}
@@ -341,7 +356,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                color={TextColor.TextAlternative}
               >
                 {strings('perps.order_book.group_by')}
               </Text>
@@ -354,7 +369,7 @@ const PerpsProOrderBookConfigSheet = ({
                   twClassName="w-full gap-2 px-4"
                 >
                   {row.map((value) => (
-                    <OptionChip
+                    <OptionFilterButton
                       key={value}
                       label={formatGroupingLabel(value)}
                       isSelected={draftGrouping === value}
@@ -372,7 +387,7 @@ const PerpsProOrderBookConfigSheet = ({
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
+                color={TextColor.TextAlternative}
               >
                 {strings('perps.order_book.layout')}
               </Text>
@@ -382,7 +397,7 @@ const PerpsProOrderBookConfigSheet = ({
               twClassName="w-full gap-2 px-4"
               testID={`${testID}-layout`}
             >
-              <OptionChip
+              <ThumbnailOption
                 label={strings('perps.order_book.layout_left')}
                 isSelected={draftLayout === 'left'}
                 onPress={() => handleLayoutSelect('left')}
@@ -394,7 +409,7 @@ const PerpsProOrderBookConfigSheet = ({
                   </>
                 }
               />
-              <OptionChip
+              <ThumbnailOption
                 label={strings('perps.order_book.layout_right')}
                 isSelected={draftLayout === 'right'}
                 onPress={() => handleLayoutSelect('right')}
