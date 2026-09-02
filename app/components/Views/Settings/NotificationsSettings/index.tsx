@@ -161,20 +161,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
-            <NotificationRow
-              title={strings(
-                'app_settings.notifications_opts.agentic_cli_title',
-              )}
-              status={getStatusText(preferences?.agenticCli)}
-              iconName={IconName.Code}
-              onPress={() =>
-                navigateToSection(
-                  'agenticCli',
-                  strings('app_settings.notifications_opts.agentic_cli_title'),
-                  strings('app_settings.notifications_opts.agentic_cli_desc'),
-                )
-              }
-            />
 
             {isSocialLeaderboardEnabled && (
               <NotificationRow
@@ -192,6 +178,21 @@ const NotificationsSettings = ({ navigation }: Props) => {
                 }
               />
             )}
+
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.agentic_cli_title',
+              )}
+              status={getStatusText(preferences?.agenticCli)}
+              iconName={IconName.Code}
+              onPress={() =>
+                navigateToSection(
+                  'agenticCli',
+                  strings('app_settings.notifications_opts.agentic_cli_title'),
+                  strings('app_settings.notifications_opts.agentic_cli_desc'),
+                )
+              }
+            />
 
             <NotificationRow
               title={strings('app_settings.notifications_opts.marketing_title')}
