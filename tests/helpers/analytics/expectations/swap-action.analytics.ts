@@ -130,8 +130,9 @@ export const swapActionExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    // 9 with Auto/unset slippage (no client default InputChanged); was 11/12 before.
-    await Assertions.checkIfArrayHasLength(inputChanged, 9);
+    // 10 with custom slippage (no client default InputChanged); was 9 while
+    // the custom slippage smoke path was disabled.
+    await Assertions.checkIfArrayHasLength(inputChanged, 10);
 
     for (const event of inputChanged) {
       await Assertions.checkIfValueIsDefined(event.properties.input);
@@ -150,11 +151,10 @@ export const swapActionExpectations: AnalyticsExpectations = {
         `Expected input=token_destination in Input Changed events. Found: ${inputs.join(', ')}`,
       );
     }
-    // Re-enable when swap-action smoke sets custom slippage again (bug #29615).
-    // if (!inputs.includes('slippage')) {
-    //   throw new Error(
-    //     `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
-    //   );
-    // }
+    if (!inputs.includes('slippage')) {
+      throw new Error(
+        `Expected input=slippage in Input Changed events. Found: ${inputs.join(', ')}`,
+      );
+    }
   },
 };

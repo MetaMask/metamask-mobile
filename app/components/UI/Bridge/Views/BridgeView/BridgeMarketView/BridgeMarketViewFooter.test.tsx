@@ -60,8 +60,24 @@ jest.mock(
     SwapsMarketOrderConfirmButton: ({ testID }: { testID?: string }) => {
       const MockReact = jest.requireActual('react');
       const { View } = jest.requireActual('react-native');
+      const { useBridgeQuoteData: getBridgeQuoteData } = jest.requireMock(
+        '../../../hooks/useBridgeQuoteData',
+      ) as {
+        useBridgeQuoteData: () => {
+          isLoading: boolean;
+          activeQuote: unknown;
+          needsNewQuote: boolean;
+        };
+      };
+      const { isLoading, activeQuote, needsNewQuote } = getBridgeQuoteData();
+      const isLoadingWithoutActiveQuote =
+        isLoading && !activeQuote && !needsNewQuote;
       return MockReact.createElement(View, {
         testID: testID ?? 'bridge-confirm-button',
+        accessibilityState: {
+          disabled: isLoadingWithoutActiveQuote,
+          busy: isLoadingWithoutActiveQuote,
+        },
       });
     },
   }),
@@ -160,7 +176,7 @@ describe('BridgeMarketViewFooter', () => {
   });
 
   describe('Rendering conditions', () => {
-    it('renders nothing when loading without an active quote', () => {
+    it('renders a disabled loading button when loading without an active quote', () => {
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -169,9 +185,12 @@ describe('BridgeMarketViewFooter', () => {
           activeQuote: null,
         }));
 
-      const { queryByTestId } = renderFooter(buildActiveQuoteState());
+      const { getByTestId } = renderFooter(buildActiveQuoteState());
+      const button = getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
 
-      expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+      expect(button).toBeTruthy();
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+      expect(button.props.accessibilityState?.busy).toBe(true);
     });
 
     it('renders nothing when there is no active quote', () => {
