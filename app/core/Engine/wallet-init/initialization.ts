@@ -11,6 +11,7 @@ import { getStorageServiceInstanceOptions } from './instance-options/storage-ser
 import { getSubscriptionServiceInstanceOptions } from './instance-options/subscription-service';
 import { getShieldApiServiceInstanceOptions } from './instance-options/shield-api-service';
 import { getClaimsServiceInstanceOptions } from './instance-options/claims-service';
+import { getConfigRegistryApiServiceInstanceOptions } from './instance-options/config-registry-api-service';
 import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 import {
   getTransactionControllerInstanceOptions,
@@ -77,6 +78,7 @@ export function initializeWallet({
       subscriptionService: getSubscriptionServiceInstanceOptions(),
       shieldApiService: getShieldApiServiceInstanceOptions(),
       claimsService: getClaimsServiceInstanceOptions(),
+      configRegistryApiService: getConfigRegistryApiServiceInstanceOptions(),
       transactionController: getTransactionControllerInstanceOptions({
         initMessenger: transactionControllerInitMessenger,
       }),

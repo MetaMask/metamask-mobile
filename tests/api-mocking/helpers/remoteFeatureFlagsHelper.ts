@@ -67,6 +67,9 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // encounter the screen (dismissOnboardingInterestQuestionnaire uses Playwright
   // APIs that are not available under Detox).
   tradeTO880AbtestOnboardingInterestQuestion: 'control',
+  // Production serves a threshold array. Pin a boolean so AccountActivity
+  // subscribe tests do not depend on canonical or MetaMetrics IDs.
+  backendWebSocketConnection: true,
 };
 
 /**
