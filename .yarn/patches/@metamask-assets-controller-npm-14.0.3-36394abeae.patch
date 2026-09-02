@@ -1,0 +1,232 @@
+diff --git a/dist/AssetsController.cjs b/dist/AssetsController.cjs
+index 8ffd522d466c77faffb75c2890aafd885e813615..a221bda4afee435bc597cbe3f8049b0755609fe2 100644
+--- a/dist/AssetsController.cjs
++++ b/dist/AssetsController.cjs
+@@ -473,9 +473,27 @@ class AssetsController extends base_controller_1.BaseController {
+         }
+         // Collect custom assets for all requested accounts
+         const customAssets = [];
++        const chainIdSet = new Set(chainIds);
+         for (const account of accounts) {
+             const accountCustomAssets = this.getCustomAssets(account.id);
+             customAssets.push(...accountCustomAssets);
++            // When refreshing after a confirmed transaction, also include graduated
++            // tokens — ERC-20s currently in assetsBalance but removed from
++            // customAssets by CustomAssetGraduationMiddleware. The Accounts API
++            // indexes incoming transfers (received tokens) slower than outgoing
++            // ones, so without a direct RPC query the "to" token in a swap keeps
++            // the stale API-cached balance until the next polling cycle.
++            if (options?.postTransaction) {
++                const stateBalances = this.state.assetsBalance[account.id] ?? {};
++                for (const assetId of Object.keys(stateBalances)) {
++                    const assetChainId = assetId.split('/')[0];
++                    if (chainIdSet.has(assetChainId) &&
++                        !(0, index_js_1.isStakingContractAssetId)(assetId) &&
++                        !customAssets.includes(assetId)) {
++                        customAssets.push(assetId);
++                    }
++                }
++            }
+         }
+         if (options?.forceUpdate) {
+             // Pipeline spans only on unlock/first-init fetch; later forceUpdates pass
+@@ -574,11 +592,15 @@ class AssetsController extends base_controller_1.BaseController {
+             __classPrivateFieldSet(this, _AssetsController_firstInitFetchReported, true, "f");
+             // Background (slow) lane — flattened sibling of the fast lane (not nested
+             // inside its withTrace callback). Still fire-and-forget so UI is not blocked.
+-            const slowPipelineChainIds = __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getSlowPipelineChainIds).call(this, chainIds, response);
++            const slowPipelineChainIds = __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getSlowPipelineChainIds).call(this, chainIds, response, { forceAll: options?.postTransaction === true });
+             if (slowPipelineChainIds.length > 0) {
+-                const slowSources = __classPrivateFieldGet(this, _AssetsController_isBasicFunctionality, "f").call(this)
+-                    ? [__classPrivateFieldGet(this, _AssetsController_snapDataSource, "f"), __classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")]
+-                    : [__classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                let slowSources;
++                if (options?.postTransaction || !__classPrivateFieldGet(this, _AssetsController_isBasicFunctionality, "f").call(this)) {
++                    slowSources = [__classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                }
++                else {
++                    slowSources = [__classPrivateFieldGet(this, _AssetsController_snapDataSource, "f"), __classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                }
+                 const slowRequest = { ...request, chainIds: slowPipelineChainIds };
+                 (0, trace_js_1.withTrace)({
+                     name: TRACE_BACKGROUND_FETCH,
+@@ -1350,17 +1372,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_updateActive).call(this);
+     });
+     // Subscribe to unapproved transactions - TXs that need confirmation.
+-    // Ensures balances for the account making the transaction are updated
+-    // (e.g. for gas estimations), except on AccountActivity-active chains.
++    // Ensures balances for the account making the transaction are up-to-date
++    // for the confirmation UI (e.g. for gas and balance checks).
+     this.messenger.subscribe('TransactionController:unapprovedTransactionAdded', (transactionMeta) => {
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta);
+     });
+     // Post-tx refresh via the full fetch pipeline (Accounts API + RPC fallback).
+-    // Skipped for chains covered by AccountActivity (real-time WS updates).
+     // RpcDataSource also listens for transactionConfirmed, but only refreshes
+     // chains it owns via an active subscription.
+     this.messenger.subscribe('TransactionController:transactionConfirmed', (transactionMeta) => {
+-        __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta);
++        __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta, {
++            postTransaction: true,
++        });
+     });
+     // Start tracking only after the account tree is fully built. Unlock can
+     // happen before `AccountTreeController.init()`, and `:stateChange` fires
+@@ -1373,19 +1396,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+         __classPrivateFieldSet(this, _AssetsController_accountTreeInitialized, false, "f");
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_updateActive).call(this);
+     });
+-}, _AssetsController_refreshAssetsForTransaction = function _AssetsController_refreshAssetsForTransaction(transactionMeta) {
++}, _AssetsController_refreshAssetsForTransaction = function _AssetsController_refreshAssetsForTransaction(transactionMeta, options) {
+     const hexChainId = transactionMeta.chainId;
+     if (!hexChainId) {
+         return;
+     }
+     const caipChainId = `eip155:${parseInt(hexChainId, 16)}`;
+-    // AccountActivity pushes live balance updates for its active chains; a
+-    // force getAssets would be redundant and can race the WebSocket path.
+-    if (__classPrivateFieldGet(this, _AssetsController_accountActivityDataSource, "f")
+-        .getActiveChainsSync()
+-        .includes(caipChainId)) {
+-        return;
+-    }
+     const fromAddress = transactionMeta.txParams.from?.toLowerCase();
+     if (!fromAddress) {
+         return;
+@@ -1397,6 +1413,7 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+     this.getAssets([matchedAccount], {
+         chainIds: [caipChainId],
+         forceUpdate: true,
++        postTransaction: options?.postTransaction,
+     }).catch((error) => {
+         log('Failed to refresh assets after transaction event', { error });
+     });
+@@ -1747,7 +1764,10 @@ async function _AssetsController_executeMiddlewares(params) {
+     return __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_resolveNativeAssetIds).call(this, __classPrivateFieldGet(this, _AssetsController_enabledChains, "f"));
+ }, _AssetsController_getNativeAssetIdsForAccount = function _AssetsController_getNativeAssetIdsForAccount(account) {
+     return __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_resolveNativeAssetIds).call(this, __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getEnabledChainsForAccount).call(this, account));
+-}, _AssetsController_getSlowPipelineChainIds = function _AssetsController_getSlowPipelineChainIds(chainIds, fastResponse) {
++}, _AssetsController_getSlowPipelineChainIds = function _AssetsController_getSlowPipelineChainIds(chainIds, fastResponse, options) {
++    if (options?.forceAll) {
++        return chainIds;
++    }
+     const accountsApiChains = new Set(__classPrivateFieldGet(this, _AssetsController_accountsApiDataSource, "f").getActiveChainsSync());
+     return chainIds.filter((chainId) => {
+         if (fastResponse.errors?.[chainId]) {
+diff --git a/dist/AssetsController.mjs b/dist/AssetsController.mjs
+index 1b00fab55d3fff38671c2b9093405f6c29b08467..8122d7e6f1b4ad2311ac757a2f0cf58674b34cb4 100644
+--- a/dist/AssetsController.mjs
++++ b/dist/AssetsController.mjs
+@@ -467,9 +467,27 @@ export class AssetsController extends BaseController {
+         }
+         // Collect custom assets for all requested accounts
+         const customAssets = [];
++        const chainIdSet = new Set(chainIds);
+         for (const account of accounts) {
+             const accountCustomAssets = this.getCustomAssets(account.id);
+             customAssets.push(...accountCustomAssets);
++            // When refreshing after a confirmed transaction, also include graduated
++            // tokens — ERC-20s currently in assetsBalance but removed from
++            // customAssets by CustomAssetGraduationMiddleware. The Accounts API
++            // indexes incoming transfers (received tokens) slower than outgoing
++            // ones, so without a direct RPC query the "to" token in a swap keeps
++            // the stale API-cached balance until the next polling cycle.
++            if (options?.postTransaction) {
++                const stateBalances = this.state.assetsBalance[account.id] ?? {};
++                for (const assetId of Object.keys(stateBalances)) {
++                    const assetChainId = assetId.split('/')[0];
++                    if (chainIdSet.has(assetChainId) &&
++                        !isStakingContractAssetId(assetId) &&
++                        !customAssets.includes(assetId)) {
++                        customAssets.push(assetId);
++                    }
++                }
++            }
+         }
+         if (options?.forceUpdate) {
+             // Pipeline spans only on unlock/first-init fetch; later forceUpdates pass
+@@ -568,11 +586,15 @@ export class AssetsController extends BaseController {
+             __classPrivateFieldSet(this, _AssetsController_firstInitFetchReported, true, "f");
+             // Background (slow) lane — flattened sibling of the fast lane (not nested
+             // inside its withTrace callback). Still fire-and-forget so UI is not blocked.
+-            const slowPipelineChainIds = __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getSlowPipelineChainIds).call(this, chainIds, response);
++            const slowPipelineChainIds = __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getSlowPipelineChainIds).call(this, chainIds, response, { forceAll: options?.postTransaction === true });
+             if (slowPipelineChainIds.length > 0) {
+-                const slowSources = __classPrivateFieldGet(this, _AssetsController_isBasicFunctionality, "f").call(this)
+-                    ? [__classPrivateFieldGet(this, _AssetsController_snapDataSource, "f"), __classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")]
+-                    : [__classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                let slowSources;
++                if (options?.postTransaction || !__classPrivateFieldGet(this, _AssetsController_isBasicFunctionality, "f").call(this)) {
++                    slowSources = [__classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                }
++                else {
++                    slowSources = [__classPrivateFieldGet(this, _AssetsController_snapDataSource, "f"), __classPrivateFieldGet(this, _AssetsController_rpcDataSource, "f")];
++                }
+                 const slowRequest = { ...request, chainIds: slowPipelineChainIds };
+                 withTrace({
+                     name: TRACE_BACKGROUND_FETCH,
+@@ -1343,17 +1365,18 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_updateActive).call(this);
+     });
+     // Subscribe to unapproved transactions - TXs that need confirmation.
+-    // Ensures balances for the account making the transaction are updated
+-    // (e.g. for gas estimations), except on AccountActivity-active chains.
++    // Ensures balances for the account making the transaction are up-to-date
++    // for the confirmation UI (e.g. for gas and balance checks).
+     this.messenger.subscribe('TransactionController:unapprovedTransactionAdded', (transactionMeta) => {
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta);
+     });
+     // Post-tx refresh via the full fetch pipeline (Accounts API + RPC fallback).
+-    // Skipped for chains covered by AccountActivity (real-time WS updates).
+     // RpcDataSource also listens for transactionConfirmed, but only refreshes
+     // chains it owns via an active subscription.
+     this.messenger.subscribe('TransactionController:transactionConfirmed', (transactionMeta) => {
+-        __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta);
++        __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_refreshAssetsForTransaction).call(this, transactionMeta, {
++            postTransaction: true,
++        });
+     });
+     // Start tracking only after the account tree is fully built. Unlock can
+     // happen before `AccountTreeController.init()`, and `:stateChange` fires
+@@ -1366,19 +1389,12 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+         __classPrivateFieldSet(this, _AssetsController_accountTreeInitialized, false, "f");
+         __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_updateActive).call(this);
+     });
+-}, _AssetsController_refreshAssetsForTransaction = function _AssetsController_refreshAssetsForTransaction(transactionMeta) {
++}, _AssetsController_refreshAssetsForTransaction = function _AssetsController_refreshAssetsForTransaction(transactionMeta, options) {
+     const hexChainId = transactionMeta.chainId;
+     if (!hexChainId) {
+         return;
+     }
+     const caipChainId = `eip155:${parseInt(hexChainId, 16)}`;
+-    // AccountActivity pushes live balance updates for its active chains; a
+-    // force getAssets would be redundant and can race the WebSocket path.
+-    if (__classPrivateFieldGet(this, _AssetsController_accountActivityDataSource, "f")
+-        .getActiveChainsSync()
+-        .includes(caipChainId)) {
+-        return;
+-    }
+     const fromAddress = transactionMeta.txParams.from?.toLowerCase();
+     if (!fromAddress) {
+         return;
+@@ -1390,6 +1406,7 @@ _AssetsController_isEnabled = new WeakMap(), _AssetsController_isBasicFunctional
+     this.getAssets([matchedAccount], {
+         chainIds: [caipChainId],
+         forceUpdate: true,
++        postTransaction: options?.postTransaction,
+     }).catch((error) => {
+         log('Failed to refresh assets after transaction event', { error });
+     });
+@@ -1740,7 +1757,10 @@ async function _AssetsController_executeMiddlewares(params) {
+     return __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_resolveNativeAssetIds).call(this, __classPrivateFieldGet(this, _AssetsController_enabledChains, "f"));
+ }, _AssetsController_getNativeAssetIdsForAccount = function _AssetsController_getNativeAssetIdsForAccount(account) {
+     return __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_resolveNativeAssetIds).call(this, __classPrivateFieldGet(this, _AssetsController_instances, "m", _AssetsController_getEnabledChainsForAccount).call(this, account));
+-}, _AssetsController_getSlowPipelineChainIds = function _AssetsController_getSlowPipelineChainIds(chainIds, fastResponse) {
++}, _AssetsController_getSlowPipelineChainIds = function _AssetsController_getSlowPipelineChainIds(chainIds, fastResponse, options) {
++    if (options?.forceAll) {
++        return chainIds;
++    }
+     const accountsApiChains = new Set(__classPrivateFieldGet(this, _AssetsController_accountsApiDataSource, "f").getActiveChainsSync());
+     return chainIds.filter((chainId) => {
+         if (fastResponse.errors?.[chainId]) {
