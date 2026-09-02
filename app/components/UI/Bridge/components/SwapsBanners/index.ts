@@ -10,6 +10,8 @@ export { MissingQuoteAndAssetsPriceDataBanner } from './banners/MissingQuoteAndA
 export { MissingQuotePriceDataBanner } from './banners/MissingQuotePriceDataBanner';
 export { OffHoursTradingBanner } from './banners/OffHoursTradingBanner';
 export { QuoteErrorBanner } from './banners/QuoteErrorBanner';
+export { DestAssetRequireActivateBanner } from './banners/DestAssetRequireActivateBanner';
+
 export { TokenWarningBanner } from './banners/TokenWarningBanner';
 export type {
   SwapsBannersContextValue,
