@@ -3,7 +3,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { ReferralMeDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { REFERRER_ORIGIN_TYPES, REWARDS_MONEY_TEST_IDS } from '../../constants';
+import {
+  REFERRAL_PROGRAM_EARN_ORIGIN_TYPES,
+  REWARDS_MONEY_TEST_IDS,
+} from '../../constants';
 import RewardsMoneyReferralView from './RewardsMoneyReferralView';
 
 const mockNavigate = jest.fn();
@@ -99,7 +102,7 @@ describe('RewardsMoneyReferralView', () => {
       Routes.REWARDS_FLOW,
       expect.objectContaining({
         screen: Routes.REWARDS_MONEY_EARNINGS_VIEW,
-        params: { originTypes: REFERRER_ORIGIN_TYPES },
+        params: { originTypes: REFERRAL_PROGRAM_EARN_ORIGIN_TYPES.REFERRER },
       }),
     );
   });

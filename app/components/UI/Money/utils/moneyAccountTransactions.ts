@@ -37,14 +37,6 @@ const ERC20_ABI = [
   'function transfer(address to, uint256 amount)',
 ];
 
-/**
- * EIP-3009. The signature-bytes overload matches the 65-byte signature the
- * referral-program claim voucher carries, rather than split `v, r, s`.
- */
-export const EIP_3009_ABI = [
-  'function receiveWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, bytes signature)',
-];
-
 // -- Shared constants ------------------------------------------------------
 
 const SLIPPAGE_NUMERATOR = BigInt(998);
@@ -165,105 +157,15 @@ export function getMoneyAccountDepositAssetId(chainId?: Hex): CaipAssetType {
 
 export type MoneyAccountDepositBatchResult = MoneyAccountBatchResult<
   'approveTx' | 'depositTx'
-> &
-  Partial<MoneyAccountBatchResult<'authorizationTx'>>;
+>;
 
 /**
- * An EIP-3009 authorization that funds the money account inside the same batch
- * as the deposit. Supplied by the referral-program claim voucher.
- */
-export interface MoneyAccountDepositAuthorization {
-  /** Treasury address the mUSD is drawn from. */
-  from: Hex;
-  /** The money account receiving the mUSD. Must equal the batch's `from`. */
-  to: Hex;
-  /** mUSD base units as a decimal string. */
-  value: string;
-  /** Unix seconds. */
-  validAfter: number;
-  /** Unix seconds. The voucher window is one minute. */
-  validBefore: number;
-  /** hex bytes32 */
-  nonce: Hex;
-  /** hex bytes65 */
-  signature: Hex;
-}
-
-/**
- * The batch legs in submission order. Callers derive positional indices from
- * this rather than hard-coding `0` and `1`, which silently shift the moment an
- * authorization leg is prepended.
- */
-export type MoneyAccountDepositBatchKey =
-  | 'authorizationTx'
-  | 'approveTx'
-  | 'depositTx';
-
-const DEPOSIT_BATCH_ORDER: readonly MoneyAccountDepositBatchKey[] = [
-  'authorizationTx',
-  'approveTx',
-  'depositTx',
-];
-
-/**
- * Flattens a deposit batch result into submission order, skipping legs that
- * were not built.
+ * Builds the approve + deposit transaction pair for a Money Account deposit.
  *
- * @param result - The batch as returned by `buildMoneyAccountDepositBatch`.
- * @returns The present legs, in the order they are submitted.
- */
-export function getMoneyAccountDepositCalls(
-  result: MoneyAccountDepositBatchResult,
-): { key: MoneyAccountDepositBatchKey; tx: MoneyAccountTxParams }[] {
-  return DEPOSIT_BATCH_ORDER.flatMap((key) => {
-    const tx = result[key];
-    return tx ? [{ key, tx }] : [];
-  });
-}
-
-/**
- * Index of a named leg within a built batch, or `-1` when it is absent.
- *
- * @param result - The batch as returned by `buildMoneyAccountDepositBatch`.
- * @param key - The leg to locate.
- * @returns The nested-call index.
- */
-export function getMoneyAccountDepositCallIndex(
-  result: MoneyAccountDepositBatchResult,
-  key: MoneyAccountDepositBatchKey,
-): number {
-  return getMoneyAccountDepositCalls(result).findIndex(
-    (call) => call.key === key,
-  );
-}
-
-function buildReceiveWithAuthorizationData(
-  authorization: MoneyAccountDepositAuthorization,
-): Hex {
-  const iface = new ethers.utils.Interface(EIP_3009_ABI);
-  return iface.encodeFunctionData('receiveWithAuthorization', [
-    authorization.from,
-    authorization.to,
-    authorization.value,
-    authorization.validAfter,
-    authorization.validBefore,
-    authorization.nonce,
-    authorization.signature,
-  ]) as Hex;
-}
-
-/**
- * Builds the approve + deposit transaction pair for a Money Account deposit,
- * optionally prefixed by an EIP-3009 authorization that funds the account.
- *
- * 1. When `authorization` is given, encodes `receiveWithAuthorization(...)` on the mUSD token so the batch is self-funding.
- * 2. Calls `previewDeposit` on the lens contract to get expected vault shares.
- * 3. Applies a 0.2% slippage tolerance to derive `minimumMint`.
- * 4. Encodes ERC-20 `approve(boringVault, amount)` on the mUSD token.
- * 5. Encodes `deposit(mUSD, amount, minimumMint, 0x0)` on the teller contract.
- *
- * The ordinary deposit flow passes no `authorization` and still gets exactly
- * two legs, so its calldata and gas profile are unchanged.
+ * 1. Calls `previewDeposit` on the lens contract to get expected vault shares.
+ * 2. Applies a 0.2% slippage tolerance to derive `minimumMint`.
+ * 3. Encodes ERC-20 `approve(boringVault, amount)` on the mUSD token.
+ * 4. Encodes `deposit(mUSD, amount, minimumMint, 0x0)` on the teller contract.
  */
 export async function buildMoneyAccountDepositBatch({
   amount,
@@ -274,7 +176,6 @@ export async function buildMoneyAccountDepositBatch({
   lensAddress,
   provider,
   initialiseWithoutData = false,
-  authorization,
 }: {
   amount: bigint;
   chainId: Hex;
@@ -284,7 +185,6 @@ export async function buildMoneyAccountDepositBatch({
   lensAddress: string;
   provider: ethers.providers.Provider;
   initialiseWithoutData?: boolean;
-  authorization?: MoneyAccountDepositAuthorization;
 }): Promise<MoneyAccountDepositBatchResult> {
   const musdAddress = getMoneyAccountDepositAssetAddress(chainId);
 
@@ -310,20 +210,7 @@ export async function buildMoneyAccountDepositBatch({
     ? undefined
     : buildDepositData(musdAddress, amount, minimumMint);
 
-  const authorizationTx =
-    authorization && !initialiseWithoutData
-      ? {
-          params: {
-            to: musdAddress,
-            data: buildReceiveWithAuthorizationData(authorization),
-            value: '0x0' as Hex,
-          },
-          type: TransactionType.contractInteraction,
-        }
-      : undefined;
-
   return {
-    ...(authorizationTx ? { authorizationTx } : {}),
     approveTx: {
       params: {
         to: musdAddress,
@@ -376,7 +263,7 @@ export async function updateMoneyAccountDepositTokenAmount(
       .toFixed(0),
   );
 
-  const batch = await buildMoneyAccountDepositBatch({
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,
     chainId: chainIdHex,
     boringVault: vaultConfig.boringVault,
@@ -386,27 +273,13 @@ export async function updateMoneyAccountDepositTokenAmount(
     provider,
   });
 
-  const approveData = batch.approveTx.params.data;
-  const depositData = batch.depositTx.params.data;
+  const approveData = approveTx.params.data;
+  const depositData = depositTx.params.data;
   if (!approveData || !depositData) return [];
 
-  // Indices come from the built batch rather than literals: an authorization
-  // leg shifts approve and deposit by one.
   return [
-    {
-      nestedTransactionIndex: getMoneyAccountDepositCallIndex(
-        batch,
-        'approveTx',
-      ),
-      transactionData: approveData,
-    },
-    {
-      nestedTransactionIndex: getMoneyAccountDepositCallIndex(
-        batch,
-        'depositTx',
-      ),
-      transactionData: depositData,
-    },
+    { nestedTransactionIndex: 0, transactionData: approveData },
+    { nestedTransactionIndex: 1, transactionData: depositData },
   ];
 }
 
@@ -483,7 +356,7 @@ export async function getMoneyAccountDepositTransactionsData(
       .toFixed(0),
   );
 
-  const batch = await buildMoneyAccountDepositBatch({
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
     amount,
     chainId,
     boringVault: vaultConfig.boringVault,
@@ -493,7 +366,7 @@ export async function getMoneyAccountDepositTransactionsData(
     provider,
   });
 
-  return getMoneyAccountDepositCalls(batch).map(({ tx }) => tx.params);
+  return [approveTx.params, depositTx.params];
 }
 
 /**

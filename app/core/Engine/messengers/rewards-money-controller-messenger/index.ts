@@ -26,13 +26,10 @@ type AllowedActions =
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceInitiateClaimAction;
 
-// Don't reexport as per guidelines
-type AllowedEvents = never;
-
 export type RewardsMoneyControllerMessenger = Messenger<
   typeof name,
   RewardsMoneyControllerActions | AllowedActions,
-  RewardsMoneyControllerEvents | AllowedEvents
+  RewardsMoneyControllerEvents
 >;
 
 export function getRewardsMoneyControllerMessenger(

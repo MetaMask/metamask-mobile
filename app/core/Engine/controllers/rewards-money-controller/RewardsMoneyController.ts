@@ -82,11 +82,27 @@ export {
  * `[B, A]` share one entry, and `all` for the unscoped read so an empty array
  * never collides with a genuinely empty key.
  */
+/**
+ * Explicit comparator: the default `sort()` coerces to string and sorts by code
+ * unit, which happens to be right here but is not stated. Sonar flags the
+ * implicit form, and being explicit costs nothing.
+ *
+ * @param a - First origin type.
+ * @param b - Second origin type.
+ * @returns Standard comparator result.
+ */
+function compareOriginTypes(
+  a: EarningOriginType,
+  b: EarningOriginType,
+): number {
+  return a.localeCompare(b);
+}
+
 export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
   if (!originTypes || originTypes.length === 0) {
     return 'all';
   }
-  return [...originTypes].sort().join(',');
+  return [...originTypes].sort(compareOriginTypes).join(',');
 }
 
 /**
@@ -175,7 +191,7 @@ export class RewardsMoneyController extends BaseController<
   RewardsMoneyControllerState,
   RewardsMoneyControllerMessenger
 > {
-  #isDisabled: () => boolean;
+  readonly #isDisabled: () => boolean;
 
   constructor({
     messenger,

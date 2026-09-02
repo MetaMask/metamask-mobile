@@ -37,7 +37,7 @@ export const useEarningsLedger = (
   // The sorted array is what goes to the request; the joined string is only a
   // dependency key, so the origin types never round-trip through a string.
   const scope = useMemo(
-    () => [...originTypes].sort(),
+    () => [...originTypes].sort((a, b) => a.localeCompare(b)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [originTypes.join(',')],
   );

@@ -431,6 +431,9 @@ describe('RewardsDashboard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset here rather than at the end of the test that sets it: a throw
+    // before an inline reset would leak the flag into every later test.
+    mockRewardsMoneyEnabled = false;
 
     // Configure mocks before passing them to the mock hook factory
     // so the hook receives already-configured references
@@ -642,7 +645,6 @@ describe('RewardsDashboard', () => {
 
       const { getByTestId } = render(<RewardsDashboard />);
       fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.MONEY_BUTTON));
-      mockRewardsMoneyEnabled = false;
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REWARDS_MONEY_VIEW,

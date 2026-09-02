@@ -5,7 +5,7 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { isMonadMainnetChainId } from '../../../../../util/networks';
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
-import { buildMoneyAccountDepositBatch } from '../../../Money/utils/moneyAccountTransactions';
+import { buildClaimDepositBatch } from '../utils/buildClaimDepositBatch';
 import { ClaimAlreadyOpenError } from '../../../../../core/Engine/controllers/rewards-money-controller/services';
 import awaitBatchConfirmed, {
   BatchConfirmationFailedError,
@@ -57,13 +57,8 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-jest.mock('../../../Money/utils/moneyAccountTransactions', () => ({
-  buildMoneyAccountDepositBatch: jest.fn(),
-  getMoneyAccountDepositCalls: jest.fn((batch: Record<string, unknown>) =>
-    ['authorizationTx', 'approveTx', 'depositTx']
-      .filter((key) => batch[key])
-      .map((key) => ({ key, tx: batch[key] })),
-  ),
+jest.mock('../utils/buildClaimDepositBatch', () => ({
+  buildClaimDepositBatch: jest.fn(),
 }));
 
 jest.mock('../utils/awaitBatchConfirmed', () => ({
@@ -77,7 +72,7 @@ const mockVaultConfig = jest.mocked(selectMoneyAccountVaultConfig);
 const mockPrimaryAccount = jest.mocked(selectPrimaryMoneyAccount);
 const mockIsMonad = jest.mocked(isMonadMainnetChainId);
 const mockProvider = jest.mocked(getProviderByChainId);
-const mockBuildBatch = jest.mocked(buildMoneyAccountDepositBatch);
+const mockBuildBatch = jest.mocked(buildClaimDepositBatch);
 const mockAwaitBatch = jest.mocked(awaitBatchConfirmed);
 const mockAddBatch = jest.mocked(addTransactionBatch);
 
@@ -89,6 +84,13 @@ const VAULT_CONFIG = {
   lensAddress: '0xlens',
 };
 
+/**
+ * Fixed rather than `Date.now()`-derived: a paused runner could otherwise let
+ * the 60-second voucher expire mid-test and turn a happy path into
+ * VOUCHER_EXPIRED. The short window makes that materially likely.
+ */
+const FAR_FUTURE_UNIX_SECONDS = 4_102_444_800;
+
 const createVoucher = (
   overrides: Partial<ClaimVoucherDto> = {},
 ): ClaimVoucherDto => ({
@@ -97,7 +99,7 @@ const createVoucher = (
   to: '0xmoneyaccount',
   value: '12500000',
   valid_after: 0,
-  valid_before: Math.floor(Date.now() / 1000) + 60,
+  valid_before: FAR_FUTURE_UNIX_SECONDS,
   nonce: '0xnonce',
   signature: '0xsignature',
   ...overrides,
@@ -112,11 +114,11 @@ const setUpHappyPath = () => {
   } as unknown as ReturnType<typeof selectPrimaryMoneyAccount>);
   mockIsMonad.mockReturnValue(true);
   mockProvider.mockReturnValue({} as never);
-  mockBuildBatch.mockResolvedValue({
-    authorizationTx: { params: { to: '0xmusd' }, type: 'contractInteraction' },
-    approveTx: { params: { to: '0xmusd' }, type: 'tokenMethodApprove' },
-    depositTx: { params: { to: '0xteller' }, type: 'moneyAccountDeposit' },
-  } as never);
+  mockBuildBatch.mockResolvedValue([
+    { params: { to: '0xmusd' }, type: 'contractInteraction' },
+    { params: { to: '0xmusd' }, type: 'tokenMethodApprove' },
+    { params: { to: '0xteller' }, type: 'moneyAccountDeposit' },
+  ] as never);
   mockAwaitBatch.mockImplementation(async ({ submit }) => {
     await submit();
     return { txHash: '0xhash', transactionMeta: {} as never };
@@ -321,7 +323,7 @@ describe('useClaimEarnings', () => {
       expect(result.current.error?.reason).toBe('CONFIRMATION_TIMEOUT');
     });
 
-    it('bounds the confirmation wait by the voucher window, not the 5-minute default', async () => {
+    it('bounds the confirmation wait by the voucher window rather than a fixed default', async () => {
       const { result } = renderHook(() => useClaimEarnings());
 
       await act(async () => {
@@ -329,7 +331,7 @@ describe('useClaimEarnings', () => {
       });
 
       const { timeoutMs } = mockAwaitBatch.mock.calls[0][0];
-      expect(timeoutMs).toBeLessThan(5 * 60 * 1000);
+      expect(timeoutMs).toBe(confirmationTimeoutMs(createVoucher()));
     });
 
     it('records what the claim paid so the earnings screen holds the post-claim figure', async () => {

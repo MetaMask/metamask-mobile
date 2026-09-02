@@ -20,7 +20,10 @@ import ErrorBoundary from '../../../../Views/ErrorBoundary';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { EarningOriginType } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { REFERRER_ORIGIN_TYPES, REWARDS_MONEY_TEST_IDS } from '../../constants';
+import {
+  REFERRAL_PROGRAM_EARN_ORIGIN_TYPES,
+  REWARDS_MONEY_TEST_IDS,
+} from '../../constants';
 import EarningsSummaryHeader from '../components/EarningsSummaryHeader';
 import EarningsTabs, {
   CodePerformancePlaceholder,
@@ -65,7 +68,10 @@ const RewardsMoneyEarningsView: React.FC<RewardsMoneyEarningsViewProps> = ({
   const [activeTab, setActiveTab] = useState(EARNINGS_TAB_LEDGER);
 
   const originTypes = useMemo(
-    () => originTypesProp ?? route.params?.originTypes ?? REFERRER_ORIGIN_TYPES,
+    () =>
+      originTypesProp ??
+      route.params?.originTypes ??
+      REFERRAL_PROGRAM_EARN_ORIGIN_TYPES.REFERRER,
     [originTypesProp, route.params?.originTypes],
   );
 

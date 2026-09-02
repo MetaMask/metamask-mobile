@@ -30,6 +30,12 @@ describe('rewardsMoneyDataServiceInit', () => {
     jest.clearAllMocks();
   });
 
+  // clearAllMocks resets call counts but leaves spy implementations in place,
+  // so a spy from one test would otherwise bleed into the next.
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('initializes the service', () => {
     const { controller } = rewardsMoneyDataServiceInit(getInitRequestMock());
 

@@ -3,10 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
-import {
-  buildMoneyAccountDepositBatch,
-  getMoneyAccountDepositCallIndex,
-} from '../../../../components/UI/Money/utils/moneyAccountTransactions';
+import { buildMoneyAccountDepositBatch } from '../../../../components/UI/Money/utils/moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -83,24 +80,10 @@ export async function getAmountData(
       throw new Error('Missing calldata in deposit batch result');
     }
 
-    // Indices come from the built batch rather than literals: an authorization
-    // leg shifts approve and deposit by one.
     return {
       updates: [
-        {
-          nestedTransactionIndex: getMoneyAccountDepositCallIndex(
-            buildResult,
-            'approveTx',
-          ),
-          data: approveData,
-        },
-        {
-          nestedTransactionIndex: getMoneyAccountDepositCallIndex(
-            buildResult,
-            'depositTx',
-          ),
-          data: depositData,
-        },
+        { nestedTransactionIndex: 0, data: approveData },
+        { nestedTransactionIndex: 1, data: depositData },
       ],
     };
   } catch (error) {

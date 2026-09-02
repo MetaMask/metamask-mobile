@@ -20,7 +20,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { navigateToRewardsRoute } from '../../../Rewards/utils';
 import useRewardsToast from '../../../Rewards/hooks/useRewardsToast';
 import type { ReferralMeDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { REFERRER_ORIGIN_TYPES, REWARDS_MONEY_TEST_IDS } from '../../constants';
+import {
+  REFERRAL_PROGRAM_EARN_ORIGIN_TYPES,
+  REWARDS_MONEY_TEST_IDS,
+} from '../../constants';
 import ReferralCodeCard from '../components/ReferralCodeCard';
 import ReferralRatesRow from '../components/ReferralRatesRow';
 import ShareReferralLinkButton from '../components/ShareReferralLinkButton';
@@ -50,7 +53,7 @@ const RewardsMoneyReferralView: React.FC<RewardsMoneyReferralViewProps> = ({
 
   const handleViewEarnings = useCallback(() => {
     navigateToRewardsRoute(navigation, Routes.REWARDS_MONEY_EARNINGS_VIEW, {
-      originTypes: REFERRER_ORIGIN_TYPES,
+      originTypes: REFERRAL_PROGRAM_EARN_ORIGIN_TYPES.REFERRER,
     });
   }, [navigation]);
 

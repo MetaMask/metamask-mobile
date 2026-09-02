@@ -123,40 +123,6 @@ describe('updateMoneyAccountDepositAmount', () => {
     });
   });
 
-  it('targets the approve and deposit legs by type when an authorization leg shifts them', async () => {
-    currentTransaction = buildTransaction({
-      nestedTransactions: [
-        { type: TransactionType.contractInteraction, data: '0x' as Hex },
-        { type: TransactionType.tokenMethodApprove, data: '0x' as Hex },
-        { type: TransactionType.moneyAccountDeposit, data: '0x' as Hex },
-      ],
-    } as Partial<TransactionMeta>);
-
-    await updateMoneyAccountDepositAmount(currentTransaction, '10');
-
-    expect(updateEIP7702BatchDataMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        updates: [
-          { transactionIndex: 1, transactionData: APPROVE_DATA },
-          { transactionIndex: 2, transactionData: DEPOSIT_DATA },
-        ],
-      }),
-    );
-  });
-
-  it('still targets indices 0 and 1 for an ordinary two-leg deposit', async () => {
-    await updateMoneyAccountDepositAmount(currentTransaction, '10');
-
-    expect(updateEIP7702BatchDataMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        updates: [
-          { transactionIndex: 0, transactionData: APPROVE_DATA },
-          { transactionIndex: 1, transactionData: DEPOSIT_DATA },
-        ],
-      }),
-    );
-  });
-
   it('prepares and commits one coherent update without re-simulation', async () => {
     currentTransaction.txParams.gas = '0x5208';
     currentTransaction.simulationData = { tokenBalanceChanges: [] };

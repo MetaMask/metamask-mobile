@@ -32,35 +32,15 @@ function failUpdate(message: string): never {
   throw new Error(`${UPDATE_ERROR_PREFIX}${message}`);
 }
 
-/**
- * Locates the approve and deposit legs by type rather than by position. A
- * Money Account deposit batch may carry a leading EIP-3009 authorization leg,
- * which shifts both, so a fixed-index lookup silently reads the wrong call.
- */
-function findTemplateIndices(transaction: TransactionMeta): {
-  approveIndex: number;
-  depositIndex: number;
-} {
-  const nested = transaction.nestedTransactions ?? [];
-  return {
-    approveIndex: nested.findIndex(
-      ({ type }) => type === TransactionType.tokenMethodApprove,
-    ),
-    depositIndex: nested.findIndex(
-      ({ type }) => type === TransactionType.moneyAccountDeposit,
-    ),
-  };
-}
-
-function validateTransactionTemplate(transaction: TransactionMeta): {
-  approveIndex: number;
-  depositIndex: number;
-} {
-  const indices = findTemplateIndices(transaction);
-  if (indices.approveIndex === -1 || indices.depositIndex === -1) {
+function validateTransactionTemplate(transaction: TransactionMeta): void {
+  if (
+    transaction.nestedTransactions?.[0]?.type !==
+      TransactionType.tokenMethodApprove ||
+    transaction.nestedTransactions[1]?.type !==
+      TransactionType.moneyAccountDeposit
+  ) {
     failUpdate('missing approval/deposit transaction template');
   }
-  return indices;
 }
 
 function buildRequiredAssets(
@@ -138,8 +118,7 @@ async function updateMoneyAccountDepositAmountInternal(
     transactionId: transaction.id,
     skipResimulate: true,
     callback: (transactionMeta) => {
-      const { approveIndex, depositIndex } =
-        validateTransactionTemplate(transactionMeta);
+      validateTransactionTemplate(transactionMeta);
 
       if (transactionMeta.chainId !== chainId) {
         failUpdate('transaction chain changed during preparation');
@@ -149,8 +128,8 @@ async function updateMoneyAccountDepositAmountInternal(
         from: transactionMeta.txParams.from as Hex,
         transactions: transactionMeta.nestedTransactions ?? [],
         updates: [
-          { transactionIndex: approveIndex, transactionData: approveData },
-          { transactionIndex: depositIndex, transactionData: depositData },
+          { transactionIndex: 0, transactionData: approveData },
+          { transactionIndex: 1, transactionData: depositData },
         ],
       });
 

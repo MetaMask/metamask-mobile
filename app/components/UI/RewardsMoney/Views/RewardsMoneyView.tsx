@@ -17,7 +17,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../../Rewards/components/RewardsErrorBanner';
 import { strings } from '../../../../../locales/i18n';
-import { REFEREE_ORIGIN_TYPES, REWARDS_MONEY_TEST_IDS } from '../constants';
+import {
+  REFERRAL_PROGRAM_EARN_ORIGIN_TYPES,
+  REWARDS_MONEY_TEST_IDS,
+} from '../constants';
 import useRewardsMoneyMe from '../hooks/useRewardsMoneyMe';
 import RewardsMoneyReferralView from '../referral-program/Views/RewardsMoneyReferralView';
 import ReferralEntryState from '../referral-program/components/ReferralEntryState';
@@ -69,7 +72,7 @@ const RewardsMoneyView: React.FC = () => {
       case 'REFEREE':
         return (
           <RewardsMoneyEarningsView
-            originTypes={REFEREE_ORIGIN_TYPES}
+            originTypes={REFERRAL_PROGRAM_EARN_ORIGIN_TYPES.REFEREE}
             embedded
           />
         );

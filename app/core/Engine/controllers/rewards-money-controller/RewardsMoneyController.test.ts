@@ -17,6 +17,9 @@ import type {
 import type { RewardsMoneyControllerMessenger } from '../../messengers/rewards-money-controller-messenger';
 import type { RewardsMoneyDataServiceActions } from './services';
 
+/** Fixed clock for cache-boundary assertions. */
+const FIXED_NOW = 1_800_000_000_000;
+
 const createReferralMe = (
   overrides: Partial<ReferralMeDto> = {},
 ): ReferralMeDto => ({
@@ -274,16 +277,21 @@ describe('RewardsMoneyController', () => {
     });
 
     it('refetches once the cache entry is older than the TTL', async () => {
+      // Pin the clock: seeding `lastFetched` exactly 1ms past the boundary
+      // against a live clock is a coin flip on a slow runner.
+      jest.useFakeTimers();
+      jest.setSystemTime(FIXED_NOW);
       const { controller, handlers } = createHarness({
         state: {
           referralMe: {
             payload: createReferralMe(),
-            lastFetched: Date.now() - REFERRAL_ME_CACHE_THRESHOLD_MS - 1,
+            lastFetched: FIXED_NOW - REFERRAL_ME_CACHE_THRESHOLD_MS - 1,
           },
         },
       });
 
       await controller.getReferralMe();
+      jest.useRealTimers();
 
       expect(handlers.getReferralMe).toHaveBeenCalledTimes(1);
     });

@@ -70,6 +70,22 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceInitiateClaimAction;
 
 /**
+ * Strips trailing slashes without a regex. `/\/+$/` backtracks super-linearly
+ * on a long run of slashes, which Sonar flags as a ReDoS risk; a scan from the
+ * end is linear and does the same job.
+ *
+ * @param url - The URL to trim.
+ * @returns The URL with any trailing slashes removed.
+ */
+function trimTrailingSlashes(url: string): string {
+  let end = url.length;
+  while (end > 0 && url[end - 1] === '/') {
+    end -= 1;
+  }
+  return url.slice(0, end);
+}
+
+/**
  * The referral-program API authenticates with a Hydra bearer token whose `sub`
  * is the profile id, so the data service is allowed to call the
  * AuthenticationController. It deliberately does NOT touch the rewards
@@ -125,7 +141,7 @@ export class RewardsMoneyDataService {
   }) {
     this.#messenger = messenger;
     this.#fetch = fetchFunction;
-    this.#baseUrl = baseUrl.replace(/\/+$/u, '');
+    this.#baseUrl = trimTrailingSlashes(baseUrl);
     this.#getBearerToken = getBearerToken;
     this.#appType = appType;
     this.#locale = locale;

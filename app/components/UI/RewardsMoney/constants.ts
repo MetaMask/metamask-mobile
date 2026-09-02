@@ -12,15 +12,22 @@ export const REWARDS_MONEY_ENABLED =
   process.env.MM_REWARDS_MONEY_ENABLED === 'true';
 
 /**
- * The origin-type scope each variant reads. This single prop is the whole
- * difference between the referrer's and the referee's earnings half.
+ * The referral program's earn origin types, by role.
+ *
+ * Grouped rather than left as two loose constants so the program scoping is
+ * stated once and the roles read as facets of it — matching the backend's
+ * `earn_rates`, the program-level shape a future `/social/me` reuses with its
+ * own origin types.
+ *
+ * The chosen set is the whole difference between the two variants' earnings
+ * half: it is passed identically to the summary, the ledger and the claim.
  */
-export const REFERRER_ORIGIN_TYPES: EarningOriginType[] = [
-  'CASHBACK',
-  'REFERRAL_REV_SHARE',
-];
-
-export const REFEREE_ORIGIN_TYPES: EarningOriginType[] = ['CASHBACK'];
+export const REFERRAL_PROGRAM_EARN_ORIGIN_TYPES: Readonly<
+  Record<'REFERRER' | 'REFEREE', EarningOriginType[]>
+> = {
+  REFERRER: ['CASHBACK', 'REFERRAL_REV_SHARE'],
+  REFEREE: ['CASHBACK'],
+};
 
 export const REWARDS_MONEY_TEST_IDS = {
   VIEW: 'rewards-money-view',

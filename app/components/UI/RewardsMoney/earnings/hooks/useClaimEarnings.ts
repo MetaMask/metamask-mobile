@@ -10,10 +10,7 @@ import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureF
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { isMonadMainnetChainId } from '../../../../../util/networks';
-import {
-  buildMoneyAccountDepositBatch,
-  getMoneyAccountDepositCalls,
-} from '../../../Money/utils/moneyAccountTransactions';
+import { buildClaimDepositBatch } from '../utils/buildClaimDepositBatch';
 import type {
   ClaimVoucherDto,
   EarningOriginType,
@@ -181,7 +178,7 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
         assertVoucherIsLive(voucher);
 
         const amount = BigInt(voucher.value);
-        const batch = await buildMoneyAccountDepositBatch({
+        const transactions = await buildClaimDepositBatch({
           amount,
           chainId,
           boringVault: vaultConfig.boringVault,
@@ -205,9 +202,6 @@ export const useClaimEarnings = (): UseClaimEarningsResult => {
         // opaquely on chain rather than say why.
         assertVoucherIsLive(voucher);
 
-        const transactions = getMoneyAccountDepositCalls(batch).map(
-          ({ tx }) => tx,
-        );
         const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
         const networkClientId =
           Engine.context.NetworkController.findNetworkClientIdByChainId(
