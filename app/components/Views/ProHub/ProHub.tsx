@@ -30,7 +30,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
-import { BENEFITS, BenefitRow } from '../shared/pro';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
 interface MembershipBannerProps {
