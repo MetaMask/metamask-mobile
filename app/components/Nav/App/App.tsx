@@ -195,6 +195,7 @@ import ProSubscription from '../../Views/ProSubscription';
 import ProHub from '../../Views/ProHub';
 import Membership from '../../Views/ProHub/screens/Membership';
 import Earned from '../../Views/ProHub/screens/Earned';
+import Saved from '../../Views/ProHub/screens/Saved';
 import CancelMembership from '../../Views/ProHub/screens/CancelMembership';
 
 const NativeStack = createNativeStackNavigator();
@@ -1450,6 +1451,16 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.PRO_HUB.EARNED}
         component={Earned}
+        options={{
+          headerShown: false,
+          gestureEnabled: true,
+          presentation: 'card',
+          animation: 'default',
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.PRO_HUB.SAVED}
+        component={Saved}
         options={{
           headerShown: false,
           gestureEnabled: true,

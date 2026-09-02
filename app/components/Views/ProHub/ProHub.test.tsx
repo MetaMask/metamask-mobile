@@ -104,6 +104,16 @@ describe('ProHub', () => {
       expect(savedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.saved));
     });
 
+    it('renders stat cards as pressable buttons', () => {
+      const { getByTestId } = renderProHub();
+
+      const earnedCard = getByTestId(ProHubTestIds.EARNED_CARD);
+      const savedCard = getByTestId(ProHubTestIds.SAVED_CARD);
+
+      expect(earnedCard.props.accessibilityRole).toBe('button');
+      expect(savedCard.props.accessibilityRole).toBe('button');
+    });
+
     it('renders the physical card placeholder, title, and description', () => {
       const { getByTestId } = renderProHub();
 
@@ -153,91 +163,91 @@ describe('ProHub', () => {
       );
       expect(manageButton).toHaveTextContent(strings('pro_hub.manage_plan'));
     });
-  });
 
-  // ── Back button ───────────────────────────────────────────────────────────
+    // ── Back button ───────────────────────────────────────────────────────────
 
-  describe('back button', () => {
-    it('calls navigation.goBack when pressed', () => {
-      const { getByTestId } = renderProHub();
+    describe('back button', () => {
+      it('calls navigation.goBack when pressed', () => {
+        const { getByTestId } = renderProHub();
 
-      fireEvent.press(getByTestId(ProHubTestIds.BACK_BUTTON));
+        fireEvent.press(getByTestId(ProHubTestIds.BACK_BUTTON));
 
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not call navigation.goBack on initial render', () => {
-      renderProHub();
-
-      expect(mockGoBack).not.toHaveBeenCalled();
-    });
-  });
-
-  // ── Navigation ───────────────────────────────────────────────────────────
-
-  describe('navigation', () => {
-    it('navigates to Membership when manage plan is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
-    });
-
-    it('navigates to Membership when manage plans icon is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
-    });
-
-    it('navigates to Card when get card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.GET_CARD_BUTTON));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
-    });
-
-    it('navigates to Earned when the earned card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
-    });
-
-    it('does not navigate when the physical card is pressed', () => {
-      const { getByTestId } = renderProHub();
-
-      fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
-        nativeEvent: { locationX: 40, locationY: 40 },
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      it('does not call navigation.goBack on initial render', () => {
+        renderProHub();
+
+        expect(mockGoBack).not.toHaveBeenCalled();
+      });
     });
 
-    it('does not navigate when the saved card is pressed', () => {
-      const { getByTestId } = renderProHub();
+    // ── Navigation ───────────────────────────────────────────────────────────
 
-      fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
+    describe('navigation', () => {
+      it('navigates to Membership when manage plan is pressed', () => {
+        const { getByTestId } = renderProHub();
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+        fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
 
-    it('does not navigate when a benefit row is pressed', () => {
-      const { getByTestId } = renderProHub();
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+      });
 
-      fireEvent.press(getByTestId(BenefitRowTestIds.ROW(BENEFITS[0].id)));
+      it('navigates to Membership when manage plans icon is pressed', () => {
+        const { getByTestId } = renderProHub();
 
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
+        fireEvent.press(getByTestId(ProHubTestIds.MANAGE_PLANS_BUTTON));
 
-    it('does not navigate on initial render', () => {
-      renderProHub();
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.MEMBERSHIP);
+      });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      it('navigates to Card when get card is pressed', () => {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(getByTestId(ProHubTestIds.GET_CARD_BUTTON));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT);
+      });
+
+      it('navigates to Earned when the earned card is pressed', () => {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(getByTestId(ProHubTestIds.EARNED_CARD));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.EARNED);
+      });
+
+      it('navigates to Saved when the saved card is pressed', () => {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(getByTestId(ProHubTestIds.SAVED_CARD));
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.SAVED);
+      });
+
+      it('does not navigate when the physical card is pressed', () => {
+        const { getByTestId } = renderProHub();
+
+        fireEvent(getByTestId(ProHubTestIds.CARD_PLACEHOLDER), 'pressIn', {
+          nativeEvent: { locationX: 40, locationY: 40 },
+        });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+
+      it('does not navigate when a benefit row is pressed', () => {
+        const { getByTestId } = renderProHub();
+
+        fireEvent.press(getByTestId(BenefitRowTestIds.ROW(BENEFITS[0].id)));
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+
+      it('does not navigate on initial render', () => {
+        renderProHub();
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
     });
   });
 });

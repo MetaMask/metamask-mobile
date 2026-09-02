@@ -19,29 +19,29 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { MOCK_EARNED_DATA } from './Earned.constants';
-import { EarnedTestIds } from './Earned.testIds';
+import { MOCK_SAVED_DATA } from './Saved.constants';
+import { SavedTestIds } from './Saved.testIds';
 import { useDigitTicker } from '../../hooks';
 import BreakdownRow from '../../components/BreakdownRow';
 
-const Earned = () => {
+const Saved = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const paidForItselfValue = useDigitTicker(MOCK_EARNED_DATA.paidForItself);
+  const paidForItselfValue = useDigitTicker(MOCK_SAVED_DATA.paidForItself);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  const handleAddMoney = useCallback(() => {
-    /* TODO: Implement add money */
+  const handleSwap = useCallback(() => {
+    /* TODO: Implement swap */
   }, []);
 
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
-      testID={EarnedTestIds.CONTAINER}
+      testID={SavedTestIds.CONTAINER}
     >
       <HeaderBase
         twClassName="px-4"
@@ -50,7 +50,7 @@ const Earned = () => {
             iconName={IconName.ArrowLeft}
             onPress={handleBack}
             accessibilityLabel={strings('navigation.back')}
-            testID={EarnedTestIds.BACK_BUTTON}
+            testID={SavedTestIds.BACK_BUTTON}
           />
         }
       />
@@ -64,16 +64,16 @@ const Earned = () => {
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            testID={EarnedTestIds.TOTAL_VALUE}
+            testID={SavedTestIds.TOTAL_VALUE}
           >
-            {MOCK_EARNED_DATA.total}
+            {MOCK_SAVED_DATA.total}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            testID={EarnedTestIds.TOTAL_LABEL}
+            testID={SavedTestIds.TOTAL_LABEL}
           >
-            {strings('pro_hub.earned.total_label')}
+            {strings('pro_hub.saved.total_label')}
           </Text>
         </Box>
 
@@ -81,18 +81,23 @@ const Earned = () => {
 
         <Box twClassName="gap-y-6">
           <BreakdownRow
-            title={strings('pro_hub.earned.interest_title')}
-            subtitle={strings('pro_hub.earned.interest_subtitle')}
-            value={MOCK_EARNED_DATA.interest.amount}
-            testID={EarnedTestIds.INTEREST_ROW}
+            title={strings('pro_hub.saved.trading_fees_title')}
+            subtitle={strings('pro_hub.saved.trading_fees_subtitle')}
+            value={MOCK_SAVED_DATA.tradingFees.amount}
+            testID={SavedTestIds.TRADING_FEES_ROW}
           />
           <BreakdownRow
-            title={strings('pro_hub.earned.card_cashback_title')}
-            subtitle={strings('pro_hub.earned.card_cashback_subtitle', {
-              amount: MOCK_EARNED_DATA.cardCashbackSpend,
-            })}
-            value={MOCK_EARNED_DATA.cardCashback.amount}
-            testID={EarnedTestIds.CARD_CASHBACK_ROW}
+            title={strings('pro_hub.saved.card_atm_fees_title')}
+            subtitle={strings('pro_hub.saved.card_atm_fees_subtitle')}
+            value={MOCK_SAVED_DATA.cardAndAtmFees.amount}
+            testID={SavedTestIds.CARD_ATM_FEES_ROW}
+          />
+          <BreakdownRow
+            title={strings('pro_hub.saved.coverage_title')}
+            subtitle={strings('pro_hub.saved.coverage_subtitle')}
+            value={strings('pro_hub.saved.coverage_active')}
+            valueColor={TextColor.SuccessDefault}
+            testID={SavedTestIds.COVERAGE_ROW}
           />
         </Box>
 
@@ -103,15 +108,15 @@ const Earned = () => {
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
-            testID={EarnedTestIds.PAID_FOR_ITSELF_TITLE}
+            testID={SavedTestIds.PAID_FOR_ITSELF_TITLE}
           >
-            {strings('pro_hub.earned.paid_for_itself_title')}
+            {strings('pro_hub.saved.paid_for_itself_title')}
           </Text>
           <Text
             variant={TextVariant.DisplayLg}
             fontWeight={FontWeight.Bold}
             color={TextColor.SuccessDefault}
-            testID={EarnedTestIds.PAID_FOR_ITSELF_VALUE}
+            testID={SavedTestIds.PAID_FOR_ITSELF_VALUE}
             twClassName="tabular-nums"
           >
             {paidForItselfValue}
@@ -119,11 +124,11 @@ const Earned = () => {
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
-            testID={EarnedTestIds.PAID_FOR_ITSELF_DESCRIPTION}
+            testID={SavedTestIds.PAID_FOR_ITSELF_DESCRIPTION}
           >
-            {strings('pro_hub.earned.paid_for_itself_description', {
-              multiplier: MOCK_EARNED_DATA.membershipFeeMultiplier,
-              fee: MOCK_EARNED_DATA.membershipFee,
+            {strings('pro_hub.saved.paid_for_itself_description', {
+              multiplier: MOCK_SAVED_DATA.membershipFeeMultiplier,
+              fee: MOCK_SAVED_DATA.membershipFee,
             })}
           </Text>
         </Box>
@@ -136,26 +141,26 @@ const Earned = () => {
               variant={TextVariant.HeadingLg}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
-              testID={EarnedTestIds.GROW_TITLE}
+              testID={SavedTestIds.SWAPS_PROMO_TITLE}
             >
-              {strings('pro_hub.earned.grow_title')}
+              {strings('pro_hub.saved.swaps_promo_title')}
             </Text>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              testID={EarnedTestIds.GROW_DESCRIPTION}
+              testID={SavedTestIds.SWAPS_PROMO_DESCRIPTION}
             >
-              {strings('pro_hub.earned.grow_description')}
+              {strings('pro_hub.saved.swaps_promo_description')}
             </Text>
           </Box>
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            onPress={handleAddMoney}
-            testID={EarnedTestIds.ADD_MONEY_BUTTON}
+            onPress={handleSwap}
+            testID={SavedTestIds.SWAP_BUTTON}
             twClassName="w-max"
           >
-            {strings('pro_hub.earned.add_money')}
+            {strings('pro_hub.saved.swap')}
           </Button>
         </Box>
       </ScrollView>
@@ -163,4 +168,4 @@ const Earned = () => {
   );
 };
 
-export default Earned;
+export default Saved;

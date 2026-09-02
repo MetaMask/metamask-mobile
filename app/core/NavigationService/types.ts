@@ -1049,6 +1049,7 @@ export type RootStackParamList = {
   ProHub: { source?: string } | undefined;
   ProHubMembership: undefined;
   ProHubEarned: undefined;
+  ProHubSaved: undefined;
   ProHubCancelMembership: undefined;
 
   // Notification routes

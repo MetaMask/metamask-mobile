@@ -35,11 +35,8 @@ interface StatCardProps {
   label: string;
   value: string;
   testID: string;
-  onPress?: () => void;
+  onPress: () => void;
 }
-
-const STAT_CARD_TW_CLASS_NAME =
-  'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0';
 
 const StatCard = ({
   iconName,
@@ -68,23 +65,27 @@ const StatCard = ({
     </>
   );
 
-  const card = <Card twClassName={STAT_CARD_TW_CLASS_NAME}>{inner}</Card>;
+  const card = (
+    <Card
+      twClassName={
+        'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0'
+      }
+    >
+      {inner}
+    </Card>
+  );
 
   return (
     <Box twClassName="flex-1 min-w-0">
-      {onPress ? (
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          testID={testID}
-          style={tw.style('w-full')}
-        >
-          {card}
-        </Pressable>
-      ) : (
-        <Box testID={testID}>{card}</Box>
-      )}
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        testID={testID}
+        style={tw.style('w-full')}
+      >
+        {card}
+      </Pressable>
     </Box>
   );
 };
@@ -107,6 +108,10 @@ const ProHub = () => {
 
   const handleEarnedPress = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.EARNED);
+  }, [navigation]);
+
+  const handleSavedPress = useCallback(() => {
+    navigation.navigate(Routes.PRO_HUB.SAVED);
   }, [navigation]);
 
   return (
@@ -150,11 +155,7 @@ const ProHub = () => {
           {strings('pro_hub.title')}
         </Text>
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          gap={3}
-          twClassName="w-full mb-16"
-        >
+        <Box flexDirection={BoxFlexDirection.Row} gap={3} twClassName="mb-16">
           <StatCard
             iconName={IconName.Diagram}
             label={strings('pro_hub.earned_with_pro')}
@@ -167,6 +168,7 @@ const ProHub = () => {
             label={strings('pro_hub.saved_with_pro')}
             value={MOCK_PRO_HUB_STATS.saved}
             testID={ProHubTestIds.SAVED_CARD}
+            onPress={handleSavedPress}
           />
         </Box>
 
