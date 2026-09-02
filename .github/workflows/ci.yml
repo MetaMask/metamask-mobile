@@ -1706,6 +1706,8 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
+      # Overlap independent spec files in a shard. Do not collapse total_splits:
+      # that would mix tags and hide per-suite wall-clock vs main.
       android-device-pool-size: 2
     secrets: inherit
 

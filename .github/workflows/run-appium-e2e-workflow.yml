@@ -83,6 +83,7 @@ on:
         required: false
         type: boolean
         default: true
+      # Callers that omit this stay on one emulator (fixture validation, iOS).
       android-device-pool-size:
         description: 'Android emulator count and Playwright worker count'
         required: false
