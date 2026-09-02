@@ -11,7 +11,8 @@ import Engine from '../../core/Engine';
  * - Autodetect tokens → setUseTokenDetection
  * - Display NFT media (OpenSea / third-party API) → setDisplayNftMedia
  * - Autodetect NFTs → setUseNftDetection
- * - IPFS gateway → setIsIpfsGatewayEnabled
+ *
+ * IPFS gateway stays a separate Settings toggle (same as extension).
  *
  * Not exposed as PreferencesController toggles on mobile:
  * phishing detection, 4byte.directory, proposed nicknames, authentication API.
@@ -27,6 +28,5 @@ export function syncConsolidatedBasicFunctionalityPreferences(
   PreferencesController.setUseTokenDetection(enabled);
   PreferencesController.setUseNftDetection(enabled);
   PreferencesController.setDisplayNftMedia(enabled);
-  PreferencesController.setIsIpfsGatewayEnabled(enabled);
   PreferencesController.setUseSafeChainsListValidation(enabled);
 }
