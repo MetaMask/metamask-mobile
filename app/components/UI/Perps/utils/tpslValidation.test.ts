@@ -109,8 +109,8 @@ describe('TPSL Validation Utilities', () => {
         unresolvedParams,
       );
       const stopLossResult = validateTPSLPrices(
-        '0',
         undefined,
+        '0',
         unresolvedParams,
       );
 
