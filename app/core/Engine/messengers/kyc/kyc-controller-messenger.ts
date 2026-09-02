@@ -33,11 +33,12 @@ export function getKycControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'KycService:getGeoCountry',
-      'KycService:fetchDisclaimers',
+      'KycService:fetchVendorDisclaimers',
       'KycService:createSession',
       'KycService:checkKycRequired',
       'KycService:createVendorCustomer',
       'KycService:submitVendorDisclaimers',
+      'KycService:fetchDisclaimersCatalog',
       'KycService:fetchSessionDisclaimers',
       'KycService:submitSessionDisclaimers',
       'KycService:fetchKycStatus',
