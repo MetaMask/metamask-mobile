@@ -245,7 +245,7 @@ const mockNavigateToPostUnlockHome = jest.fn();
 const mockCancelDeeplinkNavigatedTrace = jest.fn();
 const mockClearUnlockAppStartType = jest.fn();
 const mockGetUnlockAppStartType = jest.fn(() => 'warm');
-const mockRememberUnlockAppStartType = jest.fn();
+const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
 
 jest.mock('../NavigationService', () => ({
   __esModule: true,
@@ -271,8 +271,8 @@ jest.mock('../Performance/DeeplinkPerformance', () => ({
 jest.mock('../Performance/unlockTraces', () => ({
   clearUnlockAppStartType: () => mockClearUnlockAppStartType(),
   getUnlockAppStartType: () => mockGetUnlockAppStartType(),
-  rememberUnlockAppStartType: (...args: unknown[]) =>
-    mockRememberUnlockAppStartType(...args),
+  resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
+    mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -5511,7 +5511,9 @@ describe('Authentication', () => {
         mockReset.mock.calls[0][0].routes[0].params.params.params.onContinue;
       await onContinue();
 
-      expect(mockRememberUnlockAppStartType).toHaveBeenCalledWith('warm');
+      expect(mockResumeUnlockDeeplinkNavigatedAfterOptIn).toHaveBeenCalledWith({
+        appStartType: 'warm',
+      });
       expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 

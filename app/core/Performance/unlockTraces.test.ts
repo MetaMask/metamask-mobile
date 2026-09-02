@@ -9,8 +9,10 @@ import {
 } from './DeeplinkPerformance';
 import {
   cancelUnlockTraces,
+  clearUnlockAppStartType,
   getUnlockAppStartType,
   resetUnlockAppStartTypeForTesting,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
   startUnlockTraces,
 } from './unlockTraces';
 import { resetLoginAppStartTypeForTesting } from '../../components/Views/Login/loginPerformanceTags';
@@ -112,5 +114,43 @@ describe('unlockTraces', () => {
       reason: 'unlock_failed',
       traceToken: 2,
     });
+  });
+
+  it('reopens Deeplink Navigated after opt-in using the URL captured at unlock', () => {
+    mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+    startUnlockTraces({ appStartType: 'cold' });
+    mockStartNavigated.mockClear();
+    mockAppState.pendingDeeplink = null;
+    clearUnlockAppStartType();
+
+    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+
+    expect(getUnlockAppStartType()).toBe('cold');
+    expect(mockStartNavigated).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/swap',
+      source: 'unlock',
+      appStartType: 'cold',
+    });
+  });
+
+  it('does not reopen Deeplink Navigated after opt-in when unlock had no pending link', () => {
+    startUnlockTraces({ appStartType: 'warm' });
+    mockStartNavigated.mockClear();
+
+    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'warm' });
+
+    expect(mockStartNavigated).not.toHaveBeenCalled();
+    expect(getUnlockAppStartType()).toBe('warm');
+  });
+
+  it('does not reopen Deeplink Navigated after a failed unlock', () => {
+    mockAppState.pendingDeeplink = 'https://link.metamask.io/swap';
+    const tokens = startUnlockTraces({ appStartType: 'cold' });
+    cancelUnlockTraces(tokens);
+    mockStartNavigated.mockClear();
+
+    resumeUnlockDeeplinkNavigatedAfterOptIn({ appStartType: 'cold' });
+
+    expect(mockStartNavigated).not.toHaveBeenCalled();
   });
 });

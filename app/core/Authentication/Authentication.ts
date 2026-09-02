@@ -113,7 +113,7 @@ import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance
 import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
-  rememberUnlockAppStartType,
+  resumeUnlockDeeplinkNavigatedAfterOptIn,
 } from '../Performance/unlockTraces';
 
 /**
@@ -895,7 +895,9 @@ class AuthenticationService {
                       screen: Routes.ONBOARDING.OPTIN_METRICS,
                       params: {
                         onContinue: async () => {
-                          rememberUnlockAppStartType(deeplinkAppStartType);
+                          resumeUnlockDeeplinkNavigatedAfterOptIn({
+                            appStartType: deeplinkAppStartType,
+                          });
                           await navigateToPostUnlockHome();
                         },
                       },
