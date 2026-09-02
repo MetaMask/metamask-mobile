@@ -257,6 +257,12 @@ export default {
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
   },
+  // Referral program: no builds.yml entry yet, so the env override is the local
+  // escape hatch. UAT has no namespace deployed, hence DEV/PRD only.
+  REFERRAL_PROGRAM_API_URL: {
+    DEV: 'https://referral-program.dev-api.cx.metamask.io',
+    PRD: 'https://referral-program.api.cx.metamask.io',
+  },
   BAANX_API_URL: {
     DEV: 'https://foxdev2-ag.foxcard.io',
     UAT: 'https://dev.api.baanx.com',

@@ -7671,7 +7671,7 @@
       "toasts": {
         "deposit_navigation": {
           "failed": "Failed to navigate to deposit screen for selected asset"
-        } 
+        }
       },
       "strategies": {
         "rate_unavailable_subtitle": "Earn on your balance",
@@ -11429,6 +11429,73 @@
       "title": "You just leveled up, {{name}}",
       "description": "Time to start earning.",
       "cta": "Continue"
+    }
+  },
+  "rewards_money": {
+    "title": "Money",
+    "error_title": "Couldn't load your money",
+    "error_description": "Something went wrong. Try again in a moment.",
+    "retry": "Try again",
+    "entry": {
+      "title": "Join with a code",
+      "description": "Enter a referral code to start earning on the fees you pay."
+    },
+    "referral": {
+      "title": "Your code",
+      "description": "Share your code. You earn a share of the fees the people you bring in pay.",
+      "code_label": "Referral code",
+      "copy_code": "Copy referral code",
+      "code_copied": "Code copied",
+      "revshare_label": "You earn per referred trade",
+      "cashback_label": "You get back on your own fees",
+      "share_link": "Share your link",
+      "share_subject": "Trade on MetaMask and get money back on your fees.",
+      "view_earnings": "View earnings"
+    },
+    "earnings": {
+      "title": "Earnings",
+      "claimable": "Ready to claim",
+      "pending": "Pending",
+      "claimed": "Claimed",
+      "claim": "Claim",
+      "tab_activity": "Activity",
+      "tab_code_performance": "Code performance",
+      "code_performance_coming_soon": "Code performance is coming soon."
+    },
+    "origin_type": {
+      "cashback": "Fee cashback",
+      "referral_rev_share": "Referral earnings",
+      "social_follow_trade": "Copy trade earnings"
+    },
+    "ledger": {
+      "swap": "Swap",
+      "swap_pair": "{{from}} to {{to}}",
+      "perps": "{{coin}} perps",
+      "aggregate": "{{count}} trades",
+      "aggregate_single": "Daily total",
+      "empty": "Nothing here yet. Your earnings will show up as you trade.",
+      "error_title": "Couldn't load your earnings",
+      "error_description": "Something went wrong. Pull down to try again.",
+      "retry": "Try again"
+    },
+    "claim": {
+      "title": "Claim your earnings",
+      "description": "This goes straight into your Money Account.",
+      "confirm": "Continue",
+      "success": "Claim sent",
+      "partial_notice": "The rest is on hold until your details are verified. You'll get it once that clears.",
+      "blocked_suspended": "Your account is on hold, so you can't claim right now.",
+      "blocked_address": "This address can't receive a claim.",
+      "blocked_no_balance": "You don't have anything to claim yet.",
+      "blocked_below_minimum": "You need a bit more before you can claim.",
+      "blocked_signer": "Claims are temporarily unavailable. Try again later.",
+      "blocked_tax_determination": "This part is on hold until your details are verified.",
+      "error_title": "Claim didn't go through",
+      "error_not_submittable": "This account can't send the claim right now.",
+      "error_already_open": "You already have a claim in progress. Try again in a minute.",
+      "error_voucher_expired": "That took too long and the claim expired. Try again.",
+      "error_awaiting_release": "Your last claim is still wrapping up. Try again in a minute.",
+      "error_submit_failed": "Something went wrong sending the claim. Try again."
     }
   }
 }

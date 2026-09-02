@@ -9,6 +9,22 @@ import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradi
 import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
+// The Rewards Money flag is a build-time constant, so it is exposed as a live
+// accessor here to exercise both the on and off branches of the money icon.
+// `Object.defineProperties` rather than a getter in an object literal: Babel's
+// spread helper would read the getter once and freeze that value.
+let mockRewardsMoneyEnabled = false;
+jest.mock('../../RewardsMoney/constants', () =>
+  Object.defineProperties(
+    { ...jest.requireActual('../../RewardsMoney/constants') },
+    {
+      REWARDS_MONEY_ENABLED: {
+        get: () => mockRewardsMoneyEnabled,
+      },
+    },
+  ),
+);
+
 // Mock dependencies
 const mockDispatch = jest.fn();
 jest.mock('react-redux', () => ({
@@ -609,6 +625,27 @@ describe('RewardsDashboard', () => {
       // Assert
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
         screen: Routes.REFERRAL_REWARDS_VIEW,
+        params: undefined,
+      });
+    });
+
+    it('hides the money button while the Rewards Money flag is off', () => {
+      mockRewardsMoneyEnabled = false;
+
+      const { queryByTestId } = render(<RewardsDashboard />);
+
+      expect(queryByTestId(REWARDS_VIEW_SELECTORS.MONEY_BUTTON)).toBeNull();
+    });
+
+    it('navigates to the money view when the money button is pressed', () => {
+      mockRewardsMoneyEnabled = true;
+
+      const { getByTestId } = render(<RewardsDashboard />);
+      fireEvent.press(getByTestId(REWARDS_VIEW_SELECTORS.MONEY_BUTTON));
+      mockRewardsMoneyEnabled = false;
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_MONEY_VIEW,
         params: undefined,
       });
     });

@@ -18,6 +18,9 @@ import {
   getMoneyAccountDepositTransactionsData,
   getMoneyAccountWithdrawTransactionsData,
   getMoneyAccountDepositAssetId,
+  getMoneyAccountDepositCalls,
+  getMoneyAccountDepositCallIndex,
+  type MoneyAccountDepositAuthorization,
 } from './moneyAccountTransactions';
 import ReduxService from '../../../../core/redux/ReduxService';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -980,5 +983,101 @@ describe('moneyAccountTransactions', () => {
       expect(result).toEqual([]);
       expect(mockGetRate).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('moneyAccountTransactions — EIP-3009 authorization leg', () => {
+  const MOCK_AUTHORIZATION: MoneyAccountDepositAuthorization = {
+    from: '0x1111111111111111111111111111111111111111' as Hex,
+    to: '0x2222222222222222222222222222222222222222' as Hex,
+    value: '12500000',
+    validAfter: 0,
+    validBefore: 1_800_000_060,
+    nonce: `0x${'ab'.repeat(32)}` as Hex,
+    signature: `0x${'cd'.repeat(65)}` as Hex,
+  };
+
+  const buildWithAuthorization = (
+    authorization?: MoneyAccountDepositAuthorization,
+    initialiseWithoutData = false,
+  ) =>
+    buildMoneyAccountDepositBatch({
+      amount: BigInt(12_500_000),
+      chainId: MOCK_CHAIN_ID,
+      boringVault: MOCK_BORING_VAULT,
+      tellerAddress: MOCK_TELLER,
+      accountantAddress: MOCK_ACCOUNTANT,
+      lensAddress: MOCK_LENS,
+      provider: MOCK_PROVIDER,
+      initialiseWithoutData,
+      authorization,
+    });
+
+  beforeEach(() => {
+    mockPreviewDeposit.mockResolvedValue(ethers.BigNumber.from('1000000'));
+  });
+
+  it('builds only two legs when no authorization is supplied', async () => {
+    const result = await buildWithAuthorization(undefined);
+
+    expect(result.authorizationTx).toBeUndefined();
+    expect(getMoneyAccountDepositCalls(result)).toHaveLength(2);
+  });
+
+  it('prepends the authorization leg when a voucher is supplied', async () => {
+    const result = await buildWithAuthorization(MOCK_AUTHORIZATION);
+
+    expect(
+      getMoneyAccountDepositCalls(result).map(({ key }) => key),
+    ).toStrictEqual(['authorizationTx', 'approveTx', 'depositTx']);
+  });
+
+  it('targets the mUSD token with the authorization leg', async () => {
+    const result = await buildWithAuthorization(MOCK_AUTHORIZATION);
+
+    expect(result.authorizationTx?.params.to).toBe(
+      MUSD_TOKEN_ADDRESS_BY_CHAIN[MOCK_CHAIN_ID],
+    );
+    expect(result.authorizationTx?.params.value).toBe('0x0');
+  });
+
+  it('encodes receiveWithAuthorization with the voucher fields', async () => {
+    const result = await buildWithAuthorization(MOCK_AUTHORIZATION);
+
+    const iface = new ethers.utils.Interface([
+      'function receiveWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, bytes signature)',
+    ]);
+    const decoded = iface.decodeFunctionData(
+      'receiveWithAuthorization',
+      result.authorizationTx?.params.data as string,
+    );
+
+    expect(decoded[0].toLowerCase()).toBe(MOCK_AUTHORIZATION.from);
+    expect(decoded[1].toLowerCase()).toBe(MOCK_AUTHORIZATION.to);
+    expect(decoded[2].toString()).toBe(MOCK_AUTHORIZATION.value);
+    expect(decoded[5]).toBe(MOCK_AUTHORIZATION.nonce);
+    expect(decoded[6]).toBe(MOCK_AUTHORIZATION.signature);
+  });
+
+  it('omits the authorization leg for a data-less placeholder batch', async () => {
+    const result = await buildWithAuthorization(MOCK_AUTHORIZATION, true);
+
+    expect(result.authorizationTx).toBeUndefined();
+  });
+
+  it('shifts the approve and deposit indices when an authorization leg is present', async () => {
+    const withAuth = await buildWithAuthorization(MOCK_AUTHORIZATION);
+    const withoutAuth = await buildWithAuthorization(undefined);
+
+    expect(getMoneyAccountDepositCallIndex(withAuth, 'approveTx')).toBe(1);
+    expect(getMoneyAccountDepositCallIndex(withAuth, 'depositTx')).toBe(2);
+    expect(getMoneyAccountDepositCallIndex(withoutAuth, 'approveTx')).toBe(0);
+    expect(getMoneyAccountDepositCallIndex(withoutAuth, 'depositTx')).toBe(1);
+  });
+
+  it('returns -1 for a leg that is not in the batch', async () => {
+    const result = await buildWithAuthorization(undefined);
+
+    expect(getMoneyAccountDepositCallIndex(result, 'authorizationTx')).toBe(-1);
   });
 });

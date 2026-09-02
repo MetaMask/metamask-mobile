@@ -890,6 +890,11 @@
     "subscriptions": {},
     "rewardsEnvUrl": null
   },
+  "RewardsMoneyController": {
+    "referralMe": null,
+    "earningsSummary": {},
+    "earningsLedgerFirstPage": {}
+  },
   "PredictController": {
     "eligibility": {
       "eligible": false

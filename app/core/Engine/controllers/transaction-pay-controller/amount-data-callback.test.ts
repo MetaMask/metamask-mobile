@@ -9,7 +9,18 @@ import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlag
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
 import { getAmountData } from './amount-data-callback';
 
-jest.mock('../../../../components/UI/Money/utils/moneyAccountTransactions');
+// The batch builder is mocked, but the index helpers stay real: they are pure
+// functions over the built batch, and their output — which nested call each
+// update targets — is exactly what this suite asserts.
+jest.mock(
+  '../../../../components/UI/Money/utils/moneyAccountTransactions',
+  () => ({
+    ...jest.requireActual(
+      '../../../../components/UI/Money/utils/moneyAccountTransactions',
+    ),
+    buildMoneyAccountDepositBatch: jest.fn(),
+  }),
+);
 jest.mock('../../../../core/redux/ReduxService', () => ({
   __esModule: true,
   default: { store: { getState: jest.fn().mockReturnValue({}) } },

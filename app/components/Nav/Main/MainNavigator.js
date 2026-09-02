@@ -184,6 +184,7 @@ import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/Level
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
 import RewardsSelectSheet from '../../UI/Rewards/components/RewardsSelectSheet';
+import ClaimEarningsBottomSheet from '../../UI/RewardsMoney/earnings/components/ClaimEarningsBottomSheet';
 
 import SitesFullView from '../../Views/SitesFullView/SitesFullView';
 import { TokenDetails } from '../../UI/TokenDetails/Views/TokenDetails';
@@ -1086,6 +1087,17 @@ const MainNavigator = () => {
         name={Routes.MODAL.REWARDS_SELECT_SHEET}
         component={RewardsSelectSheet}
         options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_MONEY_CLAIM_SHEET}
+        component={ClaimEarningsBottomSheet}
+        options={{
+          ...rewardsModalScreenOptions,
+          // The sheet also sets `isInteractable={false}` once a claim is
+          // in flight; this stops the native stack's own swipe-to-dismiss
+          // from bypassing that.
+          gestureEnabled: false,
+        }}
       />
       <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}

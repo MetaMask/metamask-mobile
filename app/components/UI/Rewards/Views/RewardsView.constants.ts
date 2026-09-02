@@ -8,6 +8,7 @@ export const REWARDS_VIEW_SELECTORS = {
   SETTINGS_BUTTON: 'rewards-view-settings-button',
   VIP_BUTTON: 'rewards-view-vip-button',
   VIP_REFEREE_BUTTON: 'rewards-view-vip-referee-button',
+  MONEY_BUTTON: 'rewards-view-money-button',
   VIP_VIEW: 'rewards-view-vip-view',
   SEASON_SUMMARY_PLACEHOLDER: 'rewards-view-season-summary-placeholder',
   TAB_CONTENT_PREVIOUS_SEASON: 'rewards-view-tab-content-previous-season',

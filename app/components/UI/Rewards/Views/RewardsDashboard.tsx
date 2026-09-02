@@ -16,6 +16,7 @@ import { strings } from '../../../../../locales/i18n';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
+import { REWARDS_MONEY_ENABLED } from '../../RewardsMoney/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
@@ -463,6 +464,19 @@ const RewardsDashboard: React.FC = () => {
                 >
                   <VipIcon width={24} height={24} name="VipIcon" />
                 </Pressable>
+              )}
+              {REWARDS_MONEY_ENABLED && (
+                <ButtonIcon
+                  iconName={IconName.Money}
+                  onPress={() =>
+                    navigateToRewardsRoute(
+                      navigation,
+                      Routes.REWARDS_MONEY_VIEW,
+                    )
+                  }
+                  size={ButtonIconSize.Md}
+                  testID={REWARDS_VIEW_SELECTORS.MONEY_BUTTON}
+                />
               )}
               <ButtonIcon
                 iconName={IconName.UserCircleAdd}
