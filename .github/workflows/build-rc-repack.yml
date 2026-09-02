@@ -205,7 +205,7 @@ jobs:
           fi
           NAME=$(basename "$FILE")
           OUT_NAME=$(printf '%s' "$NAME" | sed -E "s/-[0-9]+\.${EXT}\$/-${BUILD_NUMBER}.${EXT}/")
-          if [ "$OUT_NAME" = "$NAME" ] && [ "${NAME%-${BUILD_NUMBER}.$EXT}" = "$NAME" ]; then
+          if [ "$OUT_NAME" = "$NAME" ] && [ "${NAME%-"${BUILD_NUMBER}"."${EXT}"}" = "$NAME" ]; then
             echo "::warning::Donor filename '$NAME' does not end in -<build number>.$EXT; keeping it as is."
           fi
           mkdir -p repacked
