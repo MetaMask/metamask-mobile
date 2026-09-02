@@ -1,17 +1,11 @@
 import Engine from '../../core/Engine';
+import { BFT_CHILD_PREFERENCES } from './bftChildPreferences';
 
 /**
- * Preference keys unified under consolidated Basic Functionality on mobile.
+ * Aligns mobile-available Basic Functionality child preferences with the
+ * consolidated Basic Functionality toggle.
  *
- * Product toggle mapping (mobile-available only):
- * - Estimate balance changes → setUseTransactionSimulations
- * - Security alerts → setSecurityAlertsEnabled
- * - Batch balance / token price checker → setIsMultiAccountBalancesEnabled
- * - Network details check → setUseSafeChainsListValidation
- * - Autodetect tokens → setUseTokenDetection
- * - Display NFT media (OpenSea / third-party API) → setDisplayNftMedia
- * - Autodetect NFTs → setUseNftDetection
- * - IPFS gateway → setIsIpfsGatewayEnabled
+ * IPFS gateway stays a separate Settings toggle (same as extension).
  *
  * Not exposed as PreferencesController toggles on mobile:
  * phishing detection, 4byte.directory, proposed nicknames, authentication API.
@@ -21,12 +15,35 @@ export function syncConsolidatedBasicFunctionalityPreferences(
 ): void {
   const { PreferencesController } = Engine.context;
 
-  PreferencesController.setUseTransactionSimulations(enabled);
-  PreferencesController.setIsMultiAccountBalancesEnabled(enabled);
-  PreferencesController.setSecurityAlertsEnabled(enabled);
-  PreferencesController.setUseTokenDetection(enabled);
-  PreferencesController.setUseNftDetection(enabled);
-  PreferencesController.setDisplayNftMedia(enabled);
-  PreferencesController.setIsIpfsGatewayEnabled(enabled);
-  PreferencesController.setUseSafeChainsListValidation(enabled);
+  for (const preference of BFT_CHILD_PREFERENCES) {
+    switch (preference) {
+      case 'useTransactionSimulations':
+        PreferencesController.setUseTransactionSimulations(enabled);
+        break;
+      case 'securityAlertsEnabled':
+        PreferencesController.setSecurityAlertsEnabled(enabled);
+        break;
+      case 'isMultiAccountBalancesEnabled':
+        PreferencesController.setIsMultiAccountBalancesEnabled(enabled);
+        break;
+      case 'useSafeChainsListValidation':
+        PreferencesController.setUseSafeChainsListValidation(enabled);
+        break;
+      case 'useTokenDetection':
+        PreferencesController.setUseTokenDetection(enabled);
+        break;
+      case 'displayNftMedia':
+        PreferencesController.setDisplayNftMedia(enabled);
+        break;
+      case 'useNftDetection':
+        PreferencesController.setUseNftDetection(enabled);
+        break;
+      default: {
+        const exhaustiveCheck: never = preference;
+        throw new Error(
+          `Unhandled BFT child preference: ${String(exhaustiveCheck)}`,
+        );
+      }
+    }
+  }
 }

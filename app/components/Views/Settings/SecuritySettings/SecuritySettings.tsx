@@ -72,7 +72,10 @@ import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSetti
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
 import { useStyles } from '../../../../component-library/hooks/useStyles';
-import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import {
+  selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsBasicFunctionalityToggleDisabled,
+} from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
@@ -93,6 +96,9 @@ const Settings: React.FC = () => {
   );
   const isBasicFunctionalityConsolidationEnabled = useSelector(
     selectIsBasicFunctionalityConsolidationEnabled,
+  );
+  const isBasicFunctionalityToggleDisabled = useSelector(
+    selectIsBasicFunctionalityToggleDisabled,
   );
   const scrollViewRef = useRef<ScrollView>(null);
   const metaMetricsSectionRef = useRef<View>(null);
@@ -347,6 +353,9 @@ const Settings: React.FC = () => {
   );
 
   const toggleBasicFunctionality = () => {
+    if (isBasicFunctionalityToggleDisabled) {
+      return;
+    }
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.BASIC_FUNCTIONALITY,
     });
@@ -390,6 +399,7 @@ const Settings: React.FC = () => {
           <View style={styles.halfSetting}>
             <BasicFunctionalityComponent
               flushTop
+              disabled={isBasicFunctionalityToggleDisabled}
               handleSwitchToggle={toggleBasicFunctionality}
             />
           </View>

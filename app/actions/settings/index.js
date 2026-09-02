@@ -64,6 +64,15 @@ export function setBasicFunctionalityConsolidatedEnabled(
   };
 }
 
+export function setBasicFunctionalityMigrationNotificationPending(
+  basicFunctionalityMigrationNotificationPending,
+) {
+  return {
+    type: 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION_PENDING',
+    basicFunctionalityMigrationNotificationPending,
+  };
+}
+
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch, getState) => {

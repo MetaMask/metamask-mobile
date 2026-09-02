@@ -133,6 +133,7 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 import { trackExploreSearchOpened } from '../TrendingView/search/analytics';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
+import useBasicFunctionalityMigrationNotification from '../../hooks/useBasicFunctionalityMigrationNotification';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -702,6 +703,7 @@ const Wallet = ({
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
   useCheckNftAutoDetectionModal();
+  useBasicFunctionalityMigrationNotification();
 
   /**
    * Show multi rpc modal if there are networks duplicated and if never showed before

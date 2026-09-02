@@ -29,6 +29,11 @@ export const selectIsBasicFunctionalityConsolidatedEnabled = createSelector(
     Boolean(settingsState.isBasicFunctionalityConsolidatedEnabled),
 );
 
+export const selectBasicFunctionalityMigrationNotificationPending =
+  createSelector(selectSettings, (settingsState: Record<string, unknown>) =>
+    Boolean(settingsState.basicFunctionalityMigrationNotificationPending),
+  );
+
 export const selectHideZeroBalanceTokens = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>

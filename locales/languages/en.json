@@ -8480,6 +8480,15 @@
     "default_settings": "Default settings",
     "done": "Done",
     "basic_functionality": "Basic functionality",
+    "migration_toast": {
+      "description": "Your settings have changed. Third-party APIs are now part of Basic Functionality.",
+      "open_settings": "Open settings"
+    },
+    "migration_modal": {
+      "title": "Your settings have changed",
+      "description": "Third-party APIs are now part of Basic Functionality. Basic Functionality has been enabled to keep your wallet working as expected. You can review these settings in Privacy.",
+      "open_settings": "Open settings"
+    },
     "manage_networks": "Choose your network",
     "manage_networks_body": "We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our ",
     "manage_networks_body2": " to learn more about how Infura handles data for EVM accounts, for Solana accounts ",

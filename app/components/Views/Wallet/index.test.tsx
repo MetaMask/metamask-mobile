@@ -26,6 +26,12 @@ jest.mock('../../hooks/useCheckNftAutoDetectionModal', () =>
   }),
 );
 
+jest.mock('../../hooks/useBasicFunctionalityMigrationNotification', () =>
+  jest.fn(() => {
+    // Hook implementation mocked to prevent toast/modal interference
+  }),
+);
+
 jest.mock('../../UI/Assets/components/Balance/AccountGroupBalance', () => ({
   __esModule: true,
   default: jest.fn(() => null),

@@ -17,6 +17,7 @@ import AppConstants from '../../../core/AppConstants';
 export default function BasicFunctionalityComponent({
   handleSwitchToggle,
   flushTop,
+  disabled = false,
 }: Readonly<BasicFunctionalityComponentProps>) {
   const theme = useTheme();
   const { colors } = theme;
@@ -37,12 +38,14 @@ export default function BasicFunctionalityComponent({
         <Switch
           value={isEnabled}
           onChange={handleSwitchToggle}
+          disabled={disabled}
           trackColor={{
             true: colors.primary.default,
             false: colors.border.muted,
           }}
           thumbColor={theme.brandColors.white}
           ios_backgroundColor={colors.border.muted}
+          testID="basic-functionality-switch"
         />
       </View>
       <Text

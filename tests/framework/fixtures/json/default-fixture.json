@@ -994,6 +994,7 @@
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
       "isBasicFunctionalityConsolidatedEnabled": false,
+      "basicFunctionalityMigrationNotificationPending": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,

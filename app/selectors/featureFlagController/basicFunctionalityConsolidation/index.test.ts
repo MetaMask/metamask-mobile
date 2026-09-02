@@ -1,6 +1,7 @@
 import {
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
   selectIsBasicFunctionalityConsolidationEnabled,
+  selectIsBasicFunctionalityToggleDisabled,
   selectMobileUxBftcConsolidationFlagEnabled,
 } from './index';
 // eslint-disable-next-line import-x/no-namespace
@@ -61,6 +62,17 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         true,
         true,
+        false,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for consistent legacy users when remote flag is on', () => {
+      const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
+        true,
+        false,
+        true,
       );
 
       expect(result).toBe(true);
@@ -70,18 +82,34 @@ describe('basicFunctionalityConsolidation selectors', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         false,
         true,
+        true,
       );
 
       expect(result).toBe(false);
     });
 
-    it('returns false when cohort marker is missing for existing users', () => {
+    it('returns false when cohort marker is missing and state is inconsistent', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         true,
+        false,
         false,
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsBasicFunctionalityToggleDisabled', () => {
+    it('returns true for consolidated social login users', () => {
+      expect(
+        selectIsBasicFunctionalityToggleDisabled.resultFunc(true, true),
+      ).toBe(true);
+    });
+
+    it('returns false when consolidation is off', () => {
+      expect(
+        selectIsBasicFunctionalityToggleDisabled.resultFunc(false, true),
+      ).toBe(false);
     });
   });
 });

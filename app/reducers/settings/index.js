@@ -9,6 +9,7 @@ const initialState = {
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
   isBasicFunctionalityConsolidatedEnabled: false,
+  basicFunctionalityMigrationNotificationPending: false,
   deepLinkModalDisabled: false,
   hapticsEnabled: true,
   // Whether this account is shown on the Top Traders leaderboard. Local mirror
@@ -67,6 +68,12 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         isBasicFunctionalityConsolidatedEnabled:
           action.isBasicFunctionalityConsolidatedEnabled,
+      };
+    case 'SET_BASIC_FUNCTIONALITY_MIGRATION_NOTIFICATION_PENDING':
+      return {
+        ...state,
+        basicFunctionalityMigrationNotificationPending:
+          action.basicFunctionalityMigrationNotificationPending,
       };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {

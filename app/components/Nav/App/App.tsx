@@ -121,6 +121,7 @@ import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/Onboarding
 import FirstPredictOnUsSplashScreen from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsSplashScreen';
 import FirstPredictOnUsOrderSheet from '../../UI/Rewards/components/FirstPredictOnUs/FirstPredictOnUsOrderSheet';
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import BasicFunctionalityMigrationModal from '../../UI/BasicFunctionality/BasicFunctionalityMigrationModal/BasicFunctionalityMigrationModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
 import NftOptions from '../../Views/NftOptions';
@@ -681,6 +682,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
       component={BasicFunctionalityModal}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.BASIC_FUNCTIONALITY_MIGRATION}
+      component={BasicFunctionalityMigrationModal}
     />
     <NativeStack.Screen
       name={Routes.SHEET.CONFIRM_TURN_ON_BACKUP_AND_SYNC}
