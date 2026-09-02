@@ -11349,8 +11349,25 @@
     "manage_plan": "Manage plan",
     "earned_with_pro": "Earned with Pro",
     "saved_with_pro": "Saved with Pro",
-    "your_benefits": "Your benefits",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "member_pricing": {
+      "title": "Member pricing on trades",
+      "allowance_currency": "${{amount}}",
+      "allowance_count_one": "{{count}} trade",
+      "allowance_count_other": "{{count}} trades",
+      "swaps": {
+        "label": "Swaps",
+        "footnote": "Allowance resets monthly. Fees apply above $500."
+      },
+      "perps": {
+        "label": "Perps",
+        "footnote": "Allowance resets monthly. Fees apply above $1,000."
+      },
+      "predict": {
+        "label": "Predict",
+        "footnote": "One prediction trade per month. Unused trades don't roll over."
+      }
+    },
     "physical_card": {
       "title": "Get your physical card.",
       "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
