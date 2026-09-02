@@ -490,6 +490,7 @@ async function refreshChaseOrders(
               historicalOrder.orderId !== canceledOrder.restingOrderId &&
               historicalOrder.symbol === canceledOrder.symbol &&
               historicalOrder.side === canceledOrder.side &&
+              historicalOrder.timestamp >= canceledOrder.startedAt &&
               (canceledChildTimestamp === undefined ||
                 (historicalOrder.lastUpdated ?? historicalOrder.timestamp) >
                   canceledChildTimestamp) &&
