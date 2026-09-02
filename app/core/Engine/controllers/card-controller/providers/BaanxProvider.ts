@@ -565,7 +565,12 @@ export class BaanxProvider implements ICardProvider {
         if (isCardAuthTokenError(err)) {
           throw mapApiError(err, logContext);
         }
-        if (err instanceof CardApiError && err.statusCode === 429) {
+        // getUserDetails maps CardApiError → CardProviderError before this
+        // catch runs, so check statusCode on both shapes.
+        if (
+          (err instanceof CardApiError || err instanceof CardProviderError) &&
+          err.statusCode === 429
+        ) {
           throw mapApiError(err, logContext);
         }
         Logger.error(err as Error, getErrorContext(logContext));
