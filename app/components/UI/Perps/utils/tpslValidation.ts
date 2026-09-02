@@ -187,20 +187,22 @@ export const getPerpsOrderTpSlWarnings = ({
 
   const isTakeProfitPriceInvalid = Boolean(
     takeProfitPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidTakeProfitPrice(takeProfitPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(takeProfitPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidTakeProfitPrice(takeProfitPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   const isStopLossPriceInvalid = Boolean(
     stopLossPrice?.trim() &&
-      validationReferencePrice > 0 &&
-      !isValidStopLossPrice(stopLossPrice, {
-        currentPrice: validationReferencePrice,
-        direction,
-      }),
+      (!isPositiveTriggerPrice(stopLossPrice) ||
+        (validationReferencePrice > 0 &&
+          !isValidStopLossPrice(stopLossPrice, {
+            currentPrice: validationReferencePrice,
+            direction,
+          }))),
   );
 
   return {
@@ -224,6 +226,15 @@ export const validateTPSLPrices = (
   stopLossPrice: string | undefined,
   params: ValidationParams,
 ): boolean => {
+  // The positive-price floor does not depend on a reference price, so it is
+  // applied before the early return that skips the direction rules.
+  if (
+    !isPositiveTriggerPrice(takeProfitPrice) ||
+    !isPositiveTriggerPrice(stopLossPrice)
+  ) {
+    return false;
+  }
+
   if (!params.currentPrice || !params.direction) return true;
 
   let isValid = true;

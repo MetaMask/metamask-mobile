@@ -98,6 +98,46 @@ describe('TPSL Validation Utilities', () => {
       expect(result).toBe(false);
     });
 
+    it('reports a non-positive trigger price before the reference price resolves', () => {
+      // Arrange - spot price has not streamed in yet, so the direction rules cannot apply
+      const unresolvedParams = { currentPrice: 0, direction: undefined };
+
+      // Act
+      const takeProfitResult = validateTPSLPrices(
+        '-37482.5',
+        undefined,
+        unresolvedParams,
+      );
+      const stopLossResult = validateTPSLPrices(
+        '0',
+        undefined,
+        unresolvedParams,
+      );
+
+      // Assert
+      expect(takeProfitResult).toBe(false);
+      expect(stopLossResult).toBe(false);
+    });
+
+    it('flags a non-positive trigger price in the order form warnings before the market price resolves', () => {
+      // Arrange - marketPrice of 0 previously short-circuited both warning checks
+      const input = {
+        orderType: 'market' as const,
+        direction: 'short' as const,
+        takeProfitPrice: '-37482.5',
+        stopLossPrice: '0',
+        liquidationPrice: '3123.4',
+        marketPrice: 0,
+      };
+
+      // Act
+      const warnings = getPerpsOrderTpSlWarnings(input);
+
+      // Assert
+      expect(warnings.isTakeProfitPriceInvalid).toBe(true);
+      expect(warnings.isStopLossPriceInvalid).toBe(true);
+    });
+
     it('flags a non-positive take profit in the order form warnings', () => {
       // Arrange
       const input = {

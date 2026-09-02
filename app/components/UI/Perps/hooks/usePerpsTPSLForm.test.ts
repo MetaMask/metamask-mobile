@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { usePerpsTPSLForm } from './usePerpsTPSLForm';
 import { type Position } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 
 // Mock DevLogger to avoid console noise in tests
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -42,14 +43,14 @@ jest.mock('../utils/formatUtils', () => ({
 // Mock i18n strings
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
-    const strings: Record<string, string> = {
+    const translations: Record<string, string> = {
       'perps.tpsl.take_profit_invalid_price': `Take profit must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_invalid_price': `Stop loss must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_beyond_liquidation_error': `Stop loss must be ${params?.direction} liquidation price`,
       'perps.tpsl.trigger_price_must_be_positive':
         'Trigger price must be greater than zero',
     };
-    return strings[key] || key;
+    return translations[key] || key;
   },
 }));
 
@@ -127,7 +128,7 @@ describe('usePerpsTPSLForm', () => {
       ).toBeLessThan(0);
       expect(result.current.validation.isValid).toBe(false);
       expect(result.current.validation.takeProfitError).toBe(
-        'Trigger price must be greater than zero',
+        strings('perps.tpsl.trigger_price_must_be_positive'),
       );
     });
 
@@ -164,7 +165,7 @@ describe('usePerpsTPSLForm', () => {
       // Assert
       expect(result.current.validation.isValid).toBe(false);
       expect(result.current.validation.stopLossError).toBe(
-        'Trigger price must be greater than zero',
+        strings('perps.tpsl.trigger_price_must_be_positive'),
       );
     });
   });
