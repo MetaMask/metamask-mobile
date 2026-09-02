@@ -43,6 +43,12 @@ class PerpsProMarketView {
     );
   }
 
+  get modeSelectionTitle(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      PerpsModeSelectionBottomSheetSelectorsIDs.TITLE,
+    );
+  }
+
   // ── Order form ─────────────────────────────────────────────────────────────
 
   get directionLong(): Promise<AppiumElement> {
@@ -59,6 +65,15 @@ class PerpsProMarketView {
 
   get sizeInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(PerpsProOrderFormSelectorsIDs.SIZE_INPUT);
+  }
+
+  /**
+   * Size card ButtonBase exposed to a11y as the tappable control
+   * (`perps-pro-order-form-size-field`). Nested SIZE_INPUT often reports
+   * isDisplayed=false on iOS until this field focuses it.
+   */
+  get sizeField(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsProOrderFormSelectorsIDs.SIZE_FIELD);
   }
 
   get orderTypeButton(): Promise<AppiumElement> {
@@ -188,29 +203,123 @@ class PerpsProMarketView {
     }
     // else: only Pro pill visible → already in Pro; continue to assert Pro view.
 
-    const sheetVisible = await Utilities.isElementVisible(
-      this.modeSelectionSheet,
-      3000,
-    );
-    if (sheetVisible) {
-      await Gestures.waitAndTap(this.modeSelectionProOption, {
-        elemDescription: 'Pro mode selection option',
-        checkForDisplayed: true,
-        timeout: 10000,
-      });
+    // iOS XCUITest often reports the BottomSheet container / cards as
+    // isDisplayed=false while the sheet is on screen. Detect via isExisting
+    // (title or Pro option), not isDisplayed.
+    if (await this.isModeSelectionSheetPresent(10000)) {
+      await this.confirmProModeOnSelectionSheet();
     }
 
-    await Assertions.expectElementToBeVisible(this.container, {
-      description: 'Perps Pro Market View container',
-      timeout: 15000,
+    // Root View often reports isDisplayed=false on iOS while Pro UI is on screen.
+    await this.waitForProViewReady(15000);
+  }
+
+  /**
+   * True when the mode chooser is in the hierarchy (even if isDisplayed=false).
+   */
+  private async isModeSelectionSheetPresent(
+    timeoutMs: number,
+  ): Promise<boolean> {
+    try {
+      await Assertions.expectElementToExist(this.modeSelectionProOption, {
+        description: 'Pro mode selection option in hierarchy',
+        timeout: timeoutMs,
+      });
+      return true;
+    } catch {
+      try {
+        await Assertions.expectElementToExist(this.modeSelectionTitle, {
+          description: 'Mode selection sheet title in hierarchy',
+          timeout: 1500,
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    }
+  }
+
+  /**
+   * Selects Pro on the "Choose how you trade" sheet and waits for it to dismiss.
+   * Avoid isDisplayed checks on iOS — use existence + coordinate/center tap.
+   */
+  private async confirmProModeOnSelectionSheet(): Promise<void> {
+    await Assertions.expectElementToExist(this.modeSelectionProOption, {
+      description: 'Pro mode selection option',
+      timeout: 10000,
     });
+
+    await Utilities.executeWithRetry(
+      async () => {
+        if (PlatformDetector.isIOS()) {
+          await this.tapModeSelectionProOptionCenter();
+        } else {
+          await Gestures.waitAndTap(this.modeSelectionProOption, {
+            elemDescription: 'Pro mode selection option',
+            checkForDisplayed: false,
+            checkEnabled: false,
+            timeout: 10000,
+          });
+        }
+
+        // Sheet dismiss removes Pro option from the hierarchy.
+        await Assertions.expectElementToNotExist(this.modeSelectionProOption, {
+          description: 'Pro mode option should dismiss with sheet',
+          timeout: 5000,
+        });
+      },
+      {
+        interval: 1000,
+        timeout: 25000,
+        description: 'confirm Pro on mode selection sheet',
+      },
+    );
+  }
+
+  private async tapModeSelectionProOptionCenter(): Promise<void> {
+    const el = await this.modeSelectionProOption;
+    const native = el.unwrap();
+    if (!(await native.isExisting())) {
+      throw new Error('Pro mode selection option is not in the hierarchy');
+    }
+
+    // Prefer a center pointer tap — element.click() is unreliable on nested
+    // ButtonBase cards under iOS BottomSheets. Fall back to click if geometry
+    // is unavailable (isDisplayed=false can still expose a rect on XCUITest).
+    try {
+      const location = await native.getLocation();
+      const size = await native.getSize();
+      if (size.width >= 2 && size.height >= 2) {
+        const x = Math.floor(location.x + size.width / 2);
+        const y = Math.floor(location.y + size.height / 2);
+        const drv = getDriver();
+        await drv
+          .action('pointer', { parameters: { pointerType: 'touch' } })
+          .move({ duration: 0, x, y })
+          .down({ button: 0 })
+          .pause(100)
+          .up({ button: 0 })
+          .perform();
+        return;
+      }
+    } catch {
+      // Fall through to click.
+    }
+
+    await native.click();
   }
 
   // ── Readiness ──────────────────────────────────────────────────────────────
 
   async waitForProViewReady(timeout = 20000): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.container, {
+    // Container is a layout View: XCUITest frequently keeps isDisplayed=false.
+    await Assertions.expectElementToExist(this.container, {
       description: 'Perps Pro Market View container',
+      timeout,
+    });
+    // Order-form control is a stronger "Pro entry ready" signal than the root.
+    await Assertions.expectElementToExist(this.directionLong, {
+      description: 'Pro order form Long direction',
       timeout,
     });
   }
@@ -249,6 +358,8 @@ class PerpsProMarketView {
    * Dismisses the Android/iOS soft keyboard after Pro decimal-pad inputs.
    * Avoid tapping the chart: it is often absent from the hierarchy while the
    * order form is focused. On Android, fall back to BACK if still shown.
+   * After typing size on iOS, prefer {@link tapSizeKeyboardDone} instead —
+   * decimal pads have no return key and tapOutside is unreliable.
    */
   async dismissOrderFormKeyboard(): Promise<void> {
     await Gestures.hideKeyboard();
@@ -268,16 +379,45 @@ class PerpsProMarketView {
     }
   }
 
+  /**
+   * Taps the size InputAccessoryView Done control (`Keyboard.dismiss`).
+   */
+  async tapSizeKeyboardDone(): Promise<void> {
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        `${PerpsProOrderFormSelectorsIDs.KEYBOARD_DONE}-${PerpsProOrderFormSelectorsIDs.SIZE_INPUT}`,
+      ),
+      {
+        elemDescription: 'Pro size keyboard Done',
+        checkForDisplayed: false,
+        timeout: 10000,
+      },
+    );
+  }
+
   async enterSize(size: string): Promise<void> {
-    await Gestures.waitAndTap(this.sizeInput, {
-      elemDescription: 'Pro order form size input',
-      checkForDisplayed: true,
+    // Tap the a11y ButtonBase (SIZE_FIELD). Nested SIZE_INPUT is often absent
+    // from the iOS accessibility tree while this field owns focus.
+    await Gestures.waitAndTap(this.sizeField, {
+      elemDescription: 'Pro order form size field',
+      checkForDisplayed: false,
+      timeout: 15000,
+    });
+
+    if (PlatformDetector.isIOS()) {
+      await Gestures.typeViaIosKeyboard(size, { numberPad: true });
+      await this.tapSizeKeyboardDone();
+      return;
+    }
+
+    await Assertions.expectElementToExist(this.sizeInput, {
+      description: 'Pro order form size input after field focus',
       timeout: 10000,
     });
     await Gestures.typeText(this.sizeInput, size, {
       elemDescription: 'Pro order form size value',
       clearFirst: true,
-      hideKeyboard: true,
+      hideKeyboard: false,
     });
     await this.dismissOrderFormKeyboard();
   }
