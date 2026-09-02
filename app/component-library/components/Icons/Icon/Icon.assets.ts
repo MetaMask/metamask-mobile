@@ -8,7 +8,6 @@ import activitySVG from './assets/activity.svg';
 import addsquareSVG from './assets/add-square.svg';
 import addSVG from './assets/add.svg';
 import afterhoursSVG from './assets/after-hours.svg';
-import aiSVG from './assets/ai.svg';
 import appleSVG from './assets/apple.svg';
 import arrow2downSVG from './assets/arrow-2-down.svg';
 import arrow2rightSVG from './assets/arrow-2-right.svg';
@@ -21,12 +20,10 @@ import arrowrightSVG from './assets/arrow-right.svg';
 import arrowupSVG from './assets/arrow-up.svg';
 import attachmoneySVG from './assets/attach-money.svg';
 import bankSVG from './assets/bank.svg';
-import bookSVG from './assets/book.svg';
 import bookmarkSVG from './assets/bookmark.svg';
 import buysellSVG from './assets/buy-sell.svg';
 import calendarSVG from './assets/calendar.svg';
 import cameraSVG from './assets/camera.svg';
-import candlestickSVG from './assets/candlestick.svg';
 import cardSVG from './assets/card.svg';
 import chartSVG from './assets/chart.svg';
 import checkboldSVG from './assets/check-bold.svg';
@@ -39,22 +36,18 @@ import confirmationSVG from './assets/confirmation.svg';
 import connectSVG from './assets/connect.svg';
 import copysuccessSVG from './assets/copy-success.svg';
 import copySVG from './assets/copy.svg';
-import customizeSVG from './assets/customize.svg';
 import dangerSVG from './assets/danger.svg';
 import dataSVG from './assets/data.svg';
 import detailsSVG from './assets/details.svg';
 import draggridSVG from './assets/drag-grid.svg';
 import editSVG from './assets/edit.svg';
 import errorSVG from './assets/error.svg';
-import ethereumSVG from './assets/ethereum.svg';
-import expandSVG from './assets/expand.svg';
 import exploreSVG from './assets/explore.svg';
 import exportSVG from './assets/export.svg';
 import eyeslashSVG from './assets/eye-slash.svg';
 import eyeSVG from './assets/eye.svg';
 import faceidSVG from './assets/face-id.svg';
 import filterSVG from './assets/filter.svg';
-import flashSVG from './assets/flash.svg';
 import forestSVG from './assets/forest.svg';
 import fullcircleSVG from './assets/full-circle.svg';
 import gasSVG from './assets/gas.svg';
@@ -70,13 +63,11 @@ import locationSVG from './assets/location.svg';
 import lockslashSVG from './assets/lock-slash.svg';
 import lockSVG from './assets/lock.svg';
 import logoutSVG from './assets/logout.svg';
-import menuSVG from './assets/menu.svg';
 import messagequestionSVG from './assets/message-question.svg';
 import messagesSVG from './assets/messages.svg';
 import metamaskfoxfilledSVG from './assets/metamask-fox-filled.svg';
 import metamaskfoxoutlineSVG from './assets/metamask-fox-outline.svg';
 import minusboldSVG from './assets/minus-bold.svg';
-import minusSVG from './assets/minus.svg';
 import moneybagSVG from './assets/money-bag.svg';
 import morehorizontalSVG from './assets/more-horizontal.svg';
 import moreverticalSVG from './assets/more-vertical.svg';
@@ -85,13 +76,10 @@ import musdSVG from './assets/musd.svg';
 import notificationSVG from './assets/notification.svg';
 import plantSVG from './assets/plant.svg';
 import plugSVG from './assets/plug.svg';
-import predictionsSVG from './assets/predictions.svg';
 import qrcodeSVG from './assets/qr-code.svg';
 import questionSVG from './assets/question.svg';
 import receivedSVG from './assets/received.svg';
 import refreshSVG from './assets/refresh.svg';
-import removeminusSVG from './assets/remove-minus.svg';
-import scanbarcodeSVG from './assets/scan-barcode.svg';
 import scanSVG from './assets/scan.svg';
 import searchSVG from './assets/search.svg';
 import securitykeySVG from './assets/security-key.svg';
@@ -105,7 +93,6 @@ import snapsSVG from './assets/snaps.svg';
 import sparkleSVG from './assets/sparkle.svg';
 import speedometerSVG from './assets/speedometer.svg';
 import starfilledSVG from './assets/star-filled.svg';
-import starSVG from './assets/star.svg';
 import swaphorizontalSVG from './assets/swap-horizontal.svg';
 import swapverticalSVG from './assets/swap-vertical.svg';
 import telegramSVG from './assets/telegram.svg';
@@ -118,11 +105,9 @@ import trenddownSVG from './assets/trend-down.svg';
 import trendupSVG from './assets/trend-up.svg';
 import trophySVG from './assets/trophy.svg';
 import usercheckSVG from './assets/user-check.svg';
-import usercircleaddSVG from './assets/user-circle-add.svg';
 import verifiedfilledSVG from './assets/verified-filled.svg';
 import walletSVG from './assets/wallet.svg';
 import warningSVG from './assets/warning.svg';
-import xSVG from './assets/x.svg';
 
 /**
  * Asset stored by icon name
@@ -132,7 +117,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.AddSquare]: addsquareSVG,
   [IconName.Add]: addSVG,
   [IconName.AfterHours]: afterhoursSVG,
-  [IconName.Ai]: aiSVG,
   [IconName.Apple]: appleSVG,
   [IconName.Arrow2Down]: arrow2downSVG,
   [IconName.Arrow2Right]: arrow2rightSVG,
@@ -145,12 +129,10 @@ export const assetByIconName: AssetByIconName = {
   [IconName.ArrowUp]: arrowupSVG,
   [IconName.AttachMoney]: attachmoneySVG,
   [IconName.Bank]: bankSVG,
-  [IconName.Book]: bookSVG,
   [IconName.Bookmark]: bookmarkSVG,
   [IconName.BuySell]: buysellSVG,
   [IconName.Calendar]: calendarSVG,
   [IconName.Camera]: cameraSVG,
-  [IconName.Candlestick]: candlestickSVG,
   [IconName.Card]: cardSVG,
   [IconName.Chart]: chartSVG,
   [IconName.CheckBold]: checkboldSVG,
@@ -163,22 +145,18 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Connect]: connectSVG,
   [IconName.CopySuccess]: copysuccessSVG,
   [IconName.Copy]: copySVG,
-  [IconName.Customize]: customizeSVG,
   [IconName.Danger]: dangerSVG,
   [IconName.Data]: dataSVG,
   [IconName.Details]: detailsSVG,
   [IconName.DragGrid]: draggridSVG,
   [IconName.Edit]: editSVG,
   [IconName.Error]: errorSVG,
-  [IconName.Ethereum]: ethereumSVG,
-  [IconName.Expand]: expandSVG,
   [IconName.Explore]: exploreSVG,
   [IconName.Export]: exportSVG,
   [IconName.EyeSlash]: eyeslashSVG,
   [IconName.Eye]: eyeSVG,
   [IconName.FaceId]: faceidSVG,
   [IconName.Filter]: filterSVG,
-  [IconName.Flash]: flashSVG,
   [IconName.Forest]: forestSVG,
   [IconName.FullCircle]: fullcircleSVG,
   [IconName.Gas]: gasSVG,
@@ -194,13 +172,11 @@ export const assetByIconName: AssetByIconName = {
   [IconName.LockSlash]: lockslashSVG,
   [IconName.Lock]: lockSVG,
   [IconName.Logout]: logoutSVG,
-  [IconName.Menu]: menuSVG,
   [IconName.MessageQuestion]: messagequestionSVG,
   [IconName.Messages]: messagesSVG,
   [IconName.MetamaskFoxFilled]: metamaskfoxfilledSVG,
   [IconName.MetamaskFoxOutline]: metamaskfoxoutlineSVG,
   [IconName.MinusBold]: minusboldSVG,
-  [IconName.Minus]: minusSVG,
   [IconName.MoneyBag]: moneybagSVG,
   [IconName.MoreHorizontal]: morehorizontalSVG,
   [IconName.MoreVertical]: moreverticalSVG,
@@ -209,13 +185,10 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Notification]: notificationSVG,
   [IconName.Plant]: plantSVG,
   [IconName.Plug]: plugSVG,
-  [IconName.Predictions]: predictionsSVG,
   [IconName.QrCode]: qrcodeSVG,
   [IconName.Question]: questionSVG,
   [IconName.Received]: receivedSVG,
   [IconName.Refresh]: refreshSVG,
-  [IconName.RemoveMinus]: removeminusSVG,
-  [IconName.ScanBarcode]: scanbarcodeSVG,
   [IconName.Scan]: scanSVG,
   [IconName.Search]: searchSVG,
   [IconName.SecurityKey]: securitykeySVG,
@@ -229,7 +202,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Sparkle]: sparkleSVG,
   [IconName.Speedometer]: speedometerSVG,
   [IconName.StarFilled]: starfilledSVG,
-  [IconName.Star]: starSVG,
   [IconName.SwapHorizontal]: swaphorizontalSVG,
   [IconName.SwapVertical]: swapverticalSVG,
   [IconName.Telegram]: telegramSVG,
@@ -242,9 +214,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.TrendUp]: trendupSVG,
   [IconName.Trophy]: trophySVG,
   [IconName.UserCheck]: usercheckSVG,
-  [IconName.UserCircleAdd]: usercircleaddSVG,
   [IconName.VerifiedFilled]: verifiedfilledSVG,
   [IconName.Wallet]: walletSVG,
   [IconName.Warning]: warningSVG,
-  [IconName.X]: xSVG,
 };
