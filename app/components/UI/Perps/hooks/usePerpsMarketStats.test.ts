@@ -1,6 +1,35 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { CandlePeriod, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
+
+let mockNetwork = 'testnet';
+let mockProvider = 'hyperliquid';
+let mockHip3ConfigVersion = 1;
+let mockInitializedMarketContextKey: string | null = 'testnet|hyperliquid|1';
+let mockConnectionInitialized = true;
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: (state: object) => unknown) => selector({}),
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectHip3ConfigVersion: () => mockHip3ConfigVersion,
+}));
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsNetwork: () => mockNetwork,
+  selectPerpsProvider: () => mockProvider,
+}));
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    getInitializedMarketContextKey: () => mockInitializedMarketContextKey,
+    subscribeToInitializedMarketContext: () => jest.fn(),
+    getConnectionGeneration: () => 1,
+    getInitializedConnectionGeneration: () => 1,
+    getConnectionState: () => ({ isInitialized: mockConnectionInitialized }),
+    subscribeToConnectionGeneration: () => jest.fn(),
+    subscribeToInitializedUserContext: () => jest.fn(),
+    isSelectedUserContextReady: () => true,
+  },
+}));
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -31,6 +60,11 @@ describe('usePerpsMarketStats', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockNetwork = 'testnet';
+    mockProvider = 'hyperliquid';
+    mockHip3ConfigVersion = 1;
+    mockInitializedMarketContextKey = 'testnet|hyperliquid|1';
+    mockConnectionInitialized = true;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,
@@ -131,7 +165,9 @@ describe('usePerpsMarketStats', () => {
 
     // Assert: Loading state is true and default values are shown
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.currentPrice).toBe(0);
+    expect(result.current.currentPrice).toBeUndefined();
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
   });
 
   it('displays default values when no market data is available', () => {
@@ -150,10 +186,9 @@ describe('usePerpsMarketStats', () => {
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
     // Assert: All values show appropriate defaults
-    expect(result.current.currentPrice).toBe(0);
-    // PRICE_RANGES_UNIVERSAL: trailing zeros removed, so $0.00 → $0
-    expect(result.current.high24h).toBe('$0');
-    expect(result.current.low24h).toBe('$0');
+    expect(result.current.currentPrice).toBeUndefined();
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     expect(result.current.volume24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     expect(result.current.openInterest).toBe(
       PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -216,6 +251,148 @@ describe('usePerpsMarketStats', () => {
     expect(mockUnsubscribe).not.toHaveBeenCalled();
   });
 
+  it('does not combine prior-symbol stats with the first tick after a switch', () => {
+    const callbacks = new Map<
+      string,
+      (updates: (typeof mockPriceData.BTC)[]) => void
+    >();
+    mockSubscribeToPrices.mockImplementation(({ symbols, callback }) => {
+      callbacks.set(symbols[0], callback);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockImplementation(({ symbol }) => ({
+      candleData: { ...mockCandleData, symbol },
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    }));
+
+    const { result, rerender } = renderHook(
+      ({ symbol }) => usePerpsMarketStats(symbol),
+      { initialProps: { symbol: 'BTC' } },
+    );
+
+    act(() => {
+      callbacks.get('BTC')?.([mockPriceData.BTC]);
+    });
+    expect(result.current.dataSymbol).toBe('BTC');
+    expect(result.current.hasLiveData).toBe(true);
+
+    rerender({ symbol: 'ETH' });
+    expect(result.current.dataSymbol).toBeUndefined();
+    expect(result.current.hasLiveData).toBe(false);
+
+    act(() => {
+      callbacks.get('ETH')?.([{ ...mockPriceData.BTC, symbol: 'ETH' }]);
+    });
+    expect(result.current.dataSymbol).toBe('ETH');
+    expect(result.current.hasLiveData).toBe(true);
+  });
+
+  it.each([
+    ['provider', () => (mockProvider = 'myx')],
+    ['network', () => (mockNetwork = 'mainnet')],
+    ['HIP-3 configuration', () => (mockHip3ConfigVersion = 2)],
+  ])(
+    'does not reuse same-symbol stats after a %s change',
+    (_name, changeContext) => {
+      const callbacks: ((updates: (typeof mockPriceData.BTC)[]) => void)[] = [];
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      mockedUsePerpsLiveCandles.mockReturnValue({
+        candleData: mockCandleData,
+        isLoading: false,
+        isLoadingMore: false,
+        hasHistoricalData: true,
+        error: null,
+        fetchMoreHistory: jest.fn(),
+      });
+
+      const { result, rerender } = renderHook(() => usePerpsMarketStats('BTC'));
+      const connectionState = mockedUsePerpsConnection();
+      act(() => callbacks[0]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBe('BTC');
+
+      changeContext();
+      rerender();
+      expect(result.current.dataSymbol).toBeUndefined();
+      expect(result.current.hasLiveData).toBe(false);
+      expect(callbacks).toHaveLength(1);
+
+      act(() => callbacks[0]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBeUndefined();
+
+      mockConnectionInitialized = false;
+      mockedUsePerpsConnection.mockReturnValue({
+        ...connectionState,
+        isInitialized: false,
+      });
+      rerender();
+      expect(callbacks).toHaveLength(1);
+
+      mockInitializedMarketContextKey = `${mockNetwork}|${mockProvider}|${mockHip3ConfigVersion}`;
+      mockConnectionInitialized = true;
+      mockedUsePerpsConnection.mockReturnValue({
+        ...connectionState,
+        isInitialized: true,
+      });
+      rerender();
+      expect(callbacks).toHaveLength(2);
+
+      act(() => callbacks[1]([mockPriceData.BTC]));
+      expect(result.current.dataSymbol).toBe('BTC');
+      expect(result.current.hasLiveData).toBe(true);
+    },
+  );
+
+  it('keeps resident stats and restores the subscription after an account reconnect', () => {
+    const callbacks: ((updates: (typeof mockPriceData.BTC)[]) => void)[] = [];
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callbacks.push(callback);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: mockCandleData,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result, rerender } = renderHook(() => usePerpsMarketStats('BTC'));
+    const connectionState = mockedUsePerpsConnection();
+    act(() => callbacks[0]([mockPriceData.BTC]));
+    expect(result.current.dataSymbol).toBe('BTC');
+
+    mockConnectionInitialized = false;
+    mockedUsePerpsConnection.mockReturnValue({
+      ...connectionState,
+      isInitialized: false,
+    });
+    rerender();
+    expect(result.current.dataSymbol).toBe('BTC');
+    expect(callbacks).toHaveLength(1);
+
+    act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 1 }]));
+    expect(result.current.volume24h).toBe('$1.23B');
+
+    mockConnectionInitialized = true;
+    mockedUsePerpsConnection.mockReturnValue(connectionState);
+    rerender();
+    expect(callbacks).toHaveLength(2);
+
+    act(() => callbacks[1]([{ ...mockPriceData.BTC, volume24h: 1 }]));
+    expect(result.current.volume24h).toBe('$1');
+
+    act(() => callbacks[0]([{ ...mockPriceData.BTC, volume24h: 2 }]));
+    expect(result.current.volume24h).toBe('$1');
+  });
+
   it('formats negative funding rates with proper sign and decimals', () => {
     // Given a negative funding rate
     const negativeFundingData = {
@@ -273,8 +450,36 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.openInterest).toBe('$0');
   });
 
+  it('does not treat a current-symbol tick without stats as live data', () => {
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callback([
+        {
+          symbol: 'BTC',
+          price: '45000',
+          timestamp: Date.now(),
+        },
+      ]);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: mockCandleData,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    expect(result.current.dataSymbol).toBe('BTC');
+    expect(result.current.hasLiveData).toBe(false);
+    expect(result.current.hasError).toBe(false);
+  });
+
   it('does not subscribe until the Perps connection is initialized', () => {
     // Arrange: connection has not finished initializing
+    mockConnectionInitialized = false;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: false,
       isConnected: false,
@@ -301,8 +506,45 @@ describe('usePerpsMarketStats', () => {
     expect(mockSubscribeToPrices).not.toHaveBeenCalled();
   });
 
+  it('exposes a terminal error when the market-data subscription fails', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    mockSubscribeToPrices.mockImplementation(() => {
+      throw new Error('subscription failed');
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: mockCandleData,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: true,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    expect(result.current.hasError).toBe(true);
+    consoleError.mockRestore();
+  });
+
+  it('exposes a terminal candle subscription error', () => {
+    mockSubscribeToPrices.mockReturnValue(jest.fn());
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: null,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: new Error('candle subscription failed'),
+      fetchMoreHistory: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    expect(result.current.hasError).toBe(true);
+  });
+
   it('subscribes after the Perps connection initializes', () => {
     // Arrange: start uninitialized, then flip to initialized
+    mockConnectionInitialized = false;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: false,
       isConnected: false,
@@ -328,6 +570,7 @@ describe('usePerpsMarketStats', () => {
 
     expect(mockSubscribeToPrices).not.toHaveBeenCalled();
 
+    mockConnectionInitialized = true;
     mockedUsePerpsConnection.mockReturnValue({
       isInitialized: true,
       isConnected: true,

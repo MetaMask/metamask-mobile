@@ -64,6 +64,33 @@ export const formatPerpsPrice = (
 };
 
 /**
+ * Formats one side of a position's take profit / stop loss summary.
+ *
+ * A position can carry several reduce-only trigger orders on the same side, and the controller's
+ * summary price then describes none of them — it reports the tally in `takeProfitCount` /
+ * `stopLossCount` for clients to render instead. A single order keeps showing its trigger price,
+ * whether or not it closes the whole position. Returns `null` when the side has neither, so each
+ * card can apply its own empty state.
+ */
+export const formatPositionTriggerSummary = (params: {
+  count?: number;
+  price?: string | null;
+  szDecimals?: number | null;
+}): string | null => {
+  const { count = 0, price, szDecimals } = params;
+
+  if (count > 1) {
+    return strings('perps.position.card.tpsl_count_multiple', { count });
+  }
+
+  if (price && parseFloat(price) > 0) {
+    return formatPerpsPrice(price, { szDecimals });
+  }
+
+  return null;
+};
+
+/**
  * Truncates a number to 2 decimal places without rounding up.
  * Uses BigNumber to avoid IEEE 754 floating-point errors
  * (e.g. `Math.floor(10.29 * 100) / 100` = 10.28).
@@ -318,6 +345,19 @@ export const formatVolume = (
 
   return `$${formatted}`;
 };
+
+/**
+ * Formats coin (base-asset) volume with the same magnitude suffixes as
+ * {@link formatVolume}, without a fiat `$` prefix.
+ * Candle volume from Hyperliquid is denominated in coins, not USD.
+ *
+ * @example formatCoinVolume(0.33) => "0.33"
+ * @example formatCoinVolume(123456) => "123K"
+ */
+export const formatCoinVolume = (
+  volume: string | number,
+  decimals?: number,
+): string => formatVolume(volume, decimals).replace('$', '');
 
 /**
  * Formats leverage value with 'x' suffix

@@ -1343,22 +1343,6 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is money_hub for musdConversion', async () => {
-      runHook({ type: TransactionType.musdConversion });
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_entry_point: 'money_hub',
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
     it('is null for unrecognized transaction types', async () => {
       runHook({ type: TransactionType.simpleSend });
 

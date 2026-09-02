@@ -253,6 +253,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.RemoteFeatureFlagController.rawRemoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags',
     'engine.backgroundState.RemoteFeatureFlagController.thresholdCache',
+    'engine.backgroundState.RemoteFeatureFlagController.featureFlagThresholdGroups',
     'engine.backgroundState.TokenRatesController.marketData',
     'engine.backgroundState.TokenSearchDiscoveryDataController',
 
@@ -278,6 +279,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Transaction runtime state ──
     'engine.backgroundState.TransactionController.transactions',
     'engine.backgroundState.TransactionController.transactionBatches',
+    'engine.backgroundState.TransactionController.batchTransactionCounts',
     'engine.backgroundState.TransactionController.lastFetchedBlockNumbers',
     'engine.backgroundState.TransactionController.submitHistory',
     'engine.backgroundState.TransactionPayController',

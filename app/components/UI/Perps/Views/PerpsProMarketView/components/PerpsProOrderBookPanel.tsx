@@ -20,7 +20,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -36,6 +42,7 @@ import {
   type OrderBookLevel,
 } from '../../../hooks/stream/usePerpsLiveOrderBook';
 import { usePerpsOrderBookGrouping } from '../../../hooks/usePerpsOrderBookGrouping';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsOrderBookPreferences } from '../../../hooks/usePerpsOrderBookPreferences';
 import {
   usePerpsProOrderBookPosition,
@@ -79,10 +86,18 @@ export interface PerpsProOrderBookPanelProps {
   marketPrice?: number;
   /** Asset base-size decimal precision (Hyperliquid `szDecimals`). */
   szDecimals?: number;
+  /** Whether the selected provider/network context has reinitialized. */
+  isMarketContextReady?: boolean;
+  /** Changes whenever the active stream generation changes. */
+  marketContextKey?: string;
   /** Called when a ladder row is tapped (limit-price prefills). */
   onSelectPrice?: (price: string) => void;
   /** Hides the order-book column so the order form can go full width. */
   onCollapse?: () => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+  ) => void;
 }
 
 /**
@@ -406,8 +421,11 @@ const PerpsProOrderBookPanel = ({
   symbol,
   marketPrice,
   szDecimals,
+  isMarketContextReady = true,
+  marketContextKey = '',
   onSelectPrice,
   onCollapse,
+  onResolvedStateChange,
 }: PerpsProOrderBookPanelProps) => {
   const testID = PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL;
   const displaySymbol = getPerpsDisplaySymbol(symbol);
@@ -485,16 +503,20 @@ const PerpsProOrderBookPanel = ({
   }
 
   // Raw, full-precision book — mid price + spread (shared controller socket).
-  const { orderBook: rawOrderBook } = usePerpsLiveOrderBook({
-    symbol,
-    enabled: Boolean(symbol),
-    // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
-    // relative to the aggregated channel's coarser grouping.
-    levels: ORDER_BOOK_AGGREGATED_LEVELS,
-  });
+  const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
+    usePerpsLiveOrderBook({
+      symbol,
+      enabled: Boolean(symbol) && isMarketContextReady,
+      resetKey: marketContextKey,
+      // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
+      // relative to the aggregated channel's coarser grouping.
+      levels: ORDER_BOOK_AGGREGATED_LEVELS,
+    });
 
   const midPriceValue = useMemo<number | null>(() => {
-    const orderBookMid = Number.parseFloat(rawOrderBook?.midPrice ?? '');
+    const orderBookMid = Number.parseFloat(
+      rawOrderBookSymbol === symbol ? (rawOrderBook?.midPrice ?? '') : '',
+    );
     if (Number.isFinite(orderBookMid) && orderBookMid > 0) {
       return orderBookMid;
     }
@@ -502,7 +524,7 @@ const PerpsProOrderBookPanel = ({
       return marketPrice;
     }
     return null;
-  }, [rawOrderBook?.midPrice, marketPrice]);
+  }, [marketPrice, rawOrderBook?.midPrice, rawOrderBookSymbol, symbol]);
 
   const groupingOptions = useMemo(
     () => calculateGroupingOptions(midPriceValue ?? 0),
@@ -545,13 +567,15 @@ const PerpsProOrderBookPanel = ({
   // Server-aggregated book on its own dedicated socket (does not disturb raw).
   const {
     orderBook: aggregatedOrderBook,
+    dataSymbol: aggregatedOrderBookSymbol,
     isLoading: isInitialLoading,
     connectionStatus,
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
     channel: 'orderBookAggregated',
-    enabled: Boolean(symbol),
+    enabled: Boolean(symbol) && isMarketContextReady,
+    resetKey: marketContextKey,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
@@ -569,6 +593,20 @@ const PerpsProOrderBookPanel = ({
     [aggregatedOrderBook],
   );
 
+  const readinessBaselineRef = useRef({
+    contextKey: marketContextKey,
+    updatedAt: null as number | null,
+  });
+  useEffect(() => {
+    if (readinessBaselineRef.current.contextKey === marketContextKey) {
+      return;
+    }
+    readinessBaselineRef.current = {
+      contextKey: marketContextKey,
+      updatedAt: aggregatedOrderBook?.lastUpdated ?? null,
+    };
+  }, [aggregatedOrderBook?.lastUpdated, marketContextKey]);
+
   // Asks render above the spread, farthest-to-closest top to bottom (highest
   // ask first) — the standard order-book convention, with the ask nearest
   // the spread sitting right above it.
@@ -583,7 +621,7 @@ const PerpsProOrderBookPanel = ({
   );
 
   const spreadDisplay = useMemo(() => {
-    if (!rawOrderBook) {
+    if (!rawOrderBook || rawOrderBookSymbol !== symbol) {
       return null;
     }
     const spread = Number.parseFloat(rawOrderBook.spread);
@@ -594,7 +632,7 @@ const PerpsProOrderBookPanel = ({
     return `${formatPerpsFiat(spread, {
       ranges: PRICE_RANGES_UNIVERSAL,
     })} (${formatSpreadPercent(spreadPercent)})`;
-  }, [rawOrderBook]);
+  }, [rawOrderBook, rawOrderBookSymbol, symbol]);
 
   const handleApplyConfig = useCallback(
     (next: {
@@ -614,25 +652,73 @@ const PerpsProOrderBookPanel = ({
     [saveGrouping, setOrderBookPosition, setOrderBookPreferences],
   );
 
+  const isOrderBookForCurrentSymbol = aggregatedOrderBookSymbol === symbol;
+  const hasFreshContextDelivery =
+    readinessBaselineRef.current.contextKey === marketContextKey &&
+    (readinessBaselineRef.current.updatedAt === null ||
+      readinessBaselineRef.current.updatedAt !==
+        aggregatedOrderBook?.lastUpdated);
   const hasLadder = Boolean(
-    grouped && (grouped.bids.length > 0 || grouped.asks.length > 0),
+    isMarketContextReady &&
+      isOrderBookForCurrentSymbol &&
+      hasFreshContextDelivery &&
+      grouped &&
+      (grouped.bids.length > 0 || grouped.asks.length > 0),
   );
-  const hasConnectionError = connectionStatus === 'error';
+  const hasConnectionError =
+    isOrderBookForCurrentSymbol && connectionStatus === 'error';
   // Skeleton only when we have no ladder yet (initial connect / reconnect).
   // Avoids collapsing the column into a short "Loading..." message.
   const showSkeleton =
     !hasConnectionError &&
     !hasLadder &&
-    (isInitialLoading || connectionStatus === 'connecting');
+    (!isMarketContextReady ||
+      !isOrderBookForCurrentSymbol ||
+      !hasFreshContextDelivery ||
+      isInitialLoading ||
+      connectionStatus === 'connecting');
   const showEmptyPlaceholder =
     !showSkeleton && (hasConnectionError || !hasLadder);
+
+  useEffect(() => {
+    onResolvedStateChange?.(symbol, 'loading');
+  }, [marketContextKey, onResolvedStateChange, symbol]);
+  useEffect(() => {
+    if (!isMarketContextReady) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    if (!isOrderBookForCurrentSymbol) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    let state: PerpsMarketDetailSectionState = 'loading';
+    if (hasConnectionError) {
+      state = 'error';
+    } else if (hasLadder) {
+      state = 'content';
+    } else if (!showSkeleton) {
+      state = 'empty';
+    }
+    onResolvedStateChange?.(symbol, state);
+  }, [
+    hasConnectionError,
+    hasLadder,
+    isMarketContextReady,
+    isOrderBookForCurrentSymbol,
+    onResolvedStateChange,
+    showSkeleton,
+    symbol,
+  ]);
 
   let placeholderMessage = strings('perps.order_book.no_data');
   if (hasConnectionError) {
     placeholderMessage = strings('perps.order_book.connection_error');
   }
 
-  const unitLabel = currency === 'usd' ? 'USD' : displaySymbol;
+  // Use "$" instead of "USD" so "Total ($)" fits the fixed 132px Pro order-book
+  // column without ellipsizing to "Total (U…" (TAT-3774). Settings still say USD.
+  const unitLabel = currency === 'usd' ? '$' : displaySymbol;
   const metricLabel =
     metric === 'total'
       ? strings('perps.order_book.total')

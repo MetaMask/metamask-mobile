@@ -125,6 +125,8 @@ describe('Ledger core', () => {
     jest.resetAllMocks();
 
     ledgerKeyring = new LedgerKeyring({
+      // @ts-expect-error: Property '#private' in type LedgerKeyring refers to a
+      // different member that cannot be accessed from within type 'LedgerKeyring'.
       legacyKeyring: new LegacyLedgerKeyring({
         bridge: mockBridge as unknown as LedgerMobileBridge,
       }),

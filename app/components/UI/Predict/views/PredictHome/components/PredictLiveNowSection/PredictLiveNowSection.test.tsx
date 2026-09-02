@@ -180,6 +180,7 @@ const createCustomConfig = (
   minimumVersion: '1.0.0',
   mode: 'custom',
   title: 'Wimbledon',
+  priorityOrder: [],
   contentSource: {
     composition: 'query-results',
     queryParams: 'tag_slug=tennis',

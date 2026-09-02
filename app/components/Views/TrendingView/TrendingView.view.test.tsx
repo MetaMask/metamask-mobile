@@ -1,6 +1,9 @@
 import '../../../../tests/component-view/mocks';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
-import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
+import {
+  HeaderNavBarVariant,
+  renderTrendingViewWithRoutes,
+} from '../../../../tests/component-view/renderers/trending';
 import { strings } from '../../../../locales/i18n';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import { EXPLORE_TAB_INDEX } from './TrendingView';
@@ -316,9 +319,11 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it('exits search mode when cancel is pressed and restores the search button', async () => {
+  it('exits search mode when the inline back button is pressed and restores the search button', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
-      renderTrendingViewWithRoutes();
+      renderTrendingViewWithRoutes({
+        headerNavBarVariant: HeaderNavBarVariant.TreatmentA,
+      });
 
     await waitFor(() => {
       expect(
@@ -338,7 +343,7 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     await findByTestId(TrendingViewSelectorsIDs.TRENDING_SEARCH_RESULTS_LIST);
 
     await actButtonPress(
-      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
     );
 
     await waitFor(() => {

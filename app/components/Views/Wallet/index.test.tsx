@@ -56,11 +56,28 @@ let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
+  selectPerpsMobileChaseEnabledFlag: jest.fn(() => false),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
   selectPerpsProModeEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus',
+  () => ({
+    useFeatureNotificationsStatus: () => ({ isPushEnabled: true }),
+  }),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
+  usePerpsChaseOrders: () => ({
+    chaseOrders: [],
+    hasLiveChaseOrders: false,
+    isChaseOrderDiscoveryResolved: true,
+    suspendChaseOrders: jest.fn().mockResolvedValue([]),
+  }),
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
@@ -116,9 +133,20 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
 let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
 let mockBalanceBreakdownVariantName = 'unresolved';
+let mockHeaderNavBarVariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'homeTMCU1276AbtestHeaderNavBar') {
+      return {
+        variantName: mockHeaderNavBarVariantName,
+        variant: {
+          isCompactHeaderEnabled: mockHeaderNavBarVariantName !== 'control',
+        },
+        isActive: true,
+      };
+    }
+
     if (flagKey === 'homeTMCU1209AbtestHomepageBalanceBreakdown') {
       return {
         variantName: mockBalanceBreakdownVariantName,
@@ -778,6 +806,7 @@ beforeEach(() => {
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
+  mockHeaderNavBarVariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
 });
 
@@ -1909,6 +1938,131 @@ describe('MoneyBalanceCard slot', () => {
       }),
     );
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Header and Nav Bar refresh AB test', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
+    mockHeaderNavBarVariantName = 'control';
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  afterEach(() => {
+    mockMoneyAccountEnabled = false;
+    mockMoneyAccountVisible = false;
+    mockHeaderNavBarVariantName = 'control';
+  });
+
+  it('leaves the control header untouched', () => {
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON)).toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('moves the account name above the balance in treatment', () => {
+    mockHeaderNavBarVariantName = 'treatmentA';
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the account name when the balance breakdown treatment is also active', () => {
+    mockHeaderNavBarVariantName = 'treatmentA';
+    mockBalanceBreakdownVariantName = 'icons';
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders only the avatar and rewards entry points in treatment', () => {
+    mockHeaderNavBarVariantName = 'treatmentA';
+
+    const { getByTestId, queryByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+    ).toBeOnTheScreen();
+
+    for (const removed of [
+      WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON,
+      WalletViewSelectorsIDs.WALLET_ACTIVITY_BUTTON,
+      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+      WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON,
+      WalletViewSelectorsIDs.ACCOUNT_ICON,
+    ]) {
+      expect(queryByTestId(removed)).not.toBeOnTheScreen();
+    }
+  });
+
+  const renderWithNavigationProp = () => {
+    const navigationProp = {
+      navigate: mockNavigate,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: jest.fn(() => false),
+    } as unknown as NavigationProp<ParamListBase>;
+
+    return renderWithProvider(
+      <Wallet
+        navigation={navigationProp}
+        currentRouteName={Routes.WALLET_VIEW}
+      />,
+      { state: mockInitialState },
+    );
+  };
+
+  it('opens the account hub from the treatment avatar', () => {
+    mockHeaderNavBarVariantName = 'treatmentA';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
+
+  it('opens rewards from the treatment gift icon', () => {
+    mockHeaderNavBarVariantName = 'treatmentA';
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
   });
 });
 

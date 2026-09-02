@@ -2,7 +2,7 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import type { Context } from '@wdio/protocols';
-import type { AndroidDetailedContext } from 'webdriverio/build/types';
+import type { AndroidDetailedContext } from 'webdriverio';
 import { APP_PACKAGE_IDS } from './Constants.ts';
 import { getDriver, executeMobileDeepLink } from './AppiumUtilities';
 import { PlatformDetector } from './PlatformLocator';

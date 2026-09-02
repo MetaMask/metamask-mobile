@@ -3,13 +3,14 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPerpsFiat,
-  formatVolume,
+  formatCoinVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOHLCVBar.styles';
 import type { PerpsOHLCVBarProps } from './PerpsOHLCVBar.types';
 import { strings } from '../../../../../../locales/i18n';
 import { Text, TextColor } from '@metamask/design-system-react-native';
+import { PerpsOHLCVBarSelectorsIDs } from '../../Perps.testIds';
 
 /**
  * PerpsOHLCVBar Component
@@ -69,8 +70,8 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       stripTrailingZeros: true,
     });
 
-    // Format volume with K/M/B/T suffixes (if provided)
-    const formattedVolume = volume ? formatVolume(volume) : null;
+    // Candle volume is base-asset size (coins), not USD.
+    const formattedVolume = volume ? formatCoinVolume(volume) : null;
 
     return {
       open: formattedOpen,
@@ -92,6 +93,11 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
+            testID={
+              testID
+                ? `${testID}-open-value`
+                : PerpsOHLCVBarSelectorsIDs.OPEN_VALUE
+            }
           >
             {formattedValues.open}
           </Text>
@@ -137,6 +143,11 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
+              testID={
+                testID
+                  ? `${testID}-volume-value`
+                  : PerpsOHLCVBarSelectorsIDs.VOLUME_VALUE
+              }
             >
               {formattedValues.volume}
             </Text>
