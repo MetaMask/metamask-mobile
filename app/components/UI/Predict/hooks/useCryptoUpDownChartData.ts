@@ -18,6 +18,7 @@ const LIVE_CHART_RETENTION_SECS = LIVE_CHART_WINDOW_SECS * 2;
 const LIVE_CHART_MAX_POINTS_PER_SEC = 60;
 const CURRENT_TIMESTAMP_TOLERANCE_SECS = 5;
 const MIN_LIVE_POINT_DELTA_SECS = 0.001;
+const LIVE_RENDER_INTERVAL_MS = 200;
 const LIVE_STREAM_STALE_TIMEOUT_MS = LIVE_CHART_WINDOW_SECS * 1000;
 const TWAP_STREAM_STALE_TIMEOUT_MS = 120000;
 const CONNECTION_ERROR_TIMEOUT_MS = 12000;
@@ -183,6 +184,9 @@ export const useCryptoUpDownChartData = (
   >(undefined);
   const [liveValue, setLiveValue] = useState(0);
   const [livePoints, setLivePoints] = useState<LivelinePoint[]>(EMPTY_DATA);
+  const pendingLiveUpdateRef = useRef<CryptoPriceUpdate>();
+  const liveRenderTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const lastLiveRenderAtRef = useRef<number>();
   const stableHistoricalDataRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const fallbackStartPointRef = useRef<LivelinePoint[]>(EMPTY_DATA);
   const frozenRef = useRef(false);
@@ -276,6 +280,89 @@ export const useCryptoUpDownChartData = (
     );
   }, [twapWindowSeconds]);
 
+  const commitLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate, shouldFreezeAfterUpdate: boolean) => {
+      lastLiveRenderAtRef.current = Date.now();
+      setLiveValue(update.price);
+      setLivePoints((points) => {
+        const lastPoint = points.at(-1);
+        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
+        const point: LivelinePoint = {
+          time: timeSecs,
+          value: update.price,
+        };
+        // Fast path: live ticks almost always arrive in order, so append
+        // instead of re-building (Map + sort) the whole array on every update.
+        const nextPoints =
+          !lastPoint || timeSecs > lastPoint.time
+            ? [...points, point]
+            : mergeLivelinePoints(points, [point]);
+        return trimLivePoints(nextPoints, timeSecs);
+      });
+      if (liveLoadingRef.current) {
+        liveLoadingRef.current = false;
+        setLiveLoading(false);
+      }
+      if (shouldFreezeAfterUpdate) {
+        const currentMarketId = marketIdRef.current;
+        frozenRef.current = true;
+        frozenMarketIdRef.current = currentMarketId;
+        setFrozenMarketId(currentMarketId);
+      }
+    },
+    [],
+  );
+
+  const scheduleLiveUpdate = useCallback(
+    (update: CryptoPriceUpdate, shouldFreezeAfterUpdate: boolean) => {
+      pendingLiveUpdateRef.current = update;
+      const elapsedSinceRender =
+        typeof lastLiveRenderAtRef.current === 'number'
+          ? Date.now() - lastLiveRenderAtRef.current
+          : LIVE_RENDER_INTERVAL_MS;
+
+      if (
+        elapsedSinceRender >= LIVE_RENDER_INTERVAL_MS ||
+        shouldFreezeAfterUpdate
+      ) {
+        if (liveRenderTimerRef.current) {
+          clearTimeout(liveRenderTimerRef.current);
+          liveRenderTimerRef.current = undefined;
+        }
+        pendingLiveUpdateRef.current = undefined;
+        commitLiveUpdate(update, shouldFreezeAfterUpdate);
+        return;
+      }
+
+      if (liveRenderTimerRef.current) {
+        return;
+      }
+
+      liveRenderTimerRef.current = setTimeout(() => {
+        liveRenderTimerRef.current = undefined;
+        const pendingUpdate = pendingLiveUpdateRef.current;
+        pendingLiveUpdateRef.current = undefined;
+        const { id: liveMarketId, liveEndDateMs: currentLiveEndDateMs } =
+          liveMarketRef.current;
+
+        if (
+          !pendingUpdate ||
+          liveMarketId !== marketIdRef.current ||
+          (frozenRef.current &&
+            frozenMarketIdRef.current === marketIdRef.current)
+        ) {
+          return;
+        }
+
+        const shouldFreezePendingUpdate =
+          typeof currentLiveEndDateMs === 'number' &&
+          Date.now() >= currentLiveEndDateMs;
+        commitLiveUpdate(pendingUpdate, shouldFreezePendingUpdate);
+      }, LIVE_RENDER_INTERVAL_MS - elapsedSinceRender);
+    },
+    [commitLiveUpdate],
+  );
+
   const handleLiveUpdate = useCallback(
     (update: CryptoPriceUpdate) => {
       if (!enabledRef.current) return;
@@ -317,33 +404,9 @@ export const useCryptoUpDownChartData = (
       }
 
       markLiveStreamFresh();
-      setLiveValue(update.price);
-      setLivePoints((points) => {
-        const lastPoint = points.at(-1);
-        const timeSecs = getLivePointTime(update.timestamp, lastPoint?.time);
-        const point: LivelinePoint = {
-          time: timeSecs,
-          value: update.price,
-        };
-        // Fast path: live ticks almost always arrive in order, so append
-        // instead of re-building (Map + sort) the whole array on every tick.
-        const nextPoints =
-          !lastPoint || timeSecs > lastPoint.time
-            ? [...points, point]
-            : mergeLivelinePoints(points, [point]);
-        return trimLivePoints(nextPoints, timeSecs);
-      });
-      if (liveLoadingRef.current) {
-        liveLoadingRef.current = false;
-        setLiveLoading(false);
-      }
-      if (shouldFreezeAfterUpdate) {
-        frozenRef.current = true;
-        frozenMarketIdRef.current = currentMarketId;
-        setFrozenMarketId(currentMarketId);
-      }
+      scheduleLiveUpdate(update, shouldFreezeAfterUpdate);
     },
-    [markLiveStreamFresh, twapWindowSeconds],
+    [markLiveStreamFresh, scheduleLiveUpdate, twapWindowSeconds],
   );
 
   useEffect(
@@ -351,9 +414,21 @@ export const useCryptoUpDownChartData = (
       if (staleTimerRef.current) {
         clearTimeout(staleTimerRef.current);
       }
+      if (liveRenderTimerRef.current) {
+        clearTimeout(liveRenderTimerRef.current);
+      }
     },
     [],
   );
+
+  useEffect(() => {
+    if (liveRenderTimerRef.current) {
+      clearTimeout(liveRenderTimerRef.current);
+      liveRenderTimerRef.current = undefined;
+    }
+    pendingLiveUpdateRef.current = undefined;
+    lastLiveRenderAtRef.current = undefined;
+  }, [market.id, twapWindowSeconds]);
 
   const isLive = isLiveByEndDate && !hasFrozenLiveData;
   const shouldStreamLive = isLive && liveUpdatesEnabled;

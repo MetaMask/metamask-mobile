@@ -363,6 +363,37 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    it('coalesces rapid live ticks to five React updates per second', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+      const { result } = renderHook(
+        () => useCryptoUpDownChartData(market),
+        { wrapper: Wrapper },
+      );
+
+      act(() => {
+        for (let index = 0; index < 20; index += 1) {
+          liveUpdateHandler?.({
+            symbol: 'btc/usd',
+            price: 51000 + index,
+            timestamp: 100 + index,
+          });
+          jest.advanceTimersByTime(50);
+        }
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 51000 },
+        { time: 103, value: 51003 },
+        { time: 107, value: 51007 },
+        { time: 111, value: 51011 },
+        { time: 115, value: 51015 },
+        { time: 119, value: 51019 },
+      ]);
+      expect(result.current.value).toBe(51019);
+    });
+
     it('keeps loading true until the live chart has enough points to render', () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
