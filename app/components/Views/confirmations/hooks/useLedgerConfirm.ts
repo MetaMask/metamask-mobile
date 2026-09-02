@@ -48,7 +48,10 @@ function getRequiredBatchTransactionCount(
       (transaction) => transaction.id === requiredTransactionId,
     )?.batchId;
 
-    if (batchId !== undefined && batchTransactionCounts[batchId] !== undefined) {
+    if (
+      batchId !== undefined &&
+      batchTransactionCounts[batchId] !== undefined
+    ) {
       return batchTransactionCounts[batchId];
     }
   }
