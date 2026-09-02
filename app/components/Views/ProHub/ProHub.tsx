@@ -77,7 +77,11 @@ const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
           color={IconColor.IconAlternative}
         />
       </Box>
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium} color={TextColor.TextDefault}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
         {label}
       </Text>
     </Box>

@@ -122,7 +122,9 @@ describe('ProHub', () => {
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(MOCK_PRO_HUB_STATS.moneyBalance),
       );
-      expect(musdBackRow).toHaveTextContent(toRegex(strings('pro_hub.musd_back')));
+      expect(musdBackRow).toHaveTextContent(
+        toRegex(strings('pro_hub.musd_back')),
+      );
       expect(musdBackRow).toHaveTextContent(
         toRegex(MOCK_PRO_HUB_STATS.musdBack),
       );
