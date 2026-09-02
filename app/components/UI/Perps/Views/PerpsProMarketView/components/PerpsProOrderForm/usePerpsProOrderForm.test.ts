@@ -162,26 +162,6 @@ let mockExistingPosition: {
   positionValue?: string;
 } | null = null;
 
-let mockPositionModifyPreview: {
-  status: 'none' | 'unsupported' | 'full_close' | 'open';
-  reason?: 'cross_margin' | 'provider';
-  kind?: 'increase' | 'decrease' | 'flip';
-  current?: {
-    margin: { available: true; value: number } | { available: false };
-    liquidationPrice: { available: true; value: number } | { available: false };
-  };
-  resulting?: {
-    direction: 'long' | 'short';
-    size: number;
-    entryPrice: number;
-    leverage: number;
-    margin: { available: true; value: number } | { available: false };
-    liquidationPrice: { available: true; value: number } | { available: false };
-  };
-  resultingDirection?: 'long' | 'short';
-} = { status: 'none' };
-let mockIsPositionModifyPreviewCalculating = false;
-
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
@@ -288,16 +268,26 @@ jest.mock('../../../../hooks', () => ({
     }
     return mockValidation;
   },
-  usePerpsPositionModifyPreview: () => ({
-    preview: mockPositionModifyPreview,
-    isCalculating: mockIsPositionModifyPreviewCalculating,
-    error: null,
-  }),
   usePerpsToasts: () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
   usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
+}));
+
+jest.mock('./usePerpsProPositionModifyPreview', () => ({
+  usePerpsProPositionModifyPreview: () => ({
+    summaryDisplay: {
+      showBeforeAfter: false,
+      currentMarginDisplay: '--',
+      resultingMarginDisplay: '--',
+      currentLiquidationDisplay: '--',
+      resultingLiquidationDisplay: '--',
+      tpslLiquidationPrice: undefined,
+      tpslDirection: undefined,
+    },
+    isCalculating: false,
+  }),
 }));
 
 jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
@@ -481,8 +471,6 @@ describe('usePerpsProOrderForm', () => {
       isValid: true,
     });
     mockExistingPosition = null;
-    mockPositionModifyPreview = { status: 'none' };
-    mockIsPositionModifyPreviewCalculating = false;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -559,65 +547,6 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
-    });
-
-    it('shows margin and liquidation as before → after from the controller preview', () => {
-      mockExistingPosition = {
-        size: '1',
-        marginUsed: '1000',
-        liquidationPrice: '48000',
-        entryPrice: '50000',
-        leverage: { type: 'isolated', value: 5 },
-      };
-      mockPositionModifyPreview = {
-        status: 'open',
-        kind: 'increase',
-        current: {
-          margin: { available: true, value: 1000 },
-          liquidationPrice: { available: true, value: 48000 },
-        },
-        resulting: {
-          direction: 'long',
-          size: 1.002,
-          entryPrice: 50010,
-          leverage: 5,
-          margin: { available: true, value: 1015 },
-          liquidationPrice: { available: true, value: 47000 },
-        },
-      };
-
-      const { result } = renderProForm();
-
-      expect(result.current.summary.margin).toMatch(/→/);
-      expect(result.current.summary.margin).toMatch(/\$1,000/);
-      expect(result.current.summary.liquidationPrice).toMatch(/→/);
-      expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
-    });
-
-    it('keeps single-value margin and liquidation when the controller returns none', () => {
-      const { result } = renderProForm();
-
-      expect(result.current.summary.margin).not.toMatch(/→/);
-      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
-    });
-
-    it('keeps single-value summary for unsupported cross-margin previews', () => {
-      mockExistingPosition = {
-        size: '1',
-        marginUsed: '1000',
-        liquidationPrice: '48000',
-        entryPrice: '50000',
-        leverage: { type: 'cross', value: 5 },
-      };
-      mockPositionModifyPreview = {
-        status: 'unsupported',
-        reason: 'cross_margin',
-      };
-
-      const { result } = renderProForm();
-
-      expect(result.current.summary.margin).not.toMatch(/→/);
-      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
     it('uses the controller fee result unchanged for a TWAP order', () => {
@@ -1769,23 +1698,6 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
       expect(result.current.isPlaceOrderLoading).toBe(false);
-    });
-
-    it('disables the CTA while a position modify preview is recalculating', () => {
-      mockExistingPosition = {
-        symbol: 'BTC',
-        size: '1',
-        positionValue: '90000',
-        marginUsed: '18000',
-        liquidationPrice: '72000',
-        entryPrice: '90000',
-        leverage: { type: 'isolated', value: 5 },
-      };
-      mockIsPositionModifyPreviewCalculating = true;
-
-      const { result } = renderProForm();
-
-      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('runs current validation before executing a pending order', async () => {

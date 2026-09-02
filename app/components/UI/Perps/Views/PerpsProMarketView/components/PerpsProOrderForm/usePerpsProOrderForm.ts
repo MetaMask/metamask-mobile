@@ -63,7 +63,6 @@ import {
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
-  usePerpsPositionModifyPreview,
   usePerpsToasts,
   usePerpsTrading,
   getPerpsToastLabels,
@@ -96,7 +95,6 @@ import {
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
 import { willFlipPosition } from '../../../../utils/orderUtils';
-import { getPositionModifySummaryDisplay } from '../../../../utils/positionModifyPreview';
 import {
   validateReduceOnlyOrder,
   getReduceOnlyPositionError,
@@ -132,6 +130,7 @@ import type {
   PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
+import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
 
 const SCALE_DEFAULT_SKEW = '1.00';
 const SCALE_SKEW_DECIMAL_PLACES = 2;
@@ -1355,13 +1354,13 @@ export const usePerpsProOrderForm = ({
   });
 
   const {
-    preview: positionModifyPreview,
+    summaryDisplay: positionModifySummaryDisplay,
     isCalculating: isPositionModifyPreviewCalculating,
-  } = usePerpsPositionModifyPreview({
+  } = usePerpsProPositionModifyPreview({
     position: currentMarketPosition,
     direction: orderForm.direction,
     size: submissionPositionSize,
-    price: String(effectivePrice),
+    price: effectivePrice,
     leverage: orderForm.leverage,
     reduceOnly,
     feeAmountUsd:
@@ -1369,21 +1368,9 @@ export const usePerpsProOrderForm = ({
         ? estimatedFees
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
+    hasValidAmount,
     enabled: !isScaleOrder && !isTwapOrder,
   });
-
-  const positionModifySummaryDisplay = useMemo(
-    () =>
-      getPositionModifySummaryDisplay({
-        preview: positionModifyPreview,
-        formatMargin: (value) =>
-          formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW }),
-        formatLiquidation: (value) =>
-          formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL }),
-        hasValidAmount,
-      }),
-    [hasValidAmount, positionModifyPreview],
-  );
 
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;

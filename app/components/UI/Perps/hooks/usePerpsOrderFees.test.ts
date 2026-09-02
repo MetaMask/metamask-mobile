@@ -77,6 +77,15 @@ const createWrapper = () => {
   };
 };
 
+/**
+ * Split plan (follow-up; this file predates the current size warning):
+ * 1. Keep base fee calculation plus `formatFeeRate` in this file.
+ * 2. Move maker/taker determination to `usePerpsOrderFees.makerTaker.test.ts`.
+ * 3. Move enhanced errors, cache TTL, and lifecycle coverage to `usePerpsOrderFees.resilience.test.ts`.
+ *
+ * Shared controller/Redux builders should move to a sibling test helper first
+ * so each suite can keep isolated AAA setup without duplicating mocks.
+ */
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
