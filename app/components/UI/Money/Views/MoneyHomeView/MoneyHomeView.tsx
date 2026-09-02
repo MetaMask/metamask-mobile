@@ -9,6 +9,7 @@ import { RefreshControl, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { useFloatingTabBarInset } from '../../../../../component-library/components/Navigation/TabBarFloating';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -108,6 +109,7 @@ const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
+  const floatingTabBarInset = useFloatingTabBarInset();
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const activeProviderId = useSelector(selectCardActiveProviderId);
@@ -887,7 +889,10 @@ const MoneyHomeView = () => {
       />
       <ScrollView
         testID={MoneyHomeViewTestIds.SCROLL_VIEW}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + floatingTabBarInset },
+        ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
