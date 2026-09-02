@@ -1678,6 +1678,29 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CONTAINER)).toHaveStyle({ gap: 16 });
     });
 
+    it('renders margin and liquidation as before → after values', () => {
+      renderForm({
+        summary: {
+          margin: '$1,000 → $1,020',
+          liquidationPrice: '$48,000 → $45,000',
+        },
+      });
+
+      expect(screen.getByText('$1,000 → $1,020')).toBeOnTheScreen();
+      expect(screen.getByText('$48,000 → $45,000')).toBeOnTheScreen();
+      // numberOfLines lives on the value Text, not the KeyValueRow testID.
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(
+          '$1,000 → $1,020',
+        ),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(
+          '$48,000 → $45,000',
+        ),
+      ).toHaveProp('numberOfLines', 2);
+    });
+
     // The order type card was the only bordered surface in the form (TAT-3780).
     it('draws the order type card borderless, like the other muted surfaces', () => {
       renderForm();
@@ -1709,9 +1732,32 @@ describe('PerpsProOrderForm', () => {
     it('uses 20-point summary row height', () => {
       renderForm();
 
-      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+      expect(screen.getByTestId(ids.SUMMARY_SLIPPAGE)).toHaveStyle({
         height: 20,
       });
+    });
+
+    it('treats 20 points as a minimum on the rows that carry a before → after pair', () => {
+      renderForm();
+
+      expect(screen.getByTestId(ids.SUMMARY_MARGIN)).toHaveStyle({
+        minHeight: 20,
+      });
+      expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toHaveStyle({
+        minHeight: 20,
+      });
+    });
+
+    it('wraps a long before → after pair instead of clipping it', () => {
+      const pair = '$1,234,567.89 → $1,250,000.00';
+      renderForm({ summary: { margin: pair, liquidationPrice: pair } });
+
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
+      expect(
+        within(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).getByText(pair),
+      ).toHaveProp('numberOfLines', 2);
     });
 
     it('uses no horizontal padding on summary rows so they align with the form', () => {

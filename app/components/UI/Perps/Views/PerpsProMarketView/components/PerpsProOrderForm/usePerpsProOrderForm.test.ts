@@ -9,6 +9,7 @@ import {
   formatHyperLiquidPrice,
   type PerpsMarketData,
   type PerpsProviderType,
+  type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -170,7 +171,14 @@ let mockExistingPosition: {
   providerId?: PerpsProviderType;
   leverage?: { type?: string; value?: number };
   size?: string;
+  marginUsed?: string;
+  liquidationPrice?: string;
+  entryPrice?: string;
+  positionValue?: string;
 } | null = null;
+
+let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
+let mockIsAwaitingPositionModifyPreview = false;
 
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
@@ -291,6 +299,12 @@ jest.mock('../../../../hooks', () => ({
   usePerpsToasts: () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
+  }),
+  usePerpsPositionModifyPreview: () => ({
+    preview: mockPositionModifyPreview,
+    isCalculating: mockIsAwaitingPositionModifyPreview,
+    isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
+    error: null,
   }),
   usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
 }));
@@ -524,6 +538,8 @@ describe('usePerpsProOrderForm', () => {
       isValid: true,
     });
     mockExistingPosition = null;
+    mockPositionModifyPreview = { status: 'none' };
+    mockIsAwaitingPositionModifyPreview = false;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -605,6 +621,67 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.summary.liquidationPrice).toBe('--');
+    });
+
+    it('shows margin and liquidation before-and-after values from the controller preview', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 48000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 1.002,
+          entryPrice: 50010,
+          leverage: 5,
+          margin: { available: true, value: 1015 },
+          liquidationPrice: { available: true, value: 47000 },
+        },
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).toMatch(/→/);
+      expect(result.current.summary.margin).toMatch(/\$1,000/);
+      expect(result.current.summary.liquidationPrice).toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).toMatch(/\$48/);
+    });
+
+    it('keeps single-value summary when the controller returns no preview', () => {
+      mockPositionModifyPreview = { status: 'none' };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
+    });
+
+    it('keeps single-value summary for unsupported cross-margin previews', () => {
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'cross', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'unsupported',
+        reason: 'cross_margin',
+      };
+
+      const { result } = renderProForm();
+
+      expect(result.current.summary.margin).not.toMatch(/→/);
+      expect(result.current.summary.liquidationPrice).not.toMatch(/→/);
     });
 
     it('uses the controller fee result unchanged for a TWAP order', () => {
@@ -981,6 +1058,130 @@ describe('usePerpsProOrderForm', () => {
         result.current.notices.find((n) => n.id === 'position-loading')
           ?.message,
       ).toBe('Loading positions...');
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
+
+    it('validates the stop loss side against the remaining position direction on a partial decrease', () => {
+      // Arrange: decreasing a short means a long order, but the remaining
+      // position stays short, so a stop loss above the market is valid.
+      mockOrderForm.direction = 'long';
+      mockOrderForm.stopLossPrice = '95000';
+      mockExistingPosition = {
+        size: '-1',
+        marginUsed: '1000',
+        liquidationPrice: '105000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'decrease',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+        resulting: {
+          direction: 'short',
+          size: 0.5,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 500 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert: no wrong-side warning, and placement is not blocked.
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-invalid'),
+      ).toBeUndefined();
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-liq-risk'),
+      ).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('phrases the stop loss wrong-side warning for the remaining position, not the order', () => {
+      // Arrange: long decrease of a short leaves a short. SL below market is
+      // wrong for that short; the notice must say "above", not long's "below".
+      mockOrderForm.direction = 'long';
+      mockOrderForm.stopLossPrice = '85000';
+      mockExistingPosition = {
+        size: '-1',
+        marginUsed: '1000',
+        liquidationPrice: '105000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'decrease',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+        resulting: {
+          direction: 'short',
+          size: 0.5,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 500 },
+          liquidationPrice: { available: true, value: 105000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-invalid')
+          ?.message,
+      ).toBe(
+        strings('perps.tpsl.stop_loss_wrong_side_warning', {
+          direction: strings('perps.tpsl.above'),
+          priceType: 'current',
+        }),
+      );
+    });
+
+    it('warns when the stop loss sits past the projected liquidation price', () => {
+      // Arrange: the current liquidation (80000) keeps a 85000 stop loss safe,
+      // but the resize projects liquidation up to 86000.
+      mockOrderForm.stopLossPrice = '85000';
+      mockExistingPosition = {
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '80000',
+        entryPrice: '90000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockPositionModifyPreview = {
+        status: 'open',
+        kind: 'increase',
+        current: {
+          margin: { available: true, value: 1000 },
+          liquidationPrice: { available: true, value: 80000 },
+        },
+        resulting: {
+          direction: 'long',
+          size: 2,
+          entryPrice: 90000,
+          leverage: 5,
+          margin: { available: true, value: 2000 },
+          liquidationPrice: { available: true, value: 86000 },
+        },
+      };
+
+      // Act
+      const { result } = renderProForm();
+
+      // Assert
+      expect(
+        result.current.notices.find((notice) => notice.id === 'sl-liq-risk'),
+      ).toBeDefined();
       expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
   });
@@ -5715,6 +5916,14 @@ describe('usePerpsProOrderForm', () => {
 
       // Assert
       expect(result.current.isPlaceOrderDisabled).toBe(false);
+    });
+
+    it('is disabled while awaiting the first position-modify preview', () => {
+      mockIsAwaitingPositionModifyPreview = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
     });
 
     it('is disabled when the stop loss risks liquidation', () => {
