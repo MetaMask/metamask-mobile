@@ -31,6 +31,27 @@ interface ValidationParams {
 }
 
 /**
+ * Checks that a trigger price can be sent to the protocol at all.
+ *
+ * Direction checks alone let a non-positive price through: a negative take
+ * profit is still "below" a short's current price, and a negative stop loss is
+ * still "below" a long's current price. The protocol rejects the whole order
+ * when `p` or `triggerPx` is at or below zero, so this floor is checked before
+ * the direction rules.
+ *
+ * @param price - The trigger price to validate
+ * @returns False only when the price parses to a number at or below zero
+ */
+export const isPositiveTriggerPrice = (price?: string): boolean => {
+  if (!price) return true;
+
+  const parsedPrice = parseFloat(price.replace(/[$,]/g, ''));
+  if (isNaN(parsedPrice)) return true;
+
+  return parsedPrice > 0;
+};
+
+/**
  * Validates if a take profit price is valid for the given direction.
  *
  * @param price - The take profit price to validate
@@ -43,6 +64,8 @@ export const isValidTakeProfitPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const tpPrice = parseFloat(price.replace(/[$,]/g, ''));
@@ -65,6 +88,8 @@ export const isValidStopLossPrice = (
   price: string,
   { currentPrice, direction }: ValidationParams,
 ): boolean => {
+  if (!isPositiveTriggerPrice(price)) return false;
+
   if (!currentPrice || !direction || !price) return true;
 
   const slPrice = parseFloat(price.replace(/[$,]/g, ''));

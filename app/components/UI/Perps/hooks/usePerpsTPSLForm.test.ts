@@ -46,6 +46,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.tpsl.take_profit_invalid_price': `Take profit must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_invalid_price': `Stop loss must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_beyond_liquidation_error': `Stop loss must be ${params?.direction} liquidation price`,
+      'perps.tpsl.trigger_price_must_be_positive':
+        'Trigger price must be greater than zero',
     };
     return strings[key] || key;
   },
@@ -96,6 +98,75 @@ describe('usePerpsTPSLForm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('non-positive trigger prices', () => {
+    const shortParams = {
+      asset: 'ETH',
+      currentPrice: 2392.5,
+      direction: 'short' as const,
+      leverage: 1,
+      isVisible: true,
+      liquidationPrice: '3123.4',
+    };
+
+    it('blocks submission when a take profit return of 5000 percent drives the trigger price below zero', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(shortParams), {
+        wrapper: createWrapper(),
+      });
+
+      // Act
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('5000');
+      });
+
+      // Assert
+      expect(
+        Number.parseFloat(result.current.formState.takeProfitPrice),
+      ).toBeLessThan(0);
+      expect(result.current.validation.isValid).toBe(false);
+      expect(result.current.validation.takeProfitError).toBe(
+        'Trigger price must be greater than zero',
+      );
+    });
+
+    it('allows a take profit return that keeps the trigger price above zero', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(shortParams), {
+        wrapper: createWrapper(),
+      });
+
+      // Act
+      act(() => {
+        result.current.handlers.handleTakeProfitPercentageChange('50');
+      });
+
+      // Assert
+      expect(
+        Number.parseFloat(result.current.formState.takeProfitPrice),
+      ).toBeGreaterThan(0);
+      expect(result.current.validation.isValid).toBe(true);
+      expect(result.current.validation.takeProfitError).toBe('');
+    });
+
+    it('blocks submission when a typed stop loss trigger price is zero', () => {
+      // Arrange
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      // Act
+      act(() => {
+        result.current.handlers.handleStopLossPriceChange('0');
+      });
+
+      // Assert
+      expect(result.current.validation.isValid).toBe(false);
+      expect(result.current.validation.stopLossError).toBe(
+        'Trigger price must be greater than zero',
+      );
+    });
   });
 
   describe('initialization', () => {
