@@ -250,6 +250,50 @@ describe('ExploreSearchBar', () => {
       expect(input.props.keyboardAppearance).toBe('light');
     });
 
+    it('renders an inline back button instead of cancel when dismissVariant is back', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          dismissVariant="back"
+        />,
+      );
+
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      ).toBeDefined();
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      ).toBeNull();
+    });
+
+    it('clears query and calls onCancel when the inline back button is pressed', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery="bitcoin"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          dismissVariant="back"
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      );
+
+      expect(mockOnSearchChange).toHaveBeenCalledWith('');
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
+    });
+
     it('turns autoFocus on when the caller enables it after mount', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();

@@ -81,6 +81,7 @@ export const PerpsPositionCardSelectorsIDs = {
   MARGIN_VALUE: 'position-card-margin-value',
   MARGIN_CHEVRON: 'position-card-margin-chevron',
   AUTO_CLOSE_TOGGLE: 'position-card-auto-close-toggle',
+  AUTO_CLOSE_VALUE: 'position-card-auto-close-value',
   DETAILS_SECTION: 'position-card-details',
   DIRECTION_VALUE: 'position-card-direction-value',
   ENTRY_VALUE: 'position-card-entry-value',
@@ -278,6 +279,14 @@ export const PerpsHomeViewSelectorsIDs = {
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
+  /**
+   * Explore crypto section container; PerpsMarketTypeSection derives `-header` and
+   * `-list` from it, and PerpsMarketList derives `-list-empty` from the list ID, e.g.
+   * `perps-home-explore-crypto-section-header`,
+   * `perps-home-explore-crypto-section-list`,
+   * `perps-home-explore-crypto-section-list-empty`
+   */
+  EXPLORE_CRYPTO_SECTION: 'perps-home-explore-crypto-section',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
@@ -530,6 +539,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITION_REVERSE: 'perps-pro-market-position-reverse',
   POSITION_SHARE: 'perps-pro-market-position-share',
   POSITION_EDIT_TPSL: 'perps-pro-market-position-edit-tpsl',
+  POSITION_TPSL_VALUE: 'perps-pro-market-position-tpsl-value',
   POSITION_EDIT_MARGIN: 'perps-pro-market-position-edit-margin',
   POSITION_PNL_TEXT: 'perps-pro-market-position-pnl-text',
   POSITION_LIQ_PRICE: 'perps-pro-market-position-liq-price',
@@ -688,6 +698,8 @@ export const PerpsTransactionSelectorsIDs = {
 
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
+  LIMIT_PRICE_ROW: 'perps-order-transaction-limit-price-row',
+  TRIGGER_PRICE_ROW: 'perps-order-transaction-trigger-price-row',
 };
 
 export const PerpsChartGridLinesSelectorsIDs = {
@@ -1117,6 +1129,7 @@ export const PerpsModeToggleSelectorsIDs = {
 export const PerpsModeSelectionBottomSheetSelectorsIDs = {
   CONTAINER: 'perps-mode-selection-bottom-sheet',
   TITLE: 'perps-mode-selection-bottom-sheet-title',
+  SUBTITLE: 'perps-mode-selection-bottom-sheet-subtitle',
   LITE_OPTION: 'perps-mode-selection-lite-option',
   PRO_OPTION: 'perps-mode-selection-pro-option',
   LITE_ICON: 'perps-mode-selection-lite-icon',

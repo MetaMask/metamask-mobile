@@ -121,18 +121,13 @@ trackEvent(
 Verify that your event properties are correctly structured:
 
 ```typescript
-// Regular properties (non-sensitive)
 .addProperties({
   network: 'ethereum',
   source: 'navigation'
 })
-
-// Sensitive properties (triggers anonymous events)
-.addSensitiveProperties({
-  amount: '0.1',
-  recipient: '0x1234...'
-})
 ```
+
+New tracking uses `addProperties` only.
 
 ### 3. Verify Event Names
 
@@ -219,22 +214,16 @@ Confirm events are appearing in Mixpanel:
 
 Send a Slack message in the #data channel to explain your issue
 
-### Scenario 3: Anonymous Events Not Working
+### Scenario 3: Dual anonymous / non-anonymous events
 
-**Symptoms**: Sensitive properties are being tracked but anonymous events aren't generated
-
-**Debugging Steps**:
-
-1. Verify `addSensitiveProperties()` is being used
-2. Check that sensitive properties contain actual data
-3. Check the events for the anonymous user ID `0x0000000000000000` (note: this will show many events from all users)
+`addSensitiveProperties` is deprecated. New tracking uses `addProperties` only. When editing a leftover call site, review those fields and drop them or move them to `addProperties` when that is safe. Leftover dual emission still shows up under the anonymous user ID `0x0000000000000000`.
 
 ## Privacy Considerations
 
 When debugging analytics, remember to respect user privacy:
 
 1. **Don't log sensitive data**: Avoid logging personal information in debug statements
-2. **Use test data**: Use mock data when testing sensitive properties (avoid private keys or any data that could link to other sensitive information)
+2. **Use test data**: Use mock data when testing properties (avoid private keys or any data that could link to other sensitive information)
 
 ## Getting Help
 
