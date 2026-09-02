@@ -950,9 +950,9 @@ describe('PerpsProOrderBookPanel', () => {
       const headerValue = getByTestId(`${testID}-column-header-value`);
       const headerValueStyle = StyleSheet.flatten(headerValue.props.style);
 
-      // The value header is also wider than half the column.
+      // Shorter "$" unit keeps "Total ($)" readable in the 132px column (TAT-3774).
       expect(headerValue).toHaveTextContent(
-        `${strings('perps.order_book.total')} (USD)`,
+        `${strings('perps.order_book.total')} ($)`,
       );
       expect(headerValueStyle).toMatchObject({ flexShrink: 0 });
       expect(headerValueStyle.flexGrow).toBeUndefined();
