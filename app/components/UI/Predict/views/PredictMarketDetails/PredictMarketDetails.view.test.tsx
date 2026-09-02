@@ -546,8 +546,17 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
+      });
+
+      const screen = await findByTestId(
+        PredictMarketDetailsSelectorsIDs.SCREEN,
+      );
+      await waitFor(() => {
+        expect(
+          within(screen).getByText(MOCK_PREDICT_MARKET.title),
+        ).toBeOnTheScreen();
       });
 
       expect(await findByText('Yes • 0¢')).toBeOnTheScreen();

@@ -123,9 +123,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
     useTransactionPayingAccountMock.mockReturnValue(PAYER_ADDRESS);
-    useTransactionMetadataRequestMock.mockReturnValue(
-      undefined as unknown as TransactionMeta,
-    );
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as unknown as TransactionMeta);
     jest
       .mocked(useTransactionPaySelectedFiatPaymentMethod)
       .mockReturnValue(undefined);
@@ -581,7 +581,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       // transactionMeta.chainId is the *source* chain (e.g. Polygon 0x89)
       useTransactionMetadataRequestMock.mockReturnValue({
         chainId: SOURCE_CHAIN_ID,
-      } as TransactionMeta);
+        type: TransactionType.perpsWithdraw,
+      } as unknown as TransactionMeta);
 
       // In withdrawal flows the spendable balance is the withdrawable balance,
       // resolved independently of payToken. Default it high enough that both the
@@ -718,7 +719,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     it('skips source network fee check when source chain is Monad', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         chainId: CHAIN_IDS.MONAD as Hex,
-      } as TransactionMeta);
+        type: TransactionType.perpsWithdraw,
+      } as unknown as TransactionMeta);
 
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -788,7 +790,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-post-quote-override',
         chainId: SOURCE_CHAIN_ID,
-      } as TransactionMeta);
+        type: TransactionType.perpsWithdraw,
+      } as unknown as TransactionMeta);
 
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
@@ -833,7 +836,8 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     beforeEach(() => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: TRANSACTION_ID_MOCK,
-      } as TransactionMeta);
+        type: TransactionType.moneyAccountDeposit,
+      } as unknown as TransactionMeta);
     });
 
     it('uses money account balance instead of on-chain balance for input check', () => {
@@ -976,6 +980,64 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
         { pendingAmountUsd: '2.99' },
         moneyAccountState,
       );
+
+      expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('non MetaMask Pay transaction', () => {
+    beforeEach(() => {
+      // A plain ERC-20 send: the pay controller still derives a required token
+      // from the transfer calldata, but nothing is funded through MetaMask Pay.
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: undefined,
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayTotalsMock.mockReturnValue(undefined);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '1.06' },
+      ]);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: 'tx-transfer',
+        chainId: '0x2105',
+        type: TransactionType.tokenMethodTransfer,
+      } as unknown as TransactionMeta);
+    });
+
+    it('returns no alert for a token transfer', () => {
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when native balance is below gas', () => {
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert for a token transfer even with a pay token selected', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: { ...PAY_TOKEN_MOCK, balanceUsd: '0.5' },
+        setPayToken: jest.fn(),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('returns no alert when there is no transaction metadata', () => {
+      useTransactionMetadataRequestMock.mockReturnValue(
+        undefined as unknown as TransactionMeta,
+      );
+
+      const { result } = runHook();
 
       expect(result.current).toStrictEqual([]);
     });

@@ -1429,6 +1429,59 @@ describe('OAuthRehydration', () => {
         mockReplace.mock.invocationCallOrder[0],
       );
     });
+
+    it('ends Password Login Attempt before post-unlock biometric upgrade', async () => {
+      const journeyCtx = { traceId: 'journey' };
+      const passwordAttemptCtx = { traceId: 'password-attempt' };
+
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+        },
+      });
+      (getTraceContextMock as jest.Mock).mockImplementation(
+        (req: { name: string }) => {
+          if (req.name === 'OnboardingJourneyOverall') return journeyCtx;
+          return undefined;
+        },
+      );
+      (traceMock as jest.Mock).mockImplementation(
+        (config: { name?: string }, fn?: () => Promise<void>) => {
+          if (fn) {
+            return fn();
+          }
+          if (config?.name === 'OnboardingPasswordLoginAttempt') {
+            return passwordAttemptCtx;
+          }
+          return undefined;
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(endTraceMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'OnboardingPasswordLoginAttempt',
+          }),
+        );
+        expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalled();
+      });
+
+      const endTraceJestMock = endTraceMock as jest.Mock;
+      const passwordEndIndex = endTraceJestMock.mock.calls.findIndex(
+        ([request]: [{ name?: string }]) =>
+          request?.name === 'OnboardingPasswordLoginAttempt',
+      );
+      expect(passwordEndIndex).toBeGreaterThanOrEqual(0);
+      expect(
+        endTraceJestMock.mock.invocationCallOrder[passwordEndIndex],
+      ).toBeLessThan(
+        mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
+      );
+    });
   });
 
   describe('Component lifecycle', () => {

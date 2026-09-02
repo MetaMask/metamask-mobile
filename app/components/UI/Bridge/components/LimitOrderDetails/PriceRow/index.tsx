@@ -28,8 +28,9 @@ const PriceRow: React.FC<PriceRowProps> = ({
     variant={KeyValueRowVariant.Summary}
     keyLabel={strings('bridge.slippage')}
     keyTextProps={{
-      variant: TextVariant.BodySm,
+      variant: TextVariant.BodyMd,
       color: TextColor.TextAlternative,
+      fontWeight: FontWeight.Regular,
     }}
     value={
       <TouchableOpacity
@@ -45,9 +46,8 @@ const PriceRow: React.FC<PriceRowProps> = ({
           gap={1}
         >
           <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
             testID={PriceRowSelectorsIDs.VALUE}
           >
             {value}
@@ -56,6 +56,7 @@ const PriceRow: React.FC<PriceRowProps> = ({
             name={IconName.Edit}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            twClassName="-mt-0.5"
           />
         </Box>
       </TouchableOpacity>

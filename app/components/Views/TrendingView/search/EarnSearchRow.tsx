@@ -16,9 +16,7 @@ import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
   const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
     useMoneyNavigation();
-  const { navigateToEarnOpportunity } = useEarnOpportunityNavigation({
-    tokenDetailsSource: TokenDetailsSource.ExploreEarn,
-  });
+  const { navigateFromEarnAsset } = useEarnOpportunityNavigation();
 
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -28,8 +26,8 @@ const EarnSearchRow = ({ item }: { item: EarnSearchItem }) => {
       return;
     }
 
-    navigateToEarnOpportunity(item.asset);
-  }, [item, navigateToEarnOpportunity, navigateToMoneyHome]);
+    navigateFromEarnAsset(item.asset, TokenDetailsSource.ExploreEarn);
+  }, [item, navigateFromEarnAsset, navigateToMoneyHome]);
 
   return item.kind === 'money-account' ? (
     <EarnMoneyAccountRow

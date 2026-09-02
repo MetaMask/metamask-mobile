@@ -3,7 +3,6 @@ import type { SharedValue } from 'react-native-reanimated';
 import {
   AvatarAccount,
   AvatarAccountSize,
-  AvatarBaseShape,
   BadgeStatus,
   BadgeStatusStatus,
   BadgeWrapper,
@@ -15,9 +14,12 @@ import {
   ButtonAnimated,
   ButtonIcon,
   ButtonIconSize,
+  FontWeight,
   HeaderStandardAnimated,
   IconColor as MMDSIconColor,
   IconName as MMDSIconName,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -63,8 +65,23 @@ const WalletHeaderCompact = ({
   return (
     <HeaderStandardAnimated
       testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
-      title={displayName}
-      titleProps={{ numberOfLines: 1 }}
+      title={
+        <ButtonAnimated
+          onPress={handleAccountHubPress}
+          hitSlop={touchAreaSlop}
+          accessibilityRole="button"
+          accessibilityLabel={displayName}
+          testID={WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_NAME_BUTTON}
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Bold}
+            numberOfLines={1}
+          >
+            {displayName}
+          </Text>
+        </ButtonAnimated>
+      }
       scrollY={scrollY}
       titleSectionHeight={titleSectionHeight}
       startAccessory={
@@ -84,12 +101,13 @@ const WalletHeaderCompact = ({
               ) : null
             }
           >
-            <AvatarAccount
-              address={accountAddress}
-              variant={getAvatarAccountVariant(avatarAccountType)}
-              size={AvatarAccountSize.Lg}
-              shape={AvatarBaseShape.Circle}
-            />
+            <Box twClassName="h-10 w-10 items-center justify-center rounded-full bg-section">
+              <AvatarAccount
+                address={accountAddress}
+                variant={getAvatarAccountVariant(avatarAccountType)}
+                size={AvatarAccountSize.Sm}
+              />
+            </Box>
           </BadgeWrapper>
         </ButtonAnimated>
       }
