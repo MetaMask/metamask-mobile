@@ -216,12 +216,14 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         grossValue: position.currentValue,
         feeCollection,
       });
-  const { value: currentValue, cashPnl, percentPnl } = getPredictPositionDisplay(
-    {
-      initialValue,
-      netValue,
-    },
-  );
+  const {
+    value: currentValue,
+    cashPnl,
+    percentPnl,
+  } = getPredictPositionDisplay({
+    initialValue,
+    netValue,
+  });
   const currentPrice = preview?.sharePrice ?? 0;
   const { avgPrice } = position;
 
