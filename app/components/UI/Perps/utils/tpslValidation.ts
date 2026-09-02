@@ -477,13 +477,6 @@ export const calculatePriceForRoE = (
     finalResult,
   });
 
-  if (parseFloat(finalResult) <= 0) {
-    DevLogger.log(
-      '[PR-TAT-3872] BUG_MARKER: calculatePriceForRoE returned a non-positive trigger price:',
-      JSON.stringify({ roePercentage, isProfit, basePrice, finalResult }),
-    );
-  }
-
   return finalResult;
 };
 
