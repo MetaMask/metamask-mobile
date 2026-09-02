@@ -92,6 +92,7 @@ import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWith
 import { filterOutRwaTokens } from '../../utils/filterOutRwaTokens';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToSearchResults';
+import { mergeIncludedAssetsWithApiResults } from '../../utils/mergeIncludedAssetsWithApiResults';
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -453,6 +454,15 @@ export const BridgeTokenSelector: React.FC = () => {
     includeAssets: searchIncludeAssets,
   });
 
+  const mergedPopularTokens = useMemo(
+    () => mergeIncludedAssetsWithApiResults(popularTokens, includeAssets),
+    [popularTokens, includeAssets],
+  );
+  const mergedSearchResults = useMemo(
+    () => mergeIncludedAssetsWithApiResults(searchResults, searchIncludeAssets),
+    [searchResults, searchIncludeAssets],
+  );
+
   // React to network filter changes from any source (pill press or modal).
   // Cancels pending searches, resets stale results, and flags for re-search.
   useEffect(() => {
@@ -517,11 +527,11 @@ export const BridgeTokenSelector: React.FC = () => {
 
   // Use custom hook for merging balances
   const popularTokensWithBalance = useRwaFilteredTokens(
-    useTokensWithBalances(popularTokens, balancesByAssetId),
+    useTokensWithBalances(mergedPopularTokens, balancesByAssetId),
     excludeRwaTokens,
   );
   const searchResultsWithBalance = useRwaFilteredTokens(
-    useTokensWithBalances(searchResults, balancesByAssetId),
+    useTokensWithBalances(mergedSearchResults, balancesByAssetId),
     excludeRwaTokens,
   );
 

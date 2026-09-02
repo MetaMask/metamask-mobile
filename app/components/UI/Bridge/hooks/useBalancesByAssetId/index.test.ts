@@ -7,6 +7,10 @@ import {
   createMockTokenWithBalance,
   MOCK_CHAIN_IDS_HEX,
 } from '../../testUtils/fixtures';
+import {
+  ARC_NATIVE_ASSET_ID,
+  ARC_USDC_ASSET_ID,
+} from '../../../../hooks/useArcDefaultTokens';
 
 jest.mock('../useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(),
@@ -223,6 +227,45 @@ describe('useBalancesByAssetId', () => {
           'eip155:10/erc20:0x2222222222222222222222222222222222222222' as CaipAssetType
         ],
       ).toBeDefined();
+    });
+
+    it('aliases Arc native USDC balance to the Arc ERC20 USDC asset id', () => {
+      mockUseTokensWithBalance.mockReturnValue([
+        createMockTokenWithBalance({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x13b2' as Hex,
+          balance: '12.34',
+          balanceFiat: '$12.34',
+          tokenFiatAmount: 12.34,
+        }),
+      ]);
+
+      const { result } = renderHook(() =>
+        useBalancesByAssetId({
+          chainIds: ['0x13b2' as Hex],
+        }),
+      );
+
+      expect(
+        result.current.balancesByAssetId[
+          ARC_USDC_ASSET_ID.toLowerCase() as CaipAssetType
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          balance: '12.34',
+          balanceFiat: '$12.34',
+          tokenFiatAmount: 12.34,
+        }),
+      );
+      expect(
+        result.current.balancesByAssetId[
+          ARC_NATIVE_ASSET_ID.toLowerCase() as CaipAssetType
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          balance: '12.34',
+        }),
+      );
     });
 
     it('handles CAIP chain IDs', () => {

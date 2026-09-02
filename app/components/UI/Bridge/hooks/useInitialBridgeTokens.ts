@@ -3,10 +3,32 @@ import type { CaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useBalancesByAssetId } from './useBalancesByAssetId';
 import { useFetchPopularTokens } from './useFetchPopularTokens';
-import { tokenMatchesQuery, tokenToIncludeAsset } from '../utils/tokenUtils';
+import {
+  getDefaultDestToken,
+  tokenMatchesQuery,
+  tokenToIncludeAsset,
+} from '../utils/tokenUtils';
 import { selectAllowedChainRanking } from '../../../../core/redux/slices/bridge';
 import type { IncludeAsset } from '../types';
 import { getMinimalIncludedAssets } from '../utils/cacheUtils';
+import { ARC_CAIP_CHAIN_ID } from '../../../../enablement/assets/arc';
+import { BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN } from '../constants/default-swap-dest-tokens';
+
+const dedupeIncludeAssets = (
+  includeAssets: (IncludeAsset | null)[],
+): IncludeAsset[] => {
+  const uniqueAssets = new Map<string, IncludeAsset>();
+
+  for (const asset of includeAssets) {
+    if (!asset) {
+      continue;
+    }
+
+    uniqueAssets.set(asset.assetId.toLowerCase(), asset);
+  }
+
+  return [...uniqueAssets.values()];
+};
 
 /**
  * Custom hook to fetch popular tokens from the Bridge API with caching
@@ -49,15 +71,27 @@ export const useInitialBridgeTokens = (
     [tokensWithBalance],
   );
 
+  const arcDefaultTokens = useMemo(() => {
+    if (!chainIdsToFetch.includes(ARC_CAIP_CHAIN_ID)) {
+      return [];
+    }
+
+    return [
+      BRIDGE_CHAINID_TO_DEFAULT_SOURCE_TOKEN[ARC_CAIP_CHAIN_ID],
+      getDefaultDestToken(ARC_CAIP_CHAIN_ID),
+    ].filter((token) => token !== undefined);
+  }, [chainIdsToFetch]);
+
   // Create includeAssets array from tokens with balance to be sent to API
   // Stringified to avoid triggering the useEffect when only balances change
   const includeAssetsObject = useMemo(
     () =>
-      filteredTokensWithBalance
-        .map(tokenToIncludeAsset)
-        .filter((asset): asset is IncludeAsset => asset !== null),
+      dedupeIncludeAssets([
+        ...filteredTokensWithBalance.map(tokenToIncludeAsset),
+        ...arcDefaultTokens.map(tokenToIncludeAsset),
+      ]),
 
-    [filteredTokensWithBalance],
+    [arcDefaultTokens, filteredTokensWithBalance],
   );
 
   // Stable string key for the includeAssets array — re-derive the callback
@@ -84,15 +118,20 @@ export const useInitialBridgeTokens = (
   const searchIncludeAssets = useMemo(
     () =>
       searchQuery
-        ? tokensWithBalance
-            .map((token) =>
+        ? dedupeIncludeAssets([
+            ...tokensWithBalance.map((token) =>
               tokenMatchesQuery(token, searchQuery)
                 ? tokenToIncludeAsset(token)
                 : null,
-            )
-            .filter((asset): asset is IncludeAsset => asset !== null)
+            ),
+            ...arcDefaultTokens.map((token) =>
+              tokenMatchesQuery(token, searchQuery)
+                ? tokenToIncludeAsset(token)
+                : null,
+            ),
+          ])
         : [],
-    [tokensWithBalance, searchQuery],
+    [arcDefaultTokens, tokensWithBalance, searchQuery],
   );
 
   return {

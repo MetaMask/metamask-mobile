@@ -1,11 +1,17 @@
 import { useMemo } from 'react';
 import {
+  assetIdsMatch,
   formatAddressToAssetId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from '../useTokensWithBalance';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { BridgeToken } from '../../types';
+import {
+  ARC_NATIVE_ASSET_ID,
+  ARC_NATIVE_ASSET_ID_LEGACY,
+  ARC_USDC_ASSET_ID,
+} from '../../../../hooks/useArcDefaultTokens';
 
 /**
  * Interface for the balance data stored in the lookup map
@@ -25,9 +31,15 @@ export interface BalanceData {
 export type BalancesByAssetId = Record<CaipAssetType, BalanceData>;
 
 /**
- * Hook to get balances indexed by assetId (CAIP format) for O(1) lookup
- * @param params - Configuration object containing chainIds
- * @returns Object containing tokens array and map of assetId to balance data
+ * Builds an asset-id keyed balance lookup for the swap token selector.
+ *
+ * Arc is a special case: the selector renders ERC-20 USDC, while the held
+ * balance may still resolve from the native Arc asset entry. To keep the
+ * visible Arc USDC row hydrated, this hook aliases the native Arc balance onto
+ * the ERC-20 Arc USDC asset id in addition to the native asset id.
+ *
+ * @param params - Configuration object containing chainIds.
+ * @returns Tokens with balances plus an O(1) asset-id lookup map.
  */
 export const useBalancesByAssetId = ({
   chainIds,
@@ -61,6 +73,18 @@ export const useBalancesByAssetId = ({
           ? assetId
           : (assetId.toLowerCase() as CaipAssetType);
         balancesMap[normalizedAssetId] = balanceData;
+
+        // Arc displays ERC-20 USDC in the picker even when the held balance is
+        // sourced from the native Arc asset entry. Mirror the native balance to
+        // the ERC-20 asset id so the visible row shows the correct balance.
+        if (
+          assetIdsMatch(assetId, ARC_NATIVE_ASSET_ID) ||
+          assetIdsMatch(assetId, ARC_NATIVE_ASSET_ID_LEGACY)
+        ) {
+          balancesMap[ARC_USDC_ASSET_ID] = balanceData;
+          balancesMap[ARC_USDC_ASSET_ID.toLowerCase() as CaipAssetType] =
+            balanceData;
+        }
       }
     });
 

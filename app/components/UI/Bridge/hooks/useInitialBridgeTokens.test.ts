@@ -6,6 +6,7 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { initialState } from '../_mocks_/initialState';
 import { CaipChainId } from '@metamask/utils';
 import { popularTokensCache } from '../utils/cacheUtils';
+import { ARC_CAIP_CHAIN_ID } from '../../../../enablement/assets/arc';
 
 let globalFetchSpy: jest.SpyInstance;
 
@@ -87,6 +88,43 @@ describe('useInitialBridgeTokens', () => {
         }),
         searchIncludeAssets: [],
       });
+    });
+
+    it('includes Arc curated swap tokens even when the account holds none', () => {
+      const { result } = renderHookWithProvider(
+        () => useInitialBridgeTokens([ARC_CAIP_CHAIN_ID]),
+        { state: initialState },
+      );
+
+      expect(result.current.includeAssets).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            symbol: 'USDC',
+            assetId:
+              'eip155:5042/erc20:0x3600000000000000000000000000000000000000',
+          }),
+          expect.objectContaining({
+            symbol: 'EURC',
+            assetId:
+              'eip155:5042/erc20:0xbef5f6d51cb62b58e6a8f77868681825c6fe21c1',
+          }),
+        ]),
+      );
+    });
+
+    it('includes Arc ERC20 USDC in exact-symbol search results', () => {
+      const { result } = renderHookWithProvider(
+        () => useInitialBridgeTokens([ARC_CAIP_CHAIN_ID], 'USDC'),
+        { state: initialState },
+      );
+
+      expect(result.current.searchIncludeAssets).toEqual([
+        expect.objectContaining({
+          symbol: 'USDC',
+          assetId:
+            'eip155:5042/erc20:0x3600000000000000000000000000000000000000',
+        }),
+      ]);
     });
 
     it('fetches and caches popular tokens', async () => {
