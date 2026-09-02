@@ -90,12 +90,13 @@ async function handleE2EQrSyncUrl(incomingUrl = ''): Promise<void> {
     return;
   }
 
+  processedDeepLinks.add(incomingUrl);
   try {
     const payload = parseApplySyncReadyPayload(queryString);
     await controller.applyTestSyncReadyPayload(payload);
-    processedDeepLinks.add(incomingUrl);
     Logger.log('[E2E QR Sync] Applied test sync-ready payload');
   } catch (error) {
+    processedDeepLinks.delete(incomingUrl);
     Logger.error(error as Error, 'E2E QR Sync apply-sync-ready failed');
   }
 }
