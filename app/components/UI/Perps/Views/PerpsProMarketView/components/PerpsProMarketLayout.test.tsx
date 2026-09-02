@@ -1,4 +1,5 @@
 import React from 'react';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { View } from 'react-native';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -48,6 +49,16 @@ describe('PerpsProMarketLayout', () => {
     expect(orderBookColumn).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
     });
+  });
+
+  it('animates the order book upward into its expanded position', () => {
+    const { getByTestId } = renderLayout();
+    const enteringTransition = getByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+    ).props.entering;
+
+    expect(enteringTransition.constructor.name).toBe('FadeInDown');
+    expect(enteringTransition.durationV).toBe(AnimationDuration.Fast);
   });
 
   it('places the order book first when pinned left', () => {
