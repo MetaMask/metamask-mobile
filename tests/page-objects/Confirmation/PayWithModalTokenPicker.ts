@@ -1,5 +1,5 @@
 import { TransactionPayComponentIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 import {
   Gestures,
   Matchers,

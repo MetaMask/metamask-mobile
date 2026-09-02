@@ -46,6 +46,7 @@ import {
 import StandaloneSupportConsentModal from '../../UI/SupportConsentSheet/StandaloneSupportConsentModal';
 import { useSelector } from 'react-redux';
 import { isTestEnvironment } from '../../../util/test/utils';
+import { ErrorBoundarySelectorsIDs } from './ErrorBoundary.testIds';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -239,7 +240,7 @@ export const Fallback = (props) => {
   const onSecondary = isOnboardingError ? navigateToOnboarding : handleTryAgain;
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.wrapper} testID={ErrorBoundarySelectorsIDs.CONTAINER}>
       <View style={styles.header}>
         <Icon
           name={IconName.Danger}
