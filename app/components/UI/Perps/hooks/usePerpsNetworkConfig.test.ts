@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import {
   type PerpsActiveProviderMode,
   type SwitchProviderResult,
@@ -19,6 +20,14 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../services/PerpsConnectionManager', () => ({
+  PerpsConnectionManager: {
+    runWithContextChangePreparation: jest.fn(
+      (transition: () => Promise<unknown>) => transition(),
+    ),
+  },
+}));
+
 // Mock i18n
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -30,6 +39,31 @@ describe('usePerpsNetworkConfig', () => {
   });
 
   describe('toggleTestnet', () => {
+    it('waits for context preparation before toggling the network', async () => {
+      let releasePreparation: (() => void) | undefined;
+      jest
+        .mocked(PerpsConnectionManager.runWithContextChangePreparation)
+        .mockImplementationOnce(async (transition) => {
+          await new Promise<void>((resolve) => {
+            releasePreparation = resolve;
+          });
+          return transition();
+        });
+      (
+        Engine.context.PerpsController.toggleTestnet as jest.Mock
+      ).mockResolvedValue({ success: true, isTestnet: true });
+      const { result } = renderHook(() => usePerpsNetworkConfig());
+
+      const togglePromise = result.current.toggleTestnet();
+      expect(
+        Engine.context.PerpsController.toggleTestnet,
+      ).not.toHaveBeenCalled();
+      releasePreparation?.();
+      await togglePromise;
+
+      expect(Engine.context.PerpsController.toggleTestnet).toHaveBeenCalled();
+    });
+
     it('should call PerpsController.toggleTestnet and return result', async () => {
       const mockToggleResult: ToggleTestnetResult = {
         success: true,
@@ -141,6 +175,33 @@ describe('usePerpsNetworkConfig', () => {
   });
 
   describe('switchProvider', () => {
+    it('waits for context preparation before switching provider', async () => {
+      let releasePreparation: (() => void) | undefined;
+      jest
+        .mocked(PerpsConnectionManager.runWithContextChangePreparation)
+        .mockImplementationOnce(async (transition) => {
+          await new Promise<void>((resolve) => {
+            releasePreparation = resolve;
+          });
+          return transition();
+        });
+      (
+        Engine.context.PerpsController.switchProvider as jest.Mock
+      ).mockResolvedValue({ success: true, providerId: 'hyperliquid' });
+      const { result } = renderHook(() => usePerpsNetworkConfig());
+
+      const switchPromise = result.current.switchProvider('hyperliquid');
+      expect(
+        Engine.context.PerpsController.switchProvider,
+      ).not.toHaveBeenCalled();
+      releasePreparation?.();
+      await switchPromise;
+
+      expect(
+        Engine.context.PerpsController.switchProvider,
+      ).toHaveBeenCalledWith('hyperliquid');
+    });
+
     it('should call PerpsController.switchProvider with correct parameters', async () => {
       const mockSwitchResult: SwitchProviderResult = {
         success: true,

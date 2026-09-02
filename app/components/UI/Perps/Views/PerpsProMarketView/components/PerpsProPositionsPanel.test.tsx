@@ -1,5 +1,6 @@
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import type {
+  ChaseOrder,
   Order,
   PerpsMarketData,
   Position,
@@ -18,7 +19,9 @@ import {
   type UsePerpsProPositionsPanelActionsReturn,
 } from '../../../hooks/usePerpsProPositionsPanelActions';
 import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
+import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
 import {
+  getPerpsProChaseSideFilterOptionSelector,
   getPerpsProOrderRowSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
@@ -27,6 +30,10 @@ import { playSelection } from '../../../../../../util/haptics';
 import PerpsProPositionsPanel from './PerpsProPositionsPanel';
 
 jest.mock('../../../../../../util/haptics');
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 
@@ -85,12 +92,24 @@ jest.mock('../../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
 
+jest.mock('../../../hooks/usePerpsChaseOrders', () => ({
+  isExpectedChaseOrderRequestError: () => false,
+  usePerpsChaseOrders: jest.fn(),
+}));
+
+const mockTrack = jest.fn();
+jest.mock('../../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
 const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
 const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
 const mockUsePerpsProPositionsPanelActions = jest.mocked(
   usePerpsProPositionsPanelActions,
 );
 const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
+const mockUsePerpsChaseOrders = jest.mocked(usePerpsChaseOrders);
+const mockReconcileCanceledChaseOrder = jest.fn().mockResolvedValue([]);
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
   symbol: 'BTC',
@@ -126,6 +145,21 @@ const makeOrder = (overrides: Partial<Order> = {}): Order => ({
   detailedOrderType: 'Limit',
   ...overrides,
 });
+
+const chaseOrder: ChaseOrder = {
+  handle: 'chase-3061e839-7bac-4b3b-b3c6-7f60b1135229',
+  symbol: 'SOL',
+  side: 'buy',
+  originalSize: '1.01',
+  remainingSize: '1.01',
+  arrivalPrice: '99.25',
+  restingPrice: '99.267',
+  restingOrderId: '59106897534',
+  distanceChasedBps: 2,
+  repricings: 2,
+  startedAt: 1_788_302_458_039,
+  status: 'active',
+};
 
 const renderPanel = (
   symbol = 'SOL',
@@ -196,6 +230,10 @@ describe('PerpsProPositionsPanel', () => {
       positions: [],
       isInitialLoading: false,
     } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
     mockUsePerpsProPositionsPanelActions.mockReturnValue({
       handleClosePosition,
       handleReversePosition,
@@ -222,6 +260,103 @@ describe('PerpsProPositionsPanel', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
+  });
+
+  it('disables only the Chase polling consumer while the Pro panel is blurred', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused />,
+      { state },
+    );
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+      enableDiscovery: false,
+    });
+
+    view.rerender(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused={false} />,
+    );
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: false,
+      enableDiscovery: false,
+    });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps retained Chase polling focused when rollout is disabled', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL');
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+      enableDiscovery: false,
+    });
+  });
+
+  it('counts Chase rows after ticker and side filters', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [
+        chaseOrder,
+        { ...chaseOrder, handle: 'chase-btc', symbol: 'BTC' },
+        { ...chaseOrder, handle: 'chase-sol-short', side: 'sell' },
+      ],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    renderPanel('SOL');
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 3 }),
+      ),
+    ).not.toHaveLength(0);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 2 }),
+      ),
+    ).not.toHaveLength(0);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(getPerpsProChaseSideFilterOptionSelector('long')),
+    );
+
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 1 }),
+      ),
+    ).not.toHaveLength(0);
   });
 
   it('reports loading while the market context reconnects', () => {
@@ -685,6 +820,62 @@ describe('PerpsProPositionsPanel', () => {
     );
 
     expect(handleCancelOrder).toHaveBeenCalled();
+  });
+
+  it('reconciles only the Chase session owning an accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: '59106897534', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    await waitFor(() =>
+      expect(mockReconcileCanceledChaseOrder).toHaveBeenCalledWith(chaseOrder),
+    );
+  });
+
+  it('does not reconcile Chase for another accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'unrelated-order', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockReconcileCanceledChaseOrder).not.toHaveBeenCalled();
   });
 
   it('disables all order cancel buttons while any cancel is in flight', () => {
