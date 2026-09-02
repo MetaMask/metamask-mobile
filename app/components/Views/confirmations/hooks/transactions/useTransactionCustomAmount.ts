@@ -15,6 +15,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
+  MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS,
 } from '../../../../UI/Earn/constants/musd';
 import Engine from '../../../../../core/Engine';
@@ -125,7 +126,7 @@ export function useTransactionCustomAmount({
   const tokenFiatRate = isMoneyAccountWithdraw
     ? musdFiatRate
     : payTokenFiatRate;
-  const { balanceUsd } = useTransactionPayBalance({ currency });
+  const { balanceRaw, balanceUsd } = useTransactionPayBalance({ currency });
   const { payToken } = useTransactionPayToken();
   const payTokenKey = `${payToken?.chainId ?? ''}:${
     payToken?.address.toLowerCase() ?? ''
@@ -353,12 +354,28 @@ export function useTransactionCustomAmount({
         return false;
       }
 
-      const newAmount = formatFiatAmount(
-        new BigNumber(percentage)
-          .dividedBy(100)
-          .multipliedBy(balanceUsd)
-          .decimalPlaces(2, BigNumber.ROUND_DOWN),
-      );
+      // Money-account withdraw Max must not arm isMaxAmount (post-quote would
+      // treat destination payment-token balance as the source). Use the exact
+      // redeemable balanceRaw instead of fiat rounded to cents so Max does not
+      // leave dust.
+      let newAmount: string;
+      if (percentage === 100 && isMoneyAccountWithdraw && balanceRaw) {
+        const exactHuman = new BigNumber(balanceRaw).shiftedBy(-MUSD_DECIMALS);
+        if (!exactHuman.isFinite() || exactHuman.lte(0)) {
+          return false;
+        }
+        const exactFiat = tokenFiatRate
+          ? exactHuman.multipliedBy(tokenFiatRate)
+          : exactHuman;
+        newAmount = exactFiat.toFixed();
+      } else {
+        newAmount = formatFiatAmount(
+          new BigNumber(percentage)
+            .dividedBy(100)
+            .multipliedBy(balanceUsd)
+            .decimalPlaces(2, BigNumber.ROUND_DOWN),
+        );
+      }
 
       // Sub-cent / dust balances ROUND_DOWN to $0. Treat that like no balance
       // so Max does not arm auto-submit and strand the page on Loading.
@@ -390,11 +407,13 @@ export function useTransactionCustomAmount({
       return true;
     },
     [
+      balanceRaw,
       balanceUsd,
       isMaxAmount,
       isMoneyAccountWithdraw,
-      setIsMax,
       setConfirmationMetric,
+      setIsMax,
+      tokenFiatRate,
     ],
   );
 

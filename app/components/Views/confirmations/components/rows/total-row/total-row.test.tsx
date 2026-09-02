@@ -10,16 +10,23 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
-import { TransactionPayTotals } from '@metamask/transaction-pay-controller';
+import {
+  TransactionPaymentToken,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
 import { TransactionType } from '@metamask/transaction-controller';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
 
 const TOTAL_FIAT_MOCK = '$123.46';
 const RECEIVE_FIAT_MOCK = '$99.38';
+const MUSD_ADDRESS_MOCK = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+const MUSD_CHAIN_ID_MOCK = '0x1';
 
 function render(options: { type?: TransactionType } = {}) {
   const state = merge(
@@ -52,6 +59,7 @@ describe('TotalRow', () => {
   const useTransactionPayRequiredTokensMock = jest.mocked(
     useTransactionPayRequiredTokens,
   );
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useTransactionPayWithdrawMock = jest.mocked(useTransactionPayWithdraw);
 
   beforeEach(() => {
@@ -62,6 +70,12 @@ describe('TotalRow', () => {
       targetAmount: { usd: '99.38', fiat: '99.38' },
     } as unknown as TransactionPayTotals);
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: {
+        address: MUSD_ADDRESS_MOCK,
+        chainId: MUSD_CHAIN_ID_MOCK,
+      } as TransactionPaymentToken,
+    } as ReturnType<typeof useTransactionPayToken>);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
 
@@ -187,7 +201,7 @@ describe('TotalRow', () => {
       expect(getByText('$0')).toBeOnTheScreen();
     });
 
-    it('falls back to required token amount when targetAmount is 0 for direct withdraw routes', () => {
+    it('falls back to required token amount when targetAmount is 0 for direct same-token withdraw routes', () => {
       useTransactionPayWithdrawMock.mockReturnValue({
         isWithdraw: true,
         canSelectWithdrawToken: true,
@@ -198,6 +212,8 @@ describe('TotalRow', () => {
       } as unknown as TransactionPayTotals);
       useTransactionPayRequiredTokensMock.mockReturnValue([
         {
+          address: MUSD_ADDRESS_MOCK,
+          chainId: MUSD_CHAIN_ID_MOCK,
           amountUsd: '27.51',
           skipIfBalance: false,
         },
@@ -207,6 +223,36 @@ describe('TotalRow', () => {
 
       expect(getByText('$27.51')).toBeOnTheScreen();
       expect(queryByText('$0')).toBeNull();
+    });
+
+    it('does not fall back to required token amount for cross-token routes when targetAmount is 0', () => {
+      useTransactionPayWithdrawMock.mockReturnValue({
+        isWithdraw: true,
+        canSelectWithdrawToken: true,
+      });
+      useTransactionPayTotalsMock.mockReturnValue({
+        total: { usd: '0' },
+        targetAmount: { usd: '0', fiat: '0' },
+      } as unknown as TransactionPayTotals);
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        {
+          address: MUSD_ADDRESS_MOCK,
+          chainId: MUSD_CHAIN_ID_MOCK,
+          amountUsd: '27.51',
+          skipIfBalance: false,
+        },
+      ] as never);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          chainId: MUSD_CHAIN_ID_MOCK,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('$0')).toBeOnTheScreen();
+      expect(queryByText('$27.51')).toBeNull();
     });
   });
 });

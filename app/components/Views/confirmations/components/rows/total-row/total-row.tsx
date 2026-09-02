@@ -9,6 +9,7 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
@@ -21,6 +22,20 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+
+function isSameTokenAddressAndChain(
+  left: { address?: string; chainId?: string } | undefined,
+  right: { address?: string; chainId?: string } | undefined,
+): boolean {
+  if (!left?.address || !left.chainId || !right?.address || !right.chainId) {
+    return false;
+  }
+
+  return (
+    left.address.toLowerCase() === right.address.toLowerCase() &&
+    left.chainId.toLowerCase() === right.chainId.toLowerCase()
+  );
+}
 
 /**
  * Row component that owns the bottom line of the totals section.
@@ -96,14 +111,16 @@ function TotalFeesRow() {
  * Prefers `totals.targetAmount.usd` from executable quotes (after fees). Direct
  * same-token routes only produce a None-strategy no-op quote, which is excluded
  * from totals and leaves targetAmount at 0 — fall back to the required token
- * amount so same-chain Money Account mUSD withdraws still show the real receive
- * value (mirrors activity-hero targetFiat === '0' handling).
+ * amount only when the destination payment token matches that required token
+ * (same-chain mUSD Money Account withdraw). Cross-token routes must not show
+ * the source amount as received when the quote is missing.
  */
 function ReceiveRow() {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
   const requiredTokens = useTransactionPayRequiredTokens();
+  const { payToken } = useTransactionPayToken();
 
   const receiveUsd = useMemo(() => {
     const targetAmountUsd = totals?.targetAmount?.usd;
@@ -114,12 +131,20 @@ function ReceiveRow() {
       return formatFiat(targetBn);
     }
 
-    const requiredAmountUsd = (requiredTokens ?? [])
-      .filter((token) => !token.skipIfBalance)
-      .reduce((sum, token) => sum.plus(token.amountUsd ?? 0), new BigNumber(0));
+    const primaryRequiredToken = (requiredTokens ?? []).find(
+      (token) => !token.skipIfBalance,
+    );
+    const isDirectSameTokenRoute = isSameTokenAddressAndChain(
+      primaryRequiredToken,
+      payToken,
+    );
 
-    if (requiredAmountUsd.gt(0)) {
-      return formatFiat(requiredAmountUsd);
+    if (
+      isDirectSameTokenRoute &&
+      primaryRequiredToken?.amountUsd &&
+      new BigNumber(primaryRequiredToken.amountUsd).gt(0)
+    ) {
+      return formatFiat(new BigNumber(primaryRequiredToken.amountUsd));
     }
 
     if (targetBn == null) {
@@ -127,7 +152,7 @@ function ReceiveRow() {
     }
 
     return formatFiat(targetBn);
-  }, [formatFiat, requiredTokens, totals?.targetAmount?.usd]);
+  }, [formatFiat, payToken, requiredTokens, totals?.targetAmount?.usd]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;
