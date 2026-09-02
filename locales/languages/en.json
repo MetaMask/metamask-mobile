@@ -1712,8 +1712,8 @@
         "active": "Active",
         "history": "History",
         "fill_history": "Fill history",
-        "previous_fills": "Previous",
-        "next_fills": "Next"
+        "previous": "Previous",
+        "next": "Next"
       },
       "twap_card": {
         "total_size": "Total size",

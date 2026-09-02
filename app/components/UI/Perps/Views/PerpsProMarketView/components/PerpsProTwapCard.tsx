@@ -163,6 +163,9 @@ const PerpsProTwapCard = ({
         <Pressable
           onPress={handlePress}
           disabled={!handlePress}
+          testID={getValueTestID(
+            PerpsProMarketViewSelectorsIDs.TWAP_MARKET_BUTTON,
+          )}
           accessibilityRole={handlePress ? 'button' : undefined}
           accessibilityLabel={
             handlePress

@@ -1,7 +1,25 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsTerminateTwap } from './usePerpsTerminateTwap';
+
+let mockSelectedAddress = '0xabc';
+let mockProvider = 'hyperliquid';
+let mockNetwork = 'testnet';
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../selectors/selectedAccountAddress', () => ({
+  selectPerpsSelectedAccountAddress: () => mockSelectedAddress,
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsProvider: () => mockProvider,
+  selectPerpsNetwork: () => mockNetwork,
+}));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: { log: jest.fn() },
@@ -58,6 +76,9 @@ const mockCancelOrder = Engine.context.PerpsController.cancelOrder as jest.Mock;
 describe('usePerpsTerminateTwap', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedAddress = '0xabc';
+    mockProvider = 'hyperliquid';
+    mockNetwork = 'testnet';
     mockCancelOrder.mockResolvedValue({ success: true });
   });
 
@@ -186,6 +207,85 @@ describe('usePerpsTerminateTwap', () => {
 
     // Assert: the failure surfaces through the callback, not a rejection
     expect(onError.mock.calls[0][0].message).toBe('network down');
+    expect(result.current.terminatingOrderId).toBeNull();
+  });
+
+  it.each([
+    ['account', () => (mockSelectedAddress = '0xdef')],
+    ['provider', () => (mockProvider = 'myx')],
+    ['network', () => (mockNetwork = 'mainnet')],
+  ])(
+    'suppresses pending cancellation completion after a %s switch',
+    async (_identity, switchIdentity) => {
+      // Arrange
+      let resolveCancellation:
+        | ((result: { success: boolean }) => void)
+        | undefined;
+      const pendingCancellation = new Promise<{ success: boolean }>(
+        (resolve) => {
+          resolveCancellation = resolve;
+        },
+      );
+      mockCancelOrder.mockReturnValue(pendingCancellation);
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+      const { result, rerender } = renderHook(() =>
+        usePerpsTerminateTwap({ onSuccess, onError }),
+      );
+      let terminatePromise: Promise<void> | undefined;
+      act(() => {
+        terminatePromise = result.current.terminateTwap(twapOrder);
+      });
+      expect(result.current.terminatingOrderId).toBe('twap-1');
+
+      // Act
+      switchIdentity();
+      rerender();
+      await waitFor(() => expect(result.current.terminatingOrderId).toBeNull());
+      await act(async () => {
+        resolveCancellation?.({ success: true });
+        await terminatePromise;
+      });
+
+      // Assert
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+      expect(result.current.terminatingOrderId).toBeNull();
+    },
+  );
+
+  it('suppresses a pending cancellation rejection after an identity switch', async () => {
+    // Arrange
+    let rejectCancellation: ((error: Error) => void) | undefined;
+    const pendingCancellation = new Promise<{ success: boolean }>(
+      (_resolve, reject) => {
+        rejectCancellation = reject;
+      },
+    );
+    mockCancelOrder.mockReturnValue(pendingCancellation);
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      usePerpsTerminateTwap({ onSuccess, onError }),
+    );
+    let terminatePromise: Promise<void> | undefined;
+    act(() => {
+      terminatePromise = result.current.terminateTwap(twapOrder);
+    });
+
+    // Act
+    mockNetwork = 'mainnet';
+    rerender();
+    await act(async () => {
+      rejectCancellation?.(new Error('stale failure'));
+      await terminatePromise;
+    });
+
+    // Assert
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
     expect(result.current.terminatingOrderId).toBeNull();
   });
 });

@@ -605,6 +605,71 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
     },
   );
 
+  itForPlatforms(
+    'keeps an accepted TWAP termination disabled after refresh failure until stream confirmation',
+    async () => {
+      // Arrange
+      const getTwapOrders = jest.mocked(
+        Engine.context.PerpsController.getTwapOrders,
+      );
+      const cancelOrder = jest.mocked(
+        Engine.context.PerpsController.cancelOrder,
+      );
+      let emitTwapOrders:
+        | ((orders: TwapOrder[], isSnapshot?: boolean) => void)
+        | undefined;
+      getTwapOrders.mockResolvedValue([activeTwap]);
+      jest
+        .mocked(Engine.context.PerpsController.subscribeToTwapOrders)
+        .mockImplementation(({ callback }) => {
+          emitTwapOrders = callback;
+          return jest.fn();
+        });
+      cancelOrder.mockClear();
+      cancelOrder.mockResolvedValueOnce({ success: true });
+      renderProMarketWithTwapFlag(false);
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+      const terminateTestID = getPerpsProTwapTerminateSelector(
+        activeTwap.providerId,
+        activeTwap.orderId,
+      );
+      const terminateButton = await screen.findByTestId(terminateTestID);
+      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
+      getTwapOrders.mockRejectedValueOnce(new Error('refresh failed'));
+      fireEvent.press(terminateButton);
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM,
+        ),
+      );
+
+      // Act: the venue accepts cancellation, but reconciliation fails.
+      await waitFor(() => expect(cancelOrder).toHaveBeenCalledTimes(1));
+      expect(
+        await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
+      ).toBeOnTheScreen();
+
+      // Assert: the stale active row cannot submit a second cancellation.
+      expect(screen.getByTestId(terminateTestID)).toBeDisabled();
+      fireEvent.press(screen.getByTestId(terminateTestID));
+      expect(cancelOrder).toHaveBeenCalledTimes(1);
+
+      // Act: the authoritative stream confirms terminal state.
+      act(() => {
+        emitTwapOrders?.([{ ...activeTwap, status: 'canceled' }], false);
+      });
+
+      // Assert
+      await waitFor(() =>
+        expect(screen.queryByTestId(terminateTestID)).not.toBeOnTheScreen(),
+      );
+    },
+  );
+
   for (const identityChange of ['account', 'provider', 'network'] as const) {
     itForPlatforms(
       `closes TWAP termination when the ${identityChange} identity changes`,

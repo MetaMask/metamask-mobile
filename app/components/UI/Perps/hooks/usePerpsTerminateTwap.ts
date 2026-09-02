@@ -1,7 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TwapOrder } from '@metamask/perps-controller';
+import { useSelector } from 'react-redux';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 
 export interface UsePerpsTerminateTwapOptions {
@@ -30,12 +36,29 @@ export const usePerpsTerminateTwap = (
 ): UsePerpsTerminateTwapReturn => {
   const { onSuccess, onError } = options;
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
+  const provider = useSelector(selectPerpsProvider);
+  const network = useSelector(selectPerpsNetwork);
+  const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}`;
   const [terminatingOrderId, setTerminatingOrderId] = useState<string | null>(
     null,
   );
+  const currentIdentityKeyRef = useRef(identityKey);
+  const operationGenerationRef = useRef(0);
+  currentIdentityKeyRef.current = identityKey;
+
+  useEffect(() => {
+    operationGenerationRef.current += 1;
+    setTerminatingOrderId(null);
+  }, [identityKey]);
 
   const terminateTwap = useCallback(
     async (twapOrder: TwapOrder): Promise<void> => {
+      const operationIdentityKey = identityKey;
+      const operationGeneration = ++operationGenerationRef.current;
+      const isCurrentOperation = () =>
+        currentIdentityKeyRef.current === operationIdentityKey &&
+        operationGenerationRef.current === operationGeneration;
       setTerminatingOrderId(twapOrder.orderId);
 
       try {
@@ -45,6 +68,10 @@ export const usePerpsTerminateTwap = (
           orderType: 'twap',
           providerId: twapOrder.providerId,
         });
+
+        if (!isCurrentOperation()) {
+          return;
+        }
 
         if (!result.success) {
           throw new Error(result.error ?? 'TWAP termination failed');
@@ -72,15 +99,20 @@ export const usePerpsTerminateTwap = (
         );
         onSuccess?.(twapOrder);
       } catch (err) {
+        if (!isCurrentOperation()) {
+          return;
+        }
         const error = err instanceof Error ? err : new Error(String(err));
         DevLogger.log('Perps: Failed to terminate TWAP', error);
         showToast(PerpsToastOptions.orderManagement.shared.cancellationFailed);
         onError?.(error, twapOrder);
       } finally {
-        setTerminatingOrderId(null);
+        if (isCurrentOperation()) {
+          setTerminatingOrderId(null);
+        }
       }
     },
-    [PerpsToastOptions, onError, onSuccess, showToast],
+    [PerpsToastOptions, identityKey, onError, onSuccess, showToast],
   );
 
   return { terminatingOrderId, terminateTwap };

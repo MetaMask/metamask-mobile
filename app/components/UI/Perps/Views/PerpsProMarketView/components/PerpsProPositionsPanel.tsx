@@ -385,6 +385,8 @@ const PerpsProPositionsPanel = ({
 
   const [terminatingTwapSelection, setTerminatingTwapSelection] =
     useState<TerminatingTwapSelection | null>(null);
+  const [acceptedTerminationSelection, setAcceptedTerminationSelection] =
+    useState<TerminatingTwapSelection | null>(null);
   const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
   const openedTwapSelectionRef = useRef<string | null>(null);
   const isTwapTabSelected = activeTabKey === 'twap';
@@ -438,6 +440,10 @@ const PerpsProPositionsPanel = ({
     },
     [twapContextIdentityKey],
   );
+  const acceptedTerminationOrderIdentityKey =
+    acceptedTerminationSelection?.contextIdentityKey === twapContextIdentityKey
+      ? acceptedTerminationSelection.orderIdentityKey
+      : null;
 
   useEffect(() => {
     if (
@@ -449,12 +455,39 @@ const PerpsProPositionsPanel = ({
   }, [activeTabKey, shouldShowChaseTab, shouldShowTwapTab]);
 
   const { terminatingOrderId, terminateTwap } = usePerpsTerminateTwap({
-    onSuccess: () => {
+    onSuccess: (twapOrder) => {
+      setAcceptedTerminationSelection({
+        contextIdentityKey: twapContextIdentityKey,
+        orderIdentityKey: getTwapOrderIdentityKey(twapOrder),
+      });
       setTerminatingTwapSelection(null);
       refreshTwapOrders();
     },
     onError: () => setTerminatingTwapSelection(null),
   });
+
+  useEffect(() => {
+    if (!acceptedTerminationSelection) {
+      return;
+    }
+
+    const isCurrentContext =
+      acceptedTerminationSelection.contextIdentityKey ===
+      twapContextIdentityKey;
+    const isStillActive = allActiveTwapOrders.some(
+      (order) =>
+        getTwapOrderIdentityKey(order) ===
+        acceptedTerminationSelection.orderIdentityKey,
+    );
+
+    if (!isCurrentContext || !isStillActive) {
+      setAcceptedTerminationSelection(null);
+    }
+  }, [
+    acceptedTerminationSelection,
+    allActiveTwapOrders,
+    twapContextIdentityKey,
+  ]);
 
   useEffect(() => {
     const deliveryRevisions = {
@@ -1020,6 +1053,7 @@ const PerpsProPositionsPanel = ({
       onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
       onTerminate={handleSelectTwapToTerminate}
       terminatingOrderId={terminatingOrderId}
+      acceptedTerminationOrderIdentityKey={acceptedTerminationOrderIdentityKey}
       emptyMetadataByView={twapEmptyMetadataByView}
     />
   );

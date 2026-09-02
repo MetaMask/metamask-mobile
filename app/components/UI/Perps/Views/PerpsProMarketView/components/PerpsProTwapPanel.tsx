@@ -14,6 +14,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
 import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
 import {
   getPerpsProTwapFillRowSelector,
@@ -30,8 +31,6 @@ import {
   type ProTwapView,
 } from '../utils/proTwapViews';
 
-const FILL_HISTORY_PAGE_SIZE = 50;
-
 export interface PerpsProTwapEmptyMetadata {
   filteredTicker?: string;
   filteredSideDescriptionKey?: string;
@@ -47,6 +46,8 @@ interface PerpsProTwapPanelProps {
   onSelectMarket?: (twapOrder: TwapOrder) => void;
   onTerminate: (twapOrder: TwapOrder) => void;
   terminatingOrderId: string | null;
+  /** Accepted cancellation awaiting a terminal stream/REST confirmation. */
+  acceptedTerminationOrderIdentityKey?: string | null;
   /** Load failure from the most recent REST read. */
   error: string | null;
   onRetry: () => void;
@@ -83,13 +84,17 @@ const PerpsProTwapPanel = ({
   onSelectMarket,
   onTerminate,
   terminatingOrderId,
+  acceptedTerminationOrderIdentityKey = null,
   error,
   onRetry,
   isRefreshing,
   emptyMetadataByView,
 }: PerpsProTwapPanelProps) => {
-  const [activeViewIndex, setActiveViewIndex] = useState(0);
+  const [activeViewIndex, setActiveViewIndex] = useState(() =>
+    PRO_TWAP_VIEWS.indexOf(DEFAULT_PRO_TWAP_VIEW),
+  );
   const [fillHistoryPage, setFillHistoryPage] = useState(0);
+  const [scheduleHistoryPage, setScheduleHistoryPage] = useState(0);
   const activeView = PRO_TWAP_VIEWS[activeViewIndex] ?? DEFAULT_PRO_TWAP_VIEW;
 
   const fillRows = useMemo(
@@ -98,16 +103,40 @@ const PerpsProTwapPanel = ({
   );
   const fillHistoryPageCount = Math.max(
     1,
-    Math.ceil(fillRows.length / FILL_HISTORY_PAGE_SIZE),
+    Math.ceil(fillRows.length / PERPS_TWAP_UI_CONFIG.FillHistoryPageSize),
+  );
+  const visibleFillHistoryPage = Math.min(
+    fillHistoryPage,
+    fillHistoryPageCount - 1,
   );
   const visibleFillRows = fillRows.slice(
-    fillHistoryPage * FILL_HISTORY_PAGE_SIZE,
-    (fillHistoryPage + 1) * FILL_HISTORY_PAGE_SIZE,
+    visibleFillHistoryPage * PERPS_TWAP_UI_CONFIG.FillHistoryPageSize,
+    (visibleFillHistoryPage + 1) * PERPS_TWAP_UI_CONFIG.FillHistoryPageSize,
+  );
+  const scheduleHistoryPageCount = Math.max(
+    1,
+    Math.ceil(
+      historicalTwapOrders.length / PERPS_TWAP_UI_CONFIG.HistoryPageSize,
+    ),
+  );
+  const visibleScheduleHistoryPage = Math.min(
+    scheduleHistoryPage,
+    scheduleHistoryPageCount - 1,
+  );
+  const visibleHistoricalTwapOrders = historicalTwapOrders.slice(
+    visibleScheduleHistoryPage * PERPS_TWAP_UI_CONFIG.HistoryPageSize,
+    (visibleScheduleHistoryPage + 1) * PERPS_TWAP_UI_CONFIG.HistoryPageSize,
   );
 
   useEffect(() => {
-    setFillHistoryPage(0);
-  }, [activeTwapOrders, historicalTwapOrders]);
+    setFillHistoryPage((page) => Math.min(page, fillHistoryPageCount - 1));
+  }, [fillHistoryPageCount]);
+
+  useEffect(() => {
+    setScheduleHistoryPage((page) =>
+      Math.min(page, scheduleHistoryPageCount - 1),
+    );
+  }, [scheduleHistoryPageCount]);
 
   const viewTabs: TabItem[] = useMemo(
     () =>
@@ -152,6 +181,7 @@ const PerpsProTwapPanel = ({
   const renderScheduleList = (
     twapOrders: TwapOrder[],
     isActiveView: boolean,
+    pagination?: React.ReactNode,
   ) => {
     if (twapOrders.length === 0) {
       return renderEmptyState();
@@ -169,12 +199,57 @@ const PerpsProTwapPanel = ({
             )}
             onPress={onSelectMarket}
             onTerminate={isActiveView ? onTerminate : undefined}
-            isTerminateDisabled={terminatingOrderId !== null}
+            isTerminateDisabled={
+              terminatingOrderId !== null ||
+              acceptedTerminationOrderIdentityKey ===
+                getTwapOrderIdentityKey(twapOrder)
+            }
           />
         ))}
+        {pagination}
       </Box>
     );
   };
+
+  const renderPagination = ({
+    page,
+    pageCount,
+    onPrevious,
+    onNext,
+    previousTestID,
+    nextTestID,
+  }: {
+    page: number;
+    pageCount: number;
+    onPrevious: () => void;
+    onNext: () => void;
+    previousTestID: string;
+    nextTestID: string;
+  }) =>
+    pageCount > 1 ? (
+      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          twClassName="flex-1"
+          isDisabled={page === 0}
+          onPress={onPrevious}
+          testID={previousTestID}
+        >
+          {strings('perps.pro_positions_panel.twap_views.previous')}
+        </Button>
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Sm}
+          twClassName="flex-1"
+          isDisabled={page >= pageCount - 1}
+          onPress={onNext}
+          testID={nextTestID}
+        >
+          {strings('perps.pro_positions_panel.twap_views.next')}
+        </Button>
+      </Box>
+    ) : null;
 
   const renderFillHistory = () => {
     if (fillRows.length === 0) {
@@ -194,30 +269,14 @@ const PerpsProTwapPanel = ({
             )}
           />
         ))}
-        {fillHistoryPageCount > 1 ? (
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              twClassName="flex-1"
-              isDisabled={fillHistoryPage === 0}
-              onPress={() => setFillHistoryPage((page) => page - 1)}
-              testID={PerpsProMarketViewSelectorsIDs.TWAP_FILL_PREVIOUS}
-            >
-              {strings('perps.pro_positions_panel.twap_views.previous_fills')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              twClassName="flex-1"
-              isDisabled={fillHistoryPage >= fillHistoryPageCount - 1}
-              onPress={() => setFillHistoryPage((page) => page + 1)}
-              testID={PerpsProMarketViewSelectorsIDs.TWAP_FILL_NEXT}
-            >
-              {strings('perps.pro_positions_panel.twap_views.next_fills')}
-            </Button>
-          </Box>
-        ) : null}
+        {renderPagination({
+          page: visibleFillHistoryPage,
+          pageCount: fillHistoryPageCount,
+          onPrevious: () => setFillHistoryPage((page) => page - 1),
+          onNext: () => setFillHistoryPage((page) => page + 1),
+          previousTestID: PerpsProMarketViewSelectorsIDs.TWAP_FILL_PREVIOUS,
+          nextTestID: PerpsProMarketViewSelectorsIDs.TWAP_FILL_NEXT,
+        })}
       </Box>
     );
   };
@@ -227,7 +286,18 @@ const PerpsProTwapPanel = ({
       return renderFillHistory();
     }
     if (activeView === 'history') {
-      return renderScheduleList(historicalTwapOrders, false);
+      return renderScheduleList(
+        visibleHistoricalTwapOrders,
+        false,
+        renderPagination({
+          page: visibleScheduleHistoryPage,
+          pageCount: scheduleHistoryPageCount,
+          onPrevious: () => setScheduleHistoryPage((page) => page - 1),
+          onNext: () => setScheduleHistoryPage((page) => page + 1),
+          previousTestID: PerpsProMarketViewSelectorsIDs.TWAP_HISTORY_PREVIOUS,
+          nextTestID: PerpsProMarketViewSelectorsIDs.TWAP_HISTORY_NEXT,
+        }),
+      );
     }
     return renderScheduleList(activeTwapOrders, true);
   };

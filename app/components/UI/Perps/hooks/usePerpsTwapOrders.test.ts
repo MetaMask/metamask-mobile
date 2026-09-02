@@ -89,6 +89,126 @@ describe('usePerpsTwapOrders', () => {
     expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
   });
 
+  it('sorts provider-grouped REST results globally by start time', async () => {
+    // Arrange
+    const oldest = buildTwapOrder({
+      orderId: 'hyperliquid-oldest',
+      providerId: 'hyperliquid',
+      startedAt: 1_000,
+    });
+    const newest = buildTwapOrder({
+      orderId: 'myx-newest',
+      providerId: 'myx',
+      startedAt: 3_000,
+    });
+    const middle = buildTwapOrder({
+      orderId: 'hyperliquid-middle',
+      providerId: 'hyperliquid',
+      startedAt: 2_000,
+    });
+    mockController.getTwapOrders.mockResolvedValue([oldest, middle, newest]);
+
+    // Act
+    const { result } = renderHook(() => usePerpsTwapOrders());
+
+    // Assert
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.twapOrders).toStrictEqual([newest, middle, oldest]);
+  });
+
+  it('does not manufacture an error for an indistinguishable cold-start empty aggregate', async () => {
+    // Arrange: the controller contract flattens both a legitimate empty result
+    // and a partial failure with no successful TWAP provider to the same [].
+    mockProvider = 'aggregated';
+    mockController.getTwapOrders.mockResolvedValue([]);
+
+    // Act
+    const { result } = renderHook(() => usePerpsTwapOrders());
+
+    // Assert
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.twapOrders).toStrictEqual([]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('retains a known active provider partition and exposes retry when a later aggregate omits it', async () => {
+    // Arrange
+    mockProvider = 'aggregated';
+    const hyperliquidActive = buildTwapOrder({
+      orderId: 'hyperliquid-active',
+      providerId: 'hyperliquid',
+      startedAt: 3_000,
+    });
+    const myxHistory = buildTwapOrder({
+      orderId: 'myx-history',
+      providerId: 'myx',
+      status: 'completed',
+      startedAt: 2_000,
+    });
+    const hyperliquidTerminal = {
+      ...hyperliquidActive,
+      status: 'canceled' as const,
+      lastUpdated: 4_000,
+    };
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([hyperliquidActive, myxHistory])
+      .mockResolvedValueOnce([myxHistory])
+      .mockResolvedValueOnce([myxHistory, hyperliquidTerminal]);
+    const { result } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([
+        hyperliquidActive,
+        myxHistory,
+      ]),
+    );
+
+    // Act: this is indistinguishable from Hyperliquid rejecting while MYX
+    // returns its successful partition.
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([
+      hyperliquidActive,
+      myxHistory,
+    ]);
+    expect(result.current.error).not.toBeNull();
+
+    // Act: a later response containing the provider confirms terminal state.
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([
+      hyperliquidTerminal,
+      myxHistory,
+    ]);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('accepts an empty direct-provider snapshot as authoritative', async () => {
+    // Arrange
+    const activeOrder = buildTwapOrder({ providerId: 'hyperliquid' });
+    mockController.getTwapOrders
+      .mockResolvedValueOnce([activeOrder])
+      .mockResolvedValueOnce([]);
+    const { result } = renderHook(() => usePerpsTwapOrders());
+    await waitFor(() =>
+      expect(result.current.twapOrders).toStrictEqual([activeOrder]),
+    );
+
+    // Act
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([]);
+    expect(result.current.error).toBeNull();
+  });
+
   it('coalesces the initial subscription read after each identity start', async () => {
     // Arrange
     const firstIdentityOrder = buildTwapOrder({ orderId: 'first-identity' });

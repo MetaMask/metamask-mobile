@@ -3,7 +3,6 @@ import type { TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
-  getPerpsProTwapRowSelector,
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
@@ -364,7 +363,11 @@ describe('PerpsProTwapCard', () => {
     // Act
     fireEvent.press(
       screen.getByTestId(
-        getPerpsProTwapRowSelector(twapOrder.providerId, twapOrder.orderId),
+        getPerpsProTwapValueSelector(
+          ids.TWAP_MARKET_BUTTON,
+          twapOrder.providerId,
+          twapOrder.orderId,
+        ),
       ),
     );
 

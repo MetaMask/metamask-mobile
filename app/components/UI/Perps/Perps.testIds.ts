@@ -563,6 +563,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
   TWAP_ROW: 'perps-pro-market-twap-row',
   TWAP_FILL_ROW: 'perps-pro-market-twap-fill-row',
+  TWAP_MARKET_BUTTON: 'perps-pro-market-twap-market-button',
   TWAP_MARKET: 'perps-pro-market-twap-market',
   TWAP_DIRECTION_TAG: 'perps-pro-market-twap-direction-tag',
   TWAP_SIZE: 'perps-pro-market-twap-size',
@@ -584,6 +585,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_LOADING: 'perps-pro-market-twap-loading',
   TWAP_FILL_PREVIOUS: 'perps-pro-market-twap-fill-previous',
   TWAP_FILL_NEXT: 'perps-pro-market-twap-fill-next',
+  TWAP_HISTORY_PREVIOUS: 'perps-pro-market-twap-history-previous',
+  TWAP_HISTORY_NEXT: 'perps-pro-market-twap-history-next',
 };
 
 // Helper for dynamic Pro position row test IDs

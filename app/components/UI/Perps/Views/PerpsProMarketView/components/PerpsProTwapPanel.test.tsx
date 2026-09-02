@@ -2,8 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
 import {
   getPerpsProTwapFillRowSelector,
+  getPerpsProTwapRowSelector,
   getPerpsProTwapTerminateSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
@@ -229,7 +231,7 @@ describe('PerpsProTwapPanel', () => {
     ).toBeNull();
   });
 
-  it('resets fill pagination when the filtered input changes', () => {
+  it('preserves fill page two across a same-content reconciliation', () => {
     // Arrange
     const firstFills = Array.from({ length: 51 }, (_, index) =>
       buildFill({ fillId: `first-${index}`, timestamp: index }),
@@ -245,8 +247,98 @@ describe('PerpsProTwapPanel', () => {
       ),
     ).toBeOnTheScreen();
 
-    // Act: the new filtered input still spans two pages.
-    const nextFills = Array.from({ length: 51 }, (_, index) =>
+    // Act: reconciliation allocates fresh arrays and objects for identical
+    // controller content.
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[
+          buildTwapOrder({
+            fills: firstFills.map((fill) => ({ ...fill })),
+          }),
+        ]}
+        historicalTwapOrders={[]}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        terminatingOrderId={null}
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert: page one remains selected; array identity alone is not a filter.
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-0'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-50'),
+      ),
+    ).toBeNull();
+  });
+
+  it('preserves fill page two when reconciliation appends a new fill', () => {
+    // Arrange
+    const firstFills = Array.from({ length: 51 }, (_, index) =>
+      buildFill({ fillId: `fill-${index}`, timestamp: index }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+
+    // Act
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[
+          buildTwapOrder({
+            fills: [
+              ...firstFills,
+              buildFill({ fillId: 'fill-appended', timestamp: 100 }),
+            ],
+          }),
+        ]}
+        historicalTwapOrders={[]}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        terminatingOrderId={null}
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-appended'),
+      ),
+    ).toBeNull();
+  });
+
+  it('clamps fill pagination when the page count shrinks', async () => {
+    // Arrange
+    const pageSize = PERPS_TWAP_UI_CONFIG.FillHistoryPageSize;
+    const firstFills = Array.from({ length: pageSize * 2 + 1 }, (_, index) =>
+      buildFill({ fillId: `first-${index}`, timestamp: index }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+
+    // Act
+    const nextFills = Array.from({ length: pageSize + 1 }, (_, index) =>
       buildFill({ fillId: `next-${index}`, timestamp: index }),
     );
     view.rerender(
@@ -262,17 +354,98 @@ describe('PerpsProTwapPanel', () => {
       />,
     );
 
-    // Assert: page zero is restored rather than retaining page one.
+    // Assert: page three clamps to the new last page, not page one.
     expect(
-      screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-50'),
+      await screen.findByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-0'),
       ),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(ids.TWAP_FILL_NEXT)).toBeDisabled();
+  });
+
+  it('bounds schedule history and navigates between pages', () => {
+    // Arrange
+    const pageSize = PERPS_TWAP_UI_CONFIG.HistoryPageSize;
+    const historyOrders = Array.from({ length: pageSize + 1 }, (_, index) =>
+      buildTwapOrder({
+        orderId: `history-${index}`,
+        status: 'completed',
+        startedAt: pageSize - index,
+      }),
+    );
+    renderPanel({ activeTwapOrders: [], historicalTwapOrders: historyOrders });
+
+    // Act
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
+
+    // Assert
+    expect(
+      screen.getByTestId(getPerpsProTwapRowSelector(undefined, 'history-0')),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-0'),
+        getPerpsProTwapRowSelector(undefined, `history-${pageSize}`),
       ),
     ).toBeNull();
+
+    // Act
+    fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapRowSelector(undefined, `history-${pageSize}`),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getPerpsProTwapRowSelector(undefined, 'history-0')),
+    ).toBeNull();
+  });
+
+  it('clamps schedule history to the last remaining page', async () => {
+    // Arrange
+    const pageSize = PERPS_TWAP_UI_CONFIG.HistoryPageSize;
+    const firstHistory = Array.from({ length: pageSize * 2 + 1 }, (_, index) =>
+      buildTwapOrder({
+        orderId: `first-history-${index}`,
+        status: 'completed',
+      }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [],
+      historicalTwapOrders: firstHistory,
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
+    fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
+
+    // Act
+    const nextHistory = Array.from({ length: pageSize + 1 }, (_, index) =>
+      buildTwapOrder({
+        orderId: `next-history-${index}`,
+        status: 'completed',
+      }),
+    );
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[]}
+        historicalTwapOrders={nextHistory}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        terminatingOrderId={null}
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert
+    expect(
+      await screen.findByTestId(
+        getPerpsProTwapRowSelector(undefined, `next-history-${pageSize}`),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(ids.TWAP_HISTORY_NEXT)).toBeDisabled();
   });
 
   it('shows a retryable error without hiding confirmed schedules', () => {
@@ -368,6 +541,23 @@ describe('PerpsProTwapPanel', () => {
     // Arrange
     const onTerminate = jest.fn();
     renderPanel({ onTerminate, terminatingOrderId: 'twap-1' });
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+    );
+
+    // Assert
+    expect(onTerminate).not.toHaveBeenCalled();
+  });
+
+  it('disables an accepted termination awaiting terminal confirmation', () => {
+    // Arrange
+    const onTerminate = jest.fn();
+    renderPanel({
+      onTerminate,
+      acceptedTerminationOrderIdentityKey: 'hyperliquid:twap-1',
+    });
 
     // Act
     fireEvent.press(

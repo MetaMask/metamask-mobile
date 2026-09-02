@@ -17,6 +17,41 @@ import {
   getTwapOrderProviderId,
 } from '../utils/twapOrderUtils';
 
+const PARTIAL_TWAP_SNAPSHOT_ERROR =
+  'Unable to confirm active TWAP schedules for every provider';
+
+const sortTwapOrdersByStartedAt = (orders: TwapOrder[]): TwapOrder[] =>
+  [...orders].sort((left, right) => right.startedAt - left.startedAt);
+
+const reconcileTwapOrderSnapshot = (
+  previousOrders: TwapOrder[],
+  snapshotOrders: TwapOrder[],
+): { orders: TwapOrder[]; unconfirmedProviderIds: Set<string> } => {
+  const snapshotProviderIds = new Set(
+    snapshotOrders.map(getTwapOrderProviderId),
+  );
+  const unconfirmedProviderIds = new Set<string>();
+  const retainedActiveOrders = previousOrders.filter((order) => {
+    const providerId = getTwapOrderProviderId(order);
+    const retainOrder =
+      order.status === 'active' && !snapshotProviderIds.has(providerId);
+
+    if (retainOrder) {
+      unconfirmedProviderIds.add(providerId);
+    }
+
+    return retainOrder;
+  });
+
+  return {
+    orders: sortTwapOrdersByStartedAt([
+      ...snapshotOrders,
+      ...retainedActiveOrders,
+    ]),
+    unconfirmedProviderIds,
+  };
+};
+
 export interface UsePerpsTwapOrdersResult {
   /** Current and terminal TWAP schedules, newest first. */
   twapOrders: TwapOrder[];
@@ -55,8 +90,13 @@ export interface UsePerpsTwapOrdersOptions {
  *
  * `getTwapOrders()` returns current *and* terminal schedules with their slice
  * fills in one call, so the Active, History, and Fill History views all derive
- * from this single source. Providers without native TWAP history return an
- * empty list rather than throwing, so an empty result is a normal state.
+ * from this single source. The aggregated controller silently omits rejected
+ * provider partitions and supplies no marker for a provider that successfully
+ * returned an empty list. Mobile therefore cannot distinguish a cold-start
+ * partial failure from a legitimate empty account. Once an active partition is
+ * known, an omitted partition is retained with a retryable error until REST or
+ * the default-provider stream confirms its state. The controller must expose
+ * per-provider outcomes to close the remaining cold-start ambiguity.
  *
  * `subscribeToTwapOrders` supplies schedule state without slice fills, so a
  * pushed schedule keeps the fills the last REST read supplied rather than
@@ -85,6 +125,9 @@ export const usePerpsTwapOrders = (
   const lifecycleGenerationRef = useRef(0);
   const requestGenerationRef = useRef(0);
   const currentIdentityKeyRef = useRef(identityKey);
+  const twapOrdersRef = useRef<TwapOrder[]>([]);
+  const readFailureMessageRef = useRef<string | null>(null);
+  const unconfirmedProviderIdsRef = useRef(new Set<string>());
   const inFlightFetchRef = useRef<{
     identityKey: string;
     promise: Promise<void>;
@@ -95,6 +138,9 @@ export const usePerpsTwapOrders = (
     const lifecycleGeneration = ++lifecycleGenerationRef.current;
     requestGenerationRef.current += 1;
     inFlightFetchRef.current = null;
+    twapOrdersRef.current = [];
+    readFailureMessageRef.current = null;
+    unconfirmedProviderIdsRef.current = new Set();
     setTwapOrders([]);
     setResolvedIdentityKey(identityKey);
     setIsLoading(!skipInitialFetch);
@@ -141,15 +187,31 @@ export const usePerpsTwapOrders = (
           if (!isCurrentRequest()) {
             return;
           }
-          setTwapOrders(orders || []);
+          const reconciliation =
+            provider === PROVIDER_CONFIG.AggregatedProvider
+              ? reconcileTwapOrderSnapshot(twapOrdersRef.current, orders || [])
+              : {
+                  orders: sortTwapOrdersByStartedAt(orders || []),
+                  unconfirmedProviderIds: new Set<string>(),
+                };
+          twapOrdersRef.current = reconciliation.orders;
+          readFailureMessageRef.current = null;
+          unconfirmedProviderIdsRef.current =
+            reconciliation.unconfirmedProviderIds;
+          setTwapOrders(reconciliation.orders);
           setResolvedIdentityKey(identityKey);
-          setError(null);
+          setError(
+            reconciliation.unconfirmedProviderIds.size > 0
+              ? PARTIAL_TWAP_SNAPSHOT_ERROR
+              : null,
+          );
         } catch (err) {
           if (!isCurrentRequest()) {
             return;
           }
           const errorMessage =
             err instanceof Error ? err.message : 'Unknown error occurred';
+          readFailureMessageRef.current = errorMessage;
           setError(errorMessage);
           DevLogger.log('Perps: Failed to fetch TWAP orders', err);
         } finally {
@@ -170,7 +232,7 @@ export const usePerpsTwapOrders = (
         }
       }
     },
-    [identityKey],
+    [identityKey, provider],
   );
 
   const refresh = useCallback(
@@ -210,7 +272,7 @@ export const usePerpsTwapOrders = (
         // from the default provider only. Replace that provider's partition,
         // retain every other provider, and carry REST-only fills by the full
         // provider/order identity so venue-local IDs cannot cross-contaminate.
-        setTwapOrders((previousOrders) => {
+        const mergeStreamedOrders = (previousOrders: TwapOrder[]) => {
           const fillsByOrderKey = new Map(
             previousOrders.map((order) => [
               getTwapOrderIdentityKey(order),
@@ -231,12 +293,24 @@ export const usePerpsTwapOrders = (
               getTwapOrderProviderId(order) !== PROVIDER_CONFIG.DefaultProvider,
           );
 
-          return [...mergedStreamedOrders, ...otherProviderOrders].sort(
-            (left, right) => right.startedAt - left.startedAt,
-          );
-        });
+          return sortTwapOrdersByStartedAt([
+            ...mergedStreamedOrders,
+            ...otherProviderOrders,
+          ]);
+        };
+        const mergedOrders = mergeStreamedOrders(twapOrdersRef.current);
+        twapOrdersRef.current = mergedOrders;
+        setTwapOrders(mergedOrders);
+        unconfirmedProviderIdsRef.current.delete(
+          PROVIDER_CONFIG.DefaultProvider,
+        );
+        setError(
+          readFailureMessageRef.current ??
+            (unconfirmedProviderIdsRef.current.size > 0
+              ? PARTIAL_TWAP_SNAPSHOT_ERROR
+              : null),
+        );
         setResolvedIdentityKey(identityKey);
-        setError(null);
         setIsLoading(false);
         setIsRefreshing(false);
       },
