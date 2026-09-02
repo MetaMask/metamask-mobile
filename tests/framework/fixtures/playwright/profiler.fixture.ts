@@ -13,7 +13,9 @@ const PROFILER_OUTPUT_DIRECTORY =
 const PROFILER_ENABLED = process.env.APPIUM_CAPTURE_PROFILER === 'true';
 const ELEMENT_TIMEOUT_MS = 30_000;
 
-async function startProfiler(driver: WebdriverIO.Browser): Promise<void> {
+export async function startProfiler(
+  driver: WebdriverIO.Browser,
+): Promise<void> {
   const start = await driver.$('~e2e-profiler-start');
   await start.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await start.click();
@@ -30,7 +32,7 @@ async function isDisplayed(element: ChainablePromiseElement): Promise<boolean> {
   }
 }
 
-async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {
+export async function stopProfiler(driver: WebdriverIO.Browser): Promise<void> {
   const stop = await driver.$('~e2e-profiler-stop');
   await stop.waitForDisplayed({ timeout: ELEMENT_TIMEOUT_MS });
   await stop.click();
