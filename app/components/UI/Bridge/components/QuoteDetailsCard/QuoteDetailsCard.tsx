@@ -37,6 +37,7 @@ import RewardsAnimations, {
 import AddRewardsAccount from '../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
 import QuoteCountdownTimer from '../QuoteCountdownTimer';
 import QuoteDetailsRecipientKeyValueRow from '../QuoteDetailsRecipientKeyValueRow/QuoteDetailsRecipientKeyValueRow';
+import { QuoteDetailsCardTestIds } from './QuoteDetailsCard.testIds';
 import { toSentenceCase } from '../../../../../util/string';
 import TagColored, {
   TagColor,
@@ -196,7 +197,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           <TouchableOpacity
             style={tw`flex-1 items-end`}
             onPress={handleRatePress}
-            testID="rate-arrow-button"
+            testID={QuoteDetailsCardTestIds.RATE_ARROW_BUTTON}
             activeOpacity={0.6}
           >
             <Box
@@ -329,7 +330,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               <TouchableOpacity
                 onPress={handleSlippagePress}
                 activeOpacity={0.6}
-                testID="edit-slippage-button"
+                testID={QuoteDetailsCardTestIds.EDIT_SLIPPAGE_BUTTON}
                 style={styles.slippageButton}
               >
                 <Text
@@ -389,7 +390,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             value={{
               label: (
                 <TouchableOpacity
-                  testID="price-impact-info-button"
+                  testID={QuoteDetailsCardTestIds.PRICE_IMPACT_INFO_BUTTON}
                   onPress={handlePriceImpactPress}
                   activeOpacity={priceImpactIsSafe ? 1 : 0.6}
                 >
@@ -423,7 +424,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
-          <Box testID="bridge-rewards-row">
+          <Box testID={QuoteDetailsCardTestIds.BRIDGE_REWARDS_ROW}>
             <KeyValueRow
               field={{
                 label: {
@@ -459,7 +460,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                       />
                     ) : rewardsAccountScope ? (
                       <AddRewardsAccount
-                        testID="bridge-add-rewards-account"
+                        testID={
+                          QuoteDetailsCardTestIds.BRIDGE_ADD_REWARDS_ACCOUNT
+                        }
                         account={rewardsAccountScope}
                       />
                     ) : (

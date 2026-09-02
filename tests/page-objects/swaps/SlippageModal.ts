@@ -1,16 +1,16 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import {
-  SlippageModalSelectorIDs,
-  SlippageModalSelectorText,
-} from '../../selectors/Bridge/SlippageModal.selectors';
+import { SlippageModalSelectorText } from '../../selectors/Bridge/SlippageModal.selectors';
+import { QuoteDetailsCardTestIds } from '../../../app/components/UI/Bridge/components/QuoteDetailsCard/QuoteDetailsCard.testIds';
+import { InputStepperTestIds } from '../../../app/components/UI/Bridge/components/InputStepper/InputStepper.testIds';
+import { KeypadTestIds } from '../../../app/components/Base/Keypad/Keypad.testIds';
 import { type AppiumElement } from '../../framework';
 
 class SlippageModal {
   get editSlippageButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      SlippageModalSelectorIDs.EDIT_SLIPPAGE_BUTTON,
+      QuoteDetailsCardTestIds.EDIT_SLIPPAGE_BUTTON,
     );
   }
 
@@ -23,15 +23,11 @@ class SlippageModal {
   }
 
   get inputStepperInput(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      SlippageModalSelectorIDs.INPUT_STEPPER_INPUT,
-    );
+    return Matchers.getElementByID(InputStepperTestIds.INPUT);
   }
 
   get keypadDeleteButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      SlippageModalSelectorIDs.KEYPAD_DELETE_BUTTON,
-    );
+    return Matchers.getElementByID(KeypadTestIds.DELETE_BUTTON);
   }
 
   /**

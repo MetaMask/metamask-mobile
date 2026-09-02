@@ -15,6 +15,7 @@ import { inputStepperStyles } from './styles';
 import { calculateInputFontSize } from '../../utils/calculateInputFontSize';
 import { InputStepperProps } from './types';
 import { InputStepperDescriptionRow } from './InputStepperDescriptionRow';
+import { InputStepperTestIds } from './InputStepper.testIds';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 
 export const InputStepper = ({
@@ -52,7 +53,7 @@ export const InputStepper = ({
           onPressOut={() => setMinusPressed(false)}
           onPress={onDecrease}
           isDisabled={parseFloat(value) <= minAmount}
-          testID="input-stepper-minus-button"
+          testID={InputStepperTestIds.MINUS_BUTTON}
         />
         <View style={styles.inputRow}>
           <View>
@@ -63,7 +64,7 @@ export const InputStepper = ({
               placeholder={placeholder}
               value={displayedAmount}
               style={styles.input}
-              testID="input-stepper-input"
+              testID={InputStepperTestIds.INPUT}
               // Slippage controls selection so keypad edits can target the
               // displayed caret position instead of always appending.
               selection={selection}
@@ -71,7 +72,7 @@ export const InputStepper = ({
             />
           </View>
           {postValue && (
-            <View testID="input-stepper-post-value">
+            <View testID={InputStepperTestIds.POST_VALUE}>
               <Text style={styles.input}>{postValue}</Text>
             </View>
           )}
@@ -86,7 +87,7 @@ export const InputStepper = ({
           onPressOut={() => setPlusPressed(false)}
           onPress={onIncrease}
           isDisabled={parseFloat(value) >= maxAmount}
-          testID="input-stepper-plus-button"
+          testID={InputStepperTestIds.PLUS_BUTTON}
         />
       </View>
       <InputStepperDescriptionRow description={description} />
