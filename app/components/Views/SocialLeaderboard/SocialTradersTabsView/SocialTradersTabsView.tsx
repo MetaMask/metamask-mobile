@@ -59,6 +59,7 @@ import {
   type TabItem,
 } from '../../../../component-library/components-temp/Tabs';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
+import Routes from '../../../../constants/navigation/Routes';
 import { SocialTradersTabsViewSelectorsIDs } from './SocialTradersTabsView.testIds';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
@@ -103,7 +104,10 @@ const getTabAnalyticsValue = (tab: SocialTradersTab) =>
 const SocialTradersTabsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const route = useRoute<RouteProp<RootStackParamList, 'TopTradersView'>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'TopTradersView' | 'SocialLeaderboardTab'>
+    >();
   const { track } = useSocialLeaderboardAnalytics();
   // Wait until the visible leaderboard query settles before warming feed
   // pages, so those requests never contend with the landing list fetch.
@@ -415,10 +419,7 @@ const SocialTradersTabsView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
-  // The treatment arm gives Social a NavBar slot, so it is a tab root with
-  // nothing to pop. As a tab it gets a static header and no scroll collapse;
-  // pushed entry points (deeplinks, the header) keep the collapsing title.
-  const isPushedScreen = navigation.canGoBack();
+  const isPushedScreen = route.name !== Routes.SOCIAL_LEADERBOARD.TAB;
 
   const notificationButtonProps = useMemo(
     () => ({
@@ -431,15 +432,20 @@ const SocialTradersTabsView: React.FC = () => {
 
   const titleTabsAndPager = (
     <>
-      <Box twClassName="px-4 pt-2 pb-3 bg-default" onLayout={handleTitleLayout}>
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          testID={SocialTradersTabsViewSelectorsIDs.TITLE}
+      {isPushedScreen ? (
+        <Box
+          twClassName="px-4 pt-2 pb-3 bg-default"
+          onLayout={handleTitleLayout}
         >
-          {strings('social_leaderboard.feed.title')}
-        </Text>
-      </Box>
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.TextDefault}
+            testID={SocialTradersTabsViewSelectorsIDs.TITLE}
+          >
+            {strings('social_leaderboard.feed.title')}
+          </Text>
+        </Box>
+      ) : null}
 
       <Box twClassName="bg-default">
         <TabsBar
@@ -523,14 +529,13 @@ const SocialTradersTabsView: React.FC = () => {
       ) : (
         <HeaderRoot
           includesTopInset
-          endButtonIconProps={[notificationButtonProps]}
           testID={SocialTradersTabsViewSelectorsIDs.HEADER}
         >
           <Text
             variant={TextVariant.HeadingLg}
             testID={SocialTradersTabsViewSelectorsIDs.HEADER_TITLE}
           >
-            {strings('bottom_nav.social')}
+            {strings('social_leaderboard.feed.title')}
           </Text>
         </HeaderRoot>
       )}

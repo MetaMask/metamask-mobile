@@ -12,9 +12,9 @@ const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-// True by default: these tests cover the pushed presentation. The tab-root case
-// (Social in the treatment NavBar) overrides it below.
 const mockCanGoBack = jest.fn(() => true);
+
+let mockRouteName = 'TopTradersView';
 const mockOpenSystemSettings = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => false);
 let mockRouteParams: {
@@ -91,7 +91,7 @@ jest.mock('@react-navigation/native', () => {
       }
       return navigation;
     },
-    useRoute: () => ({ params: mockRouteParams, name: 'TopTradersView' }),
+    useRoute: () => ({ params: mockRouteParams, name: mockRouteName }),
   };
 });
 
@@ -280,39 +280,45 @@ describe('SocialTradersTabsView', () => {
   });
 
   describe('as a tab root rather than a pushed screen', () => {
-    beforeEach(() => mockCanGoBack.mockReturnValue(false));
-    afterEach(() => mockCanGoBack.mockReturnValue(true));
-
-    it('renders no back button, since there is nothing to pop', () => {
-      renderWithProvider(<SocialTradersTabsView />);
-
-      expect(
-        screen.queryByTestId(SocialTradersTabsViewSelectorsIDs.BACK_BUTTON),
-      ).not.toBeOnTheScreen();
+    beforeEach(() => {
+      mockRouteName = Routes.SOCIAL_LEADERBOARD.TAB;
+    });
+    afterEach(() => {
+      mockRouteName = 'TopTradersView';
     });
 
-    it('titles the static header for the tab rather than the surface', () => {
+    it('renders a bare header with only the surface title', () => {
       renderWithProvider(<SocialTradersTabsView />);
 
       expect(
         screen.getByTestId(SocialTradersTabsViewSelectorsIDs.HEADER_TITLE),
-      ).toHaveTextContent('bottom_nav.social');
+      ).toHaveTextContent('social_leaderboard.feed.title');
+      for (const absent of [
+        SocialTradersTabsViewSelectorsIDs.BACK_BUTTON,
+        SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
+      ]) {
+        expect(screen.queryByTestId(absent)).not.toBeOnTheScreen();
+      }
     });
 
-    it('keeps the notification bell, tabs and the large surface title', () => {
+    it('drops the in-content title so it is not shown twice', () => {
       renderWithProvider(<SocialTradersTabsView />);
 
       expect(
-        screen.getByTestId(
-          SocialTradersTabsViewSelectorsIDs.NOTIFICATION_BUTTON,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TABS),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
-      ).toHaveTextContent('social_leaderboard.feed.title');
+        screen.queryByTestId(SocialTradersTabsViewSelectorsIDs.TITLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still renders the tabs and both pages', () => {
+      renderWithProvider(<SocialTradersTabsView />);
+
+      for (const present of [
+        SocialTradersTabsViewSelectorsIDs.TABS,
+        SocialTradersTabsViewSelectorsIDs.LEADERBOARD_PAGE,
+        SocialTradersTabsViewSelectorsIDs.FEED_PAGE,
+      ]) {
+        expect(screen.getByTestId(present)).toBeOnTheScreen();
+      }
     });
   });
 
