@@ -148,15 +148,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const passwordRef = useRef('');
 
   const reauthenticate = useCallback(async (pwd?: string) => {
-    // E2E builds: never fall through to keychain Face ID when no password was
-    // typed (empty React state + Confirm tap). That hangs the simulator and
-    // leaves create-password-screen never mounted.
-    if (hasTestOverrides && !pwd) {
-      setView(ViewState.ConfirmCurrent);
-      setReady(true);
-      return;
-    }
-
     // Biometric (no pwd) uses the full-screen loader. Password confirm keeps
     // the form mounted so E2E can observe the transition to ResetForm.
     if (!pwd) {

@@ -59,6 +59,21 @@ jest.mock('../../../util/Logger', () => ({
   log: jest.fn(),
 }));
 
+let mockHasTestOverrides = false;
+jest.mock('../../../util/test/utils', () => {
+  // Redefine hasTestOverrides on the real module object after it fully loads
+  // so circular requireActual never hits a half-built getter.
+  const actual = jest.requireActual('../../../util/test/utils') as {
+    hasTestOverrides: boolean;
+  };
+  Object.defineProperty(actual, 'hasTestOverrides', {
+    configurable: true,
+    enumerable: true,
+    get: () => mockHasTestOverrides,
+  });
+  return actual;
+});
+
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
 >;
@@ -368,6 +383,18 @@ const getWarningModalLearnMoreOnPress = (): (() => void) => {
 describe('ResetPassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasTestOverrides = false;
+    // Earlier tests use persistent getType spies (mockResolvedValue); reset so
+    // later cases do not inherit Face ID auto-reauth.
+    jest.mocked(Authentication.getType).mockResolvedValue({
+      currentAuthType: 'passcode',
+      availableBiometryType: null,
+    });
+    jest
+      .mocked(Authentication.reauthenticate)
+      .mockImplementation((password) =>
+        Promise.resolve({ password: password ?? 'CurrentPassword123' }),
+      );
     mockTrackOnboarding.mockClear();
     mockExportSeedPhrase.mockClear();
     mockTrackEvent.mockClear();
@@ -1210,6 +1237,86 @@ describe('ResetPassword', () => {
           ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
         ),
       ).toBeNull();
+    });
+
+    it('skips biometric auto-reauth when hasTestOverrides is enabled', async () => {
+      mockHasTestOverrides = true;
+      jest.spyOn(Authentication, 'getType').mockResolvedValueOnce({
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      });
+
+      const mockStorageWrapper = jest.mocked(StorageWrapper);
+      mockStorageWrapper.getItem.mockImplementation((key) => {
+        if (key === '@MetaMask:biometryChoiceDisabled')
+          return Promise.resolve(null);
+        if (key === '@MetaMask:passcodeDisabled') return Promise.resolve(null);
+        return Promise.resolve(null);
+      });
+
+      const component = renderComponent();
+      await flushMicrotasks();
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      });
+
+      expect(Authentication.reauthenticate).not.toHaveBeenCalled();
+      expect(
+        component.getByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        component.queryByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+      ).toBeNull();
+    });
+
+    it('reauthenticates with passwordRef value after typing current password', async () => {
+      const component = renderComponent();
+      await flushMicrotasks();
+
+      const currentPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      await act(async () => {
+        fireEvent.changeText(currentPasswordInput, 'TypedPassword123');
+      });
+
+      fireEvent.press(
+        component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      );
+
+      await waitFor(() => {
+        expect(Authentication.reauthenticate).toHaveBeenCalledWith(
+          'TypedPassword123',
+        );
+      });
+      await waitFor(() => {
+        expect(
+          component.getByText(strings('reset_password.password')),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('does not call Authentication.reauthenticate when Confirm pressed with empty password', async () => {
+      const component = renderComponent();
+      await flushMicrotasks();
+
+      jest.mocked(Authentication.reauthenticate).mockClear();
+
+      fireEvent.press(
+        component.getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      );
+      await flushMicrotasks();
+
+      expect(Authentication.reauthenticate).not.toHaveBeenCalled();
+      expect(
+        component.getByText(
+          strings('manual_backup_step_1.enter_current_password'),
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
