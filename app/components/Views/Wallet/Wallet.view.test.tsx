@@ -29,6 +29,10 @@ describeForPlatforms('Wallet', () => {
             MultichainNetworkController: {
               isEvmSelected: true,
             },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
+            },
             RewardsController: {
               activeAccount: null,
             },
@@ -78,6 +82,10 @@ describeForPlatforms('Wallet', () => {
             MultichainNetworkController: {
               isEvmSelected: true,
             },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
+            },
             RewardsController: {
               activeAccount: null,
             },
@@ -116,6 +124,10 @@ describeForPlatforms('Wallet', () => {
           backgroundState: {
             MultichainNetworkController: {
               isEvmSelected: true,
+            },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
             },
             RewardsController: {
               activeAccount: null,
@@ -158,6 +170,10 @@ describeForPlatforms('Wallet', () => {
           MultichainNetworkController: {
             isEvmSelected: true,
           },
+            EarnController: {
+              pooled_staking: { isEligible: false },
+              lending: { positions: [], markets: [] },
+            },
           RewardsController: {
             activeAccount: null,
           },
@@ -199,6 +215,10 @@ describeForPlatforms('Wallet', () => {
       backgroundState: {
         MultichainNetworkController: {
           isEvmSelected: true,
+        },
+        EarnController: {
+          pooled_staking: { isEligible: false },
+          lending: { positions: [], markets: [] },
         },
         RewardsController: {
           activeAccount: null,
