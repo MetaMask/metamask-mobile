@@ -91,7 +91,11 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../../../selectors/perpsController';
-import { CHASE_HISTORY_STATUSES } from '../../../constants/perpsConfig';
+import { selectPerpsSelectedAccountAddress } from '../../../selectors/selectedAccountAddress';
+import {
+  CHASE_HISTORY_STATUSES,
+  PERPS_TWAP_UI_CONFIG,
+} from '../../../constants/perpsConfig';
 import {
   addBoundedChaseAnalyticsKey,
   CHASE_METAMETRICS_PROPERTY,
@@ -134,6 +138,7 @@ import {
 } from '../utils/proTwapViews';
 import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
 import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
+import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
 
 type ProPositionsPanelTabKey = 'positions' | 'orders' | 'chase' | 'twap';
 type ProPositionsPanelTab = TabItem & { key: ProPositionsPanelTabKey };
@@ -184,13 +189,6 @@ const ChaseKeyValueItem = ({
   </Box>
 );
 
-/**
- * REST reconciliation cadence for TWAP. The controller subscription supplies
- * schedule changes, while each slower REST tick supplies slice fills and the
- * aggregate execution details omitted by the stream.
- */
-const TWAP_POLL_INTERVAL_MS = 5000;
-
 /** Which Pro panel tab a market-switch row tap came from. */
 export type ProPositionsPanelSourceSection =
   | typeof PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS
@@ -199,7 +197,7 @@ export type ProPositionsPanelSourceSection =
 interface PerpsProPositionsPanelProps {
   /** Active market symbol, which may carry a `dex:` prefix for HIP-3 markets. */
   symbol: string;
-  /** Switches the screen to the market of a tapped position/order row. */
+  /** Switches the screen to the market of a tapped position or order row. */
   onSelectMarket?: (
     market: PerpsMarketData | Partial<PerpsMarketData>,
     sourceSection: ProPositionsPanelSourceSection,
@@ -216,13 +214,17 @@ interface PerpsProPositionsPanelProps {
   isScreenFocused?: boolean;
 }
 
+interface TerminatingTwapSelection {
+  contextIdentityKey: string;
+  orderIdentityKey: string;
+}
+
 /**
  * Pro-mode positions/orders section.
  *
- * Renders the two-tab bar (Positions / Orders) matching the Figma design.
- * Positions, Orders, and Chase tabs present the user's live and retained
+ * Positions, Orders, Chase, and TWAP tabs present the user's live and retained
  * trading state. Position and order preferences persist via PerpsController;
- * Chase retains controller order while its side/ticker filters stay local.
+ * Chase and TWAP retain venue state while their side/ticker filters stay local.
  *
  * Summary P&L and position cards always share one data flow: derive
  * `visiblePositions`, compute `aggregateTotals` from that array, and render
@@ -239,6 +241,7 @@ const PerpsProPositionsPanel = ({
 }: PerpsProPositionsPanelProps) => {
   const perpsNetwork = useSelector(selectPerpsNetwork);
   const activeProvider = useSelector(selectPerpsProvider);
+  const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const { playSelection } = useHaptics();
   const { track } = usePerpsEventTracking();
   const { cancelOrder } = usePerpsTrading();
@@ -380,20 +383,22 @@ const PerpsProPositionsPanel = ({
   );
   const { markets } = usePerpsMarkets();
 
-  const [terminatingTwapOrder, setTerminatingTwapOrder] =
-    useState<TwapOrder | null>(null);
+  const [terminatingTwapSelection, setTerminatingTwapSelection] =
+    useState<TerminatingTwapSelection | null>(null);
   const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
+  const openedTwapSelectionRef = useRef<string | null>(null);
   const isTwapTabSelected = activeTabKey === 'twap';
   const {
     twapOrders,
     isLoading: areTwapOrdersInitiallyLoading,
     error: twapOrdersError,
     refresh: refreshTwapOrders,
+    isRefreshing: areTwapOrdersRefreshing,
   } = usePerpsTwapOrders({
     // Discovery is independent of the placement rollout: users must retain a
     // termination surface for venue-native schedules after a flag rollback.
-    enablePolling: isScreenFocused && isTwapTabSelected,
-    pollingInterval: TWAP_POLL_INTERVAL_MS,
+    enableLiveUpdates: isScreenFocused && isTwapTabSelected,
+    pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
   });
   const allActiveTwapOrders = useMemo(
     () => selectActiveTwapOrders(twapOrders),
@@ -404,7 +409,35 @@ const PerpsProPositionsPanel = ({
     [twapOrders],
   );
   const shouldShowTwapTab =
-    isTwapPlacementEnabled || allActiveTwapOrders.length > 0;
+    isTwapPlacementEnabled ||
+    allActiveTwapOrders.length > 0 ||
+    twapOrdersError !== null;
+  const twapContextIdentityKey = `${selectedAddress ?? 'none'}|${activeProvider}|${perpsNetwork}`;
+  const terminatingTwapOrder = useMemo(() => {
+    if (
+      !terminatingTwapSelection ||
+      terminatingTwapSelection.contextIdentityKey !== twapContextIdentityKey
+    ) {
+      return null;
+    }
+
+    return (
+      allActiveTwapOrders.find(
+        (order) =>
+          getTwapOrderIdentityKey(order) ===
+          terminatingTwapSelection.orderIdentityKey,
+      ) ?? null
+    );
+  }, [allActiveTwapOrders, terminatingTwapSelection, twapContextIdentityKey]);
+  const handleSelectTwapToTerminate = useCallback(
+    (order: TwapOrder) => {
+      setTerminatingTwapSelection({
+        contextIdentityKey: twapContextIdentityKey,
+        orderIdentityKey: getTwapOrderIdentityKey(order),
+      });
+    },
+    [twapContextIdentityKey],
+  );
 
   useEffect(() => {
     if (
@@ -417,10 +450,10 @@ const PerpsProPositionsPanel = ({
 
   const { terminatingOrderId, terminateTwap } = usePerpsTerminateTwap({
     onSuccess: () => {
-      setTerminatingTwapOrder(null);
+      setTerminatingTwapSelection(null);
       refreshTwapOrders();
     },
-    onError: () => setTerminatingTwapOrder(null),
+    onError: () => setTerminatingTwapSelection(null),
   });
 
   useEffect(() => {
@@ -455,10 +488,26 @@ const PerpsProPositionsPanel = ({
   ]);
 
   useEffect(() => {
-    if (terminatingTwapOrder) {
+    const selectionKey = terminatingTwapSelection?.orderIdentityKey ?? null;
+    if (
+      selectionKey &&
+      terminatingTwapOrder &&
+      openedTwapSelectionRef.current !== selectionKey
+    ) {
+      openedTwapSelectionRef.current = selectionKey;
       twapTerminateSheetRef.current?.onOpenBottomSheet();
     }
-  }, [terminatingTwapOrder]);
+    if (!selectionKey) {
+      openedTwapSelectionRef.current = null;
+    }
+  }, [terminatingTwapOrder, terminatingTwapSelection]);
+
+  useEffect(() => {
+    if (terminatingTwapSelection && !terminatingTwapOrder) {
+      twapTerminateSheetRef.current?.onCloseBottomSheet();
+      setTerminatingTwapSelection(null);
+    }
+  }, [terminatingTwapOrder, terminatingTwapSelection]);
 
   const displaySymbol = getPerpsDisplaySymbol(symbol);
 
@@ -496,6 +545,9 @@ const PerpsProPositionsPanel = ({
 
   const handleSelectTwapMarket = useCallback(
     (twapOrder: TwapOrder) =>
+      // The controller analytics contract has no TWAP source section yet.
+      // TWAP is an order-management surface, so retain ORDERS attribution
+      // until Core adds a dedicated enum value that Mobile can emit safely.
       selectMarketBySymbol(
         twapOrder.symbol,
         PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
@@ -964,8 +1016,9 @@ const PerpsProPositionsPanel = ({
       isInitialLoading={areTwapOrdersInitiallyLoading}
       error={twapOrdersError}
       onRetry={refreshTwapOrders}
+      isRefreshing={areTwapOrdersRefreshing}
       onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
-      onTerminate={setTerminatingTwapOrder}
+      onTerminate={handleSelectTwapToTerminate}
       terminatingOrderId={terminatingOrderId}
       emptyMetadataByView={twapEmptyMetadataByView}
     />
@@ -1463,7 +1516,7 @@ const PerpsProPositionsPanel = ({
         <PerpsProTwapTerminateSheet
           twapOrder={terminatingTwapOrder}
           sheetRef={twapTerminateSheetRef}
-          onClose={() => setTerminatingTwapOrder(null)}
+          onClose={() => setTerminatingTwapSelection(null)}
           onConfirm={terminateTwap}
           isTerminating={terminatingOrderId !== null}
         />

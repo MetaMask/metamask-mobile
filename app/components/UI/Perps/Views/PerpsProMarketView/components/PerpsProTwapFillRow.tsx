@@ -17,7 +17,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { getPerpsProTwapFillRowSelector } from '../../../Perps.testIds';
 import {
   formatPerpsFiat,
   formatPositionSize,
@@ -25,6 +25,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import type { ProTwapFillRow } from '../utils/proTwapViews';
+import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapFillRowProps {
   row: ProTwapFillRow;
@@ -41,11 +42,24 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
   const { fill, twapOrder } = row;
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
   const isBuySide = fill.side === 'buy';
+  const directionLabel = strings(
+    getTwapDirectionLabelKey({
+      reduceOnly: twapOrder.reduceOnly,
+      side: fill.side,
+    }),
+  );
 
   return (
     <Box
       twClassName="gap-1 px-2 py-3"
-      testID={testID ?? PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW}
+      testID={
+        testID ??
+        getPerpsProTwapFillRowSelector(
+          twapOrder.providerId,
+          twapOrder.orderId,
+          fill.fillId,
+        )
+      }
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
@@ -62,9 +76,7 @@ const PerpsProTwapFillRowItem = ({ row, testID }: PerpsProTwapFillRowProps) => {
             {displaySymbol}
           </Text>
           <Tag severity={isBuySide ? TagSeverity.Success : TagSeverity.Danger}>
-            {isBuySide
-              ? strings('perps.market.long')
-              : strings('perps.market.short')}
+            {directionLabel}
           </Tag>
         </Box>
         <SensitiveText

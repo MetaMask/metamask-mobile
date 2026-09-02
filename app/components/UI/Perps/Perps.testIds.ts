@@ -1,3 +1,5 @@
+import { PROVIDER_CONFIG } from './constants/perpsConfig';
+
 // ========================================
 // PERPS CANDLESTICK CHART SELECTORS
 // ========================================
@@ -568,6 +570,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_AVERAGE_PRICE: 'perps-pro-market-twap-average-price',
   TWAP_PROGRESS: 'perps-pro-market-twap-progress',
   TWAP_ELAPSED: 'perps-pro-market-twap-elapsed',
+  TWAP_RANDOMIZE: 'perps-pro-market-twap-randomize',
   TWAP_REDUCE_ONLY_TAG: 'perps-pro-market-twap-reduce-only-tag',
   TWAP_CREATED_AT: 'perps-pro-market-twap-created-at',
   TWAP_STATUS_TAG: 'perps-pro-market-twap-status-tag',
@@ -578,6 +581,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   TWAP_TERMINATE_CLOSE: 'perps-pro-market-twap-terminate-close',
   TWAP_ERROR: 'perps-pro-market-twap-error',
   TWAP_RETRY: 'perps-pro-market-twap-retry',
+  TWAP_LOADING: 'perps-pro-market-twap-loading',
   TWAP_FILL_PREVIOUS: 'perps-pro-market-twap-fill-previous',
   TWAP_FILL_NEXT: 'perps-pro-market-twap-fill-next',
 };
@@ -632,16 +636,48 @@ export const getPerpsProChaseTerminateSelector = (
 ) =>
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
-// A TWAP schedule's venue order ID is unique, so it keys the row directly
-// rather than needing the symbol-plus-index pairing open orders require.
-export const getPerpsProTwapRowSelector = (orderId: string) =>
-  `${PerpsProMarketViewSelectorsIDs.TWAP_ROW}-${orderId}`;
+const getPerpsProTwapIdentitySelectorSuffix = (
+  providerId: string | undefined,
+  orderId: string,
+) => `${providerId ?? PROVIDER_CONFIG.DefaultProvider}-${orderId}`;
 
-export const getPerpsProTwapTerminateSelector = (orderId: string) =>
-  `${PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE}-${orderId}`;
+export const getPerpsProTwapValueSelector = (
+  baseTestID: string,
+  providerId: string | undefined,
+  orderId: string,
+) =>
+  `${baseTestID}-${getPerpsProTwapIdentitySelectorSuffix(providerId, orderId)}`;
 
-export const getPerpsProTwapFillRowSelector = (fillId: string) =>
-  `${PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW}-${fillId}`;
+export const getPerpsProTwapRowSelector = (
+  providerId: string | undefined,
+  orderId: string,
+) =>
+  getPerpsProTwapValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_ROW,
+    providerId,
+    orderId,
+  );
+
+export const getPerpsProTwapTerminateSelector = (
+  providerId: string | undefined,
+  orderId: string,
+) =>
+  getPerpsProTwapValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE,
+    providerId,
+    orderId,
+  );
+
+export const getPerpsProTwapFillRowSelector = (
+  providerId: string | undefined,
+  orderId: string,
+  fillId: string,
+) =>
+  `${getPerpsProTwapValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW,
+    providerId,
+    orderId,
+  )}-${fillId}`;
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',

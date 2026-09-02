@@ -55,6 +55,26 @@ describe('PerpsProTwapTerminateSheet', () => {
     expect(screen.getByText(/stays as a position/u)).toBeOnTheScreen();
   });
 
+  it.each(['buy', 'sell'] as const)(
+    'states that filled reduce-only %s size already reduced the position',
+    (side) => {
+      // Arrange / Act
+      render(
+        <PerpsProTwapTerminateSheet
+          twapOrder={{ ...twapOrder, reduceOnly: true, side }}
+          onClose={jest.fn()}
+          onConfirm={jest.fn()}
+        />,
+      );
+
+      // Assert
+      expect(
+        screen.getByText(/has reduced your existing position/u),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(/stays as a position/u)).toBeNull();
+    },
+  );
+
   it('passes the schedule to the confirm handler', () => {
     // Arrange
     const onConfirm = jest.fn();

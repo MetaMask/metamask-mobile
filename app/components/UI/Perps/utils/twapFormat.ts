@@ -1,4 +1,5 @@
-import { strings } from '../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
 import { PERPS_TWAP_UI_CONFIG } from '../constants/perpsConfig';
 
 /**
@@ -60,7 +61,9 @@ export const formatTwapDuration = (durationMinutes: number): string => {
  * The controller reports TWAP fill and time progress in bps.
  */
 export const formatTwapProgressPercent = (bps: number): string => {
-  const clampedBps = Math.trunc(Math.min(Math.max(bps, 0), 10000));
-  const percentage = Number((clampedBps / 100).toFixed(2));
-  return `${percentage}%`;
+  const clampedBps = Math.min(Math.max(bps, 0), 10000);
+  return getIntlNumberFormatter(I18n.locale, {
+    style: 'percent',
+    maximumFractionDigits: 2,
+  }).format(clampedBps / 10000);
 };

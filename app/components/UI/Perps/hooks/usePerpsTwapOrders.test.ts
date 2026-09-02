@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
-import type { TwapOrder } from '@metamask/perps-controller';
+import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import { usePerpsTwapOrders } from './usePerpsTwapOrders';
 
@@ -52,6 +52,21 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
   ...overrides,
 });
 
+const buildTwapFill = (
+  overrides: Partial<TwapOrderFill> = {},
+): TwapOrderFill => ({
+  fillId: 'fill-1',
+  orderId: 'twap-1',
+  side: 'buy',
+  price: '100',
+  size: '1',
+  fee: '0.1',
+  feeToken: 'USDC',
+  timestamp: 1_000,
+  transactionHash: '0xabc',
+  ...overrides,
+});
+
 const mockController = jest.mocked(Engine.context.PerpsController);
 
 describe('usePerpsTwapOrders', () => {
@@ -62,11 +77,6 @@ describe('usePerpsTwapOrders', () => {
     mockNetwork = 'testnet';
     mockController.getTwapOrders.mockResolvedValue([buildTwapOrder()]);
     mockController.subscribeToTwapOrders.mockReturnValue(jest.fn());
-  });
-
-  afterEach(() => {
-    // A failed polling assertion cannot leak fake timers into waitFor tests.
-    jest.useRealTimers();
   });
 
   it('reads schedules from the controller on mount', async () => {
@@ -87,7 +97,7 @@ describe('usePerpsTwapOrders', () => {
       .mockResolvedValueOnce([firstIdentityOrder])
       .mockResolvedValueOnce([secondIdentityOrder]);
     const { result, rerender } = renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true }),
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
     );
 
     // Assert
@@ -219,7 +229,7 @@ describe('usePerpsTwapOrders', () => {
 
     // Act
     const { result, unmount } = renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true, skipInitialFetch: true }),
+      usePerpsTwapOrders({ enableLiveUpdates: true, skipInitialFetch: true }),
     );
 
     // Assert
@@ -233,17 +243,7 @@ describe('usePerpsTwapOrders', () => {
 
   it('keeps fills a prior read resolved when the stream omits them', async () => {
     // Arrange: the stream carries schedule state without slice fills
-    const fill = {
-      fillId: 'f1',
-      orderId: 'twap-1',
-      side: 'buy' as const,
-      price: '100',
-      size: '1',
-      fee: '0.1',
-      feeToken: 'USDC',
-      timestamp: 1_000,
-      transactionHash: '0xabc',
-    };
+    const fill = buildTwapFill({ fillId: 'f1' });
     mockController.getTwapOrders.mockResolvedValue([
       buildTwapOrder({ fills: [fill] }),
     ]);
@@ -257,7 +257,7 @@ describe('usePerpsTwapOrders', () => {
 
     // Act: let the read land first, so the stream genuinely merges onto it
     const { result } = renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true }),
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
     );
     await waitFor(() =>
       expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]),
@@ -270,31 +270,124 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]);
   });
 
-  it('keeps bounded REST refreshes running after a stream update', async () => {
+  it('retains non-default-provider schedules after a default-provider stream update', async () => {
     // Arrange
-    jest.useFakeTimers();
+    const hyperliquidOrder = buildTwapOrder({
+      orderId: 'hyperliquid-order',
+      providerId: 'hyperliquid',
+      startedAt: 2_000,
+    });
+    const myxOrder = buildTwapOrder({
+      orderId: 'myx-order',
+      providerId: 'myx',
+      startedAt: 1_000,
+    });
+    mockController.getTwapOrders.mockResolvedValue([
+      hyperliquidOrder,
+      myxOrder,
+    ]);
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
     mockController.subscribeToTwapOrders.mockImplementation(
       (params: { callback: (orders: TwapOrder[]) => void }) => {
-        params.callback([buildTwapOrder({ orderId: 'streamed' })]);
+        pushStreamed = params.callback;
         return jest.fn();
       },
     );
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() => expect(result.current.twapOrders).toHaveLength(2));
 
     // Act
-    const { unmount } = renderHook(() =>
-      usePerpsTwapOrders({
-        enablePolling: true,
-        pollingInterval: 1000,
-        skipInitialFetch: true,
-      }),
-    );
     await act(async () => {
-      await jest.advanceTimersByTimeAsync(2500);
+      pushStreamed?.([
+        { ...hyperliquidOrder, executedSize: '5', lastUpdated: 3_000 },
+      ]);
     });
 
-    // Assert: the immediate read plus interval refreshes continue after push.
-    expect(mockController.getTwapOrders.mock.calls.length).toBeGreaterThan(1);
-    unmount();
+    // Assert
+    expect(result.current.twapOrders).toStrictEqual([
+      { ...hyperliquidOrder, executedSize: '5', lastUpdated: 3_000 },
+      myxOrder,
+    ]);
+  });
+
+  it('retains fills by provider and order ID when venue order IDs collide', async () => {
+    // Arrange
+    const hyperliquidFill = buildTwapFill({ fillId: 'hyperliquid-fill' });
+    const myxFill = buildTwapFill({ fillId: 'myx-fill' });
+    const hyperliquidOrder = buildTwapOrder({
+      providerId: 'hyperliquid',
+      fills: [hyperliquidFill],
+    });
+    const myxOrder = buildTwapOrder({ providerId: 'myx', fills: [myxFill] });
+    mockController.getTwapOrders.mockResolvedValue([
+      hyperliquidOrder,
+      myxOrder,
+    ]);
+    let pushStreamed: ((orders: TwapOrder[]) => void) | undefined;
+    mockController.subscribeToTwapOrders.mockImplementation(
+      (params: { callback: (orders: TwapOrder[]) => void }) => {
+        pushStreamed = params.callback;
+        return jest.fn();
+      },
+    );
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ enableLiveUpdates: true }),
+    );
+    await waitFor(() => expect(result.current.twapOrders).toHaveLength(2));
+
+    // Act
+    await act(async () => {
+      pushStreamed?.([{ ...hyperliquidOrder, fills: [] }]);
+    });
+
+    // Assert
+    expect(
+      result.current.twapOrders.find(
+        (order) => order.providerId === 'hyperliquid',
+      )?.fills,
+    ).toStrictEqual([hyperliquidFill]);
+    expect(
+      result.current.twapOrders.find((order) => order.providerId === 'myx')
+        ?.fills,
+    ).toStrictEqual([myxFill]);
+  });
+
+  describe('live-update interval behavior', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('keeps bounded REST refreshes running after a stream update', async () => {
+      // Arrange
+      mockController.subscribeToTwapOrders.mockImplementation(
+        (params: { callback: (orders: TwapOrder[]) => void }) => {
+          params.callback([buildTwapOrder({ orderId: 'streamed' })]);
+          return jest.fn();
+        },
+      );
+
+      // Act
+      const { unmount } = renderHook(() =>
+        usePerpsTwapOrders({
+          enableLiveUpdates: true,
+          pollingInterval: 1000,
+          skipInitialFetch: true,
+        }),
+      );
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(2500);
+      });
+
+      // Assert: the immediate read plus interval refreshes continue after push.
+      expect(mockController.getTwapOrders.mock.calls.length).toBeGreaterThan(1);
+      unmount();
+    });
   });
 
   it('clears schedules immediately when the selected account changes', async () => {
@@ -365,7 +458,10 @@ describe('usePerpsTwapOrders', () => {
       .mockReturnValueOnce(firstUnsubscribe)
       .mockReturnValueOnce(secondUnsubscribe);
     const { rerender, unmount } = renderHook(() =>
-      usePerpsTwapOrders({ enablePolling: true, skipInitialFetch: true }),
+      usePerpsTwapOrders({
+        enableLiveUpdates: true,
+        skipInitialFetch: true,
+      }),
     );
 
     // Act

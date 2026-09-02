@@ -4,6 +4,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  Spinner,
   Text,
   TextColor,
   TextVariant,
@@ -13,6 +14,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
 import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
+import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
 import {
   getPerpsProTwapFillRowSelector,
   getPerpsProTwapRowSelector,
@@ -23,6 +25,7 @@ import PerpsProTwapEmptyState from './PerpsProTwapEmptyState';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 import {
   PRO_TWAP_VIEWS,
+  DEFAULT_PRO_TWAP_VIEW,
   selectTwapFillRows,
   type ProTwapView,
 } from '../utils/proTwapViews';
@@ -47,6 +50,8 @@ interface PerpsProTwapPanelProps {
   /** Load failure from the most recent REST read. */
   error: string | null;
   onRetry: () => void;
+  /** Whether the retry/REST reconciliation read is in flight. */
+  isRefreshing: boolean;
   /** Filter-specific empty copy derived independently for each subview. */
   emptyMetadataByView?: Partial<Record<ProTwapView, PerpsProTwapEmptyMetadata>>;
 }
@@ -80,11 +85,12 @@ const PerpsProTwapPanel = ({
   terminatingOrderId,
   error,
   onRetry,
+  isRefreshing,
   emptyMetadataByView,
 }: PerpsProTwapPanelProps) => {
   const [activeViewIndex, setActiveViewIndex] = useState(0);
   const [fillHistoryPage, setFillHistoryPage] = useState(0);
-  const activeView = PRO_TWAP_VIEWS[activeViewIndex] ?? 'active';
+  const activeView = PRO_TWAP_VIEWS[activeViewIndex] ?? DEFAULT_PRO_TWAP_VIEW;
 
   const fillRows = useMemo(
     () => selectTwapFillRows([...activeTwapOrders, ...historicalTwapOrders]),
@@ -100,10 +106,8 @@ const PerpsProTwapPanel = ({
   );
 
   useEffect(() => {
-    setFillHistoryPage((currentPage) =>
-      Math.min(currentPage, fillHistoryPageCount - 1),
-    );
-  }, [fillHistoryPageCount]);
+    setFillHistoryPage(0);
+  }, [activeTwapOrders, historicalTwapOrders]);
 
   const viewTabs: TabItem[] = useMemo(
     () =>
@@ -117,8 +121,18 @@ const PerpsProTwapPanel = ({
   );
 
   const renderEmptyState = () => {
-    // Avoid flashing the empty state while the first fetch is still pending.
-    if (isInitialLoading || error) {
+    if (isInitialLoading) {
+      return (
+        <Box
+          twClassName="items-center justify-center px-2 pt-6"
+          testID={PerpsProMarketViewSelectorsIDs.TWAP_LOADING}
+        >
+          <Spinner />
+        </Box>
+      );
+    }
+
+    if (error) {
       return null;
     }
 
@@ -147,9 +161,12 @@ const PerpsProTwapPanel = ({
       <Box testID={PerpsProMarketViewSelectorsIDs.TWAP_LIST}>
         {twapOrders.map((twapOrder) => (
           <PerpsProTwapCard
-            key={twapOrder.orderId}
+            key={getTwapOrderIdentityKey(twapOrder)}
             twapOrder={twapOrder}
-            testID={getPerpsProTwapRowSelector(twapOrder.orderId)}
+            testID={getPerpsProTwapRowSelector(
+              twapOrder.providerId,
+              twapOrder.orderId,
+            )}
             onPress={onSelectMarket}
             onTerminate={isActiveView ? onTerminate : undefined}
             isTerminateDisabled={terminatingOrderId !== null}
@@ -168,9 +185,13 @@ const PerpsProTwapPanel = ({
       <Box testID={PerpsProMarketViewSelectorsIDs.TWAP_LIST}>
         {visibleFillRows.map((row) => (
           <PerpsProTwapFillRowItem
-            key={row.fill.fillId}
+            key={`${getTwapOrderIdentityKey(row.twapOrder)}:${row.fill.fillId}`}
             row={row}
-            testID={getPerpsProTwapFillRowSelector(row.fill.fillId)}
+            testID={getPerpsProTwapFillRowSelector(
+              row.twapOrder.providerId,
+              row.twapOrder.orderId,
+              row.fill.fillId,
+            )}
           />
         ))}
         {fillHistoryPageCount > 1 ? (
@@ -232,6 +253,8 @@ const PerpsProTwapPanel = ({
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             onPress={onRetry}
+            isLoading={isRefreshing}
+            isDisabled={isRefreshing}
             testID={PerpsProMarketViewSelectorsIDs.TWAP_RETRY}
           >
             {strings('perps.pro_positions_panel.twap_retry')}

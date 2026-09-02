@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { getPerpsProTwapFillRowSelector } from '../../../Perps.testIds';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 
 jest.mock('react-redux', () => ({
@@ -100,6 +100,24 @@ describe('PerpsProTwapFillRow', () => {
     expect(screen.getByText('Short')).toBeOnTheScreen();
   });
 
+  it.each([
+    ['buy', 'Close short'],
+    ['sell', 'Close long'],
+  ] as const)('labels a reduce-only %s slice as %s', (side, label) => {
+    // Arrange / Act
+    render(
+      <PerpsProTwapFillRowItem
+        row={{
+          fill: buildFill({ side }),
+          twapOrder: { ...twapOrder, reduceOnly: true, side },
+        }}
+      />,
+    );
+
+    // Assert
+    expect(screen.getByText(label)).toBeOnTheScreen();
+  });
+
   it('carries the supplied test ID', () => {
     // Arrange / Act
     render(
@@ -113,13 +131,15 @@ describe('PerpsProTwapFillRow', () => {
     expect(screen.getByTestId('fill-row-1')).toBeOnTheScreen();
   });
 
-  it('falls back to the shared row test ID', () => {
+  it('falls back to the provider/order/fill row test ID', () => {
     // Arrange / Act
     render(<PerpsProTwapFillRowItem row={{ fill: buildFill(), twapOrder }} />);
 
     // Assert
     expect(
-      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW),
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-1'),
+      ),
     ).toBeOnTheScreen();
   });
 });

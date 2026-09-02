@@ -3,6 +3,7 @@ import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
+  getPerpsProTwapFillRowSelector,
   getPerpsProTwapTerminateSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
@@ -82,6 +83,7 @@ const renderPanel = (
       terminatingOrderId={null}
       error={null}
       onRetry={jest.fn()}
+      isRefreshing={false}
       {...props}
     />,
   );
@@ -111,7 +113,7 @@ describe('PerpsProTwapPanel', () => {
     // Assert
     expect(screen.getByTestId(ids.TWAP_LIST)).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
     ).toBeOnTheScreen();
   });
 
@@ -145,7 +147,7 @@ describe('PerpsProTwapPanel', () => {
 
     // Assert: a finished schedule has nothing left to stop
     expect(
-      screen.queryByTestId(getPerpsProTwapTerminateSelector('done')),
+      screen.queryByTestId(getPerpsProTwapTerminateSelector(undefined, 'done')),
     ).toBeNull();
   });
 
@@ -160,16 +162,30 @@ describe('PerpsProTwapPanel', () => {
     });
 
     // Assert: the active view shows schedules, not fills
-    expect(screen.queryByTestId(`${ids.TWAP_FILL_ROW}-f1`)).toBeNull();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f1'),
+      ),
+    ).toBeNull();
 
     // Act
     fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
 
     // Assert: both slices of the one schedule are now listed individually
-    expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f1`)).toBeOnTheScreen();
-    expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-f2`)).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f1'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f2'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapTerminateSelector(undefined, 'twap-1'),
+      ),
     ).toBeNull();
   });
 
@@ -187,16 +203,76 @@ describe('PerpsProTwapPanel', () => {
 
     // Assert: the newest page is bounded to 50 rows
     expect(
-      screen.getByTestId(`${ids.TWAP_FILL_ROW}-fill-50`),
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-50'),
+      ),
     ).toBeOnTheScreen();
-    expect(screen.queryByTestId(`${ids.TWAP_FILL_ROW}-fill-0`)).toBeNull();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+      ),
+    ).toBeNull();
 
     // Act
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
 
     // Assert: paging replaces the mounted rows instead of accumulating them
-    expect(screen.getByTestId(`${ids.TWAP_FILL_ROW}-fill-0`)).toBeOnTheScreen();
-    expect(screen.queryByTestId(`${ids.TWAP_FILL_ROW}-fill-50`)).toBeNull();
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-50'),
+      ),
+    ).toBeNull();
+  });
+
+  it('resets fill pagination when the filtered input changes', () => {
+    // Arrange
+    const firstFills = Array.from({ length: 51 }, (_, index) =>
+      buildFill({ fillId: `first-${index}`, timestamp: index }),
+    );
+    const view = renderPanel({
+      activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
+    });
+    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-0'),
+      ),
+    ).toBeOnTheScreen();
+
+    // Act: the new filtered input still spans two pages.
+    const nextFills = Array.from({ length: 51 }, (_, index) =>
+      buildFill({ fillId: `next-${index}`, timestamp: index }),
+    );
+    view.rerender(
+      <PerpsProTwapPanel
+        activeTwapOrders={[buildTwapOrder({ fills: nextFills })]}
+        historicalTwapOrders={[]}
+        isInitialLoading={false}
+        onTerminate={jest.fn()}
+        terminatingOrderId={null}
+        error={null}
+        onRetry={jest.fn()}
+        isRefreshing={false}
+      />,
+    );
+
+    // Assert: page zero is restored rather than retaining page one.
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-50'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-0'),
+      ),
+    ).toBeNull();
   });
 
   it('shows a retryable error without hiding confirmed schedules', () => {
@@ -226,6 +302,19 @@ describe('PerpsProTwapPanel', () => {
     expect(screen.queryByTestId('twap-empty-state')).toBeNull();
   });
 
+  it('disables retry and shows progress while refresh is in flight', () => {
+    // Arrange
+    const onRetry = jest.fn();
+    renderPanel({ error: 'venue down', isRefreshing: true, onRetry });
+
+    // Act
+    fireEvent.press(screen.getByTestId(ids.TWAP_RETRY));
+
+    // Assert
+    expect(onRetry).not.toHaveBeenCalled();
+    expect(screen.getByTestId(ids.TWAP_RETRY)).toBeDisabled();
+  });
+
   it('shows the empty state when a view has nothing to list', () => {
     // Arrange / Act
     renderPanel({ activeTwapOrders: [], historicalTwapOrders: [] });
@@ -235,7 +324,7 @@ describe('PerpsProTwapPanel', () => {
     expect(screen.getByTestId('twap-empty-state')).toBeOnTheScreen();
   });
 
-  it('suppresses the empty state while the first read is pending', () => {
+  it('shows loading progress while the first read is pending', () => {
     // Arrange / Act
     renderPanel({
       activeTwapOrders: [],
@@ -243,10 +332,10 @@ describe('PerpsProTwapPanel', () => {
       isInitialLoading: true,
     });
 
-    // Assert: neither a list nor an empty state, so "no TWAPs" cannot flash
-    // before the first result lands
+    // Assert: "no TWAPs" cannot flash before the first result lands.
     expect(screen.queryByTestId(ids.TWAP_LIST)).toBeNull();
     expect(screen.queryByTestId('twap-empty-state')).toBeNull();
+    expect(screen.getByTestId(ids.TWAP_LOADING)).toBeOnTheScreen();
   });
 
   it('uses empty metadata from the selected history view', () => {
@@ -282,7 +371,7 @@ describe('PerpsProTwapPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
     );
 
     // Assert
@@ -296,7 +385,7 @@ describe('PerpsProTwapPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
     );
 
     // Assert

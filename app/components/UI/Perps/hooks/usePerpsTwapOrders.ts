@@ -8,6 +8,14 @@ import {
   selectPerpsNetwork,
   selectPerpsProvider,
 } from '../selectors/perpsController';
+import {
+  PERPS_TWAP_UI_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
+import {
+  getTwapOrderIdentityKey,
+  getTwapOrderProviderId,
+} from '../utils/twapOrderUtils';
 
 export interface UsePerpsTwapOrdersResult {
   /** Current and terminal TWAP schedules, newest first. */
@@ -29,7 +37,7 @@ export interface UsePerpsTwapOrdersOptions {
    *
    * @default false
    */
-  enablePolling?: boolean;
+  enableLiveUpdates?: boolean;
   /**
    * REST reconciliation interval in milliseconds. Each tick is two venue
    * calls (`twapHistory` + `userTwapSliceFills`), so this is deliberately
@@ -59,8 +67,8 @@ export const usePerpsTwapOrders = (
   options: UsePerpsTwapOrdersOptions = {},
 ): UsePerpsTwapOrdersResult => {
   const {
-    enablePolling = false,
-    pollingInterval = 5000,
+    enableLiveUpdates = false,
+    pollingInterval = PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
     skipInitialFetch = false,
   } = options;
 
@@ -177,7 +185,7 @@ export const usePerpsTwapOrders = (
   }, [fetchTwapOrders, skipInitialFetch]);
 
   useEffect(() => {
-    if (!enablePolling) {
+    if (!enableLiveUpdates) {
       return undefined;
     }
 
@@ -198,16 +206,33 @@ export const usePerpsTwapOrders = (
         }
         // A stream commit is newer than reads already in flight.
         requestGenerationRef.current += 1;
-        // The stream omits slice fills, so carry forward the ones the last
-        // read resolved for each schedule.
+        // Aggregated REST reads span every provider, while this stream comes
+        // from the default provider only. Replace that provider's partition,
+        // retain every other provider, and carry REST-only fills by the full
+        // provider/order identity so venue-local IDs cannot cross-contaminate.
         setTwapOrders((previousOrders) => {
-          const fillsByOrderId = new Map(
-            previousOrders.map((order) => [order.orderId, order.fills]),
+          const fillsByOrderKey = new Map(
+            previousOrders.map((order) => [
+              getTwapOrderIdentityKey(order),
+              order.fills,
+            ]),
           );
-          return streamedOrders.map((order) =>
+          const mergedStreamedOrders = streamedOrders.map((order) =>
             order.fills.length > 0
               ? order
-              : { ...order, fills: fillsByOrderId.get(order.orderId) ?? [] },
+              : {
+                  ...order,
+                  fills:
+                    fillsByOrderKey.get(getTwapOrderIdentityKey(order)) ?? [],
+                },
+          );
+          const otherProviderOrders = previousOrders.filter(
+            (order) =>
+              getTwapOrderProviderId(order) !== PROVIDER_CONFIG.DefaultProvider,
+          );
+
+          return [...mergedStreamedOrders, ...otherProviderOrders].sort(
+            (left, right) => right.startedAt - left.startedAt,
           );
         });
         setResolvedIdentityKey(identityKey);
@@ -228,7 +253,7 @@ export const usePerpsTwapOrders = (
       unsubscribe();
       clearInterval(intervalId);
     };
-  }, [enablePolling, pollingInterval, fetchTwapOrders, identityKey]);
+  }, [enableLiveUpdates, pollingInterval, fetchTwapOrders, identityKey]);
 
   const isCurrentIdentity = resolvedIdentityKey === identityKey;
 

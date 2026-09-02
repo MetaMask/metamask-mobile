@@ -1733,6 +1733,7 @@
       "twap_terminate": {
         "title": "Terminate {{symbol}} TWAP?",
         "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
         "confirm": "Terminate",
         "cancel": "Cancel"
       }

@@ -29,9 +29,8 @@ interface PerpsProTwapTerminateSheetProps {
 /**
  * Confirmation gate for terminating a running TWAP.
  *
- * Terminating stops the remaining size from executing; the already-filled size
- * stays on the books as a position, which the copy states explicitly so the
- * user is not surprised by the leftover exposure.
+ * Terminating stops the remaining size from executing. Opening TWAPs can leave
+ * filled exposure behind; reduce-only TWAP fills have already reduced it.
  */
 const PerpsProTwapTerminateSheet = ({
   twapOrder,
@@ -87,7 +86,11 @@ const PerpsProTwapTerminateSheet = ({
 
       <Box paddingHorizontal={4}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('perps.pro_positions_panel.twap_terminate.description')}
+          {strings(
+            twapOrder.reduceOnly
+              ? 'perps.pro_positions_panel.twap_terminate.description_reduce_only'
+              : 'perps.pro_positions_panel.twap_terminate.description',
+          )}
         </Text>
       </Box>
 

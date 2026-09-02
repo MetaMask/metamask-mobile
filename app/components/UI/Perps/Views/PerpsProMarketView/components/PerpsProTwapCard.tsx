@@ -29,6 +29,8 @@ import { selectPrivacyMode } from '../../../../../../selectors/preferencesContro
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import {
   getPerpsProTwapTerminateSelector,
+  getPerpsProTwapValueSelector,
+  getPerpsProTwapRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import {
@@ -41,6 +43,7 @@ import {
   formatTwapDuration,
   formatTwapProgressPercent,
 } from '../../../utils/twapFormat';
+import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapCardProps {
   twapOrder: TwapOrder;
@@ -124,9 +127,7 @@ const PerpsProTwapCard = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
   const isBuySide = twapOrder.side === 'buy';
-  const directionLabel = isBuySide
-    ? strings('perps.market.long')
-    : strings('perps.market.short');
+  const directionLabel = strings(getTwapDirectionLabelKey(twapOrder));
   const directionSeverity = isBuySide
     ? TagSeverity.Success
     : TagSeverity.Danger;
@@ -138,6 +139,12 @@ const PerpsProTwapCard = ({
   );
 
   const handlePress = onPress ? () => onPress(twapOrder) : undefined;
+  const getValueTestID = (baseTestID: string) =>
+    getPerpsProTwapValueSelector(
+      baseTestID,
+      twapOrder.providerId,
+      twapOrder.orderId,
+    );
 
   return (
     // The card owns a Terminate button, so this wrapper stays out of the
@@ -147,7 +154,10 @@ const PerpsProTwapCard = ({
       onPress={handlePress}
       disabled={!handlePress}
       accessible={false}
-      testID={testID ?? PerpsProMarketViewSelectorsIDs.TWAP_ROW}
+      testID={
+        testID ??
+        getPerpsProTwapRowSelector(twapOrder.providerId, twapOrder.orderId)
+      }
     >
       <Box twClassName="gap-3 py-3">
         <Pressable
@@ -183,21 +193,25 @@ const PerpsProTwapCard = ({
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    testID={PerpsProMarketViewSelectorsIDs.TWAP_MARKET}
+                    testID={getValueTestID(
+                      PerpsProMarketViewSelectorsIDs.TWAP_MARKET,
+                    )}
                   >
                     {displaySymbol}
                   </Text>
                   <Tag
-                    testID={PerpsProMarketViewSelectorsIDs.TWAP_DIRECTION_TAG}
+                    testID={getValueTestID(
+                      PerpsProMarketViewSelectorsIDs.TWAP_DIRECTION_TAG,
+                    )}
                     severity={directionSeverity}
                   >
                     {directionLabel}
                   </Tag>
                   {twapOrder.reduceOnly ? (
                     <Tag
-                      testID={
-                        PerpsProMarketViewSelectorsIDs.TWAP_REDUCE_ONLY_TAG
-                      }
+                      testID={getValueTestID(
+                        PerpsProMarketViewSelectorsIDs.TWAP_REDUCE_ONLY_TAG,
+                      )}
                       severity={TagSeverity.Neutral}
                     >
                       {strings(
@@ -210,7 +224,9 @@ const PerpsProTwapCard = ({
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextAlternative}
-                  testID={PerpsProMarketViewSelectorsIDs.TWAP_CREATED_AT}
+                  testID={getValueTestID(
+                    PerpsProMarketViewSelectorsIDs.TWAP_CREATED_AT,
+                  )}
                 >
                   {formatProOrderCardTimestamp(twapOrder.startedAt)}
                 </Text>
@@ -218,7 +234,9 @@ const PerpsProTwapCard = ({
             </Box>
             <Tag
               severity={STATUS_SEVERITIES[twapOrder.status]}
-              testID={PerpsProMarketViewSelectorsIDs.TWAP_STATUS_TAG}
+              testID={getValueTestID(
+                PerpsProMarketViewSelectorsIDs.TWAP_STATUS_TAG,
+              )}
             >
               {strings(STATUS_LABEL_KEYS[twapOrder.status])}
             </Tag>
@@ -238,7 +256,9 @@ const PerpsProTwapCard = ({
                 )}
                 value={`${totalSize} ${displaySymbol}`}
                 isHidden={privacyMode}
-                testID={PerpsProMarketViewSelectorsIDs.TWAP_SIZE}
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_SIZE,
+                )}
               />
               <KeyValueItem
                 label={strings(
@@ -246,7 +266,9 @@ const PerpsProTwapCard = ({
                 )}
                 value={`${executedSize} ${displaySymbol}`}
                 isHidden={privacyMode}
-                testID={PerpsProMarketViewSelectorsIDs.TWAP_FILLED_SIZE}
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_FILLED_SIZE,
+                )}
               />
               <KeyValueItem
                 label={strings(
@@ -254,21 +276,27 @@ const PerpsProTwapCard = ({
                 )}
                 value={formatOptionalPrice(twapOrder.averagePrice)}
                 isHidden={privacyMode}
-                testID={PerpsProMarketViewSelectorsIDs.TWAP_AVERAGE_PRICE}
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_AVERAGE_PRICE,
+                )}
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.progress')}
                 value={formatTwapProgressPercent(twapOrder.fillProgressBps)}
-                testID={PerpsProMarketViewSelectorsIDs.TWAP_PROGRESS}
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_PROGRESS,
+                )}
               />
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.elapsed')}
                 value={`${formatTwapDuration(
                   elapsedMinutes,
                 )} / ${formatTwapDuration(twapOrder.durationMinutes)}`}
-                testID={PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED}
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_ELAPSED,
+                )}
               />
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.twap_card.randomize')}
@@ -277,6 +305,9 @@ const PerpsProTwapCard = ({
                     ? strings('perps.order_details.yes')
                     : strings('perps.order_details.no')
                 }
+                testID={getValueTestID(
+                  PerpsProMarketViewSelectorsIDs.TWAP_RANDOMIZE,
+                )}
               />
             </Box>
           </Box>
@@ -300,7 +331,10 @@ const PerpsProTwapCard = ({
               twClassName="flex-1"
               onPress={() => onTerminate(twapOrder)}
               isDisabled={isTerminateDisabled}
-              testID={getPerpsProTwapTerminateSelector(twapOrder.orderId)}
+              testID={getPerpsProTwapTerminateSelector(
+                twapOrder.providerId,
+                twapOrder.orderId,
+              )}
             >
               {strings('perps.pro_positions_panel.twap_card.terminate')}
             </Button>

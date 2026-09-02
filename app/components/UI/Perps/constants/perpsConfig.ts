@@ -109,6 +109,7 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
+const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
@@ -143,6 +144,8 @@ export const PERPS_TWAP_UI_CONFIG = {
   RandomizeI18nValues: {
     randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
   },
+  /** REST fill reconciliation while the venue schedule stream is active. */
+  LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
 } as const;
 
 export const CHASE_ORDER_UI_CONFIG = {

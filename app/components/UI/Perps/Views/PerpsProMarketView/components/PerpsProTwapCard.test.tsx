@@ -3,7 +3,9 @@ import type { TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import {
+  getPerpsProTwapRowSelector,
   getPerpsProTwapTerminateSelector,
+  getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsProTwapCard from './PerpsProTwapCard';
@@ -68,6 +70,8 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
 
 const ids = PerpsProMarketViewSelectorsIDs;
 const DOTS_SHORT = '•'.repeat(6);
+const getDefaultValueTestID = (baseTestID: string) =>
+  getPerpsProTwapValueSelector(baseTestID, undefined, 'twap-1');
 
 describe('PerpsProTwapCard', () => {
   beforeEach(() => {
@@ -80,8 +84,12 @@ describe('PerpsProTwapCard', () => {
     render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_MARKET)).toHaveTextContent('BTC');
-    expect(screen.getByTestId(ids.TWAP_SIZE)).toHaveTextContent('10 BTC');
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_MARKET)),
+    ).toHaveTextContent('BTC');
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_SIZE)),
+    ).toHaveTextContent('10 BTC');
   });
 
   it('hides total and filled sizes in privacy mode', () => {
@@ -94,10 +102,12 @@ describe('PerpsProTwapCard', () => {
     // Assert
     expect(screen.queryByText('10 BTC')).toBeNull();
     expect(screen.queryByText('4 BTC')).toBeNull();
-    expect(screen.getByTestId(ids.TWAP_SIZE)).toHaveTextContent(DOTS_SHORT);
-    expect(screen.getByTestId(ids.TWAP_FILLED_SIZE)).toHaveTextContent(
-      DOTS_SHORT,
-    );
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_SIZE)),
+    ).toHaveTextContent(DOTS_SHORT);
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_FILLED_SIZE)),
+    ).toHaveTextContent(DOTS_SHORT);
   });
 
   it('shows fill progress as a whole percent', () => {
@@ -109,7 +119,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_PROGRESS)).toHaveTextContent('25%');
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_PROGRESS)),
+    ).toHaveTextContent('25%');
   });
 
   it('renders elapsed against total duration', () => {
@@ -117,9 +129,9 @@ describe('PerpsProTwapCard', () => {
     render(<PerpsProTwapCard twapOrder={buildTwapOrder()} />);
 
     // Assert: 600_000ms elapsed is 10 minutes of a 30 minute schedule
-    expect(screen.getByTestId(ids.TWAP_ELAPSED)).toHaveTextContent(
-      '10 minutes / 30 minutes',
-    );
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED)),
+    ).toHaveTextContent('10 minutes / 30 minutes');
   });
 
   it('renders zero elapsed rather than a bare separator', () => {
@@ -131,9 +143,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_ELAPSED)).toHaveTextContent(
-      '0 minutes / 30 minutes',
-    );
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_ELAPSED)),
+    ).toHaveTextContent('0 minutes / 30 minutes');
   });
 
   it('falls back when the venue has reported no average price', () => {
@@ -145,7 +157,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_AVERAGE_PRICE)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_AVERAGE_PRICE)),
+    ).toBeOnTheScreen();
   });
 
   it('marks a buy schedule long and a sell schedule short', () => {
@@ -155,19 +169,34 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_DIRECTION_TAG)).toHaveProp(
-      'severity',
-      'success',
-    );
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
+    ).toHaveProp('severity', 'success');
 
     // Act
     rerender(<PerpsProTwapCard twapOrder={buildTwapOrder({ side: 'sell' })} />);
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_DIRECTION_TAG)).toHaveProp(
-      'severity',
-      'danger',
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
+    ).toHaveProp('severity', 'danger');
+  });
+
+  it.each([
+    ['buy', 'Close short'],
+    ['sell', 'Close long'],
+  ] as const)('labels a reduce-only %s schedule as %s', (side, label) => {
+    // Arrange / Act
+    render(
+      <PerpsProTwapCard
+        twapOrder={buildTwapOrder({ reduceOnly: true, side })}
+      />,
     );
+
+    // Assert
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_DIRECTION_TAG)),
+    ).toHaveTextContent(label);
   });
 
   it('shows the reduce-only tag only for a reduce-only schedule', () => {
@@ -177,7 +206,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.queryByTestId(ids.TWAP_REDUCE_ONLY_TAG)).toBeNull();
+    expect(
+      screen.queryByTestId(getDefaultValueTestID(ids.TWAP_REDUCE_ONLY_TAG)),
+    ).toBeNull();
 
     // Act
     rerender(
@@ -185,7 +216,9 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_REDUCE_ONLY_TAG)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_REDUCE_ONLY_TAG)),
+    ).toBeOnTheScreen();
   });
 
   it.each([
@@ -203,14 +236,16 @@ describe('PerpsProTwapCard', () => {
     );
 
     // Assert
-    expect(screen.getByTestId(ids.TWAP_STATUS_TAG)).toHaveProp(
-      'severity',
-      severity,
-    );
+    expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_STATUS_TAG)),
+    ).toHaveProp('severity', severity);
   });
 
   it('offers Terminate only when a handler is supplied', () => {
-    const terminateTestId = getPerpsProTwapTerminateSelector('twap-1');
+    const terminateTestId = getPerpsProTwapTerminateSelector(
+      undefined,
+      'twap-1',
+    );
 
     // Arrange / Act
     const { rerender } = render(
@@ -239,7 +274,12 @@ describe('PerpsProTwapCard', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(twapOrder.orderId)),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector(
+          twapOrder.providerId,
+          twapOrder.orderId,
+        ),
+      ),
     );
 
     // Assert
@@ -259,7 +299,7 @@ describe('PerpsProTwapCard', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
     );
 
     // Assert
@@ -269,8 +309,15 @@ describe('PerpsProTwapCard', () => {
   it('targets one schedule when multiple cards can be terminated', () => {
     // Arrange
     const onTerminate = jest.fn();
-    const firstOrder = buildTwapOrder({ orderId: 'twap-1' });
-    const secondOrder = buildTwapOrder({ orderId: 'twap-2' });
+    const firstOrder = buildTwapOrder({
+      orderId: 'shared',
+      providerId: 'hyperliquid',
+    });
+    const secondOrder = buildTwapOrder({
+      orderId: 'shared',
+      providerId: 'myx',
+      symbol: 'ETH',
+    });
     render(
       <>
         <PerpsProTwapCard twapOrder={firstOrder} onTerminate={onTerminate} />
@@ -280,12 +327,32 @@ describe('PerpsProTwapCard', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('twap-2')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('myx', secondOrder.orderId),
+      ),
     );
 
     // Assert
     expect(onTerminate).toHaveBeenCalledTimes(1);
     expect(onTerminate).toHaveBeenCalledWith(secondOrder);
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapValueSelector(
+          ids.TWAP_MARKET,
+          firstOrder.providerId,
+          firstOrder.orderId,
+        ),
+      ),
+    ).toHaveTextContent('BTC');
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapValueSelector(
+          ids.TWAP_MARKET,
+          secondOrder.providerId,
+          secondOrder.orderId,
+        ),
+      ),
+    ).toHaveTextContent('ETH');
   });
 
   it('passes the schedule to the press handler', () => {
@@ -295,7 +362,11 @@ describe('PerpsProTwapCard', () => {
     render(<PerpsProTwapCard twapOrder={twapOrder} onPress={onPress} />);
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_ROW));
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapRowSelector(twapOrder.providerId, twapOrder.orderId),
+      ),
+    );
 
     // Assert
     expect(onPress).toHaveBeenCalledWith(twapOrder);

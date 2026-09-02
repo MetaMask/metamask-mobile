@@ -22,7 +22,8 @@ export interface UsePerpsTerminateTwapReturn {
  * A TWAP is cancelled through the ordinary `cancelOrder` path discriminated by
  * `orderType: 'twap'`, which the controller routes to the venue's TWAP cancel
  * endpoint rather than an order-book cancel. The remaining size stops
- * executing; size already filled stays as a position.
+ * executing; opening fills leave exposure while reduce-only fills have already
+ * reduced an existing position.
  */
 export const usePerpsTerminateTwap = (
   options: UsePerpsTerminateTwapOptions = {},
@@ -49,10 +50,9 @@ export const usePerpsTerminateTwap = (
           throw new Error(result.error ?? 'TWAP termination failed');
         }
 
-        // Pass the schedule's direction and executed size so the toast names
-        // what was filled. Without them the shared copy falls through to
-        // "funds are available to trade", which contradicts the terminate
-        // sheet's warning that already-filled size stays as a position.
+        // For opening schedules, name the executed exposure so the shared copy
+        // does not fall through to "funds are available to trade". Reduce-only
+        // schedules intentionally omit that opening-direction subtitle.
         const executedSize = Number.parseFloat(twapOrder.executedSize);
         const hasFills = Number.isFinite(executedSize) && executedSize > 0;
         showToast(

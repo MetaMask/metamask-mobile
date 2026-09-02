@@ -12,6 +12,7 @@ import type {
   ChaseOrder,
   Order,
   PriceUpdate,
+  TwapOrder,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -25,6 +26,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
@@ -47,6 +49,7 @@ import {
   getPerpsProChaseSideFilterOptionSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
+  getPerpsProTwapTerminateSelector,
 } from '../../Perps.testIds';
 
 const ids = PerpsProOrderFormSelectorsIDs;
@@ -65,6 +68,27 @@ const activeChase: ChaseOrder = {
   repricings: 0,
   startedAt: 1,
   status: 'active',
+};
+const activeTwap: TwapOrder = {
+  orderId: 'twap-view-1',
+  symbol: 'ETH',
+  side: 'buy',
+  size: '10',
+  executedSize: '4',
+  remainingSize: '6',
+  executedNotional: '10000',
+  averagePrice: '2500',
+  fillProgressBps: 4000,
+  timeProgressBps: 5000,
+  elapsedTimeMilliseconds: 60_000,
+  durationMinutes: 30,
+  randomize: false,
+  reduceOnly: false,
+  status: 'active',
+  startedAt: 1_000,
+  lastUpdated: 2_000,
+  fills: [],
+  providerId: 'hyperliquid',
 };
 const triggeredOrderTypeIDs = [
   PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
@@ -343,6 +367,25 @@ const emitEthPrice = (
   });
 };
 
+const syncEngineControllerState = (
+  store: ReturnType<typeof renderPerpsProMarketView>['store'],
+  key:
+    | 'AccountsController'
+    | 'AccountTreeController'
+    | 'PerpsController'
+    | 'RemoteFeatureFlagController',
+  nextState: Record<string, unknown>,
+) => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    [key]: nextState,
+  };
+  store.dispatch(updateBgState({ key }));
+};
+
 describeForPlatforms('PerpsProMarketView input journeys', () => {
   beforeEach(() => {
     jest
@@ -357,6 +400,14 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       .mocked(Engine.context.PerpsController.getChaseOrders)
       .mockReset()
       .mockResolvedValue([]);
+    jest
+      .mocked(Engine.context.PerpsController.getTwapOrders)
+      .mockReset()
+      .mockResolvedValue([]);
+    jest
+      .mocked(Engine.context.PerpsController.subscribeToTwapOrders)
+      .mockReset()
+      .mockReturnValue(jest.fn());
   });
 
   afterEach(() => {
@@ -447,6 +498,228 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(screen.queryByTestId(ids.TPSL)).not.toBeOnTheScreen();
     },
   );
+
+  itForPlatforms(
+    'discovers an active TWAP termination surface on cold-start rollback',
+    async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getTwapOrders)
+        .mockResolvedValue([activeTwap]);
+      renderProMarketWithTwapFlag(false);
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getPerpsProTwapTerminateSelector(
+            activeTwap.providerId,
+            activeTwap.orderId,
+          ),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'retains an active TWAP termination surface when rollout turns off',
+    async () => {
+      jest
+        .mocked(Engine.context.PerpsController.getTwapOrders)
+        .mockResolvedValue([activeTwap]);
+      const { store } = renderProMarketWithTwapFlag(true);
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+      const terminateTestID = getPerpsProTwapTerminateSelector(
+        activeTwap.providerId,
+        activeTwap.orderId,
+      );
+      expect(await screen.findByTestId(terminateTestID)).toBeOnTheScreen();
+      const remoteFeatureFlagController = store.getState().engine
+        .backgroundState.RemoteFeatureFlagController as unknown as {
+        remoteFeatureFlags: Record<string, unknown>;
+      };
+
+      act(() => {
+        syncEngineControllerState(store, 'RemoteFeatureFlagController', {
+          ...remoteFeatureFlagController,
+          remoteFeatureFlags: {
+            ...remoteFeatureFlagController.remoteFeatureFlags,
+            perpsMobileTwap: {
+              enabled: false,
+              minimumVersion: '0.0.0',
+            },
+          },
+        });
+      });
+
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.getByTestId(terminateTestID)).toBeOnTheScreen();
+    },
+  );
+
+  itForPlatforms(
+    'keeps discovery retry available after rollback and recovers an active TWAP',
+    async () => {
+      const getTwapOrders = jest.mocked(
+        Engine.context.PerpsController.getTwapOrders,
+      );
+      getTwapOrders
+        .mockRejectedValueOnce(new Error('venue down'))
+        .mockRejectedValueOnce(new Error('venue down'))
+        .mockResolvedValue([activeTwap]);
+      renderProMarketWithTwapFlag(false);
+
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+        ),
+      );
+      await waitFor(() => expect(getTwapOrders).toHaveBeenCalledTimes(2));
+      expect(
+        await screen.findByTestId(PerpsProMarketViewSelectorsIDs.TWAP_ERROR),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_RETRY),
+      );
+
+      expect(
+        await screen.findByTestId(
+          getPerpsProTwapTerminateSelector(
+            activeTwap.providerId,
+            activeTwap.orderId,
+          ),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  for (const identityChange of ['account', 'provider', 'network'] as const) {
+    itForPlatforms(
+      `closes TWAP termination when the ${identityChange} identity changes`,
+      async () => {
+        jest
+          .mocked(Engine.context.PerpsController.getTwapOrders)
+          .mockResolvedValue([activeTwap]);
+        const { store } = renderProMarketWithTwapFlag(false);
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+          ),
+        );
+        fireEvent.press(
+          await screen.findByTestId(
+            getPerpsProTwapTerminateSelector(
+              activeTwap.providerId,
+              activeTwap.orderId,
+            ),
+          ),
+        );
+        expect(
+          await screen.findByTestId(
+            PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+          ),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          if (identityChange === 'account') {
+            const accountsController = store.getState().engine.backgroundState
+              .AccountsController as unknown as {
+              internalAccounts: {
+                accounts: Record<string, Record<string, unknown>>;
+                selectedAccount: string;
+              };
+            };
+            const selectedAccountId =
+              accountsController.internalAccounts.selectedAccount;
+            const selectedAccount =
+              accountsController.internalAccounts.accounts[selectedAccountId];
+            const nextAccountId = 'acc-2';
+            syncEngineControllerState(store, 'AccountsController', {
+              ...accountsController,
+              internalAccounts: {
+                ...accountsController.internalAccounts,
+                selectedAccount: nextAccountId,
+                accounts: {
+                  ...accountsController.internalAccounts.accounts,
+                  [nextAccountId]: {
+                    ...selectedAccount,
+                    id: nextAccountId,
+                    address: '0x0000000000000000000000000000000000000002',
+                  },
+                },
+              },
+            });
+            const accountTreeController = store.getState().engine
+              .backgroundState.AccountTreeController as unknown as {
+              accountTree: {
+                wallets: Record<
+                  string,
+                  {
+                    groups: Record<string, Record<string, unknown>>;
+                  }
+                >;
+              };
+              selectedAccountGroup: string;
+            };
+            const selectedGroupId = accountTreeController.selectedAccountGroup;
+            const [selectedWalletId] = selectedGroupId.split('/');
+            const selectedWallet =
+              accountTreeController.accountTree.wallets[selectedWalletId];
+            const selectedGroup = selectedWallet.groups[selectedGroupId];
+            syncEngineControllerState(store, 'AccountTreeController', {
+              ...accountTreeController,
+              accountTree: {
+                ...accountTreeController.accountTree,
+                wallets: {
+                  ...accountTreeController.accountTree.wallets,
+                  [selectedWalletId]: {
+                    ...selectedWallet,
+                    groups: {
+                      ...selectedWallet.groups,
+                      [selectedGroupId]: {
+                        ...selectedGroup,
+                        accounts: [nextAccountId],
+                      },
+                    },
+                  },
+                },
+              },
+            });
+            return;
+          }
+
+          const perpsController = store.getState().engine.backgroundState
+            .PerpsController as unknown as Record<string, unknown>;
+          syncEngineControllerState(store, 'PerpsController', {
+            ...perpsController,
+            ...(identityChange === 'provider'
+              ? { activeProvider: 'myx' }
+              : { isTestnet: true }),
+          });
+        });
+
+        await waitFor(() =>
+          expect(
+            screen.queryByTestId(
+              PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+            ),
+          ).not.toBeOnTheScreen(),
+        );
+      },
+    );
+  }
 
   itForPlatforms(
     'retains canceled History when the controller omits the terminated session',
