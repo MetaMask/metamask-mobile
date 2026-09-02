@@ -11283,11 +11283,23 @@
     "title": "MetaMask Pro",
     "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
-    "manage_plan": "Manage plan",
+    "manage_membership": "Manage membership",
     "earned_with_pro": "Earned with Pro",
     "saved_with_pro": "Saved with Pro",
     "your_benefits": "Your benefits",
-    "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
+    "also_included": {
+      "title": "Also included",
+      "transaction_protection": {
+        "title": "Transaction protection",
+        "badge": "Extension",
+        "subtitle": "Up to $10,000 in on-chain protection"
+      },
+      "priority_support": {
+        "title": "Priority support",
+        "subtitle": "Real human support, around the clock"
+      },
+      "disclaimer": "Allowances reset monthly. APY is variable and not guaranteed. Benefits and card availability vary by region."
+    },
     "physical_card": {
       "title": "Get your physical card.",
       "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",

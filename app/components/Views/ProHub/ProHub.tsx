@@ -26,7 +26,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
-import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS, MOCK_PRO_HUB_STATS } from './ProHub.constants';
+import AlsoIncludedRow from './components/AlsoIncludedRow';
 import PhysicalCardPreview from './components/PhysicalCardPreview';
 import { BENEFITS, BenefitRow } from '../shared/pro';
 
@@ -219,33 +220,41 @@ const ProHub = () => {
 
         <SectionDivider marginVertical={6} />
 
-        <Box testID={ProHubTestIds.MEMBERSHIP_SECTION} twClassName="gap-y-4">
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            color={TextColor.TextDefault}
-          >
-            {strings('pro_hub.membership.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            testID={ProHubTestIds.NEXT_PAYMENT_TEXT}
-          >
-            {strings('pro_hub.next_payment', {
-              amount: MOCK_NEXT_PAYMENT.amount,
-              date: MOCK_NEXT_PAYMENT.date,
-            })}
-          </Text>
+        <Box testID={ProHubTestIds.ALSO_INCLUDED_SECTION}>
+          <Box twClassName="gap-y-1">
+            <Text
+              variant={TextVariant.HeadingMd}
+              fontWeight={FontWeight.Bold}
+              color={TextColor.TextDefault}
+            >
+              {strings('pro_hub.also_included.title')}
+            </Text>
+            {ALSO_INCLUDED_ITEMS.map((item) => (
+              <AlsoIncludedRow
+                key={item.id}
+                item={item}
+                testID={ProHubTestIds.ALSO_INCLUDED_ROW(item.id)}
+              />
+            ))}
+          </Box>
+          <SectionDivider twClassName="mb-8" />
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
             onPress={handleManageMembership}
             isFullWidth
             testID={ProHubTestIds.MANAGE_BUTTON}
+            twClassName="mb-8"
           >
-            {strings('pro_hub.manage_plan')}
+            {strings('pro_hub.manage_membership')}
           </Button>
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextMuted}
+            testID={ProHubTestIds.DISCLAIMER_TEXT}
+          >
+            {strings('pro_hub.also_included.disclaimer')}
+          </Text>
         </Box>
       </ScrollView>
     </SafeAreaView>
