@@ -1,4 +1,3 @@
-import { rpcErrors } from '@metamask/rpc-errors';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
 import { trackDappViewedEvent } from '../../util/metrics';
 import { isSnapId } from '@metamask/snaps-utils';
@@ -8,15 +7,11 @@ const requestEthereumAccounts = {
   implementation: requestEthereumAccountsHandler,
   hookNames: {
     getAccounts: true,
-    getUnlockPromise: true,
     getCaip25PermissionFromLegacyPermissionsForOrigin: true,
     requestPermissionsForOrigin: true,
   },
 };
 export default requestEthereumAccounts;
-
-// Used to rate-limit pending requests to one per origin
-const locks = new Set();
 
 /**
  * This method attempts to retrieve the Ethereum accounts available to the
@@ -31,7 +26,6 @@ const locks = new Set();
  * @param end - JsonRpcEngine end() callback
  * @param options - Method hooks passed to the method implementation
  * @param options.getAccounts - A hook that returns the permitted eth accounts for the origin sorted by lastSelected.
- * @param options.getUnlockPromise - A hook that resolves when the wallet is unlocked.
  * @param options.getCaip25PermissionFromLegacyPermissionsForOrigin - A hook that returns a CAIP-25 permission from a legacy `eth_accounts` and `endowment:permitted-chains` permission.
  * @param options.requestPermissionsForOrigin - A hook that requests CAIP-25 permissions for the origin.
  * @returns A promise that resolves to nothing
@@ -43,18 +37,11 @@ async function requestEthereumAccountsHandler(
   end,
   {
     getAccounts,
-    getUnlockPromise,
     getCaip25PermissionFromLegacyPermissionsForOrigin,
     requestPermissionsForOrigin,
   },
 ) {
   const { origin } = req;
-  if (locks.has(origin)) {
-    res.error = rpcErrors.resourceUnavailable(
-      `Already processing ${MESSAGE_TYPE.ETH_REQUEST_ACCOUNTS}. Please wait.`,
-    );
-    return end();
-  }
 
   let ethAccounts = getAccounts();
   if (ethAccounts.length > 0) {
@@ -62,14 +49,10 @@ async function requestEthereumAccountsHandler(
     // requests are handled when the extension is unlocked, regardless of the
     // lock state when they were received.
     try {
-      locks.add(origin);
-      await getUnlockPromise(true);
       res.result = ethAccounts;
       end();
     } catch (error) {
       end(error);
-    } finally {
-      locks.delete(origin);
     }
     return undefined;
   }

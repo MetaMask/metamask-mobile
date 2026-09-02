@@ -1,4 +1,3 @@
-import { rpcErrors } from '@metamask/rpc-errors';
 import {
   JsonRpcParams,
   JsonRpcRequest,
@@ -44,14 +43,10 @@ const deferredPromise = (): DeferredPromise => {
   return { promise, resolve, reject };
 };
 
-const flushPromises = () =>
-  new Promise(jest.requireActual('timers').setImmediate);
-
 const createMockedHandler = () => {
   const next = jest.fn();
   const end = jest.fn();
   const getAccounts = jest.fn().mockReturnValue([]);
-  const getUnlockPromise = jest.fn();
   const getCaip25PermissionFromLegacyPermissionsForOrigin = jest
     .fn()
     .mockResolvedValue({});
@@ -66,7 +61,6 @@ const createMockedHandler = () => {
   ) =>
     requestEthereumAccounts.implementation(request, response, next, end, {
       getAccounts,
-      getUnlockPromise,
       getCaip25PermissionFromLegacyPermissionsForOrigin,
       requestPermissionsForOrigin,
     });
@@ -76,7 +70,6 @@ const createMockedHandler = () => {
     next,
     end,
     getAccounts,
-    getUnlockPromise,
     getCaip25PermissionFromLegacyPermissionsForOrigin,
     requestPermissionsForOrigin,
     handler,
@@ -96,47 +89,12 @@ describe('requestEthereumAccountsHandler', () => {
   });
 
   describe('eip155 account permissions exist', () => {
-    it('waits for the wallet to unlock', async () => {
-      const { handler, getUnlockPromise, getAccounts } = createMockedHandler();
-      getAccounts.mockReturnValue(['0xdead', '0xbeef']);
-
-      await handler(baseRequest);
-      expect(getUnlockPromise).toHaveBeenCalledWith(true);
-    });
-
     it('returns the accounts', async () => {
       const { handler, response, getAccounts } = createMockedHandler();
       getAccounts.mockReturnValue(['0xdead', '0xbeef']);
 
       await handler(baseRequest);
       expect(response.result).toStrictEqual(['0xdead', '0xbeef']);
-    });
-
-    it('blocks subsequent requests if there is currently a request waiting for the wallet to be unlocked', async () => {
-      const { handler, getUnlockPromise, getAccounts, end, response } =
-        createMockedHandler();
-      const { promise, resolve } = deferredPromise();
-      getUnlockPromise.mockReturnValue(promise);
-      getAccounts.mockReturnValue(['0xdead', '0xbeef']);
-
-      handler(baseRequest);
-      expect(response).toStrictEqual({
-        id: 0,
-        jsonrpc: '2.0',
-        result: undefined,
-      });
-      expect(end).not.toHaveBeenCalled();
-
-      await flushPromises();
-
-      await handler(baseRequest);
-      expect(response.error).toStrictEqual(
-        rpcErrors.resourceUnavailable(
-          `Already processing eth_requestAccounts. Please wait.`,
-        ),
-      );
-      expect(end).toHaveBeenCalledTimes(1);
-      resolve?.();
     });
   });
 
