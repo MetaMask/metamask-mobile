@@ -21,6 +21,7 @@ export const mockedPerpsFeatureFlagsEnabledState: Record<
   perpsProModeEnabled: mockEnabledPerpsLDFlag,
   perpsMobileTwap: mockEnabledPerpsLDFlag,
   perpsMobileScale: mockEnabledPerpsLDFlag,
+  perpsMobileChase: mockEnabledPerpsLDFlag,
   perpsTerminalBackendEnabled: mockEnabledPerpsLDFlag,
   perpsRecentlyAddedEnabled: mockEnabledPerpsLDFlag,
   perpsShowFullAssetNames: mockEnabledPerpsLDFlag,
