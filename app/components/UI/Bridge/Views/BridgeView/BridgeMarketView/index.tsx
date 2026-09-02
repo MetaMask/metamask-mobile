@@ -74,6 +74,7 @@ import { useHasSufficientGas } from '../../../hooks/useHasSufficientGas/index.ts
 import { useRecipientInitialization } from '../../../hooks/useRecipientInitialization';
 import {
   selectGasIncludedQuoteParams,
+  selectIsDestAssetRequireActivate,
   selectSourceWalletAddress,
 } from '../../../../../../selectors/bridge';
 import { Hex } from '@metamask/utils';
@@ -113,6 +114,7 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuotePriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -402,6 +404,10 @@ const BridgeMarketViewContent = ({
     hasInsufficientGas ||
     !walletAddress;
 
+  const isDestAssetRequireActivate = useSelector(
+    selectIsDestAssetRequireActivate,
+  );
+
   useBridgeQuoteEvents({
     hasInsufficientBalance,
     hasInsufficientNativeReserveError,
@@ -411,6 +417,7 @@ const BridgeMarketViewContent = ({
     isNetworkFeeUnavailable,
     isSubmitDisabled,
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
+    hasDestAssetRequireActivate: isDestAssetRequireActivate,
     hasUsableQuote: Boolean(activeQuote && isActiveQuoteForCurrentTokenPair),
   });
 
@@ -620,6 +627,7 @@ const BridgeMarketViewContent = ({
           >
             <QuoteErrorBanner />
             <TokenWarningBanner />
+            <DestAssetRequireActivateBanner />
             <InsufficientNativeReserveBanner />
             <MissingQuotePriceDataBanner />
           </SwapsBanners>

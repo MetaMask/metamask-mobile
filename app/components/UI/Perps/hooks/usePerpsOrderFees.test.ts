@@ -988,6 +988,39 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
     });
   });
 
+  describe('Chase Orders', () => {
+    it('uses maker pricing for post-only Chase orders', async () => {
+      mockCalculateFees.mockResolvedValue({
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'chase',
+            amount: '100000',
+            direction: 'long',
+            providerId: 'hyperliquid',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'chase',
+        isMaker: true,
+        amount: '100000',
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      });
+    });
+  });
+
   describe('Limit Orders - Long Direction', () => {
     it('treats buy limit above ask as taker when price would execute immediately', async () => {
       const mockTakerFeeResult: FeeCalculationResult = {

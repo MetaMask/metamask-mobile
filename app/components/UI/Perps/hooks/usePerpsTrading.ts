@@ -63,6 +63,10 @@ import {
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
 
+type MobileCancelOrderParams = CancelOrderParams & {
+  skipCufConfirmationTrace?: boolean;
+};
+
 /**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
@@ -80,8 +84,14 @@ export function usePerpsTrading() {
   );
 
   const cancelOrder = useCallback(
-    async (params: CancelOrderParams): Promise<CancelOrderResult> => {
+    async ({
+      skipCufConfirmationTrace,
+      ...params
+    }: MobileCancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
+      if (skipCufConfirmationTrace) {
+        return controller.cancelOrder(params);
+      }
       // Confirmation CUF: every cancel UI path funnels through here; the span
       // ends when the stream no longer lists the order.
       const cancelCufOpId = startPerpsCufTrace({

@@ -28,6 +28,7 @@ import {
   endPerpsCufTrace,
   startPerpsCufTrace,
   watchPerpsCufOrderPriceUpdated,
+  watchPerpsCufOrderAbsent,
 } from '../utils/perpsCufTrace';
 
 jest.mock('../utils/perpsCufTrace', () => ({
@@ -44,6 +45,7 @@ const mockStartPerpsCufTrace = startPerpsCufTrace as jest.Mock;
 const mockEndPerpsCufTrace = endPerpsCufTrace as jest.Mock;
 const mockWatchPerpsCufOrderPriceUpdated =
   watchPerpsCufOrderPriceUpdated as jest.Mock;
+const mockWatchPerpsCufOrderAbsent = watchPerpsCufOrderAbsent as jest.Mock;
 const mockAcceptPerpsCufRequest = acceptPerpsCufRequest as jest.Mock;
 
 const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
@@ -226,6 +228,28 @@ describe('usePerpsTrading', () => {
         cancelParams,
       );
       expect(response).toEqual(mockCancelResult);
+    });
+
+    it('skips ordinary-order confirmation tracing for Chase', async () => {
+      (
+        Engine.context.PerpsController.cancelOrder as jest.Mock
+      ).mockResolvedValue({ success: true, orderId: 'chase-handle' });
+      const { result } = renderHook(() => usePerpsTrading());
+
+      await result.current.cancelOrder({
+        orderId: 'chase-handle',
+        skipCufConfirmationTrace: true,
+        symbol: 'BTC',
+        orderType: 'chase',
+      });
+
+      expect(mockStartPerpsCufTrace).not.toHaveBeenCalled();
+      expect(mockWatchPerpsCufOrderAbsent).not.toHaveBeenCalled();
+      expect(Engine.context.PerpsController.cancelOrder).toHaveBeenCalledWith({
+        orderId: 'chase-handle',
+        symbol: 'BTC',
+        orderType: 'chase',
+      });
     });
   });
 

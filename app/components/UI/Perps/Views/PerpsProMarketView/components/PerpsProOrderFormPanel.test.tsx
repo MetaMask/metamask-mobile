@@ -2,7 +2,7 @@
 // prop/sheet wiring from business logic. User-visible order-type behavior is
 // covered by PerpsProMarketView.view.test.tsx with real Redux selectors.
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import {
   PERPS_CONSTANTS,
   type OrderType,
@@ -21,6 +21,7 @@ import {
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import {
   selectPerpsMobileScaleEnabledFlag,
+  selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
@@ -265,6 +266,7 @@ describe('PerpsProOrderFormPanel', () => {
     selectorValues.set(selectPerpsProTriggeredOrdersEnabledFlag, true);
     selectorValues.set(selectPerpsProTwapEnabledFlag, true);
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, true);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, true);
     selectorValues.set(selectPerpsProvider, 'hyperliquid');
     mockUseSelector.mockImplementation((selector: unknown) =>
       selectorValues.get(selector),
@@ -274,10 +276,11 @@ describe('PerpsProOrderFormPanel', () => {
       orderCapabilities: {
         status: 'ready',
         providerId: 'hyperliquid',
-        supportedStrategies: ['twap', 'scale'],
+        supportedStrategies: ['twap', 'scale', 'chase'],
       },
       supportsTwapOrders: true,
       supportsScaleOrders: true,
+      supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
     });
     mockUseIsPerpsProModeActive.mockReturnValue(true);
@@ -313,13 +316,26 @@ describe('PerpsProOrderFormPanel', () => {
     });
   });
 
-  it('skips capability discovery when both strategy flags are disabled', () => {
+  it('skips capability discovery when all strategy flags are disabled', () => {
+    selectorValues.set(selectPerpsProTwapEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
+  });
+
+  it('loads shared capabilities when only Chase is enabled', () => {
     selectorValues.set(selectPerpsProTwapEnabledFlag, false);
     selectorValues.set(selectPerpsMobileScaleEnabledFlag, false);
 
     renderPanel();
 
-    expect(mockUsePerpsProvider).toHaveBeenCalledWith(undefined);
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    });
   });
 
   it('forwards the provider route resolved by capabilities to the order form', () => {
@@ -334,6 +350,76 @@ describe('PerpsProOrderFormPanel', () => {
         isScaleOrdersEnabled: true,
         isScaleOrderSupportPending: false,
         checkScaleOrderSupport: expect.any(Function),
+        isChaseAvailabilityPending: false,
+        isChaseEnabled: true,
+        chaseProviderId: 'hyperliquid',
+        refreshChaseCapability: expect.any(Function),
+      }),
+    );
+  });
+
+  it('forwards blurred focus without hiding the order form', () => {
+    renderPanel({ isScreenFocused: false });
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({ isScreenFocused: false }),
+    );
+    expect(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('rechecks Chase support against the shared concrete provider route', async () => {
+    renderPanel();
+    const params = mockUsePerpsProOrderForm.mock.calls[0][0] as {
+      refreshChaseCapability: () => Promise<string | null>;
+    };
+    let providerId: string | null = null;
+
+    await act(async () => {
+      providerId = await params.refreshChaseCapability();
+    });
+
+    expect(mockCheckOrderCapability).toHaveBeenCalledWith(
+      'chase',
+      'hyperliquid',
+    );
+    expect(providerId).toBe('hyperliquid');
+  });
+
+  it('fails Chase closed when shared capabilities omit Chase', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      isLoadingOrderCapabilities: false,
+      orderCapabilities: {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale'],
+      },
+      supportsTwapOrders: true,
+      supportsScaleOrders: true,
+      supportsChaseOrders: false,
+      checkOrderCapability: mockCheckOrderCapability,
+    });
+
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isChaseEnabled: false,
+        chaseProviderId: null,
+      }),
+    );
+  });
+
+  it('keeps Chase gated off when shared capabilities support it', () => {
+    selectorValues.set(selectPerpsMobileChaseEnabledFlag, false);
+
+    renderPanel();
+
+    expect(mockUsePerpsProOrderForm).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isChaseEnabled: false,
+        chaseProviderId: null,
       }),
     );
   });
@@ -562,6 +648,7 @@ describe('PerpsProOrderFormPanel', () => {
           'take_profit_market',
           'twap',
           'scale',
+          'chase',
         ],
         title: 'Choose order type',
       }),
@@ -589,7 +676,7 @@ describe('PerpsProOrderFormPanel', () => {
 
     expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
       expect.objectContaining({
-        availableOrderTypes: ['market', 'limit', 'twap', 'scale'],
+        availableOrderTypes: ['market', 'limit', 'twap', 'scale', 'chase'],
       }),
     );
   });
@@ -600,10 +687,11 @@ describe('PerpsProOrderFormPanel', () => {
       orderCapabilities: {
         status: 'ready',
         providerId: 'hyperliquid',
-        supportedStrategies: ['scale'],
+        supportedStrategies: ['scale', 'chase'],
       },
       supportsTwapOrders: false,
       supportsScaleOrders: true,
+      supportsChaseOrders: true,
       checkOrderCapability: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
@@ -620,6 +708,7 @@ describe('PerpsProOrderFormPanel', () => {
           'take_profit_limit',
           'take_profit_market',
           'scale',
+          'chase',
         ],
       }),
     );
@@ -635,6 +724,7 @@ describe('PerpsProOrderFormPanel', () => {
       },
       supportsTwapOrders: true,
       supportsScaleOrders: true,
+      supportsChaseOrders: false,
       checkOrderCapability: mockCheckOrderCapability,
     });
     mockHookResult.isOrderTypeVisible = true;
@@ -657,6 +747,28 @@ describe('PerpsProOrderFormPanel', () => {
       expect.objectContaining({
         isScaleOrdersEnabled: false,
         scaleProviderId: undefined,
+      }),
+    );
+  });
+
+  it('keeps Chase available when the TWAP rollout flag is absent', () => {
+    selectorValues.delete(selectPerpsProTwapEnabledFlag);
+    mockHookResult.isOrderTypeVisible = true;
+
+    renderPanel();
+
+    expect(mockOrderTypeBottomSheet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        availableOrderTypes: [
+          'market',
+          'limit',
+          'stop_limit',
+          'stop_market',
+          'take_profit_limit',
+          'take_profit_market',
+          'scale',
+          'chase',
+        ],
       }),
     );
   });
