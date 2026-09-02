@@ -94,7 +94,7 @@ function enrichApiActivityData(
       ...activity.data,
       ...extras,
     },
-  };
+  } as ActivityListItem;
 }
 
 const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>

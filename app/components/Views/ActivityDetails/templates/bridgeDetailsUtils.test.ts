@@ -71,6 +71,7 @@ describe('bridgeDetailsUtils', () => {
         },
       },
     } as BridgeHistoryItem;
+    const item = bridgeItem();
 
     expect(
       getBridgeHistoryItem(item, { unused: bridgeHistoryItem }),

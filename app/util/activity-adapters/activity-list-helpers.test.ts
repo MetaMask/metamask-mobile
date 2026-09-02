@@ -371,20 +371,11 @@ describe('activity list helpers', () => {
 
   it('generates stable keys for grouped activity rows', () => {
     const localTransactionItem = makeItem({
-      raw: {
-        type: 'localTransaction',
-        data: {
-          primaryTransaction: { id: 'local-tx-id' },
-          initialTransaction: { id: 'initial-tx-id' },
-        },
-      },
+      localTransactionMetaId: 'local-tx-id',
     } as Partial<ActivityListItem>);
     const keyringTransactionItem = makeItem({
       hash: 'keyring-hash',
-      raw: {
-        type: 'keyringTransaction',
-        data: { id: 'keyring-tx-id' },
-      },
+      keyringTransactionId: 'keyring-tx-id',
     } as Partial<ActivityListItem>);
     const apiTransactionItem = makeItem({
       hash: '0xapi',

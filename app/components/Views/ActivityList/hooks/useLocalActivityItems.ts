@@ -394,11 +394,6 @@ export function useLocalActivityItems(): ActivityListItem[] {
           group.primaryTransaction.hash,
           group.initialTransaction.hash,
         ].filter((hash): hash is string => Boolean(hash)),
-        data: {
-          ...item.data,
-          from: group.initialTransaction.txParams.from,
-          to: group.initialTransaction.txParams.to,
-        },
       });
     }
 
