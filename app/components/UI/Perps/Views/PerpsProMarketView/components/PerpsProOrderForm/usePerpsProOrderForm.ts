@@ -141,6 +141,7 @@ import type {
   PerpsProTwapModel,
 } from './PerpsProOrderForm.types';
 import { usePerpsProSizeInput } from './usePerpsProSizeInput';
+import { usePerpsProPositionModifyPreview } from './usePerpsProPositionModifyPreview';
 
 const SCALE_DEFAULT_SKEW = '1.00';
 const SCALE_SKEW_DECIMAL_PLACES = 2;
@@ -1534,6 +1535,25 @@ export const usePerpsProOrderForm = ({
     asset: orderForm.asset,
   });
 
+  const {
+    summaryDisplay: positionModifySummaryDisplay,
+    isAwaitingFirstPreview: isAwaitingPositionModifyPreview,
+  } = usePerpsProPositionModifyPreview({
+    position: currentMarketPosition,
+    direction: orderForm.direction,
+    size: submissionPositionSize,
+    price: effectivePrice,
+    leverage: orderForm.leverage,
+    reduceOnly,
+    feeAmountUsd:
+      typeof estimatedFees === 'number' && estimatedFees > 0
+        ? estimatedFees
+        : undefined,
+    providerId: orderProviderId ?? currentMarketPosition?.providerId,
+    hasValidAmount,
+    enabled: !isScaleOrder && !isTwapOrder,
+  });
+
   const existingPositionLeverageForValidation =
     currentMarketPosition?.leverage?.value;
   const effectiveOrderForm = useMemo(
@@ -1812,6 +1832,8 @@ export const usePerpsProOrderForm = ({
     track,
   ]);
 
+  const tpslDirection =
+    positionModifySummaryDisplay.tpslDirection ?? orderForm.direction;
   const {
     doesStopLossRiskLiquidation,
     isTakeProfitPriceInvalid,
@@ -1820,10 +1842,11 @@ export const usePerpsProOrderForm = ({
   } = getPerpsOrderTpSlWarnings({
     orderType: orderForm.type,
     limitPrice: normalizedLimitPrice,
-    direction: orderForm.direction,
+    direction: tpslDirection,
     takeProfitPrice: orderForm.takeProfitPrice,
     stopLossPrice: orderForm.stopLossPrice,
-    liquidationPrice,
+    liquidationPrice:
+      positionModifySummaryDisplay.tpslLiquidationPrice ?? liquidationPrice,
     marketPrice: assetData.price,
   });
   const standardOrderToastOptions =
@@ -2942,7 +2965,7 @@ export const usePerpsProOrderForm = ({
       }),
       ...getTpslNotices({
         reduceOnly: reduceOnly || isTriggerOrderType(orderForm.type),
-        direction: orderForm.direction,
+        direction: tpslDirection,
         doesStopLossRiskLiquidation,
         isTakeProfitPriceInvalid,
         isStopLossPriceInvalid,
@@ -3016,7 +3039,7 @@ export const usePerpsProOrderForm = ({
     isTakeProfitPriceInvalid,
     isStopLossPriceInvalid,
     isAtCap,
-    orderForm.direction,
+    tpslDirection,
     orderForm.type,
     tpslPriceType,
     twapDurationMissing,
@@ -3050,17 +3073,37 @@ export const usePerpsProOrderForm = ({
               });
       }
     }
+    const formatMargin = (value: number | string) =>
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+    const formatLiquidation = (value: number | string) =>
+      formatPerpsFiat(value, { ranges: PRICE_RANGES_UNIVERSAL });
+    const formatBeforeAfter = (before: string, after: string) =>
+      strings('perps.pro_order_form.before_after', { before, after });
+
+    const orderMarginDisplay =
+      effectiveMarginRequired !== undefined && effectiveMarginRequired !== null
+        ? formatMargin(effectiveMarginRequired)
+        : PERPS_CONSTANTS.FallbackDataDisplay;
+    const orderLiquidationDisplay = hasValidAmount
+      ? formatLiquidation(liquidationPrice)
+      : PERPS_CONSTANTS.FallbackDataDisplay;
+
+    let margin = orderMarginDisplay;
+    let liquidationPriceDisplay = orderLiquidationDisplay;
+    if (positionModifySummaryDisplay.showBeforeAfter) {
+      margin = formatBeforeAfter(
+        positionModifySummaryDisplay.currentMarginDisplay,
+        positionModifySummaryDisplay.resultingMarginDisplay,
+      );
+      liquidationPriceDisplay = formatBeforeAfter(
+        positionModifySummaryDisplay.currentLiquidationDisplay,
+        positionModifySummaryDisplay.resultingLiquidationDisplay,
+      );
+    }
+
     return {
-      margin:
-        effectiveMarginRequired !== undefined &&
-        effectiveMarginRequired !== null
-          ? formatPerpsFiat(effectiveMarginRequired, {
-              ranges: PRICE_RANGES_MINIMAL_VIEW,
-            })
-          : PERPS_CONSTANTS.FallbackDataDisplay,
-      liquidationPrice: hasValidAmount
-        ? formatPerpsFiat(liquidationPrice, { ranges: PRICE_RANGES_UNIVERSAL })
-        : PERPS_CONSTANTS.FallbackDataDisplay,
+      margin,
+      liquidationPrice: liquidationPriceDisplay,
       slippage,
       onSlippagePress:
         isMarketOrder || isTriggerMarketOrder ? onSlippagePress : undefined,
@@ -3083,6 +3126,7 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     onSlippagePress,
+    positionModifySummaryDisplay,
   ]);
 
   const trackScaleConfiguration = useCallback(
@@ -3266,6 +3310,7 @@ export const usePerpsProOrderForm = ({
         chaseProviderId === null)) ||
     isChaseMaxDistanceInvalid ||
     isPlacing ||
+    isAwaitingPositionModifyPreview ||
     isChasePreflightPending ||
     isScalePlacementPending ||
     isMarketDataBlocking ||

@@ -17,18 +17,14 @@ import {
   CandlePeriod,
   TimeDuration,
   CANDLE_PERIODS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import {
-  getPerpsCandlePeriodBottomSheetSelector,
-  PerpsCandlePeriodBottomSheetSelectorsIDs,
-} from '../../Perps.testIds';
-import { strings } from '../../../../../../locales/i18n';
-import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+  getCandlePeriodBottomSheetSelectors,
+  CandlePeriodBottomSheetSelectorsIDs,
+} from './testIds';
+import { strings } from '../../../../../locales/i18n';
 
-interface PerpsCandlePeriodBottomSheetProps {
+interface CandlePeriodBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
   selectedPeriod: CandlePeriod;
@@ -36,8 +32,12 @@ interface PerpsCandlePeriodBottomSheetProps {
   onPeriodChange?: (period: CandlePeriod) => void;
   showAllPeriods?: boolean;
   testID?: string;
-  // For tracking
-  asset?: string;
+  /**
+   * Fires when the sheet becomes visible. Provided so feature-specific
+   * analytics can be wired without coupling this shared component to any one
+   * feature's tracking layer.
+   */
+  onViewed?: (selectedPeriod: CandlePeriod) => void;
 }
 
 const PERIOD_COLUMNS = 5;
@@ -47,9 +47,7 @@ type CandlePeriodOption = Readonly<{
   value: CandlePeriod;
 }>;
 
-const PerpsCandlePeriodBottomSheet: React.FC<
-  PerpsCandlePeriodBottomSheetProps
-> = ({
+const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
   isVisible,
   onClose,
   selectedPeriod,
@@ -57,26 +55,18 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   onPeriodChange,
   showAllPeriods = false,
   testID,
-  asset,
+  onViewed,
 }) => {
-  const { track } = usePerpsEventTracking();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const onViewedRef = useRef(onViewed);
+  onViewedRef.current = onViewed;
 
   useEffect(() => {
     if (isVisible) {
-      // Track candle periods bottom sheet viewed when it becomes visible
-      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.CANDLE_PERIOD_VIEWED,
-        [PERPS_EVENT_PROPERTY.ASSET]: asset || '',
-        [PERPS_EVENT_PROPERTY.CANDLE_PERIOD]: selectedPeriod,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-      });
-
+      onViewedRef.current?.(selectedPeriod);
       bottomSheetRef.current?.onOpenBottomSheet();
     }
-  }, [isVisible, track, asset, selectedPeriod]);
+  }, [isVisible, selectedPeriod]);
 
   const availablePeriods = showAllPeriods
     ? CANDLE_PERIODS
@@ -154,7 +144,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
             isFullWidth
             testID={
               testID
-                ? getPerpsCandlePeriodBottomSheetSelector.periodButton(
+                ? getCandlePeriodBottomSheetSelectors.periodButton(
                     testID,
                     period.value,
                   )
@@ -174,7 +164,7 @@ const PerpsCandlePeriodBottomSheet: React.FC<
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{
-          testID: PerpsCandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
+          testID: CandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('perps.chart.candle_intervals')}
@@ -209,4 +199,4 @@ const PerpsCandlePeriodBottomSheet: React.FC<
   );
 };
 
-export default PerpsCandlePeriodBottomSheet;
+export default CandlePeriodBottomSheet;
