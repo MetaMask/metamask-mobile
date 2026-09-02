@@ -202,9 +202,10 @@ const Membership = () => {
     setActiveSheet('earned');
   }, []);
 
-  const handleSavedPress = useCallback(() => {
-    setActiveSheet('saved');
-  }, []);
+  // TODO: re-enable saved this month row
+  // const handleSavedPress = useCallback(() => {
+  //   setActiveSheet('saved');
+  // }, []);
 
   const handleInvoices = useCallback(() => {
     // TODO: navigate to invoices
