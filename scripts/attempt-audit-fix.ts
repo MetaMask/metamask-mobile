@@ -96,10 +96,9 @@ const AI_PR_URL_PATH = 'audit-ai-pr-url.txt';
 const ADVISORY_CONTEXT_PATH = '.ai-pr-analyzer/dependency-audit-advisories.json';
 const ANALYZER_OUTPUT_PATH = '.ai-pr-analyzer/dependency-audit-fix.json';
 const ANALYZER_ENTRY = '.ai-analyzer-action/src/index.ts';
-// Same args the escalation workflow's "Run dependency audit" step uses to
-// produce the NDJSON this script re-checks against — kept in sync manually
-// since neither side is a package.json script.
-const AUDIT_JSON_ARGS = ['npm', 'audit', '--environment', 'production', '--severity', 'moderate', '--no-deprecations', '--json'];
+// Same command the escalation workflow's "Run dependency audit" step uses to
+// produce the NDJSON this script re-checks against.
+const AUDIT_JSON_ARGS = ['audit:ci', '--json'];
 
 function tryShQuiet(cmd: string, args: string[]): { ok: boolean; output: string } {
   try {

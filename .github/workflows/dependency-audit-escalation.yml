@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          yarn npm audit --environment production --severity moderate --no-deprecations --json > audit.ndjson 2> audit.stderr
+          yarn audit:ci --json > audit.ndjson 2> audit.stderr
           EXIT="$?"
           set -e
           cat audit.stderr >&2 || true
