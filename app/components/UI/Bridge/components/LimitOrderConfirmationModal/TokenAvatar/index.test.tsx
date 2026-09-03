@@ -47,8 +47,12 @@ describe('TokenAvatar', () => {
     );
 
     expect(getByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeOnTheScreen();
-    expect(getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE)).toBeOnTheScreen();
-    expect(getByTestId(TokenAvatarSelectorsIDs.NETWORK_IMAGE)).toBeOnTheScreen();
+    expect(
+      getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(TokenAvatarSelectorsIDs.NETWORK_IMAGE),
+    ).toBeOnTheScreen();
   });
 
   it('hides the network image when no network image source is available', () => {
@@ -58,7 +62,9 @@ describe('TokenAvatar', () => {
       <TokenAvatar token={mockToken} withNetworkBadge />,
     );
 
-    expect(getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE)).toBeOnTheScreen();
+    expect(
+      getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
+    ).toBeOnTheScreen();
     expect(queryByTestId(TokenAvatarSelectorsIDs.NETWORK_IMAGE)).toBeNull();
   });
 

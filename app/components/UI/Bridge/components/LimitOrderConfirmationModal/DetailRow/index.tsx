@@ -11,10 +11,7 @@ import {
 import { DetailRowSelectorsIDs } from './testIds';
 import type { DetailRowProps } from './types';
 
-export const DetailRow = ({
-  label,
-  children,
-}: DetailRowProps) => (
+export const DetailRow = ({ label, children }: DetailRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}

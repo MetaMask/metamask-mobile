@@ -6,7 +6,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { selectSlippage } from '../../../../../core/redux/slices/bridge';
 import { LIMIT_ORDER_DEFAULT_SLIPPAGE } from '../../constants/limitOrders';
-import {LimitOrderConfirmationModal} from './LimitOrderConfirmationModal';
+import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
 
 export const LimitOrderConfirmationModalScreen = () => {

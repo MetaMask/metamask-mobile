@@ -7,7 +7,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {TokenAvatar} from '../TokenAvatar';
+import { TokenAvatar } from '../TokenAvatar';
 import { TokenAmountValueSelectorsIDs } from './testIds';
 import type { TokenAmountValueProps } from './types';
 
@@ -36,4 +36,3 @@ export const TokenAmountValue = ({
     </Text>
   </Box>
 );
-

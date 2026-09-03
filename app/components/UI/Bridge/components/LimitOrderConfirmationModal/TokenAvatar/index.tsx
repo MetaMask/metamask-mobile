@@ -13,10 +13,7 @@ import { getTokenImageSource } from '../../../utils';
 import { TokenAvatarSelectorsIDs } from './testIds';
 import type { TokenAvatarProps } from './types';
 
-export const TokenAvatar = ({
-  token,
-  withNetworkBadge,
-}: TokenAvatarProps) => {
+export const TokenAvatar = ({ token, withNetworkBadge }: TokenAvatarProps) => {
   const tw = useTailwind();
   const tokenImageSource = getTokenImageSource(
     token.symbol,

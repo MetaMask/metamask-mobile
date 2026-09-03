@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { createMockTokenWithBalance } from '../../../testUtils';
 import { TokenAvatarSelectorsIDs } from '../TokenAvatar/testIds';
-import {TokenAmountValue} from '.';
+import { TokenAmountValue } from '.';
 import { TokenAmountValueSelectorsIDs } from './testIds';
 
 jest.mock('../../../../../../util/networks', () => ({
@@ -51,7 +51,9 @@ describe('TokenAmountValue', () => {
       <TokenAmountValue amount="$1.69" token={mockToken} withNetworkBadge />,
     );
 
-    expect(getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE)).toBeOnTheScreen();
+    expect(
+      getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
+    ).toBeOnTheScreen();
   });
 
   it('applies a custom testID when provided', () => {

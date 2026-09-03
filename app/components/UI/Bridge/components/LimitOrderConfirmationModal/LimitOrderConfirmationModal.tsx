@@ -16,8 +16,8 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import {DetailRow} from './DetailRow';
-import {TokenAmountValue} from './TokenAmountValue';
+import { DetailRow } from './DetailRow';
+import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 
@@ -78,23 +78,17 @@ export const LimitOrderConfirmationModal = ({
         })}
       </BottomSheetHeader>
       <Box paddingBottom={2}>
-        <DetailRow
-          label={strings('bridge.limit.paying')}
-        >
+        <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
-        <DetailRow
-          label={strings('bridge.limit.receiving')}
-        >
+        <DetailRow label={strings('bridge.limit.receiving')}>
           <TokenAmountValue
             amount={destToken?.symbol ?? '--'}
             token={destToken}
           />
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow
-          label={strings('bridge.limit.trigger_condition')}
-        >
+        <DetailRow label={strings('bridge.limit.trigger_condition')}>
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
             <TokenAmountValue amount={triggerPrice} token={triggerToken} />
             {triggerComparison ? (
@@ -111,17 +105,13 @@ export const LimitOrderConfirmationModal = ({
             ) : null}
           </Box>
         </DetailRow>
-        <DetailRow
-          label={strings('bridge.limit.expiry_label')}
-        >
+        <DetailRow label={strings('bridge.limit.expiry_label')}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {expiry}
           </Text>
         </DetailRow>
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow
-          label={strings('bridge.slippage')}
-        >
+        <DetailRow label={strings('bridge.slippage')}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -140,9 +130,7 @@ export const LimitOrderConfirmationModal = ({
             />
           </Box>
         </DetailRow>
-        <DetailRow
-          label={strings('bridge.limit.est_network_fee')}
-        >
+        <DetailRow label={strings('bridge.limit.est_network_fee')}>
           <TokenAmountValue
             amount={networkFee}
             token={feeToken}
