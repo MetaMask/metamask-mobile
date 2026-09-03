@@ -186,6 +186,24 @@ post_install do |installer|
     end
   end
 
+  # Braze 18 ships BrazeKit as a prebuilt XCFramework and BrazeUI as Swift
+  # source. Xcode 26 turns on explicit modules by default, so compiling BrazeUI
+  # (and the RN wrapper's Swift) fails with:
+  #   import BrazeKit → missing required module 'SystemConfiguration'
+  installer.pods_project.targets.each do |target|
+    next unless target.name == 'BrazeUI' || target.name == 'braze-react-native-sdk'
+
+    target.build_configurations.each do |config|
+      config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+
+      ldflags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)').flatten
+      next if ldflags.join(' ').include?('SystemConfiguration')
+
+      ldflags.concat(['-framework', 'SystemConfiguration'])
+      config.build_settings['OTHER_LDFLAGS'] = ldflags
+    end
+  end
+
   # This is necessary for Xcode 14, because it signs resource bundles by default
   # when building for devices.
   installer.target_installation_results.pod_target_installation_results
