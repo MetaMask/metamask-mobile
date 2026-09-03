@@ -381,7 +381,7 @@ export const usePredictEligibility = (): UsePredictEligibilityReturn => {
     isChecking: status === 'checking',
     isUnavailable: status === 'unavailable',
     country:
-      status === 'eligible' || status === 'ineligible'
+      eligibility.status === 'eligible' || eligibility.status === 'ineligible'
         ? eligibility.country
         : undefined,
     refreshEligibility,

@@ -2894,7 +2894,7 @@ describe('PredictController', () => {
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: undefined,
-          });
+          } as never);
 
           const result = await controller.refreshEligibility();
 

@@ -545,7 +545,11 @@ export class PredictAnalytics {
     const eligibilityData = this.context.getEligibility();
 
     this.trackConfiguredEvent('geoBlockTriggered', {
-      country: eligibilityData?.country,
+      country:
+        eligibilityData.status === 'eligible' ||
+        eligibilityData.status === 'ineligible'
+          ? eligibilityData.country
+          : undefined,
       attemptedAction,
     });
   }

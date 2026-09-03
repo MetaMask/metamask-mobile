@@ -5,9 +5,9 @@ import Matchers from '../../framework/Matchers';
 
 class PredictConnectionErrorView {
   get title(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      PredictConnectionErrorSelectorsIDs.TITLE_TEXT,
-    );
+    // Avoid the apostrophe in "Couldn't connect..." — Android XPath
+    // cannot parse the escaped quote that getElementByText emits.
+    return Matchers.getElementByText('connect to Predictions');
   }
 
   get retryButton(): Promise<AppiumElement> {

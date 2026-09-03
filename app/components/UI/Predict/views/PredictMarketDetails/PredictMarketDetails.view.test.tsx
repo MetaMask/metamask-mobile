@@ -65,7 +65,7 @@ const ELIGIBLE_USER = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
     },
   },
@@ -79,7 +79,7 @@ const ELIGIBLE_USER_WITH_BUY_SHEET = {
   engine: {
     backgroundState: {
       PredictController: {
-        eligibility: { eligible: true, country: 'US' },
+        eligibility: { status: 'eligible' as const, country: 'US' },
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
@@ -291,6 +291,15 @@ describe('PredictMarketDetails', () => {
         renderPredictMarketDetailsViewWithRoutes({
           initialParams: { marketId: MARKET_ID },
           extraRoutes: [{ name: Routes.PREDICT.MODALS.ROOT }],
+          overrides: {
+            engine: {
+              backgroundState: {
+                PredictController: {
+                  eligibility: { status: 'ineligible' as const, country: 'US' },
+                },
+              },
+            },
+          },
         });
 
       fireEvent.press(await findByText(/Yes.*¢/));

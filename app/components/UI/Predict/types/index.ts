@@ -898,7 +898,7 @@ export type PredictEligibilityStatus =
  * Sensitive actions stay fail-closed for every status other than eligible.
  */
 export type PredictEligibility =
-  | { status: 'checking' | 'unavailable'; country?: undefined }
+  | { status: 'checking' | 'unavailable' }
   | { status: 'eligible' | 'ineligible'; country: string };
 
 export interface ConnectionStatus {
