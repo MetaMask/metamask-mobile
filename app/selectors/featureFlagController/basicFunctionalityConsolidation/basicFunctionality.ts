@@ -3,15 +3,7 @@ import {
   selectBasicFunctionalityEnabled,
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../settings';
-import {
-  selectDisplayNftMedia,
-  selectIsMultiAccountBalancesEnabled,
-  selectIsSecurityAlertsEnabled,
-  selectUseNftDetection,
-  selectUseSafeChainsListValidation,
-  selectUseTokenDetection,
-  selectUseTransactionSimulations,
-} from '../../preferencesController';
+import { RootState } from '../../../reducers';
 import { selectRemoteFeatureFlags } from '..';
 import {
   validatedVersionGatedFeatureFlag,
@@ -38,6 +30,10 @@ export const BFT_CHILD_PREFERENCES = [
   'useNftDetection',
 ] as const;
 
+export type BftChildPreference = (typeof BFT_CHILD_PREFERENCES)[number];
+
+type BftChildPreferenceValues = Record<BftChildPreference, boolean>;
+
 /**
  * Remote rollout flag for consolidated Basic Functionality (version-gated).
  * Default OFF in production; acts as kill-switch when disabled.
@@ -53,31 +49,30 @@ export const selectMobileUxBftcConsolidationFlagEnabled = createSelector(
   },
 );
 
+const selectPreferencesControllerState = (state: RootState) =>
+  state.engine?.backgroundState?.PreferencesController as
+    | Partial<Record<BftChildPreference, boolean>>
+    | undefined;
+
+/**
+ * Reads BFT child prefs directly so partial test stores without
+ * PreferencesController do not throw via preference selectors.
+ * Returns null when PreferencesController is unavailable.
+ */
 const selectBftChildPreferenceValues = createSelector(
-  selectUseTransactionSimulations,
-  selectIsSecurityAlertsEnabled,
-  selectIsMultiAccountBalancesEnabled,
-  selectUseSafeChainsListValidation,
-  selectUseTokenDetection,
-  selectDisplayNftMedia,
-  selectUseNftDetection,
-  (
-    useTransactionSimulations,
-    securityAlertsEnabled,
-    isMultiAccountBalancesEnabled,
-    useSafeChainsListValidation,
-    useTokenDetection,
-    displayNftMedia,
-    useNftDetection,
-  ) => ({
-    useTransactionSimulations,
-    securityAlertsEnabled,
-    isMultiAccountBalancesEnabled,
-    useSafeChainsListValidation,
-    useTokenDetection,
-    displayNftMedia,
-    useNftDetection,
-  }),
+  selectPreferencesControllerState,
+  (preferencesControllerState): BftChildPreferenceValues | null => {
+    if (!preferencesControllerState) {
+      return null;
+    }
+
+    return Object.fromEntries(
+      BFT_CHILD_PREFERENCES.map((preference) => [
+        preference,
+        preferencesControllerState[preference] === true,
+      ]),
+    ) as BftChildPreferenceValues;
+  },
 );
 
 /**
@@ -88,6 +83,10 @@ export const selectIsBasicFunctionalityConsistent = createSelector(
   selectBasicFunctionalityEnabled,
   selectBftChildPreferenceValues,
   (basicFunctionalityEnabled, childPreferenceValues) => {
+    if (!childPreferenceValues) {
+      return false;
+    }
+
     const areAllChildrenEnabled = BFT_CHILD_PREFERENCES.every(
       (preference) => childPreferenceValues[preference] === true,
     );

@@ -95,6 +95,12 @@ describe('basicFunctionalityConsolidation selectors', () => {
         selectIsBasicFunctionalityConsistent.resultFunc(true, mixedChildren),
       ).toBe(false);
     });
+
+    it('returns false when PreferencesController child prefs are unavailable', () => {
+      expect(selectIsBasicFunctionalityConsistent.resultFunc(true, null)).toBe(
+        false,
+      );
+    });
   });
 
   describe('selectIsBasicFunctionalityConsolidationEnabled', () => {
