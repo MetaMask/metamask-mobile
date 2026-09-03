@@ -72,12 +72,10 @@ jobs:
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
           vars.NAMESPACE_RUNNER_ANDROID || 'namespace'
         }}
-      GRADLE_USER_HOME: >-
-        ${{
-          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-           vars.NAMESPACE_RUNNER_ANDROID || 'namespace') == 'namespace' &&
-          '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
-        }}
+      # Namespace and GitHub-hosted runners use the standard runner home.
+      # Cannot reference RESOLVED_RUNNER_PROVIDER: env entries in the same block are
+      # not visible to each other.
+      GRADLE_USER_HOME: /home/runner/_work/.gradle
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
       E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-android-build-metadata
