@@ -23,18 +23,28 @@ class BrazePushModule: NSObject {
       return
     }
 
-    braze.notifications.unregisterPush { result in
-      switch result {
-      case .success:
+    // Completion-handler unregisterPush is gated on $NonescapableTypes in
+    // BrazeKit 18 and is invisible under Xcode 26. The async overload is not.
+    Task { @MainActor in
+      do {
+        try await braze.notifications.unregisterPush()
         resolve(["success": true])
-      case .failure(let error):
-        resolve(Self.failurePayload(
-          code: Self.failureCode(for: error),
-          isRetriable: error.isRetriable,
-          message: error.message
-        ))
+      } catch {
+        resolve(Self.failurePayload(from: error))
       }
     }
+  }
+
+  private static func failurePayload(from error: Error) -> [String: Any] {
+    let nsError = error as NSError
+    let message = error.localizedDescription
+    let isRetriable = nsError.userInfo["isRetriable"] as? Bool ?? false
+
+    return failurePayload(
+      code: failureCode(message: message),
+      isRetriable: isRetriable,
+      message: message
+    )
   }
 
   private static func failurePayload(
@@ -50,22 +60,20 @@ class BrazePushModule: NSObject {
     ]
   }
 
-  private static func failureCode(for error: Braze.PushUnregistrationError) -> String {
-    switch error {
-    case .sdkDisabled:
-      "SDK_DISABLED"
-    case .noPushToken, .noPushToStartTokens:
-      "NO_PUSH_TOKEN"
-    case .rateLimited:
-      "RATE_LIMITED"
-    case .sdkDeallocated:
-      "SDK_DEALLOCATED"
-    case .requestFailed:
-      error.message.localizedCaseInsensitiveContains("no push token")
-        ? "NO_PUSH_TOKEN"
-        : "REQUEST_FAILED"
-    @unknown default:
-      "UNKNOWN"
+  private static func failureCode(message: String) -> String {
+    let lowercasedMessage = message.lowercased()
+    if lowercasedMessage.contains("no push token") {
+      return "NO_PUSH_TOKEN"
     }
+    if lowercasedMessage.contains("disabled") {
+      return "SDK_DISABLED"
+    }
+    if lowercasedMessage.contains("rate") {
+      return "RATE_LIMITED"
+    }
+    if lowercasedMessage.contains("deallocat") {
+      return "SDK_DEALLOCATED"
+    }
+    return "REQUEST_FAILED"
   }
 }

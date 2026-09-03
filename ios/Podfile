@@ -190,6 +190,9 @@ post_install do |installer|
   # source. Xcode 26 turns on explicit modules by default, so compiling BrazeUI
   # (and the RN wrapper's Swift) fails with:
   #   import BrazeKit → missing required module 'SystemConfiguration'
+  # The app target also compiles Swift against BrazeKit (BrazePushModule);
+  # explicit modules there makes Braze look like the ObjC class only, so
+  # Swift APIs such as Notifications.unregisterPush() are missing.
   installer.pods_project.targets.each do |target|
     next unless target.name == 'BrazeUI' || target.name == 'braze-react-native-sdk'
 
@@ -202,6 +205,18 @@ post_install do |installer|
       ldflags.concat(['-framework', 'SystemConfiguration'])
       config.build_settings['OTHER_LDFLAGS'] = ldflags
     end
+  end
+
+  installer.aggregate_targets.each do |aggregate_target|
+    user_project = aggregate_target.user_project
+    user_project.native_targets.each do |target|
+      next unless ['MetaMask', 'MetaMask-Flask'].include?(target.name)
+
+      target.build_configurations.each do |config|
+        config.build_settings['SWIFT_ENABLE_EXPLICIT_MODULES'] = 'NO'
+      end
+    end
+    user_project.save
   end
 
   # This is necessary for Xcode 14, because it signs resource bundles by default
