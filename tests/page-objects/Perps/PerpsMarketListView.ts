@@ -161,20 +161,15 @@ class PerpsMarketListView {
     );
   }
 
-  private get perpsHomeScrollView(): ScrollContainer {
-    return Matchers.scrollContainer(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT);
-  }
-
   /**
    * Scrolls the Perps home feed (or full market list) until the market row is visible.
    * Avoids tapping Explore crypto, which is flaky when clipped on CI.
-   * Throws when the row is still missing so callers can fall back to search.
    */
-  async scrollToMarketRow(marketName: string): Promise<void> {
+  async scrollToMarketRow(marketName: string): Promise<boolean> {
     const marketElement = this.getMarketRowElement(marketName);
 
     if (await Utilities.isElementVisible(marketElement, 1500)) {
-      return;
+      return true;
     }
 
     const watchlistSection = Matchers.getElementByID(
@@ -187,63 +182,36 @@ class PerpsMarketListView {
 
     if (perpsHomeScrollVisible) {
       if (await Utilities.isElementVisible(watchlistSection, 1000)) {
-        await Gestures.scrollToElement(
-          watchlistSection,
-          this.perpsHomeScrollView,
-          {
-            direction: 'down',
-            scrollAmount: 200,
-            timeout: 10000,
-            elemDescription: 'Perps home watchlist section',
-          },
+        await Gestures.swipe(
+          Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+          'up',
+          { percentage: 0.6 },
         );
       }
 
       if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
+        return true;
       }
 
-      try {
-        await Gestures.scrollToElement(
-          marketElement,
-          this.perpsHomeScrollView,
-          {
-            direction: 'down',
-            scrollAmount: 200,
-            timeout: 10000,
-            elemDescription: `${marketName} market row on Perps home`,
-          },
-        );
-      } catch {
-        // Continue with reverse scroll / visibility check below.
-      }
-
-      if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
-      }
-
-      try {
-        await Gestures.scrollToElement(
-          marketElement,
-          this.perpsHomeScrollView,
-          {
-            direction: 'up',
-            scrollAmount: 200,
-            timeout: 10000,
-            elemDescription: `${marketName} market row on Perps home (scroll up)`,
-          },
-        );
-      } catch {
-        // Fall through to the final visibility check.
-      }
-
-      if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
-      }
-
-      throw new Error(
-        `${marketName} market row not visible on Perps home after scrolling`,
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        'up',
+        { percentage: 0.6 },
       );
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return true;
+      }
+
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsHomeViewSelectorsIDs.SCROLL_CONTENT),
+        'down',
+        { percentage: 0.6 },
+      );
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return true;
+      }
+
+      return false;
     }
 
     const marketListVisible = await Utilities.isElementVisible(
@@ -251,24 +219,17 @@ class PerpsMarketListView {
       1000,
     );
     if (marketListVisible) {
-      await Gestures.scrollToElement(
-        marketElement,
-        this.marketListScrollableContainer,
-        {
-          direction: 'down',
-          scrollAmount: 200,
-          timeout: 10000,
-          elemDescription: `${marketName} market row in market list`,
-        },
+      await Gestures.swipe(
+        Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.MARKET_LIST),
+        'up',
+        { percentage: 0.6 },
       );
       if (await Utilities.isElementVisible(marketElement, 1000)) {
-        return;
+        return true;
       }
     }
 
-    throw new Error(
-      `${marketName} market row not visible after Perps home/list scroll`,
-    );
+    return false;
   }
 
   /**
@@ -277,7 +238,9 @@ class PerpsMarketListView {
    */
   private async searchAndRevealMarketRow(marketName: string): Promise<void> {
     const marketElement = this.getMarketRowElement(marketName);
-    await this.openMarketListFromHomeSearch();
+    if (!(await Utilities.isElementVisible(this.searchBar, 1000))) {
+      await this.openMarketListFromHomeSearch();
+    }
     await Gestures.typeText(this.searchBar, marketName, {
       elemDescription: 'Perps market search input',
       hideKeyboard: true,
@@ -296,22 +259,31 @@ class PerpsMarketListView {
 
   async selectMarket(marketName: string) {
     const marketElement = this.getMarketRowElement(marketName);
-    try {
-      await this.scrollToMarketRow(marketName);
-    } catch {
-      await this.searchAndRevealMarketRow(marketName);
-    }
+    await Utilities.executeWithRetry(
+      async () => {
+        const marketRowFound = await this.scrollToMarketRow(marketName);
 
-    // Scroll can "succeed" without the row mounting (FlatList / late mocks).
-    // Always fall back to search before the final tap when still missing.
-    if (!(await Utilities.isElementVisible(marketElement, 1500))) {
-      await this.searchAndRevealMarketRow(marketName);
-    }
+        if (!marketRowFound) {
+          await this.searchAndRevealMarketRow(marketName);
+        }
 
-    await Gestures.waitAndTap(marketElement, {
-      elemDescription: `${marketName} market row`,
-      timeout: 15000,
-    });
+        // Scroll can "succeed" without the row mounting (FlatList / late mocks).
+        // Always fall back to search before the final tap when still missing.
+        if (!(await Utilities.isElementVisible(marketElement, 1500))) {
+          await this.searchAndRevealMarketRow(marketName);
+        }
+
+        await Gestures.waitAndTap(marketElement, {
+          elemDescription: `${marketName} market row`,
+          timeout: 5000,
+        });
+      },
+      {
+        interval: 1000,
+        timeout: 30000,
+        description: `select ${marketName} market row`,
+      },
+    );
   }
 
   /**
