@@ -1210,9 +1210,10 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('500');
     });
 
-    it('sets isMaxAmount=true for money account withdraw when Max is pressed', async () => {
-      // The mUSD + vmUSD aggregate balance is resolved by TPC's getBalance
-      // callback, so the Max button always arms isMaxAmount here too.
+    it('does not set isMaxAmount for money account withdraw when Max is pressed', async () => {
+      // Max still fills the full withdrawable amount, but must not arm
+      // isMaxAmount — post-quote would otherwise treat destination payment
+      // token balance as the source amount instead of nested-tx mUSD.
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableMusd: new BigNumber(500),
@@ -1230,10 +1231,31 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('500');
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
+    });
 
-      const config = { isMaxAmount: false };
-      setTransactionConfigMock.mock.calls[0][1](config);
-      expect(config.isMaxAmount).toBe(true);
+    it('uses exact fractional redeemable balance for money account withdraw Max without isMaxAmount', async () => {
+      // Fiat ROUND_DOWN to 2 decimals would leave dust (500.12 from
+      // 500.123456). Max must keep full balanceRaw precision while still
+      // leaving isMaxAmount unset.
+      useTokenFiatRateMock.mockReturnValue(1);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableMusd: new BigNumber('500.123456'),
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.moneyAccountWithdraw,
+        },
+        stateOverrides: getMoneyAccountState('500123456'),
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('500.123456');
+      expect(setTransactionConfigMock).not.toHaveBeenCalled();
     });
 
     it('returns 0 for money account withdraw when withdrawableMusd is undefined', async () => {
