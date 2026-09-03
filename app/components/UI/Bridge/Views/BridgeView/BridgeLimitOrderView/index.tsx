@@ -100,7 +100,7 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmountInput,
     sourceToken,
     sourceAmount,
-  } = useLimitOrderSwapInputs({ latestSourceBalance });
+  } = useLimitOrderSwapInputs();
   const {
     commitCustomPercent,
     counterToken,

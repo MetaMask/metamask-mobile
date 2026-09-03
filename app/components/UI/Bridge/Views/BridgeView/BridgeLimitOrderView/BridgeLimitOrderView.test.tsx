@@ -11,7 +11,6 @@ import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput'
 import { useSwapsLimitOrderPriceAdjust } from '../../../hooks/useSwapsLimitOrderPriceAdjust';
 import { useSwapsLimitOrderKeypad } from '../../../hooks/useSwapsLimitOrderKeypad';
 import { useHasMissingQuoteAndAssetsPriceData } from '../../../hooks/useHasMissingQuoteAndAssetsPriceData';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   LimitOrderExecutionType,
   getSwapsLimitOrderExpirationLabel,
@@ -44,8 +43,8 @@ jest.mock('../../../hooks/useBridgeQuoteData', () => ({
 
 jest.mock('../../../hooks/useBridgeSession', () => ({
   useBridgeSession: jest.fn().mockReturnValue({
-    selectedTab: "limit",
-    renderedTab: "limit",
+    selectedTab: 'limit',
+    renderedTab: 'limit',
     setSelectedTab: jest.fn(),
     setRenderedTab: jest.fn(),
     latestSourceBalance: jest.fn().mockReturnValue({
@@ -66,10 +65,6 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
     useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteDataMock()),
   };
 });
-
-jest.mock('../../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
 
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
   useLimitOrderSwapInputs: jest.fn(),
@@ -366,10 +361,6 @@ describe('BridgeLimitOrderView', () => {
     jest
       .mocked(useBridgeQuoteData as unknown as jest.Mock)
       .mockImplementation(() => mockUseBridgeQuoteData);
-    jest.mocked(useLatestBalance).mockReturnValue({
-      displayBalance: '1.0',
-      atomicBalance: undefined,
-    });
     jest
       .mocked(useLimitOrderSwapInputs)
       .mockImplementation(() => buildSwapInputsMock());

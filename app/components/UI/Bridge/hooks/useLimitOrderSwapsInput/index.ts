@@ -18,23 +18,17 @@ import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagCo
 import { TokenSelectorType } from '../../types';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
 import { useBridgeQuoteDataContext } from '../useBridgeQuoteData/BridgeQuoteDataContext';
-import { useBridgeQuoteRequest } from '../useBridgeQuoteRequest';
 import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 import { useIsNetworkEnabled } from '../useIsNetworkEnabled';
 import { useIsNetworkGasSponsored } from '../useIsNetworkGasSponsored';
-import { useLatestBalance } from '../useLatestBalance';
 import { useSourceAmountInput } from '../useSourceAmountInput';
 import { useSwitchTokens } from '../useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength';
 import { getDefaultTokenPairForChains } from '../../utils/tokenUtils';
+import { useSwapQuotes } from '../useSwapQuotes';
+import { useBridgeSession } from '../useBridgeSession';
 
-interface UseLimitOrderSwapInputsOptions {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-export const useLimitOrderSwapInputs = ({
-  latestSourceBalance,
-}: UseLimitOrderSwapInputsOptions) => {
+export const useLimitOrderSwapInputs = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -104,14 +98,13 @@ export const useLimitOrderSwapInputs = ({
     sourceToken?.chainId === destToken?.chainId &&
     isSourceNetworkGasSponsored;
 
-  const updateQuoteParams = useBridgeQuoteRequest({
-    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
-  });
+  const combinedSwapQuoteData = useSwapQuotes();
+  const updateQuoteParams = combinedSwapQuoteData?.debouncedUpdateQuoteParams;
 
   // A limit order can't be signed by a hardware wallet on any chain, so no
   // quote is ever requested for one. The inputs stay interactive and
   // `HardwareWalletUnsupportedBanner` explains why no quote appears. Gating
-  // here rather than in useBridgeQuoteRequest keeps hardware wallets working
+  // here rather than in useSwapQuotes keeps hardware wallets working
   // for Market orders, which share that hook but not this one.
   const isHardwareWallet = useIsHardwareWalletForBridge();
 
@@ -125,14 +118,15 @@ export const useLimitOrderSwapInputs = ({
     Boolean(destToken);
 
   useEffect(() => {
-    if (hasValidBridgeInputs) {
+    if (hasValidBridgeInputs && updateQuoteParams) {
       updateQuoteParams();
     }
     return () => {
-      updateQuoteParams.cancel();
+      updateQuoteParams?.cancel();
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
 
+  const { latestSourceBalance } = useBridgeSession();
   const handleSourceMaxPress = useCallback(() => {
     if (!latestSourceBalance?.displayBalance) {
       return;
