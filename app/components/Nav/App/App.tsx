@@ -67,7 +67,6 @@ import PerpsActivityFilterSheet from '../../Views/ActivityScreen/components/Perp
 import ActivityNetworkFilterSheet from '../../Views/ActivityScreen/components/ActivityNetworkFilterSheet';
 import ProfilerManager from '../../UI/ProfilerManager';
 import PerformanceProfilerStatus from '../../UI/ProfilerManager/PerformanceProfilerStatus';
-import { registerPerformanceProfilerBridge } from '../../../core/Performance';
 import NetworkManager from '../../UI/NetworkManager';
 import { AccountPermissionsScreens } from '../../Views/AccountPermissions/AccountPermissions.types';
 import AccountPermissionsConfirmRevokeAll from '../../Views/AccountPermissions/AccountPermissionsConfirmRevokeAll';
@@ -1510,11 +1509,6 @@ const App: React.FC = () => {
   useEffect(() => {
     // End trace when first render is complete
     endTrace({ name: TraceName.UIStartup });
-  }, []);
-
-  // Performance APKs only: expose startAppProfiling/stopAppProfiling via deeplink.
-  useEffect(() => {
-    registerPerformanceProfilerBridge();
   }, []);
 
   const firstLoad = useRef(true);

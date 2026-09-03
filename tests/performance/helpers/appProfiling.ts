@@ -1,35 +1,86 @@
 /**
- * Performance-test helpers that invoke in-app `startAppProfiling` /
- * `stopAppProfiling` via deeplink, wait for the result accessibility hook,
- * then pull the Hermes `.cpuprofile` off the device into CI artifacts.
+ * Performance-test helpers that start/stop in-app Hermes profiling by tapping
+ * invisible Pressables (`performance-profiler-start|stop`), wait for result
+ * hooks, then pull the `.cpuprofile` off the device into CI artifacts.
+ *
+ * Does not use deeplinks — MetaMask's router shows the unsupported-link UI for
+ * unknown `metamask://e2e/profiler/*` paths.
  */
 
 /* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs/promises';
 import path from 'path';
 import type { TestInfo } from '@playwright/test';
-import { openE2EUrl } from '../../framework/DeepLink.ts';
-import { E2EDeeplinkSchemes } from '../../framework/Constants.ts';
 import { getDriver } from '../../framework/AppiumUtilities.ts';
 import { createLogger } from '../../framework/logger.ts';
 
 const logger = createLogger({ name: 'Performance - AppProfiling' });
 
 const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
+const START_TEST_ID = 'performance-profiler-start';
+const STOP_TEST_ID = 'performance-profiler-stop';
+const RECORDING_READY_TEST_ID = 'performance-profiler-recording-ready';
 const RESULT_READY_TEST_ID = 'performance-profiler-result-ready';
 const ERROR_TEST_ID = 'performance-profiler-error';
+const RECORDING_TIMEOUT_MS = 30_000;
 const RESULT_TIMEOUT_MS = 60_000;
 
 type PullFileDriver = WebdriverIO.Browser & {
   pullFile: (remotePath: string) => Promise<string>;
 };
 
+async function tapProfilerControl(testId: string): Promise<void> {
+  const appiumDriver = getDriver();
+  if (!appiumDriver) {
+    throw new Error('Appium driver is not available');
+  }
+  const control = await appiumDriver.$(`~${testId}`);
+  await appiumDriver.waitUntil(
+    async () => control.isDisplayed().catch(() => false),
+    {
+      timeout: RECORDING_TIMEOUT_MS,
+      timeoutMsg: `Profiler control not visible: ${testId}`,
+    },
+  );
+  await control.click();
+}
+
 export async function startAppProfilingFromTest(): Promise<void> {
-  await openE2EUrl(`${E2EDeeplinkSchemes.PROFILER}start`);
+  const appiumDriver = getDriver();
+  if (!appiumDriver) {
+    throw new Error('Appium driver is not available');
+  }
+
+  await tapProfilerControl(START_TEST_ID);
+
+  const recordingReady = await appiumDriver.$(`~${RECORDING_READY_TEST_ID}`);
+  const profilerError = await appiumDriver.$(`~${ERROR_TEST_ID}`);
+
+  await appiumDriver.waitUntil(
+    async () => {
+      const [recordingDisplayed, errorDisplayed] = await Promise.all([
+        recordingReady.isDisplayed().catch(() => false),
+        profilerError.isDisplayed().catch(() => false),
+      ]);
+      return recordingDisplayed || errorDisplayed;
+    },
+    {
+      timeout: RECORDING_TIMEOUT_MS,
+      timeoutMsg: `Profiler did not start within ${RECORDING_TIMEOUT_MS}ms`,
+    },
+  );
+
+  if (await profilerError.isDisplayed().catch(() => false)) {
+    const errorLabel =
+      (await profilerError.getAttribute('content-desc').catch(() => null)) ||
+      (await profilerError.getAttribute('name').catch(() => null)) ||
+      'unknown profiler error';
+    throw new Error(`Profiler failed to start on device: ${errorLabel}`);
+  }
 }
 
 export async function stopAppProfilingFromTest(): Promise<void> {
-  await openE2EUrl(`${E2EDeeplinkSchemes.PROFILER}stop`);
+  await tapProfilerControl(STOP_TEST_ID);
 }
 
 function sanitizeFilePart(value: string): string {
