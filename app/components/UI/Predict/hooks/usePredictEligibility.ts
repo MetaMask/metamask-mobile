@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { RootState } from '../../../../reducers';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { RootState } from '../../../../reducers';
+import { PredictEligibility } from '../types';
 
 const selectPredictEligibility = createSelector(
   (state: RootState) => state.engine.backgroundState.PredictController,
@@ -15,26 +16,37 @@ export type PredictEligibilityState = ReturnType<
   typeof selectPredictEligibility
 >;
 
+const FALLBACK_ELIGIBILITY: PredictEligibility = { status: 'checking' };
+
 // Minimum time between automatic eligibility refreshes (1 minute)
-const DEBOUNCE_INTERVAL_MS = 100;
+const DEBOUNCE_INTERVAL_MS = 60_000;
 
-// Polling interval for auto-refresh when country is missing (2 seconds)
-const MISSING_COUNTRY_POLLING_INTERVAL_MS = 2000;
+// Delay between completed automatic retries when eligibility is unavailable
+const AUTO_RETRY_INTERVAL_MS = 2_000;
 
-// Maximum number of retry attempts when country is missing
-const MISSING_COUNTRY_MAX_RETRIES = 3;
+// Maximum number of automatic retry attempts when eligibility is unavailable
+const AUTO_RETRY_MAX_ATTEMPTS = 3;
+
+const isDefinitiveEligibility = (eligibility: PredictEligibility) =>
+  eligibility.status === 'eligible' || eligibility.status === 'ineligible';
+
+const currentEligibility = (): PredictEligibility =>
+  Engine.context.PredictController.state?.eligibility ?? FALLBACK_ELIGIBILITY;
 
 /**
  * Singleton manager to coordinate eligibility refreshes across multiple hook instances.
- * This ensures that only one AppState listener is active and only one refresh happens
- * at a time, regardless of how many components use the usePredictEligibility hook.
+ * This ensures that only one AppState listener is active, only one refresh happens
+ * at a time, and unavailable-eligibility recovery uses a single retry cycle.
  */
 class EligibilityRefreshManager {
   private static instance: EligibilityRefreshManager | null = null;
   private activeListeners = 0;
   private appStateSubscription: { remove: () => void } | null = null;
   private lastRefreshTime = 0;
-  private refreshPromise: Promise<void> | null = null;
+  private refreshPromise: Promise<PredictEligibility> | null = null;
+  private retryAttemptCount = 0;
+  private retryTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private retryInFlight = false;
 
   private constructor() {
     // Private constructor for singleton
@@ -58,6 +70,7 @@ class EligibilityRefreshManager {
         activeListeners: this.activeListeners,
       });
       this.setupAppStateListener();
+      this.startRecoveryIfNeeded();
     } else {
       DevLogger.log('PredictController: Additional listener registered', {
         activeListeners: this.activeListeners,
@@ -74,6 +87,9 @@ class EligibilityRefreshManager {
     if (this.activeListeners === 0) {
       DevLogger.log('PredictController: Stopping eligibility refresh manager');
       this.cleanupAppStateListener();
+      this.clearRetryTimer();
+      this.retryAttemptCount = 0;
+      this.retryInFlight = false;
     } else {
       DevLogger.log('PredictController: Listener unregistered', {
         activeListeners: this.activeListeners,
@@ -85,7 +101,7 @@ class EligibilityRefreshManager {
    * Refresh eligibility with debouncing and race condition prevention
    * @param force - If true, bypasses debouncing
    */
-  async refresh(force = false): Promise<void> {
+  async refresh(force = false): Promise<PredictEligibility> {
     // If a refresh is already in progress, reuse that promise
     if (this.refreshPromise) {
       DevLogger.log(
@@ -103,15 +119,21 @@ class EligibilityRefreshManager {
         timeSinceLastRefresh,
         minimumInterval: DEBOUNCE_INTERVAL_MS,
       });
-      return;
+      return currentEligibility();
     }
 
     this.lastRefreshTime = now;
     const controller = Engine.context.PredictController;
 
-    this.refreshPromise = controller.refreshEligibility().finally(() => {
-      this.refreshPromise = null;
-    });
+    this.refreshPromise = controller
+      .refreshEligibility()
+      .then((result) => {
+        this.handleCompletedRefresh(result);
+        return result;
+      })
+      .finally(() => {
+        this.refreshPromise = null;
+      });
 
     return this.refreshPromise;
   }
@@ -159,14 +181,141 @@ class EligibilityRefreshManager {
     }
   }
 
+  private clearRetryTimer(): void {
+    if (this.retryTimeoutId) {
+      clearTimeout(this.retryTimeoutId);
+      this.retryTimeoutId = null;
+    }
+  }
+
+  private startRecoveryIfNeeded(): void {
+    const eligibility = currentEligibility();
+    if (isDefinitiveEligibility(eligibility)) {
+      return;
+    }
+
+    if (eligibility.status === 'checking') {
+      this.refresh(true).catch((error) => {
+        DevLogger.log('PredictController: Initial eligibility refresh failed', {
+          error: error instanceof Error ? error.message : 'Unknown',
+        });
+        if (this.activeListeners > 0) {
+          this.scheduleAutoRetry(AUTO_RETRY_INTERVAL_MS);
+        }
+      });
+      return;
+    }
+
+    this.scheduleAutoRetry(0);
+  }
+
+  private handleCompletedRefresh(result: PredictEligibility): void {
+    if (!result) {
+      return;
+    }
+
+    if (isDefinitiveEligibility(result)) {
+      this.retryAttemptCount = 0;
+      this.clearRetryTimer();
+      return;
+    }
+
+    if (this.retryInFlight) {
+      return;
+    }
+
+    this.scheduleAutoRetry(AUTO_RETRY_INTERVAL_MS);
+  }
+
+  private scheduleAutoRetry(delayMs: number): void {
+    if (this.retryAttemptCount >= AUTO_RETRY_MAX_ATTEMPTS) {
+      return;
+    }
+
+    if (this.retryTimeoutId || this.retryInFlight) {
+      return;
+    }
+
+    this.retryTimeoutId = setTimeout(() => {
+      this.retryTimeoutId = null;
+      this.runAutoRetry();
+    }, delayMs);
+  }
+
+  private runAutoRetry(): void {
+    if (this.activeListeners === 0) {
+      return;
+    }
+
+    if (this.retryAttemptCount >= AUTO_RETRY_MAX_ATTEMPTS) {
+      return;
+    }
+
+    this.retryInFlight = true;
+    this.retryAttemptCount += 1;
+
+    DevLogger.log(
+      'PredictController: Eligibility unavailable, auto-refreshing',
+      {
+        retryCount: this.retryAttemptCount,
+        maxRetries: AUTO_RETRY_MAX_ATTEMPTS,
+      },
+    );
+
+    this.refresh(true)
+      .then((result) => {
+        this.retryInFlight = false;
+
+        if (this.activeListeners === 0) {
+          return;
+        }
+
+        if (isDefinitiveEligibility(result)) {
+          this.retryAttemptCount = 0;
+          return;
+        }
+
+        if (this.retryAttemptCount >= AUTO_RETRY_MAX_ATTEMPTS) {
+          DevLogger.log(
+            'PredictController: Max retries reached for unavailable eligibility',
+            { retryCount: this.retryAttemptCount },
+          );
+          return;
+        }
+
+        this.scheduleAutoRetry(AUTO_RETRY_INTERVAL_MS);
+      })
+      .catch((error) => {
+        this.retryInFlight = false;
+
+        DevLogger.log(
+          'PredictController: Auto-refresh for unavailable eligibility failed',
+          {
+            error: error instanceof Error ? error.message : 'Unknown',
+            retryCount: this.retryAttemptCount,
+          },
+        );
+
+        if (
+          this.activeListeners > 0 &&
+          this.retryAttemptCount < AUTO_RETRY_MAX_ATTEMPTS
+        ) {
+          this.scheduleAutoRetry(AUTO_RETRY_INTERVAL_MS);
+        }
+      });
+  }
+
   /**
    * Reset the manager (for testing purposes)
    */
   reset(): void {
     this.cleanupAppStateListener();
+    this.clearRetryTimer();
     this.activeListeners = 0;
     this.lastRefreshTime = 0;
     this.refreshPromise = null;
+    this.retryAttemptCount = 0;
+    this.retryInFlight = false;
   }
 
   /**
@@ -184,29 +333,36 @@ const refreshManager = EligibilityRefreshManager.getInstance();
 export const getRefreshManagerForTesting = (): EligibilityRefreshManager =>
   refreshManager;
 
+interface UsePredictEligibilityReturn {
+  status: PredictEligibility['status'];
+  isEligible: boolean;
+  isIneligible: boolean;
+  isChecking: boolean;
+  isUnavailable: boolean;
+  country: string | undefined;
+  refreshEligibility: () => Promise<PredictEligibility>;
+}
+
 /**
  * Hook to access Predict eligibility state and trigger refreshes via the controller.
  * Automatically refreshes eligibility when the app comes to foreground.
  * Multiple components can safely use this hook without causing duplicate refreshes.
  *
- * When no country is returned in the eligibility response, the hook will automatically
- * poll for updates using a sequential loading pattern (wait for response → wait interval → poll again)
- * until a country is returned or the component unmounts.
+ * When eligibility is `unavailable`, a single global retry cycle (max 3 attempts,
+ * 2s between completed attempts) continues until a definitive result arrives or
+ * the last listener unmounts. Explicit user retries remain available after the
+ * automatic budget is exhausted.
  */
-export const usePredictEligibility = () => {
-  const eligibility = useSelector(selectPredictEligibility);
-  const country = eligibility?.country;
+export const usePredictEligibility = (): UsePredictEligibilityReturn => {
+  const eligibility =
+    useSelector(selectPredictEligibility) ?? FALLBACK_ELIGIBILITY;
+  const status = eligibility.status ?? 'checking';
 
-  // Manual refresh - bypasses debounce (force = true)
-  const refreshEligibility = useCallback(async () => {
-    await refreshManager.refresh(true);
-  }, []);
+  const refreshEligibility = useCallback(
+    async () => refreshManager.refresh(true),
+    [],
+  );
 
-  // Store refreshEligibility in a ref to avoid effect restarts when its identity changes
-  const refreshEligibilityRef = useRef(refreshEligibility);
-  refreshEligibilityRef.current = refreshEligibility;
-
-  // Register this hook instance with the singleton manager
   useEffect(() => {
     DevLogger.log('PredictController: Mounting eligibility hook');
 
@@ -218,70 +374,16 @@ export const usePredictEligibility = () => {
     };
   }, []);
 
-  // Auto-refresh when country is missing - sequential loading pattern
-  // Retries up to MISSING_COUNTRY_MAX_RETRIES times, resets on unmount
-  useEffect(() => {
-    // Skip if we already have a country
-    if (country) return;
-
-    let shouldContinue = true;
-    let timeoutId: NodeJS.Timeout | null = null;
-    let retryCount = 0;
-
-    const pollForCountry = async () => {
-      if (!shouldContinue) return;
-
-      retryCount += 1;
-
-      DevLogger.log(
-        'PredictController: Country missing, auto-refreshing eligibility',
-        { retryCount, maxRetries: MISSING_COUNTRY_MAX_RETRIES },
-      );
-
-      try {
-        await refreshEligibilityRef.current();
-      } catch (error) {
-        // Continue polling even if an individual request fails
-        // This ensures we keep trying to get country data
-        DevLogger.log(
-          'PredictController: Auto-refresh for missing country failed',
-          {
-            error: error instanceof Error ? error.message : 'Unknown',
-            retryCount,
-          },
-        );
-      }
-
-      // After the response (or error), schedule next poll if still active
-      // and we haven't reached max retries
-      // Note: The effect will re-run if country becomes available,
-      // which will stop the polling due to the early return
-      if (shouldContinue && retryCount < MISSING_COUNTRY_MAX_RETRIES) {
-        timeoutId = setTimeout(() => {
-          pollForCountry();
-        }, MISSING_COUNTRY_POLLING_INTERVAL_MS);
-      } else if (shouldContinue && retryCount >= MISSING_COUNTRY_MAX_RETRIES) {
-        DevLogger.log(
-          'PredictController: Max retries reached for missing country',
-          { retryCount },
-        );
-      }
-    };
-
-    pollForCountry();
-
-    return () => {
-      // Reset retry count on unmount (retryCount is local to this effect instance)
-      shouldContinue = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [country]);
-
   return {
-    isEligible: eligibility?.eligible ?? false,
-    country,
+    status,
+    isEligible: status === 'eligible',
+    isIneligible: status === 'ineligible',
+    isChecking: status === 'checking',
+    isUnavailable: status === 'unavailable',
+    country:
+      status === 'eligible' || status === 'ineligible'
+        ? eligibility.country
+        : undefined,
     refreshEligibility,
   };
 };

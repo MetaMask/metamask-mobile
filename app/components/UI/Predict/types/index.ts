@@ -869,10 +869,37 @@ export interface AccountState {
   walletType: PredictWalletType;
 }
 
+/**
+ * Definitive geoblock result. Providers must throw instead of returning when
+ * the check does not complete (timeout, network failure, non-2xx, malformed or
+ * incomplete payload), so a connectivity problem is never reported as a
+ * geo-restriction.
+ */
 export interface GeoBlockResponse {
   isEligible: boolean;
-  country?: string;
+  country: string;
 }
+
+export type PredictEligibilityStatus =
+  | 'checking'
+  | 'eligible'
+  | 'ineligible'
+  | 'unavailable';
+
+/**
+ * Predict eligibility as tracked by the controller.
+ *
+ * checking: a geoblock check is in flight and no definitive result exists yet.
+ * eligible / ineligible: definitive result; country is always present.
+ * unavailable: the last check failed or returned an incomplete payload, so
+ * eligibility could not be determined. This is a connectivity problem, not a
+ * legal restriction, and callers must not describe it as one.
+ *
+ * Sensitive actions stay fail-closed for every status other than eligible.
+ */
+export type PredictEligibility =
+  | { status: 'checking' | 'unavailable'; country?: undefined }
+  | { status: 'eligible' | 'ineligible'; country: string };
 
 export interface ConnectionStatus {
   sportsConnected: boolean;

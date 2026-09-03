@@ -11,10 +11,12 @@ import { PredictEventValues } from '../../../Predict/constants/eventNames';
 
 const mockNavigate = jest.fn();
 let mockIsPredictEligible = true;
+let mockIsPredictIneligible = false;
 
 jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
   usePredictEligibility: () => ({
     isEligible: mockIsPredictEligible,
+    isIneligible: mockIsPredictIneligible,
     country: 'US',
     refreshEligibility: jest.fn(),
   }),
@@ -102,6 +104,7 @@ describe('PredictThePitchCampaignCTA', () => {
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
     jest.clearAllMocks();
     mockIsPredictEligible = true;
+    mockIsPredictIneligible = false;
   });
 
   afterEach(() => {
@@ -150,8 +153,9 @@ describe('PredictThePitchCampaignCTA', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
-  it('shows the geo-locked CTA when predict is not eligible and the user is not opted in', () => {
+  it('shows the geo-locked CTA when predict is ineligible and the user is not opted in', () => {
     mockIsPredictEligible = false;
+    mockIsPredictIneligible = true;
 
     const { getByTestId, getByText } = render(
       <PredictThePitchCampaignCTA
@@ -172,6 +176,24 @@ describe('PredictThePitchCampaignCTA', () => {
     );
     expect(mockShowToast).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does not treat checking eligibility as a geo-restriction', () => {
+    mockIsPredictEligible = false;
+    mockIsPredictIneligible = false;
+
+    const { getByText, queryByText } = render(
+      <PredictThePitchCampaignCTA
+        campaign={buildCampaign()}
+        participantStatus={{
+          status: { optedIn: false, participantCount: 0 },
+          isLoading: false,
+        }}
+      />,
+    );
+
+    expect(getByText('Join Campaign')).toBeOnTheScreen();
+    expect(queryByText('Check eligibility')).toBeNull();
   });
 
   it('renders no CTA when the campaign is complete', () => {

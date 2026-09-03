@@ -289,7 +289,47 @@ describe('MoneyTransferSheet', () => {
       isEnabled: true,
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
-    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: false });
+    (usePredictEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+  });
+
+  it('hides the "Predictions account" option when eligibility is still checking', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (usePredictEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isIneligible: false,
+      status: 'checking',
+    });
+
+    const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      queryByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeNull();
+  });
+
+  it('hides the "Predictions account" option when eligibility is unavailable', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (usePredictEligibility as jest.Mock).mockReturnValue({
+      isEligible: false,
+      isIneligible: false,
+      status: 'unavailable',
+    });
 
     const { queryByTestId } = renderWithProvider(<MoneyTransferSheet />);
 

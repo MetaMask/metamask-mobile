@@ -893,7 +893,7 @@
   },
   "PredictController": {
     "eligibility": {
-      "eligible": false
+      "status": "checking"
     },
     "lastError": null,
     "lastUpdateTimestamp": 0,

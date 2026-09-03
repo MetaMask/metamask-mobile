@@ -18,6 +18,7 @@ import {
 import { Interface } from 'ethers/lib/utils';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
 import { analytics } from '../../../../util/analytics/analytics';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
@@ -25,6 +26,7 @@ import {
   addTransactionBatch,
 } from '../../../../util/transaction-controller';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { PolymarketRequestTimeoutError } from '../providers/polymarket/fetchWithTimeout';
 import {
   ActiveOrderState,
   type OrderPreview,
@@ -575,22 +577,19 @@ describe('PredictController', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.eligibility).toEqual({ eligible: false });
+        expect(controller.state.eligibility).toEqual({ status: 'checking' });
         expect(controller.state.accountMeta).toEqual({});
       });
     });
 
     it('initializes with custom state', () => {
       const customState: Partial<PredictControllerState> = {
-        eligibility: { eligible: false, country: undefined },
+        lastError: 'custom-error',
       };
 
       withController(
         ({ controller }) => {
-          expect(controller.state.eligibility).toEqual({
-            eligible: false,
-            country: undefined,
-          });
+          expect(controller.state.lastError).toBe('custom-error');
         },
         { state: customState },
       );
@@ -2761,6 +2760,8 @@ describe('PredictController', () => {
   describe('refreshEligibility', () => {
     it('update eligibility for all providers successfully', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockResolvedValue({
           isEligible: true,
           country: 'PT',
@@ -2769,7 +2770,7 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
-          eligible: true,
+          status: 'eligible',
           country: 'PT',
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
@@ -2778,6 +2779,8 @@ describe('PredictController', () => {
 
     it('handle provider.isEligible() throwing error', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         const errorMessage = 'Eligibility check failed';
         mockPolymarketProvider.isEligible.mockRejectedValue(
           new Error(errorMessage),
@@ -2786,22 +2789,23 @@ describe('PredictController', () => {
         await controller.refreshEligibility();
 
         expect(controller.state.eligibility).toEqual({
-          eligible: false,
-          country: undefined,
+          status: 'unavailable',
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
     });
 
-    it('default to false when provider eligibility check fails', async () => {
+    it('returns unavailable when provider eligibility check fails', async () => {
       await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
         mockPolymarketProvider.isEligible.mockRejectedValue('Non-error object');
 
-        await controller.refreshEligibility();
+        const result = await controller.refreshEligibility();
 
+        expect(result).toEqual({ status: 'unavailable' });
         expect(controller.state.eligibility).toEqual({
-          eligible: false,
-          country: undefined,
+          status: 'unavailable',
         });
       });
     });
@@ -2809,6 +2813,8 @@ describe('PredictController', () => {
     describe('local geoblocking', () => {
       it('sets eligibility to false when provider returns eligible but country is DE', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'DE',
@@ -2817,7 +2823,7 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'DE',
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
@@ -2826,6 +2832,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns eligible but country is RO', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'RO',
@@ -2834,7 +2842,7 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'RO',
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
@@ -2843,6 +2851,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to true when provider returns eligible and country is US', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: 'US',
@@ -2851,7 +2861,7 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
+            status: 'eligible',
             country: 'US',
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
@@ -2860,6 +2870,8 @@ describe('PredictController', () => {
 
       it('sets eligibility to false when provider returns ineligible regardless of country', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: false,
             country: 'US',
@@ -2868,32 +2880,35 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: false,
+            status: 'ineligible',
             country: 'US',
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible without country', async () => {
+      it('treats a missing country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: undefined,
           });
 
-          await controller.refreshEligibility();
+          const result = await controller.refreshEligibility();
 
+          expect(result).toEqual({ status: 'unavailable' });
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: undefined,
+            status: 'unavailable',
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with null country', async () => {
+      it('treats a null country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: null as any,
@@ -2902,15 +2917,15 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: null,
+            status: 'unavailable',
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
 
-      it('sets eligibility to true when provider returns eligible with empty string country', async () => {
+      it('treats an empty country as unavailable', async () => {
         await withController(async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
           mockPolymarketProvider.isEligible.mockResolvedValue({
             isEligible: true,
             country: '',
@@ -2919,12 +2934,135 @@ describe('PredictController', () => {
           await controller.refreshEligibility();
 
           expect(controller.state.eligibility).toEqual({
-            eligible: true,
-            country: '',
+            status: 'unavailable',
           });
-          expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
       });
+    });
+
+    it('does not preserve a previous eligible result after a failed refresh', async () => {
+      await withController(
+        async ({ controller }) => {
+          await controller.refreshEligibility();
+          mockPolymarketProvider.isEligible.mockClear();
+          mockPolymarketProvider.isEligible.mockRejectedValue(
+            new Error('Eligibility check failed'),
+          );
+
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable' });
+          expect(controller.state.eligibility).toEqual({
+            status: 'unavailable',
+          });
+        },
+        { state: { eligibility: { status: 'eligible', country: 'US' } } },
+      );
+    });
+
+    it('shares one provider request across concurrent refreshes', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const first = controller.refreshEligibility();
+        const second = controller.refreshEligibility();
+
+        expect(mockPolymarketProvider.isEligible).toHaveBeenCalledTimes(1);
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(first).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+        });
+        await expect(second).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+        });
+      });
+    });
+
+    it('returns the resulting eligibility status', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockClear();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'FR',
+        });
+
+        await expect(controller.refreshEligibility()).resolves.toEqual({
+          status: 'ineligible',
+          country: 'FR',
+        });
+      });
+    });
+
+    it('logs expected geoblock timeouts without reporting them as Sentry errors', async () => {
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(timeoutError);
+
+      const logSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(() => undefined);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable' });
+          expect(logSpy).toHaveBeenCalledWith(
+            'Predict geoblock request ended by expected timeout/cancellation:',
+            timeoutError.message,
+            expect.any(Object),
+          );
+          expect(errorSpy).not.toHaveBeenCalled();
+        });
+      } finally {
+        logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('resolves eligible via geoblock bypass even when the endpoint fails', async () => {
+      const previous = process.env.MM_PREDICT_SKIP_GEOBLOCK;
+      process.env.MM_PREDICT_SKIP_GEOBLOCK = 'true';
+      try {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.isEligible.mockRejectedValue(
+            new Error('Eligibility check failed'),
+          );
+
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'eligible', country: 'N/A' });
+          expect(controller.state.eligibility).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+          });
+          expect(mockPolymarketProvider.isEligible).not.toHaveBeenCalled();
+        });
+      } finally {
+        if (previous === undefined) {
+          delete process.env.MM_PREDICT_SKIP_GEOBLOCK;
+        } else {
+          process.env.MM_PREDICT_SKIP_GEOBLOCK = previous;
+        }
+      }
     });
   });
 
@@ -4292,14 +4430,12 @@ describe('PredictController', () => {
       withController(({ controller }) => {
         controller.updateStateForTesting((state) => {
           state.eligibility = {
-            eligible: false,
-            country: undefined,
+            status: 'unavailable',
           };
           state.lastError = 'Test error';
         });
         expect(controller.state.eligibility).toEqual({
-          eligible: false,
-          country: undefined,
+          status: 'unavailable',
         });
         expect(controller.state.lastError).toBe('Test error');
       });
@@ -9910,7 +10046,7 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { eligible: true, country: 'PT' };
+          state.eligibility = { status: 'eligible', country: 'PT' };
           state.lastError = 'Some error';
         });
 

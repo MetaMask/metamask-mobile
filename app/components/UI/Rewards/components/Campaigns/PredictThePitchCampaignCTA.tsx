@@ -29,7 +29,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
   participantStatus,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const { isEligible: isPredictEligible } = usePredictEligibility();
+  const { isIneligible: isPredictIneligible } = usePredictEligibility();
   const campaignStatus = getCampaignStatus(campaign);
   const isLoading = participantStatus.isLoading;
   const isOptedIn = participantStatus.status?.optedIn === true;
@@ -63,7 +63,7 @@ const PredictThePitchCampaignCTA: React.FC<PredictThePitchCampaignCTAProps> = ({
     <CampaignOptInCta
       campaign={campaign}
       participantStatus={participantStatus}
-      isFeatureGeoRestricted={!isPredictEligible}
+      isFeatureGeoRestricted={isPredictIneligible}
     />
   );
 };

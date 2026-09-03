@@ -205,6 +205,20 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
+/**
+ * Mock for Polymarket geoblock endpoint returning a failed / incomplete check.
+ * Used to exercise degraded-access UI that must not be described as a
+ * geo-restriction.
+ */
+export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'https://polymarket.com/api/geoblock',
+    responseCode: 500,
+    response: { error: 'geoblock unavailable' },
+  });
+};
+
 export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
