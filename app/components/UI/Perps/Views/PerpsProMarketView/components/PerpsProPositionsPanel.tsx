@@ -1,5 +1,4 @@
 import {
-  type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -94,7 +93,7 @@ import {
 import { selectPerpsSelectedAccountAddress } from '../../../selectors/selectedAccountAddress';
 import {
   CHASE_HISTORY_STATUSES,
-  PERPS_TWAP_UI_CONFIG,
+  PROVIDER_CONFIG,
 } from '../../../constants/perpsConfig';
 import {
   addBoundedChaseAnalyticsKey,
@@ -112,9 +111,7 @@ import PerpsProPositionsEmptyState from './PerpsProPositionsEmptyState';
 import PerpsProPositionsSideFilterSheet from './PerpsProPositionsSideFilterSheet';
 import PerpsProPositionsSortSheet from './PerpsProPositionsSortSheet';
 import PerpsProTabEmptyState from './PerpsProTabEmptyState';
-import PerpsProTwapPanel, {
-  type PerpsProTwapEmptyMetadata,
-} from './PerpsProTwapPanel';
+import PerpsProTwapPanel from './PerpsProTwapPanel';
 import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 import PerpsProUnrealizedPnl from './PerpsProUnrealizedPnl';
 import {
@@ -122,23 +119,14 @@ import {
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
-  filterProTwapOrdersBySide,
   getProOrderSideFilterEmptyDescriptionKey,
   getProPositionSideFilterButtonLabelKey,
   getProPositionSideFilterEmptyDescriptionKey,
-  getProTwapSideFilterEmptyDescriptionKey,
-  type ProOrderSideFilter,
 } from '../utils/proPositionSideFilter';
 import { sortProOrders } from '../utils/proOrderSort';
 import { sortProPositions } from '../utils/proPositionSort';
-import {
-  selectActiveTwapOrders,
-  selectHistoricalTwapOrders,
-  type ProTwapView,
-} from '../utils/proTwapViews';
-import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
-import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
-import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
+import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
+import { usePerpsProTwapManagement } from '../hooks/usePerpsProTwapManagement';
 
 type ProPositionsPanelTabKey = 'positions' | 'orders' | 'chase' | 'twap';
 type ProPositionsPanelTab = TabItem & { key: ProPositionsPanelTabKey };
@@ -214,16 +202,6 @@ interface PerpsProPositionsPanelProps {
   isScreenFocused?: boolean;
 }
 
-interface TerminatingTwapSelection {
-  contextIdentityKey: string;
-  orderIdentityKey: string;
-}
-
-interface AcceptedTwapTerminationSelection {
-  contextIdentityKey: string;
-  orderIdentityKeys: ReadonlySet<string>;
-}
-
 /**
  * Pro-mode positions/orders section.
  *
@@ -273,11 +251,6 @@ const PerpsProPositionsPanel = ({
   >(null);
   const reportedTerminatedChaseKeysRef = useRef(new Set<string>());
   const shouldShowChaseTab = isChaseEnabled || chaseOrders.length > 0;
-  // Positions and Orders persist their side filter on the controller; TWAP has
-  // no such field on `ProLayoutPreferences`, so it stays local for now.
-  const [twapSideFilter, setTwapSideFilter] = useState<ProOrderSideFilter>(
-    DEFAULT_PRO_ORDER_SIDE_FILTER,
-  );
   const {
     sideFilter: positionsSideFilter,
     sortConfig,
@@ -387,71 +360,38 @@ const PerpsProPositionsPanel = ({
     [handleBaseOrderCancel, handleCanceledRestingOrder],
   );
   const { markets } = usePerpsMarkets();
-
-  const [terminatingTwapSelection, setTerminatingTwapSelection] =
-    useState<TerminatingTwapSelection | null>(null);
-  const [acceptedTerminationSelection, setAcceptedTerminationSelection] =
-    useState<AcceptedTwapTerminationSelection | null>(null);
-  const twapTerminateSheetRef = useRef<BottomSheetRef>(null);
-  const openedTwapSelectionRef = useRef<string | null>(null);
+  const displaySymbol = getPerpsDisplaySymbol(symbol);
   const isTwapTabSelected = activeTabKey === 'twap';
   const {
-    twapOrders,
-    isLoading: areTwapOrdersInitiallyLoading,
+    acceptedTerminationOrderIdentityKeys,
+    activeOrders: activeTwapOrders,
+    clearTerminateSelection,
+    emptyMetadataByView: twapEmptyMetadataByView,
     error: twapOrdersError,
-    refresh: refreshTwapOrders,
+    filterScopeKey: twapFilterScopeKey,
+    historicalOrders: historicalTwapOrders,
+    isLoading: areTwapOrdersInitiallyLoading,
     isRefreshing: areTwapOrdersRefreshing,
-  } = usePerpsTwapOrders({
-    // Discovery is independent of the placement rollout: users must retain a
-    // termination surface for venue-native schedules after a flag rollback.
-    enableLiveUpdates: isScreenFocused && isTwapTabSelected,
-    enableDiscovery:
-      isScreenFocused && !isTwapPlacementEnabled && !isTwapTabSelected,
-    pollingInterval: PERPS_TWAP_UI_CONFIG.LiveUpdateIntervalMs,
-    pauseLiveRestReconciliation: terminatingTwapSelection !== null,
+    isTerminationInFlight,
+    refresh: refreshTwapOrders,
+    selectOrderToTerminate: handleSelectTwapToTerminate,
+    setSideFilter: setTwapSideFilter,
+    shouldShowTab: shouldShowTwapTab,
+    sideFilter: twapSideFilter,
+    terminateSheetRef: twapTerminateSheetRef,
+    terminateTwap,
+    terminatingOrder: terminatingTwapOrder,
+  } = usePerpsProTwapManagement({
+    activeProvider,
+    displaySymbol,
+    isScreenFocused,
+    isTabSelected: isTwapTabSelected,
+    isTickerOnly,
+    isTwapPlacementEnabled,
+    network: perpsNetwork,
+    selectedAddress,
+    symbol,
   });
-  const allActiveTwapOrders = useMemo(
-    () => selectActiveTwapOrders(twapOrders),
-    [twapOrders],
-  );
-  const allHistoricalTwapOrders = useMemo(
-    () => selectHistoricalTwapOrders(twapOrders),
-    [twapOrders],
-  );
-  const shouldShowTwapTab =
-    isTwapPlacementEnabled ||
-    allActiveTwapOrders.length > 0 ||
-    twapOrdersError !== null;
-  const twapContextIdentityKey = `${selectedAddress ?? 'none'}|${activeProvider}|${perpsNetwork}`;
-  const terminatingTwapOrder = useMemo(() => {
-    if (
-      !terminatingTwapSelection ||
-      terminatingTwapSelection.contextIdentityKey !== twapContextIdentityKey
-    ) {
-      return null;
-    }
-
-    return (
-      allActiveTwapOrders.find(
-        (order) =>
-          getTwapOrderIdentityKey(order) ===
-          terminatingTwapSelection.orderIdentityKey,
-      ) ?? null
-    );
-  }, [allActiveTwapOrders, terminatingTwapSelection, twapContextIdentityKey]);
-  const handleSelectTwapToTerminate = useCallback(
-    (order: TwapOrder) => {
-      setTerminatingTwapSelection({
-        contextIdentityKey: twapContextIdentityKey,
-        orderIdentityKey: getTwapOrderIdentityKey(order),
-      });
-    },
-    [twapContextIdentityKey],
-  );
-  const acceptedTerminationOrderIdentityKeys =
-    acceptedTerminationSelection?.contextIdentityKey === twapContextIdentityKey
-      ? acceptedTerminationSelection.orderIdentityKeys
-      : undefined;
 
   useEffect(() => {
     if (
@@ -461,60 +401,6 @@ const PerpsProPositionsPanel = ({
       setActiveTabKey('orders');
     }
   }, [activeTabKey, shouldShowChaseTab, shouldShowTwapTab]);
-
-  const { isTerminationInFlight, terminateTwap } = usePerpsTerminateTwap({
-    onSuccess: (twapOrder) => {
-      setAcceptedTerminationSelection((currentSelection) => {
-        const orderIdentityKeys =
-          currentSelection?.contextIdentityKey === twapContextIdentityKey
-            ? new Set(currentSelection.orderIdentityKeys)
-            : new Set<string>();
-        orderIdentityKeys.add(getTwapOrderIdentityKey(twapOrder));
-
-        return {
-          contextIdentityKey: twapContextIdentityKey,
-          orderIdentityKeys,
-        };
-      });
-      setTerminatingTwapSelection(null);
-      refreshTwapOrders();
-    },
-    onError: () => setTerminatingTwapSelection(null),
-  });
-
-  useEffect(() => {
-    if (!acceptedTerminationSelection) {
-      return;
-    }
-
-    const isCurrentContext =
-      acceptedTerminationSelection.contextIdentityKey ===
-      twapContextIdentityKey;
-    const activeOrderIdentityKeys = new Set(
-      allActiveTwapOrders.map(getTwapOrderIdentityKey),
-    );
-    const remainingAcceptedOrderIdentityKeys = new Set(
-      [...acceptedTerminationSelection.orderIdentityKeys].filter(
-        (orderIdentityKey) => activeOrderIdentityKeys.has(orderIdentityKey),
-      ),
-    );
-
-    if (!isCurrentContext || remainingAcceptedOrderIdentityKeys.size === 0) {
-      setAcceptedTerminationSelection(null);
-    } else if (
-      remainingAcceptedOrderIdentityKeys.size !==
-      acceptedTerminationSelection.orderIdentityKeys.size
-    ) {
-      setAcceptedTerminationSelection({
-        contextIdentityKey: twapContextIdentityKey,
-        orderIdentityKeys: remainingAcceptedOrderIdentityKeys,
-      });
-    }
-  }, [
-    acceptedTerminationSelection,
-    allActiveTwapOrders,
-    twapContextIdentityKey,
-  ]);
 
   useEffect(() => {
     const deliveryRevisions = {
@@ -547,42 +433,30 @@ const PerpsProPositionsPanel = ({
     symbol,
   ]);
 
-  useEffect(() => {
-    const selectionKey = terminatingTwapSelection?.orderIdentityKey ?? null;
-    if (
-      selectionKey &&
-      terminatingTwapOrder &&
-      openedTwapSelectionRef.current !== selectionKey
-    ) {
-      openedTwapSelectionRef.current = selectionKey;
-      twapTerminateSheetRef.current?.onOpenBottomSheet();
-    }
-    if (!selectionKey) {
-      openedTwapSelectionRef.current = null;
-    }
-  }, [terminatingTwapOrder, terminatingTwapSelection]);
-
-  useEffect(() => {
-    if (terminatingTwapSelection && !terminatingTwapOrder) {
-      twapTerminateSheetRef.current?.onCloseBottomSheet();
-      setTerminatingTwapSelection(null);
-    }
-  }, [terminatingTwapOrder, terminatingTwapSelection]);
-
-  const displaySymbol = getPerpsDisplaySymbol(symbol);
-
-  // Rows carry only a symbol, so resolve the full market here where the list is
-  // already loaded; the caller falls back to enriching a symbol-only market.
   const selectMarketBySymbol = useCallback(
-    (nextSymbol: string, sourceSection: ProPositionsPanelSourceSection) => {
+    (
+      nextSymbol: string,
+      sourceSection: ProPositionsPanelSourceSection,
+      providerId?: TwapOrder['providerId'],
+    ) => {
+      const market = markets.find(
+        (candidate) =>
+          candidate.symbol === nextSymbol &&
+          (providerId === undefined ||
+            (candidate.providerId ??
+              (activeProvider === 'aggregated'
+                ? PROVIDER_CONFIG.DefaultProvider
+                : activeProvider)) === providerId),
+      );
       onSelectMarket?.(
-        markets.find((market) => market.symbol === nextSymbol) ?? {
+        market ?? {
           symbol: nextSymbol,
+          ...(providerId === undefined ? {} : { providerId }),
         },
         sourceSection,
       );
     },
-    [markets, onSelectMarket],
+    [activeProvider, markets, onSelectMarket],
   );
 
   const handleSelectPositionMarket = useCallback(
@@ -590,6 +464,7 @@ const PerpsProPositionsPanel = ({
       selectMarketBySymbol(
         position.symbol,
         PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+        position.providerId,
       ),
     [selectMarketBySymbol],
   );
@@ -599,6 +474,7 @@ const PerpsProPositionsPanel = ({
       selectMarketBySymbol(
         order.symbol,
         PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+        order.providerId,
       ),
     [selectMarketBySymbol],
   );
@@ -611,6 +487,7 @@ const PerpsProPositionsPanel = ({
       selectMarketBySymbol(
         twapOrder.symbol,
         PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+        getTwapOrderProviderId(twapOrder),
       ),
     [selectMarketBySymbol],
   );
@@ -644,39 +521,6 @@ const PerpsProPositionsPanel = ({
       isTickerOnly ? orders.filter((order) => order.symbol === symbol) : orders,
     [isTickerOnly, orders, symbol],
   );
-
-  // Same pipeline the other two tabs use: ticker-only, then side, then the
-  // view split. The TWAP filter is component state because
-  // `ProLayoutPreferences` carries no TWAP field to persist it in.
-  const visibleTwapOrders = useMemo(
-    () =>
-      isTickerOnly
-        ? twapOrders.filter((twapOrder) => twapOrder.symbol === symbol)
-        : twapOrders,
-    [isTickerOnly, twapOrders, symbol],
-  );
-
-  const visibleActiveTwapOrders = useMemo(
-    () => selectActiveTwapOrders(visibleTwapOrders),
-    [visibleTwapOrders],
-  );
-
-  const visibleHistoricalTwapOrders = useMemo(
-    () => selectHistoricalTwapOrders(visibleTwapOrders),
-    [visibleTwapOrders],
-  );
-
-  const activeTwapOrders = useMemo(
-    () => filterProTwapOrdersBySide(visibleActiveTwapOrders, twapSideFilter),
-    [twapSideFilter, visibleActiveTwapOrders],
-  );
-
-  const historicalTwapOrders = useMemo(
-    () =>
-      filterProTwapOrdersBySide(visibleHistoricalTwapOrders, twapSideFilter),
-    [twapSideFilter, visibleHistoricalTwapOrders],
-  );
-  const twapFilterScopeKey = `${isTickerOnly ? symbol : 'all'}:${twapSideFilter}`;
 
   const isOrdersTab = activeTabKey === 'orders';
   const isChaseTab = activeTabKey === 'chase' && shouldShowChaseTab;
@@ -902,77 +746,6 @@ const PerpsProPositionsPanel = ({
     !isOrderSideFilterEmpty
       ? displaySymbol
       : undefined;
-
-  const allFillTwapOrders = useMemo(
-    () => twapOrders.filter((twapOrder) => twapOrder.fills.length > 0),
-    [twapOrders],
-  );
-  const visibleFillTwapOrders = useMemo(
-    () => visibleTwapOrders.filter((twapOrder) => twapOrder.fills.length > 0),
-    [visibleTwapOrders],
-  );
-  const sideFilteredFillTwapOrders = useMemo(
-    () => filterProTwapOrdersBySide(visibleFillTwapOrders, twapSideFilter),
-    [twapSideFilter, visibleFillTwapOrders],
-  );
-  const twapEmptyMetadataByView = useMemo<
-    Record<ProTwapView, PerpsProTwapEmptyMetadata>
-  >(() => {
-    const getTwapEmptyMetadata = (
-      allViewOrders: TwapOrder[],
-      visibleViewOrders: TwapOrder[],
-      sideFilteredViewOrders: TwapOrder[],
-    ): PerpsProTwapEmptyMetadata => {
-      const isTwapViewSideFilterEmpty =
-        twapSideFilter !== DEFAULT_PRO_ORDER_SIDE_FILTER &&
-        visibleViewOrders.length > 0 &&
-        sideFilteredViewOrders.length === 0;
-
-      return {
-        filteredSideDescriptionKey: isTwapViewSideFilterEmpty
-          ? getProTwapSideFilterEmptyDescriptionKey(twapSideFilter)
-          : undefined,
-        filteredTicker:
-          isTickerOnly &&
-          allViewOrders.length > 0 &&
-          visibleViewOrders.length === 0 &&
-          !isTwapViewSideFilterEmpty
-            ? displaySymbol
-            : undefined,
-      };
-    };
-
-    return {
-      active: getTwapEmptyMetadata(
-        allActiveTwapOrders,
-        visibleActiveTwapOrders,
-        activeTwapOrders,
-      ),
-      history: getTwapEmptyMetadata(
-        allHistoricalTwapOrders,
-        visibleHistoricalTwapOrders,
-        historicalTwapOrders,
-      ),
-      fill_history: getTwapEmptyMetadata(
-        allFillTwapOrders,
-        visibleFillTwapOrders,
-        sideFilteredFillTwapOrders,
-      ),
-    };
-  }, [
-    activeTwapOrders,
-    allActiveTwapOrders,
-    allFillTwapOrders,
-    allHistoricalTwapOrders,
-    displaySymbol,
-    historicalTwapOrders,
-    isTickerOnly,
-    sideFilteredFillTwapOrders,
-    twapSideFilter,
-    visibleActiveTwapOrders,
-    visibleFillTwapOrders,
-    visibleHistoricalTwapOrders,
-  ]);
 
   const renderPositionsTab = () => {
     if (hasPositions) {
@@ -1583,7 +1356,7 @@ const PerpsProPositionsPanel = ({
         <PerpsProTwapTerminateSheet
           twapOrder={terminatingTwapOrder}
           sheetRef={twapTerminateSheetRef}
-          onClose={() => setTerminatingTwapSelection(null)}
+          onClose={clearTerminateSelection}
           onConfirm={terminateTwap}
           isTerminating={isTerminationInFlight}
         />

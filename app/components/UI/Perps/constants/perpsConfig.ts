@@ -110,6 +110,7 @@ const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
 const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
+const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
 const TWAP_HISTORY_PAGE_SIZE = 20;
 const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
@@ -149,7 +150,7 @@ export const PERPS_TWAP_UI_CONFIG = {
   /** REST fill reconciliation while the venue schedule stream is active. */
   LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
   /** Low-cadence discovery while rollout is off and the TWAP tab is hidden. */
-  DiscoveryIntervalMs: 30_000,
+  DiscoveryIntervalMs: TWAP_DISCOVERY_INTERVAL_MS,
   /** Maximum schedule cards mounted on one History page. */
   HistoryPageSize: TWAP_HISTORY_PAGE_SIZE,
   /** Maximum fill rows mounted on one Fill History page. */

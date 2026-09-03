@@ -1,6 +1,7 @@
 import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
+  type TwapOrder,
 } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -22,6 +23,7 @@ import {
   getPerpsLifecycleContext,
   settlePerpsForegroundOnSpan,
 } from './perpsLifecycleContext';
+import { getTwapOrderProviderId } from './twapOrderUtils';
 
 /**
  * Helpers for the Perps user-perceived CUF spans. These measure from the user
@@ -110,6 +112,7 @@ export function isPerpsFillRendered(
 
 /** Open CUF spans: unique op id -> metadata handed from starter to ender. */
 const pendingCufMeta = new Map<string, Record<string, TraceValue>>();
+const pendingCufEndListeners = new Map<string, () => void>();
 let cufOpCounter = 0;
 
 /** Mint a unique, greppable op id for a span start. */
@@ -174,6 +177,29 @@ export interface EndPerpsCufTraceOptions {
 }
 
 /**
+ * Register operation-local cleanup that runs whichever path ends the span.
+ * This is intentionally keyed by the unique op id so stream confirmation,
+ * timeout, request failure, and disconnect teardown all release the same
+ * caller-owned state without retaining successful operations until unmount.
+ */
+export function registerPerpsCufTraceEndListener(
+  opId: string,
+  listener: () => void,
+): () => void {
+  if (!pendingCufMeta.has(opId)) {
+    listener();
+    return () => undefined;
+  }
+
+  pendingCufEndListeners.set(opId, listener);
+  return () => {
+    if (pendingCufEndListeners.get(opId) === listener) {
+      pendingCufEndListeners.delete(opId);
+    }
+  };
+}
+
+/**
  * End a CUF span once the flow has rendered. Idempotent: no-ops unless the op
  * is still pending, so a fallback end after a stream end is harmless, and a
  * fallback for a superseded op cannot touch a newer one (distinct op ids).
@@ -188,6 +214,9 @@ export function endPerpsCufTrace({
     return;
   }
   pendingCufMeta.delete(id);
+  const endListener = pendingCufEndListeners.get(id);
+  pendingCufEndListeners.delete(id);
+  endListener?.();
   const name = meta[CUF_META.NAME] as TraceName;
   DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} completed ${JSON.stringify(data ?? {})}`,
@@ -357,6 +386,7 @@ export function clearPendingPerpsCufTraces(
 /** Test-only: drop all pending spans and place-order state between tests. */
 export function resetPerpsCufTraceForTests(): void {
   pendingCufMeta.clear();
+  pendingCufEndListeners.clear();
   placeOrderRendered = null;
   placeOrderResolver = null;
   placeOrderOpId = null;
@@ -469,12 +499,13 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
 export function watchPerpsCufTwapTerminal(
   opId: string,
   orderId: string,
-  providerId?: string,
+  providerId?: TwapOrder['providerId'],
 ): void {
+  const normalizedProviderId = getTwapOrderProviderId({ orderId, providerId });
   setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.TWAP_TERMINAL,
     [CUF_META.ORDER_ID]: orderId,
-    ...(providerId ? { [CUF_META.PROVIDER_ID]: providerId } : {}),
+    [CUF_META.PROVIDER_ID]: normalizedProviderId,
     [CUF_META.AWAIT_ACCEPT]: true,
   });
 }
@@ -829,7 +860,7 @@ export function handlePerpsCufOrdersDelivered(
 
 interface PerpsCufTwapOrderLike {
   orderId: string;
-  providerId?: string;
+  providerId?: TwapOrder['providerId'];
   status: string;
 }
 
@@ -862,7 +893,8 @@ export function handlePerpsCufTwapOrdersDelivered(
     const schedule = orders.find(
       (order) =>
         order.orderId === orderId &&
-        (typeof providerId !== 'string' || order.providerId === providerId),
+        (typeof providerId !== 'string' ||
+          getTwapOrderProviderId(order) === providerId),
     );
     if (!schedule || schedule.status !== 'active') {
       confirmOrDefer(opId, meta, toEnd);

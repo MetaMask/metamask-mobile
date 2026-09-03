@@ -8,6 +8,7 @@ import {
   acceptPerpsCufRequest,
   endPerpsCufRequestAfter,
   endPerpsCufTrace,
+  registerPerpsCufTraceEndListener,
   startPerpsCufTrace,
   watchPerpsCufTwapTerminal,
 } from '../utils/perpsCufTrace';
@@ -16,6 +17,8 @@ import { usePerpsTerminateTwap } from './usePerpsTerminateTwap';
 let mockSelectedAddress = '0xabc';
 let mockProvider = 'hyperliquid';
 let mockNetwork = 'testnet';
+let mockConnectionGeneration = 1;
+const mockCufEndListeners = new Map<string, () => void>();
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
@@ -28,6 +31,12 @@ jest.mock('../selectors/selectedAccountAddress', () => ({
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsProvider: () => mockProvider,
   selectPerpsNetwork: () => mockNetwork,
+}));
+
+jest.mock('./usePerpsMarketContext', () => ({
+  usePerpsMarketContext: () => ({
+    key: `${mockNetwork}|${mockProvider}|${mockConnectionGeneration}`,
+  }),
 }));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -43,6 +52,12 @@ jest.mock('../utils/perpsCufTrace', () => ({
   acceptPerpsCufRequest: jest.fn(),
   endPerpsCufRequestAfter: jest.fn(),
   endPerpsCufTrace: jest.fn(),
+  registerPerpsCufTraceEndListener: jest.fn(
+    (opId: string, listener: () => void) => {
+      mockCufEndListeners.set(opId, listener);
+      return () => mockCufEndListeners.delete(opId);
+    },
+  ),
   startPerpsCufTrace: jest.fn(() => 'twap-cuf-op'),
   watchPerpsCufTwapTerminal: jest.fn(),
 }));
@@ -101,6 +116,8 @@ describe('usePerpsTerminateTwap', () => {
     mockSelectedAddress = '0xabc';
     mockProvider = 'hyperliquid';
     mockNetwork = 'testnet';
+    mockConnectionGeneration = 1;
+    mockCufEndListeners.clear();
     mockCancelOrder.mockResolvedValue({ success: true });
   });
 
@@ -136,6 +153,10 @@ describe('usePerpsTerminateTwap', () => {
       30_000,
     );
     expect(acceptPerpsCufRequest).toHaveBeenCalledWith('twap-cuf-op');
+    expect(registerPerpsCufTraceEndListener).toHaveBeenCalledWith(
+      'twap-cuf-op',
+      expect.any(Function),
+    );
     expect(onSuccess).toHaveBeenCalledWith(twapOrder);
     expect(result.current.isTerminationInFlight).toBe(false);
   });
@@ -154,6 +175,47 @@ describe('usePerpsTerminateTwap', () => {
     expect(mockCancelOrder).toHaveBeenCalledWith(
       expect.objectContaining({ providerId: 'myx' }),
     );
+  });
+
+  it('normalizes a legacy schedule to the default provider for routing and tracing', async () => {
+    // Arrange
+    const { result } = renderHook(() => usePerpsTerminateTwap());
+    const legacyOrder = { ...twapOrder, providerId: undefined };
+
+    // Act
+    await act(async () => {
+      await result.current.terminateTwap(legacyOrder);
+    });
+
+    // Assert
+    expect(mockCancelOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ providerId: 'hyperliquid' }),
+    );
+    expect(watchPerpsCufTwapTerminal).toHaveBeenCalledWith(
+      'twap-cuf-op',
+      'twap-1',
+      'hyperliquid',
+    );
+  });
+
+  it('releases a successful CUF operation after central trace completion', async () => {
+    // Arrange
+    const { result, unmount } = renderHook(() => usePerpsTerminateTwap());
+    await act(async () => {
+      await result.current.terminateTwap(twapOrder);
+    });
+    expect(mockCufEndListeners.has('twap-cuf-op')).toBe(true);
+
+    // Act: the central CUF terminal path invokes this for both stream and
+    // timeout completion.
+    act(() => mockCufEndListeners.get('twap-cuf-op')?.());
+    unmount();
+
+    // Assert: unmount cannot reclassify a completed span as disconnected.
+    expect(endPerpsCufTrace).not.toHaveBeenCalledWith({
+      id: 'twap-cuf-op',
+      data: { success: false, reason: 'disconnected' },
+    });
   });
 
   it('keeps the first cancellation when a colliding provider target confirms while it is pending', async () => {
@@ -363,6 +425,46 @@ describe('usePerpsTerminateTwap', () => {
       expect(result.current.isTerminationInFlight).toBe(false);
     },
   );
+
+  it('suppresses a pending cancellation after a same-identity reconnect', async () => {
+    // Arrange
+    let resolveCancellation:
+      | ((result: { success: boolean }) => void)
+      | undefined;
+    mockCancelOrder.mockReturnValue(
+      new Promise<{ success: boolean }>((resolve) => {
+        resolveCancellation = resolve;
+      }),
+    );
+    const onSuccess = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      usePerpsTerminateTwap({ onSuccess }),
+    );
+    let terminatePromise: Promise<void> | undefined;
+    act(() => {
+      terminatePromise = result.current.terminateTwap(twapOrder);
+    });
+
+    // Act: provider/account/network are unchanged; only connection generation
+    // advances as PerpsConnectionManager reconnects.
+    mockConnectionGeneration += 1;
+    rerender();
+    await waitFor(() =>
+      expect(result.current.isTerminationInFlight).toBe(false),
+    );
+    await act(async () => {
+      resolveCancellation?.({ success: true });
+      await terminatePromise;
+    });
+
+    // Assert
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'twap-cuf-op',
+      data: { success: false, reason: 'disconnected' },
+    });
+  });
 
   it('suppresses a pending cancellation rejection after an identity switch', async () => {
     // Arrange

@@ -5,7 +5,9 @@ type TwapOrderIdentity = Pick<TwapOrder, 'orderId' | 'providerId'>;
 type TwapOrderDirection = Pick<TwapOrder, 'reduceOnly' | 'side'>;
 
 /** Provider owning a TWAP, including legacy/default-provider rows. */
-export const getTwapOrderProviderId = (twapOrder: TwapOrderIdentity): string =>
+export const getTwapOrderProviderId = (
+  twapOrder: TwapOrderIdentity,
+): NonNullable<TwapOrder['providerId']> =>
   twapOrder.providerId ?? PROVIDER_CONFIG.DefaultProvider;
 
 /** Stable identity for aggregated TWAP rows whose venue IDs may collide. */

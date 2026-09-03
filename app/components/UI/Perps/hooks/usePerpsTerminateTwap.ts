@@ -12,18 +12,18 @@ import {
   PERPS_CUF_TAG,
 } from '../constants/perpsCufTags';
 import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
-import {
-  selectPerpsNetwork,
-  selectPerpsProvider,
-} from '../selectors/perpsController';
+import { selectPerpsNetwork } from '../selectors/perpsController';
 import usePerpsToasts from './usePerpsToasts';
 import {
   acceptPerpsCufRequest,
   endPerpsCufRequestAfter,
   endPerpsCufTrace,
+  registerPerpsCufTraceEndListener,
   startPerpsCufTrace,
   watchPerpsCufTwapTerminal,
 } from '../utils/perpsCufTrace';
+import { getTwapOrderProviderId } from '../utils/twapOrderUtils';
+import { usePerpsMarketContext } from './usePerpsMarketContext';
 
 export interface UsePerpsTerminateTwapOptions {
   /** Invoked after the venue accepts the termination. */
@@ -52,9 +52,9 @@ export const usePerpsTerminateTwap = (
   const { onSuccess, onError } = options;
   const { showToast, PerpsToastOptions } = usePerpsToasts();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
-  const provider = useSelector(selectPerpsProvider);
   const network = useSelector(selectPerpsNetwork);
-  const identityKey = `${selectedAddress ?? 'none'}|${provider}|${network}`;
+  const { key: marketContextKey } = usePerpsMarketContext();
+  const identityKey = `${selectedAddress ?? 'none'}|${marketContextKey}`;
   const [isTerminationInFlight, setIsTerminationInFlight] = useState(false);
   const currentIdentityKeyRef = useRef(identityKey);
   const operationGenerationRef = useRef(0);
@@ -106,10 +106,14 @@ export const usePerpsTerminateTwap = (
         },
       });
       pendingCufOpIdsRef.current.add(cancellationCufOpId);
+      registerPerpsCufTraceEndListener(cancellationCufOpId, () => {
+        pendingCufOpIdsRef.current.delete(cancellationCufOpId);
+      });
+      const twapProviderId = getTwapOrderProviderId(twapOrder);
       watchPerpsCufTwapTerminal(
         cancellationCufOpId,
         twapOrder.orderId,
-        twapOrder.providerId,
+        twapProviderId,
       );
       let controllerSettled = false;
       endPerpsCufRequestAfter(
@@ -123,7 +127,7 @@ export const usePerpsTerminateTwap = (
           orderId: twapOrder.orderId,
           symbol: twapOrder.symbol,
           orderType: 'twap',
-          providerId: twapOrder.providerId,
+          providerId: twapProviderId,
         });
         controllerSettled = true;
 
@@ -189,7 +193,7 @@ export const usePerpsTerminateTwap = (
               component: 'usePerpsTerminateTwap',
               action: 'terminate_twap',
               operation: 'order_management',
-              provider: twapOrder.providerId ?? provider,
+              provider: twapProviderId,
               network,
             },
             context: {
@@ -197,7 +201,7 @@ export const usePerpsTerminateTwap = (
               data: {
                 orderId: twapOrder.orderId,
                 symbol: twapOrder.symbol,
-                provider: twapOrder.providerId ?? provider,
+                provider: twapProviderId,
                 network,
               },
             },
@@ -214,15 +218,7 @@ export const usePerpsTerminateTwap = (
         }
       }
     },
-    [
-      PerpsToastOptions,
-      identityKey,
-      network,
-      onError,
-      onSuccess,
-      provider,
-      showToast,
-    ],
+    [PerpsToastOptions, identityKey, network, onError, onSuccess, showToast],
   );
 
   return { isTerminationInFlight, terminateTwap };

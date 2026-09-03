@@ -93,7 +93,7 @@ const reconcileTwapOrderStream = (
       ),
     ]),
   );
-  const authoritativeProviderIds = new Set(
+  const authoritativeProviderIds = new Set<string>(
     streamedOrders.map(getTwapOrderProviderId),
   );
 

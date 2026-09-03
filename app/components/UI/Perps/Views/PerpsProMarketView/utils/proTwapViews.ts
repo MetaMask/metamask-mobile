@@ -3,6 +3,11 @@ import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 /** Which of the TWAP tab's three views is showing. */
 export type ProTwapView = 'active' | 'history' | 'fill_history';
 
+export interface PerpsProTwapEmptyMetadata {
+  filteredTicker?: string;
+  filteredSideDescriptionKey?: string;
+}
+
 export const PRO_TWAP_VIEWS: readonly ProTwapView[] = [
   'active',
   'history',

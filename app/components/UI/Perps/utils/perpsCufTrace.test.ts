@@ -26,6 +26,7 @@ import {
   handlePerpsCufPositionsDelivered,
   handlePerpsCufOrdersDelivered,
   handlePerpsCufTwapOrdersDelivered,
+  registerPerpsCufTraceEndListener,
   resetPerpsCufTraceForTests,
 } from './perpsCufTrace';
 import {
@@ -160,6 +161,41 @@ describe('perpsCufTrace', () => {
     endPerpsCufTrace({ id: opId });
 
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies operation cleanup exactly once when a span ends', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+    });
+    const onEnd = jest.fn();
+    registerPerpsCufTraceEndListener(opId, onEnd);
+
+    endPerpsCufTrace({ id: opId });
+    endPerpsCufTrace({ id: opId });
+
+    expect(onEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies operation cleanup when the confirmation fallback times out', () => {
+    jest.useFakeTimers();
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+    });
+    const onEnd = jest.fn();
+    registerPerpsCufTraceEndListener(opId, onEnd);
+    endPerpsCufRequestAfter(opId, () => true, 1000);
+
+    jest.advanceTimersByTime(1000);
+
+    expect(onEnd).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: opId,
+        data: expect.objectContaining({
+          [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+        }),
+      }),
+    );
   });
 
   it('does not settle background_resume when a reconnect trace fails', () => {
@@ -743,6 +779,8 @@ describe('perpsCufTrace', () => {
     const opId = startPerpsCufTrace({
       name: TraceName.PerpsTerminateTwapToConfirmation,
     });
+    const onEnd = jest.fn();
+    registerPerpsCufTraceEndListener(opId, onEnd);
     watchPerpsCufTwapTerminal(opId, 'shared-id', 'hyperliquid');
     acceptPerpsCufRequest(opId);
 
@@ -751,10 +789,34 @@ describe('perpsCufTrace', () => {
       { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
     ]);
     expect(mockEndTrace).not.toHaveBeenCalled();
+    expect(onEnd).not.toHaveBeenCalled();
 
     handlePerpsCufTwapOrdersDelivered([
       { orderId: 'shared-id', providerId: 'hyperliquid', status: 'canceled' },
       { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+    ]);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ id: opId }),
+    );
+    expect(onEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('normalizes a legacy TWAP provider before matching colliding order ids', () => {
+    const opId = startPerpsCufTrace({
+      name: TraceName.PerpsTerminateTwapToConfirmation,
+    });
+    watchPerpsCufTwapTerminal(opId, 'shared-id');
+    acceptPerpsCufRequest(opId);
+
+    handlePerpsCufTwapOrdersDelivered([
+      { orderId: 'shared-id', status: 'active' },
+      { orderId: 'shared-id', providerId: 'myx', status: 'canceled' },
+    ]);
+    expect(mockEndTrace).not.toHaveBeenCalled();
+
+    handlePerpsCufTwapOrdersDelivered([
+      { orderId: 'shared-id', status: 'canceled' },
+      { orderId: 'shared-id', providerId: 'myx', status: 'active' },
     ]);
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ id: opId }),

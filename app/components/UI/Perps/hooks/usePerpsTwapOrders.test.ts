@@ -362,6 +362,23 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([]);
   });
 
+  it('resolves a failed manual refresh into visible error state', async () => {
+    // Arrange
+    mockController.getTwapOrders.mockRejectedValueOnce(new Error('venue down'));
+    const { result } = renderHook(() =>
+      usePerpsTwapOrders({ skipInitialFetch: true }),
+    );
+
+    // Act: callers may intentionally fire-and-forget this non-throwing API.
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    // Assert
+    expect(result.current.error).toBe('venue down');
+    expect(result.current.isRefreshing).toBe(false);
+  });
+
   it('keeps a read error visible until a refresh succeeds', async () => {
     // Arrange
     let resolveRefresh: ((orders: TwapOrder[]) => void) | undefined;

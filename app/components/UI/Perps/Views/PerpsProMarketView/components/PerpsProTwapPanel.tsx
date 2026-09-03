@@ -24,13 +24,9 @@ import {
   PRO_TWAP_VIEWS,
   DEFAULT_PRO_TWAP_VIEW,
   selectTwapFillRows,
+  type PerpsProTwapEmptyMetadata,
   type ProTwapView,
 } from '../utils/proTwapViews';
-
-export interface PerpsProTwapEmptyMetadata {
-  filteredTicker?: string;
-  filteredSideDescriptionKey?: string;
-}
 
 interface PerpsProTwapPanelProps {
   /** Active schedules, already ticker- and side-filtered by the caller. */

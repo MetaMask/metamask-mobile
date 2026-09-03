@@ -729,11 +729,124 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeDisabled();
   });
 
-  it('attributes a TWAP row market switch to the compatible orders source', () => {
+  it('retains an accepted termination lock through reconnect loading', () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    const onSuccess = mockUsePerpsTerminateTwap.mock.calls[0][0]?.onSuccess;
+    if (!onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+    act(() => onSuccess(activeOrder));
+
+    // Act: same-identity reconnect briefly publishes an empty loading state,
+    // then the last active row returns before terminal confirmation.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    ).toBeDisabled();
+  });
+
+  it('closes the terminate sheet after an accepted cancellation', async () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+    const onSuccess = mockUsePerpsTerminateTwap.mock.calls[0][0]?.onSuccess;
+    if (!onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+
+    // Act
+    act(() => onSuccess(activeOrder));
+
+    // Assert: selection is cleared by the BottomSheet close callback.
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(mockRefreshTwapOrders).toHaveBeenCalled();
+  });
+
+  it('routes a TWAP row to the matching provider when market symbols collide', () => {
     // Arrange
     const onSelectMarket = jest.fn();
+    const hyperliquidMarket = {
+      symbol: 'SOL',
+      providerId: 'hyperliquid' as const,
+      maxLeverage: '20x',
+    };
+    const myxMarket = {
+      symbol: 'SOL',
+      providerId: 'myx' as const,
+      maxLeverage: '50x',
+    };
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [hyperliquidMarket, myxMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
     mockUsePerpsTwapOrders.mockReturnValue({
-      twapOrders: [makeTwapOrder()],
+      twapOrders: [makeTwapOrder({ providerId: 'myx' })],
       isLoading: false,
       error: null,
       refresh: mockRefreshTwapOrders,
@@ -751,12 +864,12 @@ describe('PerpsProPositionsPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapRowSelector('hyperliquid', 'twap-1')),
+      screen.getByTestId(getPerpsProTwapRowSelector('myx', 'twap-1')),
     );
 
     // Assert
     expect(onSelectMarket).toHaveBeenCalledWith(
-      { symbol: 'SOL' },
+      myxMarket,
       PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
     );
   });
