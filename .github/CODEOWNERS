@@ -8,6 +8,9 @@ tailwind.config.js                   @MetaMask/design-system-engineers
 # Platform Team
 .github/                                                    @MetaMask/mobile-platform
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
+
+# DevOps Team (CI/build infrastructure)
+.github/workflows/                                          @MetaMask/devops
 patches/                                                    @MetaMask/mobile-platform
 .github/actions/configure-signing/action.yml                @MetaMask/mobile-platform
 app/core/Analytics/index.ts                                 @MetaMask/mobile-platform
