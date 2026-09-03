@@ -1,3 +1,4 @@
+import Logger from '../../../../util/Logger';
 import { QuoteChangedError } from '../utils/transakQuoteParity';
 import {
   dismissHeadlessFlow,
@@ -15,6 +16,11 @@ export function failHeadlessQuoteChanged(
       ? error
       : new QuoteChangedError({ cause: String(error) });
 
+  Logger.error(quoteChangedError, {
+    message: 'Transak quote changed after authentication',
+    code: quoteChangedError.code,
+    ...quoteChangedError.details,
+  });
   failSession(sessionId, quoteChangedError, 'QUOTE_CHANGED');
   dismissHeadlessFlow(navigation);
 

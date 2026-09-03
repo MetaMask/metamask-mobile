@@ -798,6 +798,18 @@ describe('useTransakRouting', () => {
         }),
         'QUOTE_CHANGED',
       );
+      expect(
+        jest.requireMock('../../../../util/Logger').error,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headlessBuyErrorCode: 'QUOTE_CHANGED',
+        }),
+        expect.objectContaining({
+          message: 'Transak quote changed after authentication',
+          code: 'QUOTE_CHANGED',
+          mismatches: expect.any(Array),
+        }),
+      );
       expect(mockParentPop).toHaveBeenCalled();
       expect(mockGetUserDetails).not.toHaveBeenCalled();
     });
