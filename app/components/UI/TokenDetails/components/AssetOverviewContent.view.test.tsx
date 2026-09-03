@@ -28,7 +28,6 @@ import {
   initialStateMarketInsightsView,
 } from '../../../../../tests/component-view/presets/marketInsightsView';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
-import { QueryClientBoundary } from '../../../../../tests/component-view/render';
 import Routes from '../../../../constants/navigation/Routes';
 import MarketInsightsView from '../../MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 import { AccessRestrictedProvider } from '../../Compliance';
