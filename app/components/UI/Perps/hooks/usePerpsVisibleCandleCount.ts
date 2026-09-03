@@ -22,10 +22,6 @@ export interface UsePerpsVisibleCandleCountReturn {
  * The count lives on `PerpsController.visibleCandleCount` so it is shared
  * across markets and survives app restarts. Pinch updates are debounced so
  * a gesture does not write controller state on every frame.
- *
- * The value returned to the chart is held in local state and is not updated
- * until the debounce fires, so a persist-driven selector change cannot fight
- * the in-progress zoom.
  */
 export const usePerpsVisibleCandleCount = (
   symbol?: string,
@@ -38,6 +34,7 @@ export const usePerpsVisibleCandleCount = (
   );
   const [visibleCandleCount, setVisibleCandleCount] = useState(initialCount);
   const viewportRef = useRef(initialCount);
+  const visibleCountRef = useRef(initialCount);
   const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingCountRef = useRef<number | null>(null);
 
@@ -56,6 +53,10 @@ export const usePerpsVisibleCandleCount = (
     }
     pendingCountRef.current = null;
     persistCount(pending);
+    // Local state is expected to be updated immediately during the pinch
+    // gesture; this is just a final confirmation before unmount/symbol
+    // changes.
+    visibleCountRef.current = pending;
     setVisibleCandleCount(pending);
   }, [persistCount]);
 
@@ -67,6 +68,12 @@ export const usePerpsVisibleCandleCount = (
       }
       viewportRef.current = clamped;
       pendingCountRef.current = clamped;
+      // Update the chart immediately so refresh/remount actions use the
+      // in-progress pinch zoom value, not the previous persisted one.
+      if (clamped !== visibleCountRef.current) {
+        visibleCountRef.current = clamped;
+        setVisibleCandleCount(clamped);
+      }
       if (persistTimeoutRef.current) {
         clearTimeout(persistTimeoutRef.current);
       }
@@ -78,6 +85,9 @@ export const usePerpsVisibleCandleCount = (
           return;
         }
         persistCount(next);
+        // Local state should already be correct; keep the ref in sync
+        // regardless.
+        visibleCountRef.current = next;
         setVisibleCandleCount(next);
       }, VISIBLE_CANDLE_COUNT_PERSIST_DEBOUNCE_MS);
     },
@@ -87,6 +97,7 @@ export const usePerpsVisibleCandleCount = (
   useEffect(() => {
     flushPending();
     setVisibleCandleCount(viewportRef.current);
+    visibleCountRef.current = viewportRef.current;
   }, [flushPending, symbol]);
 
   useEffect(

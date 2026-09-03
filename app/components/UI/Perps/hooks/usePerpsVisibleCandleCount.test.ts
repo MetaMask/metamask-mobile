@@ -48,6 +48,9 @@ describe('usePerpsVisibleCandleCount', () => {
       result.current.onVisibleCandleCountChange(90);
     });
 
+    // Persist is debounced, but chart-facing state updates immediately so
+    // refresh/remount actions use the pinch zoom value.
+    expect(result.current.visibleCandleCount).toBe(90);
     expect(
       Engine.context.PerpsController.setVisibleCandleCount,
     ).not.toHaveBeenCalled();
@@ -79,6 +82,7 @@ describe('usePerpsVisibleCandleCount', () => {
     expect(
       Engine.context.PerpsController.setVisibleCandleCount,
     ).not.toHaveBeenCalled();
+    expect(result.current.visibleCandleCount).toBe(30);
   });
 
   it('flushes a pending count when the market symbol changes', () => {
@@ -91,6 +95,9 @@ describe('usePerpsVisibleCandleCount', () => {
       result.current.onVisibleCandleCountChange(60);
     });
 
+    // Chart-facing value should update immediately; the persist happens on
+    // symbol change via the flush.
+    expect(result.current.visibleCandleCount).toBe(60);
     rerender({ symbol: 'ETH' });
 
     expect(
