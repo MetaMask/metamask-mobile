@@ -157,7 +157,9 @@ describe('ManageAccountRow', () => {
         nonInteractiveContentRegions[0].props.importantForAccessibility,
       ).toBe('no-hide-descendants');
       // The eye toggle stays reachable by default (no `includeHiddenElements`).
-      expect(getByTestId(getManageAccountRowEyeToggleId(GROUP_ID))).toBeEnabled();
+      expect(
+        getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)),
+      ).toBeEnabled();
       expect(
         getByTestId(getManageAccountRowEyeIconId(GROUP_ID)),
       ).toBeOnTheScreen();
@@ -304,10 +306,9 @@ describe('ManageAccountRow', () => {
       });
 
       const eyeToggle = getByTestId(getManageAccountRowEyeToggleId(GROUP_ID));
-      const removeControl = getByTestId(
-        getManageAccountRowRemoveId(GROUP_ID),
-        { includeHiddenElements: true },
-      );
+      const removeControl = getByTestId(getManageAccountRowRemoveId(GROUP_ID), {
+        includeHiddenElements: true,
+      });
 
       expect(eyeToggle).toBeEnabled();
       expect(removeControl).toBeDisabled();
