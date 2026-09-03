@@ -1185,7 +1185,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { insufficientBalanceErrors } = orderValidation;
   const hasInsufficientFundsError =
-    hasInsufficientPayTokenBalance || insufficientBalanceErrors.length > 0;
+    !isPayTokenBalanceUnresolved &&
+    (hasInsufficientPayTokenBalance || insufficientBalanceErrors.length > 0);
 
   // The banner above already states the insufficient-funds condition, so drop
   // only those messages here — any other blocking error stays visible.
