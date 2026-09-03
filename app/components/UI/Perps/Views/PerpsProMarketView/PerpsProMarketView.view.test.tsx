@@ -2720,8 +2720,11 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
 
       await openScaleOrderForm();
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_START_PRICE}-field`));
       fireEvent.changeText(screen.getByTestId(ids.SCALE_START_PRICE), '2000');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
       fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2200');
+      fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
       fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
 
       await waitFor(() => {
