@@ -209,6 +209,15 @@ if (typeof global.MessageEvent === 'undefined') {
   // eslint-disable-next-line @react-native/no-deep-imports -- RN does not export MessageEvent at the top level
   global.MessageEvent =
     require('react-native/src/private/webapis/html/events/MessageEvent').default;
+
+  // React Native omits this unsupported accessor, but post-message-stream
+  // checks for it while loading. A sourceless native event has a null source.
+  if (!('source' in global.MessageEvent.prototype)) {
+    Object.defineProperty(global.MessageEvent.prototype, 'source', {
+      get: () => null,
+      configurable: true,
+    });
+  }
 }
 
 class AbortError extends Error {
