@@ -18,6 +18,28 @@ const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const DEFAULT_IOS_APP_WARM_LAUNCH_SETTLE_MS = 15_000;
 
 /**
+ * @param {string | undefined} rawValue
+ * @returns {number}
+ */
+export function parseIosDevicePoolSize(rawValue) {
+  const trimmed = rawValue?.trim() ?? '';
+  if (!trimmed) {
+    return 1;
+  }
+
+  if (!/^\d+$/u.test(trimmed)) {
+    throw new Error('IOS_DEVICE_POOL_SIZE must be a positive integer.');
+  }
+
+  const poolSize = Number(trimmed);
+  if (!Number.isInteger(poolSize) || poolSize < 1) {
+    throw new Error('IOS_DEVICE_POOL_SIZE must be a positive integer.');
+  }
+
+  return poolSize;
+}
+
+/**
  * @param {string} name
  * @param {number} fallback
  * @returns {number}

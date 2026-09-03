@@ -1,5 +1,6 @@
 import {
   iosPoolSimulatorName,
+  parseIosDevicePoolSize,
   prepareIosSimulatorPool,
 } from './ios-simulator-lib.mjs';
 
@@ -93,6 +94,33 @@ describe('iosPoolSimulatorName', () => {
       'iPhone 16 Pro Appium Pool 1',
     );
   });
+});
+
+describe('parseIosDevicePoolSize', () => {
+  it.each([
+    ['unset', undefined],
+    ['empty', ''],
+    ['whitespace', '   '],
+  ])('defaults %s input to one', (_label, rawValue) => {
+    const poolSize = parseIosDevicePoolSize(rawValue);
+
+    expect(poolSize).toBe(1);
+  });
+
+  it('parses a complete positive-integer string', () => {
+    const poolSize = parseIosDevicePoolSize(' 2 ');
+
+    expect(poolSize).toBe(2);
+  });
+
+  it.each(['not-a-number', '1.5', '2workers', '0', '-1'])(
+    'rejects explicit non-positive-integer input: %s',
+    (rawValue) => {
+      expect(() => parseIosDevicePoolSize(rawValue)).toThrow(
+        'IOS_DEVICE_POOL_SIZE must be a positive integer',
+      );
+    },
+  );
 });
 
 describe('prepareIosSimulatorPool', () => {

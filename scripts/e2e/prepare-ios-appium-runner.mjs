@@ -17,6 +17,7 @@ import { appendFileSync, existsSync } from 'node:fs';
 import {
   grantIosAppPermissions,
   installIosApp,
+  parseIosDevicePoolSize,
   prepareIosSimulatorPool,
   warmLaunchIosApp,
 } from './ios-simulator-lib.mjs';
@@ -34,10 +35,7 @@ const simulatorName = process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
 const appPath = process.env.IOS_APP_PATH;
 const bundleId = process.env.IOS_BUNDLE_ID ?? 'io.metamask.MetaMask';
 const skipWdaPrebuild = process.env.SKIP_WDA_PREBUILD === 'true';
-const poolSize = Number.parseInt(
-  process.env.IOS_DEVICE_POOL_SIZE?.trim() || '1',
-  10,
-);
+const poolSize = parseIosDevicePoolSize(process.env.IOS_DEVICE_POOL_SIZE);
 
 spawnSync(
   'defaults',
