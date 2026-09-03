@@ -49,6 +49,10 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
+  liquidationPrice: '80000',
+  isCalculating: false,
+}));
 let mockTotalFee = 5;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   totalFee: mockTotalFee,
@@ -260,7 +264,8 @@ jest.mock('../../../../hooks', () => ({
     existingPosition: mockExistingPosition,
     isLoading: mockPositionStreamLoading,
   }),
-  usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
+  usePerpsLiquidationPrice: (params: unknown) =>
+    mockUsePerpsLiquidationPrice(params),
   usePerpsMarketData: () => ({
     marketData: mockMarketData
       ? { ...mockMarketData, szDecimals: mockSizeDecimals }
@@ -4466,11 +4471,53 @@ describe('usePerpsProOrderForm', () => {
       const { result } = renderProForm();
       configureScaleOrder(result);
 
+      const rungs = result.current.scaleOrder.rungs;
+      const totalSize = rungs.reduce(
+        (total, rung) => total + Number(rung.size),
+        0,
+      );
+      const weightedAverageEntry =
+        rungs.reduce(
+          (total, rung) => total + Number(rung.price) * Number(rung.size),
+          0,
+        ) / totalSize;
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBeCloseTo(weightedAverageEntry, 8);
       expect(result.current.scaleOrder.liquidationPrice).not.toContain('→');
       expect(result.current.scaleOrder.liquidationPrice).not.toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
       expect(result.current.scaleOrder.liquidationPrice).toBe('$80,000');
+    });
+
+    it('keeps Scale liquidation unavailable for an existing position', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
     });
 
     it('falls back on both Scale summary rows when the ladder is invalid', () => {
@@ -4486,6 +4533,12 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.scaleOrder.rungs).toEqual([]);
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
       expect(result.current.scaleOrder.margin).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
