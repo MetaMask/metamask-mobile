@@ -5615,6 +5615,8 @@
     "activity_market_close_long": "Market — close long",
     "activity_limit_long": "Limit long",
     "activity_limit_close_long": "Limit — close long",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Filled",
     "activity_order_status_canceled": "Canceled",
     "activity_order_status_rejected": "Rejected",
