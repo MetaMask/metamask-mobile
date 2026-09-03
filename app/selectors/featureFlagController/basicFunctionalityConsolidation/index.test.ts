@@ -1,5 +1,7 @@
 import {
+  BFT_CHILD_PREFERENCES,
   MOBILE_UX_BFTC_CONSOLIDATION_FLAG_NAME,
+  selectIsBasicFunctionalityConsistent,
   selectIsBasicFunctionalityConsolidationEnabled,
   selectMobileUxBftcConsolidationFlagEnabled,
 } from './index';
@@ -56,18 +58,80 @@ describe('basicFunctionalityConsolidation selectors', () => {
     });
   });
 
+  describe('selectIsBasicFunctionalityConsistent', () => {
+    const allOnChildren = Object.fromEntries(
+      BFT_CHILD_PREFERENCES.map((preference) => [preference, true]),
+    );
+    const allOffChildren = Object.fromEntries(
+      BFT_CHILD_PREFERENCES.map((preference) => [preference, false]),
+    );
+
+    it('returns true for an all-on legacy BFT configuration', () => {
+      expect(
+        selectIsBasicFunctionalityConsistent.resultFunc(true, allOnChildren),
+      ).toBe(true);
+    });
+
+    it('returns true for an all-off legacy BFT configuration', () => {
+      expect(
+        selectIsBasicFunctionalityConsistent.resultFunc(false, allOffChildren),
+      ).toBe(true);
+    });
+
+    it('returns false for a mixed legacy BFT configuration', () => {
+      expect(
+        selectIsBasicFunctionalityConsistent.resultFunc(true, {
+          ...allOnChildren,
+          useTokenDetection: false,
+        }),
+      ).toBe(false);
+    });
+  });
+
   describe('selectIsBasicFunctionalityConsolidationEnabled', () => {
     it('returns true when remote flag and cohort marker are enabled', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         true,
+        true,
+        false,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns true for an all-on legacy BFT user when the remote flag is enabled', () => {
+      const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
+        true,
+        false,
         true,
       );
 
       expect(result).toBe(true);
     });
 
-    it('returns false when remote flag is disabled (kill-switch)', () => {
+    it('returns true for an all-off legacy BFT user when the remote flag is enabled', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
+        true,
+        false,
+        true,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for a mixed legacy BFT user', () => {
+      const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
+        true,
+        false,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a consistent legacy BFT user when the remote flag is disabled', () => {
+      const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
+        false,
         false,
         true,
       );
@@ -75,10 +139,11 @@ describe('basicFunctionalityConsolidation selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when cohort marker is missing for existing users', () => {
+    it('returns false when remote flag is disabled (kill-switch)', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
-        true,
         false,
+        true,
+        true,
       );
 
       expect(result).toBe(false);
