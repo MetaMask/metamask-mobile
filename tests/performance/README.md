@@ -701,18 +701,12 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
 | `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
-### App profiling check (automatic on every PR run)
+### App profiling check (automatic on PR failures)
 
-Every PR performance run posts app profiling in the results comment:
-
-- **Failed scenarios** get an inline **App profiling check** (short summary +
-  collapsed metric table) under each scenario that has a prior usable baseline
-  on `main`.
-- **Passed scenarios** are listed in the collapsed **App profiling vs `main`**
-  section, which also carries the run-wide coverage, average CPU/memory and
-  issue counts. Scenarios over the +10% margin additionally get the full metric
-  table there.
-- Scenarios without a prior baseline are omitted from those blocks.
+When a PR performance run has failed scenarios, the results comment includes
+an inline **App profiling check** under each failed scenario that has a prior
+usable baseline on `main` (short summary + collapsed metric table). Scenarios
+without a prior baseline are omitted from that block.
 
 Baselines come from the scheduled `main` runs of
 [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)

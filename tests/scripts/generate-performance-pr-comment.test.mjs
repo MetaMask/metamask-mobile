@@ -110,16 +110,6 @@ function generateComment({ summary = SUMMARY, performanceResults } = {}) {
   return fs.readFileSync(outputFile, 'utf8');
 }
 
-test('reports app profiling coverage for the whole run', () => {
-  const md = generateComment({ performanceResults: PERFORMANCE_RESULTS });
-
-  assert.match(md, /🔬 App profiling vs `main`/);
-  assert.match(md, /\*\*Coverage:\*\* 2\/2 scenarios \(100\.0%\)/);
-  assert.match(md, /\*\*Avg CPU:\*\* 10\.80%/);
-  assert.match(md, /\*\*Avg memory:\*\* 698\.10 MB/);
-  assert.match(md, /\*\*Issues:\*\* 4 \(1 critical\)/);
-});
-
 test('warns in the header and lists failed scenarios', () => {
   const md = generateComment({ performanceResults: PERFORMANCE_RESULTS });
 
@@ -136,19 +126,37 @@ test('lists passed scenarios with their duration', () => {
   assert.match(md, /\| Asset View \| Android \|.*\| 2\.50s \|/);
 });
 
-test('omits per-scenario profiling blocks without a baseline', () => {
+test('omits profiling blocks without a baseline', () => {
   const md = generateComment({ performanceResults: PERFORMANCE_RESULTS });
 
   assert.doesNotMatch(md, /App profiling check/);
   assert.doesNotMatch(md, /Full metric table/);
 });
 
-test('omits the profiling section when the run has no profiling stats', () => {
+test('keeps profiling out of the passed scenarios section', () => {
   const md = generateComment({
-    summary: { ...SUMMARY, profilingStats: undefined },
-    performanceResults: PERFORMANCE_RESULTS,
+    summary: {
+      ...SUMMARY,
+      failedTestsStats: { uniqueFailedTests: 0, failedTestsByTeam: {} },
+    },
+    performanceResults: {
+      Android: {
+        'Google Pixel 8 Pro+14.0': [
+          {
+            testName: 'Asset View',
+            sessionId: 'session-passed',
+            totalTime: 2.5,
+            device: { name: 'Google Pixel 8 Pro', osVersion: '14.0' },
+            team: { teamId: '@assets-dev-team' },
+            qualityGates: { passed: true, hasThresholds: true },
+          },
+        ],
+      },
+    },
   });
 
+  assert.match(md, /## ⚡ Performance Test Results/);
+  assert.match(md, /✅ Passed Tests \(1\)/);
   assert.doesNotMatch(md, /App profiling/);
 });
 
