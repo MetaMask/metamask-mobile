@@ -701,12 +701,25 @@ node tests/scripts/aggregate-performance-reports.mjs
 | `tests/aggregated-reports/performance-report.html`            | **Visual HTML dashboard**                   |
 | `tests/aggregated-reports/app-profiling/*.json`               | Per-scenario app profiling + API call files |
 
-### App profiling check (automatic on PR failures)
+### App profiling check (automatic on every PR run)
 
-When a PR performance run has failed scenarios, the results comment includes
-an inline **App profiling check** under each failed scenario that has a prior
-usable baseline on `main` (short summary + collapsed metric table). Scenarios
-without a prior baseline are omitted from that block.
+Every PR performance run posts app profiling in the results comment:
+
+- **Failed scenarios** get an inline **App profiling check** (short summary +
+  collapsed metric table) under each scenario that has a prior usable baseline
+  on `main`.
+- **Passed scenarios** are listed in the collapsed **App profiling vs `main`**
+  section, which also carries the run-wide coverage, average CPU/memory and
+  issue counts. Scenarios over the +10% margin additionally get the full metric
+  table there.
+- Scenarios without a prior baseline are omitted from those blocks.
+
+Baselines come from the scheduled `main` runs of
+[`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml)
+(`BASELINE_WORKFLOW` in `tests/scripts/diff-app-profiling.mjs`). The reusable
+`run-performance-e2e.yml` cannot be used as the baseline source: it is
+`workflow_call` only, so its invocations are jobs of the caller run and never
+appear in `gh run list --workflow run-performance-e2e.yml`.
 
 Header uses ⚠️ when there are failed tests.
 
@@ -725,6 +738,9 @@ Or compare all failed scenarios from that run:
 This uses `.github/workflows/app-profiling-check.yml` (bot command /
 `workflow_dispatch`). The automatic PR path embeds profiling into the
 performance results comment from `run-performance-e2e.yml`.
+
+Both paths share `tests/scripts/diff-app-profiling.mjs`, so a `--workflow`
+override on the manual command also changes where baselines are looked up.
 
 ### Weekly app profiling report (Cursor Automation)
 

@@ -3,9 +3,9 @@
 /**
  * Generate a GitHub PR comment with performance test results.
  *
- * Failed scenarios with a prior app-profiling baseline are enriched inline
- * (short summary + collapsed metric table) so a separate profiling comment
- * is not required.
+ * Every scenario with a prior app-profiling baseline is enriched (short
+ * summary + collapsed metric table) so a separate profiling comment is not
+ * required: failed scenarios inline, passed scenarios in a collapsed section.
  *
  * Usage:
  *   node generate-performance-pr-comment.mjs [summary_file] [output_file]
@@ -30,13 +30,18 @@ import {
   findMatchingArtifact,
   findBaselineScenario,
   buildEmbeddedProfilingSection,
+  buildRegressionSummary,
+  getMetricRows,
+  hasUsableProfilingSummary,
+  BASELINE_WORKFLOW,
   COMMENT_MARKER as APP_PROFILING_MARKER,
 } from './diff-app-profiling.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
 const DEFAULT_BASELINE_BRANCH = 'main';
-const DEFAULT_WORKFLOW = 'run-performance-e2e.yml';
+/** GitHub rejects issue comments over 65536 characters. */
+const MAX_COMMENT_LENGTH = 60000;
 
 async function main() {
   if (!fs.existsSync(SUMMARY_FILE)) {
@@ -68,6 +73,7 @@ async function main() {
     summary.metadata?.workflowRun ?? process.env.GITHUB_RUN_ID ?? '';
   const repo = process.env.GITHUB_REPOSITORY ?? '';
 
+  const profilingStats = summary.profilingStats ?? null;
   const failedStats = summary.failedTestsStats ?? {};
   const uniqueFailedTests = failedStats.uniqueFailedTests ?? 0;
   const failedByTeam = failedStats.failedTestsByTeam ?? {};
@@ -173,6 +179,7 @@ async function main() {
               : '—';
 
           return {
+            key: `${platform}|${deviceKey}|${test.testName}`,
             passed: !failed,
             status: failed ? '❌ Failed' : '✅ Passed',
             testName: test.testName,
@@ -195,70 +202,118 @@ async function main() {
     );
   }
 
+  /**
+   * Every scenario of the run, keyed the same way as the failed-test rows and
+   * the passed-test rows so profiling blocks can be looked up while rendering.
+   */
+  function getScenariosToEnrich() {
+    const scenarios = new Map();
+
+    const add = ({ platform, device, testName }) => {
+      const key = `${platform}|${getDeviceKey(device)}|${testName}`;
+      if (!scenarios.has(key)) {
+        scenarios.set(key, {
+          key,
+          platform,
+          testName,
+          device: parseDeviceKey(device),
+        });
+      }
+    };
+
+    for (const teamData of Object.values(failedByTeam)) {
+      for (const test of teamData.tests ?? []) {
+        add(test);
+      }
+    }
+
+    for (const [platform, devices] of Object.entries(performanceResults ?? {})) {
+      for (const [deviceKey, tests] of Object.entries(devices ?? {})) {
+        for (const test of tests ?? []) {
+          add({ platform, device: deviceKey, testName: test.testName });
+        }
+      }
+    }
+
+    return [...scenarios.values()];
+  }
+
   const skipEnrichment =
     process.env.SKIP_APP_PROFILING_ENRICHMENT === 'true' || !repo || !runId;
 
   const profilingByKey = new Map();
-  if (!skipEnrichment && uniqueFailedTests > 0) {
+  if (!skipEnrichment) {
     const workRoot = fs.mkdtempSync(
       path.join(os.tmpdir(), 'perf-pr-profiling-'),
     );
     const currentArtifacts = findProfilingArtifacts(reportsDir);
 
     console.log(
-      `🔬 Enriching failed scenarios with app profiling vs \`${DEFAULT_BASELINE_BRANCH}\`...`,
+      `🔬 Enriching scenarios with app profiling vs \`${DEFAULT_BASELINE_BRANCH}\`...`,
     );
 
-    for (const teamData of Object.values(failedByTeam)) {
-      for (const test of teamData.tests ?? []) {
-        const device = parseDeviceKey(test.device);
-        const key = `${test.platform}|${getDeviceKey(test.device)}|${test.testName}`;
+    for (const scenario of getScenariosToEnrich()) {
+      const { key, testName, device } = scenario;
 
-        let currentArtifact = findMatchingArtifact(currentArtifacts, {
-          testName: test.testName,
-          device,
-        })?.data;
+      let currentArtifact = findMatchingArtifact(currentArtifacts, {
+        testName,
+        device,
+      })?.data;
 
-        if (!currentArtifact && !device.name) {
-          currentArtifact = currentArtifacts.find(
-            ({ data }) => data.testName === test.testName,
-          )?.data;
-        }
+      if (!currentArtifact && !device.name) {
+        currentArtifact = currentArtifacts.find(
+          ({ data }) => data.testName === testName,
+        )?.data;
+      }
 
-        try {
-          const baseline = findBaselineScenario({
-            repo,
-            workflow: DEFAULT_WORKFLOW,
-            baselineBranch: DEFAULT_BASELINE_BRANCH,
-            currentRunId: runId,
-            testName: test.testName,
-            device: currentArtifact?.device ?? device,
-            workRoot,
+      if (!hasUsableProfilingSummary(currentArtifact)) {
+        console.warn(
+          `⏭️  No usable profiling for "${testName}" — omitting profiling block`,
+        );
+        continue;
+      }
+
+      try {
+        const baseline = findBaselineScenario({
+          repo,
+          workflow: BASELINE_WORKFLOW,
+          baselineBranch: DEFAULT_BASELINE_BRANCH,
+          currentRunId: runId,
+          testName,
+          device: currentArtifact?.device ?? device,
+          workRoot,
+        });
+
+        const section = buildEmbeddedProfilingSection({
+          currentRunId: runId,
+          currentArtifact,
+          baseline,
+          repo,
+          baselineBranch: DEFAULT_BASELINE_BRANCH,
+          includeRawJson: false,
+        });
+
+        if (section) {
+          const rows = getMetricRows(
+            baseline.artifact.profilingSummary,
+            currentArtifact.profilingSummary,
+          );
+          profilingByKey.set(key, {
+            section,
+            summary: buildRegressionSummary(rows),
+            hasRegression: rows.some((row) => row.warn),
           });
-
-          const section = buildEmbeddedProfilingSection({
-            currentRunId: runId,
-            currentArtifact,
-            baseline,
-            repo,
-            baselineBranch: DEFAULT_BASELINE_BRANCH,
-            includeRawJson: false,
-          });
-
-          if (section) {
-            profilingByKey.set(key, section);
-          } else {
-            console.warn(
-              `⏭️  No comparable baseline for "${test.testName}" — omitting profiling block`,
-            );
-          }
-        } catch (error) {
+        } else {
           console.warn(
-            `⚠️  Could not enrich "${test.testName}": ${
-              error instanceof Error ? error.message : String(error)
-            }`,
+            `⏭️  No comparable baseline for "${testName}" — omitting profiling block`,
           );
         }
+      } catch (error) {
+        console.warn(
+          `⚠️  Could not enrich "${testName}": ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
       }
     }
   }
@@ -340,7 +395,7 @@ async function main() {
           ? `[📹 Watch](${t.recordingLink})`
           : '—';
         const key = `${t.platform}|${getDeviceKey(t.device)}|${t.testName}`;
-        const profilingSection = profilingByKey.get(key);
+        const profiling = profilingByKey.get(key);
 
         md += `#### ${escapeMarkdownTable(t.testName)}\n\n`;
         md += `| Platform | Device | Reason | Recording |\n`;
@@ -349,8 +404,8 @@ async function main() {
           device,
         )} | ${escapeMarkdownTable(reason)} | ${recording} |\n\n`;
 
-        if (profilingSection) {
-          md += `${profilingSection}\n`;
+        if (profiling) {
+          md += `${profiling.section}\n`;
         }
       }
     }
@@ -374,6 +429,76 @@ async function main() {
     }
 
     md += `\n</details>\n\n`;
+  }
+
+  // App profiling for the passed scenarios, which have no inline block above.
+  // Only regressions get the full metric table, to keep the comment well under
+  // GitHub's 65k character limit as the number of scenarios grows.
+  const passedWithProfiling = passedTestRuns
+    .map((test) => ({ test, profiling: profilingByKey.get(test.key) }))
+    .filter(({ profiling }) => profiling);
+
+  if (profilingStats || passedWithProfiling.length > 0) {
+    md += `<details>\n<summary>🔬 App profiling vs \`main\`${
+      passedWithProfiling.length > 0
+        ? ` (${passedWithProfiling.length} passed scenario${
+            passedWithProfiling.length !== 1 ? 's' : ''
+          })`
+        : ''
+    }</summary>\n\n`;
+
+    if (profilingStats) {
+      md += `**Coverage:** ${
+        profilingStats.testsWithProfiling ?? 0
+      }/${totalTests} scenarios (${profilingStats.profilingCoverage ?? '—'})`;
+      md += ` · **Avg CPU:** ${profilingStats.avgCpuUsage ?? '—'}`;
+      md += ` · **Avg memory:** ${profilingStats.avgMemoryUsage ?? '—'}`;
+      md += ` · **Issues:** ${profilingStats.totalPerformanceIssues ?? 0} (${
+        profilingStats.totalCriticalIssues ?? 0
+      } critical)\n\n`;
+    }
+
+    if (passedWithProfiling.length > 0) {
+      md += `| Test | Platform | Device | Profiling vs \`main\` |\n`;
+      md += `|------|----------|--------|---------------------|\n`;
+
+      for (const { test, profiling } of passedWithProfiling) {
+        md += `| ${escapeMarkdownTable(test.testName)} | ${
+          test.platform
+        } | ${escapeMarkdownTable(test.device)} | ${escapeMarkdownTable(
+          profiling.summary,
+        )} |\n`;
+      }
+
+      md += '\n';
+
+      let omittedTables = 0;
+
+      for (const { test, profiling } of passedWithProfiling) {
+        if (!profiling.hasRegression) {
+          continue;
+        }
+
+        let block = `#### ${escapeMarkdownTable(test.testName)}\n\n`;
+        block += `${test.platform} · ${escapeMarkdownTable(test.device)}\n\n`;
+        block += `${profiling.section}\n`;
+
+        if (md.length + block.length > MAX_COMMENT_LENGTH) {
+          omittedTables += 1;
+          continue;
+        }
+
+        md += block;
+      }
+
+      if (omittedTables > 0) {
+        md += `> ℹ️ Metric tables for ${omittedTables} more scenario${
+          omittedTables !== 1 ? 's' : ''
+        } were omitted to stay within GitHub's comment size limit — full data is in the \`aggregated-reports\` artifact.\n\n`;
+      }
+    }
+
+    md += `</details>\n\n`;
   }
 
   // Footer
