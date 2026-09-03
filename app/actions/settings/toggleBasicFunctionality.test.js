@@ -136,10 +136,11 @@ describe('toggleBasicFunctionality action', () => {
     await action(mockDispatch, mockGetState);
 
     expect(callOrder[0]).toBe('select');
-    expect(callOrder).toContain('TOGGLE_BASIC_FUNCTIONALITY');
-    expect(callOrder.indexOf('select')).toBeLessThan(
-      callOrder.indexOf('TOGGLE_BASIC_FUNCTIONALITY'),
-    );
+    expect(callOrder).toEqual([
+      'select',
+      'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED',
+      'TOGGLE_BASIC_FUNCTIONALITY',
+    ]);
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).toHaveBeenCalledWith(false);

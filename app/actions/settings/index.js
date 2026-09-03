@@ -80,12 +80,15 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
     const shouldSyncConsolidatedPreferences =
       selectIsBasicFunctionalityConsolidationEnabled(getState());
 
+    // Persist cohort membership before flipping BF so the UI does not briefly
+    // re-show granular toggles while children are still mixed.
+    if (shouldSyncConsolidatedPreferences) {
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
+    }
+
     dispatch(setBasicFunctionality(basicFunctionalityEnabled));
 
     if (shouldSyncConsolidatedPreferences) {
-      // Persist cohort membership so later toggles stay consolidated even after
-      // children briefly diverge from the previous consistent legacy state.
-      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
       syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
     }
 
