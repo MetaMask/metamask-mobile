@@ -18,6 +18,7 @@ import {
 } from '../../../selectors/notifications';
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
+import { pushStartupLog } from '../utils/push-startup-log';
 import {
   setUserHasTurnedOffNotificationsOnce,
   updateNotificationSubscriptionExpiration,
@@ -130,19 +131,37 @@ export function useEnableNotifications(props?: UseEnableNotificationsProps) {
   const enableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(null);
+    pushStartupLog('enableNotifications: start', {
+      hasMarketingConsent,
+      productAnnouncementEnabled,
+      registerPushNotifications: nudgeEnablePush,
+    });
     try {
       await enableNotificationsHelper({
         hasMarketingConsent,
         productAnnouncementEnabled,
         registerPushNotifications: nudgeEnablePush,
       });
+      pushStartupLog('enableNotifications: metamask notifications enabled');
     } catch (enableError) {
+      pushStartupLog('enableNotifications: enable failed', {
+        error:
+          enableError instanceof Error
+            ? enableError.message
+            : String(enableError),
+      });
       setError(enableError);
       if (throwOnError) {
         throw enableError;
       }
     }
-    await togglePushNotification(true).catch(() => {
+    await togglePushNotification(true).catch((toggleError) => {
+      pushStartupLog('enableNotifications: push toggle failed', {
+        error:
+          toggleError instanceof Error
+            ? toggleError.message
+            : String(toggleError),
+      });
       /* Do Nothing */
     });
     await updateNotificationSubscriptionExpiration();

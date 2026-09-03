@@ -9,6 +9,7 @@ import { selectDataCollectionForMarketingEnabled } from '../../../selectors/enga
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectAnalyticsEnabled } from '../../../selectors/analyticsController';
 import Logger from '../../Logger';
+import { pushStartupLog } from '../utils/push-startup-log';
 import {
   hasPushPrePromptBeenShown,
   setPushPrePromptShown,
@@ -72,6 +73,10 @@ const resolvePrePromptVariant = async (
   eligibility: PushPrePromptEligibility,
 ): Promise<PushPrePromptResolutionResult> => {
   if (eligibility.hasPrePromptBeenShown) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: null,
+      reason: 'already-shown',
+    });
     return {
       nativeOsPermissionEnabled: null,
       variant: null,
@@ -80,6 +85,10 @@ const resolvePrePromptVariant = async (
 
   // The prompt is ineligible, so there is nothing to show.
   if (!eligibility.canShowPrePrompt) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: null,
+      reason: 'ineligible',
+    });
     return {
       nativeOsPermissionEnabled: null,
       variant: null,
@@ -89,7 +98,18 @@ const resolvePrePromptVariant = async (
   const { nativeOsPermissionEnabled, nativeOsPermissionPromptable } =
     await resolveNativePushPermissionStatus();
 
+  pushStartupLog('pre-prompt native permission status', {
+    nativeOsPermissionEnabled,
+    nativeOsPermissionPromptable,
+  });
+
   if (!nativeOsPermissionEnabled) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: nativeOsPermissionPromptable ? 'push_permission' : null,
+      reason: nativeOsPermissionPromptable
+        ? 'os-permission-promptable'
+        : 'os-permission-denied',
+    });
     return {
       nativeOsPermissionEnabled,
       variant: nativeOsPermissionPromptable ? 'push_permission' : null,
@@ -97,6 +117,11 @@ const resolvePrePromptVariant = async (
   }
 
   if (eligibility.hasMarketingConsent) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: null,
+      reason: 'has-marketing-consent',
+      nativeOsPermissionEnabled,
+    });
     return {
       nativeOsPermissionEnabled,
       variant: null,
@@ -108,6 +133,11 @@ const resolvePrePromptVariant = async (
   // metrics is off, so the sheet would achieve nothing. More importantly, we
   // never want these sheets to be a backdoor to toggling MetaMetrics.
   if (!eligibility.isMetaMetricsEnabled) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: null,
+      reason: 'metametrics-disabled',
+      nativeOsPermissionEnabled,
+    });
     return {
       nativeOsPermissionEnabled,
       variant: null,
@@ -118,12 +148,22 @@ const resolvePrePromptVariant = async (
     eligibility.isMarketingConsentResolutionPending ||
     eligibility.pendingSocialLoginMarketingConsentBackfill
   ) {
+    pushStartupLog('pre-prompt resolved', {
+      variant: null,
+      reason: 'marketing-consent-resolution-pending',
+      nativeOsPermissionEnabled,
+    });
     return {
       nativeOsPermissionEnabled,
       variant: null,
     };
   }
 
+  pushStartupLog('pre-prompt resolved', {
+    variant: 'marketing_consent',
+    reason: 'eligible',
+    nativeOsPermissionEnabled,
+  });
   return {
     nativeOsPermissionEnabled,
     variant: 'marketing_consent',
@@ -208,6 +248,36 @@ export function usePushPrePromptVariant(): {
     hasPrePromptBeenShownRef.current = hasPushPrePromptBeenShown();
   }
   const hasPrePromptBeenShown = hasPrePromptBeenShownRef.current;
+
+  // Diagnostic: record every eligibility gate flip in the device OS log so
+  // startup pre-prompt decisions can be reconstructed on prod builds.
+  useEffect(() => {
+    pushStartupLog('pre-prompt eligibility gates', {
+      canShowPrePrompt,
+      completedOnboarding: Boolean(completedOnboarding),
+      isNotificationsFeatureAvailable,
+      isNotificationsByDefaultFlagOn,
+      isBasicFunctionalityEnabled,
+      hasPrePromptBeenShown,
+      isMetaMetricsEnabled,
+      hasMarketingConsent: startupHasMarketingConsent,
+      isMarketingConsentResolutionPending,
+      pendingSocialLoginMarketingConsentBackfill:
+        pendingSocialLoginMarketingConsentBackfill ?? null,
+      metamaskEnvironment: process.env.METAMASK_ENVIRONMENT ?? null,
+    });
+  }, [
+    canShowPrePrompt,
+    completedOnboarding,
+    isNotificationsFeatureAvailable,
+    isNotificationsByDefaultFlagOn,
+    isBasicFunctionalityEnabled,
+    hasPrePromptBeenShown,
+    isMetaMetricsEnabled,
+    startupHasMarketingConsent,
+    isMarketingConsentResolutionPending,
+    pendingSocialLoginMarketingConsentBackfill,
+  ]);
 
   const eligibility = useMemo<PushPrePromptEligibility>(
     () => ({

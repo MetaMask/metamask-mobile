@@ -11,6 +11,7 @@ import { strings } from '../../../../locales/i18n';
 import { store } from '../../../store';
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import Logger from '../../../util/Logger';
+import { pushStartupLog } from '../utils/push-startup-log';
 import {
   ChannelId,
   notificationChannels,
@@ -79,8 +80,19 @@ class NotificationsService {
       5000,
     );
 
+    pushStartupLog('getAllPermissions', {
+      platform: Platform.OS,
+      shouldOpenSettings,
+      hasTestOverrides,
+      permission,
+      blockedNotificationsCount: blockedNotifications.size,
+    });
+
     // E2E tests do not play well with OS push permissions
     if (hasTestOverrides) {
+      pushStartupLog(
+        'getAllPermissions: returning authorized due to test overrides',
+      );
       return { permission: 'authorized' };
     }
 
@@ -88,7 +100,11 @@ class NotificationsService {
       (permission !== 'authorized' || blockedNotifications.size !== 0) &&
       shouldOpenSettings
     ) {
+      pushStartupLog('getAllPermissions: requesting OS permission dialog');
       permission = await this.requestPermission();
+      pushStartupLog('getAllPermissions: OS permission dialog resolved', {
+        permission,
+      });
     }
     return { permission };
   }
@@ -169,6 +185,10 @@ class NotificationsService {
 
   async requestPermission() {
     const settings = await notifee.requestPermission();
+    pushStartupLog('requestPermission (notifee)', {
+      platform: Platform.OS,
+      authorizationStatus: settings.authorizationStatus,
+    });
     return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
       settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
       ? ('authorized' as const)
@@ -177,6 +197,10 @@ class NotificationsService {
 
   async hasPerimssion() {
     const settings = await notifee.getNotificationSettings();
+    pushStartupLog('hasPermission (notifee)', {
+      platform: Platform.OS,
+      authorizationStatus: settings.authorizationStatus,
+    });
     // status where we can assume authorized
     if (
       [
@@ -339,8 +363,13 @@ const getPushPermissionStatusFromAuthorizationStatus = (
 };
 
 export async function requestPushPermissions() {
+  pushStartupLog('requestPushPermissions: start');
   const result = await NotificationService.getAllPermissions(true);
   store.dispatch(markPushNotificationOsPromptRequested());
+  pushStartupLog('requestPushPermissions: result', {
+    permission: result.permission,
+    granted: result.permission === 'authorized',
+  });
   return result.permission === 'authorized';
 }
 
@@ -357,10 +386,20 @@ export async function getPushPermission() {
 export async function getPushPermissionStatus(): Promise<PushPermissionStatus> {
   try {
     const settings = await notifee.getNotificationSettings();
-    return getPushPermissionStatusFromAuthorizationStatus(
+    const status = getPushPermissionStatusFromAuthorizationStatus(
       settings.authorizationStatus,
     );
-  } catch {
+    pushStartupLog('getPushPermissionStatus', {
+      platform: Platform.OS,
+      authorizationStatus: settings.authorizationStatus,
+      status,
+    });
+    return status;
+  } catch (error) {
+    pushStartupLog('getPushPermissionStatus failed', {
+      platform: Platform.OS,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return 'denied';
   }
 }
