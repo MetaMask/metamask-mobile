@@ -85,6 +85,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -170,6 +171,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   useNavigationPerformance({
     destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
     destinationReady: true,
+  });
+
+  // TTC only — do not pass finalLoading as isLoading. That flag is password
+  // submit / delete-in-progress, not an initial data-fetch cycle, and would
+  // emit misleading OnboardingScreenDataFetch success/unmount spans.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
