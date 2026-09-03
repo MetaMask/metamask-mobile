@@ -74,7 +74,7 @@ describe('TotalRow', () => {
       payToken: {
         address: MUSD_ADDRESS_MOCK,
         chainId: MUSD_CHAIN_ID_MOCK,
-      } as TransactionPaymentToken,
+      } as unknown as TransactionPaymentToken,
     } as ReturnType<typeof useTransactionPayToken>);
 
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -246,7 +246,7 @@ describe('TotalRow', () => {
         payToken: {
           address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           chainId: MUSD_CHAIN_ID_MOCK,
-        } as TransactionPaymentToken,
+        } as unknown as TransactionPaymentToken,
       } as ReturnType<typeof useTransactionPayToken>);
 
       const { getByText, queryByText } = render();
