@@ -54,7 +54,8 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       'rewards.campaign_prize_pool.max_badge': 'Max',
       'rewards.campaign_prize_pool.retry': 'Retry',
       'rewards.campaign_prize_pool.error_title': 'Error',
-      'rewards.campaign_prize_pool.error_description': 'Error loading prize pool',
+      'rewards.campaign_prize_pool.error_description':
+        'Error loading prize pool',
       'rewards.campaign_winning.you_won': 'You won',
     };
     if (key === 'rewards.campaign_prize_pool.volume_subtext') {

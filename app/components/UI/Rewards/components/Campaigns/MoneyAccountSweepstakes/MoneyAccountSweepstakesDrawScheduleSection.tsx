@@ -183,9 +183,9 @@ const WeekRow: React.FC<WeekRowProps> = ({
   if (status === 'active') {
     const entriesDisplay = isParticipating
       ? localizedText.entriesCountValue.replace(
-            ENTRIES_COUNT_PLACEHOLDER,
-            entryCount != null ? String(entryCount) : '-',
-          )
+          ENTRIES_COUNT_PLACEHOLDER,
+          entryCount != null ? String(entryCount) : '-',
+        )
       : null;
 
     return (
