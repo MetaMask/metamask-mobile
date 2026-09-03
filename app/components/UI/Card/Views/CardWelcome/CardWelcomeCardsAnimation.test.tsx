@@ -229,6 +229,7 @@ describe('CardWelcomeCardsAnimation', () => {
 
   it('reports the entrance start only once across re-renders', () => {
     const onEntranceStart = jest.fn();
+    const changedStyle = { ...style, height: 100 };
 
     const { rerender } = render(
       <CardWelcomeCardsAnimation
@@ -240,7 +241,7 @@ describe('CardWelcomeCardsAnimation', () => {
     rerender(
       <CardWelcomeCardsAnimation
         animate
-        style={{ ...style, height: 100 }}
+        style={changedStyle}
         onEntranceStart={onEntranceStart}
       />,
     );
