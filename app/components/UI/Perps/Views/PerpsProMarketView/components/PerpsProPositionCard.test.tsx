@@ -129,6 +129,12 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('$2,500')).toBeOnTheScreen();
   });
 
+  it('renders a zero-size position with a short direction', () => {
+    render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
+
+    expect(screen.getByText('3x Short')).toBeOnTheScreen();
+  });
+
   it('renders TP/SL edit control when handler is provided', () => {
     const onEditTpSl = jest.fn();
 
