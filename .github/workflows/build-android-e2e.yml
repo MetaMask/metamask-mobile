@@ -348,7 +348,7 @@ jobs:
               echo "Test-only PR: reusing main branch Android artifacts from GitHub Actions (no repack)."
             elif [[ "${{ steps.apk-cache-restore-main.outputs.cache-hit }}" == "true" ]]; then
               echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
-              echo "Test-only PR: reusing main branch Android artifacts from Cirrus APK cache (no repack)."
+              echo "Test-only PR: reusing main branch Android artifacts from Namespace APK cache (no repack)."
             else
               echo "::warning::Test-only PR could not reuse main Android builds yet (GitHub artifacts or main APK cache). Falling back to fresh native build."
               echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
@@ -516,7 +516,7 @@ jobs:
       # there because `actions/download-artifact` merges into its destination and the
       # iOS payload is a `.app` *directory* bundle, so a stale one would blend with
       # the donor's. An APK is a single file that the extraction overwrites whole.
-      # Nothing on this path should have written these files either: the Cirrus APK
+      # Nothing on this path should have written these files either: the Namespace APK
       # caches above only restore when the first lookup found nothing, and a hit
       # there forces `needs-native-build=false`, which this step cannot be reached
       # under. Kept as cheap insurance against a partial restore — if the download
@@ -801,7 +801,7 @@ jobs:
           # `needs-native-build=true`, because it was computed before the re-check.
           # A late reuse is mutually exclusive with every other branch below — it
           # requires a non-Namespace runner and a `true` gate, so no Namespace hit,
-          # no early GitHub reuse and no Cirrus hit can coexist with it.
+          # no early GitHub reuse and no Namespace cache hit can coexist with it.
           decision="Fresh native build"
           if [[ "${LATE_APK_DOWNLOAD_OUTCOME:-}" == "success" && "${LATE_TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
             decision="GitHub artifact reuse (late — donor appeared during setup)"
@@ -810,7 +810,7 @@ jobs:
           elif [[ "${REUSABLE_FOUND:-}" == "true" && "${METADATA_VALID:-}" == "true" && "${APK_DOWNLOAD_OUTCOME:-}" == "success" && "${TEST_APK_DOWNLOAD_OUTCOME:-}" == "success" ]]; then
             decision="GitHub artifact reuse"
           elif [[ "${BRANCH_CACHE_HIT:-}" == "true" || "${MAIN_CACHE_HIT:-}" == "true" ]]; then
-            decision="Cirrus APK cache"
+            decision="Namespace APK cache"
           elif [[ "${NEEDS_NATIVE_BUILD:-}" == "false" ]]; then
             decision="reuse/cache hit"
           fi

@@ -27,7 +27,6 @@ on:
         required: false
         type: choice
         options:
-          - current
           - namespace
         default: namespace
 

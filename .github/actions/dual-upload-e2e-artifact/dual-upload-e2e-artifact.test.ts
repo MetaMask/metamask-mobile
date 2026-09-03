@@ -158,9 +158,9 @@ describe('dual-upload-e2e-artifact', () => {
     );
   });
 
-  it('still requires GitHub on current even when skip-github is set', () => {
+  it('still requires GitHub on non-Namespace runners even when skip-github is set', () => {
     const result = runScript({
-      RUNNER_PROVIDER: 'current',
+      RUNNER_PROVIDER: 'ubuntu-latest',
       SKIP_GITHUB: 'true',
       GH_1: 'success',
     });
@@ -195,9 +195,9 @@ describe('dual-upload-e2e-artifact', () => {
     );
   });
 
-  it('requires only GitHub for the current provider', () => {
+  it('requires only GitHub for a GitHub-hosted runner provider', () => {
     const result = runScript({
-      RUNNER_PROVIDER: 'current',
+      RUNNER_PROVIDER: 'ubuntu-latest',
       GH_1: 'success',
     });
 
@@ -205,9 +205,9 @@ describe('dual-upload-e2e-artifact', () => {
     expect(result.stdout).toContain('Uploaded to GitHub store');
   });
 
-  it('fails the current provider when GitHub upload fails', () => {
+  it('fails GitHub-hosted upload when GitHub upload fails', () => {
     const result = runScript({
-      RUNNER_PROVIDER: 'current',
+      RUNNER_PROVIDER: 'ubuntu-latest',
       GH_1: 'failure',
     });
 
