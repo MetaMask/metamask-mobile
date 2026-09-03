@@ -160,7 +160,6 @@ import {
   selectUnifiedBalanceBySelectedAccountGroup,
   getUnifiedBalanceForAccountGroup,
   augmentAssetsControllerStateForBalances,
-  augmentTempExcludeMissingAssetsInfo,
 } from './balances';
 import {
   calculateBalanceForAllWallets as calculateBalanceForAllWalletsLegacy,
@@ -922,36 +921,6 @@ describe('assets unify state balance path', () => {
     });
   });
 
-  describe('augmentTempExcludeMissingAssetsInfo', () => {
-    const knownAssetId = 'eip155:1/slip44:60';
-    const orphanAssetId =
-      'eip155:1/erc20:0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
-
-    it('drops assetsBalance rows that have no matching assetsInfo', () => {
-      const state = {
-        assetsInfo: {
-          [knownAssetId]: { symbol: 'ETH' },
-        },
-        assetsPrice: {},
-        assetPreferences: {},
-        customAssets: {},
-        selectedCurrency: 'usd',
-        assetsBalance: {
-          'account-1': {
-            [knownAssetId]: { balance: '1' },
-            [orphanAssetId]: { balance: '999' },
-          },
-        },
-      } as unknown as AssetsControllerState;
-
-      expect(
-        augmentTempExcludeMissingAssetsInfo(state).assetsBalance['account-1'],
-      ).toEqual({
-        [knownAssetId]: { balance: '1' },
-      });
-    });
-  });
-
   describe('augmentAssetsControllerStateForBalances', () => {
     const arcErc20UsdcAssetId = `eip155:5042/erc20:${ARC_USDC_ERC20_TOKEN_ADDRESS}`;
     const stableErc20Usdt0AssetId = `eip155:988/erc20:${STABLE_USDT0_ERC20_ADDRESS}`;
@@ -960,7 +929,7 @@ describe('assets unify state balance path', () => {
     const arcNativeAssetId = 'eip155:5042/slip44:60';
     const stableNativeAssetId = 'eip155:988/slip44:60';
 
-    it('strips Arc ERC20 USDC, Stable ERC20 USDT0, and balances without assetsInfo', () => {
+    it('strips Arc ERC20 USDC and Stable ERC20 USDT0 from assetsBalance', () => {
       const state = {
         assetsInfo: {
           [arcNativeAssetId]: { symbol: 'USDC' },
@@ -978,9 +947,6 @@ describe('assets unify state balance path', () => {
             [arcNativeAssetId]: { balance: '3' },
             [stableNativeAssetId]: { balance: '4' },
             [otherAssetId]: { balance: '5' },
-            'eip155:1/erc20:0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb': {
-              balance: '6',
-            },
           },
         },
       } as unknown as AssetsControllerState;
