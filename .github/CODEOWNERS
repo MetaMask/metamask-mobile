@@ -62,6 +62,8 @@ scripts/set-secrets-from-config.js                          @MetaMask/mobile-adm
 
 # CI workflow overrides (more specific than DevOps Team default above)
 .github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
+
+# Mobile Admins
 .github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
 .github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
 .github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
