@@ -2729,6 +2729,12 @@ let attachedChart = null;
 /**
  * Visible candle count from TradingView's unix-second visible range and the
  * current resolution. Returns undefined when the range or resolution is unusable.
+ *
+ * The right edge is clamped to the latest loaded bar because \`applyVisibleRange\`
+ * frames the viewport as \`visibleFromMs → lastBar + 2 bars\` of trailing
+ * whitespace. Measuring the raw range would count that padding, so a persisted
+ * count would grow by two candles every time the range is re-applied. Clamping
+ * makes the emitted count the exact inverse of \`lastBar - intervalMs * count\`.
  */
 function computeVisibleCandleCount(chart) {
     try {
@@ -2743,7 +2749,11 @@ function computeVisibleCandleCount(chart) {
         if (!intervalMs) {
             return undefined;
         }
-        const count = Math.round(((range.to - range.from) * 1000) / intervalMs);
+        const lastBarTimeMs = getOhlcvData().at(-1)?.time;
+        const rightEdgeSec = typeof lastBarTimeMs === 'number' && Number.isFinite(lastBarTimeMs)
+            ? Math.min(range.to, Math.ceil(lastBarTimeMs / 1000))
+            : range.to;
+        const count = Math.round(((rightEdgeSec - range.from) * 1000) / intervalMs);
         if (!Number.isFinite(count) || count <= 0) {
             return undefined;
         }

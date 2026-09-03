@@ -413,8 +413,14 @@ export const createTradingViewChartTemplate = (
                         return;
                     }
 
-                    var span = range.to - range.from;
-                    var candleCount = Math.round(span - window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES);
+                    // applyZoom frames logical indices as
+                    // [dataLength - N, dataLength - 1 + RIGHT_MARGIN_CANDLES], so the
+                    // inverse must clamp the right edge to the last real bar and count
+                    // inclusively. Measuring the raw span instead would report N - 1 and
+                    // ratchet the persisted zoom down by one candle on every apply.
+                    var lastBarIndex = window.allCandleData.length - 1;
+                    var rightEdge = Math.min(range.to, lastBarIndex);
+                    var candleCount = Math.round(rightEdge - range.from) + 1;
                     if (candleCount < window.ZOOM_LIMITS.MIN_CANDLES) {
                         candleCount = window.ZOOM_LIMITS.MIN_CANDLES;
                     }

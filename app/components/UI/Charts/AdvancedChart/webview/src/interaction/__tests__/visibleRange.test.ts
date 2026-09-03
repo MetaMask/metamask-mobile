@@ -9,9 +9,14 @@ import {
   __resetStateForTests,
   setChartReady,
   setCurrentResolution,
+  setOhlcvData,
   setWidget,
 } from '../../core/state';
-import type { TVActiveChart, TVChartingLibraryWidget } from '../../core/types';
+import type {
+  OHLCVBar,
+  TVActiveChart,
+  TVChartingLibraryWidget,
+} from '../../core/types';
 
 interface MockBridge {
   postMessage: jest.Mock<void, [string]>;
@@ -25,7 +30,12 @@ const installRNBridge = (): MockBridge => {
   return bridge;
 };
 
-const makeChart = (): {
+const makeChart = (
+  visibleRange: { from: number; to: number } = {
+    from: 1_700_000_000,
+    to: 1_700_027_000,
+  },
+): {
   chart: TVActiveChart;
   emitZoom: () => void;
   emitPan: () => void;
@@ -48,7 +58,7 @@ const makeChart = (): {
       },
       unsubscribe: () => undefined,
     }),
-    getVisibleRange: () => ({ from: 1_700_000_000, to: 1_700_027_000 }),
+    getVisibleRange: () => visibleRange,
   } as unknown as TVActiveChart;
   return {
     chart,
@@ -160,6 +170,75 @@ describe('attachVisibleRangeListeners', () => {
     expect(bridge.postMessage).toHaveBeenCalledWith(
       expect.stringContaining('"type":"ERROR"'),
     );
+  });
+
+  describe('zoom candleCount reporting', () => {
+    // Matches setCurrentResolution('15') in beforeEach.
+    const INTERVAL_SEC = 15 * 60;
+    const LAST_BAR_SEC = 1_700_027_000;
+
+    const seedBars = (count: number): void => {
+      const bars: OHLCVBar[] = Array.from({ length: count }, (_, i) => ({
+        time: (LAST_BAR_SEC - (count - 1 - i) * INTERVAL_SEC) * 1000,
+        open: 1,
+        high: 2,
+        low: 0.5,
+        close: 1.5,
+      }));
+      setOhlcvData(bars);
+    };
+
+    /** Mirrors ohlcvIngestion's applyVisibleRange framing (2-bar right pad). */
+    const rangeFromApplyVisibleRange = (candleCount: number) => ({
+      from: LAST_BAR_SEC - INTERVAL_SEC * candleCount,
+      to: LAST_BAR_SEC + INTERVAL_SEC * 2,
+    });
+
+    const emitZoomAndRead = (range: {
+      from: number;
+      to: number;
+    }): number | undefined => {
+      const bridge = installRNBridge();
+      const { chart, emitZoom } = makeChart(range);
+      attachVisibleRangeListeners(chart);
+      emitZoom();
+      jest.advanceTimersByTime(450);
+      return JSON.parse(bridge.postMessage.mock.calls[0][0]).payload
+        ?.candleCount;
+    };
+
+    it.each([15, 30, 45, 90, 200])(
+      'round-trips a %i-candle viewport without drifting the persisted zoom',
+      (candleCount) => {
+        seedBars(400);
+
+        expect(emitZoomAndRead(rangeFromApplyVisibleRange(candleCount))).toBe(
+          candleCount,
+        );
+      },
+    );
+
+    it('ignores trailing whitespace beyond the last loaded bar', () => {
+      seedBars(400);
+
+      // Right edge sits 10 bars past the latest candle; only the 30 real
+      // candles behind it are visible.
+      expect(
+        emitZoomAndRead({
+          from: LAST_BAR_SEC - INTERVAL_SEC * 30,
+          to: LAST_BAR_SEC + INTERVAL_SEC * 10,
+        }),
+      ).toBe(30);
+    });
+
+    it('measures the raw range when no bars are loaded yet', () => {
+      expect(
+        emitZoomAndRead({
+          from: LAST_BAR_SEC - INTERVAL_SEC * 30,
+          to: LAST_BAR_SEC,
+        }),
+      ).toBe(30);
+    });
   });
 
   it('skips pan within 500ms after a zoom', () => {

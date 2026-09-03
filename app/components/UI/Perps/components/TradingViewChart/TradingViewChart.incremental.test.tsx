@@ -660,4 +660,82 @@ describe('TradingViewChart — incremental update routing', () => {
 
     expect(onVisibleCandleCountChange).toHaveBeenCalledWith(80);
   });
+
+  describe('template visible-candle-count reporting', () => {
+    const RIGHT_MARGIN_CANDLES = 2;
+
+    /**
+     * Extracts the real reporting arithmetic out of the template string and runs
+     * it against a stubbed `window`, so the assertions exercise the shipped code
+     * rather than a re-implementation of it.
+     */
+    const reportCandleCount = (
+      range: { from: number; to: number },
+      dataLength: number,
+    ): number | undefined => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+      const start = template.indexOf(
+        'var lastBarIndex = window.allCandleData.length - 1;',
+      );
+      const end = template.indexOf(
+        "// Check if we're near the left edge (oldest data)",
+      );
+      expect(start).toBeGreaterThan(-1);
+      expect(end).toBeGreaterThan(start);
+
+      const posted: { type: string; candleCount: number }[] = [];
+      const windowStub = {
+        allCandleData: new Array(dataLength).fill({}),
+        lastReportedVisibleCandleCount: null,
+        ZOOM_LIMITS: {
+          MIN_CANDLES: 10,
+          MAX_CANDLES: 250,
+          DEFAULT_CANDLES: 30,
+          RIGHT_MARGIN_CANDLES,
+        },
+        ReactNativeWebView: {
+          postMessage: (raw: string) => posted.push(JSON.parse(raw)),
+        },
+      };
+
+      // eslint-disable-next-line no-new-func
+      new Function('range', 'window', template.slice(start, end))(
+        range,
+        windowStub,
+      );
+
+      return posted[0]?.candleCount;
+    };
+
+    /** Mirrors window.applyZoom's setVisibleLogicalRange framing. */
+    const rangeFromApplyZoom = (candleCount: number, dataLength: number) => ({
+      from: Math.max(0, dataLength - candleCount),
+      to: dataLength - 1 + RIGHT_MARGIN_CANDLES,
+    });
+
+    it.each([15, 30, 45, 90, 200])(
+      'round-trips applyZoom(%i) without drifting the persisted zoom',
+      (candleCount) => {
+        const dataLength = 500;
+
+        expect(
+          reportCandleCount(
+            rangeFromApplyZoom(candleCount, dataLength),
+            dataLength,
+          ),
+        ).toBe(candleCount);
+      },
+    );
+
+    it('ignores trailing whitespace beyond the last bar', () => {
+      // User panned the right edge into empty space past the latest candle;
+      // only the 20 real candles behind it should be reported.
+      expect(reportCandleCount({ from: 80, to: 140 }, 100)).toBe(20);
+    });
+
+    it('clamps the reported count to the configured zoom limits', () => {
+      expect(reportCandleCount({ from: 98, to: 99 }, 100)).toBe(10);
+      expect(reportCandleCount({ from: 0, to: 399 }, 400)).toBe(250);
+    });
+  });
 });
