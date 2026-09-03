@@ -85,7 +85,8 @@ const priceValueTextProps = {
 const SectionHelpText: React.FC<{
   errorMessage?: string;
   expectedMessage?: string;
-}> = ({ errorMessage, expectedMessage }) => (
+  errorTestID?: string;
+}> = ({ errorMessage, expectedMessage, errorTestID }) => (
   <Box>
     <HelpText
       severity={HelpTextSeverity.Danger}
@@ -98,7 +99,11 @@ const SectionHelpText: React.FC<{
     </HelpText>
     {errorMessage ? (
       <Box twClassName="absolute inset-x-0 top-0">
-        <HelpText severity={HelpTextSeverity.Danger} showIcon>
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          showIcon
+          testID={errorTestID}
+        >
           {errorMessage}
         </HelpText>
       </Box>
@@ -888,6 +893,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ERROR}
                 errorMessage={
                   takeProfitHasError ? takeProfitError || undefined : undefined
                 }
@@ -1016,6 +1022,7 @@ const PerpsTPSLView: React.FC = () => {
               </Box>
 
               <SectionHelpText
+                errorTestID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ERROR}
                 errorMessage={stopLossErrorMessage || undefined}
                 expectedMessage={
                   stopLossPrice
