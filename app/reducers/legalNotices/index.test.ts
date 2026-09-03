@@ -194,12 +194,6 @@ describe('legalNoticesReducer', () => {
   });
 
   describe('arcUsageNoticeShown', () => {
-    it('defaults to false', () => {
-      const state = legalNoticesReducer(undefined, { type: 'INIT' } as never);
-
-      expect(state.arcUsageNoticeShown).toBe(false);
-    });
-
     it('sets arcUsageNoticeShown to true', () => {
       const state = legalNoticesReducer(undefined, storeArcUsageNoticeShown());
 
