@@ -5,3 +5,5 @@
 export const WEEK_NUMBER_PLACEHOLDER = '{number}';
 
 export const ENTRIES_COUNT_PLACEHOLDER = '{count}';
+
+export const AMOUNT_PLACEHOLDER = '{amount}';

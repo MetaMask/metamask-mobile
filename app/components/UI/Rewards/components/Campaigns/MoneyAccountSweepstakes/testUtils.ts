@@ -50,6 +50,7 @@ export const createMoneyAccountSweepstakesLocalizedText = (
     'Money Account already binds to another Rewards profile.',
   onTrackDescription:
     "You're on track for today's entry. Keep at least $100 in your Money Account through the end of the day.",
+  notYetQualifiedDescription: "Add funds today to earn today's entry.",
   lostTodayDescription:
     "Today's entry is forfeit after dipping below $100. Get back to $100+ to earn again tomorrow.",
   shortfallDescription:
