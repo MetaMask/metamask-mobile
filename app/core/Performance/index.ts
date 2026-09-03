@@ -10,4 +10,3 @@ export {
   stopAppProfiling,
   subscribeAppProfilingStatus,
 } from './appProfiling';
-export { registerPerformanceProfilerBridge } from './performanceProfilerBridge';
