@@ -589,6 +589,10 @@ NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
+NativeModules.BrazePushModule = {
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
+};
+
 // Mock @notifee/react-native
 jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),

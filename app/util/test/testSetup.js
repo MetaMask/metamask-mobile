@@ -574,6 +574,10 @@ NativeModules.RNTar = {
   unTar: jest.fn().mockResolvedValue('/document-dir/archive'),
 };
 
+NativeModules.BrazePushModule = {
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
+};
+
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {
   const manager = {
     runAfterInteractions: jest.fn(),
