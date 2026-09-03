@@ -62,7 +62,7 @@ const NetworkDetailsCheckSettings = () => {
         <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
           chainid.network{' '}
         </Text>
-        {strings('app_settings.use_safe_chains_list_validation_desc_2')}{' '}
+        {strings('app_settings.use_safe_chains_list_validation_desc_2')}
         chainid.network
       </Text>
     </View>
