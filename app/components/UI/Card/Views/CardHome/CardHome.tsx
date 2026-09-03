@@ -62,7 +62,6 @@ import {
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   isCardUkMigrationEligible,
-  selectCardUkMigrationState,
   selectMetalCardCheckoutFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
@@ -70,6 +69,7 @@ import { useCardHomeData } from '../../hooks/useCardHomeData';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import useCreditBalance from '../../hooks/useCreditBalance';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import MoneyMetaMaskCard from '../../../Money/components/MoneyMetaMaskCard';
@@ -149,7 +149,8 @@ const CardHome = () => {
   );
   const activeProviderId = useSelector(selectCardActiveProviderId);
   const isImmersve = activeProviderId === CardProviderIds.Immersve;
-  const ukMigrationState = useSelector(selectCardUkMigrationState);
+  const { state: ukMigrationState, refresh: refreshUkMigrationState } =
+    useCardUkMigrationState();
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -261,12 +262,13 @@ const CardHome = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
+    refreshUkMigrationState();
     try {
       await refetch();
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetch]);
+  }, [refetch, refreshUkMigrationState]);
 
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
@@ -611,7 +613,7 @@ const CardHome = () => {
               (a) =>
                 !(
                   a.type === 'close_to_spending_limit' &&
-                  isSpendingLimitWarningDismissed
+                  (isSpendingLimitWarningDismissed || isUkMigrationForced)
                 ),
             )}
             onNavigateToSpendingLimit={actions.manageSpendingLimitAction}

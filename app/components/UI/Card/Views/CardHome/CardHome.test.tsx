@@ -92,10 +92,7 @@ import {
   selectDepositActiveFlag,
   selectDepositMinimumVersionFlag,
 } from '../../../../../selectors/featureFlagController/deposit';
-import {
-  selectCardUkMigrationState,
-  selectMetalCardCheckoutFeatureFlag,
-} from '../../../../../selectors/featureFlagController/card';
+import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -107,6 +104,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -499,7 +497,18 @@ jest.mock('../../../../../selectors/featureFlagController/deposit', () => ({
 jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
   selectMetalCardCheckoutFeatureFlag: jest.fn(),
-  selectCardUkMigrationState: jest.fn(),
+}));
+
+jest.mock('../../hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'off',
+      isActive: false,
+      deadline: null,
+      countries: ['GB'],
+    },
+    refresh: jest.fn(),
+  })),
 }));
 
 // Mock bridge actions
@@ -872,7 +881,6 @@ function setupMockSelectors(
       return config.vedaConfig;
     if (selector === selectMetalCardCheckoutFeatureFlag)
       return config.isMetalCardCheckoutEnabled;
-    if (selector === selectCardUkMigrationState) return config.ukMigrationState;
 
     if (selector === selectSelectedInternalAccountByScope)
       return () => config.selectedAccount;
@@ -885,6 +893,11 @@ function setupMockSelectors(
       return config.cardholderAccounts;
 
     return [];
+  });
+
+  jest.mocked(useCardUkMigrationState).mockReturnValue({
+    state: config.ukMigrationState,
+    refresh: jest.fn(),
   });
 }
 
@@ -926,6 +939,7 @@ function setupLoadCardDataMock(
     hasExternalWallets: boolean;
     delegationSettings: Record<string, unknown> | null;
     countryOfResidence: string | null;
+    alerts: { type: string; dismissable: boolean }[];
   }>,
 ) {
   const defaults = {
@@ -945,6 +959,7 @@ function setupLoadCardDataMock(
     hasExternalWallets: false,
     delegationSettings: null,
     countryOfResidence: null as string | null,
+    alerts: undefined as { type: string; dismissable: boolean }[] | undefined,
   };
 
   const config = { ...defaults, ...overrides };
@@ -990,11 +1005,12 @@ function setupLoadCardDataMock(
           : 'active',
   }));
 
-  // Map alerts based on kycStatus
-  const alerts: { type: string; dismissable: boolean }[] = [];
+  // Map alerts based on kycStatus (or use explicit overrides)
+  const alerts: { type: string; dismissable: boolean }[] = config.alerts ?? [];
   if (
-    config.kycStatus?.verificationState === 'PENDING' ||
-    config.kycStatus?.verificationState === 'UNVERIFIED'
+    !config.alerts &&
+    (config.kycStatus?.verificationState === 'PENDING' ||
+      config.kycStatus?.verificationState === 'UNVERIFIED')
   ) {
     alerts.push({ type: 'kyc_pending', dismissable: false });
   }
@@ -1002,8 +1018,9 @@ function setupLoadCardDataMock(
   // Map actions based on warning + kycStatus + hasExternalWallets
   const actions: { type: string; enabled?: boolean }[] = [];
   if (
-    config.warning === CardStateWarning.NeedDelegation ||
-    config.warning === CardStateWarning.NoCard
+    !config.alerts &&
+    (config.warning === CardStateWarning.NeedDelegation ||
+      config.warning === CardStateWarning.NoCard)
   ) {
     if (config.kycStatus?.verificationState === 'VERIFIED') {
       if (config.hasExternalWallets) {
@@ -7094,6 +7111,37 @@ describe('CardHome Component', () => {
       expect(
         screen.queryByTestId(CardHomeSelectors.CREDIT_BANNER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('hides the close-to-spending-limit alert during forced migration', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+          countries: ['GB'],
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+        alerts: [{ type: 'close_to_spending_limit', dismissable: true }],
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          'card.card_home.warnings.close_spending_limit.title',
+        ),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('dismiss-button')).not.toBeOnTheScreen();
     });
 
     it('opens the migration sheet from the forced banner CTA', () => {

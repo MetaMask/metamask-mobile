@@ -169,6 +169,12 @@ export const selectCardTransactionHistoryEnabled = createSelector(
   },
 );
 
+/**
+ * Snapshot of UK migration state at the last remote-flag bag change.
+ * Soft vs forced depends on `Date.now()` inside `resolveCardUkMigrationState`,
+ * so this stays frozen across `endDate` until flags change. Card Home should
+ * use `useCardUkMigrationState` to re-evaluate on focus / pull-to-refresh.
+ */
 export const selectCardUkMigrationState = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): CardUkMigrationState =>
