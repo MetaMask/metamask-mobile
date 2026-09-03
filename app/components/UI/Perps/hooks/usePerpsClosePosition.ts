@@ -214,17 +214,6 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
-        if (
-          !result.success &&
-          typeof result.error === 'string' &&
-          /No position found/i.test(result.error)
-        ) {
-          DevLogger.log(
-            '[PR-TAT-3873] BUG_MARKER: stale close after fill returned No position found',
-            { symbol: position.symbol, error: result.error },
-          );
-        }
-
         if (result.success) {
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
