@@ -1520,44 +1520,28 @@ export const usePerpsProOrderForm = ({
     scaleTotalOrders,
   ]);
 
+  const canCalculateScaleLiquidation =
+    scaleLadderResult.success &&
+    !isPositionStreamLoading &&
+    !currentMarketPosition;
+  const liquidationEntryPrice =
+    isScaleOrder && !canCalculateScaleLiquidation ? 0 : effectivePrice;
   const liquidationPriceParams = useMemo(
     () => ({
-      entryPrice: isScaleOrder ? 0 : effectivePrice,
+      entryPrice: liquidationEntryPrice,
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
     }),
     [
-      effectivePrice,
-      isScaleOrder,
+      liquidationEntryPrice,
       orderForm.leverage,
       orderForm.direction,
       orderForm.asset,
     ],
   );
-  const { liquidationPrice } = usePerpsLiquidationPrice(liquidationPriceParams);
-  const scaleStartEntryPrice = Number(scaleRungs[0]?.price ?? 0);
-  const scaleEndEntryPrice = Number(
-    scaleRungs[scaleRungs.length - 1]?.price ?? 0,
-  );
-  const {
-    liquidationPrice: scaleStartLiquidationPrice,
-    isCalculating: isScaleStartLiquidationCalculating,
-  } = usePerpsLiquidationPrice({
-    entryPrice: isScaleOrder ? scaleStartEntryPrice : 0,
-    leverage: orderForm.leverage,
-    direction: orderForm.direction,
-    asset: orderForm.asset,
-  });
-  const {
-    liquidationPrice: scaleEndLiquidationPrice,
-    isCalculating: isScaleEndLiquidationCalculating,
-  } = usePerpsLiquidationPrice({
-    entryPrice: isScaleOrder ? scaleEndEntryPrice : 0,
-    leverage: orderForm.leverage,
-    direction: orderForm.direction,
-    asset: orderForm.asset,
-  });
+  const { liquidationPrice, isCalculating: isLiquidationCalculating } =
+    usePerpsLiquidationPrice(liquidationPriceParams);
 
   const {
     summaryDisplay: positionModifySummaryDisplay,
@@ -3259,65 +3243,43 @@ export const usePerpsProOrderForm = ({
     [scaleAnalyticsProperties, track],
   );
 
-  const scaleMarginRange = useMemo(() => {
-    if (!scaleLadderResult.success || scaleRungs.length === 0) {
-      return PERPS_CONSTANTS.FallbackPriceDisplay;
-    }
-
-    const rungMargins = scaleRungs.map(
-      (rung) =>
-        new BigNumber(
-          calculateMarginRequired({
-            amount: new BigNumber(rung.size).times(rung.price).toFixed(),
-            leverage: orderForm.leverage,
-          }),
-        ),
-    );
-    const minimumMargin = formatPerpsFiat(
-      BigNumber.min(...rungMargins).toFixed(),
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
-    const maximumMargin = formatPerpsFiat(
-      BigNumber.max(...rungMargins).toFixed(),
-      { ranges: PRICE_RANGES_MINIMAL_VIEW },
-    );
-    return strings('perps.pro_order_form.scale.range', {
-      start: minimumMargin,
-      end: maximumMargin,
-    });
-  }, [orderForm.leverage, scaleLadderResult.success, scaleRungs]);
-
-  const scaleLiquidationRange = useMemo(() => {
+  // Margin reports the whole ladder requirement. With no open position, the
+  // liquidation row reports the new position at the ladder's average entry.
+  // Existing positions need a position-aware controller preview, so Scale keeps
+  // that estimate unavailable until the preview supports it.
+  const scaleMargin = useMemo(() => {
+    // A successful Scale ladder carries a margin figure. The undefined check
+    // narrows effectiveMarginRequired before formatting.
     if (
+      !isScaleOrder ||
       !scaleLadderResult.success ||
-      isScaleStartLiquidationCalculating ||
-      isScaleEndLiquidationCalculating
+      effectiveMarginRequired === undefined
     ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    const start = new BigNumber(scaleStartLiquidationPrice);
-    const end = new BigNumber(scaleEndLiquidationPrice);
-    if (!start.isFinite() || !end.isFinite() || start.lte(0) || end.lte(0)) {
+    return formatPerpsFiat(effectiveMarginRequired, {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    });
+  }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
+
+  const scaleLiquidationPrice = useMemo(() => {
+    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    const minimum = formatPerpsFiat(BigNumber.min(start, end).toFixed(), {
+    const target = new BigNumber(liquidationPrice);
+    if (!target.isFinite() || target.lte(0)) {
+      return PERPS_CONSTANTS.FallbackPriceDisplay;
+    }
+
+    return formatPerpsFiat(target.toFixed(), {
       ranges: PRICE_RANGES_UNIVERSAL,
-    });
-    const maximum = formatPerpsFiat(BigNumber.max(start, end).toFixed(), {
-      ranges: PRICE_RANGES_UNIVERSAL,
-    });
-    return strings('perps.pro_order_form.scale.range', {
-      start: minimum,
-      end: maximum,
     });
   }, [
-    isScaleEndLiquidationCalculating,
-    isScaleStartLiquidationCalculating,
-    scaleEndLiquidationPrice,
-    scaleLadderResult.success,
-    scaleStartLiquidationPrice,
+    canCalculateScaleLiquidation,
+    isLiquidationCalculating,
+    liquidationPrice,
   ]);
 
   const scaleOrder = useMemo<PerpsProScaleOrderModel>(
@@ -3391,8 +3353,8 @@ export const usePerpsProOrderForm = ({
           setSelectedTooltip('size_skew');
         }),
       rungs: scaleRungs,
-      marginRange: scaleMarginRange,
-      liquidationRange: scaleLiquidationRange,
+      margin: scaleMargin,
+      liquidationPrice: scaleLiquidationPrice,
       fees:
         scaleLadderResult.success && typeof estimatedFees === 'number'
           ? formatPerpsFiat(estimatedFees, {
@@ -3406,8 +3368,8 @@ export const usePerpsProOrderForm = ({
       normalizeScaleInput,
       scaleEndPrice,
       scaleLadderResult,
-      scaleLiquidationRange,
-      scaleMarginRange,
+      scaleLiquidationPrice,
+      scaleMargin,
       scaleRungs,
       scaleSizeSkew,
       scaleStartPrice,

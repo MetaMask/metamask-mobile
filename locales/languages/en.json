@@ -1600,7 +1600,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "Start",
         "end": "End",
         "margin": "Margin",
@@ -5060,7 +5059,7 @@
     "bridge_description": "Transfer tokens between networks",
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
-    "earn_description": "Earn rewards on your tokens",
+    "earn_description": "Put your crypto to work",
     "perps_description": "Trade perps contracts",
     "predict_description": "Trade on real-world events",
     "chart_time_period": {

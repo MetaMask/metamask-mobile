@@ -667,13 +667,13 @@ export const loginToApp = async (password?: string): Promise<void> => {
  */
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
-    try {
-      const sheetTitle = Matchers.getElementByExactText('Never miss a move');
-      await Assertions.expectElementToBeVisible(sheetTitle, {
-        timeout: 2_000,
-        description: 'Push notification existing user sheet',
-      });
+    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
+    // Short poll: sheet is absent when notifications are pre-granted (e.g. Perps).
+    if (!(await Utilities.isElementVisible(sheetTitle, 500))) {
+      return;
+    }
 
+    try {
       try {
         const notNowById = Matchers.getElementByID(
           ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
@@ -690,7 +690,7 @@ export const dismissPushNotificationExistingUserSheet =
       });
       logger.debug('Dismissed push notification existing user sheet');
     } catch {
-      // Sheet not present — no-op
+      // Sheet present but dismiss failed — leave for caller / next attempt
     }
   };
 
