@@ -117,6 +117,7 @@ import {
   getLimitPriceCrossingWarning,
   getOrderFormFieldIssueMessage,
   getOrderFormFieldIssues,
+  getScalePriceCrossingWarning,
 } from '../../../../utils/triggerOrderValidation';
 import {
   CHASE_ORDER_UI_CONFIG,
@@ -1306,6 +1307,24 @@ export const usePerpsProOrderForm = ({
   });
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
+
+  // Scale endpoints are compared against the side of the book they would hit:
+  // best ask for a long, best bid for a short. Top-of-book arrives on its own
+  // stream and can be absent for the first frames; mid is not a substitute,
+  // because a long between mid and best ask still rests. Stay undefined until
+  // the relevant quote arrives so the warning is suppressed rather than wrong.
+  const scaleCrossingReferencePrice = useMemo(() => {
+    const topOfBookPrice = Number.parseFloat(
+      (orderForm.direction === 'long'
+        ? currentTopOfBook?.bestAsk
+        : currentTopOfBook?.bestBid) ?? '',
+    );
+    return topOfBookPrice > 0 ? topOfBookPrice : undefined;
+  }, [
+    currentTopOfBook?.bestAsk,
+    currentTopOfBook?.bestBid,
+    orderForm.direction,
+  ]);
 
   const isMarketOrder = calculationOrderType === 'market';
   const isTriggerMarketOrder =
@@ -3413,6 +3432,24 @@ export const usePerpsProOrderForm = ({
   );
 
   const priceCardMessage = useMemo(() => {
+    // Scale mode has no trigger or limit field, so the shared price-card slot
+    // is free for the ladder crossing warning. Evaluated ahead of the
+    // limit-field branches (and their blur gate) because there is no limit
+    // field to blur; the memo re-runs on every endpoint or side edit.
+    if (isScaleOrder) {
+      const scaleWarning = getScalePriceCrossingWarning({
+        orderType: orderForm.type,
+        direction: orderForm.direction,
+        startPrice: scaleStartPrice,
+        endPrice: scaleEndPrice,
+        referencePrice: scaleCrossingReferencePrice,
+        szDecimals,
+      });
+      return scaleWarning
+        ? { severity: 'warning' as const, message: scaleWarning }
+        : undefined;
+    }
+
     const fieldIssues = orderValidation.fieldIssues;
     const triggerIssue = fieldIssues.find(
       (fieldIssue) => fieldIssue.field === 'triggerPrice',
@@ -3454,10 +3491,14 @@ export const usePerpsProOrderForm = ({
     assetData.price,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
+    isScaleOrder,
     orderForm.direction,
     normalizedLimitPrice,
     orderForm.type,
     orderValidation.fieldIssues,
+    scaleCrossingReferencePrice,
+    scaleEndPrice,
+    scaleStartPrice,
     szDecimals,
   ]);
 
