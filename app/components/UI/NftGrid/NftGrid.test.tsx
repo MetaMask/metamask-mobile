@@ -70,7 +70,9 @@ jest.mock('./useNftRefresh', () => ({
 // own logic instead of the full NetworkEnablementController/selector chain.
 // `useLocalNetworkFilter` (the useState) stays real.
 jest.mock('../../hooks/useLocalNetworkFilter/useLocalNetworkFilter', () => ({
-  ...jest.requireActual('../../hooks/useLocalNetworkFilter/useLocalNetworkFilter'),
+  ...jest.requireActual(
+    '../../hooks/useLocalNetworkFilter/useLocalNetworkFilter',
+  ),
   useChainIdsForLocalFilter: () => ['eip155:1'],
   useEvmChainIdsForLocalFilter: () => ['0x1'],
 }));

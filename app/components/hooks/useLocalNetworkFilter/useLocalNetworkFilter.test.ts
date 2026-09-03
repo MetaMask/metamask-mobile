@@ -11,9 +11,7 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<
-  typeof useSelector
->;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 beforeEach(() => {
   jest.clearAllMocks();

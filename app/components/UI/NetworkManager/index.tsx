@@ -304,8 +304,7 @@ const NetworkManager = () => {
   const confirmRemoveRpc = useCallback(async () => {
     if (showConfirmDeleteModal.caipChainId) {
       const { caipChainId, isActiveNetwork } = showConfirmDeleteModal;
-      const { NetworkController, MultichainNetworkController } =
-        Engine.context;
+      const { NetworkController, MultichainNetworkController } = Engine.context;
       const rawChainId = parseCaipChainId(caipChainId).reference;
       const chainId = toHex(rawChainId);
 
@@ -369,15 +368,13 @@ const NetworkManager = () => {
     // network lives on so the picker reopens where the user left it.
     if (localSelectedChainIds && localSelectedChainIds.length > 0) {
       const popularChainIds: Set<string> = POPULAR_NETWORK_CHAIN_IDS;
-      const isPopularSelection = localSelectedChainIds.every(
-        (caipChainId) => {
-          if (isNonEvmChainId(caipChainId)) {
-            return popularChainIds.has(caipChainId);
-          }
-          const rawChainId = parseCaipChainId(caipChainId).reference;
-          return popularChainIds.has(toHex(rawChainId));
-        },
-      );
+      const isPopularSelection = localSelectedChainIds.every((caipChainId) => {
+        if (isNonEvmChainId(caipChainId)) {
+          return popularChainIds.has(caipChainId);
+        }
+        const rawChainId = parseCaipChainId(caipChainId).reference;
+        return popularChainIds.has(toHex(rawChainId));
+      });
       return isPopularSelection ? 0 : 1;
     }
 
