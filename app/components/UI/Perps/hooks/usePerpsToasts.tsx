@@ -171,6 +171,7 @@ export interface PerpsToastOptionsConfig {
   };
   positionManagement: {
     closePosition: {
+      positionAlreadyClosed: PerpsToastOptions;
       marketClose: {
         full: {
           closeFullPositionInProgress: (
@@ -964,6 +965,13 @@ const usePerpsToasts = (): {
       },
       positionManagement: {
         closePosition: {
+          positionAlreadyClosed: {
+            ...perpsBaseToastOptions.info,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.close_position.already_closed'),
+              strings('perps.close_position.already_closed_subtitle'),
+            ),
+          },
           marketClose: {
             full: {
               closeFullPositionInProgress: (
