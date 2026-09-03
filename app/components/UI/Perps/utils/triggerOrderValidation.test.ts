@@ -310,7 +310,7 @@ describe('getScalePriceCrossingWarning', () => {
       referencePrice: 2500,
     });
 
-    expect(warning).toBe('perps.order.validation.limit_price_above_warning');
+    expect(warning).toBe('perps.order.validation.scale_price_above_warning');
   });
 
   it('warns that the whole ladder crosses when a short has both endpoints below the best bid', () => {
@@ -322,7 +322,7 @@ describe('getScalePriceCrossingWarning', () => {
       referencePrice: 2500,
     });
 
-    expect(warning).toBe('perps.order.validation.limit_price_below_warning');
+    expect(warning).toBe('perps.order.validation.scale_price_below_warning');
   });
 
   it('uses partial copy when only one long endpoint crosses the best ask', () => {
@@ -353,13 +353,77 @@ describe('getScalePriceCrossingWarning', () => {
     );
   });
 
-  it('returns undefined when neither endpoint crosses the reference price', () => {
+  it('treats a long endpoint resting exactly at the best ask as taker execution', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+
+  it('treats a short endpoint resting exactly at the best bid as taker execution', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2600',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_below_partial_warning',
+    );
+  });
+
+  it('warns for the whole ladder when both long endpoints sit at the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2500',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_above_warning');
+  });
+
+  it('warns for the whole ladder when both short endpoints sit at the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2500',
+      endPrice: '2500',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.scale_price_below_warning');
+  });
+
+  it('returns undefined when a long ladder rests entirely below the best ask', () => {
     expect(
       getScalePriceCrossingWarning({
         orderType: 'scale',
         direction: 'long',
         startPrice: '2400',
-        endPrice: '2500',
+        endPrice: '2499',
+        referencePrice: 2500,
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when a short ladder rests entirely above the best bid', () => {
+    expect(
+      getScalePriceCrossingWarning({
+        orderType: 'scale',
+        direction: 'short',
+        startPrice: '2501',
+        endPrice: '2600',
         referencePrice: 2500,
       }),
     ).toBeUndefined();
@@ -377,7 +441,17 @@ describe('getScalePriceCrossingWarning', () => {
       },
     },
     {
-      case: 'a missing reference price',
+      case: 'an unavailable book quote',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: undefined,
+      },
+    },
+    {
+      case: 'a non-positive reference price',
       input: {
         orderType: 'scale' as const,
         direction: 'long' as const,
@@ -393,6 +467,26 @@ describe('getScalePriceCrossingWarning', () => {
         direction: 'long' as const,
         startPrice: undefined,
         endPrice: '',
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'a ladder with only a start endpoint entered',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: undefined,
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'a ladder with only an end endpoint entered',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '',
+        endPrice: '2600',
         referencePrice: 2500,
       },
     },

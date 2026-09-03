@@ -1310,17 +1310,17 @@ export const usePerpsProOrderForm = ({
 
   // Scale endpoints are compared against the side of the book they would hit:
   // best ask for a long, best bid for a short. Top-of-book arrives on its own
-  // stream and can be absent for the first frames, so mid is the fallback —
-  // the same reference the shipped single-limit crossing check uses.
+  // stream and can be absent for the first frames; mid is not a substitute,
+  // because a long between mid and best ask still rests. Stay undefined until
+  // the relevant quote arrives so the warning is suppressed rather than wrong.
   const scaleCrossingReferencePrice = useMemo(() => {
     const topOfBookPrice = Number.parseFloat(
       (orderForm.direction === 'long'
         ? currentTopOfBook?.bestAsk
         : currentTopOfBook?.bestBid) ?? '',
     );
-    return topOfBookPrice > 0 ? topOfBookPrice : assetData.price;
+    return topOfBookPrice > 0 ? topOfBookPrice : undefined;
   }, [
-    assetData.price,
     currentTopOfBook?.bestAsk,
     currentTopOfBook?.bestBid,
     orderForm.direction,
@@ -1667,10 +1667,7 @@ export const usePerpsProOrderForm = ({
       orderForm,
       reduceOnly,
       reduceOnlyValidation,
-      scaleCrossingReferencePrice,
-      scaleEndPrice,
       scaleLadderResult,
-      scaleStartPrice,
       scaleValidationInputKey,
       submissionPositionSize,
       szDecimals,
@@ -1689,10 +1686,7 @@ export const usePerpsProOrderForm = ({
       orderForm,
       reduceOnly,
       reduceOnlyValidation,
-      scaleCrossingReferencePrice,
-      scaleEndPrice,
       scaleLadderResult,
-      scaleStartPrice,
       scaleValidationInputKey,
       submissionPositionSize,
       szDecimals,
@@ -2398,31 +2392,6 @@ export const usePerpsProOrderForm = ({
             ),
           );
           return;
-        }
-
-        // Re-check the ladder against the freshest top-of-book snapshot: the
-        // book can move between the last keystroke and the tap. The warning is
-        // non-blocking by design, so this records the submit-time verdict and
-        // placement proceeds either way.
-        const submitTimeCrossingWarning = getScalePriceCrossingWarning({
-          orderType: latestScale.orderForm.type,
-          direction: latestScale.orderForm.direction,
-          startPrice: latestScale.scaleStartPrice,
-          endPrice: latestScale.scaleEndPrice,
-          referencePrice: latestScale.scaleCrossingReferencePrice,
-          szDecimals: latestScale.szDecimals,
-        });
-        if (submitTimeCrossingWarning) {
-          DevLogger.log(
-            'Perps: scale order placed while crossing the book',
-            JSON.stringify({
-              asset: latestScale.orderForm.asset,
-              direction: latestScale.orderForm.direction,
-              startPrice: latestScale.scaleStartPrice,
-              endPrice: latestScale.scaleEndPrice,
-              referencePrice: latestScale.scaleCrossingReferencePrice,
-            }),
-          );
         }
 
         const trackingData = buildPerpsOrderTrackingData({
