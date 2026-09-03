@@ -45,6 +45,7 @@ const useApprovalRequest = () => {
       Engine.rejectPendingApproval(
         approvalRequest.id,
         error ?? providerErrors.userRejectedRequest(),
+        { ignoreMissing: true },
       );
     },
     [approvalRequest],

@@ -50,6 +50,10 @@ describe('handleAssetUrl', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('navigates to Asset view for ERC20 asset metadata', async () => {
     const { mockNavigate } = arrangeMocks();
 
@@ -145,8 +149,6 @@ describe('handleAssetUrl', () => {
           }),
         }),
       );
-
-      nowSpy.mockRestore();
     });
 
     it('does not track the event for other navigation sources', async () => {

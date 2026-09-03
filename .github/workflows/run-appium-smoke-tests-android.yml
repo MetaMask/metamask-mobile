@@ -38,6 +38,11 @@ on:
         required: false
         type: string
         default: 'auto'
+      android-device-pool-size:
+        description: 'Android emulator and Playwright worker count (1 or 2)'
+        required: false
+        type: number
+        default: 1
   workflow_dispatch:
     inputs:
       build_type:
@@ -70,6 +75,11 @@ on:
         required: false
         type: string
         default: 'auto'
+      android-device-pool-size:
+        description: 'Android emulator and Playwright worker count (1 or 2)'
+        required: false
+        type: number
+        default: 1
 
 permissions:
   contents: read
@@ -116,6 +126,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-perps-android-smoke:
@@ -146,6 +157,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-predictions-android-smoke:
@@ -175,6 +187,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-seedless-onboarding-android-smoke:
@@ -204,6 +217,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-snaps-android-smoke:
@@ -234,6 +248,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-network-abstractions-android-smoke:
@@ -262,6 +277,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-wallet-platform-android-smoke:
@@ -291,6 +307,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-swap-android-smoke:
@@ -320,6 +337,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-stake-android-smoke:
@@ -349,6 +367,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   # appium-mmconnect-android-smoke:
@@ -403,6 +422,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-browser-android-smoke:
@@ -432,6 +452,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-confirmations-android-smoke:
@@ -461,6 +482,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-multichain-api-android-smoke:
@@ -490,6 +512,7 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
 
   appium-network-expansion-android-smoke:
@@ -519,4 +542,5 @@ jobs:
       runner_provider: ${{ inputs.runner_provider }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
       android-emulator-boot-mode: ${{ inputs.android-emulator-boot-mode }}
+      android-device-pool-size: ${{ inputs.android-device-pool-size }}
     secrets: inherit
