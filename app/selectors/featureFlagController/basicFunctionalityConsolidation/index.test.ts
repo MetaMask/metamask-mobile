@@ -61,12 +61,17 @@ describe('basicFunctionalityConsolidation selectors', () => {
   });
 
   describe('selectIsBasicFunctionalityConsistent', () => {
+    type BftChildPreferenceValues = Record<
+      (typeof BFT_CHILD_PREFERENCES)[number],
+      boolean
+    >;
+
     const allOnChildren = Object.fromEntries(
       BFT_CHILD_PREFERENCES.map((preference) => [preference, true]),
-    );
+    ) as BftChildPreferenceValues;
     const allOffChildren = Object.fromEntries(
       BFT_CHILD_PREFERENCES.map((preference) => [preference, false]),
-    );
+    ) as BftChildPreferenceValues;
 
     it('returns true for an all-on legacy BFT configuration', () => {
       expect(
@@ -81,11 +86,13 @@ describe('basicFunctionalityConsolidation selectors', () => {
     });
 
     it('returns false for a mixed legacy BFT configuration', () => {
+      const mixedChildren: BftChildPreferenceValues = {
+        ...allOnChildren,
+        useTokenDetection: false,
+      };
+
       expect(
-        selectIsBasicFunctionalityConsistent.resultFunc(true, {
-          ...allOnChildren,
-          useTokenDetection: false,
-        }),
+        selectIsBasicFunctionalityConsistent.resultFunc(true, mixedChildren),
       ).toBe(false);
     });
   });
@@ -141,7 +148,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when remote flag is disabled (kill-switch)', () => {
+    it('returns false when remote flag is disabled', () => {
       const result = selectIsBasicFunctionalityConsolidationEnabled.resultFunc(
         false,
         true,
