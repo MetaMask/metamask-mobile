@@ -16,7 +16,7 @@ import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
- * Default market a user lands on when switching to Pro mode (TAT-3551, AC #4).
+ * Default market a user lands on when switching to Pro mode.
  */
 export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
 
@@ -151,11 +151,18 @@ export const useGetPerpsHomeNavigationTarget = (): ((
  * in `usePerpsNavigationHandlers.ts`, or `app/components/UI/Rewards/utils.ts`).
  * Centralized here so every "go to Perps home" call site shares one
  * reviewed assertion instead of repeating it.
+ *
+ * Pass `pop: true` when the destination is already below the caller in the
+ * Perps stack: React Navigation pushes a duplicate entry otherwise.
  */
 export const toPerpsNavigatorScreenParams = (
   target: PerpsHomeNavigationTarget,
+  options: { pop?: boolean } = {},
 ): NavigatorScreenParams<PerpsStackParamList> =>
-  target as unknown as NavigatorScreenParams<PerpsStackParamList>;
+  ({
+    ...target,
+    ...options,
+  }) as unknown as NavigatorScreenParams<PerpsStackParamList>;
 
 /**
  * Navigates directly (not nested under `Routes.PERPS.ROOT`) to a resolved
@@ -182,7 +189,7 @@ export const navigateToPerpsHomeTarget = (
  * Switching to Pro from a market screen swaps the rendered layout in place —
  * `PerpsMarketDetailsRouter` keeps the same route — so a Perps Home entry the
  * user came through stays in history and the back button would reveal the Lite
- * hub while Pro is active (TAT-3612). Screens that switch mode by navigating
+ * hub while Pro is active. Screens that switch mode by navigating
  * (Perps Home itself, the Trade sheet) already avoid seeding Home instead.
  */
 export const dropPerpsHomeFromStackHistory = (navigation: {
@@ -263,7 +270,12 @@ export const useNavigateToPerpsHome = (): ((
 
       navigate(
         Routes.PERPS.ROOT,
-        toPerpsNavigatorScreenParams(getTarget(extraParams)),
+        // When the target is already below the caller (e.g. the deposit
+        // confirmation stacked over it), pop back to it: without `pop` React
+        // Navigation pushes a duplicate and leaves that confirmation
+        // underneath, so Back returns to it. When the target is not in the
+        // stack at all, `pop` finds nothing and the push happens as before.
+        toPerpsNavigatorScreenParams(getTarget(extraParams), { pop: true }),
       );
     },
     [navigation, getTarget],

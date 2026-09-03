@@ -1,3 +1,4 @@
+import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem, TokenAmount } from './types';
 import { GAS_FEE_SPONSORED } from './fees';
 import {
@@ -179,6 +180,45 @@ describe('activity list helpers', () => {
     it('keeps the local item when there is no API counterpart', () => {
       const local = makeItem({ type: 'send' });
       expect(preferLocalOrApiActivityItem(local, undefined)).toBe(local);
+    });
+
+    it('keeps a richer same-type API copy over a local Money Account row', () => {
+      const transaction = {
+        id: 'money-withdraw',
+        type: TransactionType.batch,
+        txParams: { from: '0xmoney' },
+        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      };
+      const local = makeItem({
+        type: 'receive',
+        data: {
+          from: '0xmoney',
+          to: '0xeoa',
+          token: { direction: 'in', symbol: 'mUSD' },
+        },
+        raw: {
+          type: 'localTransaction',
+          data: {
+            initialTransaction: transaction,
+            primaryTransaction: transaction,
+          },
+        } as never,
+      });
+      const api = makeItem({
+        type: 'receive',
+        data: {
+          from: '0xmoney',
+          to: '0xeoa',
+          token: {
+            amount: '2500000',
+            decimals: 6,
+            direction: 'in',
+            symbol: 'USDC',
+          },
+        },
+      });
+
+      expect(preferLocalOrApiActivityItem(local, api)).toBe(api);
     });
 
     it('prefers a local spending cap carrying a cap amount', () => {
@@ -501,6 +541,20 @@ describe('enrichTokenFromApi', () => {
     const result = enrichTokenFromApi(token, apiData);
     expect(result?.symbol).toBe('aUSDT');
     expect(result?.decimals).toBe(8);
+  });
+
+  it('preserves the amount while enriching missing token metadata', () => {
+    const token: TokenAmount = {
+      direction: 'out',
+      amount: '50',
+      assetId: USDT_ASSET_ID,
+    };
+
+    expect(enrichTokenFromApi(token, apiData)).toStrictEqual({
+      ...token,
+      decimals: 6,
+      symbol: 'USDT',
+    });
   });
 
   it('preserves a zero-decimals value rather than treating it as missing', () => {

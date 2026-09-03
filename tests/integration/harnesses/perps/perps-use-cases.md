@@ -10,20 +10,21 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 
 ## Order lifecycle
 
-| Use case                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                           |
-| ---------------------------------------- | :-: | :-: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------ |
-| Open long, market order                  |     |  ✓  | **✓** |  ✓  | I: real `placeOrder` flow incl. validation. CV: order-screen variant. E2E: one happy-path on testnet for native signing. |
-| Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                           |
-| Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                  |
-| Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                            |
-| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.       |
-| Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                      |
-| Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                          |
-| Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                  |
-| Close position — full (market)           |     |  ✓  | **✓** |     | I: full-close branch (skips USD validation). CV: close-screen.                                                           |
-| Close position — partial (market)        |     |  ✓  | **✓** |     | I: partial-close size handling. CV: partial-size slider.                                                                 |
-| Close position — limit order             |     |     | **✓** |     | I: limit-close validation path. UI is shared with open-limit; no extra CV needed.                                        |
-| Reverse / flip position                  |     |     | **✓** |     | I: multi-step (close + open opposite). The "two functions correct alone, broken together" case.                          |
+| Use case                                 |  U  | CV  |   I   | E2E | Coverage notes                                                                                                                                                                              |
+| ---------------------------------------- | :-: | :-: | :---: | :-: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Open long, market order                  |     |  ✓  | **✓** |  ✓  | I: real `placeOrder` flow incl. validation. CV: order-screen variant. E2E: one happy-path on testnet for native signing.                                                                    |
+| Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                                                                                              |
+| Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                                                                                     |
+| Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                                                                                               |
+| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.                                                                          |
+| Run and terminate a Chase strategy       |  ✓  |  ✓  | **✓** |     | U: form/provider lifecycle and retry paths. I: placement, repricing, suspension, rejection, and termination. CV: rollout/lifecycle UI. Exact-head device proof uses the external PR recipe. |
+| Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                                                                                         |
+| Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                                                                                             |
+| Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                                                                                     |
+| Close position — full (market)           |     |  ✓  | **✓** |     | I: full-close branch (skips USD validation). CV: close-screen.                                                                                                                              |
+| Close position — partial (market)        |     |  ✓  | **✓** |     | I: partial-close size handling. CV: partial-size slider.                                                                                                                                    |
+| Close position — limit order             |     |     | **✓** |     | I: limit-close validation path. UI is shared with open-limit; no extra CV needed.                                                                                                           |
+| Reverse / flip position                  |     |     | **✓** |     | I: multi-step (close + open opposite). The "two functions correct alone, broken together" case.                                                                                             |
 
 ## Position management
 

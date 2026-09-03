@@ -7,6 +7,7 @@ import {
   selectBridgeBalanceRefreshKey,
   selectRecurringEveryUnit,
   selectRecurringPriceRange,
+  selectRecurringScheduleValidation,
   selectSourceToken,
   setRecurringEveryUnit,
   setRecurringPriceRange,
@@ -17,6 +18,7 @@ import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOpt
 import OrdersTabs from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
 import PriceRangeSheet from '../../../components/PriceRangeSheet';
+import RecurringConfirmOrderSheet from '../../../components/RecurringConfirmOrderSheet';
 import RecurringIntervalSheet from '../../../components/RecurringIntervalSheet';
 import RecurringRepeatInfoSheet from '../../../components/RecurringRepeatInfoSheet';
 import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
@@ -25,13 +27,17 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import { BridgeQuoteDataProvider } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import {
+  BridgeQuoteDataProvider,
+  useBridgeQuoteDataContext,
+} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
 import { formatCurrency } from '../../../utils/currencyUtils';
@@ -40,6 +46,7 @@ import {
   type RecurringPriceRange,
 } from '../../../utils/priceRange';
 import type { RecurringIntervalUnit } from '../../../utils/recurringSchedule';
+import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
@@ -62,6 +69,7 @@ const BridgeRecurringBuyViewContent = ({
   const [isIntervalSheetVisible, setIsIntervalSheetVisible] = useState(false);
   const [isRepeatInfoSheetVisible, setIsRepeatInfoSheetVisible] =
     useState(false);
+  const [isConfirmSheetVisible, setIsConfirmSheetVisible] = useState(false);
 
   const {
     destToken,
@@ -83,6 +91,8 @@ const BridgeRecurringBuyViewContent = ({
   const priceRange = useSelector(selectRecurringPriceRange);
   const everyUnit = useSelector(selectRecurringEveryUnit);
   const currentCurrency = useSelector(selectCurrentCurrency);
+  const scheduleValidation = useSelector(selectRecurringScheduleValidation);
+  const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const sourceFiatRate = useTokenFiatRate(sourceToken);
   const destFiatRate = useTokenFiatRate(destToken);
 
@@ -100,6 +110,17 @@ const BridgeRecurringBuyViewContent = ({
     inputRef.current?.blur();
     closeKeypad();
   }, [closeKeypad]);
+
+  const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
+
+  const handlePreviewOrder = useCallback(() => {
+    dismissInputAndKeypad();
+    setIsConfirmSheetVisible(true);
+  }, [dismissInputAndKeypad]);
+
+  const handleConfirmSheetClosed = useCallback(() => {
+    setIsConfirmSheetVisible(false);
+  }, []);
 
   const effectiveRange = isPriceRangeInCurrentCurrency(
     priceRange,
@@ -209,6 +230,7 @@ const BridgeRecurringBuyViewContent = ({
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />
+              <DestAssetRequireActivateBanner />
               <InsufficientNativeReserveBanner />
               <MissingQuoteAndAssetsPriceDataBanner />
             </SwapsBanners>
@@ -238,7 +260,10 @@ const BridgeRecurringBuyViewContent = ({
           </Box>
         </ScrollView>
 
-        <BridgeRecurringBuyFooterView />
+        <BridgeRecurringBuyFooterView
+          onPreviewOrder={handlePreviewOrder}
+          isPreviewDisabled={!scheduleValidation.isValid}
+        />
 
         <SwapsKeypad
           ref={keypadRef}
@@ -247,9 +272,11 @@ const BridgeRecurringBuyViewContent = ({
         >
           {sourceAmount && sourceAmount !== '0' ? (
             <SwapsRecurringBuyConfirmButton
-              onPress={() => 'test'}
-              label="test"
+              onPress={handlePreviewOrder}
+              label={strings('bridge.recurring.preview_order')}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+              disabled={!canPreviewOrder}
+              loading={isLoading}
             />
           ) : (
             <GaslessQuickPickOptions
@@ -286,6 +313,11 @@ const BridgeRecurringBuyViewContent = ({
         <RecurringRepeatInfoSheet
           isVisible={isRepeatInfoSheetVisible}
           onClose={handleRepeatInfoSheetClosed}
+        />
+
+        <RecurringConfirmOrderSheet
+          isVisible={isConfirmSheetVisible}
+          onClose={handleConfirmSheetClosed}
         />
       </Box>
     </Box>

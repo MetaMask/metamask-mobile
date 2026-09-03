@@ -206,6 +206,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       WAITLIST_FORM: 'WaitlistForm',
       FORGOT_PASSWORD: 'ForgotPassword',
       UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
+      UK_MIGRATION: 'CardUkMigrationModal',
     },
   },
 }));

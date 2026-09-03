@@ -78,8 +78,8 @@ describe('checkHardRules', () => {
     '.github/scripts/qa-automation/e2e-sharding/e2e-split-tags-shards.mjs',
     '.github/actions/smart-e2e-selection/e2e-smart-selection.mjs',
     '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs',
-    '.github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.cjs',
-    '.github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.cjs',
+    '.github/scripts/qa-automation/e2e-ci-orchestration/compute-e2e-platform-flags.mjs',
+    '.github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.mjs',
   ])('runs all E2E tags when %s changes', (changedFile) => {
     const result = checkHardRules([changedFile], context);
 

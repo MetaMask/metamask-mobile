@@ -32,13 +32,14 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   formatPercentage,
   formatPerpsFiat,
-  formatPerpsPrice,
   formatPnl,
   formatPositionSize,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
@@ -75,6 +76,8 @@ interface KeyValueItemProps {
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
   showEditIcon?: boolean;
+  /** Test ID for the value row, so agentic recipes can read the rendered value. */
+  valueTestID?: string;
 }
 
 const KeyValueItem = ({
@@ -88,6 +91,7 @@ const KeyValueItem = ({
   valuePressTestID,
   valuePressAccessibilityLabel,
   showEditIcon = false,
+  valueTestID,
 }: KeyValueItemProps) => {
   const valueContent = (
     <>
@@ -128,6 +132,7 @@ const KeyValueItem = ({
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             twClassName="gap-1"
+            testID={valueTestID}
           >
             {valueContent}
           </Box>
@@ -137,6 +142,7 @@ const KeyValueItem = ({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
+          testID={valueTestID}
         >
           {valueContent}
         </Box>
@@ -199,28 +205,42 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
+  // How far the live mark price sits from liquidation. Same formula and
+  // precision as the Lite card, so both modes report the same percentage for
+  // the same position.
+  const liqPriceNum =
+    position.liquidationPrice != null
+      ? parseFloat(String(position.liquidationPrice))
+      : NaN;
+  const canShowDistance =
+    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
+  const liquidationDistanceSuffix = canShowDistance
+    ? ` (${(
+        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
+        100
+      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
+    : '';
+
   const liqPriceDisplay =
     position.liquidationPrice != null
-      ? formatPerpsFiat(position.liquidationPrice, {
+      ? `${formatPerpsFiat(position.liquidationPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
-        })
+        })}${liquidationDistanceSuffix}`
       : PERPS_CONSTANTS.FallbackPriceDisplay;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
 
-  const hasTakeProfit =
-    Boolean(position.takeProfitPrice) &&
-    parseFloat(position.takeProfitPrice as string) > 0;
-  const hasStopLoss =
-    Boolean(position.stopLossPrice) &&
-    parseFloat(position.stopLossPrice as string) > 0;
-  const tpDisplay = hasTakeProfit
-    ? formatPerpsPrice(position.takeProfitPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
-  const slDisplay = hasStopLoss
-    ? formatPerpsPrice(position.stopLossPrice as string)
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const tpDisplay =
+    formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: position.takeProfitPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
+  const slDisplay =
+    formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: position.stopLossPrice,
+    }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
   // Positive cumulative funding is a cost (paid), negative is a payment (earned).
@@ -371,6 +391,7 @@ const PerpsProPositionCard = ({
                 label={strings('perps.pro_positions_panel.card.liq_price')}
                 value={liqPriceDisplay}
                 isHidden={privacyMode}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
@@ -413,6 +434,7 @@ const PerpsProPositionCard = ({
                 valuePressAccessibilityLabel={strings(
                   'perps.position.card.edit_tpsl',
                 )}
+                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_TPSL_VALUE}
                 showEditIcon={Boolean(onEditTpSl)}
               />
             </Box>

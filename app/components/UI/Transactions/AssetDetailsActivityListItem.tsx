@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
 import { Box } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
@@ -10,8 +9,6 @@ import {
   resolveActivityListItemTitle,
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
-import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
 import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
@@ -23,9 +20,21 @@ import {
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
 } from './AssetDetailsActivityListItem.utils';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
+
+type AssetTokensByChainAndAccount = Record<
+  string,
+  Record<string, { address: string; symbol?: string; decimals?: number }[]>
+>;
+type AssetBridgeHistory = Parameters<
+  typeof findBridgeHistoryItem
+>[0]['bridgeHistory'];
+
+const EMPTY_NETWORK_CONFIGURATIONS: Record<
+  string,
+  { nativeCurrency?: string }
+> = {};
+const EMPTY_ASSET_TOKENS: AssetTokensByChainAndAccount = {};
+const EMPTY_BRIDGE_HISTORY: AssetBridgeHistory = {};
 
 interface AssetDetailsActivityListItemProps {
   transaction: TransactionWithImportTime;
@@ -36,6 +45,11 @@ interface AssetDetailsActivityListItemProps {
   navigation: AppNavigationProp;
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
   onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
+  accountImportTime?: number;
+  groupEvmAccountAddress?: string;
+  networkConfigurations?: Record<string, { nativeCurrency?: string }>;
+  allTokens?: AssetTokensByChainAndAccount;
+  bridgeHistory?: AssetBridgeHistory;
 }
 
 export const AssetDetailsActivityListItem = ({
@@ -47,25 +61,12 @@ export const AssetDetailsActivityListItem = ({
   navigation,
   onSpeedUpAction,
   onCancelAction,
+  accountImportTime,
+  groupEvmAccountAddress,
+  networkConfigurations = EMPTY_NETWORK_CONFIGURATIONS,
+  allTokens = EMPTY_ASSET_TOKENS,
+  bridgeHistory = EMPTY_BRIDGE_HISTORY,
 }: AssetDetailsActivityListItemProps) => {
-  // Kept for importTime metadata
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  // Used for TokensController lookups (matches useLocalActivityItems)
-  const groupEvmAccount = useSelector(
-    selectSelectedAccountGroupEvmInternalAccount,
-  );
-
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  // allTokens: Record<chainId, Record<accountAddress, Token[]>>
-  const allTokens = useSelector(selectAllTokens) as unknown as Record<
-    string,
-    Record<string, { address: string; symbol?: string; decimals?: number }[]>
-  >;
-  const accountImportTime = selectedInternalAccount?.metadata.importTime;
-
-  const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
   const { actionId } = tx;
   const bridgeHistoryItem = useMemo(
@@ -90,7 +91,7 @@ export const AssetDetailsActivityListItem = ({
 
     // Token metadata for the tx's target contract, from TokensController —
     // same enrichment as useLocalActivityItems.
-    const accountAddress = groupEvmAccount?.address?.toLowerCase();
+    const accountAddress = groupEvmAccountAddress?.toLowerCase();
     const contractAddress = tx.txParams?.to?.toLowerCase();
     const matchingToken =
       resolvedChainId && accountAddress && contractAddress
@@ -114,7 +115,7 @@ export const AssetDetailsActivityListItem = ({
     assetSymbol,
     bridgeHistoryItem,
     currentChainId,
-    groupEvmAccount?.address,
+    groupEvmAccountAddress,
     networkConfigurations,
     tokenChainId,
     tx,
@@ -122,18 +123,11 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
-      const selectedTx =
-        item.raw?.type === 'localTransaction'
-          ? item.raw.data.primaryTransaction
-          : undefined;
-
       const detailsRoute = getActivityDetailsRoute(item);
       if (detailsRoute) {
         navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
         return;
       }
-
-      if (!selectedTx) return;
 
       const { from, to } = getActivityFromTo(item);
       const value = getActivityValue(item);
@@ -143,15 +137,15 @@ export const AssetDetailsActivityListItem = ({
         screen: Routes.SHEET.TRANSACTION_DETAILS,
         params: getTransactionDetailsParams({
           item,
-          selectedTx,
+          selectedTx: tx,
           actionKey,
           value,
           from,
           to,
           currentChainId,
           tokenChainId,
-          showSpeedUpModal: () => onSpeedUpAction(true, selectedTx),
-          showCancelModal: () => onCancelAction(true, selectedTx),
+          showSpeedUpModal: () => onSpeedUpAction(true, tx),
+          showCancelModal: () => onCancelAction(true, tx),
         }),
       });
     },
@@ -162,6 +156,7 @@ export const AssetDetailsActivityListItem = ({
       onCancelAction,
       onSpeedUpAction,
       tokenChainId,
+      tx,
     ],
   );
 

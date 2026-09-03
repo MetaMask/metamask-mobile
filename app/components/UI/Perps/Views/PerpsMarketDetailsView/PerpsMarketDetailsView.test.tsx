@@ -244,6 +244,7 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
 const mockReset = jest.fn();
 const mockGetState = jest.fn();
+const mockAddListener = jest.fn(() => jest.fn());
 const mockSetPerpsMode = jest.fn();
 // Mutable active mode surfaced by the mocked usePerpsMode hook.
 let mockPerpsModeValue = 'lite';
@@ -307,6 +308,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
       getState: mockGetState,
+      addListener: mockAddListener,
       reset: mockReset,
     }),
     useRoute: () => ({
@@ -1828,16 +1830,26 @@ describe('PerpsMarketDetailsView', () => {
       const addFundsButton = getByTestId(
         PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
       );
-      await act(async () => {
-        fireEvent.press(addFundsButton);
-      });
+      jest.useFakeTimers();
+      try {
+        await act(async () => {
+          fireEvent.press(addFundsButton);
+        });
 
-      await waitFor(() => {
         expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          loader: 'customAmount',
           stack: 'Perps',
         });
+        expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+
+        await act(async () => {
+          jest.runAllTimers();
+        });
+
         expect(mockDepositWithConfirmation).toHaveBeenCalled();
-      });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
@@ -4931,7 +4943,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(getByTestId('compact-order-standalone-tpsl')).toBeOnTheScreen();
-      expect(getByText('Take profit limit close long')).toBeOnTheScreen();
+      expect(getByText('Take limit close long')).toBeOnTheScreen();
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {
