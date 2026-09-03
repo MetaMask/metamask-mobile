@@ -15,13 +15,12 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
+import BridgeViewContent from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
 import {
   RequestStatus,
-  type QuoteResponse,
   MetaMetricsSwapsEventSource,
   QuoteStreamCompleteReason,
   TokenFeatureType,
@@ -47,6 +46,7 @@ import {
 import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -59,6 +59,14 @@ jest.mock(
     })),
   }),
 );
+
+jest.mock('../../hooks/useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn(() => ({
+    debouncedUpdateQuoteParams: Object.assign(jest.fn(), { cancel: jest.fn() }),
+    destTokenAmount: undefined,
+    isLoading: false,
+  })),
+}));
 
 const mockState = {
   ...initialState,
@@ -408,6 +416,12 @@ jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
   useIsGasIncluded7702Supported: (chainId?: string) =>
     mockUseIsGasIncluded7702Supported(chainId),
 }));
+
+const BridgeView = () => (
+  <BridgeSessionProvider>
+    <BridgeViewContent />
+  </BridgeSessionProvider>
+);
 
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;

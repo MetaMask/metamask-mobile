@@ -11,6 +11,9 @@ import {
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
   selectSourceToken,
+  selectRecurringEveryUnit,
+  setRecurringEveryUnit,
+  setRecurringPriceRange,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
@@ -34,7 +37,6 @@ import {
   BridgeQuoteDataProvider,
   useBridgeQuoteDataContext,
 } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   formatPriceRangeBounds,
   isPriceRangeInCurrentCurrency,
@@ -46,18 +48,14 @@ import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { createRecurringMockHistoryTab } from './BridgeRecurringBuyView.mockHistory';
 import { createRecurringMockOpenOrdersTab } from './BridgeRecurringBuyView.mockOpenOrders';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
-interface BridgeRecurringBuyViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeRecurringBuyViewContent = ({
-  latestSourceBalance,
-}: BridgeRecurringBuyViewContentProps) => {
+const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
 
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -271,26 +269,4 @@ const BridgeRecurringBuyViewContent = ({
   );
 };
 
-const BridgeRecurringBuyView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeRecurringBuyViewContent
-        latestSourceBalance={latestSourceBalance}
-      />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeRecurringBuyView;
+export default BridgeRecurringBuyViewContent;

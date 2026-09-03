@@ -198,7 +198,6 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
-import { BridgeSessionProvider } from '../../UI/Bridge/hooks/useBridgeSession/BridgeSessionContext';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1253,13 +1252,11 @@ const MainNavigator = () => {
         component={VbaVerifyIdentity}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
-      <BridgeSessionProvider>
-        <NativeStack.Screen
-          name={Routes.BRIDGE.ROOT}
-          component={BridgeScreenStack}
-          options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
-        />
-      </BridgeSessionProvider>
+      <NativeStack.Screen
+        name={Routes.BRIDGE.ROOT}
+        component={BridgeScreenStack}
+        options={{ ...slideFromRightNativeOptions, gestureEnabled: false }}
+      />
       <NativeStack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
