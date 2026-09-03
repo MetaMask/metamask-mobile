@@ -131,16 +131,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
-
 jest.mock('../../hooks/useBridgeConfirm', () => ({
   useBridgeConfirm: jest.fn(),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePriceImpactViewData', () => ({
@@ -149,23 +145,19 @@ jest.mock('../../hooks/usePriceImpactViewData', () => ({
 
 import { useSelector } from 'react-redux';
 import { useParams } from '../../../../../util/navigation/navUtils';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import { PriceImpactHeader } from './PriceImpactHeader';
 import { PriceImpactDescription } from './PriceImpactDescription';
 import { PriceImpactFooter } from './PriceImpactFooter';
 
 const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
-  typeof useLatestBalance
->;
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
 >;
-const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
-  typeof useBridgeQuoteData
+const mockUseBridgeQuoteData = useBridgeQuoteDataContext as jest.MockedFunction<
+  typeof useBridgeQuoteDataContext
 >;
 const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
@@ -207,11 +199,10 @@ describe('PriceImpactModal', () => {
   beforeEach(() => {
     mockUseSelector.mockReturnValue(undefined);
     mockUseParams.mockReturnValue(defaultParams);
-    mockUseLatestBalance.mockReturnValue(undefined);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseBridgeQuoteData.mockReturnValue({
       formattedQuoteData: undefined,
-    } as ReturnType<typeof useBridgeQuoteData>);
+    } as ReturnType<typeof useBridgeQuoteDataContext>);
     mockUsePriceImpactViewData.mockReturnValue(
       defaultViewData as ReturnType<typeof usePriceImpactViewData>,
     );
@@ -284,7 +275,7 @@ describe('PriceImpactModal', () => {
     it('passes formattedPriceImpact to PriceImpactDescription when formattedQuoteData has it', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         formattedQuoteData: { priceImpact: '5%' },
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -297,7 +288,7 @@ describe('PriceImpactModal', () => {
     it('passes undefined formattedPriceImpact to PriceImpactDescription when formattedQuoteData is absent', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         formattedQuoteData: undefined,
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -310,7 +301,7 @@ describe('PriceImpactModal', () => {
     it('passes formattedPriceImpactFiat to PriceImpactDescription when formattedQuoteData has it', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$3.50' },
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -323,7 +314,7 @@ describe('PriceImpactModal', () => {
     it('passes undefined formattedPriceImpactFiat when formattedQuoteData is absent', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         formattedQuoteData: undefined,
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -339,7 +330,7 @@ describe('PriceImpactModal', () => {
           quote: { priceData: { priceImpact: { amount: '0.96' } } },
         },
         formattedQuoteData: { priceImpact: '96%', priceImpactFiat: '$7.05' },
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -355,7 +346,7 @@ describe('PriceImpactModal', () => {
           quote: { priceData: { priceImpact: { amount: '0.05' } } },
         },
         formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$0.50' },
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -441,16 +432,6 @@ describe('PriceImpactModal', () => {
   });
 
   describe('hook wiring', () => {
-    it('passes token address, decimals, and chainId to useLatestBalance', () => {
-      render(<PriceImpactModal />);
-
-      expect(mockUseLatestBalance).toHaveBeenCalledWith({
-        address: mockToken.address,
-        decimals: mockToken.decimals,
-        chainId: mockToken.chainId,
-      });
-    });
-
     it('passes location to useBridgeConfirm', () => {
       render(<PriceImpactModal />);
 
@@ -467,7 +448,7 @@ describe('PriceImpactModal', () => {
           quote: { priceData: { priceImpact: { amount: '0.12' } } },
         },
         formattedQuoteData: { priceImpact: '12%' },
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 
@@ -478,7 +459,7 @@ describe('PriceImpactModal', () => {
       mockUseBridgeQuoteData.mockReturnValue({
         activeQuote: undefined,
         formattedQuoteData: undefined,
-      } as ReturnType<typeof useBridgeQuoteData>);
+      } as ReturnType<typeof useBridgeQuoteDataContext>);
 
       render(<PriceImpactModal />);
 

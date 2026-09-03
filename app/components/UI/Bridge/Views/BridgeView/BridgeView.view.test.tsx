@@ -1,6 +1,10 @@
 import '../../../../../../tests/component-view/mocks';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
-import { renderBridgeView } from '../../../../../../tests/component-view/renderers/bridge';
+import {
+  BridgeViewWithSession as BridgeView,
+  renderBridgeView,
+  withBridgeSession,
+} from '../../../../../../tests/component-view/renderers/bridge';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
@@ -11,7 +15,7 @@ import {
 } from '../../../../../../tests/component-view/render';
 import Routes from '../../../../../constants/navigation/Routes';
 import { initialStateBridge } from '../../../../../../tests/component-view/presets/bridge';
-import BridgeView from './index';
+import { QuoteSelectorView } from '../../components/QuoteSelectorView';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { BuildQuoteSelectors } from '../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -828,6 +832,42 @@ describeForPlatforms('BridgeView', () => {
       (buttons[0] as unknown as { props: { isDisabled?: boolean } }).props
         .isDisabled,
     ).not.toBe(true);
+  });
+
+  it('opens quote selector from the market tab', async () => {
+    const now = Date.now();
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withOverrides({
+        bridge: DEFAULT_BRIDGE,
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [mockQuoteWithMetadata],
+              recommendedQuote: mockQuoteWithMetadata,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+
+    const { findByTestId, findByText } = renderScreenWithRoutes(
+      BridgeView,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      [
+        {
+          name: Routes.BRIDGE.QUOTE_SELECTOR_VIEW,
+          Component: withBridgeSession(QuoteSelectorView),
+        },
+      ],
+      { state },
+    );
+
+    fireEvent.press(await findByTestId('rate-arrow-button'));
+
+    expect(await findByText(strings('bridge.select_quote'))).toBeOnTheScreen();
   });
 
   it('stores custom slippage when user sets 5%', async () => {

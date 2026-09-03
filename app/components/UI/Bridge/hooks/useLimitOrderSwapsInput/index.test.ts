@@ -30,15 +30,16 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../useBridgeQuoteData/BridgeQuoteDataContext', () => ({
-  useBridgeQuoteDataContext: () => ({
-    destTokenAmount: undefined,
-    isLoading: false,
-  }),
+  useBridgeQuoteDataContext: () => ({}),
 }));
 
 const mockUpdateQuoteParams = Object.assign(jest.fn(), { cancel: jest.fn() });
-jest.mock('../useBridgeQuoteRequest', () => ({
-  useBridgeQuoteRequest: () => mockUpdateQuoteParams,
+jest.mock('../useSwapQuotes', () => ({
+  useSwapQuotes: () => ({
+    debouncedUpdateQuoteParams: mockUpdateQuoteParams,
+    destTokenAmount: undefined,
+    isLoading: false,
+  }),
 }));
 
 jest.mock('../useIsNetworkEnabled', () => ({
@@ -48,6 +49,12 @@ jest.mock('../useIsNetworkEnabled', () => ({
 let mockIsHardwareWallet = false;
 jest.mock('../useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
+}));
+
+jest.mock('../useBridgeSession', () => ({
+  useBridgeSession: () => ({
+    latestSourceBalance: undefined,
+  }),
 }));
 
 const mockSyncFiatAmountToTokenAmount = jest.fn();
@@ -115,9 +122,7 @@ const renderLimitOrderSwapInputsHook = (
     return undefined;
   });
 
-  return renderHook(() =>
-    useLimitOrderSwapInputs({ latestSourceBalance: undefined }),
-  );
+  return renderHook(() => useLimitOrderSwapInputs());
 };
 
 describe('useLimitOrderSwapInputs', () => {

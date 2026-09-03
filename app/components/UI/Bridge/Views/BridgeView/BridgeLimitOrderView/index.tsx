@@ -25,7 +25,6 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useLimitOrderSwapInputs } from '../../../hooks/useLimitOrderSwapsInput';
 import { LIMIT_MOCK_HISTORY_TAB } from './BridgeLimitOrderView.mockHistory';
@@ -63,10 +62,6 @@ const formatTokenAmountValue = (
   symbol: string | undefined,
 ) => (amount && symbol ? `${formatMinimumReceived(amount)} ${symbol}` : '--');
 
-interface BridgeLimitOrderViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
 const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -100,7 +95,7 @@ const BridgeLimitOrderViewContent = () => {
     sourceAmountInput,
     sourceToken,
     sourceAmount,
-  } = useLimitOrderSwapInputs({ latestSourceBalance });
+  } = useLimitOrderSwapInputs();
   const {
     commitCustomPercent,
     counterToken,

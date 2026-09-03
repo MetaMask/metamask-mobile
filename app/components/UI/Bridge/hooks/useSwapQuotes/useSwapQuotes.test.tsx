@@ -182,6 +182,7 @@ runQuoteRequestCases({
   renderHook: (options) =>
     renderHook(
       () => {
+        // @ts-expect-error - this returns a defined update function
         const { debouncedUpdateQuoteParams } = useSwapQuotes();
         return debouncedUpdateQuoteParams;
       },
@@ -189,13 +190,17 @@ runQuoteRequestCases({
         wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
       },
     ),
+  featureId: FeatureId.LIMIT_ORDER,
 });
 
 runQuoteDataCases({
   name: 'useQuoteData',
   mockDispatch,
+
   renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
     renderHook(() => useSwapQuotes(), {
       wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
+  featureId: FeatureId.LIMIT_ORDER,
 });

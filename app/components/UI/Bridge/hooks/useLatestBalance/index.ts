@@ -13,6 +13,7 @@ import {
   formatChainIdToCaip,
   isNativeAddress,
   isNonEvmChainId,
+  type FeatureId,
 } from '@metamask/bridge-controller';
 import {
   endTrace,
@@ -80,15 +81,19 @@ const getTokenIdentity = (token?: {
  * @param token.decimals - The token decimals.
  * @param token.chainId - The chain ID to be used for fetching the balance.
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
+ * @param featureId - The feature requesting the latest balance.
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
-export const useLatestBalance = (token: {
-  address?: string;
-  decimals?: number;
-  chainId?: Hex | CaipChainId;
-  balance?: string;
-  refreshKey?: string | number;
-}) => {
+export const useLatestBalance = (
+  token: {
+    address?: string;
+    decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string;
+    refreshKey?: string | number;
+  },
+  featureId?: FeatureId,
+) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -230,7 +235,7 @@ export const useLatestBalance = (token: {
     }
 
     handleFetchEvmAtomicBalance();
-  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey, featureId]);
 
   useEffect(() => {
     if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
@@ -238,7 +243,7 @@ export const useLatestBalance = (token: {
     }
 
     handleNonEvmAtomicBalance();
-  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey]);
+  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey, featureId]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;

@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { BigNumber as EthersBigNumber } from 'ethers';
 import { useBridgeQuoteData } from './index';
+import { useBridgeSession } from '../useBridgeSession';
 
 type BridgeQuoteDataContextValue = ReturnType<typeof useBridgeQuoteData>;
 
@@ -14,10 +15,10 @@ interface BridgeQuoteDataProviderProps {
 
 export function BridgeQuoteDataProvider({
   children,
-  latestSourceAtomicBalance,
 }: BridgeQuoteDataProviderProps) {
+  const { latestSourceBalance } = useBridgeSession();
   const value = useBridgeQuoteData({
-    latestSourceAtomicBalance,
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   return (

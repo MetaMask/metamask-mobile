@@ -20,7 +20,6 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../../util/networks';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectSelectedDestChainId,

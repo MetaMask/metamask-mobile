@@ -3,6 +3,7 @@ import {
   RequestStatus,
   getNativeAssetForChainId,
   isSolanaChainId,
+  type FeatureId,
 } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -141,6 +142,7 @@ export const runQuoteDataCases = ({
   name,
   mockDispatch,
   renderHook,
+  featureId,
 }: {
   name: string;
   mockDispatch: jest.Mock;
@@ -152,6 +154,7 @@ export const runQuoteDataCases = ({
     rerender: (props?: unknown) => void;
     unmount: () => void;
   };
+  featureId: FeatureId;
 }) => {
   const renderUseBridgeQuoteData = (
     overrides: QuoteDataState = {},

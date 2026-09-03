@@ -44,6 +44,8 @@ import type {
   BridgeScreensStackParamList,
 } from './types/navigation';
 import { BridgeSessionProvider } from './providers/BridgeSessionProvider';
+import { BridgeQuoteDataProvider } from './hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { SwapQuotesProvider } from './providers/SwapQuotesProvider';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;
@@ -51,50 +53,57 @@ type ScreenComponent = React.ComponentType<any>;
 const Stack = createNativeStackNavigator<BridgeScreensStackParamList>();
 export const BridgeScreenStack = () => (
   <BridgeSessionProvider>
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name={Routes.BRIDGE.BRIDGE_VIEW} component={BridgeView} />
-      <Stack.Screen
-        name={Routes.BRIDGE.TOKEN_SELECTOR}
-        component={BridgeTokenSelector}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
-        component={BatchSellTokenSelect}
-        options={{ title: '' }}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.BATCH_SELL_REVIEW}
-        component={BatchSellReview}
-        options={{ title: '' }}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
-        component={QuoteSelectorView}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.RECURRING_JOB_DETAILS}
-        component={RecurringJobDetailsView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
-        component={HardwareWalletsSwaps}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.HW_QR_SCANNER}
-        component={HwQrScanner}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.BRIDGE.MODALS.ROOT}
-        component={BridgeModalStack}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
-      />
-    </Stack.Navigator>
+    <SwapQuotesProvider>
+      <BridgeQuoteDataProvider>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name={Routes.BRIDGE.BRIDGE_VIEW}
+            component={BridgeView}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.TOKEN_SELECTOR}
+            component={BridgeTokenSelector}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT}
+            component={BatchSellTokenSelect}
+            options={{ title: '' }}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.BATCH_SELL_REVIEW}
+            component={BatchSellReview}
+            options={{ title: '' }}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
+            component={QuoteSelectorView}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.RECURRING_JOB_DETAILS}
+            component={RecurringJobDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+            component={HardwareWalletsSwaps}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.HW_QR_SCANNER}
+            component={HwQrScanner}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.BRIDGE.MODALS.ROOT}
+            component={BridgeModalStack}
+            options={{
+              ...clearNativeStackNavigatorOptions,
+              ...transparentModalScreenOptions,
+            }}
+          />
+        </Stack.Navigator>
+      </BridgeQuoteDataProvider>
+    </SwapQuotesProvider>
   </BridgeSessionProvider>
 );
 

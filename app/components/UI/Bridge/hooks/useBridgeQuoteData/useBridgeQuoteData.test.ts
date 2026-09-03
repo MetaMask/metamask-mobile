@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { useBridgeQuoteData } from '.';
 import { runQuoteDataCases } from './runQuoteDataCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
 const mockDispatch = jest.fn();
 
@@ -53,4 +54,5 @@ runQuoteDataCases({
   name: 'useBridgeQuoteData',
   mockDispatch,
   renderHook: (options) => renderHook(() => useBridgeQuoteData(options)),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 });

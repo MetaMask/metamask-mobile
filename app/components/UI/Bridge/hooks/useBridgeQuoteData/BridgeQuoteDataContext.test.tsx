@@ -6,6 +6,7 @@ import {
   useBridgeQuoteDataContext,
 } from './BridgeQuoteDataContext';
 import { runQuoteProviderCases } from './runQuoteProviderCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -40,6 +41,14 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
+jest.mock('../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn(),
+}));
+
 const Consumer = () => {
   useBridgeQuoteDataContext();
   return null;
@@ -51,9 +60,7 @@ runQuoteProviderCases({
     'useBridgeQuoteDataContext must be used within BridgeQuoteDataProvider',
   renderProvider: (state) =>
     renderWithProvider(
-      <BridgeQuoteDataProvider
-        latestSourceAtomicBalance={BigNumber.from('1000000000')}
-      >
+      <BridgeQuoteDataProvider>
         <Consumer />
         <Consumer />
         <Consumer />
