@@ -103,6 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed missing token icons and network badges on the buy/sell order details screen (#35080)
 - Fixed prediction market titles rendering in an inconsistent font weight on the Wallet Home screen (#35097)
 - Fixed a delay when switching between Lite and Pro modes, where the page waited for the header button animation to finish before loading (#35030)
+- Fixed money account deposit failures on Robinhood chain (#35678)
 
 ### Security
 
