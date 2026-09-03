@@ -117,8 +117,8 @@ const createScaleOrder = (): PerpsProOrderFormProps['scaleOrder'] => ({
     { index: 0, price: '100', size: '1' },
     { index: 1, price: '200', size: '1' },
   ],
-  marginRange: '$50 → $100',
-  liquidationRange: '$80 → $160',
+  margin: '$100',
+  liquidationPrice: '$80',
   fees: '$1',
 });
 
@@ -624,8 +624,8 @@ describe('PerpsProOrderForm', () => {
     it('always renders the five-row incomplete Scale summary', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.rungs = [];
-      scaleOrder.marginRange = PERPS_CONSTANTS.FallbackPriceDisplay;
-      scaleOrder.liquidationRange = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.margin = PERPS_CONSTANTS.FallbackPriceDisplay;
+      scaleOrder.liquidationPrice = PERPS_CONSTANTS.FallbackPriceDisplay;
       scaleOrder.fees = PERPS_CONSTANTS.FallbackPriceDisplay;
       renderForm({
         orderType: 'scale',
@@ -649,7 +649,7 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
 
-    it('renders completed Scale prices and ranges with dedicated selectors', () => {
+    it('renders completed Scale prices and single-value Margin and Est Liquidation rows', () => {
       renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
       expect(
@@ -660,26 +660,24 @@ describe('PerpsProOrderForm', () => {
       );
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
-      ).toHaveTextContent('$50 → $100');
+      ).toHaveTextContent('$100');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveTextContent('$80 → $160');
+      ).toHaveTextContent('$80');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_FEES_VALUE),
       ).toHaveTextContent('$1');
     });
 
-    it('allows the complete Scale liquidation range to wrap', () => {
-      const scaleOrder = createScaleOrder();
-      scaleOrder.liquidationRange = '$1,360.5 → $1,722.4';
-      renderForm({ orderType: 'scale', scaleOrder });
+    it('renders the Scale Margin and Est Liquidation rows without a before/after arrow', () => {
+      renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
       expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveTextContent('$1,360.5 → $1,722.4');
+        screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
+      ).not.toHaveTextContent('→');
       expect(
         screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).toHaveProp('numberOfLines', 0);
+      ).not.toHaveTextContent('→');
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {

@@ -4446,14 +4446,31 @@ describe('usePerpsProOrderForm', () => {
       expect(Number(middle.size)).toBeLessThan(Number(last.size));
     });
 
-    it('builds the per-rung Scale margin range', () => {
+    it('reports the whole ladder margin as a single target value', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
       configureScaleOrder(result);
 
-      expect(result.current.scaleOrder.marginRange).toContain('→');
-      expect(result.current.scaleOrder.marginRange).not.toBe('$ -');
+      expect(result.current.scaleOrder.margin).not.toContain('→');
+      expect(result.current.scaleOrder.margin).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      // 3 rungs of $600 total, rounded to the market lot size.
+      expect(result.current.scaleOrder.margin).toBe('$120.02');
+    });
+
+    it('reports the ladder liquidation price as a single target value', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.scaleOrder.liquidationPrice).not.toContain('→');
+      expect(result.current.scaleOrder.liquidationPrice).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(result.current.scaleOrder.liquidationPrice).toBe('$80,000');
     });
 
     it('weights a below-one Scale skew toward the start of the range', () => {
