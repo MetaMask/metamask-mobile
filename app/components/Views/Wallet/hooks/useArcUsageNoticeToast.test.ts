@@ -2,7 +2,12 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useIsFocused } from '@react-navigation/native';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import {
+  ButtonIconVariant,
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { storeArcUsageNoticeShown } from '../../../../actions/legalNotices';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useArcUsageNoticeToast } from './useArcUsageNoticeToast';
@@ -68,8 +73,8 @@ describe('useArcUsageNoticeToast', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the toast, stores the flag, and tracks Viewed once when focused and eligible', () => {
-    const { showToast, dispatch, builder, built } = renderWithToast({
+  it('shows the toast with the notice copy when focused and eligible', () => {
+    const { showToast } = renderWithToast({
       shouldShow: true,
       isFocused: true,
     });
@@ -80,7 +85,40 @@ describe('useArcUsageNoticeToast', () => {
     expect(options.descriptionOptions.description).toBe(
       'Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team.',
     );
+  });
+
+  it('shows the toast with the spec display options when focused and eligible', () => {
+    const { showToast } = renderWithToast({
+      shouldShow: true,
+      isFocused: true,
+    });
+
+    expect(showToast.mock.calls[0][0]).toMatchObject({
+      variant: ToastVariants.Plain,
+      hasNoTimeout: true,
+      labelOptions: [{ isBold: true }],
+      closeButtonOptions: {
+        variant: ButtonIconVariant.Icon,
+        iconName: IconName.Close,
+      },
+    });
+  });
+
+  it('stores the shown flag when focused and eligible', () => {
+    const { dispatch } = renderWithToast({
+      shouldShow: true,
+      isFocused: true,
+    });
+
     expect(dispatch).toHaveBeenCalledWith(storeArcUsageNoticeShown());
+  });
+
+  it('tracks the Viewed event with the Arc chain id when focused and eligible', () => {
+    const { builder, built } = renderWithToast({
+      shouldShow: true,
+      isFocused: true,
+    });
+
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.ARC_USAGE_NOTICE_TOAST_VIEWED,
     );
