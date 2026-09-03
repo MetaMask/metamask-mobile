@@ -1,5 +1,5 @@
 # Download from the artifact store that matches the selected runner provider.
-# Namespace runners read Namespace storage; current runners read GitHub storage.
+# Namespace runners read Namespace storage; GitHub-hosted runners read GitHub storage.
 name: 'Download E2E artifact'
 description: >
   Download an artifact from Namespace storage when runner-provider contains

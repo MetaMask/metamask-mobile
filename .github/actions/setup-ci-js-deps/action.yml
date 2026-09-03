@@ -10,7 +10,7 @@ inputs:
   runner_provider:
     description: 'Runner provider (`namespace` or any GitHub-hosted value).'
     required: false
-    default: 'current'
+    default: 'namespace'
 
 runs:
   using: 'composite'

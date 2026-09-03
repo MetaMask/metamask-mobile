@@ -14,7 +14,7 @@ on:
   workflow_call:
     inputs:
       runner_provider:
-        description: 'Runner provider (namespace or current)'
+        description: 'Runner provider (namespace or GitHub-hosted fallback)'
         required: false
         type: string
         default: 'namespace'
@@ -35,7 +35,7 @@ jobs:
       ${{
         inputs.runner_provider == 'namespace' &&
         'namespace-profile-metamask-android-e2e' ||
-        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]')
+        'ubuntu-latest'
       }}
     env:
       ANDROID_AVD_NAME: appium_smoke_avd

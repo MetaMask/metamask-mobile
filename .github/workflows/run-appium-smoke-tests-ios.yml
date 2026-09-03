@@ -20,7 +20,7 @@ on:
         type: string
         default: 'e2e'
       runner_provider:
-        description: 'Runner provider (namespace or current)'
+        description: 'Runner provider (namespace or GitHub-hosted fallback)'
         required: false
         type: string
         default: 'namespace'
@@ -63,7 +63,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -89,7 +89,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -114,7 +114,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -139,7 +139,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -166,7 +166,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -190,7 +190,7 @@ jobs:
       total_splits: 2
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -215,7 +215,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -240,7 +240,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -265,7 +265,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -290,7 +290,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -315,7 +315,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -340,7 +340,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -365,7 +365,7 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -390,6 +390,6 @@ jobs:
       test-timeout-minutes: 25
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
-      runner_provider: ${{ inputs.runner_provider || 'current' }}
+      runner_provider: ${{ inputs.runner_provider || 'namespace' }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
