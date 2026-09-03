@@ -61,7 +61,9 @@ class BrazePushModule: NSObject {
     case .sdkDeallocated:
       "SDK_DEALLOCATED"
     case .requestFailed:
-      "REQUEST_FAILED"
+      error.message.localizedCaseInsensitiveContains("no push token")
+        ? "NO_PUSH_TOKEN"
+        : "REQUEST_FAILED"
     @unknown default:
       "UNKNOWN"
     }

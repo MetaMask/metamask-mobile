@@ -43,6 +43,14 @@ function isFailureCode(code: string): code is BrazeUnregisterPushFailureCode {
   );
 }
 
+/**
+ * Braze iOS reports a local "no token" check as `requestFailed` rather than
+ * `noPushToken`. Treat that as already unregistered.
+ */
+function isNoPushTokenMessage(message: string): boolean {
+  return /no push token/iu.test(message);
+}
+
 function normalizeResult(
   result: NativeUnregisterPushResult | null | undefined,
 ): BrazeUnregisterPushResult {
@@ -50,13 +58,40 @@ function normalizeResult(
     return { success: true };
   }
 
+  const message = result?.message ?? 'Braze push unregister failed';
+  if (isNoPushTokenMessage(message)) {
+    return {
+      success: false,
+      isRetriable: false,
+      code: 'NO_PUSH_TOKEN',
+      message,
+    };
+  }
+
   const code = result?.code;
   return {
     success: false,
     isRetriable: result?.isRetriable === true,
     code: code && isFailureCode(code) ? code : 'UNKNOWN',
-    message: result?.message ?? 'Braze push unregister failed',
+    message,
   };
+}
+
+const ALREADY_UNREGISTERED_CODES: ReadonlySet<BrazeUnregisterPushFailureCode> =
+  new Set(['NO_PUSH_TOKEN', 'SDK_UNAVAILABLE', 'SDK_DISABLED']);
+
+/**
+ * Whether this device is not registered for Braze push (success, or a
+ * non-registered state such as no stored token).
+ */
+export function isBrazePushUnregistered(
+  result: BrazeUnregisterPushResult,
+): boolean {
+  if (result.success) {
+    return true;
+  }
+
+  return ALREADY_UNREGISTERED_CODES.has(result.code);
 }
 
 /**
@@ -90,6 +125,10 @@ export async function unregisterBrazePush(): Promise<BrazeUnregisterPushResult> 
     const result = normalizeResult(await brazePushModule.unregisterPush());
     if (result.success) {
       Logger.log('[Braze] Unregistered this device from Braze push');
+    } else if (isBrazePushUnregistered(result)) {
+      Logger.log(
+        `[Braze] Push already unregistered code=${result.code} ${result.message}`,
+      );
     } else {
       Logger.error(
         new Error(result.message),
@@ -108,23 +147,6 @@ export async function unregisterBrazePush(): Promise<BrazeUnregisterPushResult> 
       message,
     };
   }
-}
-
-const ALREADY_UNREGISTERED_CODES: ReadonlySet<BrazeUnregisterPushFailureCode> =
-  new Set(['NO_PUSH_TOKEN', 'SDK_UNAVAILABLE', 'SDK_DISABLED']);
-
-/**
- * Whether this device is not registered for Braze push (success, or a
- * non-registered state such as no stored token).
- */
-export function isBrazePushUnregistered(
-  result: BrazeUnregisterPushResult,
-): boolean {
-  if (result.success) {
-    return true;
-  }
-
-  return ALREADY_UNREGISTERED_CODES.has(result.code);
 }
 
 /**
