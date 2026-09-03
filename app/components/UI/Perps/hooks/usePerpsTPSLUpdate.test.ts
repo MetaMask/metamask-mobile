@@ -6,9 +6,19 @@ import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { endPerpsCufTrace } from '../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
 jest.mock('./usePerpsTrading');
 jest.mock('../services/PerpsCacheInvalidator', () => ({
   PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'tpsl-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufTpSlChanged: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
 }));
 jest.mock('./usePerpsToasts');
 jest.mock('../providers/PerpsStreamManager');
@@ -250,6 +260,17 @@ describe('usePerpsTPSLUpdate', () => {
         .positionAlreadyClosed,
     );
     expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
   });
@@ -279,6 +300,17 @@ describe('usePerpsTPSLUpdate', () => {
         .positionAlreadyClosed,
     );
     expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+      'accountState',
+    );
+    expect(endPerpsCufTrace).toHaveBeenCalledTimes(1);
+    expect(endPerpsCufTrace).toHaveBeenCalledWith({
+      id: 'tpsl-cuf-op',
+      data: {
+        [PERPS_CUF_TAG.SUCCESS]: false,
+        [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+      },
+    });
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
   });

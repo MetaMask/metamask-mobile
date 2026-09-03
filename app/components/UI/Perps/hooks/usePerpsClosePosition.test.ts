@@ -9,6 +9,8 @@ import {
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
+import { endPerpsCufTrace } from '../utils/perpsCufTrace';
+import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
 
 const mockNavigate = jest.fn();
 
@@ -25,6 +27,14 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('./usePerpsTrading');
 jest.mock('../services/PerpsCacheInvalidator', () => ({
   PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
+jest.mock('../utils/perpsCufTrace', () => ({
+  ...jest.requireActual('../utils/perpsCufTrace'),
+  startPerpsCufTrace: jest.fn(() => 'close-cuf-op'),
+  endPerpsCufTrace: jest.fn(),
+  endPerpsCufRequestAfter: jest.fn(),
+  watchPerpsCufPositionClosed: jest.fn(),
+  acceptPerpsCufRequest: jest.fn(),
 }));
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger', () => ({
@@ -736,6 +746,16 @@ describe('usePerpsClosePosition', () => {
           expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
             'positions',
           );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'accountState',
+          );
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: 'close-cuf-op',
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
           expect(onSuccess).not.toHaveBeenCalled();
           expect(Logger.error).not.toHaveBeenCalled();
         });
@@ -768,6 +788,16 @@ describe('usePerpsClosePosition', () => {
           expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
             'positions',
           );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'accountState',
+          );
+          expect(endPerpsCufTrace).toHaveBeenCalledWith({
+            id: 'close-cuf-op',
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+            },
+          });
           expect(onSuccess).not.toHaveBeenCalled();
           expect(Logger.error).not.toHaveBeenCalled();
         });

@@ -478,7 +478,51 @@ describe('PerpsClosePositionView', () => {
       expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
         'positions',
       );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'accountState',
+      );
       expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('does not dismiss a second time when the stream drops the position after a confirmed close', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(
+          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+      rerender(<PerpsClosePositionView />);
+
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalled();
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
     });
 
     it('keeps the sheet open while positions are still loading', async () => {

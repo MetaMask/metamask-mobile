@@ -132,15 +132,13 @@ export const usePerpsClosePosition = (
       // The venue filled, closed or liquidated the position before this
       // request landed. Nothing failed on the user's side, so reconcile the
       // stale local state and say so instead of raising a close failure.
-      const reconcileAlreadyClosed = (
-        reason: (typeof PERPS_CUF_END_REASON)[keyof typeof PERPS_CUF_END_REASON],
-      ) => {
+      const reconcileAlreadyClosed = () => {
         if (closeCufOpId) {
           endPerpsCufTrace({
             id: closeCufOpId,
             data: {
               [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: reason,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
             },
           });
         }
@@ -148,7 +146,10 @@ export const usePerpsClosePosition = (
           PerpsToastOptions.positionManagement.closePosition
             .positionAlreadyClosed,
         );
+        // Closing a position moves margin and balance, so account state is
+        // stale too — the controller pairs these two everywhere it closes.
         PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
       };
 
       try {
@@ -241,7 +242,7 @@ export const usePerpsClosePosition = (
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (!result.success && isNoPositionFoundError(result.error)) {
-          reconcileAlreadyClosed(PERPS_CUF_END_REASON.REQUEST_FAILED);
+          reconcileAlreadyClosed();
           return result;
         }
 
@@ -305,7 +306,7 @@ export const usePerpsClosePosition = (
         return result;
       } catch (err) {
         if (isNoPositionFoundError(err)) {
-          reconcileAlreadyClosed(PERPS_CUF_END_REASON.EXCEPTION);
+          reconcileAlreadyClosed();
           return {
             success: false,
             error: err instanceof Error ? err.message : String(err),

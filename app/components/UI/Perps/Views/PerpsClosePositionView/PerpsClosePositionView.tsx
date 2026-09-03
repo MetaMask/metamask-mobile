@@ -221,8 +221,15 @@ const PerpsClosePositionView: React.FC = () => {
   useEffect(() => {
     // A tooltip modal can sit on top of this still-mounted sheet. Dismissing
     // then would pop the tooltip instead of the sheet, so wait for focus and
-    // latch only once the dismissal actually runs.
-    if (!isPositionGone || !isScreenFocused || hasReconciledGoneRef.current) {
+    // latch only once the dismissal actually runs. handleConfirm already
+    // dismisses on its own, so a stream drop racing its blur must not goBack
+    // a second time.
+    if (
+      !isPositionGone ||
+      !isScreenFocused ||
+      hasConfirmedCloseRef.current ||
+      hasReconciledGoneRef.current
+    ) {
       return;
     }
     hasReconciledGoneRef.current = true;
@@ -231,6 +238,7 @@ const PerpsClosePositionView: React.FC = () => {
       PerpsToastOptions.positionManagement.closePosition.positionAlreadyClosed,
     );
     PerpsCacheInvalidator.invalidate('positions');
+    PerpsCacheInvalidator.invalidate('accountState');
     navigation.goBack();
   }, [
     isPositionGone,
