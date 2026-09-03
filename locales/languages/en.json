@@ -4624,7 +4624,7 @@
     "autodetect_nft_desc": "Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.",
     "display_nft_media_desc_new": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.",
     "use_safe_chains_list_validation_desc_1": "MetaMask uses a third-party service called ",
-    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to  ",
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
@@ -8564,7 +8564,7 @@
     "drawer_assets_desc": "Autodetect tokens in your wallet, display NFTs, and get batched account balance updates",
     "drawer_security_title": "Security",
     "drawer_security_desc": "Reduce your chances of joining unsafe networks and protect your accounts",
-    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
+    "network_details_check_desc": "MetaMask uses a third-party service called chainid.network to show accurate and standardized network details. This reduces your chances of connecting to a malicious or incorrect network. When using this feature, your IP address is exposed to chainid.network."
   },
   "simulation_details": {
     "failed": "There was an error loading your estimation.",
