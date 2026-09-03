@@ -2112,6 +2112,7 @@
       "loss_roe_placeholder": "% Loss",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit must be {{direction}} {{priceType}} price",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "Stop loss must be {{direction}} {{priceType}} price",
       "stop_loss_beyond_liquidation_error": "Stop loss must be {{direction}} liquidation price",
       "stop_loss_order_view_warning": "Stop loss is {{direction}} liquidation price",
@@ -6145,8 +6146,8 @@
     "confirm": "Confirm"
   },
   "account_backup_step_5": {
-    "error_title": "Oops!",
-    "error_message": "The order of the words is incorrect. Please make sure you wrote it down correctly and go to the previous screen if it is necessary",
+    "error_title": "Incorrect word order",
+    "error_message": "Make sure you wrote it down correctly and go to the previous screen if it is necessary.",
     "back": "Back",
     "title": "Confirm Secret Recovery Phrase",
     "info_text": "Insert each word in the order it was presented to you on the previous screen.",
@@ -6321,7 +6322,7 @@
     "speedup_title": "Speeding up #{{nonce}}",
     "success_deposit_title": "Deposit complete",
     "success_withdrawal_title": "Withdrawal complete",
-    "error_title": "Oops, something went wrong :/",
+    "error_title": "Something went wrong",
     "received_title": "You received {{amount}} {{assetType}}",
     "erc20_sent_title": "Funds sent",
     "erc20_received_title": "Funds received",
@@ -6831,7 +6832,7 @@
     "max": "Max",
     "try_again": "Try again",
     "error": "Error",
-    "something_went_wrong": "Oops, something went wrong",
+    "something_went_wrong": "Something went wrong",
     "report_this_issue": "Report this issue",
     "no_providers_available": "No providers available",
     "try_different_amount_to_buy_input": "Try choosing a different payment method or try to increase or reduce the amount you want to buy.",
@@ -7036,7 +7037,7 @@
     "manually_pasting": "Manually add a token by pasting its address.",
     "token_address_can_be_found": "Token contract addresses can be found on",
     "gathering_token_details": "Gathering token details...",
-    "error_gathering_token_details": "Oops, there was an error gathering token details.",
+    "error_gathering_token_details": "There was an error gathering token details.",
     "Import": "Import",
     "invalid_token_contract_address": "Invalid token contract address.",
     "please_verify_on_explorer": "Please verify on",
@@ -7398,7 +7399,7 @@
     "add_token": "Click here to manually add the tokens",
     "add_token_manually": "Add them manually.",
     "got_it": "Got it",
-    "error_title": "Oops! Something went wrong.",
+    "error_title": "Something went wrong",
     "error_message": "There was an error loading the network information. Please try again later.",
     "private_network_third_description": "Please enter a name for this network to make it easy to identify.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -7600,7 +7601,7 @@
     "open_eth_app": "Please open the Ethereum app",
     "open_eth_app_message_one": "We’ve detected you have the Ethereum app installed but it’s not open, please ",
     "open_eth_app_message_two": "press the two buttons on the device to accept the prompt to open the Ethereum app to continue.",
-    "toast_bluetooth_connection_error_title": "Oops, something went wrong :/",
+    "toast_bluetooth_connection_error_title": "Something went wrong",
     "toast_bluetooth_connection_error_subtitle": "Ledger has not been connected",
     "try_again": "Try again",
     "device_not_found": "Device not found",
@@ -7736,7 +7737,6 @@
         "rate_unavailable_subtitle": "Earn on your balance",
         "money": {
           "title": "Money account",
-          "subtitle": "Variable yield · auto-earning",
           "info_rows": {
             "row_1": "Earn up to ~{{percentage}}% APY on your balance",
             "row_2": "No lockups—trade or withdraw anytime",
@@ -7745,15 +7745,15 @@
         },
         "stablecoin_lending": {
           "title": "Lend {{asset}}",
-          "subtitle": "Lend your {{asset}} to earn up to {{percentage}}% APY. Withdraw anytime."
+          "subtitle": "Earn rewards daily and withdraw anytime."
         },
         "pooled_staking": {
           "title": "Stake ETH",
-          "subtitle": "Stake your ETH to earn up to {{percentage}}% APR. Unstake anytime."
+          "subtitle": "Earn rewards daily and unstake anytime."
         },
         "trx_staking": {
           "title": "Stake TRX",
-          "subtitle": "Stake your TRX to earn up to {{percentage}}% APR. Unstake anytime."
+          "subtitle": "Earn rewards daily and unstake anytime."
         }
       },
       "get_started": "Get started"
