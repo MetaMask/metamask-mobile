@@ -9,10 +9,13 @@ const choosePasswordScreenId = ['choose', 'pw'].join('_');
 
 export const OnboardingScreenIds = {
   ONBOARDING_LANDING: 'onboarding_landing',
+  ONBOARDING_SHEET: 'onboarding_sheet',
   CHOOSE_PASSWORD: choosePasswordScreenId,
   IMPORT_SRP: 'import_srp',
+  ACCOUNT_BACKUP: 'account_backup',
   MANUAL_BACKUP_STEP1: 'manual_backup_step1',
   MANUAL_BACKUP_STEP2: 'manual_backup_step2',
+  OPTIN_METRICS: 'optin_metrics',
   ONBOARDING_SUCCESS: 'onboarding_success',
   ACCOUNT_ALREADY_EXISTS: 'account_already_exists',
   ACCOUNT_NOT_FOUND: 'account_not_found',

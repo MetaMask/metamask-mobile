@@ -1,5 +1,10 @@
-import { strings } from '../../../../locales/i18n';
-import type { ActivityKind, Status } from '../../../util/activity-adapters';
+import type { TriggerOrderType } from '@metamask/perps-controller';
+import I18n, { strings } from '../../../../locales/i18n';
+import type {
+  ActivityKind,
+  PerpsOrderKind,
+  Status,
+} from '../../../util/activity-adapters';
 
 /**
  * Lifecycle label for perps order rows (Filled / Canceled / Rejected / Open).
@@ -17,6 +22,66 @@ export function resolvePerpsOrderStatusLabel(status: Status): string {
     default:
       return strings('transactions.activity_order_status_filled');
   }
+}
+
+const TRIGGER_ORDER_TYPE_LABEL_KEYS: Record<TriggerOrderType, string> = {
+  stop_limit: 'perps.order.type.stop_limit.title',
+  stop_market: 'perps.order.type.stop_market.title',
+  take_profit_limit: 'perps.order.type.take_profit_limit.title',
+  take_profit_market: 'perps.order.type.take_profit_market.title',
+};
+
+function resolvePerpsOrderDirection(kind: PerpsOrderKind): {
+  label: string;
+  isClosing: boolean;
+} {
+  switch (kind) {
+    case 'marketLong':
+    case 'limitLong':
+      return {
+        label: strings('perps.market.long_lowercase'),
+        isClosing: false,
+      };
+    case 'marketShort':
+    case 'limitShort':
+      return {
+        label: strings('perps.market.short_lowercase'),
+        isClosing: false,
+      };
+    case 'stopMarketCloseLong':
+    case 'marketCloseLong':
+    case 'limitCloseLong':
+      return {
+        label: strings('perps.market.close_long'),
+        isClosing: true,
+      };
+    case 'stopMarketCloseShort':
+    case 'marketCloseShort':
+    case 'limitCloseShort':
+      return {
+        label: strings('perps.market.close_short'),
+        isClosing: true,
+      };
+  }
+}
+
+export function resolvePerpsTriggerOrderTitle(
+  kind: PerpsOrderKind,
+  triggerOrderType: TriggerOrderType,
+): string {
+  const orderType = strings(TRIGGER_ORDER_TYPE_LABEL_KEYS[triggerOrderType]);
+  const { label, isClosing } = resolvePerpsOrderDirection(kind);
+  const direction =
+    isClosing && I18n.locale?.toLowerCase().startsWith('en')
+      ? label.toLocaleLowerCase('en')
+      : label;
+
+  return strings(
+    isClosing
+      ? 'transactions.activity_trigger_order_close'
+      : 'transactions.activity_trigger_order_open',
+    { orderType, direction },
+  );
 }
 
 /**

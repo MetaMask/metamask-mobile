@@ -476,7 +476,8 @@ describe('PredictMarketDetails', () => {
       );
       // The current value stays behind a skeleton until the sell-order preview
       // query settles, which happens after the tab content is already on screen.
-      await findByText('$60');
+      // Display is cash-out proceeds after fees ($60 gross → $57.60 net).
+      await findByText('$57.60');
 
       const positionsTab = getByTestId(
         PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT,
@@ -484,7 +485,7 @@ describe('PredictMarketDetails', () => {
       expect(
         within(positionsTab).getByText('$50 on Yes to win $50'),
       ).toBeOnTheScreen();
-      expect(within(positionsTab).getByText('$60')).toBeOnTheScreen();
+      expect(within(positionsTab).getByText('$57.60')).toBeOnTheScreen();
       expect(
         within(positionsTab).getByTestId(
           PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,

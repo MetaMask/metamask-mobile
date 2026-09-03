@@ -53,8 +53,10 @@ type PostOnboardingSource =
   | Exclude<PostOnboardingDestination, 'wallet'>;
 
 const POST_ONBOARDING_THRESHOLD: PlatformThreshold = {
-  ios: 5_000,
-  android: 6_000,
+  // Baseline from 2026-09-02 Pixel 8 Pro: Agree → usable wallet ~10.4–12.5s.
+  // ~1.5× headroom for first enforce pass; tighten in TO-946.
+  ios: 14_000,
+  android: 16_000,
 };
 
 const POST_ONBOARDING_DESTINATION_LABELS: Record<
