@@ -241,7 +241,17 @@ export const LIMIT_PRICE_CONFIG = {
   // at least (1 - 0.95) = 5% of the larger one. We block submission up front
   // instead of letting the order fail at the exchange.
   MaxDeviationFromMarket: 0.95,
+
+  // Warn when a limit/scale price is more than 5% from the near-touch
+  // (best bid long, best ask short). Equal to 5% does not warn.
+  FarFromMarketThreshold: 0.05,
 } as const;
+
+// Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no
+// far-from-market member.
+export const FAR_FROM_MARKET_WARNING_INTERACTION =
+  'far_from_market_warning_shown';
+export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 

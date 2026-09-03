@@ -4,9 +4,11 @@ import {
   CardType,
   CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
+  type UserResponse,
 } from '../../../../components/UI/Card/types';
 
 export { CardStatus, CardType };
+export type { UserResponse };
 
 // -- Provider Errors --
 
@@ -656,6 +658,11 @@ export interface ICardProvider {
     details: CardContactDetails,
     tokens: CardAuthTokens,
   ): Promise<void>;
+  /**
+   * Authenticated Baanx profile (`GET /v1/user`). Used for contact prefill
+   * (e.g. UK migration SignUp) while a Baanx session is still active.
+   */
+  getUserDetails?(tokens: CardAuthTokens): Promise<UserResponse>;
   getSpendingPrerequisites?(
     fundingSourceId: string,
     params: CardSpendingPrerequisitesParams,
