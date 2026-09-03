@@ -151,17 +151,21 @@ describe('handleUniversalLink', () => {
     handleDeepLinkModalDisplay as jest.MockedFunction<
       typeof handleDeepLinkModalDisplay
     >;
-  // Default mock implementation that resolves with true
-  mockHandleDeepLinkModalDisplay.mockImplementation(async (callbackParams) => {
-    if (
-      callbackParams.linkType === 'invalid' ||
-      callbackParams.linkType === 'unsupported'
-    ) {
-      callbackParams.onContinue?.(); // Primary button action (navigate to home)
-    } else {
-      callbackParams.onContinue();
-    }
-  });
+
+  const applyDefaultDeepLinkModalDisplay = () => {
+    mockHandleDeepLinkModalDisplay.mockImplementation(
+      async (callbackParams) => {
+        if (
+          callbackParams.linkType === 'invalid' ||
+          callbackParams.linkType === 'unsupported'
+        ) {
+          callbackParams.onContinue?.();
+        } else {
+          callbackParams.onContinue();
+        }
+      },
+    );
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -183,7 +187,13 @@ describe('handleUniversalLink', () => {
       connect: jest.fn(),
     });
 
+    applyDefaultDeepLinkModalDisplay();
+
     url = 'https://metamask.app.link';
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('SDK action analytics', () => {

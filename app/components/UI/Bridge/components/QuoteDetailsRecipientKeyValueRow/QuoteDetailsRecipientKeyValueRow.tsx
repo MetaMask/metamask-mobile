@@ -70,13 +70,13 @@ const QuoteDetailsRecipientKeyValueRow = () => {
               variant={TextVariant.BodyMD}
               numberOfLines={1}
               style={styles.accountNameText}
-              color={TextColor.Alternative}
+              color={TextColor.Default}
             >
               {destinationWalletName ? `${destinationWalletName} / ` : ''}
               {destinationDisplayName}
             </Text>
           ) : destinationAccountAddress ? (
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {shortenString(destinationAccountAddress, {
                 truncatedCharLimit: 15,
                 truncatedStartChars: 7,
@@ -90,7 +90,7 @@ const QuoteDetailsRecipientKeyValueRow = () => {
               numberOfLines={1}
               ellipsizeMode="tail"
               style={styles.recipientText}
-              color={TextColor.Alternative}
+              color={TextColor.Default}
             >
               {strings('bridge.select_recipient')}
             </Text>

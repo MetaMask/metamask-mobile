@@ -56,16 +56,12 @@ export const BridgeMarketViewFooter = ({
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
 
-  if (isLoading && !activeQuote && !needsNewQuote) {
-    return null;
-  }
-
   const footerContainerStyle = [
     styles.buttonContainer,
     { paddingBottom: bottomInset },
   ];
 
-  if (needsNewQuote) {
+  if (needsNewQuote || (isLoading && !activeQuote)) {
     return (
       <Box style={footerContainerStyle}>
         <SwapsMarketOrderConfirmButton

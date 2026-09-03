@@ -26,16 +26,20 @@ const createMarket = (
 
 describe('orderHomepagePredictEventMarkets', () => {
   it('returns configured events in slot order', () => {
-    const nba = createMarket('478277', 'nba-2027-champion', 'NBA');
+    const nfl = createMarket(
+      '202857',
+      'pro-football-2027-champion-20260729185915366',
+      'NFL',
+    );
     const epl = createMarket(
       '659518',
       'epl-2027-champion-20260701200428749',
       'EPL',
     );
 
-    const result = orderHomepagePredictEventMarkets([nba, epl]);
+    const result = orderHomepagePredictEventMarkets([epl, nfl]);
 
-    expect(result).toEqual([epl, nba]);
+    expect(result).toEqual([nfl, epl]);
   });
 
   it('excludes an event when its slug does not match config', () => {

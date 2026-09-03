@@ -14,7 +14,7 @@ type ActionStep = {
 };
 
 type ActionMetadata = {
-  inputs: Record<string, { required?: boolean }>;
+  inputs: Record<string, { required?: boolean; default?: string }>;
   runs: {
     steps: ActionStep[];
   };
@@ -107,7 +107,17 @@ describe('dual-upload-e2e-artifact', () => {
     expect(githubUploadSteps[0]).toMatchObject({
       id: 'gh-1',
       name: 'Upload to GitHub',
+      if: "${{ inputs.skip-github != 'true' || !contains(inputs.runner-provider, 'namespace') }}",
     });
+  });
+
+  it('exposes skip-github as an optional input defaulting to false', () => {
+    const actionMetadata = loadActionMetadata();
+
+    expect(actionMetadata.inputs['skip-github']).toMatchObject({
+      required: false,
+    });
+    expect(actionMetadata.inputs['skip-github'].default).toBe('false');
   });
 
   it('requires both stores for the namespace provider', () => {
@@ -119,6 +129,44 @@ describe('dual-upload-e2e-artifact', () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain('Uploaded to Namespace and GitHub stores');
+  });
+
+  it('requires only Namespace when skip-github is set on a namespace provider', () => {
+    const result = runScript({
+      RUNNER_PROVIDER: 'namespace',
+      SKIP_GITHUB: 'true',
+      NS_1: 'success',
+      GH_1: '',
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Uploaded to Namespace store');
+  });
+
+  it('fails skip-github namespace upload when Namespace never succeeds', () => {
+    const result = runScript({
+      RUNNER_PROVIDER: 'namespace',
+      SKIP_GITHUB: 'true',
+      NS_1: 'failure',
+      NS_2: 'failure',
+      NS_3: 'failure',
+    });
+
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(
+      'Dual artifact upload failed (Namespace=false)',
+    );
+  });
+
+  it('still requires GitHub on current even when skip-github is set', () => {
+    const result = runScript({
+      RUNNER_PROVIDER: 'current',
+      SKIP_GITHUB: 'true',
+      GH_1: 'success',
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('Uploaded to GitHub store');
   });
 
   it('requires both stores for a namespace runner label', () => {

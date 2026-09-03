@@ -10,9 +10,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { createSessionFixture } from './multichain-fixtures.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from '../mm-connect/utils.js';
 import MultichainTestDApp, {
   MULTICHAIN_DAPP_PORT,
@@ -31,15 +30,17 @@ appiumTest.describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {
   appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest.beforeAll(async () => {
-    multichainDappServer.setServerPort(MULTICHAIN_DAPP_PORT);
-    await multichainDappServer.start();
-    await waitForDappServerReady(MULTICHAIN_DAPP_PORT);
-    setupAdbReverse(MULTICHAIN_DAPP_PORT);
+    await startLocalDappServerOnWorker(
+      multichainDappServer,
+      MULTICHAIN_DAPP_PORT,
+    );
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(MULTICHAIN_DAPP_PORT);
-    await multichainDappServer.stop();
+    await stopLocalDappServerOnWorker(
+      multichainDappServer,
+      MULTICHAIN_DAPP_PORT,
+    );
   });
 
   appiumTest.describe('Read operations', () => {
