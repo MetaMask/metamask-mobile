@@ -122,26 +122,24 @@ class PerpsView {
     return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
   }
 
-  private getPortfolioPositionCard(index = 0): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`,
-    );
-  }
-
   private getPortfolioOrderCard(index = 0): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
     );
   }
 
-  private getWalletHomePositionRow(symbol: string): Promise<AppiumElement> {
-    return Matchers.getElementByID(`perps-position-row-${symbol}`);
+  private getPortfolioPositionDirectionTag(index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}-direction-tag`,
+    );
   }
 
-  private getPositionDirectionBadge(
-    direction: 'long' | 'short',
+  private getWalletHomePositionDirectionTag(
+    symbol: string,
   ): Promise<AppiumElement> {
-    return Matchers.getElementByText(new RegExp(`^\\d+x ${direction}$`, 'i'));
+    return Matchers.getElementByID(
+      `perps-position-row-${symbol}-direction-tag`,
+    );
   }
 
   // Orders section on the Perps main tab
@@ -259,10 +257,10 @@ class PerpsView {
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    const directionLabel = direction === 'long' ? 'Long' : 'Short';
     const positionLocators: Promise<AppiumElement>[] = [
-      this.getPortfolioPositionCard(0),
-      this.getWalletHomePositionRow(symbol),
-      this.getPositionDirectionBadge(direction),
+      this.getPortfolioPositionDirectionTag(0),
+      this.getWalletHomePositionDirectionTag(symbol),
     ];
     await Utilities.executeWithRetry(
       async () => {
@@ -278,6 +276,14 @@ class PerpsView {
               description: `${symbol} position row visible (${direction})`,
               timeout: 3000,
             });
+            await Assertions.expectElementToContainText(
+              locator,
+              directionLabel,
+              {
+                description: `${symbol} position direction is ${direction}`,
+                timeout: 3000,
+              },
+            );
             positionVisible = true;
             break;
           } catch {

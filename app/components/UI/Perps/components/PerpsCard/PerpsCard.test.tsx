@@ -51,12 +51,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.order.short_label' || key === 'perps.market.short') {
       return 'Short';
     }
-    if (key === 'perps.market.long_lowercase') {
-      return 'long';
-    }
-    if (key === 'perps.market.short_lowercase') {
-      return 'short';
-    }
     return key;
   },
 }));
@@ -68,10 +62,7 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
 jest.mock('../PerpsTokenLogo', () => 'PerpsTokenLogo');
 
 describe('PerpsCard', () => {
-  const mockPosition = {
-    ...defaultPerpsPositionMock,
-    returnOnEquity: '0.103',
-  };
+  const mockPosition = { ...defaultPerpsPositionMock };
   const mockOrder = { ...defaultPerpsOrderMock };
   const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
 
