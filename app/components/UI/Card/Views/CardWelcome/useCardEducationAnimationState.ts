@@ -1,42 +1,23 @@
-import { useEffect, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
 import { useSelector } from 'react-redux';
-import Logger from '../../../../../util/Logger';
+import { useReduceMotionState } from '../../../Money/hooks/useReduceMotion';
 import { selectMoneyCardEducationAnimationEnabledFlag } from '../../../Money/selectors/featureFlags';
 
 export type CardEducationAnimationState = 'pending' | 'animate' | 'static';
 
+/**
+ * Whether the card education screen should animate, render static, or withhold
+ * content until the decision is known.
+ *
+ * `pending` exists so the first paint never flashes: reduce-motion users would
+ * otherwise see a frame of animation, and animated users a frame of static
+ * content.
+ */
 export function useCardEducationAnimationState(): CardEducationAnimationState {
   const flagEnabled = useSelector(selectMoneyCardEducationAnimationEnabledFlag);
-  const [reduceMotion, setReduceMotion] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let mounted = true;
-
-    AccessibilityInfo.isReduceMotionEnabled()
-      .then((enabled) => {
-        if (mounted) setReduceMotion(enabled);
-      })
-      .catch((error) => {
-        Logger.error(
-          error as Error,
-          '[Card Education Animation] Failed to read reduce motion setting',
-        );
-        // Treat an unknown reduce-motion setting as ON so the screen renders
-        // fully without motion instead of staying hidden in 'pending'.
-        if (mounted) setReduceMotion(true);
-      });
-
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion,
-    );
-
-    return () => {
-      mounted = false;
-      subscription.remove();
-    };
-  }, []);
+  // `null` while the async accessibility check is in flight. The shared hook
+  // resolves to "reduce motion on" if reading the setting fails, so a failure
+  // lands on the static path instead of staying pending forever.
+  const reduceMotion = useReduceMotionState();
 
   if (!flagEnabled) {
     return 'static';
@@ -44,8 +25,5 @@ export function useCardEducationAnimationState(): CardEducationAnimationState {
   if (reduceMotion === null) {
     return 'pending';
   }
-  if (reduceMotion) {
-    return 'static';
-  }
-  return 'animate';
+  return reduceMotion ? 'static' : 'animate';
 }

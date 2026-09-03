@@ -119,10 +119,10 @@ describe('useCardEducationAnimationState', () => {
     const { result } = renderHook(() => useCardEducationAnimationState());
 
     await waitFor(() => expect(result.current).toBe('static'));
-    expect(Logger.error).toHaveBeenCalledWith(
-      error,
-      '[Card Education Animation] Failed to read reduce motion setting',
-    );
+    // Logged by the shared `useReduceMotionState` this hook composes.
+    expect(Logger.error).toHaveBeenCalledWith(error, {
+      message: 'useReduceMotionState: isReduceMotionEnabled failed',
+    });
   });
 
   it('removes the reduceMotionChanged listener on unmount', () => {
