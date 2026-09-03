@@ -22,6 +22,7 @@ ios/Podfile.lock                                            @MetaMask/mobile-pla
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
 app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Nav/Main/index.js                            @MetaMask/mobile-platform
 app/components/Views/Root                                   @MetaMask/mobile-platform
 app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform

@@ -377,6 +377,23 @@ export function isPerpsErrorCode(
   return error === code;
 }
 
+/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
+const NO_POSITION_FOUND_PATTERN = /No position found/i;
+
+/**
+ * True when the venue rejected the request because the position was already
+ * filled, closed, or liquidated — a stale-state race, not a user-side failure.
+ */
+export function isNoPositionFoundError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : '';
+  return NO_POSITION_FOUND_PATTERN.test(message);
+}
+
 /**
  * Parameters for handling Perps errors
  */

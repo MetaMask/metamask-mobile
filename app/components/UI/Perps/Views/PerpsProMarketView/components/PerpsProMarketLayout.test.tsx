@@ -1,5 +1,7 @@
 import React from 'react';
+import { AnimationDuration } from '@metamask/design-tokens';
 import { View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 import { render, within } from '@testing-library/react-native';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProMarketLayout from './PerpsProMarketLayout';
@@ -8,6 +10,13 @@ import {
   PRO_SCREEN_HORIZONTAL_INSET,
   PRO_TRADING_AREA_BOTTOM_INSET,
 } from './PerpsProMarketLayout.styles';
+
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated/mock'),
+  FadeInDown: {
+    duration: jest.fn(() => 'fade-in-down-transition'),
+  },
+}));
 
 const renderLayout = (
   props: Partial<React.ComponentProps<typeof PerpsProMarketLayout>> = {},
@@ -48,6 +57,16 @@ describe('PerpsProMarketLayout', () => {
     expect(orderBookColumn).toHaveStyle({
       width: PRO_ORDER_BOOK_COLUMN_WIDTH,
     });
+  });
+
+  it('animates the order book upward into its expanded position', () => {
+    const { getByTestId } = renderLayout();
+    const enteringTransition = getByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_COLUMN,
+    ).props.entering;
+
+    expect(FadeInDown.duration).toHaveBeenCalledWith(AnimationDuration.Fast);
+    expect(enteringTransition).toBe('fade-in-down-transition');
   });
 
   it('places the order book first when pinned left', () => {
