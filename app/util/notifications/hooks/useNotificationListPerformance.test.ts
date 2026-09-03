@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
-import { TraceName, TraceOperation } from '../../trace';
+import { endTrace, trace, TraceName, TraceOperation } from '../../trace';
 import { useNotificationListPerformance } from './useNotificationListPerformance';
 
 jest.mock('../../trace', () => ({
@@ -17,8 +17,8 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'test-trace-id'),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } =
-  jest.requireMock('../../trace');
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
 
 describe('useNotificationListPerformance', () => {
   beforeEach(() => {
@@ -54,6 +54,28 @@ describe('useNotificationListPerformance', () => {
 
     expect(mockTrace).not.toHaveBeenCalled();
     expect(mockEndTrace).not.toHaveBeenCalled();
+  });
+
+  it('reports warm data when tracing is re-enabled after loading finishes', () => {
+    const { rerender } = renderHook(
+      ({ enabled, isLoading }: { enabled: boolean; isLoading: boolean }) =>
+        useNotificationListPerformance({
+          enabled,
+          isLoading,
+          notificationCount: 2,
+        }),
+      { initialProps: { enabled: true, isLoading: true } },
+    );
+    rerender({ enabled: false, isLoading: false });
+    mockEndTrace.mockClear();
+
+    rerender({ enabled: true, isLoading: false });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ source: 'warm' }),
+      }),
+    );
   });
 
   it('ends with source warm when data is already loaded on mount', () => {

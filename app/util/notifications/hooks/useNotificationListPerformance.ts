@@ -23,6 +23,7 @@ export function useNotificationListPerformance({
   useEffect(() => {
     if (!enabled) return;
 
+    prevIsLoading.current = undefined;
     ttcTraceId.current = uuidv4();
     trace({
       name: TraceName.NotificationListTimeToContent,

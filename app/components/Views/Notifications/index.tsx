@@ -92,18 +92,17 @@ const NotificationsView = ({
     selectIsMetamaskNotificationsEnabled,
   );
   const notifications = useSelector(getNotificationsList);
+  const { allNotifications } = useNotificationFilters({ notifications });
 
   useNotificationListPerformance({
     isLoading,
-    notificationCount: notifications.length,
+    notificationCount: allNotifications.length,
     enabled: isNotificationEnabled,
   });
 
   const { handleMarkAllAsRead, loading } = useMarkAsReadCallback({
     notifications,
   });
-
-  const { allNotifications } = useNotificationFilters({ notifications });
 
   const unreadCount = useMemo(
     () => allNotifications.filter((n) => !n.isRead).length,

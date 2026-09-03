@@ -6,6 +6,7 @@ import {
 } from '@testing-library/react-native';
 import { AppState, type AppStateStatus } from 'react-native';
 import Braze from '@braze/react-native-sdk';
+import { endTrace, trace } from '../../../util/trace';
 import { useBrazeBanner } from './useBrazeBanner';
 
 const TEST_PLACEMENT_ID = 'placement-1';
@@ -80,9 +81,8 @@ jest.mock('uuid', () => ({
   v4: jest.fn(() => 'test-braze-trace-id'),
 }));
 
-const { trace: mockTrace, endTrace: mockEndTrace } = jest.requireMock(
-  '../../../util/trace',
-);
+const mockTrace = jest.mocked(trace);
+const mockEndTrace = jest.mocked(endTrace);
 
 // ---------------------------------------------------------------------------
 // Mock: react-redux

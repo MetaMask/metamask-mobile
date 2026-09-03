@@ -122,14 +122,14 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     null,
   );
 
-  const brazeTraceIdRef = useRef<string>('');
-  const brazeTraceEndedRef = useRef(false);
+  const brazeTraceIdRef = useRef<string | null>(null);
   const endBrazeTrace = useCallback((data: Record<string, TraceValue>) => {
-    if (brazeTraceEndedRef.current) return;
-    brazeTraceEndedRef.current = true;
+    const id = brazeTraceIdRef.current;
+    if (id === null) return;
+    brazeTraceIdRef.current = null;
     endTrace({
       name: TraceName.BrazeBannerTimeToContent,
-      id: brazeTraceIdRef.current,
+      id,
       data,
     });
   }, []);
@@ -266,12 +266,12 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
       dispatch(setLastDismissedBrazeBanner(null));
     }
 
-    brazeTraceIdRef.current = uuidv4();
-    brazeTraceEndedRef.current = false;
+    const traceId = uuidv4();
+    brazeTraceIdRef.current = traceId;
     trace({
       name: TraceName.BrazeBannerTimeToContent,
       op: TraceOperation.BrazeBannerPerformance,
-      id: brazeTraceIdRef.current,
+      id: traceId,
       tags: { placement_id: placementId },
     });
 
