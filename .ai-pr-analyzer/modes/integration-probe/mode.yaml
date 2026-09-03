@@ -1,0 +1,10 @@
+extends: pr-risk-analysis
+id: integration-probe
+description: Integration-only second mode for runtime grouping evidence
+finalizeToolName: finalize_integration_probe
+outputFile: integration-probe.json
+labels: false
+
+# TEST 3: differs from pr-risk-analysis (9), forcing a separate loop.
+config:
+  maxIterations: 6

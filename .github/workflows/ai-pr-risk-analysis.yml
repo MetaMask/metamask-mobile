@@ -44,7 +44,7 @@ jobs:
       - name: Run AI PR Analysis
         uses: ./.ai-analyzer-action
         with:
-          mode: pr-risk-analysis
+          modes: pr-risk-analysis,integration-probe
           add-comment: false
           add-label: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
