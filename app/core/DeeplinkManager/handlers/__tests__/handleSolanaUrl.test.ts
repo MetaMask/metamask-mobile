@@ -93,6 +93,19 @@ describe('handleSolanaUrl', () => {
     expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
   });
 
+  it('alerts when the URI includes a Solana Pay reference', () => {
+    handleSolanaUrl({
+      url: `solana:${RECIPIENT}?amount=1&reference=${RECIPIENT}`,
+      origin: 'qr-code',
+    });
+
+    expect(Alert.alert).toHaveBeenCalledWith(
+      'deeplink.not_supported',
+      'deeplink.solana_pay_reference_not_supported',
+    );
+    expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+  });
+
   it('alerts when the URI is a Solana Pay transaction request', () => {
     handleSolanaUrl({
       url: 'solana:https://api.triple-a.io/pay?id=abc',

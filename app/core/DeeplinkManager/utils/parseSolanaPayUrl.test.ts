@@ -49,6 +49,20 @@ describe('parseSolanaPayUrl', () => {
     });
   });
 
+  it('preserves the first reference when multiple reference params are present', () => {
+    const secondReference = 'B43FvNLyahfDqEZD7erAnr5bXZsw58nmEKiaiAoJmXEr';
+    const url = `solana:${TRIPLE_A_RECIPIENT}?amount=1&reference=${TRIPLE_A_RECIPIENT}&reference=${secondReference}`;
+
+    const result = parseSolanaPayUrl(url);
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'transfer',
+        reference: TRIPLE_A_RECIPIENT,
+      }),
+    );
+  });
+
   it('returns null for a recipient that is not a Solana address', () => {
     const url = 'solana:not-a-solana-address?amount=1';
 

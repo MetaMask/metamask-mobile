@@ -7190,7 +7190,8 @@
   "deeplink": {
     "invalid": "Invalid deeplink",
     "not_supported": "Deeplink not supported",
-    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet."
+    "solana_pay_transaction_request_not_supported": "This Solana Pay QR uses a transaction request, which is not supported yet.",
+    "solana_pay_reference_not_supported": "This Solana Pay QR includes a payment reference, which is not supported yet."
   },
   "error_screen": {
     "title": "An error occurred",

@@ -66,7 +66,10 @@ export function parseSolanaPayUrl(url: string): SolanaPayParseResult | null {
   const amount = searchParams.get('amount') ?? undefined;
   const splToken = searchParams.get('spl-token') ?? undefined;
   const label = searchParams.get('label') ?? undefined;
-  const reference = searchParams.get('reference') ?? undefined;
+  // Solana Pay allows repeated `reference` params; any presence must be
+  // surfaced so the handler can reject unsupported reference-bearing URIs.
+  const references = searchParams.getAll('reference').filter(Boolean);
+  const reference = references[0];
 
   if (splToken && !isSolanaAddress(splToken)) {
     return null;

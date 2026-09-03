@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -73,6 +79,7 @@ export const Amount = () => {
   const { setAmountInputTypeFiat, setAmountInputTypeToken } =
     useAmountSelectionMetrics();
   const { isLoading: isNftLoading } = useRouteParams();
+  const hasSeededPredefinedAmountRef = useRef(false);
 
   useEffect(() => {
     if (predefinedAmount) {
@@ -82,13 +89,17 @@ export const Amount = () => {
     setFiatMode(primaryCurrency === 'Fiat');
   }, [primaryCurrency, predefinedAmount, setFiatMode]);
 
+  // Seed once from navigation params. Do not re-run when the user clears the
+  // field — that would restore the QR amount while send-context value stays
+  // empty (AmountKeyboard already called updateValue('')).
   useEffect(() => {
-    if (!predefinedAmount || amount) {
+    if (!predefinedAmount || hasSeededPredefinedAmountRef.current) {
       return;
     }
+    hasSeededPredefinedAmountRef.current = true;
     setAmountInputTypeToken();
     setAmount(predefinedAmount);
-  }, [predefinedAmount, amount, setAmountInputTypeToken]);
+  }, [predefinedAmount, setAmountInputTypeToken]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {

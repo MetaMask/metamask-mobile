@@ -196,6 +196,25 @@ describe('Amount', () => {
     ).toHaveBeenCalled();
   });
 
+  it('does not restore predefinedAmount after the user clears the field', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+
+    // Clear every digit until the keypad reports an empty value.
+    const deleteButton = getByTestId('keypad-delete-button');
+    for (let i = 0; i < 10; i++) {
+      fireEvent.press(deleteButton);
+    }
+
+    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalledTimes(1);
+  });
+
   it('asset passed in nav params should be used if present', () => {
     mockUseSendContext.mockReturnValue({
       asset: {

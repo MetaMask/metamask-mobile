@@ -89,6 +89,16 @@ function handleSolanaUrl({ url }: { url: string; origin: string }) {
 
   switch (parsed.type) {
     case 'transfer':
+      // Solana Pay `reference` accounts must appear on-chain for merchant
+      // settlement. Snap confirmSend cannot attach them, so reject rather
+      // than send an unassociable payment.
+      if (parsed.reference) {
+        Alert.alert(
+          strings('deeplink.not_supported'),
+          strings('deeplink.solana_pay_reference_not_supported'),
+        );
+        return;
+      }
       navigateToSolanaPaySend(parsed);
       return;
     case 'transaction-request':
