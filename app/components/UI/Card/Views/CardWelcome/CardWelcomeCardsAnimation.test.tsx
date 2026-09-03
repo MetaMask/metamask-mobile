@@ -2,10 +2,9 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { render, act } from '@testing-library/react-native';
 import { Fit, RiveErrorType } from '@rive-app/react-native';
-import CardWelcomeCardsAnimation, {
-  CARDS_IN_DURATION_MS,
-} from './CardWelcomeCardsAnimation';
+import CardWelcomeCardsAnimation from './CardWelcomeCardsAnimation';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
 
 interface MockRiveViewProps {
   testID?: string;
@@ -18,12 +17,14 @@ interface MockRiveViewProps {
 }
 
 // Override the global Rive mock: the shared mock renders RiveView without
-// exposing `onError`, and these tests also drive the file-load result.
+// exposing `onError`, and these tests also drive the file-load result and the
+// native view's readiness (`mockViewReady`), which gates the entrance signal.
 let mockRiveFileResult: {
   riveFile: unknown;
   isLoading: boolean;
   error: Error | null;
 };
+let mockViewReady: boolean;
 let mockLastRiveViewProps: MockRiveViewProps | undefined;
 
 jest.mock('@rive-app/react-native', () => {
@@ -47,6 +48,11 @@ jest.mock('@rive-app/react-native', () => {
     ...actual,
     RiveView: MockRiveView,
     useRiveFile: () => mockRiveFileResult,
+    useRive: () => ({
+      riveRef: { current: null },
+      riveViewRef: mockViewReady ? { playIfNeeded: jest.fn() } : null,
+      setHybridRef: { f: jest.fn() },
+    }),
   };
 });
 
@@ -63,16 +69,14 @@ describe('CardWelcomeCardsAnimation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetRiveMocks();
     mockLastRiveViewProps = undefined;
+    mockViewReady = true;
     mockRiveFileResult = {
       riveFile: { __mockRiveFile: true },
       isLoading: false,
       error: null,
     };
-  });
-
-  it('exports the CardsIn timeline duration', () => {
-    expect(CARDS_IN_DURATION_MS).toBe(1306);
   });
 
   it('uses the contract testID for the Rive animation', () => {
@@ -86,8 +90,10 @@ describe('CardWelcomeCardsAnimation', () => {
       <CardWelcomeCardsAnimation animate style={style} />,
     );
 
-    expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeTruthy();
-    expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+    expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('plays the cards entrance through the authored artboard and state machine', () => {
@@ -108,8 +114,10 @@ describe('CardWelcomeCardsAnimation', () => {
       <CardWelcomeCardsAnimation animate={false} style={style} />,
     );
 
-    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
-    expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders neither the animation nor the static image while the file loads', () => {
@@ -119,8 +127,12 @@ describe('CardWelcomeCardsAnimation', () => {
       <CardWelcomeCardsAnimation animate style={style} />,
     );
 
-    expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
-    expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('falls back to the static image and reports when the file fails to load', () => {
@@ -139,9 +151,101 @@ describe('CardWelcomeCardsAnimation', () => {
       />,
     );
 
-    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
-    expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+    ).not.toBeOnTheScreen();
     expect(onRiveError).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the entrance start once the file is loaded and the view is ready', () => {
+    const onEntranceStart = jest.fn();
+
+    render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report the entrance start while the file is still loading', () => {
+    const onEntranceStart = jest.fn();
+    mockRiveFileResult = { riveFile: undefined, isLoading: true, error: null };
+
+    render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).not.toHaveBeenCalled();
+  });
+
+  it('does not report the entrance start until the native view is ready', () => {
+    const onEntranceStart = jest.fn();
+    mockViewReady = false;
+
+    const { rerender } = render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).not.toHaveBeenCalled();
+
+    mockViewReady = true;
+    rerender(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not report the entrance start when the static image renders instead', () => {
+    const onEntranceStart = jest.fn();
+
+    render(
+      <CardWelcomeCardsAnimation
+        animate={false}
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).not.toHaveBeenCalled();
+  });
+
+  it('reports the entrance start only once across re-renders', () => {
+    const onEntranceStart = jest.fn();
+
+    const { rerender } = render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+    rerender(
+      <CardWelcomeCardsAnimation
+        animate
+        style={{ ...style, height: 100 }}
+        onEntranceStart={onEntranceStart}
+      />,
+    );
+
+    expect(onEntranceStart).toHaveBeenCalledTimes(1);
   });
 
   it('passes the style prop through to the Rive animation', () => {
@@ -173,7 +277,7 @@ describe('CardWelcomeCardsAnimation', () => {
       <CardWelcomeCardsAnimation animate style={style} />,
     );
 
-    expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeTruthy();
+    expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeOnTheScreen();
 
     const onError = mockLastRiveViewProps?.onError;
     expect(onError).toBeDefined();
@@ -185,8 +289,10 @@ describe('CardWelcomeCardsAnimation', () => {
       });
     });
 
-    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
-    expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls onRiveError when the Rive animation errors', () => {
@@ -229,6 +335,6 @@ describe('CardWelcomeCardsAnimation', () => {
       });
     }).not.toThrow();
 
-    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+    expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
   });
 });

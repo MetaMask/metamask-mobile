@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Image,
   ImageStyle,
@@ -9,6 +9,7 @@ import {
 import {
   Fit,
   RiveView,
+  useRive,
   useRiveFile,
   type RiveError,
 } from '@rive-app/react-native';
@@ -39,9 +40,23 @@ const RIVE_STATE_MACHINE = 'State Machine 1';
  */
 export const CARDS_IN_DURATION_MS = 1306;
 
+/**
+ * Cap on how long a caller waits for `onEntranceStart`. The file load and the
+ * native view-ready handshake are both unbounded, and nothing sequenced off the
+ * entrance may hang on them.
+ */
+export const CARDS_ENTRANCE_START_TIMEOUT_MS = 2000;
+
 interface CardWelcomeCardsAnimationProps {
   animate: boolean;
   style: StyleProp<ImageStyle>;
+  /**
+   * Called once the file has loaded and the native view reports ready, which is
+   * when the state machine actually starts playing `CardsIn`. Callers sequencing
+   * other content off the entrance must time from here, not from mount: the
+   * load and view-ready gap ahead of it is not a fixed cost.
+   */
+  onEntranceStart?: () => void;
   /**
    * Called when Rive fails and the static cards image takes over, so callers
    * sequencing other content off this entrance can stop waiting for it.
@@ -53,6 +68,7 @@ interface CardWelcomeCardsAnimationProps {
 const CardWelcomeCardsAnimation = ({
   animate,
   style,
+  onEntranceStart,
   onRiveError,
   testID,
 }: CardWelcomeCardsAnimationProps) => {
@@ -60,6 +76,11 @@ const CardWelcomeCardsAnimation = ({
   const { riveFile, error: riveFileError } = useRiveFile(
     CardEducationAnimation,
   );
+  // riveViewRef (state) is non-null only once the native view resolves
+  // view-ready, which the Nitro runtime offers in place of the legacy
+  // `onPlay` callback.
+  const { riveViewRef, setHybridRef } = useRive();
+  const hasReportedEntranceStart = useRef(false);
 
   const handleError = useCallback(
     (riveError: RiveError) => {
@@ -82,10 +103,28 @@ const CardWelcomeCardsAnimation = ({
     onRiveError?.();
   }, [riveFileError, onRiveError]);
 
+  // Report the entrance once, when it can actually play: the file is loaded and
+  // the native view is ready. A late-ready view re-runs this effect rather than
+  // dropping the signal.
+  useEffect(() => {
+    if (
+      !animate ||
+      hasRiveError ||
+      !riveFile ||
+      !riveViewRef ||
+      hasReportedEntranceStart.current
+    ) {
+      return;
+    }
+    hasReportedEntranceStart.current = true;
+    onEntranceStart?.();
+  }, [animate, hasRiveError, riveFile, riveViewRef, onEntranceStart]);
+
   if (animate && !hasRiveError) {
     const riveStyle: ViewStyle = StyleSheet.flatten(style);
     return riveFile ? (
       <RiveView
+        hybridRef={setHybridRef}
         file={riveFile}
         artboardName={RIVE_ARTBOARD_CARDS}
         stateMachineName={RIVE_STATE_MACHINE}

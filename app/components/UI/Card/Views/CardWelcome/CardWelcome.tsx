@@ -17,6 +17,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import CardWelcomeCardsAnimation, {
+  CARDS_ENTRANCE_START_TIMEOUT_MS,
   CARDS_IN_DURATION_MS,
 } from './CardWelcomeCardsAnimation';
 import { useCardEducationAnimationState } from './useCardEducationAnimationState';
@@ -63,6 +64,7 @@ const CardWelcome = () => {
   const styles = createStyles(theme, dimensions);
   const animationState = useCardEducationAnimationState();
   const [hasCardsAnimationError, setHasCardsAnimationError] = useState(false);
+  const [hasCardsEntranceStarted, setHasCardsEntranceStarted] = useState(false);
   // A Rive failure swaps in the static cards image, so there is no entrance
   // left to sequence against: fall back to the static reveal rather than
   // holding the copy hidden for the full CardsIn duration.
@@ -76,6 +78,10 @@ const CardWelcome = () => {
   // so the copy would paint at full opacity for that frame. Keeping the static
   // hidden style underneath holds it down until the reveal takes over.
   const isCopyHiddenUntilRevealed = isContentHidden || isAnimating;
+  // Attaching the reveal style only once the entrance is under way keeps the
+  // copy on the plain hidden style until there is something to sequence
+  // against.
+  const isRevealing = isAnimating && hasCardsEntranceStarted;
 
   const textOpacity = useSharedValue(0);
   const textTranslateY = useSharedValue(TEXT_REVEAL_TRANSLATE_Y);
@@ -88,8 +94,28 @@ const CardWelcome = () => {
     setHasCardsAnimationError(true);
   }, []);
 
+  const handleCardsEntranceStart = useCallback(() => {
+    setHasCardsEntranceStarted(true);
+  }, []);
+
+  // The Rive file loads asynchronously and the native view reports ready some
+  // time after that, so timing the reveal from `isAnimating` would fade the
+  // copy in while the cards are still settling — or still blank. Wait for the
+  // entrance to actually start, but never longer than the cap, so a view that
+  // never reports ready cannot leave the copy hidden.
   useEffect(() => {
-    if (!isAnimating) {
+    if (!isAnimating || hasCardsEntranceStarted) {
+      return undefined;
+    }
+    const timeout = setTimeout(
+      () => setHasCardsEntranceStarted(true),
+      CARDS_ENTRANCE_START_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [isAnimating, hasCardsEntranceStarted]);
+
+  useEffect(() => {
+    if (!isAnimating || !hasCardsEntranceStarted) {
       return;
     }
     textOpacity.value = withDelay(
@@ -100,7 +126,7 @@ const CardWelcome = () => {
       CARDS_IN_DURATION_MS,
       withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
     );
-  }, [isAnimating, textOpacity, textTranslateY]);
+  }, [isAnimating, hasCardsEntranceStarted, textOpacity, textTranslateY]);
 
   useEffect(() => {
     trackEvent(
@@ -197,7 +223,7 @@ const CardWelcome = () => {
         <Animated.View
           style={[
             isCopyHiddenUntilRevealed && styles.hiddenText,
-            isAnimating && textRevealStyle,
+            isRevealing && textRevealStyle,
           ]}
         >
           <Text
@@ -223,6 +249,7 @@ const CardWelcome = () => {
           <CardWelcomeCardsAnimation
             animate={isAnimating}
             style={styles.image}
+            onEntranceStart={handleCardsEntranceStart}
             onRiveError={handleCardsAnimationError}
           />
         )}

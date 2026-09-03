@@ -11,9 +11,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 import { RiveErrorType } from '@rive-app/react-native';
+import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
+import { CARDS_ENTRANCE_START_TIMEOUT_MS } from './CardWelcomeCardsAnimation';
 
 // Override the global Rive mock: the shared mock renders RiveView without
-// exposing `onError`, which these tests fire to assert the static fallback.
+// exposing `onError`, which these tests fire to assert the static fallback, and
+// they also drive the native view's readiness (`mockViewReady`) because the
+// text reveal is sequenced off the entrance actually starting.
 interface MockRiveViewProps {
   testID?: string;
   style?: unknown;
@@ -21,6 +25,7 @@ interface MockRiveViewProps {
 }
 
 let mockLastRiveViewProps: MockRiveViewProps | undefined;
+let mockViewReady: boolean;
 
 jest.mock('@rive-app/react-native', () => {
   const actual = jest.requireActual(
@@ -39,7 +44,15 @@ jest.mock('@rive-app/react-native', () => {
     });
   };
 
-  return { ...actual, RiveView: MockRiveView };
+  return {
+    ...actual,
+    RiveView: MockRiveView,
+    useRive: () => ({
+      riveRef: { current: null },
+      riveViewRef: mockViewReady ? { playIfNeeded: jest.fn() } : null,
+      setHybridRef: { f: jest.fn() },
+    }),
+  };
 });
 
 const mockUseCardPostAuthRedirect = jest.fn();
@@ -161,7 +174,9 @@ describe('CardWelcome', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetRiveMocks();
     mockLastRiveViewProps = undefined;
+    mockViewReady = true;
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
@@ -204,17 +219,19 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(
         getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
-      ).toBeTruthy();
-      expect(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON)).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toBeOnTheScreen();
     });
 
     it('displays correct title and description', () => {
@@ -260,8 +277,12 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
-      expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+      ).not.toBeOnTheScreen();
     });
 
     it("renders the Rive animation when the state is 'animate'", () => {
@@ -273,8 +294,12 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(getByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeTruthy();
-      expect(queryByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeNull();
+      expect(
+        getByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+      ).not.toBeOnTheScreen();
     });
 
     it("renders the static image when the state is 'static'", () => {
@@ -286,8 +311,10 @@ describe('CardWelcome', () => {
         </Provider>,
       );
 
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
-      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders the title and description in every animation state', () => {
@@ -302,10 +329,10 @@ describe('CardWelcome', () => {
 
         expect(
           getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
         expect(
           getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
 
         unmount();
       });
@@ -345,8 +372,76 @@ describe('CardWelcome', () => {
       // hidden style nor the animated reveal style: an empty style array is
       // what proves the copy is not left waiting on a reveal that never runs.
       expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(0);
-      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeTruthy();
-      expect(queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION)).toBeNull();
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('holds the copy hidden and unrevealed while the cards entrance has not started', () => {
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+      mockViewReady = false;
+
+      const { UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
+        .style as ViewStyle[];
+
+      expect(StyleSheet.flatten(textContainerStyleEntries).opacity).toBe(0);
+      // Only the plain hidden style is attached: the reveal is timed from the
+      // entrance, and the entrance has not started yet.
+      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(1);
+    });
+
+    it('attaches the reveal style once the cards entrance starts', () => {
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+
+      const { UNSAFE_getByType } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const textContainerStyleEntries = UNSAFE_getByType(Animated.View).props
+        .style as ViewStyle[];
+
+      expect(textContainerStyleEntries.filter(Boolean)).toHaveLength(2);
+    });
+
+    it('reveals the copy anyway when the entrance never reports it started', () => {
+      jest.useFakeTimers();
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+      mockViewReady = false;
+
+      try {
+        const { UNSAFE_getByType } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        expect(
+          (UNSAFE_getByType(Animated.View).props.style as ViewStyle[]).filter(
+            Boolean,
+          ),
+        ).toHaveLength(1);
+
+        act(() => {
+          jest.advanceTimersByTime(CARDS_ENTRANCE_START_TIMEOUT_MS);
+        });
+
+        expect(
+          (UNSAFE_getByType(Animated.View).props.style as ViewStyle[]).filter(
+            Boolean,
+          ),
+        ).toHaveLength(2);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it("attaches neither the hidden nor the animated reveal style on the first render in 'static' mode", () => {
