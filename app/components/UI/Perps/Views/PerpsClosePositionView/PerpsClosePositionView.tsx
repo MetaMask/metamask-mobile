@@ -574,7 +574,8 @@ const PerpsClosePositionView: React.FC = () => {
   // emit abandon_order on a real exit (back swipe, hardware back,
   // programmatic dismissal) AND on a genuine tab switch away, but never when a
   // child route (e.g. the limit-price flow) is pushed or after a confirmed close
-  // (hasConfirmedCloseRef).
+  // (hasConfirmedCloseRef). The already-closed auto-dismissal above also sets
+  // that ref: the venue removed the position, so the user abandoned nothing.
   const getAbandonProperties = useCallback(
     () => latestAbandonPropsRef.current,
     [],

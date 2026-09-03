@@ -293,7 +293,9 @@ const PerpsTPSLView: React.FC = () => {
   // without it, submitting would attach TP/SL to nothing and the controller
   // would record a failed Risk Management request for a benign venue race.
   const { positions: livePositions, isInitialLoading: isPositionsLoading } =
-    usePerpsLivePositions();
+    usePerpsLivePositions({
+      throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
+    });
   const isPositionGone =
     isEditingExistingPosition &&
     !isPositionsLoading &&
