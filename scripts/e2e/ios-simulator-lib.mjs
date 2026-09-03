@@ -6,6 +6,14 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
+/**
+ * @param {typeof execFileAsync | undefined} execFileImpl
+ * @returns {typeof execFileAsync}
+ */
+function resolveExecFileImpl(execFileImpl) {
+  return execFileImpl ?? execFileAsync;
+}
+
 const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
 const DEFAULT_IOS_APP_WARM_LAUNCH_SETTLE_MS = 15_000;
 
@@ -98,11 +106,25 @@ export async function warmLaunchIosApp({ udid, bundleId }) {
 }
 
 /**
+ * Name a cloned CoreSimulator device for a worker slot.
+ * Mirrors `iosPoolSimulatorName` in iosDevicePool.ts (Task 1).
+ *
+ * @param {string} baseName
+ * @param {number} workerIndex
+ * @returns {string}
+ */
+export function iosPoolSimulatorName(baseName, workerIndex) {
+  return `${baseName} Appium Pool ${workerIndex}`;
+}
+
+/**
  * @param {string} deviceName
+ * @param {typeof execFileAsync} [execFileImpl]
  * @returns {Promise<string>}
  */
-export async function getIosSimulatorUdid(deviceName) {
-  const { stdout } = await execFileAsync('xcrun', [
+export async function getIosSimulatorUdid(deviceName, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+  const { stdout } = await exec('xcrun', [
     'simctl',
     'list',
     'devices',
@@ -135,12 +157,41 @@ export async function getIosSimulatorUdid(deviceName) {
 }
 
 /**
+ * @param {string} deviceName
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<string | undefined>}
+ */
+async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+  const { stdout } = await exec('xcrun', [
+    'simctl',
+    'list',
+    'devices',
+    'available',
+    '-j',
+  ]);
+  const list = JSON.parse(stdout);
+
+  for (const devices of Object.values(list.devices)) {
+    for (const device of devices) {
+      if (device.name === deviceName) {
+        return device.udid;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * @param {string} udid
+ * @param {typeof execFileAsync} [execFileImpl]
  * @returns {Promise<boolean>}
  */
-async function isIosSimulatorBooted(udid) {
+async function isIosSimulatorBooted(udid, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
   try {
-    const { stdout } = await execFileAsync('xcrun', [
+    const { stdout } = await exec('xcrun', [
       'simctl',
       'list',
       'devices',
@@ -161,6 +212,122 @@ async function isIosSimulatorBooted(udid) {
 }
 
 /**
+ * @param {string} udid
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<string>} UDID of the booted simulator
+ */
+export async function bootIosSimulatorByUdid(udid, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+
+  if (await isIosSimulatorBooted(udid, exec)) {
+    return udid;
+  }
+
+  await exec('xcrun', ['simctl', 'boot', udid]).catch((err) => {
+    if (err.code !== 149) {
+      throw err;
+    }
+  });
+
+  await exec('xcrun', ['simctl', 'bootstatus', udid, '-b']);
+  await waitForIosSimulatorPostBootSettle();
+  return udid;
+}
+
+/**
+ * @param {string} udid
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<void>}
+ */
+export async function shutdownIosSimulator(udid, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+  await exec('xcrun', ['simctl', 'shutdown', udid]);
+}
+
+/**
+ * Best-effort delete of a simulator matched by device name.
+ *
+ * @param {string} name
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<void>}
+ */
+export async function deleteIosSimulatorByName(name, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+  try {
+    const udid = await findIosSimulatorUdidByName(name, exec);
+    await exec('xcrun', ['simctl', 'delete', udid ?? name]);
+  } catch {
+    // Best-effort — stale clones or concurrent cleanup are non-fatal.
+  }
+}
+
+/**
+ * @param {string} sourceUdid
+ * @param {string} cloneName
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<string>} new clone UDID
+ */
+export async function cloneIosSimulator(sourceUdid, cloneName, execFileImpl) {
+  const exec = resolveExecFileImpl(execFileImpl);
+  const { stdout } = await exec('xcrun', [
+    'simctl',
+    'clone',
+    sourceUdid,
+    cloneName,
+  ]);
+  return stdout.trim();
+}
+
+/**
+ * @param {{ baseName: string; poolSize: number }} options
+ * @param {typeof execFileAsync} [execFileImpl]
+ * @returns {Promise<string[]>}
+ */
+export async function prepareIosSimulatorPool(
+  { baseName, poolSize },
+  execFileImpl,
+) {
+  if (poolSize < 1) {
+    throw new Error(
+      `Invalid poolSize ${poolSize}. Expected a positive integer.`,
+    );
+  }
+
+  const exec = resolveExecFileImpl(execFileImpl);
+
+  if (poolSize === 1) {
+    const udid = await getIosSimulatorUdid(baseName, exec);
+    await bootIosSimulatorByUdid(udid, exec);
+    return [udid];
+  }
+
+  const baseUdid = await getIosSimulatorUdid(baseName, exec);
+
+  if (await isIosSimulatorBooted(baseUdid, exec)) {
+    await shutdownIosSimulator(baseUdid, exec);
+  }
+
+  for (let workerIndex = 0; workerIndex < poolSize; workerIndex += 1) {
+    await deleteIosSimulatorByName(
+      iosPoolSimulatorName(baseName, workerIndex),
+      exec,
+    );
+  }
+
+  const cloneUdids = [];
+  for (let workerIndex = 0; workerIndex < poolSize; workerIndex += 1) {
+    const cloneName = iosPoolSimulatorName(baseName, workerIndex);
+    cloneUdids.push(await cloneIosSimulator(baseUdid, cloneName, exec));
+  }
+
+  await Promise.all(
+    cloneUdids.map((udid) => bootIosSimulatorByUdid(udid, exec)),
+  );
+
+  return cloneUdids;
+}
+
+/**
  * @param {string} deviceName
  * @returns {Promise<string>} UDID of the booted simulator
  */
@@ -175,17 +342,7 @@ export async function bootIosSimulator(deviceName) {
   }
 
   console.log(`Booting iOS simulator: ${deviceName} (${udid})`);
-
-  await execFileAsync('xcrun', ['simctl', 'boot', udid]).catch(
-    (err) => {
-      if (err.code !== 149) {
-        throw err;
-      }
-    },
-  );
-
-  await execFileAsync('xcrun', ['simctl', 'bootstatus', udid, '-b']);
-  await waitForIosSimulatorPostBootSettle();
+  await bootIosSimulatorByUdid(udid);
   console.log(`iOS simulator "${deviceName}" is booted and ready.`);
   return udid;
 }
