@@ -24,6 +24,7 @@ import {
   parseAndroidDevicePool,
   resolveAndroidDevicePoolSize,
 } from './android/androidDevicePool.ts';
+import { assertIosDevicePoolMatchesWorkers } from './ios/iosDevicePool.ts';
 import {
   startAndroidEmulatorPool,
   ensureAndroidEmulatorReady,
@@ -174,6 +175,8 @@ export class EmulatorProvider extends BaseServiceProvider {
   private async bootDevice(): Promise<void> {
     if (this.project.use.platform === Platform.ANDROID) {
       assertAndroidDevicePoolMatchesWorkers();
+    } else if (this.project.use.platform === Platform.IOS) {
+      assertIosDevicePoolMatchesWorkers();
     }
     if (process.env.SKIP_DEVICE_BOOT === 'true') {
       this.logger.info('SKIP_DEVICE_BOOT=true — skipping device boot.');
