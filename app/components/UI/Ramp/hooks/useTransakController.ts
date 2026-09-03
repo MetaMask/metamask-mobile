@@ -219,18 +219,7 @@ export function useTransakController(): UseTransakControllerResult {
       fiatAmount: string,
       isFeeExcludedFromFiat = true,
     ) =>
-      (
-        getRampsController().transakGetBuyQuote as (
-          fiatCurrency: string,
-          cryptoCurrency: string,
-          network: string,
-          paymentMethod: string,
-          fiatAmount: string,
-          isFeeExcludedFromFiat?: boolean,
-        ) => ReturnType<
-          ReturnType<typeof getRampsController>['transakGetBuyQuote']
-        >
-      )(
+      getRampsController().transakGetBuyQuote(
         fiatCurrency,
         cryptoCurrency,
         network,

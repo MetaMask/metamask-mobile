@@ -7,8 +7,8 @@ import {
   useHeadlessBuy,
   type HeadlessBuyError,
 } from '../../../../UI/Ramp/headless';
-import { isNativeProvider, type Quote } from '../../../../UI/Ramp/types';
-import { getEffectiveFeeMode } from '../../../../UI/Ramp/utils/transakQuoteParity';
+import type { Quote } from '../../../../UI/Ramp/types';
+import { isMonadMusdAssetId } from '../../../../UI/Ramp/utils/fiatDepositAsset';
 import {
   RAMP_SURFACE,
   type RampSurface,
@@ -47,6 +47,7 @@ export function useFiatConfirm() {
     useConfirmationContext();
   const { startHeadlessBuy } = useHeadlessBuy();
   const totals = useTransactionPayTotals();
+
   const isFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const orderId = fiatPayment?.orderId as string | undefined;
   const fiatTestOptions = getTransactionPayFiatTestOptions();
@@ -55,28 +56,12 @@ export function useFiatConfirm() {
     const rampsQuote = fiatPayment?.rampsQuote as Quote | undefined;
     const assetId = fiatPayment?.caipAssetId as string | undefined;
     const amountFiat = Number(fiatPayment?.amountFiat);
-    const acceptedPrincipal = Number(rampsQuote?.quote?.amountIn);
-    const isExplicitFeeOnTop =
-      rampsQuote && getEffectiveFeeMode(rampsQuote) === 'fee-on-top';
-    const checkoutAmount = isExplicitFeeOnTop
-      ? acceptedPrincipal
-      : rampsQuote && isNativeProvider(rampsQuote)
-        ? amountFiat
-        : new BigNumber(totals?.total?.usd ?? 0).toNumber();
 
-    if (
-      !rampsQuote ||
-      !assetId ||
-      !amountFiat ||
-      !Number.isFinite(checkoutAmount) ||
-      checkoutAmount <= 0
-    ) {
+    if (!rampsQuote || !assetId || !amountFiat) {
       log('Fiat payment missing required data', {
         hasQuote: Boolean(rampsQuote),
         assetId,
         amountFiat,
-        acceptedPrincipal,
-        checkoutAmount,
       });
       return;
     }
@@ -103,6 +88,13 @@ export function useFiatConfirm() {
 
     setIsHeadlessBuyInProgress(true);
 
+    const isDirectMonadMusd = isMonadMusdAssetId(assetId);
+    const totalAmountToBuy = isDirectMonadMusd
+      ? amountFiat
+      : new BigNumber(totals?.total?.usd ?? 0)
+          .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
+          .toNumber();
+
     // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
       ? TRANSACTION_TYPE_TO_RAMP_SURFACE[transactionMetadata.type]
@@ -112,7 +104,7 @@ export function useFiatConfirm() {
       {
         quote: rampsQuote,
         assetId,
-        amount: checkoutAmount,
+        amount: totalAmountToBuy,
         paymentMethodId: fiatPayment?.selectedPaymentMethodId,
         currency: 'USD',
         walletAddress: transactionMetadata?.txParams?.from,

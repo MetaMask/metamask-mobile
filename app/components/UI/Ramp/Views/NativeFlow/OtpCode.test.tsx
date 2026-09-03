@@ -26,6 +26,18 @@ const mockVerifyUserOtp = jest.fn();
 const mockSetAuthToken = jest.fn();
 const mockSendUserOtp = jest.fn();
 const mockGetBuyQuote = jest.fn();
+const mockGetSession = jest.fn();
+const mockFailHeadlessQuoteChanged = jest.fn();
+
+jest.mock('../../headless', () => ({
+  getChainIdFromAssetId: () => 'eip155:143',
+  getSession: (...args: unknown[]) => mockGetSession(...args),
+}));
+
+jest.mock('../../headless/quoteChanged', () => ({
+  failHeadlessQuoteChanged: (...args: unknown[]) =>
+    mockFailHeadlessQuoteChanged(...args),
+}));
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
@@ -149,6 +161,14 @@ describe('V2OtpCode', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    mockGetSession.mockReturnValue(undefined);
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '100',
+      currency: 'USD',
+      assetId: 'eip155:1/erc20:0x123',
+    });
   });
 
   afterEach(() => {
@@ -247,12 +267,146 @@ describe('V2OtpCode', () => {
         'eip155:1',
         'pm-1',
         '100',
-        true,
       );
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('requests a fee-inclusive $15 quote after headless OTP verification', async () => {
+    jest.useRealTimers();
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '15',
+      currency: 'USD',
+      assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      headlessSessionId: 'headless-buy-abc',
+    });
+    mockGetSession.mockReturnValue({
+      params: {
+        paymentMethodId: '/payments/apple-pay',
+        quote: {
+          outputCurrency: {
+            assetId:
+              'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          },
+          quote: {
+            amountIn: 15,
+            amountOut: 14.3,
+            paymentMethod: '/payments/apple-pay',
+            providerFee: 0.5,
+            networkFee: 0.2,
+          },
+        },
+      },
+    });
+    mockVerifyUserOtp.mockResolvedValue({
+      accessToken: 'otp-token',
+      ttl: 3600,
+    });
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue({
+      quoteId: 'q1',
+      fiatAmount: 15,
+      cryptoAmount: 14.3,
+      cryptoCurrency: 'MUSD',
+      network: 'monad',
+      paymentMethod: 'apple_pay',
+      totalFee: 0.7,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 0.5 },
+        { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+      ],
+      requestedAssetId:
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      requestedChainId: 'eip155:143',
+    });
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+        'eip155:143',
+        '/payments/apple-pay',
+        '15',
+        false,
+      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+    });
+  });
+
+  it('fails the headless session before routing when post-OTP fees change', async () => {
+    jest.useRealTimers();
+    const assetId =
+      'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
+    mockUseParams.mockReturnValue({
+      email: 'test@example.com',
+      stateToken: 'test-state-token',
+      amount: '15',
+      currency: 'USD',
+      assetId,
+      headlessSessionId: 'headless-buy-abc',
+    });
+    mockGetSession.mockReturnValue({
+      params: {
+        paymentMethodId: '/payments/debit-credit-card',
+        quote: {
+          outputCurrency: { assetId },
+          quote: {
+            amountIn: 15,
+            amountOut: 14.3,
+            paymentMethod: '/payments/debit-credit-card',
+            providerFee: 0.5,
+            networkFee: 0.2,
+          },
+        },
+      },
+    });
+    mockVerifyUserOtp.mockResolvedValue({
+      accessToken: 'otp-token',
+      ttl: 3600,
+    });
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue({
+      quoteId: 'q1',
+      fiatAmount: 15,
+      cryptoAmount: 14.3,
+      cryptoCurrency: 'MUSD',
+      network: 'monad',
+      paymentMethod: 'credit_debit_card',
+      totalFee: 0.8,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 0.6 },
+        { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+      ],
+      requestedAssetId: assetId,
+      requestedChainId: 'eip155:143',
+    });
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
+        'headless-buy-abc',
+        expect.any(Object),
+        expect.objectContaining({
+          mismatchCategories: expect.arrayContaining(['provider_fee']),
+        }),
+      );
+    });
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('navigates back to BuildQuote with error when post-auth routing fails', async () => {
@@ -274,30 +428,6 @@ describe('V2OtpCode', () => {
         nativeFlowError: 'Limit exceeded',
       });
     });
-  });
-
-  it('does not navigate after QUOTE_CHANGED closes the headless flow', async () => {
-    jest.useRealTimers();
-    const quoteChangedError = Object.assign(new Error('Quote changed'), {
-      headlessBuyErrorCode: 'QUOTE_CHANGED',
-    });
-    mockVerifyUserOtp.mockResolvedValue({
-      accessToken: 'otp-token',
-      ttl: 3600,
-    });
-    mockSetAuthToken.mockResolvedValue(true);
-    mockGetBuyQuote.mockResolvedValue({ quoteId: 'q1', fiatAmount: 100 });
-    mockRouteAfterAuthentication.mockRejectedValue(quoteChangedError);
-
-    const { getByTestId } = renderWithTheme(<V2OtpCode />);
-    await act(async () => {
-      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
-    });
-    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to AMOUNT_INPUT when no amount/currency/assetId params', async () => {

@@ -1,245 +1,243 @@
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import BigNumber from 'bignumber.js';
+import Logger from '../../../../util/Logger';
 import type { Quote } from '../types';
 
-type FeeMode = 'fee-inclusive' | 'fee-on-top';
-
-type QuoteWithParityFields = Quote & {
-  quote: Quote['quote'] & {
-    crypto?: {
-      symbol?: string;
-      network?: { chainName?: string; shortName?: string };
-    };
-    fiat?: { symbol?: string };
-    fiatId?: string;
-    providerFee?: number | string;
-    networkFee?: number | string;
-    extraFee?: number | string;
-    totalFees?: number | string;
-    feeMode?: {
-      requested?: FeeMode;
-      effective?: FeeMode;
-    };
-  };
-};
-
-type NativeFeeBreakdown = Record<string, string | number | boolean | null>;
-type NativeQuoteWithParityFields = TransakBuyQuote & {
-  feeMode?: {
-    requested?: FeeMode;
-    effective?: FeeMode;
-  };
-};
+export type TransakQuoteMismatchCategory =
+  | 'asset'
+  | 'payment_method'
+  | 'fiat_amount'
+  | 'crypto_amount'
+  | 'provider_fee'
+  | 'network_fee'
+  | 'partner_fee'
+  | 'fee_total'
+  | 'fee_breakdown';
 
 export class QuoteChangedError extends Error {
   readonly headlessBuyErrorCode = 'QUOTE_CHANGED';
-  readonly code = 'QUOTE_CHANGED';
-  readonly details: Record<string, unknown>;
+  readonly mismatchCategories: TransakQuoteMismatchCategory[];
 
-  constructor(details: Record<string, unknown>) {
-    super('The Transak quote changed. Confirm a fresh quote to continue.');
+  constructor(mismatchCategories: TransakQuoteMismatchCategory[]) {
+    super('The Transak quote changed before checkout');
     this.name = 'QuoteChangedError';
-    this.details = details;
+    this.mismatchCategories = mismatchCategories;
   }
 }
 
-export function getEffectiveFeeMode(quote: Quote): FeeMode {
-  return (
-    (quote as QuoteWithParityFields).quote?.feeMode?.effective ??
-    'fee-inclusive'
-  );
+interface AcceptedQuoteDetails {
+  amountIn: number | string;
+  amountOut: number | string;
+  paymentMethod: string;
+  providerFee?: number | string;
+  networkFee?: number | string;
 }
 
-export function hasExplicitFeeMode(quote: Quote): boolean {
-  return Boolean((quote as QuoteWithParityFields).quote?.feeMode?.effective);
+interface AcceptedQuote extends Quote {
+  outputCurrency?: { assetId?: string };
+  quote: Quote['quote'] & AcceptedQuoteDetails;
 }
 
-function parseMoney(
-  value: number | string | undefined,
-  missingValue?: number,
-): number | undefined {
-  if (value === undefined) {
-    return missingValue;
+const FEE_IDS = {
+  network: 'network_fee',
+  partner: 'partner_fee',
+  provider: 'transak_fee',
+} as const;
+
+function cents(value: unknown): number | null {
+  if (
+    (typeof value !== 'number' && typeof value !== 'string') ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return null;
   }
   const amount = Number(value);
-  return Number.isFinite(amount) && amount >= 0 ? amount : undefined;
+  return Number.isFinite(amount) && amount >= 0
+    ? Math.round(amount * 100)
+    : null;
 }
 
-function cents(value: number): number {
-  return Math.round((value + Number.EPSILON) * 100);
-}
-
-function normalize(value: string | undefined): string {
-  return (value ?? '').toLowerCase().replace(/[^a-z0-9]/gu, '');
-}
-
-export function normalizeTransakPaymentMethod(
-  paymentMethod: string | undefined,
-): string {
-  const normalized = normalize(
-    paymentMethod?.replace(/^\/payments\//u, '').replaceAll('-', '_'),
-  );
-  if (normalized === 'debitcreditcard' || normalized === 'card') {
-    return 'creditdebitcard';
+function nonNegativeDecimal(value: unknown): BigNumber | null {
+  if (
+    (typeof value !== 'number' && typeof value !== 'string') ||
+    (typeof value === 'string' && value.trim() === '')
+  ) {
+    return null;
   }
-  return normalized;
+  const amount = new BigNumber(value);
+  return amount.isFinite() && amount.isGreaterThanOrEqualTo(0) ? amount : null;
 }
 
-function readBreakdownIdentifier(item: NativeFeeBreakdown): string {
-  for (const key of ['id', 'name', 'type', 'label', 'feeType']) {
-    const value = item[key];
-    if (typeof value === 'string') {
-      return normalize(value);
-    }
+function acceptedFeeCents(value: number | string | undefined): number | null {
+  return value === undefined ? 0 : cents(value);
+}
+
+function normalizePaymentMethod(paymentMethod: string): string {
+  const normalized = paymentMethod
+    .replace(/^\/payments\//u, '')
+    .replace(/-/gu, '_');
+  return normalized === 'debit_credit_card' ? 'credit_debit_card' : normalized;
+}
+
+function addMismatch(
+  mismatches: TransakQuoteMismatchCategory[],
+  category: TransakQuoteMismatchCategory,
+  matches: boolean,
+): void {
+  if (!matches && !mismatches.includes(category)) {
+    mismatches.push(category);
   }
-  return '';
 }
 
-function readBreakdownAmount(item: NativeFeeBreakdown): number | undefined {
-  for (const key of ['value', 'amount', 'feeAmount']) {
-    const value = item[key];
-    if (typeof value === 'number' || typeof value === 'string') {
-      return parseMoney(value);
-    }
-  }
-  return undefined;
-}
-
-function getNativeFeeComponents(quote: TransakBuyQuote): {
-  provider: number;
-  network: number;
-  extra: number;
-  complete: boolean;
-} {
-  const components = { provider: 0, network: 0, extra: 0, complete: true };
-  for (const rawItem of quote.feeBreakdown ?? []) {
-    const item = rawItem as NativeFeeBreakdown;
-    const identifier = readBreakdownIdentifier(item);
-    const amount = readBreakdownAmount(item);
-    if (!identifier) {
-      components.complete = false;
-      continue;
-    }
-    if (amount === undefined) {
-      components.complete = false;
-      continue;
-    }
-    if (identifier === 'networkfee' || identifier === 'gasfee') {
-      components.network += amount;
-    } else if (
-      identifier === 'partnerfee' ||
-      identifier === 'extrafee' ||
-      identifier === 'metamaskfee'
-    ) {
-      components.extra += amount;
-    } else if (
-      identifier === 'transakfee' ||
-      identifier === 'providerfee' ||
-      identifier === 'processingfee'
-    ) {
-      components.provider += amount;
-    } else {
-      components.complete = false;
-    }
-  }
-  return components;
-}
-
-export function assertTransakQuoteParity(
+/**
+ * Verifies that the authenticated native quote still matches the accepted
+ * fee-inclusive ramps quote. Transak documents `transak_fee`, `network_fee`,
+ * and `partner_fee` as the stable fee component identifiers. Any unknown
+ * charged component fails closed because it cannot be reconciled with the
+ * fee row shown before checkout.
+ */
+export function assertTransakFeeInclusiveParity(
   acceptedQuote: Quote,
   nativeQuote: TransakBuyQuote,
-  expected: {
-    currency: string;
+  context: {
+    assetId: string;
     paymentMethod: string;
   },
 ): void {
-  const accepted = acceptedQuote as QuoteWithParityFields;
-  const native = nativeQuote as NativeQuoteWithParityFields;
-  const providerFee = parseMoney(accepted.quote.providerFee, 0);
-  const networkFee = parseMoney(accepted.quote.networkFee, 0);
-  const extraFee = parseMoney(accepted.quote.extraFee, 0);
-  const reportedTotalFees = parseMoney(accepted.quote.totalFees);
-  const principal = parseMoney(accepted.quote.amountIn);
-  const nativePrincipal = parseMoney(nativeQuote.fiatAmount);
-  const nativeTotalFee = parseMoney(nativeQuote.totalFee);
-  const nativeFees = getNativeFeeComponents(nativeQuote);
-  const componentTotal =
-    providerFee === undefined ||
-    networkFee === undefined ||
-    extraFee === undefined
-      ? undefined
-      : providerFee + networkFee + extraFee;
-  const totalFees = reportedTotalFees ?? componentTotal;
-  const expectedMethod = normalizeTransakPaymentMethod(
-    accepted.quote.paymentMethod || expected.paymentMethod,
-  );
-  const nativeMethod = normalizeTransakPaymentMethod(nativeQuote.paymentMethod);
+  const accepted = acceptedQuote as AcceptedQuote;
+  const mismatches: TransakQuoteMismatchCategory[] = [];
+  const acceptedAssetId = accepted.outputCurrency?.assetId ?? context.assetId;
+  const expectedChainId = context.assetId.split('/')[0];
+  const requestedAssetMatches =
+    typeof nativeQuote.requestedAssetId === 'string' &&
+    nativeQuote.requestedAssetId.toLowerCase() ===
+      context.assetId.toLowerCase();
+  const requestedChainMatches =
+    typeof nativeQuote.requestedChainId === 'string' &&
+    nativeQuote.requestedChainId.toLowerCase() ===
+      expectedChainId.toLowerCase();
+  const nativeAssetMatches =
+    typeof nativeQuote.cryptoCurrency === 'string' &&
+    nativeQuote.cryptoCurrency.toUpperCase() === 'MUSD' &&
+    typeof nativeQuote.network === 'string' &&
+    nativeQuote.network.toLowerCase() === 'monad';
 
-  const mismatches: string[] = [];
-  if (normalize(nativeQuote.fiatCurrency) !== normalize(expected.currency)) {
-    mismatches.push('fiat');
-  }
-  // Transak does not return stable CAIP asset or chain identifiers. Request
-  // identifiers attached by Core only describe the request, so they are not
-  // used as evidence about the response. Provider display names are also too
-  // unstable for a security-sensitive parity decision.
-  const convertedPrincipal =
-    Number(nativeQuote.cryptoAmount) * Number(nativeQuote.conversionPrice);
-  if (
-    native.feeMode?.effective !== 'fee-on-top' ||
-    !Number.isFinite(convertedPrincipal) ||
-    nativePrincipal === undefined ||
-    cents(convertedPrincipal) !== cents(nativePrincipal)
-  ) {
-    mismatches.push('feeMode');
-  }
-  if (!expectedMethod || nativeMethod !== expectedMethod) {
-    mismatches.push('paymentMethod');
-  }
-  if (
-    principal === undefined ||
-    nativePrincipal === undefined ||
-    cents(principal) !== cents(nativePrincipal)
-  ) {
-    mismatches.push('principal');
-  }
-  if (
-    providerFee === undefined ||
-    networkFee === undefined ||
-    extraFee === undefined ||
-    totalFees === undefined ||
-    nativeTotalFee === undefined ||
-    principal === undefined ||
-    nativePrincipal === undefined ||
-    !nativeFees.complete
-  ) {
-    mismatches.push('fees');
-  } else {
-    if (cents(providerFee) !== cents(nativeFees.provider)) {
-      mismatches.push('providerFee');
-    }
-    if (cents(networkFee) !== cents(nativeFees.network)) {
-      mismatches.push('networkFee');
-    }
-    if (cents(extraFee) !== cents(nativeFees.extra)) {
-      mismatches.push('extraFee');
-    }
-    if (cents(totalFees) !== cents(nativeTotalFee)) {
-      mismatches.push('totalFees');
-    }
-    const acceptedTotal =
-      getEffectiveFeeMode(acceptedQuote) === 'fee-on-top'
-        ? principal + totalFees
-        : principal;
-    const nativeTotal =
-      getEffectiveFeeMode(acceptedQuote) === 'fee-on-top'
-        ? nativePrincipal + nativeTotalFee
-        : nativePrincipal;
-    if (cents(acceptedTotal) !== cents(nativeTotal)) {
-      mismatches.push('total');
+  addMismatch(
+    mismatches,
+    'asset',
+    acceptedAssetId.toLowerCase() === context.assetId.toLowerCase() &&
+      requestedAssetMatches &&
+      requestedChainMatches &&
+      nativeAssetMatches,
+  );
+  addMismatch(
+    mismatches,
+    'payment_method',
+    normalizePaymentMethod(accepted.quote.paymentMethod) ===
+      normalizePaymentMethod(context.paymentMethod) &&
+      typeof nativeQuote.paymentMethod === 'string' &&
+      normalizePaymentMethod(nativeQuote.paymentMethod) ===
+        normalizePaymentMethod(context.paymentMethod),
+  );
+  addMismatch(
+    mismatches,
+    'fiat_amount',
+    cents(accepted.quote.amountIn) !== null &&
+      cents(accepted.quote.amountIn) === cents(nativeQuote.fiatAmount),
+  );
+  const acceptedCryptoAmount = nonNegativeDecimal(accepted.quote.amountOut);
+  const nativeCryptoAmount = nonNegativeDecimal(nativeQuote.cryptoAmount);
+  addMismatch(
+    mismatches,
+    'crypto_amount',
+    acceptedCryptoAmount !== null &&
+      nativeCryptoAmount !== null &&
+      acceptedCryptoAmount.isEqualTo(nativeCryptoAmount),
+  );
+
+  const components = new Map<string, number>();
+  let malformedBreakdown = !Array.isArray(nativeQuote.feeBreakdown);
+  if (Array.isArray(nativeQuote.feeBreakdown)) {
+    for (const component of nativeQuote.feeBreakdown) {
+      const id = typeof component?.id === 'string' ? component.id : '';
+      const value = cents(
+        typeof component?.value === 'string' ||
+          typeof component?.value === 'number'
+          ? component.value
+          : undefined,
+      );
+      if (!id || value === null) {
+        malformedBreakdown = true;
+        continue;
+      }
+      components.set(id, (components.get(id) ?? 0) + value);
     }
   }
+
+  const providerFee = acceptedFeeCents(accepted.quote.providerFee);
+  const networkFee = acceptedFeeCents(accepted.quote.networkFee);
+  const nativeProviderFee = components.get(FEE_IDS.provider) ?? 0;
+  const nativeNetworkFee = components.get(FEE_IDS.network) ?? 0;
+  const nativePartnerFee = components.get(FEE_IDS.partner) ?? 0;
+  const unknownChargedComponent = [...components].some(
+    ([id, value]) =>
+      !Object.values(FEE_IDS).includes(
+        id as (typeof FEE_IDS)[keyof typeof FEE_IDS],
+      ) && value > 0,
+  );
+  const breakdownTotal = [...components.values()].reduce(
+    (total, value) => total + value,
+    0,
+  );
+  const acceptedTotal =
+    providerFee === null || networkFee === null
+      ? null
+      : providerFee + networkFee;
+
+  addMismatch(
+    mismatches,
+    'provider_fee',
+    providerFee !== null && providerFee === nativeProviderFee,
+  );
+  addMismatch(
+    mismatches,
+    'network_fee',
+    networkFee !== null && networkFee === nativeNetworkFee,
+  );
+  addMismatch(mismatches, 'partner_fee', nativePartnerFee === 0);
+  addMismatch(
+    mismatches,
+    'fee_breakdown',
+    !malformedBreakdown && !unknownChargedComponent,
+  );
+  addMismatch(
+    mismatches,
+    'fee_total',
+    acceptedTotal !== null &&
+      acceptedTotal === cents(nativeQuote.totalFee) &&
+      acceptedTotal === breakdownTotal,
+  );
 
   if (mismatches.length > 0) {
-    throw new QuoteChangedError({ mismatches });
+    Logger.error(
+      new QuoteChangedError(mismatches),
+      `Transak quote parity mismatch: ${mismatches.join(',')}`,
+    );
+    throw new QuoteChangedError(mismatches);
   }
+}
+
+export function acceptedAmountMatchesRequest(
+  quote: Quote,
+  requestedAmount: number,
+): boolean {
+  const acceptedAmount = cents(
+    (quote.quote as Quote['quote'] & { amountIn?: number | string }).amountIn,
+  );
+  const requestedAmountInCents = cents(requestedAmount);
+  return (
+    acceptedAmount !== null &&
+    requestedAmountInCents !== null &&
+    acceptedAmount === requestedAmountInCents
+  );
 }

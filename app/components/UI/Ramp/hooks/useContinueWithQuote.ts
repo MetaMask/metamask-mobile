@@ -22,7 +22,13 @@ import {
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
-import { getEffectiveFeeMode } from '../utils/transakQuoteParity';
+import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
+import {
+  acceptedAmountMatchesRequest,
+  assertTransakFeeInclusiveParity,
+  QuoteChangedError,
+} from '../utils/transakQuoteParity';
+import { failHeadlessQuoteChanged } from '../headless/quoteChanged';
 import {
   type Quote,
   isNativeProvider,
@@ -124,7 +130,6 @@ export function useContinueWithQuote(
     selectedProvider,
     selectedPaymentMethod,
     userRegion,
-    getQuotes,
     getBuyWidgetData,
     addPrecreatedOrder,
   } = useRampsController();
@@ -154,29 +159,12 @@ export function useContinueWithQuote(
     [navigation],
   );
 
-  // The aggregator-format quote is also the accepted pricing contract used
-  // to drive the authenticated native quote.
+  // The aggregator-format quote is used only by the caller to dispatch
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
     async (quote: Quote, ctx: ContinueWithQuoteContext) => {
-      const { assetId } = ctx;
-      const isHeadlessFeeOnTop =
-        Boolean(ctx.headlessSessionId) &&
-        getEffectiveFeeMode(quote) === 'fee-on-top';
-      // UB2 native lookups historically always requested fee-on-top. Keep that
-      // default outside headless MMPay so this fee-mode work cannot flip UB2.
-      const isFeeExcludedFromFiat = ctx.headlessSessionId
-        ? isHeadlessFeeOnTop
-        : true;
-      const amount = isHeadlessFeeOnTop
-        ? Number(quote.quote.amountIn)
-        : ctx.amount;
-      if (!Number.isFinite(amount) || amount <= 0) {
-        throw new Error(
-          'Native provider flow requires a valid quote principal',
-        );
-      }
+      const { amount, assetId } = ctx;
       // Resolve every controller-coupled value through the override-first
       // ladder so headless callers (Phase 5) can drive this hook without
       // pre-seeding the RampsController.
@@ -214,16 +202,37 @@ export function useContinueWithQuote(
         const hasToken = await transakCheckExistingToken();
 
         if (hasToken) {
-          const transakQuote = await transakGetBuyQuote(
+          const quoteArguments = [
             effectiveCurrency,
             assetId,
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
-            isFeeExcludedFromFiat,
-          );
+          ] as const;
+          const isFeeInclusiveHeadless =
+            Boolean(ctx.headlessSessionId) && isMonadMusdAssetId(assetId);
+          const transakQuote = isFeeInclusiveHeadless
+            ? await transakGetBuyQuote(...quoteArguments, false)
+            : await transakGetBuyQuote(...quoteArguments);
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
+          }
+          if (isFeeInclusiveHeadless && ctx.headlessSessionId) {
+            try {
+              assertTransakFeeInclusiveParity(quote, transakQuote, {
+                assetId,
+                paymentMethod: effectivePaymentMethodId,
+              });
+            } catch (error) {
+              if (error instanceof QuoteChangedError) {
+                failHeadlessQuoteChanged(
+                  ctx.headlessSessionId,
+                  navigation,
+                  error,
+                );
+              }
+              throw error;
+            }
           }
           await transakRouteAfterAuth(transakQuote, amount);
         } else if (hasAgreedTransakNativePolicy) {
@@ -248,11 +257,7 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
-        if (
-          error instanceof Error &&
-          'headlessBuyErrorCode' in error &&
-          error.headlessBuyErrorCode === 'QUOTE_CHANGED'
-        ) {
+        if (error instanceof QuoteChangedError) {
           throw error;
         }
         if (nativeCufOpId) {
@@ -326,6 +331,22 @@ export function useContinueWithQuote(
       };
       try {
         providerCode = quote.provider;
+        if (
+          ctx.headlessSessionId &&
+          isMonadMusdAssetId(ctx.assetId) &&
+          !acceptedAmountMatchesRequest(quote, ctx.amount)
+        ) {
+          // The accepted fees were already rendered in MMPay. Refreshing here
+          // could change them without giving the user another review screen,
+          // so an amount mismatch must fail closed before buyURL is consumed.
+          const quoteChangedError = new QuoteChangedError(['fiat_amount']);
+          failHeadlessQuoteChanged(
+            ctx.headlessSessionId,
+            navigation,
+            quoteChangedError,
+          );
+          throw quoteChangedError;
+        }
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
           quote,
@@ -334,37 +355,13 @@ export function useContinueWithQuote(
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
         redirectUrl = redirectConfig.redirectUrl;
-        let checkoutQuote = quote;
-        const quotedAmount = Number(quote.quote.amountIn);
-
-        if (quotedAmount !== ctx.amount) {
-          const refreshedQuotes = await getQuotes({
-            assetId: ctx.assetId,
-            amount: ctx.amount,
-            walletAddress: effectiveWalletAddress ?? '',
-            paymentMethods: [ctx.paymentMethodId ?? quote.quote.paymentMethod],
-            providers: [quote.provider],
-            fiat: effectiveCurrency,
-            redirectUrl,
-            forceRefresh: true,
-          });
-          const refreshedQuote = refreshedQuotes.success?.find(
-            (candidate) => candidate.provider === quote.provider,
-          );
-
-          if (!refreshedQuote) {
-            throw new Error('No refreshed widget quote available');
-          }
-          checkoutQuote = refreshedQuote;
-        }
-
-        const quoteForWidget = buildQuoteWithRedirectUrl(
-          checkoutQuote,
-          redirectUrl,
-        );
+        const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
         endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
+        if (error instanceof QuoteChangedError) {
+          throw error;
+        }
         throw new Error(
           reportRampsError(
             error,
@@ -481,7 +478,6 @@ export function useContinueWithQuote(
       walletAddress,
       currency,
       navigation,
-      getQuotes,
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,

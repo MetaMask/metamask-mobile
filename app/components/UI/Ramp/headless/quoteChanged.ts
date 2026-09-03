@@ -1,28 +1,18 @@
-import Logger from '../../../../util/Logger';
-import { QuoteChangedError } from '../utils/transakQuoteParity';
-import {
-  dismissHeadlessFlow,
-  type NavigationNode,
-} from './headlessEntryNavigation';
+import type { QuoteChangedError } from '../utils/transakQuoteParity';
+import { dismissHeadlessFlow } from './headlessEntryNavigation';
 import { failSession } from './sessionRegistry';
 
+interface NavigationLike {
+  getParent?: () => NavigationLike | undefined;
+  goBack?: () => void;
+  pop?: () => void;
+}
+
 export function failHeadlessQuoteChanged(
-  sessionId: string | undefined,
-  navigation: NavigationNode | undefined,
-  error: unknown,
-): QuoteChangedError {
-  const quoteChangedError =
-    error instanceof QuoteChangedError
-      ? error
-      : new QuoteChangedError({ cause: String(error) });
-
-  Logger.error(quoteChangedError, {
-    message: 'Transak quote changed after authentication',
-    code: quoteChangedError.code,
-    ...quoteChangedError.details,
-  });
-  failSession(sessionId, quoteChangedError, 'QUOTE_CHANGED');
+  sessionId: string,
+  navigation: NavigationLike,
+  error: QuoteChangedError,
+): void {
+  failSession(sessionId, error, 'QUOTE_CHANGED');
   dismissHeadlessFlow(navigation);
-
-  return quoteChangedError;
 }

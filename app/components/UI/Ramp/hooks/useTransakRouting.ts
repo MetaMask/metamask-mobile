@@ -48,7 +48,6 @@ import {
   getSession,
 } from '../headless/sessionRegistry';
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
-import { failHeadlessQuoteChanged } from '../headless/quoteChanged';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
@@ -61,12 +60,6 @@ import {
   RAMPS_BUY_CUF_TAG,
 } from '../constants/rampsBuyCufTags';
 import { TraceName } from '../../../../util/trace';
-import {
-  assertTransakQuoteParity,
-  getEffectiveFeeMode,
-  hasExplicitFeeMode,
-  QuoteChangedError,
-} from '../utils/transakQuoteParity';
 
 // The native provider code must match the environment that `refreshOrder` /
 // `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
@@ -794,30 +787,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const routeAfterAuthentication = useCallback(
     async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
       try {
-        const headlessSession = getSession(headlessSessionId);
-        if (
-          headlessSession?.params?.quote &&
-          hasExplicitFeeMode(headlessSession.params.quote) &&
-          getEffectiveFeeMode(headlessSession.params.quote) === 'fee-on-top'
-        ) {
-          try {
-            assertTransakQuoteParity(headlessSession.params.quote, quote, {
-              currency:
-                headlessSession.params.currency ??
-                quote.fiatCurrency ??
-                fiatCurrency,
-              paymentMethod: effectivePaymentMethodId,
-            });
-          } catch (error) {
-            const quoteChangedError = failHeadlessQuoteChanged(
-              headlessSessionId,
-              navigation,
-              error,
-            );
-            throw quoteChangedError;
-          }
-        }
-
         const userDetails = await getUserDetails();
         const previousFormData = {
           firstName: userDetails?.firstName || '',
@@ -937,43 +906,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 });
               } else {
                 let paymentUrl: string;
-                const currentHeadlessSession = getSession(headlessSessionId);
-                const acceptedQuote = currentHeadlessSession?.params?.quote;
-                const acceptedPrincipal = Number(acceptedQuote?.quote.amountIn);
-                const useAcceptedPrincipal =
-                  acceptedQuote &&
-                  getEffectiveFeeMode(acceptedQuote) === 'fee-on-top' &&
-                  Number.isFinite(acceptedPrincipal);
-                const headlessAmount = useAcceptedPrincipal
-                  ? acceptedPrincipal
-                  : (amount ?? currentHeadlessSession?.params?.amount);
-
-                if (
-                  headlessSessionId &&
-                  (!Number.isFinite(headlessAmount) ||
-                    Number(headlessAmount) <= 0)
-                ) {
-                  throw new Error('Missing headless widget amount');
-                }
-
-                const widgetQuote =
-                  headlessSessionId && headlessAmount != null
-                    ? { ...quote, fiatAmount: headlessAmount }
-                    : quote;
-                const headlessWidgetParams: Record<string, string> =
-                  acceptedQuote &&
-                  getEffectiveFeeMode(acceptedQuote) === 'fee-on-top'
-                    ? { isFeeExcludedFromFiat: 'true' }
-                    : {};
 
                 if (isTransakWidgetUrlProxyEnabled) {
                   paymentUrl = await createWidgetUrl(
-                    widgetQuote,
+                    quote,
                     walletAddress || '',
-                    {
-                      ...generateWidgetThemeParameters(themeAppearance, colors),
-                      ...headlessWidgetParams,
-                    },
+                    generateWidgetThemeParameters(themeAppearance, colors),
                   );
                 } else {
                   const ottResponse = await requestOtt();
@@ -984,12 +922,9 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
                   paymentUrl = generatePaymentWidgetUrl(
                     ottResponse.ott,
-                    widgetQuote,
+                    quote,
                     walletAddress || '',
-                    {
-                      ...generateThemeParameters(themeAppearance, colors),
-                      ...headlessWidgetParams,
-                    },
+                    generateThemeParameters(themeAppearance, colors),
                   );
                 }
 
@@ -1004,10 +939,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
               return true;
             } catch (error) {
-              if (
-                error instanceof LimitExceededError ||
-                error instanceof QuoteChangedError
-              ) {
+              if (error instanceof LimitExceededError) {
                 throw error;
               }
               throw new Error(
@@ -1134,7 +1066,6 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       navigation,
       baseRouteParams,
       fiatCurrency,
-      effectivePaymentMethodId,
       selectedToken?.assetId,
       getKycRequirement,
       getAdditionalRequirements,

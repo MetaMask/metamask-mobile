@@ -70,6 +70,10 @@ jest.mock('../utils/reportRampsError', () => ({
   ),
 }));
 
+jest.mock('../headless/quoteChanged', () => ({
+  failHeadlessQuoteChanged: jest.fn(),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -117,10 +121,12 @@ const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn')
 };
 const mockReportRampsError = jest.requireMock('../utils/reportRampsError')
   .reportRampsError as jest.Mock;
+const mockFailHeadlessQuoteChanged = jest.requireMock(
+  '../headless/quoteChanged',
+).failHeadlessQuoteChanged as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockNavigationReset = jest.fn();
-const mockGetQuotes = jest.fn();
 const mockGetBuyWidgetData = jest.fn();
 const mockAddPrecreatedOrder = jest.fn();
 const mockCheckExistingToken = jest.fn();
@@ -161,8 +167,6 @@ const WIDGET_PROVIDER_QUOTE = {
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
-    amountIn: 100,
-    paymentMethod: SELECTED_PAYMENT_METHOD.id,
     buyWidget: { browser: 'IN_APP_OS_BROWSER' as const },
     buyURL: 'https://widget.example.com/checkout',
   },
@@ -176,8 +180,6 @@ const IN_APP_CHECKOUT_QUOTE = {
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
-    amountIn: 100,
-    paymentMethod: SELECTED_PAYMENT_METHOD.id,
     buyURL: 'https://widget.example.com/checkout',
   },
 } as const;
@@ -190,22 +192,40 @@ const NATIVE_PROVIDER_QUOTE = {
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
+} as const;
+
+const HEADLESS_NATIVE_PROVIDER_QUOTE = {
+  ...NATIVE_PROVIDER_QUOTE,
+  outputCurrency: {
+    symbol: 'mUSD',
+    assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  },
   quote: {
-    amountIn: 100,
-    paymentMethod: SELECTED_PAYMENT_METHOD.id,
-    feeMode: {
-      requested: 'fee-on-top' as const,
-      effective: 'fee-on-top' as const,
-    },
+    amountIn: 15,
+    amountOut: 14.3,
+    paymentMethod: '/payments/debit-credit-card',
+    providerFee: 0.5,
+    networkFee: 0.2,
   },
 } as const;
 
 const MOCK_TRANSAK_QUOTE = {
   id: 'transak-quote-1',
-  fiatAmount: 100,
+  quoteId: 'transak-quote-1',
+  fiatAmount: 15,
   fiatCurrency: 'USD',
-  cryptoAmount: '0.05',
-  cryptoCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  cryptoAmount: 14.3,
+  cryptoCurrency: 'MUSD',
+  network: 'monad',
+  paymentMethod: 'credit_debit_card',
+  totalFee: 0.7,
+  feeBreakdown: [
+    { id: 'transak_fee', name: 'Transak fee', value: 0.5 },
+    { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+  ],
+  requestedAssetId:
+    'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+  requestedChainId: 'eip155:143',
 };
 
 const CTX = { amount: 100, assetId: 'eip155:1/slip44:60' };
@@ -222,7 +242,6 @@ const buildController = (overrides: ControllerOverrides = {}) => ({
   selectedProvider: WIDGET_PROVIDER,
   selectedToken: SELECTED_TOKEN,
   selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-  getQuotes: mockGetQuotes,
   getBuyWidgetData: mockGetBuyWidgetData,
   addPrecreatedOrder: mockAddPrecreatedOrder,
   ...overrides,
@@ -308,35 +327,8 @@ describe('useContinueWithQuote', () => {
         'eip155:1',
         '/payments/debit-credit-card',
         '100',
-        true,
       );
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
-    });
-
-    it('keeps UB2 native lookups fee-on-top without an explicit fee mode', async () => {
-      mockCheckExistingToken.mockResolvedValue(true);
-      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockResolvedValue(undefined);
-      const ub2Quote = {
-        ...NATIVE_PROVIDER_QUOTE,
-        quote: {
-          amountIn: 100,
-          paymentMethod: SELECTED_PAYMENT_METHOD.id,
-        },
-      };
-
-      const { result } = renderHook(() => useContinueWithQuote());
-      const caught = await invoke(result, ub2Quote);
-
-      expect(caught).toBeUndefined();
-      expect(mockGetBuyQuote).toHaveBeenCalledWith(
-        'USD',
-        'eip155:1/slip44:60',
-        'eip155:1',
-        '/payments/debit-credit-card',
-        '100',
-        true,
-      );
     });
 
     it('navigates to VerifyIdentity when user has no token and policy not agreed', async () => {
@@ -503,120 +495,11 @@ describe('useContinueWithQuote', () => {
       const caught = await invoke(result, IN_APP_CHECKOUT_QUOTE);
 
       expect(caught).toBeUndefined();
-      expect(mockGetQuotes).not.toHaveBeenCalled();
       expect(mockGetBuyWidgetData).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalled();
       const navigateArgs = JSON.stringify(mockNavigate.mock.calls);
       expect(navigateArgs).toContain('https://checkout.example.com/embed');
       expect(navigateArgs).toContain('MoonPay');
-    });
-
-    it('refreshes a mismatched quote before fetching the widget URL', async () => {
-      const initialQuote = {
-        ...IN_APP_CHECKOUT_QUOTE,
-        inputAmount: 15,
-        quote: {
-          ...IN_APP_CHECKOUT_QUOTE.quote,
-          amountIn: 15,
-          paymentMethod: SELECTED_PAYMENT_METHOD.id,
-        },
-      };
-      const refreshedQuote = {
-        ...initialQuote,
-        inputAmount: 15.55,
-        quote: {
-          ...initialQuote.quote,
-          amountIn: 15.55,
-          buyURL: 'https://widget.example.com/refreshed-checkout',
-        },
-      };
-      mockGetQuotes.mockResolvedValue({ success: [refreshedQuote] });
-      mockGetBuyWidgetData.mockResolvedValue({
-        url: 'https://checkout.example.com/embed',
-      });
-
-      const { result } = renderHook(() => useContinueWithQuote());
-
-      const caught = await invoke(result, initialQuote, {
-        amount: 15.55,
-        assetId: CTX.assetId,
-      });
-
-      expect(caught).toBeUndefined();
-      expect(mockGetQuotes).toHaveBeenCalledWith({
-        assetId: CTX.assetId,
-        amount: 15.55,
-        walletAddress: '0x1234567890123456789012345678901234567890',
-        paymentMethods: [SELECTED_PAYMENT_METHOD.id],
-        providers: ['moonpay'],
-        fiat: 'USD',
-        redirectUrl: expect.any(String),
-        forceRefresh: true,
-      });
-      expect(mockGetBuyWidgetData).toHaveBeenCalledWith(
-        expect.objectContaining({
-          quote: expect.objectContaining({
-            amountIn: 15.55,
-            buyURL: expect.stringContaining('refreshed-checkout'),
-          }),
-        }),
-      );
-    });
-
-    it('throws when refreshing a mismatched quote returns no quote', async () => {
-      const initialQuote = {
-        ...WIDGET_PROVIDER_QUOTE,
-        quote: {
-          ...WIDGET_PROVIDER_QUOTE.quote,
-          amountIn: 15,
-          paymentMethod: SELECTED_PAYMENT_METHOD.id,
-        },
-      };
-      mockGetQuotes.mockResolvedValue({ success: [] });
-
-      const { result } = renderHook(() => useContinueWithQuote());
-
-      const caught = await invoke(result, initialQuote, {
-        amount: 15.55,
-        assetId: CTX.assetId,
-      });
-
-      expect(caught).toBeInstanceOf(Error);
-      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('throws when the refreshed quote has no widget URL', async () => {
-      const initialQuote = {
-        ...WIDGET_PROVIDER_QUOTE,
-        quote: {
-          ...WIDGET_PROVIDER_QUOTE.quote,
-          amountIn: 15,
-          paymentMethod: SELECTED_PAYMENT_METHOD.id,
-        },
-      };
-      mockGetQuotes.mockResolvedValue({
-        success: [
-          {
-            ...initialQuote,
-            quote: {
-              amountIn: 15.55,
-              paymentMethod: SELECTED_PAYMENT_METHOD.id,
-            },
-          },
-        ],
-      });
-
-      const { result } = renderHook(() => useContinueWithQuote());
-
-      const caught = await invoke(result, initialQuote, {
-        amount: 15.55,
-        assetId: CTX.assetId,
-      });
-
-      expect(caught).toBeInstanceOf(Error);
-      expect(mockGetBuyWidgetData).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('throws when getBuyWidgetData returns no URL', async () => {
@@ -781,13 +664,13 @@ describe('useContinueWithQuote', () => {
     // continues to omit overrides and falls back to controller selections —
     // see the suites above.
     const HEADLESS_CTX = {
-      amount: 250,
-      assetId: 'eip155:59144/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      chainId: 'eip155:59144' as const,
+      amount: 15,
+      assetId: 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: 'eip155:143' as const,
       walletAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       currency: 'EUR',
       cryptoSymbol: 'mUSD',
-      paymentMethodId: '/payments/sepa-bank-transfer',
+      paymentMethodId: '/payments/debit-credit-card',
       providerName: 'Headless Provider',
       headlessSessionId: 'session-1',
     };
@@ -807,56 +690,74 @@ describe('useContinueWithQuote', () => {
 
       const { result } = renderHook(() => useContinueWithQuote());
 
-      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, HEADLESS_CTX);
+      const caught = await invoke(
+        result,
+        HEADLESS_NATIVE_PROVIDER_QUOTE,
+        HEADLESS_CTX,
+      );
 
       expect(caught).toBeUndefined();
       expect(mockGetBuyQuote).toHaveBeenCalledWith(
         'EUR',
         HEADLESS_CTX.assetId,
-        'eip155:59144',
-        '/payments/sepa-bank-transfer',
-        '100',
-        true,
+        'eip155:143',
+        '/payments/debit-credit-card',
+        '15',
+        false,
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 15);
     });
 
-    it('preserves the checkout amount for a fee-inclusive native quote', async () => {
-      mockUseRampsController.mockReturnValue(
-        buildController({
-          selectedToken: null,
-          selectedProvider: null,
-          selectedPaymentMethod: null,
-          userRegion: null,
+    it('fails and dismisses before routing when the native fee changes', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue({
+        ...MOCK_TRANSAK_QUOTE,
+        totalFee: 0.71,
+        feeBreakdown: [
+          { id: 'transak_fee', name: 'Transak fee', value: 0.51 },
+          { id: 'network_fee', name: 'Network/Exchange fee', value: 0.2 },
+        ],
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(
+        result,
+        HEADLESS_NATIVE_PROVIDER_QUOTE,
+        HEADLESS_CTX,
+      );
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
+        'session-1',
+        expect.any(Object),
+        expect.objectContaining({
+          mismatchCategories: expect.arrayContaining(['provider_fee']),
         }),
       );
+      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+    });
+
+    it('retains fee exclusion for a non-mUSD headless native quote', async () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
-      mockRouteAfterAuth.mockResolvedValue(undefined);
-      const feeInclusiveQuote = {
-        ...NATIVE_PROVIDER_QUOTE,
-        quote: {
-          ...NATIVE_PROVIDER_QUOTE.quote,
-          feeMode: {
-            requested: 'fee-inclusive' as const,
-            effective: 'fee-inclusive' as const,
-          },
-        },
+      const relayContext = {
+        ...HEADLESS_CTX,
+        assetId: 'eip155:1/slip44:60',
+        chainId: 'eip155:1' as const,
       };
 
       const { result } = renderHook(() => useContinueWithQuote());
-      const caught = await invoke(result, feeInclusiveQuote, HEADLESS_CTX);
 
-      expect(caught).toBeUndefined();
+      await invoke(result, NATIVE_PROVIDER_QUOTE, relayContext);
+
       expect(mockGetBuyQuote).toHaveBeenCalledWith(
         'EUR',
-        HEADLESS_CTX.assetId,
-        'eip155:59144',
-        '/payments/sepa-bank-transfer',
-        '250',
-        false,
+        'eip155:1/slip44:60',
+        'eip155:1',
+        '/payments/debit-credit-card',
+        '15',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 250);
     });
 
     it('navigates EnterEmail with override currency when controller userRegion is missing', async () => {
@@ -881,14 +782,14 @@ describe('useContinueWithQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
-          amount: '100',
+          amount: '15',
           currency: 'EUR',
           assetId: HEADLESS_CTX.assetId,
         }),
       );
     });
 
-    it('routes widget quote using ctx overrides for currency, walletAddress, providerName and chainId', async () => {
+    it('consumes the accepted aggregator buyURL for the requested $15', async () => {
       mockUseRampsController.mockReturnValue(
         buildController({
           selectedToken: null,
@@ -901,25 +802,39 @@ describe('useContinueWithQuote', () => {
         url: 'https://checkout.example.com/headless',
         orderId: 'ord-headless-1',
       });
-      mockGetQuotes.mockResolvedValue({
-        success: [
-          {
-            ...IN_APP_CHECKOUT_QUOTE,
-            inputAmount: HEADLESS_CTX.amount,
-            quote: {
-              ...IN_APP_CHECKOUT_QUOTE.quote,
-              amountIn: HEADLESS_CTX.amount,
-              paymentMethod: HEADLESS_CTX.paymentMethodId,
-            },
-          },
-        ],
-      });
 
       const { result } = renderHook(() => useContinueWithQuote());
+      const aggregatorQuote = {
+        ...IN_APP_CHECKOUT_QUOTE,
+        provider: '/providers/transak',
+        quote: {
+          ...IN_APP_CHECKOUT_QUOTE.quote,
+          amountIn: 15,
+          providerFee: 0.8,
+        },
+      };
 
-      const caught = await invoke(result, IN_APP_CHECKOUT_QUOTE, HEADLESS_CTX);
+      const caught = await invoke(result, aggregatorQuote, HEADLESS_CTX);
 
       expect(caught).toBeUndefined();
+      expect(HEADLESS_CTX.amount).toBe(15);
+      const consumedAggregatorQuote = mockGetBuyWidgetData.mock.calls[0][0];
+      expect(consumedAggregatorQuote.quote).toEqual(
+        expect.objectContaining({
+          amountIn: 15,
+        }),
+      );
+      expect(
+        consumedAggregatorQuote.quote.buyURL.startsWith(
+          IN_APP_CHECKOUT_QUOTE.quote.buyURL,
+        ),
+      ).toBe(true);
+      expect(consumedAggregatorQuote.quote.buyURL).not.toContain(
+        'isFeeExcludedFromFiat',
+      );
+      expect(consumedAggregatorQuote).not.toHaveProperty(
+        'quote.isFeeExcludedFromFiat',
+      );
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       const [, navigateParams] = mockNavigate.mock.calls[0];
       expect(navigateParams).toEqual(
@@ -930,9 +845,34 @@ describe('useContinueWithQuote', () => {
           cryptocurrency: 'mUSD',
           walletAddress: HEADLESS_CTX.walletAddress,
           // network is the part after the colon in chainId.
-          network: '59144',
+          network: '143',
         }),
       );
+    });
+
+    it('fails before consuming buyURL when aggregator amount changed', async () => {
+      const changedQuote = {
+        ...IN_APP_CHECKOUT_QUOTE,
+        provider: '/providers/transak',
+        quote: {
+          ...IN_APP_CHECKOUT_QUOTE.quote,
+          amountIn: 14.99,
+          paymentMethod: '/payments/debit-credit-card',
+        },
+      };
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, changedQuote, HEADLESS_CTX);
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
+        'session-1',
+        expect.any(Object),
+        expect.objectContaining({
+          mismatchCategories: ['fiat_amount'],
+        }),
+      );
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
     });
 
     it('preserves controller fallback when overrides are omitted', async () => {

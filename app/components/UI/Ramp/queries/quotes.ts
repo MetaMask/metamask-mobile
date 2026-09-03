@@ -16,7 +16,6 @@ type RampsQuotesQueryParams = Pick<
   | 'ttl'
   | 'paymentMethods'
   | 'providers'
-  | 'isFeeExcludedFromFiat'
 >;
 
 export const rampsQuotesKeys = {
@@ -29,21 +28,14 @@ export const rampsQuotesKeys = {
       params.walletAddress,
       (params.paymentMethods ?? []).join(','),
       (params.providers ?? []).join(','),
-      params.isFeeExcludedFromFiat === true,
     ] as const,
 };
 
 export const rampsQuotesOptions = (params: RampsQuotesQueryParams) =>
   queryOptions({
     queryKey: rampsQuotesKeys.detail(params),
-    queryFn: async (): Promise<QuotesResponse> => {
-      const rampsController = Engine.context.RampsController as Omit<
-        typeof Engine.context.RampsController,
-        'getQuotes'
-      > & {
-        getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
-      };
-      return rampsController.getQuotes({
+    queryFn: async (): Promise<QuotesResponse> =>
+      Engine.context.RampsController.getQuotes({
         assetId: params.assetId,
         amount: params.amount,
         walletAddress: params.walletAddress,
@@ -52,8 +44,6 @@ export const rampsQuotesOptions = (params: RampsQuotesQueryParams) =>
         providers: params.providers,
         forceRefresh: params.forceRefresh,
         ttl: params.ttl,
-        isFeeExcludedFromFiat: params.isFeeExcludedFromFiat,
-      });
-    },
+      }),
     staleTime: RAMPS_QUOTES_STALE_TIME_MS,
   });

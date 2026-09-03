@@ -22,7 +22,6 @@ describe('rampsQuotesOptions', () => {
       '0x123',
       '/payments/card',
       '/providers/transak',
-      false,
     ]);
   });
 
@@ -43,30 +42,8 @@ describe('rampsQuotesOptions', () => {
       '0x123',
       '/payments/card',
       '/providers/transak',
-      false,
     ]);
     expect(typeof opts.queryFn).toBe('function');
     expect(opts.staleTime).toBe(RAMPS_QUOTES_STALE_TIME_MS);
-  });
-
-  it('isolates payment methods and fee modes in the query key', () => {
-    const applePayFeeOnTop = rampsQuotesKeys.detail({
-      assetId: 'eip155:1/slip44:60',
-      amount: 100,
-      walletAddress: '0x123',
-      paymentMethods: ['/payments/apple-pay'],
-      providers: ['/providers/transak'],
-      isFeeExcludedFromFiat: true,
-    });
-    const cardFeeInclusive = rampsQuotesKeys.detail({
-      assetId: 'eip155:1/slip44:60',
-      amount: 100,
-      walletAddress: '0x123',
-      paymentMethods: ['/payments/debit-credit-card'],
-      providers: ['/providers/transak'],
-      isFeeExcludedFromFiat: false,
-    });
-
-    expect(applePayFeeOnTop).not.toEqual(cardFeeInclusive);
   });
 });

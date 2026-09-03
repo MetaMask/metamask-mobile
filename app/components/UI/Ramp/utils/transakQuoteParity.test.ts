@@ -1,165 +1,285 @@
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import {
-  assertTransakQuoteParity,
-  normalizeTransakPaymentMethod,
+  acceptedAmountMatchesRequest,
+  assertTransakFeeInclusiveParity,
   QuoteChangedError,
 } from './transakQuoteParity';
 
-const buildAcceptedQuote = (overrides: Record<string, unknown> = {}): Quote =>
-  ({
-    provider: '/providers/transak-native',
-    quote: {
-      amountIn: 15,
-      amountOut: 0.015,
-      paymentMethod: '/payments/debit-credit-card',
-      providerFee: 0.45,
-      networkFee: 0.1,
-      extraFee: 0.15,
-      totalFees: 0.7,
-      feeMode: {
-        requested: 'fee-on-top',
-        effective: 'fee-on-top',
-      },
-      crypto: {
-        symbol: 'ETH',
-        network: { shortName: 'Ethereum' },
-      },
-      ...overrides,
-    },
-  }) as Quote;
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
 
-const buildNativeQuote = (
-  overrides: Partial<TransakBuyQuote> = {},
-): TransakBuyQuote =>
-  ({
-    fiatCurrency: 'USD',
-    cryptoCurrency: 'ETH',
-    network: 'ethereum',
-    paymentMethod: 'credit_debit_card',
-    fiatAmount: 15,
-    cryptoAmount: 0.015,
-    conversionPrice: 1000,
-    totalFee: 0.7,
-    feeBreakdown: [
-      { id: 'transak_fee', value: 0.45 },
-      { id: 'network_fee', value: 0.1 },
-      { id: 'partner_fee', value: 0.15 },
-    ],
-    requestedAssetId: 'eip155:1/slip44:60',
-    requestedChainId: 'eip155:1',
-    feeMode: {
-      requested: 'fee-on-top',
-      effective: 'fee-on-top',
-    },
-    ...overrides,
-  }) as TransakBuyQuote;
+const ASSET_ID = 'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
 
-const EXPECTED_CONTEXT = {
-  currency: 'USD',
-  paymentMethod: '/payments/debit-credit-card',
+const ACCEPTED_QUOTE = {
+  provider: '/providers/transak-native',
+  outputCurrency: { assetId: ASSET_ID },
+  quote: {
+    amountIn: 16.4,
+    amountOut: 14.88,
+    paymentMethod: '/payments/debit-credit-card',
+    providerFee: 1.4,
+  },
+} as unknown as Quote;
+
+const NATIVE_QUOTE: TransakBuyQuote = {
+  quoteId: 'quote-1',
+  conversionPrice: 1,
+  marketConversionPrice: 1,
+  slippage: 0,
+  fiatCurrency: 'USD',
+  cryptoCurrency: 'MUSD',
+  paymentMethod: 'credit_debit_card',
+  fiatAmount: 16.4,
+  cryptoAmount: 14.88,
+  isBuyOrSell: 'BUY',
+  network: 'monad',
+  feeDecimal: 1.4 / 16.4,
+  totalFee: 1.4,
+  feeBreakdown: [
+    { id: 'transak_fee', name: 'Transak fee', value: 1.4 },
+    { id: 'network_fee', name: 'Third Party fee', value: 0 },
+  ],
+  nonce: 1,
+  cryptoLiquidityProvider: 'transak',
+  notes: [],
+  requestedAssetId: ASSET_ID,
+  requestedChainId: 'eip155:143',
 };
 
-describe('Transak quote parity', () => {
-  it.each([
-    ['/payments/apple-pay', 'apple_pay'],
-    ['/payments/debit-credit-card', 'credit_debit_card'],
-  ])('normalizes %s independently', (rampsMethod, nativeMethod) => {
-    const normalizedRampsMethod = normalizeTransakPaymentMethod(rampsMethod);
-    const normalizedNativeMethod = normalizeTransakPaymentMethod(nativeMethod);
-
-    expect(normalizedRampsMethod).toBe(normalizedNativeMethod);
-  });
-
-  it('accepts cent-equivalent quote values', () => {
-    const accepted = buildAcceptedQuote();
-    const native = buildNativeQuote({ fiatAmount: 15.004 });
-
+describe('assertTransakFeeInclusiveParity', () => {
+  it('accepts the captured debit-card Transak fee payload', () => {
     expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
+      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, NATIVE_QUOTE, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
     ).not.toThrow();
   });
 
-  it('rejects post-auth repricing with QUOTE_CHANGED', () => {
-    const accepted = buildAcceptedQuote();
-    const native = buildNativeQuote({ totalFee: 3.51 });
+  it('normalizes the Apple Pay provider code for a synthetic quote', () => {
+    const acceptedQuote = {
+      ...ACCEPTED_QUOTE,
+      quote: {
+        ...(ACCEPTED_QUOTE as typeof ACCEPTED_QUOTE).quote,
+        paymentMethod: '/payments/apple-pay',
+      },
+    } as Quote;
+    const nativeQuote = { ...NATIVE_QUOTE, paymentMethod: 'apple_pay' };
 
     expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
+      assertTransakFeeInclusiveParity(acceptedQuote, nativeQuote, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/apple-pay',
+      }),
+    ).not.toThrow();
+  });
+
+  it('does not treat debit/card as Apple Pay', () => {
+    const acceptedQuote = {
+      ...(ACCEPTED_QUOTE as object),
+      quote: {
+        ...(ACCEPTED_QUOTE as typeof ACCEPTED_QUOTE).quote,
+        paymentMethod: '/payments/apple-pay',
+      },
+    } as Quote;
+
+    expect(() =>
+      assertTransakFeeInclusiveParity(acceptedQuote, NATIVE_QUOTE, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/apple-pay',
+      }),
     ).toThrow(
       expect.objectContaining({
-        code: 'QUOTE_CHANGED',
-        headlessBuyErrorCode: 'QUOTE_CHANGED',
+        mismatchCategories: expect.arrayContaining(['payment_method']),
       }),
     );
   });
 
-  it('rejects malformed accepted fee fields', () => {
-    const accepted = buildAcceptedQuote({ providerFee: 'not-a-number' });
-    const native = buildNativeQuote();
+  it('rejects changed amounts and provider fees at cent precision', () => {
+    const nativeQuote = {
+      ...NATIVE_QUOTE,
+      fiatAmount: 16.41,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 1.41 },
+        { id: 'network_fee', name: 'Third Party fee', value: 0 },
+      ],
+      totalFee: 1.41,
+    };
 
     expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
-    ).toThrow(QuoteChangedError);
+      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        mismatchCategories: expect.arrayContaining([
+          'fiat_amount',
+          'provider_fee',
+          'fee_total',
+        ]),
+      }),
+    );
   });
 
-  it('rejects an unknown Transak fee breakdown identifier', () => {
-    const accepted = buildAcceptedQuote();
-    const native = buildNativeQuote({
-      feeBreakdown: [{ id: 'future_fee', value: 0.7 }],
-    });
-
-    expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
-    ).toThrow(QuoteChangedError);
-  });
-
-  it('does not treat request identifiers as response asset validation', () => {
-    const accepted = buildAcceptedQuote();
-    const native = buildNativeQuote({
-      requestedAssetId: 'eip155:137/slip44:60',
-      requestedChainId: 'eip155:137',
-    } as Partial<TransakBuyQuote>);
-
-    expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
-    ).not.toThrow();
-  });
-
-  it('accepts a zero-fee quote with matching principal arithmetic', () => {
-    const accepted = buildAcceptedQuote({
-      providerFee: 0,
-      networkFee: 0,
-      extraFee: 0,
-      totalFees: 0,
-    });
-    const native = buildNativeQuote({
-      totalFee: 0,
-      feeBreakdown: [],
-    });
-
-    expect(() =>
-      assertTransakQuoteParity(accepted, native, EXPECTED_CONTEXT),
-    ).not.toThrow();
-  });
-
-  it.each([
-    ['/payments/apple-pay', 'apple_pay'],
-    ['/payments/debit-credit-card', 'credit_debit_card'],
-  ])(
-    'validates the $15 %s fee-on-top contract',
-    (paymentMethod, nativePaymentMethod) => {
-      const accepted = buildAcceptedQuote({ paymentMethod });
-      const native = buildNativeQuote({
-        paymentMethod: nativePaymentMethod,
-      });
-
+  it('compares received mUSD as an exact decimal token amount', () => {
+    for (const cryptoAmount of [14.304, 14.296]) {
       expect(() =>
-        assertTransakQuoteParity(accepted, native, {
-          ...EXPECTED_CONTEXT,
-          paymentMethod,
+        assertTransakFeeInclusiveParity(
+          {
+            ...(ACCEPTED_QUOTE as object),
+            quote: {
+              ...(ACCEPTED_QUOTE as typeof ACCEPTED_QUOTE).quote,
+              amountOut: 14.3,
+            },
+          } as Quote,
+          { ...NATIVE_QUOTE, cryptoAmount },
+          {
+            assetId: ASSET_ID,
+            paymentMethod: '/payments/debit-credit-card',
+          },
+        ),
+      ).toThrow(
+        expect.objectContaining({
+          mismatchCategories: expect.arrayContaining(['crypto_amount']),
         }),
-      ).not.toThrow();
-    },
-  );
+      );
+    }
+  });
+
+  it('treats omitted accepted fee components as displayed zero', () => {
+    const acceptedQuote = {
+      ...(ACCEPTED_QUOTE as object),
+      quote: {
+        ...(ACCEPTED_QUOTE as typeof ACCEPTED_QUOTE).quote,
+        providerFee: undefined,
+        networkFee: undefined,
+      },
+    } as Quote;
+    const nativeQuote = {
+      ...NATIVE_QUOTE,
+      totalFee: 0,
+      feeBreakdown: [
+        { id: 'transak_fee', name: 'Transak fee', value: 0 },
+        { id: 'network_fee', name: 'Third Party fee', value: 0 },
+      ],
+    };
+
+    expect(() =>
+      assertTransakFeeInclusiveParity(acceptedQuote, nativeQuote, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
+    ).not.toThrow();
+  });
+
+  it('rejects malformed accepted fee values', () => {
+    const acceptedQuote = {
+      ...(ACCEPTED_QUOTE as object),
+      quote: {
+        ...(ACCEPTED_QUOTE as typeof ACCEPTED_QUOTE).quote,
+        providerFee: -1,
+      },
+    } as Quote;
+
+    expect(() =>
+      assertTransakFeeInclusiveParity(acceptedQuote, NATIVE_QUOTE, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        mismatchCategories: expect.arrayContaining(['provider_fee']),
+      }),
+    );
+  });
+
+  it('rejects missing and malformed fee breakdowns as quote changes', () => {
+    for (const feeBreakdown of [undefined, { id: 'transak_fee' }]) {
+      expect(() =>
+        assertTransakFeeInclusiveParity(
+          ACCEPTED_QUOTE,
+          { ...NATIVE_QUOTE, feeBreakdown } as unknown as TransakBuyQuote,
+          {
+            assetId: ASSET_ID,
+            paymentMethod: '/payments/debit-credit-card',
+          },
+        ),
+      ).toThrow(
+        expect.objectContaining({
+          mismatchCategories: expect.arrayContaining(['fee_breakdown']),
+        }),
+      );
+    }
+  });
+
+  it('rejects the wrong native response asset or network', () => {
+    for (const nativeQuote of [
+      { ...NATIVE_QUOTE, cryptoCurrency: 'USDC' },
+      { ...NATIVE_QUOTE, network: 'ethereum' },
+    ]) {
+      expect(() =>
+        assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+          assetId: ASSET_ID,
+          paymentMethod: '/payments/debit-credit-card',
+        }),
+      ).toThrow(
+        expect.objectContaining({
+          mismatchCategories: expect.arrayContaining(['asset']),
+        }),
+      );
+    }
+  });
+
+  it('rejects a charged partner fee for discounted mUSD', () => {
+    const nativeQuote = {
+      ...NATIVE_QUOTE,
+      feeBreakdown: [
+        ...NATIVE_QUOTE.feeBreakdown,
+        { id: 'partner_fee', name: 'Partner fee', value: 0.1 },
+      ],
+      totalFee: 1.5,
+    };
+
+    expect(() =>
+      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
+    ).toThrow(QuoteChangedError);
+  });
+
+  it('rejects unknown charged fee components', () => {
+    const nativeQuote = {
+      ...NATIVE_QUOTE,
+      feeBreakdown: [
+        ...NATIVE_QUOTE.feeBreakdown,
+        { id: 'unknown_fee', name: 'Unknown fee', value: 0.1 },
+      ],
+      totalFee: 1.5,
+    };
+
+    expect(() =>
+      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+        assetId: ASSET_ID,
+        paymentMethod: '/payments/debit-credit-card',
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        mismatchCategories: expect.arrayContaining(['fee_breakdown']),
+      }),
+    );
+  });
+});
+
+describe('acceptedAmountMatchesRequest', () => {
+  it('matches accepted and requested amounts at cent precision', () => {
+    expect(acceptedAmountMatchesRequest(ACCEPTED_QUOTE, 16.404)).toBe(true);
+  });
+
+  it('rejects a changed aggregator amount', () => {
+    expect(acceptedAmountMatchesRequest(ACCEPTED_QUOTE, 16.41)).toBe(false);
+  });
 });

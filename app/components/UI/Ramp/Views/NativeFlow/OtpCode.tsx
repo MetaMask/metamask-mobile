@@ -49,8 +49,13 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
-import { getSession } from '../../headless/sessionRegistry';
-import { getEffectiveFeeMode } from '../../utils/transakQuoteParity';
+import { getChainIdFromAssetId, getSession } from '../../headless';
+import { isMonadMusdAssetId } from '../../utils/fiatDepositAsset';
+import {
+  assertTransakFeeInclusiveParity,
+  QuoteChangedError,
+} from '../../utils/transakQuoteParity';
+import { failHeadlessQuoteChanged } from '../../headless/quoteChanged';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -282,34 +287,54 @@ const V2OtpCode = () => {
 
         if (amount && currency && assetId) {
           try {
-            const session = getSession(headlessSessionId);
-            const acceptedQuote = session?.params.quote;
-            const isFeeOnTop =
-              acceptedQuote &&
-              getEffectiveFeeMode(acceptedQuote) === 'fee-on-top';
-            const acceptedAmount = isFeeOnTop
-              ? String(acceptedQuote.quote.amountIn)
-              : amount;
-            const acceptedPaymentMethod =
-              session?.params.paymentMethodId ??
-              acceptedQuote?.quote.paymentMethod ??
+            const headlessSession = getSession(headlessSessionId);
+            const paymentMethod =
+              headlessSession?.params.paymentMethodId ??
+              headlessSession?.params.quote.quote.paymentMethod ??
               selectedPaymentMethod?.id ??
               '';
-            const quote = await transakGetBuyQuote(
+            const quoteArguments = [
               currency,
               assetId,
-              selectedToken?.chainId || '',
-              acceptedPaymentMethod,
-              acceptedAmount,
-              headlessSessionId ? Boolean(isFeeOnTop) : true,
-            );
+              (headlessSessionId && getChainIdFromAssetId(assetId)) ||
+                selectedToken?.chainId ||
+                '',
+              paymentMethod,
+              amount,
+            ] as const;
+            const isFeeInclusiveHeadless =
+              Boolean(headlessSessionId) && isMonadMusdAssetId(assetId);
+            const quote = isFeeInclusiveHeadless
+              ? await transakGetBuyQuote(...quoteArguments, false)
+              : await transakGetBuyQuote(...quoteArguments);
+            if (
+              isFeeInclusiveHeadless &&
+              headlessSessionId &&
+              headlessSession?.params.quote
+            ) {
+              try {
+                assertTransakFeeInclusiveParity(
+                  headlessSession.params.quote,
+                  quote,
+                  {
+                    assetId,
+                    paymentMethod,
+                  },
+                );
+              } catch (parityError) {
+                if (parityError instanceof QuoteChangedError) {
+                  failHeadlessQuoteChanged(
+                    headlessSessionId,
+                    navigation,
+                    parityError,
+                  );
+                }
+                throw parityError;
+              }
+            }
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            if (
-              routeError instanceof Error &&
-              'headlessBuyErrorCode' in routeError &&
-              routeError.headlessBuyErrorCode === 'QUOTE_CHANGED'
-            ) {
+            if (routeError instanceof QuoteChangedError) {
               return;
             }
             const nativeFlowError = parseUserFacingError(

@@ -454,6 +454,38 @@ describe('useTransakController', () => {
       expect(quote).toEqual(mockQuote);
     });
 
+    it('getBuyQuote delegates fee-inclusive behavior to RampsController', async () => {
+      const mockQuote = { quoteId: 'q1', fiatAmount: 15 };
+      (getRampsController().transakGetBuyQuote as jest.Mock).mockResolvedValue(
+        mockQuote,
+      );
+
+      const store = createMockStore();
+      const { result } = renderHook(() => useTransakController(), {
+        wrapper: createWrapper(store),
+      });
+
+      await act(async () => {
+        await result.current.getBuyQuote(
+          'USD',
+          'MUSD',
+          'monad',
+          'card',
+          '15',
+          false,
+        );
+      });
+
+      expect(getRampsController().transakGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'MUSD',
+        'monad',
+        'card',
+        '15',
+        false,
+      );
+    });
+
     it('createOrder delegates to RampsController', async () => {
       const mockOrder = { id: 'order-1' };
       (getRampsController().transakCreateOrder as jest.Mock).mockResolvedValue(

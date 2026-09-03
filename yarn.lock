@@ -9872,16 +9872,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^20.0.0, @metamask/ramps-controller@npm:^20.2.0":
-  version: 20.2.0
-  resolution: "@metamask/ramps-controller@npm:20.2.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@20.2.0-preview-6ed11f88f":
+  version: 20.2.0-preview-6ed11f88f
+  resolution: "@metamask-previews/ramps-controller@npm:20.2.0-preview-6ed11f88f"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^6.1.0"
-  checksum: 10/2ad551a54458cb01221d1b13794f222fd8e5672fa11bfa7cd348838c59b16623bb243ecff9015459f8c7b07e453b3daffb9242d431744e80d89dc3b29eb33989
+  checksum: 10/40c985a19ff6e68d0acfd6967e3d46968609cb7666fdee8c4063b855e57b559df03b535712c7b525d8f1c6ae5f1cd65073ac7d4f0c046fa19c2663a426b62d04
   languageName: node
   linkType: hard
 
@@ -10134,7 +10134,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/sentinel-api-service@npm:^1.0.0, @metamask/sentinel-api-service@npm:^1.0.1":
+"@metamask/sentinel-api-service@npm:^1.0.1":
   version: 1.0.1
   resolution: "@metamask/sentinel-api-service@npm:1.0.1"
   dependencies:
@@ -10683,9 +10683,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^27.0.0":
-  version: 27.0.0
-  resolution: "@metamask/transaction-pay-controller@npm:27.0.0"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@27.1.0-preview-6ed11f88f":
+  version: 27.1.0-preview-6ed11f88f
+  resolution: "@metamask-previews/transaction-pay-controller@npm:27.1.0-preview-6ed11f88f"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10699,16 +10699,16 @@ __metadata:
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/network-controller": "npm:^36.0.0"
-    "@metamask/ramps-controller": "npm:^20.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^6.0.0"
-    "@metamask/sentinel-api-service": "npm:^1.0.0"
+    "@metamask/ramps-controller": "npm:^20.2.0"
+    "@metamask/remote-feature-flag-controller": "npm:^6.1.0"
+    "@metamask/sentinel-api-service": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^69.6.1"
     "@metamask/utils": "npm:^11.11.0"
     bignumber.js: "npm:^9.1.2"
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/fadb35bd7a1e291e70c72fab700c97b0c89c7546db082752322c77306cd8e3f6f0e07c1c7b14bfaf1fd2f8a1aaa5fc6521cb4ef95c5c0ff97520a21132f42527
+  checksum: 10/c299d13b4d1155fdb0591ef8240158df39c2e2b1a83542d2d94a24fb14de7caf720e0d464cf4fd32875d6be2a6948ba2ebfff3e20b3ec5f3102d449fb87c0bbd
   languageName: node
   linkType: hard
 
