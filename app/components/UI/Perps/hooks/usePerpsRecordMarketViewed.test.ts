@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { usePerpsRecordMarketViewed } from './usePerpsRecordMarketViewed';
-import { usePerpsMarkets } from './usePerpsMarkets';
+import { usePerpsMarkets, type UsePerpsMarketsResult } from './usePerpsMarkets';
 
 const mockRecordMarketViewed = jest.fn();
 
@@ -27,17 +27,46 @@ const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
   typeof usePerpsMarkets
 >;
 
+const createMarketsResult = (
+  overrides: Partial<UsePerpsMarketsResult> = {},
+): UsePerpsMarketsResult => ({
+  markets: [
+    {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      maxLeverage: '50x',
+      price: '$1',
+      change24h: '$0',
+      change24hPercent: '0%',
+      volume: '$1M',
+      openInterest: '$1M',
+      volumeNumber: 1,
+    },
+    {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      maxLeverage: '50x',
+      price: '$1',
+      change24h: '$0',
+      change24hPercent: '0%',
+      volume: '$1M',
+      openInterest: '$1M',
+      volumeNumber: 1,
+    },
+  ],
+  isLoading: false,
+  isRefreshing: false,
+  error: null,
+  hasResolvedInitialData: true,
+  refresh: jest.fn(),
+  ...overrides,
+});
+
 describe('usePerpsRecordMarketViewed', () => {
   beforeEach(() => {
     useFocusEffect.mockClear();
     mockRecordMarketViewed.mockClear();
-    mockUsePerpsMarkets.mockReturnValue({
-      markets: [{ symbol: 'BTC' }, { symbol: 'ETH' }],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      refresh: jest.fn(),
-    } as ReturnType<typeof usePerpsMarkets>);
+    mockUsePerpsMarkets.mockReturnValue(createMarketsResult());
   });
 
   it('records the market view when the screen is focused', () => {
@@ -56,6 +85,23 @@ describe('usePerpsRecordMarketViewed', () => {
     focusCallback();
 
     expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+  });
+
+  it('records a symbol while the market list is still loading', () => {
+    mockUsePerpsMarkets.mockReturnValue(
+      createMarketsResult({
+        markets: [],
+        isLoading: true,
+        hasResolvedInitialData: false,
+      }),
+    );
+
+    renderHook(() => usePerpsRecordMarketViewed('ETH'));
+
+    const focusCallback = useFocusEffect.mock.calls[0][0] as () => void;
+    focusCallback();
+
+    expect(mockRecordMarketViewed).toHaveBeenCalledWith('ETH');
   });
 
   it('does not record a delisted or unknown symbol once markets are loaded', () => {

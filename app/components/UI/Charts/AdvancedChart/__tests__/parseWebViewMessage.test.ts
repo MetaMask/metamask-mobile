@@ -12,6 +12,18 @@ describe('parseWebViewMessage', () => {
     });
   });
 
+  it('parses VISIBLE_CANDLE_COUNT_CHANGED', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+        payload: { candleCount: 80 },
+      }),
+    ).toEqual({
+      type: 'VISIBLE_CANDLE_COUNT_CHANGED',
+      payload: { candleCount: 80 },
+    });
+  });
+
   it('parses CHART_INTERACTED zoom with candleCount', () => {
     expect(
       parseWebViewMessage({

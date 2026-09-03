@@ -14,7 +14,6 @@ import type {
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
-  type ChartInteractedPayload,
   type CrosshairData,
   type PositionLines,
   type PositionLineColors,
@@ -567,18 +566,6 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     [symbol, interval, surface, onError],
   );
 
-  const handleChartInteracted = useCallback(
-    (payload: ChartInteractedPayload) => {
-      if (
-        payload.interaction_type === 'zoom' &&
-        typeof payload.candleCount === 'number'
-      ) {
-        onVisibleCandleCountChange?.(payload.candleCount);
-      }
-    },
-    [onVisibleCandleCountChange],
-  );
-
   useEffect(() => {
     if (
       hasFailed &&
@@ -650,7 +637,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onError={handleError}
       onSkeletonHidden={handleSkeletonHidden}
       onChartLayoutSettled={handleChartLayoutSettled}
-      onChartInteracted={handleChartInteracted}
+      onVisibleCandleCountChange={onVisibleCandleCountChange}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
       currentPriceLineColorOverride={positionLineColors.currentPrice}

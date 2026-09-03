@@ -259,11 +259,13 @@ const PerpsScreenStack = () => {
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
-  const { markets } = usePerpsMarkets();
-  const tradableSymbols = useMemo(
-    () => markets.map((market) => market.symbol),
-    [markets],
-  );
+  const { markets, hasResolvedInitialData } = usePerpsMarkets();
+  const tradableSymbols = useMemo(() => {
+    if (!hasResolvedInitialData) {
+      return undefined;
+    }
+    return markets.map((market) => market.symbol);
+  }, [hasResolvedInitialData, markets]);
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
     : Routes.PERPS.PERPS_HOME;

@@ -142,11 +142,13 @@ export const useGetPerpsHomeNavigationTarget = (): ((
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
-  const { markets } = usePerpsMarkets();
-  const tradableSymbols = useMemo(
-    () => new Set(markets.map((market) => market.symbol)),
-    [markets],
-  );
+  const { markets, hasResolvedInitialData } = usePerpsMarkets();
+  const tradableSymbols = useMemo(() => {
+    if (!hasResolvedInitialData) {
+      return undefined;
+    }
+    return new Set(markets.map((market) => market.symbol));
+  }, [hasResolvedInitialData, markets]);
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>

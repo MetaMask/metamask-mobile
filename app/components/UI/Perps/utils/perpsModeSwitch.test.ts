@@ -10,8 +10,8 @@ import {
 } from '../selectors/perpsController';
 import {
   PERPS_DEFAULT_PRO_MARKET_SYMBOL,
-  resolveTradableLastViewedMarketSymbol,
   buildDefaultProMarket,
+  resolveTradableLastViewedMarketSymbol,
   isPerpsProModeActive,
   useIsPerpsProModeActive,
   getPerpsHomeNavigationTarget,
@@ -20,6 +20,10 @@ import {
   useDropPerpsHomeFromStackHistory,
   toPerpsNavigatorScreenParams,
 } from './perpsModeSwitch';
+import {
+  usePerpsMarkets,
+  type PerpsMarketDataWithVolumeNumber,
+} from '../hooks/usePerpsMarkets';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -47,7 +51,10 @@ jest.mock('../selectors/perpsController', () => ({
   selectPerpsMode: jest.fn(),
 }));
 
-const tradableMarketsFixture = [{ symbol: 'BTC' }, { symbol: 'ETH' }];
+const tradableMarketsFixture: PerpsMarketDataWithVolumeNumber[] = [
+  { symbol: 'BTC', volumeNumber: 1 } as PerpsMarketDataWithVolumeNumber,
+  { symbol: 'ETH', volumeNumber: 1 } as PerpsMarketDataWithVolumeNumber,
+];
 
 jest.mock('../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(() => ({
@@ -55,6 +62,7 @@ jest.mock('../hooks/usePerpsMarkets', () => ({
     isLoading: false,
     isRefreshing: false,
     error: null,
+    hasResolvedInitialData: true,
     refresh: jest.fn(),
   })),
 }));
@@ -71,6 +79,9 @@ const mockSelectPerpsLastViewedMarketSymbol =
   selectPerpsLastViewedMarketSymbol as jest.MockedFunction<
     typeof selectPerpsLastViewedMarketSymbol
   >;
+const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
+  typeof usePerpsMarkets
+>;
 
 const mockState = {} as RootState;
 
@@ -97,6 +108,14 @@ const stubPerpsModeSelectors = ({
 describe('perpsModeSwitch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: tradableMarketsFixture,
+      isLoading: false,
+      isRefreshing: false,
+      error: null,
+      hasResolvedInitialData: true,
+      refresh: jest.fn(),
+    });
   });
 
   it('defaults the Pro market symbol to BTC', () => {
@@ -128,6 +147,11 @@ describe('perpsModeSwitch', () => {
     expect(buildDefaultProMarket('DELISTED', ['BTC', 'ETH']).symbol).toBe(
       PERPS_DEFAULT_PRO_MARKET_SYMBOL,
     );
+  });
+
+  it('preserves the last-viewed symbol while tradable symbols are unknown', () => {
+    expect(resolveTradableLastViewedMarketSymbol('ETH')).toBe('ETH');
+    expect(buildDefaultProMarket('ETH').symbol).toBe('ETH');
   });
 
   describe('isPerpsProModeActive', () => {
@@ -283,6 +307,31 @@ describe('perpsModeSwitch', () => {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
           market: buildDefaultProMarket('DELISTED', ['BTC', 'ETH']),
+        },
+      });
+    });
+
+    it('preserves the saved symbol while the market list is still loading', () => {
+      stubPerpsModeSelectors({
+        flagEnabled: true,
+        mode: PerpsMode.Pro,
+        lastViewed: 'ETH',
+      });
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        isRefreshing: false,
+        error: null,
+        hasResolvedInitialData: false,
+        refresh: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useGetPerpsHomeNavigationTarget());
+
+      expect(result.current()).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: buildDefaultProMarket('ETH'),
         },
       });
     });

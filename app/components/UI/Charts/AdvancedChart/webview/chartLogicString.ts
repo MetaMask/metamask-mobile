@@ -2772,10 +2772,7 @@ function postZoomCandleCount() {
     if (candleCount === undefined) {
         return;
     }
-    postToRN('CHART_INTERACTED', {
-        interaction_type: 'zoom',
-        candleCount,
-    });
+    postToRN('VISIBLE_CANDLE_COUNT_CHANGED', { candleCount });
     debounce.zoomLastFiredAt = Date.now();
 }
 function fireZoom() {

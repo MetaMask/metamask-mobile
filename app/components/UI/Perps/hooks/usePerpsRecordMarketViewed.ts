@@ -12,7 +12,7 @@ import { usePerpsMarkets } from './usePerpsMarkets';
  * the view recording entirely.
  */
 export function usePerpsRecordMarketViewed(symbol?: string): void {
-  const { markets } = usePerpsMarkets();
+  const { markets, hasResolvedInitialData } = usePerpsMarkets();
   const tradableSymbols = useMemo(
     () => new Set(markets.map((market) => market.symbol)),
     [markets],
@@ -23,10 +23,10 @@ export function usePerpsRecordMarketViewed(symbol?: string): void {
       if (!symbol) {
         return;
       }
-      if (markets.length > 0 && !tradableSymbols.has(symbol)) {
+      if (hasResolvedInitialData && !tradableSymbols.has(symbol)) {
         return;
       }
       Engine.context.PerpsController.recordMarketViewed(symbol);
-    }, [markets.length, symbol, tradableSymbols]),
+    }, [hasResolvedInitialData, symbol, tradableSymbols]),
   );
 }

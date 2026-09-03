@@ -83,22 +83,35 @@ describe('attachVisibleRangeListeners', () => {
     jest.useRealTimers();
   });
 
-  it('debounces zoom and emits CHART_INTERACTED with type=zoom', () => {
+  it('reports each candle count immediately but debounces analytics zoom', () => {
     const bridge = installRNBridge();
     const { chart, emitZoom } = makeChart();
     attachVisibleRangeListeners(chart);
     emitZoom();
     emitZoom();
     emitZoom();
-    expect(bridge.postMessage).toHaveBeenCalledTimes(3);
-    const immediate = bridge.postMessage.mock.calls[0][0];
-    expect(immediate).toContain('"interaction_type":"zoom"');
-    expect(immediate).toContain('"candleCount":30');
+    expect(
+      bridge.postMessage.mock.calls.filter((call) =>
+        call[0].includes('VISIBLE_CANDLE_COUNT_CHANGED'),
+      ),
+    ).toHaveLength(3);
+    expect(
+      bridge.postMessage.mock.calls.filter((call) =>
+        call[0].includes('CHART_INTERACTED'),
+      ),
+    ).toHaveLength(0);
     jest.advanceTimersByTime(450);
-    expect(bridge.postMessage).toHaveBeenCalledTimes(4);
-    const debounced = bridge.postMessage.mock.calls[3][0];
-    expect(debounced).toContain('"interaction_type":"zoom"');
-    expect(debounced).not.toContain('"candleCount"');
+    expect(
+      bridge.postMessage.mock.calls.filter((call) =>
+        call[0].includes('CHART_INTERACTED'),
+      ),
+    ).toHaveLength(1);
+    expect(bridge.postMessage.mock.calls.at(-1)?.[0]).toContain(
+      '"interaction_type":"zoom"',
+    );
+    expect(bridge.postMessage.mock.calls.at(-1)?.[0]).not.toContain(
+      '"candleCount"',
+    );
   });
 
   it('reports zoom candle count immediately before analytics debounce', () => {
@@ -107,6 +120,9 @@ describe('attachVisibleRangeListeners', () => {
     attachVisibleRangeListeners(chart);
     emitZoom();
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
+    expect(bridge.postMessage.mock.calls[0][0]).toContain(
+      'VISIBLE_CANDLE_COUNT_CHANGED',
+    );
     expect(bridge.postMessage.mock.calls[0][0]).toContain('"candleCount":30');
     jest.advanceTimersByTime(450);
     expect(bridge.postMessage).toHaveBeenCalledTimes(2);
@@ -216,8 +232,12 @@ describe('attachVisibleRangeListeners', () => {
       const { chart, emitZoom } = makeChart(range);
       attachVisibleRangeListeners(chart);
       emitZoom();
-      return JSON.parse(bridge.postMessage.mock.calls[0][0]).payload
-        ?.candleCount;
+      const countMessage = bridge.postMessage.mock.calls.find((call) =>
+        call[0].includes('VISIBLE_CANDLE_COUNT_CHANGED'),
+      )?.[0];
+      return countMessage
+        ? JSON.parse(countMessage).payload?.candleCount
+        : undefined;
     };
 
     it.each([15, 30, 45, 90, 200])(

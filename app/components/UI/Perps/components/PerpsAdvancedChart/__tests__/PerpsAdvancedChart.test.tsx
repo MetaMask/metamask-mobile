@@ -118,10 +118,7 @@ describe('PerpsAdvancedChart', () => {
     renderChart({ onVisibleCandleCountChange });
 
     act(() => {
-      latestAdvancedChartProps().onChartInteracted?.({
-        interaction_type: 'zoom',
-        candleCount: 80,
-      });
+      latestAdvancedChartProps().onVisibleCandleCountChange?.(80);
     });
 
     expect(onVisibleCandleCountChange).toHaveBeenCalledWith(80);
