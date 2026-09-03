@@ -2043,6 +2043,8 @@
       "success_title": "Position closed successfully",
       "position_closed": "Position closed",
       "funds_are_available_to_trade": "Funds are available to trade",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "Failed to close position",
       "failed_to_partially_close_position": "Failed to partially close position",
       "failed_to_place_close_order": "Failed to place close order",

@@ -52,6 +52,18 @@ describe('usePerpsTPSLUpdate', () => {
 
   const mockPerpsToastOptions = {
     positionManagement: {
+      closePosition: {
+        positionAlreadyClosed: {
+          variant: 'icon',
+          iconName: 'Info',
+          labelOptions: [
+            {
+              label: 'perps.close_position.already_closed',
+              isBold: true,
+            },
+          ],
+        },
+      },
       tpsl: {
         updateTPSLSuccess: {
           variant: 'icon',
@@ -206,6 +218,63 @@ describe('usePerpsTPSLUpdate', () => {
       ),
     );
     expect(onError).toHaveBeenCalledWith('Network error');
+  });
+
+  it('shows already-closed toast when TP/SL update returns No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockResolvedValue({
+      success: false,
+      error: 'No position found for ETH',
+    });
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it('shows already-closed toast when TP/SL update throws No position found', async () => {
+    const onSuccess = jest.fn();
+    const onError = jest.fn();
+    const { result } = renderHookWithToast({ onSuccess, onError });
+    const position = createMockPosition();
+
+    mockUpdatePositionTPSL.mockRejectedValue(
+      new Error('No position found for ETH'),
+    );
+
+    let updateResult: { success: boolean } | undefined;
+    await act(async () => {
+      updateResult = await result.current.handleUpdateTPSL(
+        position,
+        '3300',
+        '2700',
+      );
+    });
+
+    expect(updateResult).toEqual({ success: false });
+    expect(mockShowToast).toHaveBeenCalledWith(
+      mockPerpsToastOptions.positionManagement.closePosition
+        .positionAlreadyClosed,
+    );
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it('should show error toast and call onError callback on exception', async () => {

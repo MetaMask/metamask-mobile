@@ -182,6 +182,7 @@ const defaultPerpsToastsMock = {
   PerpsToastOptions: {
     positionManagement: {
       closePosition: {
+        positionAlreadyClosed: { label: 'already-closed' },
         limitClose: {
           partial: {
             switchToMarketOrderMissingLimitPrice: {},
@@ -430,6 +431,35 @@ describe('PerpsClosePositionView', () => {
       });
       expect(playImpact).toHaveBeenCalledTimes(1);
       expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('dismisses the sheet with already-closed toast when live position is gone', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: false,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalled();
+      });
+      expect(defaultPerpsToastsMock.showToast).toHaveBeenCalledWith(
+        defaultPerpsToastsMock.PerpsToastOptions.positionManagement
+          .closePosition.positionAlreadyClosed,
+      );
+      expect(handleClosePosition).not.toHaveBeenCalled();
     });
 
     it('disables confirm button when closing is in progress', () => {

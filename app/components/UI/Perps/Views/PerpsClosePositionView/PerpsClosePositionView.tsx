@@ -65,6 +65,7 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../hooks/stream';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsAbandonOrderTracking } from '../../hooks/usePerpsAbandonOrderTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
@@ -114,6 +115,7 @@ const PerpsClosePositionView: React.FC = () => {
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
   const hasConfirmedCloseRef = useRef(false);
+  const hasReconciledGoneRef = useRef(false);
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -202,13 +204,30 @@ const PerpsClosePositionView: React.FC = () => {
 
   // Subscribe to live position updates for this coin
   // This ensures margin and PnL values include real-time funding fees
-  const { positions: livePositions } = usePerpsLivePositions({
-    throttleMs: 1000,
-  });
-  const livePosition = useMemo(
-    () => livePositions.find((p) => p.symbol === position.symbol) || position,
-    [livePositions, position],
+  const { positions: livePositions, isInitialLoading: isPositionsLoading } =
+    usePerpsLivePositions({
+      throttleMs: 1000,
+    });
+  const matchingLivePosition = useMemo(
+    () => livePositions.find((p) => p.symbol === position.symbol),
+    [livePositions, position.symbol],
   );
+  // Keep the route snapshot only for layout until we dismiss a gone position.
+  const livePosition = matchingLivePosition ?? position;
+  const isPositionGone = !isPositionsLoading && !matchingLivePosition;
+
+  useEffect(() => {
+    if (!isPositionGone || hasReconciledGoneRef.current) {
+      return;
+    }
+    hasReconciledGoneRef.current = true;
+    hasConfirmedCloseRef.current = true;
+    showToast(
+      PerpsToastOptions.positionManagement.closePosition.positionAlreadyClosed,
+    );
+    PerpsCacheInvalidator.invalidate('positions');
+    navigation.goBack();
+  }, [isPositionGone, navigation, showToast, PerpsToastOptions]);
 
   // Determine position direction using live position data
   const isLong = parseFloat(livePosition.size) > 0;
@@ -571,7 +590,7 @@ const PerpsClosePositionView: React.FC = () => {
   }, [effectiveOrderType, limitPrice]);
 
   const handleConfirm = useCallback(async () => {
-    if (isClosing) {
+    if (isClosing || isPositionGone) {
       return;
     }
 
@@ -645,6 +664,7 @@ const PerpsClosePositionView: React.FC = () => {
     effectiveOrderType,
     enableHaptics,
     isClosing,
+    isPositionGone,
     limitPrice,
     navigation,
     handleClosePosition,
@@ -834,6 +854,7 @@ const PerpsClosePositionView: React.FC = () => {
 
   const isConfirmDisabled =
     isClosing ||
+    isPositionGone ||
     (effectiveOrderType === 'limit' &&
       (!limitPrice || parseFloat(limitPrice) <= 0)) ||
     (effectiveOrderType === 'market' && closePercentage === 0) ||

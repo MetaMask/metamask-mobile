@@ -9,7 +9,11 @@ import {
   type Position,
   type TrackingData,
 } from '@metamask/perps-controller';
-import { handlePerpsError } from '../utils/translatePerpsError';
+import {
+  handlePerpsError,
+  isNoPositionFoundError,
+} from '../utils/translatePerpsError';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { TraceName } from '../../../../util/trace';
 import {
   startPerpsCufTrace,
@@ -125,6 +129,28 @@ export const usePerpsClosePosition = (
         );
       }
 
+      // The venue filled, closed or liquidated the position before this
+      // request landed. Nothing failed on the user's side, so reconcile the
+      // stale local state and say so instead of raising a close failure.
+      const reconcileAlreadyClosed = (
+        reason: (typeof PERPS_CUF_END_REASON)[keyof typeof PERPS_CUF_END_REASON],
+      ) => {
+        if (closeCufOpId) {
+          endPerpsCufTrace({
+            id: closeCufOpId,
+            data: {
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: reason,
+            },
+          });
+        }
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed,
+        );
+        PerpsCacheInvalidator.invalidate('positions');
+      };
+
       try {
         setIsClosing(true);
         setError(null);
@@ -214,6 +240,11 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
+        if (!result.success && isNoPositionFoundError(result.error)) {
+          reconcileAlreadyClosed(PERPS_CUF_END_REASON.REQUEST_FAILED);
+          return result;
+        }
+
         if (result.success) {
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
@@ -273,6 +304,14 @@ export const usePerpsClosePosition = (
 
         return result;
       } catch (err) {
+        if (isNoPositionFoundError(err)) {
+          reconcileAlreadyClosed(PERPS_CUF_END_REASON.EXCEPTION);
+          return {
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          };
+        }
+
         // A rejected promise (e.g. thrown by the controller/provider) skips the
         // { success: false } branch, so surface the failure toast here unless it
         // was already shown for a returned failure.

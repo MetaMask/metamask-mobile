@@ -10,6 +10,8 @@ import {
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
+import { isNoPositionFoundError } from '../utils/translatePerpsError';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { TraceName } from '../../../../util/trace';
 import {
@@ -67,6 +69,17 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         PERPS_CUF_STREAM_TIMEOUT_MS,
       );
 
+      // The venue filled, closed or liquidated the position before this
+      // request landed, so there is nothing left to attach TP/SL to. Reconcile
+      // the stale local state and say so instead of raising a generic error.
+      const reconcileAlreadyClosed = () => {
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed,
+        );
+        PerpsCacheInvalidator.invalidate('positions');
+      };
+
       try {
         const result = await updatePositionTPSL({
           symbol: position.symbol,
@@ -111,6 +124,11 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           },
         });
 
+        if (isNoPositionFoundError(result.error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
+
         const errorMessage = result.error || strings('perps.errors.unknown');
 
         showToast(
@@ -131,6 +149,10 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
             [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
           },
         });
+        if (isNoPositionFoundError(error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
         DevLogger.log('Error updating position TP/SL:', error);
 
         Logger.error(ensureError(error, 'usePerpsTPSLUpdate.handle'), {
@@ -184,6 +206,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       updatePositionTPSL,
       showToast,
       PerpsToastOptions.positionManagement.tpsl,
+      PerpsToastOptions.positionManagement.closePosition,
       options,
       stream,
     ],
