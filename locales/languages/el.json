@@ -27,7 +27,7 @@
     "contact_support": "Επικοινωνία με την υποστήριξη"
   },
   "storage": {
-    "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
+    "device_full_alert": "Ο αποθηκευτικός χώρος της συσκευής σας είναι σχεδόν πλήρης. Απελευθερώστε χώρο, ώστε το MetaMask να μπορεί να αποθηκεύσει τα δεδομένα του πορτοφολιού σας."
   },
   "alert_system": {
     "alert_modal": {
@@ -43,15 +43,8 @@
       "checkbox_label": "Έχω ενημερωθεί για την ειδοποίηση και εξακολουθώ να θέλω να προχωρήσω",
       "review_alerts": "Έλεγχος όλων των ειδοποιήσεων",
       "message": "Σας προτείνουμε να απορρίψετε αυτό το αίτημα. Εάν συνεχίσετε, μπορεί να θέσετε σε κίνδυνο τα περιουσιακά σας στοιχεία.",
-      "title_blockaid": "Τα περιουσιακά σας στοιχεία μπορεί να κινδυνεύουν",
-      "blockaid": {
-        "message": "Εάν επιβεβαιώσετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία. Σας συνιστούμε να ακυρώσετε αυτό το αίτημα.",
-        "message1": "Εάν επιβεβαιώσετε αυτό το αίτημα, επιτρέπετε σε έναν απατεώνα να κάνει ανάληψη και να ξοδέψει τα περιουσιακά σας στοιχεία. Δεν θα τα πάρετε πίσω.",
-        "message2": "Στέλνετε τα περιουσιακά σας στοιχεία σε έναν απατεώνα. Εάν συνεχίσετε, θα χάσετε αυτά τα περιουσιακά στοιχεία.",
-        "message3": "Εάν συνεχίσετε, όλα τα περιουσιακά στοιχεία που έχετε καταχωρίσει στο OpenSea μπορεί να κινδυνεύουν.",
-        "message4": "Εάν συνεχίσετε, όλα τα περιουσιακά στοιχεία που έχετε καταχωρίσει στο Blur μπορεί να κινδυνεύουν.",
-        "message5": "Αλληλεπιδράτε με έναν κακόβουλο ιστότοπο. Εάν συνεχίσετε, θα χάσετε τα περιουσιακά σας στοιχεία."
-      }
+      "blockaid_message": "Οι τεχνικοί σύμβουλοι ασφαλείας εντόπισαν ενδείξεις υψηλού κινδύνου σε αυτό το {{requestType}}. Αν συνεχίσετε, δεν θα είναι δυνατή η ανάκτηση των κεφαλαίων σας.",
+      "blockaid_message_with_amount": "Οι τεχνικοί σύμβουλοι ασφαλείας εντόπισαν ενδείξεις υψηλού κινδύνου σε αυτό το {{requestType}}. Αν συνεχίσετε, δεν θα είναι δυνατή η ανάκτηση των {{amount}}."
     },
     "inline_alert_label": "Ειδοποίηση",
     "review_alerts": "Έλεγχος ειδοποιήσεων",
@@ -171,12 +164,12 @@
     },
     "address_trust_signal": {
       "malicious": {
-        "message": "Εάν επιβεβαιώσετε αυτό το αίτημα, πιθανότατα θα χάσετε τα περιουσιακά σας στοιχεία λόγω ενός απατεώνα.",
-        "title": "Κακόβουλη διεύθυνση"
+        "message": "Οι τεχνικοί σύμβουλοι ασφαλείας έχουν επισημάνει αυτήν τη διεύθυνση για κακόβουλη δραστηριότητα.",
+        "title": "Η διεύθυνση έχει επισημανθεί ως υψηλού κινδύνου"
       },
       "warning": {
-        "message": "Δεν μπορούμε να επαληθεύσουμε αυτήν τη διεύθυνση. Μπορεί να είναι νέα ή μη επαληθευμένη. Συνεχίστε μόνο αν εμπιστεύεστε την πηγή.",
-        "title": "Η διεύθυνση χρειάζεται έλεγχο"
+        "message": "Οι τεχνικοί σύμβουλοι ασφαλείας δεν διαθέτουν επαρκές αξιόπιστο ιστορικό για την επαλήθευση αυτής της διεύθυνσης.",
+        "title": "Limited address signals"
       }
     },
     "url_trust_signal": {
@@ -191,21 +184,30 @@
     }
   },
   "blockaid_banner": {
-    "approval_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες μπορεί να πάρει όλα τα περιουσιακά σας στοιχεία.",
-    "blur_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, κάποιος μπορεί να κλέψει τα περιουσιακά σας στοιχεία που είναι καταχωρημένα στο Blur.",
-    "deceptive_request_title": "Πρόκειται για παραπλανητικό αίτημα",
-    "failed_title": "Το αίτημα μπορεί να μην είναι ασφαλές",
-    "failed_description": "Λόγω σφάλματος, αυτό το αίτημα δεν επαληθεύτηκε από τον πάροχο ασφαλείας. Προχωρήστε με προσοχή.",
-    "malicious_domain_description": "Αλληλεπιδράτε με έναν κακόβουλο τομέα. Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "other_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "raw_signature_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "seaport_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, κάποιος μπορεί να κλέψει τα περιουσιακά σας στοιχεία που είναι καταχωρημένα στο OpenSea.",
+    "high_risk_approval_title": "Έγκριση υψηλού κινδύνου",
+    "high_risk_transfer_title": "Μεταφορά υψηλού κινδύνου",
+    "high_risk_signature_title": "Υπογραφή υψηλού κινδύνου",
+    "site_flagged_unsafe_title": "Ο ιστότοπος επισημάνθηκε ως μη ασφαλής",
+    "risk_signals_detected_title": "Εντοπίστηκαν ενδείξεις κινδύνου",
+    "failed_title": "Ο έλεγχος ασφαλείας δεν είναι διαθέσιμος",
+    "approval_farming_description": "Παρέχετε σε μια διεύθυνση που έχει επισημανθεί από τους τεχνικούς συμβούλους ασφαλείας την άδεια να μεταφέρει τα περιουσιακά στοιχεία σας.",
+    "marketplace_farming_description": "Παρέχετε σε μια διεύθυνση που έχει επισημανθεί από τους τεχνικούς συμβούλους ασφαλείας την άδεια να μεταφέρει τα περιουσιακά στοιχεία σας που είναι καταχωρισμένα στο {{marketplace}}.",
+    "transfer_farming_description": "Θα στείλετε περιουσιακά στοιχεία σε μια διεύθυνση που έχει επισημανθεί από τους τεχνικούς συμβούλους ασφαλείας. Αν πρόκειται για απάτη, δεν θα είναι δυνατή η ανάκτηση των κεφαλαίων σας.",
+    "transfer_farming_description_with_amount": "Θα στείλετε περιουσιακά στοιχεία σε μια διεύθυνση που έχει επισημανθεί από τους τεχνικούς συμβούλους ασφαλείας. Αν πρόκειται για απάτη, δεν θα είναι δυνατή η ανάκτηση των {{amount}}.",
+    "malicious_domain_description": "Οι τεχνικοί σύμβουλοι ασφαλείας έχουν επισημάνει αυτόν τον ιστότοπο ως κακόβουλο. Αν πρόκειται για απάτη, δεν θα είναι δυνατή η ανάκτηση των κεφαλαίων σας.",
+    "malicious_domain_description_with_amount": "Οι τεχνικοί σύμβουλοι ασφαλείας έχουν επισημάνει αυτόν τον ιστότοπο ως κακόβουλο. Αν πρόκειται για απάτη, δεν θα είναι δυνατή η ανάκτηση των {{amount}}.",
+    "high_risk_signature_description": "Οι τεχνικοί σύμβουλοι ασφαλείας έχουν επισημάνει αυτήν την υπογραφή ως υψηλού κινδύνου. Αν υπογράψετε ενδέχεται να εξουσιοδοτήσετε ενέργειες σχετικά με τα περιουσιακά στοιχεία σας χωρίς την άδειά σας.",
+    "other_description": "Οι τεχνικοί σύμβουλοι ασφαλείας εντόπισαν ενδείξεις κινδύνου σε αυτό το αίτημα. Ελέγξτε προσεκτικά τα στοιχεία πριν προχωρήσετε.",
+    "failed_description": "Δεν ήταν δυνατή η ολοκλήρωση αυτού του ελέγχου ασφαλείας. Συνεχίστε μόνο αν εμπιστεύεστε τον ιστότοπο και τις διευθύνσεις που εμπλέκονται.",
+    "request_type": {
+      "approval": "έγκριση",
+      "transfer": "μεταφορά",
+      "signature": "υπογραφή",
+      "request": "αίτημα"
+    },
     "see_details": "Δείτε λεπτομέρειες",
     "does_not_look_right": "Κάτι δεν φαίνεται σωστό;",
     "report_an_issue": "Αναφέρετε ένα πρόβλημα",
-    "suspicious_request_title": "Πρόκειται για ύποπτο αίτημα",
-    "trade_order_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ενδέχεται να χάσετε τα περιουσιακά σας στοιχεία.",
-    "transfer_farming_description": "Εάν εγκρίνετε αυτό το αίτημα, ένας τρίτος που είναι γνωστός για απάτες θα πάρει όλα τα περιουσιακά σας στοιχεία.",
     "before_you_proceed": "Προτού προχωρήσετε",
     "enable_blockaid_alerts": "Για να ενεργοποιήσουμε αυτή τη λειτουργία πρέπει να ρυθμίσουμε κάποια ειδοποίηση ασφαλείας. Αυτή η σελίδα θα πρέπει να παραμείνει ανοιχτή όσο θα κάνουμε ρυθμίσεις. Η διαδικασία θα διαρκέσει λιγότερο από ένα λεπτό.",
     "enable_blockaid_alerts_description": "Αυτή η σελίδα θα πρέπει να παραμένει ανοιχτή όσο διαρκεί η ρύθμιση των ειδοποιήσεων ασφαλείας. Η διαδικασία αυτή θα διαρκέσει λιγότερο από ένα λεπτό.",
@@ -1025,7 +1027,7 @@
       "description": "Οι αγορές με κάρτα συνήθως διαρκούν λίγα λεπτά",
       "bank_transfer_description": "Οι τραπεζικές μεταφορές διαρκούν συνήθως μερικές εργάσιμες ημέρες",
       "success_title": "Η κατάθεση ολοκληρώθηκε",
-      "success_description": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία!",
+      "success_description": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία",
       "error_title": "Η κατάθεση απέτυχε",
       "error_description": "Δεν ήταν δυνατή η ολοκλήρωση της κατάθεσής σας",
       "cancel_order_description": "Ζητήσατε ακύρωση της κατάθεσής σας.",
@@ -1078,7 +1080,7 @@
       "deposit_failed_description": "Επαληθεύστε τη μέθοδο πληρωμής και αν υποστηρίζεται η κάρτα σας",
       "deposit_cancelled_title": "Η κατάθεσή σας ακυρώθηκε",
       "deposit_cancelled_description": "Ζητήσατε ακύρωση της κατάθεσής σας.",
-      "deposit_completed_title": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία!",
+      "deposit_completed_title": "Η κατάθεσή σας των {{amount}} {{currency}} πραγματοποιήθηκε με επιτυχία",
       "deposit_completed_description": "Τα {{currency}} είναι πλέον διαθέσιμα στο πορτοφόλι σας",
       "deposit_pending_title": "Γίνεται επεξεργασία της κατάθεσής σας σε {{currency}}",
       "deposit_pending_description": "Αυτό θα διαρκέσει μόνο λίγα λεπτά..."
@@ -1096,6 +1098,42 @@
       "try_again": "Προσπαθήστε ξανά",
       "error_details_title": "Λεπτομέρειες σφάλματος",
       "see_more": "Δείτε περισσότερα"
+    }
+  },
+  "virtual_bank_account": {
+    "get_pix_key": {
+      "navbar_title": "Τραπεζικός λογαριασμός",
+      "title": "Αποκτήστε το Pix Key",
+      "description": "Στείλτε χρήματα απευθείας στον Money account σας από οποιονδήποτε τραπεζικό λογαριασμό.",
+      "benefit_deposit_pix": "Κατάθεση μέσω",
+      "benefit_payments": "Στείλτε εγχώριες και διεθνείς πληρωμές",
+      "agreements_disclosures_title": "Συμφωνίες και γνωστοποιήσεις",
+      "disclaimers_error": "Δεν ήταν δυνατή η φόρτωση των όρων και προϋποθέσεων.",
+      "disclaimers_retry": "Προσπαθήστε ξανά",
+      "agreement_text": "Συνεχίζοντας, συμφωνείτε με τους παραπάνω όρους και προϋποθέσεις.",
+      "powered_by_moonpay": "Με την υποστήριξη της MoonPay.",
+      "button": "Αποδοχή και συνέχεια"
+    },
+    "verify_identity": {
+      "title": "Επαληθεύστε την ταυτότητά σας",
+      "description": "Η επαλήθευση είναι γρήγορη και χρειάζεται να γίνει μόνο μία φορά. Για να ολοκληρώσετε την επαλήθευση, θα πρέπει να:",
+      "step_upload_id": "Ανεβάσετε έγγραφο ταυτοποίησης",
+      "step_take_selfie": "Τραβήξετε μια selfie",
+      "step_confirm_details": "Επιβεβαιώσετε τα προσωπικά σας στοιχεία",
+      "data_and_privacy_title": "Δεδομένα και απόρρητο",
+      "what_we_collect_title": "Τι συλλέγουμε",
+      "what_we_collect_description": "Συλλέγουμε προσωπικά στοιχεία στο πλαίσιο της επαλήθευσης ταυτότητας, όπως το πλήρες ονοματεπώνυμο, η διεύθυνση και άλλα στοιχεία.",
+      "how_we_store_data_title": "Πώς αποθηκεύουμε τα δεδομένα",
+      "how_we_store_data_description": "Οι πληροφορίες επαλήθευσης αποθηκεύονται με ασφάλεια σε διακομιστές που διαχειρίζεται το MetaMask. Είναι κρυπτογραφημένα με την εντροπία της Μυστικής Φράσης Ανάκτησής σας και δεν έχουμε πρόσβαση στα δεδομένα. Θα απαιτείται η συγκατάθεσή σας για μελλοντική χρήση με άλλον πάροχο.",
+      "how_to_delete_title": "Πώς να τα διαγράψετε",
+      "how_to_delete_description": "Μπορείτε να διαγράψετε τα δεδομένα σας ανά πάσα στιγμή, μεταβαίνοντας στις Ρυθμίσεις > Διαχείριση δεδομένων.",
+      "metamask_privacy_policy": "Πολιτική απορρήτου του MetaMask",
+      "metamask_terms": "Όροι και προϋποθέσεις του MetaMask",
+      "idos_privacy_policy": "Πολιτική απορρήτου του idOS",
+      "idos_terms": "Όροι και προϋποθέσεις του idOS",
+      "sumsub_privacy_policy": "Πολιτική απορρήτου της Sumsub",
+      "sumsub_terms": "Όροι και προϋποθέσεις της Sumsub",
+      "button": "Συνεχίστε"
     }
   },
   "social_leaderboard": {
@@ -1132,15 +1170,19 @@
       "following": "Ακολουθείτε",
       "all": "Όλα",
       "trade": "Συναλλαγές",
+      "just_now": "Μόλις τώρα",
       "action": {
-        "bought": "αγόρασε",
-        "sold": "πουλήθηκαν",
-        "opened": "άνοιξε",
-        "closed": "έκλεισε"
+        "perps_opened": "άνοιξε",
+        "perps_added": "προστέθηκε",
+        "perps_reduced": "μειώθηκε",
+        "perps_closed": "έκλεισε",
+        "spot_bought": "αγόρασε",
+        "spot_sold": "πουλήθηκαν",
+        "traded": "πραγματοποίησε συναλλαγή"
       },
       "new_position": {
-        "bought": "Διακράτηση",
-        "opened": "Άνοιγμα"
+        "spot": "Διακράτηση",
+        "perps": "Ανοιχτή"
       },
       "empty_following": {
         "title": "Καμία δραστηριότητα μέχρι στιγμής",
@@ -1243,8 +1285,15 @@
       "buy": "Αγορά",
       "trade": "Συναλλαγές",
       "unsupported_market": "Μη υποστηριζόμενη αγορά",
-      "bought": "Αγόρασε",
-      "sold": "Πουλήθηκαν",
+      "action": {
+        "perps_opened": "Άνοιξε",
+        "perps_added": "Προστέθηκε",
+        "perps_reduced": "Μειώθηκε",
+        "perps_closed": "Έκλεισε",
+        "spot_bought": "Αγόρασε",
+        "spot_sold": "Πουλήθηκαν",
+        "traded": "Πραγματοποίησε συναλλαγή"
+      },
       "no_trades": "Δεν υπάρχουν ακόμη συναλλαγές",
       "closed_position": "Κλειστή θέση",
       "fallback_title": "Η θέση δεν είναι διαθέσιμη",
@@ -1253,9 +1302,7 @@
       "fallback_back_to_leaderboard": "Πίσω στον πίνακα κατάταξης",
       "sell": "Πώληση",
       "long": "Αγορά (Long)",
-      "short": "Πώληση (Short)",
-      "opened": "Άνοιξε",
-      "closed_action": "Έκλεισε"
+      "short": "Πώληση (Short)"
     },
     "quick_buy": {
       "title": "Αγορά {{symbol}}",
@@ -1313,8 +1360,9 @@
       "lite": "Lite",
       "pro": "Pro",
       "selection_title": "Επιλέξτε πώς θέλετε να κάνετε συναλλαγές",
+      "selection_subtitle": "Change this anytime on the top right menu.",
       "lite_description": "Αγορά ή πώληση με ένα πάτημα. Σχεδιασμένο για απλότητα.",
-      "pro_description": "Βιβλίο εντολών, προηγμένοι τύποι εντολών και μόχλευση.",
+      "pro_description": "Professional workstation with advanced controls.",
       "lite_transition_title": "Απλή λειτουργία",
       "pro_transition_title": "Επαγγελματική λειτουργία",
       "active_pill_accessibility_label": "Τρέχουσα λειτουργία: {{mode}}",
@@ -1408,7 +1456,7 @@
       "processing": {
         "title": "Επεξεργασία κατάθεσης"
       },
-      "deposit_completed": "Η κατάθεση ολοκληρώθηκε με επιτυχία!",
+      "deposit_completed": "Η κατάθεση ολοκληρώθηκε με επιτυχία",
       "deposit_failed": "Η κατάθεση απέτυχε",
       "retry_deposit": "Επανάληψη κατάθεσης",
       "go_back": "Πίσω",
@@ -1438,7 +1486,7 @@
       "bridge_quote_timeout": "Αδυναμία λήψης προσφοράς μεταφοράς κεφαλαίων. Προσπαθήστε ξανά ή επιλέξτε διαφορετικό token.",
       "no_quotes_available": "Δεν υπάρχουν διαθέσιμες διαδρομές για αυτήν την ανταλλαγή. Δοκιμάστε με διαφορετικό token ή ποσό.",
       "success": {
-        "title": "Η κατάθεση ολοκληρώθηκε με επιτυχία!",
+        "title": "Η κατάθεση ολοκληρώθηκε με επιτυχία",
         "description": "Τα USDC σας κατατέθηκαν με επιτυχία στον λογαριασμό συναλλαγών σας στο HyperLiquid",
         "amount": "Ποσό",
         "processing_time": "Χρόνος επεξεργασίας",
@@ -1539,13 +1587,60 @@
       "available_balance": "{{amount}} διαθέσιμα",
       "available_balance_unavailable": "-- διαθέσιμο",
       "est_liquidation": "Εκτ. ρευστοποίηση",
+      "before_after": "{{before}} → {{after}}",
       "tpsl": "ΛΚ/ΠΖ",
       "place_order": "Καταχώριση εντολής",
-      "close_keyboard": "Απόκρυψη πληκτρολογίου"
+      "keyboard_previous": "Previous field",
+      "keyboard_next": "Next field",
+      "keyboard_done": "Τέλος",
+      "price_unavailable": "Η τιμή αγοράς δεν είναι διαθέσιμη. Περιμένετε να είναι διαθέσιμα τα δεδομένα τιμής πριν υποβάλετε μια εντολή.",
+      "scale": {
+        "start_price": "Start (USD)",
+        "end_price": "End (USD)",
+        "total_orders": "Order count",
+        "size_skew": "Size skew",
+        "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
+        "range": "{{start}} → {{end}}",
+        "start": "Έναρξη",
+        "end": "Τέλος",
+        "margin": "Περιθώριο (margin)",
+        "orders_submitted": "Scale orders submitted",
+        "orders_placed": "Scale orders placed",
+        "orders_partially_placed": "Scale orders partially placed",
+        "submission_summary": "Placing {{totalCount}} orders · {{size}} {{assetSymbol}}",
+        "placement_summary": "{{submittedCount}} orders placed · {{size}} {{assetSymbol}}",
+        "partial_placement_summary": "{{submittedCount}} of {{totalCount}} orders placed · {{size}} {{assetSymbol}}",
+        "validation": {
+          "prices_required": "Enter both Scale range prices",
+          "size_required": "Enter a Scale order size",
+          "invalid_range": "Start price must be lower than end price",
+          "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
+          "invalid_skew": "Size skew must be greater than 0",
+          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "unavailable": "Scale orders are temporarily unavailable. Select another order type."
+        }
+      },
+      "twap": {
+        "running_time": "Διάρκεια εκτέλεσης",
+        "runtime_label": "Διάρκεια ({{minDurationMinutes}}λ. – {{maxDurationHours}}ώ.)",
+        "valid_range": "{{minDurationMinutes}} λεπτά–{{maxDurationHours}} ώρες",
+        "days_short": "η",
+        "hours_short": "ω",
+        "minutes_short": "λ",
+        "randomize": "Τυχαιοποίηση",
+        "randomize_description": "Μεταβάλλετε το μέγεθος κάθε επιμέρους εντολής έως και κατά ±{{randomizeVariancePercent}}%.",
+        "minimum_size": "Το συνολικό μέγεθος TWAP πρέπει να είναι τουλάχιστον ${{minNotionalUsd}}.",
+        "duration_range": "Η διάρκεια εκτέλεσης πρέπει να είναι μεταξύ {{minDurationMinutes}} λεπτών και {{maxDurationHours}} ωρών."
+      }
     },
     "pro_positions_panel": {
       "order_history": "Ιστορικό εντολών",
       "close_count": "Κλείσιμο ({{count}})",
+      "cancel_all": "Ακύρωση όλων",
+      "open_orders": {
+        "one": "{{count}} εντολή",
+        "other": "{{count}} εντολές"
+      },
       "positions": "Θέσεις",
       "positions_with_count": "Θέσεις ({{count}})",
       "orders": "Εντολές",
@@ -1648,10 +1743,24 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Πρέπει να ορίσετε μια τιμή ορίου πριν ρυθμίσετε τις τιμές ΛΚ/ΠΖ",
         "only_hyperliquid_usdc": "Μόνο USDC στο Hyperliquid υποστηρίζονται προς το παρόν για πληρωμές",
         "limit_price_far_warning": "Η τιμή ορίου απέχει πολύ από την τρέχουσα τιμή της αγοράς",
+        "limit_price_above_warning": "Η τιμή ορίου είναι υψηλότερη από την τρέχουσα τιμή. Η εντολή σας ενδέχεται να εκτελεστεί ως εντολή αγοράς.",
+        "limit_price_below_warning": "Η τιμή ορίου είναι χαμηλότερη από την τρέχουσα τιμή. Η εντολή σας ενδέχεται να εκτελεστεί ως εντολή αγοράς.",
+        "trigger_must_be_above_mid": "Η τιμή ενεργοποίησης πρέπει να είναι υψηλότερη από τη μέση τιμή",
+        "trigger_must_be_below_mid": "Η τιμή ενεργοποίησης πρέπει να είναι χαμηλότερη από τη μέση τιμή",
+        "trigger_orders_unavailable": "Οι εντολές ενεργοποίησης είναι προσωρινά μη διαθέσιμες. Επιλέξτε μια εντολή αγοράς.",
+        "please_set_a_trigger_price": "Ορίστε μια τιμή ενεργοποίησης",
         "oi_cap_reached": "Έχει επιτευχθεί το όριο ανοιχτών θέσεων. Νέες θέσεις δεν μπορούν να ανοιχτούν αυτή τη στιγμή.",
+        "chase_limit": "You can run up to {{count}} active Chase orders at a time.",
+        "chase_max_distance_usd": "Max chase distance must be greater than $0 and less than the current price.",
+        "chase_max_distance_percent": "Max chase distance must be greater than 0% and less than 100%.",
+        "chase_account_changed": "Account changed. Review and place the Chase order again.",
+        "chase_details_changed": "Order details changed. Review and place the Chase order again.",
+        "chase_route_changed": "Market route changed. Review and place the Chase order again.",
+        "chase_unavailable": "Chase placement is not available for this provider.",
         "reduce_only_no_position": "Πρέπει να έχετε ανοιχτή θέση σε αυτή την αγορά για να υποβάλετε εντολές μείωσης θέσης",
         "reduce_only_wrong_side": "Οι εντολές μείωσης θέσης μπορούν να μειώσουν μόνο μια υπάρχουσα θέση. Μεταβείτε στην αντίθετη πλευρά.",
-        "reduce_only_too_large": "Η εντολή μείωσης θέσης είναι μεγαλύτερη από την ανοιχτή θέση σας"
+        "reduce_only_too_large": "Η εντολή μείωσης θέσης είναι μεγαλύτερη από την ανοιχτή θέση σας",
+        "twap_unavailable": "Η υποβολή εντολής TWAP δεν είναι διαθέσιμη για αυτόν τον πάροχο."
       },
       "error": {
         "placement_failed": "Η καταχώριση της εντολής απέτυχε",
@@ -1682,7 +1791,7 @@
         "save": "Αποθήκευση",
         "current_price": "Τρέχουσα τιμή: {{price}}",
         "on": "ΕΝΕΡΓΟΠΟΙΗΣΗ",
-        "off": "ΑΠΕΝΕΡΓΟΠΟΙΗΣΗ",
+        "off": "ΑΠΕΝΕΡΓ",
         "take_profit_helper": "Κλείσιμο θέσης όταν η τιμή φτάσει σε αυτό το επίπεδο",
         "stop_loss_helper": "Περιορίστε τις ζημίες κλείνοντας τη θέση σε αυτή την τιμή"
       },
@@ -1722,6 +1831,7 @@
         "title": "Τύπος εντολής",
         "basic": "Βασική",
         "triggered": "Ενεργοποιήθηκε",
+        "advanced": "Για προχωρημένους",
         "market": {
           "title": "Τιμή αγοράς",
           "description": "Άμεση εκτέλεση στην καλύτερη διαθέσιμη τιμή"
@@ -1730,21 +1840,77 @@
           "title": "Όριο",
           "description": "Εκτέλεση στην τιμή που έχετε ορίσει ή σε καλύτερη τιμή"
         },
+        "scale": {
+          "title": "Scale",
+          "description": "Multiple limit orders spread across a price range"
+        },
+        "chase": {
+          "title": "Chase",
+          "description": "Post-only limit order that follows the best bid or ask"
+        },
         "stop_limit": {
           "title": "Διακοπή με όριο",
-          "description": "Place a limit order if trigger price hits"
+          "description": "Η εντολή ορίου εκτελείται στην τιμή ενεργοποίησης"
         },
         "stop_market": {
           "title": "Διακοπή αγοράς",
-          "description": "Place a market order if trigger price hits"
+          "description": "Η εντολή αγοράς εκτελείται στην τιμή ενεργοποίησης"
         },
         "take_profit_limit": {
           "title": "Κατοχύρωση κερδών με όριο",
-          "description": "Place a limit order if trigger price is reached"
+          "description": "Κατοχύρωση κερδών με όριο στην τιμή ενεργοποίησης"
         },
         "take_profit_market": {
           "title": "Κατοχύρωση κερδών στην αγορά",
-          "description": "Place a market order if trigger price is reached"
+          "description": "Κατοχύρωση κερδών στην αγορά στην τιμή ενεργοποίησης"
+        },
+        "twap": {
+          "title": "TWAP",
+          "description": "Κατανείμετε τις εντολές ώστε να εκτελούνται σε τακτά χρονικά διαστήματα"
+        }
+      },
+      "chase": {
+        "max_distance": "Max distance",
+        "switch_max_distance_unit": "Switch max distance unit to {{unit}}",
+        "reference_price_accessibility_value": "{{orderType}}, reference price {{price}}",
+        "foreground_notice": "Keep the app open while the Chase order is running.",
+        "backgrounding_title": "Securing Chase orders",
+        "backgrounding_notification": "MetaMask is stopping Chase repricing before disconnecting.",
+        "backgrounded_title": "Chase became a limit order",
+        "backgrounded_notification": "Your Chase order is now resting as a limit order at its last chased price.",
+        "backgrounded_notification_multiple": "{{count}} Chase orders are now resting as limit orders at their last chased prices.",
+        "max_distance_reached_title": "Chase max distance reached",
+        "max_distance_reached_notification": "Your {{symbol}} Chase order reached its max distance and is now resting as a limit order.",
+        "tab": "Chase",
+        "tab_with_count": "Chase ({{count}})",
+        "active": "Ενεργό",
+        "history": "Ιστορικό",
+        "filled_only": "Filled orders only",
+        "visible_count": "{{count}} visible",
+        "running": "Running",
+        "running_with_progress": "Running · {{progress}}",
+        "cancel": "Άκυρο",
+        "empty": "Your Chase orders will appear here.",
+        "empty_history": "Your Chase order history will appear here.",
+        "empty_filtered": "No Chase orders match {{ticker}}.",
+        "empty_long": "No long Chase orders.",
+        "empty_short": "No short Chase orders.",
+        "card": {
+          "size": "Μέγεθος",
+          "filled_size": "Filled size",
+          "max_distance": "Max distance",
+          "distance_chased": "Distance chased",
+          "distance_chased_with_max": "{{distance}} / {{max}} max"
+        },
+        "status": {
+          "termination_pending": "Termination pending",
+          "canceled": "Ακυρώθηκε",
+          "backgrounded": "Resting after app backgrounded",
+          "max_distance_reached": "Max distance reached · resting",
+          "duration_reached": "Duration reached · resting",
+          "repricing_limit_reached": "Repricing limit reached · resting",
+          "filled": "Εκτελέστηκε",
+          "failed": "Chase stopped"
         }
       },
       "payment_token": "Token πληρωμής",
@@ -1783,7 +1949,17 @@
       "submitting_your_trade": "Υποβολή της συναλλαγής σας",
       "order_filled": "Η εντολή εκτελέστηκε",
       "order_placed": "Η εντολή καταχωρήθηκε",
+      "chase_submitted": "Chase order submitted",
+      "chase_started": "Chase started",
+      "twap_started": "Η εντολή TWAP ξεκίνησε",
       "order_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
+      "twap_placement_subtitle": "{{direction}} {{amount}} {{assetSymbol}} σε διάστημα {{duration}}",
+      "twap_duration_day": "{{count}} ημέρα",
+      "twap_duration_days": "{{count}} ημέρες",
+      "twap_duration_hour": "{{count}} ώρα",
+      "twap_duration_hours": "{{count}} ώρες",
+      "twap_duration_minute": "{{count}} λεπτό",
+      "twap_duration_minutes": "{{count}} λεπτά",
       "order_failed": "Η παραγγελία απέτυχε",
       "your_funds_have_been_returned_to_you": "Τα κεφάλαιά σας έχουν επιστραφεί",
       "order_cancelled_success": "Η εντολή {{detailedOrderType}} ακυρώθηκε",
@@ -1804,6 +1980,7 @@
       "use_custom_title": "Χρήση προσαρμοσμένης απόκλισης",
       "row_format": "Εκτ.: {{est}}% / Μέγ.: {{value}}%",
       "row_format_pending": "Εκτ.: -- / Μεγ.: {{value}}%",
+      "row_format_max": "Μέγ.: {{value}}%",
       "input_label": "Μέγιστο ποσοστό απόκλισης",
       "decrement_label": "Μείωση απόκλισης",
       "increment_label": "Αύξηση απόκλισης",
@@ -2009,25 +2186,26 @@
         "timeInForceNotSupported": "Ο χρόνος ισχύος μπορεί να οριστεί μόνο για εντολές ορίου",
         "editTriggerUnsupported": "Οι εντολές κατοχύρωσης κερδών και περιορισμός ζημιών δεν μπορούν να τροποποιηθούν. Ακυρώστε την εντολή και υποβάλετε μια νέα.",
         "editOrderUnverifiable": "Δεν ήταν δυνατή η εύρεση αυτής της εντολής. Ανανεώστε τις εντολές σας και προσπαθήστε ξανά.",
-        "strategyParamsNotSupported": "These order settings aren't supported for this order type",
-        "strategyFieldUnsupported": "This field can't be used with a TWAP, scale, or chase order",
-        "strategyMarketUnsupported": "TWAP, scale, and chase orders aren't available on this market",
-        "strategyHandleUnknown": "This strategy order can no longer be found. Refresh your orders and try again.",
-        "strategyCancelIncomplete": "Some parts of this strategy order couldn't be cancelled. Try again.",
-        "strategyEditUnsupported": "TWAP, scale, and chase orders can't be edited. Cancel the order and place a new one.",
-        "twapDurationRequired": "A duration is required for TWAP orders",
-        "twapDurationInvalid": "TWAP duration must be between 5 and 1440 minutes",
-        "twapNotionalTooSmall": "TWAP order value is below the exchange minimum",
-        "scaleRangeRequired": "Scale orders need a minimum and maximum price",
-        "scaleRangeInvalid": "Scale order maximum price must be above the minimum",
-        "scaleCountInvalid": "Scale order count is invalid",
-        "scaleSizeTooSmall": "Each scale order is below the minimum size",
-        "scaleNotionalTooSmall": "Each scale order is below the exchange minimum value",
-        "chaseIntervalInvalid": "Chase interval is invalid",
-        "chaseDurationInvalid": "Chase duration is invalid",
-        "chaseLimitReached": "Too many chase orders are already running",
-        "chaseAbandoned": "Chase order was cancelled because the connection dropped",
-        "chaseTouchUnavailable": "No market price is available to place this chase order"
+        "strategyParamsNotSupported": "Αυτές οι ρυθμίσεις δεν είναι διαθέσιμες για αυτόν τον τύπο εντολής",
+        "strategyFieldUnsupported": "Αυτό το πεδίο δεν μπορεί να χρησιμοποιηθεί με εντολές TWAP, αλλαγή κλίμακας ή παρακολούθησης τιμής",
+        "strategyMarketUnsupported": "Οι εντολές TWAP, αλλαγής κλίμακας και παρακολούθησης τιμής δεν είναι διαθέσιμες σε αυτήν την αγορά",
+        "strategyHandleUnknown": "Αυτή η εντολή στρατηγικής δεν είναι πλέον διαθέσιμη. Ανανεώστε τις εντολές σας και προσπαθήστε ξανά.",
+        "strategyCancelIncomplete": "Δεν ήταν δυνατή η ακύρωση ορισμένων τμημάτων αυτής της εντολής στρατηγικής. Προσπαθήστε ξανά.",
+        "strategyEditUnsupported": "Οι εντολές TWAP, αλλαγής κλίμακας και παρακολούθησης τιμής δεν μπορούν να τροποποιηθούν. Ακυρώστε την εντολή και υποβάλετε μια νέα.",
+        "twapDurationRequired": "Απαιτείται η διάρκεια για τις εντολές TWAP",
+        "twapDurationInvalid": "Η διάρκεια για τις εντολές TWAP πρέπει να είναι μεταξύ 5 και 1440 λεπτών",
+        "twapNotionalTooSmall": "Η αξία της εντολής TWAP είναι χαμηλότερη από το ελάχιστο όριο του ανταλλακτηρίου",
+        "scaleRangeRequired": "Οι εντολές αλλαγής κλίμακας απαιτούν ελάχιστη και μέγιστη τιμή",
+        "scaleRangeInvalid": "Η μέγιστη τιμή της εντολής αλλαγής κλίμακας πρέπει να είναι υψηλότερη από την ελάχιστη",
+        "scaleCountInvalid": "Ο αριθμός εντολών αλλαγής κλίμακας δεν είναι έγκυρος",
+        "scaleSizeTooSmall": "Κάθε εντολή αλλαγής κλίμακας είναι μικρότερη από το ελάχιστο μέγεθος",
+        "scaleNotionalTooSmall": "Κάθε εντολή αλλαγής κλίμακας είναι μικρότερη από την ελάχιστη αξία του ανταλλακτηρίου",
+        "chaseIntervalInvalid": "Το διάστημα παρακολούθησης τιμής δεν είναι έγκυρο",
+        "chaseDurationInvalid": "Η διάρκεια παρακολούθησης τιμής δεν είναι έγκυρη",
+        "chaseLimitReached": "Υπάρχουν ήδη πάρα πολλές ενεργές εντολές παρακολούθησης τιμής",
+        "chaseAbandoned": "Η εντολή παρακολούθησης τιμής ακυρώθηκε λόγω απώλειας σύνδεσης",
+        "chaseTouchUnavailable": "Δεν υπάρχει διαθέσιμη τιμή αγοράς για την υποβολή αυτής της εντολής παρακολούθησης τιμής",
+        "chaseMaxDistanceInvalid": "Max chase distance is outside the allowed range"
       },
       "networkToggleFailed": "Αποτυχία εναλλαγής δικτύου: {{error}}",
       "accountBalanceFailed": "Αποτυχία λήψης υπολοίπου λογαριασμού: {{error}}",
@@ -2233,6 +2411,10 @@
         "total": "Συνολικά τέλη",
         "discount_message": "Ως VIP, θα εξοικονομήσετε {{percentage}}% σε προμήθειες."
       },
+      "size_skew": {
+        "title": "Size skew",
+        "content": "Size skew controls how order size is distributed across the range. Values above 1 put more size near the end, values below 1 put more near the start, and 1.00 splits size evenly."
+      },
       "closing_fees": {
         "title": "Τέλη κλεισίματος",
         "metamask_fee": "Χρεώσεις στο MetaMask",
@@ -2411,13 +2593,17 @@
     },
     "close_all_modal": {
       "title": "Κλείσιμο όλων των θέσεων",
-      "description": "Θα κλείσουμε όλες τις ανοιχτές θέσεις σας στην τρέχουσα τιμή της αγοράς.",
+      "title_filtered": "Κλείσιμο θέσεων",
+      "description": {
+        "one": "Θα κλείσουμε την ανοιχτή θέση σας στην τρέχουσα τιμή αγοράς.",
+        "other": "Θα κλείσουμε τις {{count}} ανοιχτές θέσεις σας στην τρέχουσα τιμή αγοράς."
+      },
       "margin": "Περιθώριο",
       "includes_pnl": "περιλαμβάνει {{pnlAmount}}",
       "fees": "Τέλη",
       "you_will_receive": "Θα λάβετε",
       "keep_positions": "Διατήρηση θέσεων",
-      "close_all": "Κλείσιμο όλων",
+      "close_count": "Κλείσιμο ({{count}})",
       "closing": "Κλείσιμο...",
       "success_title": "Οι θέσεις έκλεισαν",
       "success_message": "Έκλεισε επιτυχώς {{count}} θέση(-εις)",
@@ -2426,10 +2612,13 @@
       "error_message": "Απέτυχε το κλείσιμο {{count}} θέσης(-ων)"
     },
     "cancel_all_modal": {
-      "title": "Ακύρωση όλων των εντολών",
-      "description": "Θα ακυρώσουμε όλες τις ανοιχτές εντολές σας",
+      "title": "Ακύρωση εντολών",
+      "description": {
+        "one": "Θα ακυρώσουμε {{count}} εκκρεμή εντολή. Τυχόν εντολές που δεν έχουν εκτελεστεί θα διαγραφούν αμέσως.",
+        "other": "Θα ακυρώσουμε {{count}} εκκρεμείς εντολές. Τυχόν εντολές που δεν έχουν εκτελεστεί θα διαγραφούν αμέσως."
+      },
       "keep_orders": "Διατήρηση εντολών",
-      "confirm": "Επιβεβαίωση",
+      "confirm": "Ακύρωση όλων",
       "canceling": "Ακύρωση…",
       "success_title": "Οι εντολές ακυρώθηκαν",
       "success_message": "Ακυρώθηκε επιτυχώς {{count}} εντολή(-ές)",
@@ -2470,7 +2659,8 @@
       "past_24_hours": "Τις τελευταίες 24 ώρες",
       "time": "Ώρα",
       "apply": "Εφαρμογή",
-      "clear": "Διαγραφή"
+      "clear": "Διαγραφή",
+      "reset": "Επαναφορά"
     },
     "provider_selector": {
       "title": "Επιλέξτε πάροχο"
@@ -2495,6 +2685,7 @@
       "added": "Προστέθηκε το {{symbol}} στη λίστα παρακολούθησης",
       "removed": "Αφαιρέθηκε το {{symbol}} από τη λίστα παρακολούθησης",
       "add_error": "Δεν ήταν δυνατή η προσθήκη αγοράς στη λίστα παρακολούθησης",
+      "remove_error": "Failed to remove market from watchlist",
       "limit_reached": "Έχετε φτάσει το όριο της λίστας παρακολούθησης (μέγιστο {{limit}} αγορές)",
       "filter_badge_label": "Λίστα παρακολούθησης",
       "suggested": "Προτεινόμενη"
@@ -2605,6 +2796,9 @@
       "listed_by": "Καταχωρήθηκε από",
       "value_type": "Τύπος τιμής",
       "group_by": "Ομαδοποίηση κατά",
+      "layout": "Διάταξη βιβλίου εντολών",
+      "layout_left": "Αριστερά",
+      "layout_right": "Δεξιά",
       "apply": "Εφαρμογή",
       "save": "Αποθήκευση",
       "collapse": "Απόκρυψη βιβλίου εντολών",
@@ -2699,8 +2893,8 @@
     "card_footer_disclaimer": "Παράχθηκε από ΤΝ",
     "footer_disclaimer": "Περίληψη από ΤΝ, μόνο για ενημερωτικούς σκοπούς",
     "disclaimer_modal": {
-      "title": "Περιεχόμενο που δημιουργήθηκε από ΤΝ",
-      "body": "Η σύνοψη δημιουργήθηκε από τρίτο σύστημα με ΤΝ και μπορεί να μην είναι πλήρως ακριβής ή εξατομικευμένη. Μην την χρησιμοποιήσετε για αποφάσεις σχετικά με συναλλαγές, επενδύσεις, νομικά ή φορολογικά θέματα. Οι προηγούμενες αποδόσεις δεν αποτελούν ένδειξη μελλοντικών αποτελεσμάτων.",
+      "title": "Περιεχόμενο που δημιουργήθηκε από AI",
+      "body": "Αυτή η σύνοψη έχει δημιουργηθεί από AI τρίτου μέρους και ενδέχεται να μην είναι ακριβής ή εξατομικευμένη. Μην τη χρησιμοποιείτε για αποφάσεις σχετικά με συναλλαγές, επενδύσεις, νομικά ή φορολογικά ζητήματα. Οι προηγούμενες αποδόσεις δεν αποτελούν ένδειξη των μελλοντικών αποτελεσμάτων.",
       "got_it": "Κατανοητό"
     },
     "swap_button": "Ανταλλαγή",
@@ -2725,6 +2919,15 @@
   },
   "predict": {
     "title": "Προβλέψεις στο MetaMask",
+    "game_status": {
+      "live": "LIVE",
+      "scheduled": "ΠΡΟΓΡΑΜΜΑΤΙΣΜΕΝΟ",
+      "delayed": "ΣΕ ΚΑΘΥΣΤΕΡΗΣΗ",
+      "suspended": "ΣΕ ΑΝΑΣΤΟΛΗ",
+      "postponed": "ΑΝΑΒΛΗΘΗΚΕ",
+      "final": "ΟΛΟΚΛΗΡΩΘΗΚΕ",
+      "canceled": "ΑΚΥΡΩΘΗΚΕ"
+    },
     "send_to_predictions": "Αποστολή στις Προβλέψεις",
     "select_predict_account": "Επιλέξτε λογαριασμό προβλέψεων",
     "search_account": "Αναζήτηση λογαριασμού",
@@ -2757,6 +2960,46 @@
     },
     "prediction_markets": "Αγορές προβλέψεων",
     "market_list": "Λίστα αγορών",
+    "market": {
+      "volume": "{{value}} όγκος συναλλαγών",
+      "draw": "Ισοπαλία",
+      "footer_price_unavailable": "μη διαθέσιμη τιμή"
+    },
+    "market_groups": {
+      "total_points": "Total points",
+      "spread": "Χάντικαπ",
+      "market_option": "Market option",
+      "line_unavailable": "line unavailable",
+      "price_unavailable": "μη διαθέσιμη τιμή",
+      "option_accessibility_label": "Market option for {{team}}, line {{line}}, price {{price}}",
+      "outcome_accessibility_label": "{{team}}, line {{line}}, price {{price}}"
+    },
+    "rules": {
+      "event_accessibility_label": "Προβολή κανόνων γεγονότος",
+      "market_accessibility_label": "Προβολή κανόνων αγοράς",
+      "close_accessibility_label": "Κανόνες κλεισίματος",
+      "event_title": "Κανόνες γεγονότων",
+      "market_title": "Κανόνες αγοράς",
+      "title": "Κανόνες",
+      "settlement_sources": {
+        "prefix": "Το αποτέλεσμα επαληθεύτηκε από ",
+        "separator": ", ",
+        "last_separator": " και την ",
+        "suffix": ".",
+        "open_hint": "Ανοίγει την πηγή στο πρόγραμμα περιήγησής σας."
+      }
+    },
+    "event": {
+      "loading_accessibility_label": "Φόρτωση γεγονότος",
+      "unable_to_load": "Δεν είναι δυνατή η φόρτωση αυτού του γεγονότος."
+    },
+    "history": {
+      "loading_accessibility_label": "Φόρτωση ιστορικού αγοράς",
+      "unable_to_load": "Δεν ήταν δυνατή η φόρτωση του ιστορικού αγοράς.",
+      "unavailable_for_range": "Δεν υπάρχει διαθέσιμο ιστορικό αγοράς για αυτό το εύρος.",
+      "chart_accessibility_label": "Ιστορικό πιθανότητας αγοράς: {{values}}",
+      "chart_scrub_accessibility_label": "Ιστορικό πιθανότητας αγοράς στις {{time}}: {{values}}"
+    },
     "loading": "Φόρτωση...",
     "buttons": {
       "back": "Πίσω",
@@ -3351,6 +3594,7 @@
   "wallet": {
     "title": "Πορτοφόλι",
     "search_accessibility_label": "Αναζήτηση",
+    "rewards_accessibility_label": "Ανταμοιβές",
     "tokens": "Tokens",
     "view_all_nfts": "Προβολή όλων των NFT",
     "view_all_tokens": "Προβολή όλων των tokens",
@@ -3363,7 +3607,7 @@
     "no_collectibles": "Δεν βλέπετε τα NFT σας;",
     "no_available_tokens": "Δεν βλέπετε το token σας;",
     "add_tokens": "Εισαγωγή tokens",
-    "are_you_sure_exit": "Are you sure you want to exit?",
+    "are_you_sure_exit": "Είστε σίγουροι ότι θέλετε να αποχωρήσετε;",
     "import_token": "Would you like to import this token?",
     "import_tokens": "Θέλετε να εισαγάγετε αυτά τα tokens;",
     "tokens_detected_in_account": "{{tokenCount}} νέο {{tokensLabel}} βρέθηκε σε αυτόν τον λογαριασμό",
@@ -3933,6 +4177,11 @@
     "buy": "Αγορά",
     "scan": "Σάρωση"
   },
+  "account_hub": {
+    "info": "Πληροφορίες",
+    "scan": "Σάρωση",
+    "activity": "Δραστηριότητα"
+  },
   "app_settings": {
     "enabling_notifications": "Ενεργοποίηση ειδοποιήσεων...",
     "updating_notifications": "Ενημέρωση ειδοποιήσεων...",
@@ -4023,7 +4272,7 @@
     "notifications_title": "Ειδοποιήσεις",
     "notifications_desc": "Διαχειριστείτε τις ειδοποιήσεις σας",
     "allow_notifications": "Επιτρέψτε τις ειδοποιήσεις",
-    "enable_push_notifications": "Ενεργοποίηση ειδοποιήσεων ώθησης",
+    "enable_push_notifications": "Ενεργοποίηση ειδοποιήσεων push",
     "allow_notifications_desc": "Επιλέξτε τι ειδοποιήσεις θα λαμβάνετε και πώς.",
     "notifications_opts": {
       "preferences_title": "Προτιμήσεις",
@@ -4041,7 +4290,7 @@
       "perps_title": "Δραστηριότητα συναλλαγών",
       "perps_desc": "Αλλαγές σε θέσεις perps, ρευστοποιήσεις, ποσοστά χρηματοδότησης και ενημερώσεις περιθωρίου",
       "agentic_cli_title": "Agent wallet",
-      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agent wallet",
+      "agentic_cli_desc": "Αιτήματα σύνδεσης CLI, εγκρίσεις και ενημερώσεις συνεδριών για το Agent wallet",
       "social_ai_title": "Ειδοποιήσεις συναλλαγών",
       "social_ai_desc": "Ενημερώσεις από traders και περιουσιακά στοιχεία που ακολουθείτε, καθώς και επιλεγμένα νέα της αγοράς",
       "marketing_title": "Ενημερώσεις και ανταμοιβές",
@@ -4849,19 +5098,19 @@
     "malicious": "Κακόβουλο",
     "risky": "Επικίνδυνο",
     "malicious_token_title": "Κακόβουλο token",
-    "malicious_token_description": "Το {{symbol}} είναι κακόβουλο token. Αποφύγετε την αλληλεπίδραση μαζί του ή να κάνετε συναλλαγές.",
-    "malicious_token_description_no_symbol": "Αυτό είναι ένα κακόβουλο token. Αποφύγετε οποιαδήποτε αλληλεπίδραση ή συναλλαγή μαζί του.",
-    "malicious_token_banner_description": "Το {{symbol}} έχει επισημανθεί ως κακόβουλο. Είναι πιθανό να υποκλέψει κεφάλαια από οποιονδήποτε αλληλεπιδρά μαζί του.",
-    "malicious_token_banner_description_no_symbol": "Αυτό το token έχει επισημανθεί ως κακόβουλο. Είναι πιθανό να αποσπάσει χρήματα από όποιον αλληλεπιδρά μαζί του.",
-    "suspicious_token_description": "Το {{symbol}} έχει χαρακτηριστεί ως ύποπτο token.",
-    "suspicious_token_description_no_symbol": "Αυτό είναι ένα ύποπτο token.",
+    "malicious_token_description": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν το {{symbol}} ως υψηλού κινδύνου.",
+    "malicious_token_description_no_symbol": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν αυτό το token ως υψηλού κινδύνου.",
+    "malicious_token_banner_description": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν το {{symbol}} ως υψηλού κινδύνου.",
+    "malicious_token_banner_description_no_symbol": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν αυτό το token ως υψηλού κινδύνου.",
+    "suspicious_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "suspicious_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
     "verified_token_title": "Επαληθευμένο token",
     "verified_token_description": "Το {{symbol}} έχει υψηλή αναγνωρισιμότητα και είναι ευρέως γνωστό. Η επαλήθευση δεν αποτελεί έγκριση από το MetaMask.",
     "risky_token_title": "Ύποπτο token",
-    "risky_token_description": "Το {{symbol}} έχει επισημανθεί ως ύποπτο. Δείτε τους κινδύνους πριν συνεχίσετε.",
-    "risky_token_description_no_symbol": "Αυτό το token έχει επισημανθεί ως ύποπτο. Αξιολογήστε τους κινδύνους πριν συνεχίσετε.",
-    "malicious_token_sheet_description": "Εντοπίστηκαν σοβαρές ενδείξεις κινδύνου για το {{symbol}}. Συνιστούμε να μην κάνετε συναλλαγές με αυτό το token.",
-    "malicious_token_sheet_description_no_symbol": "Εντοπίστηκαν σοβαρές ενδείξεις κινδύνου σε αυτό το token. Συνιστούμε να μην προχωρήσετε σε συναλλαγές.",
+    "risky_token_description": "Security partners found risk signals in {{symbol}}'s contract or trading activity.",
+    "risky_token_description_no_symbol": "Security partners found risk signals in this token's contract or trading activity.",
+    "malicious_token_sheet_description": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν το {{symbol}} ως υψηλού κινδύνου.",
+    "malicious_token_sheet_description_no_symbol": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν αυτό το token ως υψηλού κινδύνου.",
     "got_it": "Κατανοητό",
     "proceed": "Συνεχίστε",
     "continue_anyway": "Συνεχίστε ούτως ή άλλως",
@@ -4869,8 +5118,8 @@
     "data_unavailable": "Τα δεδομένα ασφαλείας δεν είναι διαθέσιμα",
     "subtitle_known": "Δεν εντοπίστηκαν ενδείξεις κινδύνου. Να ερευνάτε πάντα κάθε ψηφιακό περιουσιακό στοιχείο πριν κάνετε συναλλαγές.",
     "subtitle_no_issues": "Δεν εντοπίστηκαν ενδείξεις κινδύνου. Να ερευνάτε πάντα κάθε ψηφιακό περιουσιακό στοιχείο πριν κάνετε συναλλαγές.",
-    "subtitle_suspicious": "Εντοπίστηκαν προειδοποιητικές ενδείξεις. Ελέγξτε προσεκτικά τα ζητήματα που έχουν επισημανθεί πριν κάνετε συναλλαγές με αυτό το ψηφιακό περιουσιακό στοιχείο.",
-    "subtitle_malicious": "Εντοπίστηκαν σοβαρές ενδείξεις κινδύνου. Συνιστούμε να αποφύγετε αυτό το ψηφιακό περιουσιακό στοιχείο.",
+    "subtitle_suspicious": "Security partners found risk signals in this token's contract or trading activity.",
+    "subtitle_malicious": "Οι τεχνικοί σύμβουλοι ασφαλείας επισημαίνουν αυτό το token ως υψηλού κινδύνου.",
     "subtitle_unavailable": "Δεν ήταν δυνατή η φόρτωση της ανάλυσης ασφαλείας για αυτό το token.",
     "token_distribution": "Κατανομή του token",
     "total_supply": "Συνολική προσφορά",
@@ -5048,7 +5297,7 @@
     "sign_with_keystone": "Σύνδεση με το πορτοφόλι υλικολογισμικού",
     "sign_with_ledger": "Είσοδος με το Ledger",
     "from": "Από",
-    "gas_fee": "Τέλος Συναλλαγής",
+    "gas_fee": "Τέλη δικτύου",
     "gas_fee_fast": "Άμεσα",
     "gas_fee_average": "Μέσος όρος",
     "gas_fee_slow": "Χαμηλή προτεραιότητα",
@@ -5083,7 +5332,7 @@
     "invalid_amount": "Μη έγκυρο ποσό",
     "invalid_gas": "Μη έγκυρο ποσό τελών συναλλαγής",
     "invalid_gas_price": "Μη έγκυρη τιμή τελών συναλλαγής",
-    "high_gas_price": "Τα τέλη συναλλαγής σας ίσως είναι αδικαιολόγητα υψηλά ({{currentGasPrice}}). Σκεφτείτε μήπως μειώσετε το ποσό.",
+    "high_gas_price": "Your network fee may be set unnecessarily high ({{currentGasPrice}}). Consider lowering the amount.",
     "low_gas_price": "Υπερβολικά χαμηλή τιμή τελών συναλλαγής",
     "invalid_collectible_ownership": "Δεν σας ανήκει αυτό το συλλεκτικό στοιχείο",
     "known_asset_contract": "Γνωστή διεύθυνση συμβολαίου περιουσιακού στοιχείου",
@@ -5109,15 +5358,15 @@
     "cancel_speedup_cancel_title": "Ακύρωση συναλλαγής",
     "cancel_speedup_speedup_message": "Αυτά τα τέλη δικτύου θα αντικαταστήσουν τα αρχικά.",
     "cancel_speedup_cancel_message": "Αυτή η συναλλαγή θα ακυρωθεί και αυτά τα τέλη δικτύου θα αντικαταστήσουν τα αρχικά.",
-    "edit_network_fee": "Επεξεργασία τέλους συναλλαγής",
+    "edit_network_fee": "Επεξεργασία τελών δικτύου",
     "edit_priority": "Επεξεργασία προτεραιότητας",
     "gas_cancel_fee": "Τέλος ακύρωσης συναλλαγής",
     "gas_speedup_fee": "Τέλος επιτάχυνσης συναλλαγής",
     "use_max": "Χρήση μέγιστου",
     "set_gas": "Ορισμός",
     "cancel_gas": "Άκυρο",
-    "transaction_fee_estimated": "Εκτιμώμενο τέλος συναλλαγής",
-    "transaction_fee": "Τέλος Συναλλαγής",
+    "transaction_fee_estimated": "Estimated network fee",
+    "transaction_fee": "Τέλη δικτύου",
     "transaction_fee_less": "Χωρίς τέλος συναλλαγής",
     "total_amount": "Συνολικό ποσό",
     "view_data": "Προβολή Δεδομένων",
@@ -5155,8 +5404,8 @@
     "confusable_msg": "Εντοπίσαμε έναν άγνωστο χαρακτήρα στο όνομα ENS. Ελέγξτε το όνομα ENS για να αποφύγετε πιθανή απάτη.",
     "similar_to": "είναι παρόμοιο με",
     "contains_zero_width": "περιλαμβάνει χαρακτήρα μηδενικού πλάτους",
-    "dapp_suggested_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το {{origin}}. Χρησιμοποιεί παλαιού τύπου υπολογισμό τέλους συναλλαγής ο οποίος μπορεί να είναι ανακριβής. Ωστόσο, η επεξεργασία του τέλους συναλλαγής ίσως προκαλέσει πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο {{origin}} εάν έχετε ερωτήσεις.",
-    "dapp_suggested_eip1559_gas": "Αυτό το τέλος συναλλαγής έχει προταθεί από το {{origin}}. Εάν το παραβλέψετε ίσως προκληθεί πρόβλημα με την συναλλαγή σας. Παρακαλούμε απευθυνθείτε στο {{origin}} εάν έχετε ερωτήσεις.",
+    "dapp_suggested_gas": "This network fee has been suggested by {{origin}}. It’s using legacy gas estimation which may be inaccurate. However, editing this network fee may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
+    "dapp_suggested_eip1559_gas": "This network fee has been suggested by {{origin}}. Overriding this may cause a problem with your transaction. Please reach out to {{origin}} if you have questions.",
     "address_invalid": "Η διεύθυνση παραλήπτη δεν είναι έγκυρη.",
     "ens_not_found": "Δεν έχει ορισθεί καμιά διεύθυνση γ' αυτό το όνομα.",
     "unknown_qr_code": "Μη έγκυρος κωδικός QR. Προσπαθήστε ξανά.",
@@ -5414,7 +5663,7 @@
     "mint": "Έκδοση",
     "tx_details_free": "Δωρεάν",
     "tx_details_not_available": "Μη διαθέσιμο",
-    "smart_contract_interaction": "Αλληλεπίδραση έξυπνου συμβολαίου",
+    "smart_contract_interaction": "Αλληλεπίδραση με έξυπνο συμβόλαιο",
     "money_account_deposit": "Κατάθεση στον Money Account",
     "money_account_withdraw": "Μεταφορά από τον Money Account",
     "swaps_transaction": "Συναλλαγή ανταλλαγής",
@@ -5511,7 +5760,7 @@
     "status_submitting_past_estimated_deadline_header": "Συγγνώμη για την αναμονή",
     "status_submitting_past_estimated_deadline_description": "Εάν η συναλλαγή σας δεν ολοκληρωθεί εντός {{timeLeft}}, θα ακυρωθεί και δεν θα χρεωθείτε με τέλη συναλλαγών.",
     "status_cancelled_header": "Η συναλλαγή σας ακυρώθηκε",
-    "status_cancelled_description": "Η συναλλαγή σας δεν ήταν δυνατόν να ολοκληρωθεί, οπότε ακυρώθηκε για να μην πληρώσετε περιττά τέλη συναλλαγών.",
+    "status_cancelled_description": "Your transaction couldn't be completed, so it was canceled to save you from paying unnecessary network fees.",
     "status_failed_header": "Η συναλλαγή σας απέτυχε",
     "status_failed_description": "Οι ξαφνικές αλλαγές στην αγορά μπορεί να προκαλέσουν αποτυχίες. Εάν το πρόβλημα συνεχίζεται, επικοινωνήστε με την υποστήριξη πελατών του MetaMask.",
     "view_transaction": "Προβολή συναλλαγών",
@@ -5896,13 +6145,13 @@
     "confirm": "Επιβεβαίωση"
   },
   "account_backup_step_5": {
-    "error_title": "Ωχ!",
-    "error_message": "Η σειρά των λέξεων είναι λανθασμένη. Βεβαιωθείτε ότι την γράψατε σωστά και μεταβείτε στην προηγούμενη οθόνη αν είναι απαραίτητο.",
+    "error_title": "Incorrect word order",
+    "error_message": "Make sure you wrote it down correctly and go to the previous screen if it is necessary.",
     "back": "Πίσω",
     "title": "Επιβεβαιώστε τη Μυστική Φράση Ανάκτησης",
     "info_text": "Καταχωρήστε κάθε λέξη με τη σειρά που σας παρουσιάστηκε στην προηγούμενη οθόνη.",
     "cta_text": "Επιβεβαιώστε τη φράση",
-    "modal_title": "Η Μυστική Φράση Ανάκτησης επιβεβαιώθηκε!",
+    "modal_title": "Η Μυστική Φράση Ανάκτησης επιβεβαιώθηκε",
     "modal_text": "Αυτό έγινε για να διασφαλίσουμε ότι θα ακολουθήσετε αυτό το μέτρο ασφαλείας",
     "modal_button": "Επόμενο"
   },
@@ -6068,11 +6317,11 @@
     "pending_deposit_title": "Η κατάθεση είναι σε εξέλιξη",
     "pending_withdrawal_title": "Ανάληψη σε εξέλιξη",
     "cancelled_title": "Η συναλλαγή ακυρώθηκε",
-    "success_title": "Η συναλλαγή #{{nonce}} ολοκληρώθηκε!",
+    "success_title": "Transaction #{{nonce}} complete",
     "speedup_title": "Επιτάχυνση #{{nonce}}",
-    "success_deposit_title": "Η κατάθεση ολοκληρώθηκε!",
-    "success_withdrawal_title": "Η ανάληψη ολοκληρώθηκε!",
-    "error_title": "Ωχ, κάτι πήγε στραβά :/",
+    "success_deposit_title": "Η κατάθεση ολοκληρώθηκε",
+    "success_withdrawal_title": "Η ανάληψη ολοκληρώθηκε",
+    "error_title": "Κάτι πήγε στραβά",
     "received_title": "Λάβατε {{amount}} {{assetType}}",
     "erc20_sent_title": "Στάλθηκαν κεφάλαια",
     "erc20_received_title": "Ελήφθη κεφάλαια",
@@ -6091,6 +6340,15 @@
         "preview": {
           "title": "Το ETH έχει ανέβει 4,2% σήμερα",
           "message": "Τώρα στα $2.668,51 — πάνω από το όριο ειδοποίησής σας",
+          "timestamp": "τώρα"
+        }
+      },
+      "social_ai": {
+        "title": "Μην χάσετε μια ένδειξη συναλλαγών",
+        "description": "Ενεργοποιήστε τις ειδοποιήσεις, ώστε να σας ενημερώνουμε όταν οι traders που ακολουθείτε κάνουν κάποια κίνηση.",
+        "preview": {
+          "title": "Νέα συναλλαγή από trader που ακολουθείτε",
+          "message": "Αγορά ETH · $10.000",
           "timestamp": "τώρα"
         }
       },
@@ -6124,7 +6382,7 @@
     "lido_stake_ready_to_be_withdrawn_message": "Αίτημα ανάληψης",
     "prompt_title": "Ενεργοποίηση push ειδοποιήσεων",
     "notifications_enabled_error_title": "Κάτι πήγε στραβά",
-    "notifications_enabled_error_desc": "Δεν μπορέσαμε να ενεργοποιήσουμε τις ειδοποιήσεις. Προσπαθήστε ξανά αργότερα.",
+    "notifications_enabled_error_desc": "Δεν ήταν δυνατή η ενεργοποίηση των ειδοποιήσεων. Προσπαθήστε ξανά αργότερα.",
     "prompt_desc": "Ενεργοποιήστε τις ειδοποιήσεις από τις Ρυθμίσεις για να λαμβάνετε σημαντικές ειδοποιήσεις σχετικά με τη δραστηριότητα του πορτοφολιού σας και άλλα.",
     "prompt_ok": "Ενεργοποίηση",
     "prompt_cancel": "Ίσως αργότερα",
@@ -6172,7 +6430,7 @@
       "new_user": {
         "title": "Μην χάνετε καμία κίνηση της αγοράς",
         "body": "Λάβετε ειδοποιήσεις σε πραγματικό χρόνο για μεταβολές τιμών, επιβεβαιώσεις συναλλαγών, δραστηριότητα χαρτοφυλακίου και ανταμοιβές με βάση τον τρόπο που χρησιμοποιείτε το MetaMask.",
-        "button_yes": "Ενεργοποίηση ειδοποιήσεων",
+        "button_yes": "Ενεργοποίηση των ειδοποιήσεων",
         "button_not_now": "Όχι τώρα",
         "preview_card_1": {
           "time": "τώρα",
@@ -6214,7 +6472,7 @@
         }
       },
       "toast_enabled": "Οι ειδοποιήσεις ενεργοποιήθηκαν",
-      "toast_settings_hint": "Μπορείτε να ενεργοποιείτε τις ειδοποιήσεις οποιαδήποτε στιγμή στις Ρυθμίσεις > Ειδοποιήσεις"
+      "toast_settings_hint": "Μπορείτε να ενεργοποιήσετε τις ειδοποιήσεις οποιαδήποτε στιγμή στις Ρυθμίσεις > Ειδοποιήσεις"
     }
   },
   "protect_your_wallet_modal": {
@@ -6494,7 +6752,7 @@
       "what_to_expect": "Τι να περιμένετε",
       "quotes": "Η λειτουργία μας αγοράς κρυπτονομισμάτων συγκεντρώνει προσφορές από ενταγμένους προμηθευτές, παρέχοντας προσφορές από αυτές τις πηγές για να λάβετε τα κρυπτονομίσματα απευθείας στο πορτοφόλι σας χωρίς περίοδο αναμονής.",
       "quotes_sell": "Τώρα μπορείτε να εξαργυρώσετε απευθείας στο MetaMask! Λάβετε ενημερωμένες προσφορές από αξιόπιστους παρόχους, ενώ εμείς θα σας καθοδηγούμε σε κάθε βήμα.",
-      "benefits": "Λιγότερα τέλη συναλλαγών για πληρωμή και υποστήριξη πολυάριθμων δικτύων, tokens και μεθόδων πληρωμής",
+      "benefits": "Fewer network fees to pay, and numerous networks, tokens, and payment methods supported",
       "benefits_sell": "Η μετάβαση από το κρυπτονόμισμα στο τοπικό σας νόμισμα είναι τώρα ευκολότερη από ποτέ.",
       "get_started": "Ξεκινήστε"
     },
@@ -6536,6 +6794,7 @@
     "most_reliable": "Πιο αξιόπιστο",
     "quotes_timeout": "Οι προσφορές έληξαν",
     "request_new_quotes": "Ζητήστε νέες προσφορές για να πάρετε την πιο πρόσφατη καλύτερη τιμή.",
+    "wallet_pay_terms": "By continuing, you accept Crossmint's",
     "terms_of_service": "Όροι Χρήσης",
     "amount_to_buy": "Αγορά",
     "amount_to_sell": "Πώληση",
@@ -6565,14 +6824,14 @@
     "minimum": "Η ελάχιστη κατάθεση είναι",
     "maximum": "Η μέγιστη κατάθεση είναι",
     "insufficient_balance": "Το ποσό αυτό είναι μεγαλύτερο από το υπόλοιπό σας",
-    "insufficient_native_balance": "Δεν έχετε αρκετά {{currency}} για να καλύψετε τα τέλη συναλλαγών.",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the network fees.",
     "enter_larger_amount": "Πληκτρολογήστε μεγαλύτερο ποσό για να συνεχίσετε",
     "enter_smaller_amount": "Πληκτρολογήστε μικρότερο ποσό για να συνεχίσετε",
-    "enter_lower_gas_fees": "Πληκτρολογήστε ένα χαμηλότερο ποσό για την καταβολή των τελών συναλλαγών",
+    "enter_lower_gas_fees": "Enter a lower amount to pay for network fees",
     "max": "Μέγ.",
     "try_again": "Προσπαθήστε ξανά",
     "error": "Σφάλμα",
-    "something_went_wrong": "Ωχ, κάτι πήγε στραβά",
+    "something_went_wrong": "Κάτι πήγε στραβά",
     "report_this_issue": "Αναφέρετε το πρόβλημα",
     "no_providers_available": "Δεν υπάρχουν διαθέσιμοι πάροχοι",
     "try_different_amount_to_buy_input": "Δοκιμάστε να επιλέξετε διαφορετική μέθοδο πληρωμής ή προσπαθήστε να αυξήσετε ή να μειώσετε το ποσό που θέλετε να αγοράσετε.",
@@ -6777,7 +7036,7 @@
     "manually_pasting": "Προσθέστε χειροκίνητα ένα token επικολλώντας την διεύθυνσή του.",
     "token_address_can_be_found": "Οι διευθύνσεις συμβολαίων των token μπορούν να βρεθούν στο",
     "gathering_token_details": "Συλλογή στοιχείων των token...",
-    "error_gathering_token_details": "Ουυπς, παρουσιάστηκε σφάλμα κατά τη συλλογή στοιχείων του token.",
+    "error_gathering_token_details": "There was an error gathering token details.",
     "Import": "Εισαγωγή",
     "invalid_token_contract_address": "Μη έγκυρη διεύθυνση συμβολαίου του token.",
     "please_verify_on_explorer": "Επαληθεύστε στο",
@@ -6821,10 +7080,10 @@
     "saving": "Αποθήκευση",
     "n_quotes": "{{numberOfQuotes}} προσφορές",
     "view_details": "Δείτε λεπτομέρειες",
-    "estimated_gas_fee": "Εκτιμώμενο τέλος συναλλαγής",
-    "gas_fee": "Τέλος Συναλλαγής",
+    "estimated_gas_fee": "Estimated network fee",
+    "gas_fee": "Τέλη δικτύου",
     "included": "περιλαμβάνεται",
-    "max_gas_fee": "Μέγιστο τέλος συναλλαγής",
+    "max_gas_fee": "Max network fee",
     "edit": "Επεξεργασία",
     "quotes_include_fee": "Οι προσφορές περιλαμβάνουν μια χρέωση {{fee}}% στο MetaMask",
     "quotes_include_gas_and_metamask_fee": "Η προσφορά περιλαμβάνει τέλη συναλλαγών και μια χρέωση {{fee}}% στο MetaMask",
@@ -6852,7 +7111,7 @@
     "rate": "Τιμή",
     "quote_details_max_slippage": "Μέγιστη απόκλιση",
     "source": "Πηγή",
-    "estimated_network_fees": "Εκτιμώμενα τέλη συναλλαγών",
+    "estimated_network_fees": "Estimated network fees",
     "guaranteed_amount": "Εγγυημένο ποσό",
     "quote_source_dex": {
       "1": "Αυτή η προσφορά προέρχεται απευθείας από ένα",
@@ -6896,9 +7155,9 @@
     "medium_selected_warning": "Οι ανταλλαγές είναι χρονικά ευαίσθητες. H επιλογή \"Μέτριο\" δεν συνιστάται.",
     "high_recommendation": "Οι ανταλλαγές είναι συνήθως ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα βοηθήσει στην αποφυγή πιθανών ζημιών λόγω αλλαγών στις συνθήκες της αγοράς.",
     "recommended": "Προτεινόμενο",
-    "recommended_gas": "Προτεινόμενο τέλος συναλλαγής",
-    "gas_included_tooltip_explanation": "Αυτή η προσφορά ενσωματώνει τα τέλη συναλλαγών προσαρμόζοντας το ποσό των tokens που έχετε στείλει ή λάβει. Μπορείτε να λάβετε ETH σε ξεχωριστή συναλλαγή στη λίστα δραστηριοτήτων σας.",
-    "gas_included_tooltip_explanation_link_text": "Μάθετε περισσότερα για τα τέλη συναλλαγών",
+    "recommended_gas": "Recommended network fee",
+    "gas_included_tooltip_explanation": "This quote incorporates network fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about network fees",
     "gas_education_title": "Εκτιμώμενα τέλη συναλλαγών",
     "gas_education_1": "Τα τέλη συναλλαγών καταβάλλονται στους αναλυτές κρυπτονομισμάτων που επεξεργάζονται τις συναλλαγές στο ",
     "gas_education_2_ethereum": "δίκτυο Ethereum.",
@@ -7026,7 +7285,7 @@
     "max_priority_fee": "Μέγιστη προτεραιότητα τέλους",
     "max_fee": "Μέγιστο τέλος",
     "estimate": "Εκτιμώμενο",
-    "recommended_gas_fee": "Προτεινόμενο τέλος συναλλαγής",
+    "recommended_gas_fee": "Recommended network fee",
     "swaps_warning": "Οι ανταλλαγές είναι πολύ ευαίσθητες στον χρόνο. Η επιλογή \"Υψηλό\" θα σας βοηθήσει να αποφύγετε πιθανές απώλειες λόγω αλλαγών στις συνθήκες της αγοράς.",
     "priority_fee_at_least_0_error": "Το τέλος προτεραιότητας πρέπει να είναι τουλάχιστον 1 GWEI",
     "learn_more": {
@@ -7053,8 +7312,8 @@
     "learn_more_gas_limit": "Το όριο τέλους συναλλαγής είναι οι μέγιστες μονάδες τελών που είστε διατεθειμένοι να χρησιμοποιήσετε. Οι μονάδες τελών είναι ένας πολλαπλασιαστής στο «Τέλος Μέγιστης Προτεραιότητας» και το «Μέγιστο Τέλος».",
     "learn_more_max_priority_fee": "Το μέγιστο τέλος προτεραιότητας (ή αλλιώς «φιλοδώρημα του αναλυτή») πηγαίνει απευθείας στους αναλυτές και τους παρακινεί να δώσουν προτεραιότητα στη συναλλαγή σας. Τις περισσότερες φορές θα πληρώσετε τη μέγιστη ρύθμιση.",
     "learn_more_max_fee": "Το μέγιστο τέλος είναι το μέγιστο που θα πληρώσετε (βασικό τέλος + τέλος προτεραιότητας).",
-    "learn_more_new_gas_fee": "Έχουμε ενημερώσει το τέλος συναλλαγών με βάση τις τρέχουσες συνθήκες δικτύου και το έχουμε αυξήσει τουλάχιστον κατά 10% (απαιτείται από το δίκτυο).",
-    "learn_more_cancel_gas_fee": "Έχουμε ενημερώσει το τέλος συναλλαγών με βάση τις τρέχουσες συνθήκες δικτύου και το έχουμε αυξήσει τουλάχιστον κατά 50% (απαιτείται από το δίκτυο).",
+    "learn_more_new_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 10% (required by the network). ",
+    "learn_more_cancel_gas_fee": "We have updated the network fee based on current network conditions and have increased it by at least 50% (required by the network). ",
     "low": "Χαμηλό",
     "medium": "Μεσαίο",
     "high": "Υψηλό",
@@ -7064,8 +7323,8 @@
     "edit_priority": "Επεξεργασία προτεραιότητας",
     "speed_up_transaction": "Επιτάχυνση συναλλαγής",
     "cancel_transaction": "Ακύρωση συναλλαγής",
-    "new_gas_fee": "Νέο τέλος συναλλαγής",
-    "edit_suggested_gas_fee": "Επεξεργασία προτεινόμενου τέλους συναλλαγής",
+    "new_gas_fee": "New network fee",
+    "edit_suggested_gas_fee": "Edit suggested network fee",
     "gas_price": "Τιμή τέλους συναλλαγής",
     "learn_more_gas_limit_legacy": "Το όριο τέλους συναλλαγής είναι οι μέγιστες μονάδες τέλους συναλλαγής που είστε διατεθειμένοι να χρησιμοποιήσετε. Οι μονάδες τελών συναλλαγής είναι ένας πολλαπλασιαστής στην «τιμή τέλους συναλλαγής».",
     "learn_more_gas_price": "Αυτό το δίκτυο απαιτεί ένα πεδίο «τιμής τέλους συναλλαγής» κατά την υποβολή μιας συναλλαγής. Η τιμή τέλους συναλλαγής είναι το μέγιστο ποσό που είστε διατεθειμένοι να πληρώσετε ανά μονάδα τέλους συναλλαγής.",
@@ -7073,19 +7332,19 @@
     "gas_price_high": "Η τιμή τέλους συναλλαγής είναι υψηλότερη από όσο χρειάζεται"
   },
   "transaction_review_eip1559": {
-    "estimated_gas_fee": "Εκτιμώμενο τέλος συναλλαγής",
+    "estimated_gas_fee": "Estimated network fee",
     "network_fee": "Τέλη δικτύου",
     "max_fee": "Μέγιστο τέλος συναλλαγής",
     "total": "Σύνολο",
     "max_amount": "Μέγιστο ποσό",
-    "estimated_gas_fee_tooltip": "Τι είναι τα τέλη συναλλαγών;",
+    "estimated_gas_fee_tooltip": "What are network fees?",
     "estimated_gas_fee_tooltip_text_1": "Τα τέλη συναλλαγών καταβάλλονται στους αναλυτές κρυπτονομισμάτων που επεξεργάζονται τις συναλλαγές στο",
     "estimated_gas_fee_tooltip_text_2": " Ethereum",
     "estimated_gas_fee_tooltip_text_3": " δίκτυο.",
     "estimated_gas_fee_tooltip_text_4": "Το MetaMask δεν κερδίζει κάτι από τα τέλη συναλλαγών.",
     "estimated_gas_fee_tooltip_text_5": "Τα τέλη συναλλαγών καθορίζονται από το δίκτυο και αυξομειώνονται ανάλογα με την κίνηση του δικτύου και την πολυπλοκότητα των συναλλαγών.",
-    "learn_more": "Μάθετε περισσότερα για τα τέλη συναλλαγών",
-    "legacy_gas_suggestion_tooltip": "Αυτή η πρόταση για τα τέλη συναλλαγών βασίζεται σε παλαιότερες εκτιμήσεις, οι οποίες μπορεί να είναι ανακριβείς."
+    "learn_more": "Learn more about network fees",
+    "legacy_gas_suggestion_tooltip": "This network fee suggestion is using legacy gas estimation which may be inaccurate."
   },
   "times_eip1559": {
     "unknown": "Άγνωστος χρόνος επεξεργασίας",
@@ -7095,8 +7354,8 @@
     "very_likely": "Πολύ πιθανόν σε <",
     "at_least": "Τουλάχιστον",
     "less_than": "Λιγότερο από",
-    "warning_very_likely": "Αυτό το τέλος συναλλαγής είναι πολύ υψηλότερο από τις άλλες διαθέσιμες επιλογές.",
-    "warning_very_likely_title": "Πολύ υψηλά τέλη συναλλαγής",
+    "warning_very_likely": "This network fee is much higher than the other options available.",
+    "warning_very_likely_title": "Network fees too high",
     "warning_unknown": "Το μέγιστο τέλος ή το μέγιστο τέλος προτεραιότητας μπορεί να είναι χαμηλό για τις τρέχουσες συνθήκες της αγοράς. Δεν γνωρίζουμε πότε (ή εάν) θα διεκπεραιωθεί η συναλλαγή σας.",
     "warning_low": "Αυτό μειώνει το μέγιστο τέλος, αλλά εάν αυξηθεί η κίνηση του δικτύου, η συναλλαγή σας μπορεί να καθυστερήσει ή να αποτύχει.",
     "warning_low_title": "Χαμηλή προτεραιότητα",
@@ -7129,17 +7388,17 @@
   "network_information": {
     "things_to_keep_in_mind": "Πράγματα που πρέπει να θυμάστε",
     "testnet_network": "{{type}} testnet",
-    "first_description": "Τα εγγενή token σε αυτό το δίκτυο είναι {{ticker}}. Είναι το token που χρησιμοποιείται για τα τέλη συναλλαγής.",
+    "first_description": "The native token on this network is {{ticker}}. It is the token used for network fees.",
     "second_description": "Εάν επιχειρήσετε να στείλετε περιουσιακά στοιχεία απευθείας από ένα δίκτυο σε ένα άλλο, αυτό μπορεί να οδηγήσει σε μόνιμη απώλεια περιουσιακών στοιχείων. Βεβαιωθείτε ότι χρησιμοποιείτε μια διασύνδεση.",
     "third_description": "Τα tokens σας ενδέχεται να μην εμφανίζονται αυτόματα στο πορτοφόλι σας.",
-    "private_network": "Αυτό το δίκτυο είναι άγνωστο και ίσως χρησιμοποιεί κάποιο ιδιαίτερο token για τέλη συναλλαγών.",
+    "private_network": "This network is unknown and may use a special token for network fees.",
     "unknown_network": "Άγνωστο δίκτυο",
     "switched_network": "Αλλάξατε σε",
     "learn_more": "Μάθετε περισσότερα",
     "add_token": "Κάντε κλικ εδώ για να προσθέσετε χειροκίνητα τα tokens",
     "add_token_manually": "Προσθέστε τα χειροκίνητα.",
     "got_it": "Το κατάλαβα",
-    "error_title": "Ωχ! Κάτι πήγε στραβά.",
+    "error_title": "Κάτι πήγε στραβά",
     "error_message": "Προέκυψε κάποιο σφάλμα κατά τη φόρτωση των πληροφοριών δικτύου. Προσπαθήστε ξανά αργότερα.",
     "private_network_third_description": "Εισάγετε ένα όνομα για αυτό το δίκτυο, ώστε να είναι εύκολη η αναγνώρισή του.",
     "learn_more_url": "https://support.metamask.io/networks-and-sidechains/managing-networks/user-guide-custom-networks-and-sidechains/",
@@ -7341,7 +7600,7 @@
     "open_eth_app": "Ανοίξτε την εφαρμογή Ethereum",
     "open_eth_app_message_one": "Εντοπίσαμε ότι έχετε εγκαταστήσει την εφαρμογή Ethereum, αλλά δεν είναι ανοιχτή, ",
     "open_eth_app_message_two": "πατήστε τα δύο κουμπιά στη συσκευή για να αποδεχτείτε την προτροπή να ανοίξετε την εφαρμογή Ethereum για να συνεχίσετε.",
-    "toast_bluetooth_connection_error_title": "Ωχ, κάτι πήγε στραβά :/",
+    "toast_bluetooth_connection_error_title": "Κάτι πήγε στραβά",
     "toast_bluetooth_connection_error_subtitle": "Το Ledger δεν έχει συνδεθεί",
     "try_again": "Προσπαθήστε ξανά",
     "device_not_found": "Η συσκευή δεν βρέθηκε",
@@ -7459,6 +7718,45 @@
     "error_description": "Η εγκατάσταση του {{snap}} απέτυχε."
   },
   "earn": {
+    "strategy_selection": {
+      "title": "Επιλέξτε πώς θέλετε να κερδίζετε",
+      "tags": {
+        "recommended": "Προτεινόμενο",
+        "low_risk": "Χαμηλό ρίσκο",
+        "medium_risk": "Μέτριο ρίσκο",
+        "high_risk": "Υψηλό ρίσκο"
+      },
+      "up_to": "Up to",
+      "toasts": {
+        "deposit_navigation": {
+          "failed": "Failed to navigate to deposit screen for selected asset"
+        }
+      },
+      "strategies": {
+        "rate_unavailable_subtitle": "Earn on your balance",
+        "money": {
+          "title": "Money Account",
+          "info_rows": {
+            "row_1": "Earn up to ~{{percentage}}% APY on your balance",
+            "row_2": "No lockups—trade or withdraw anytime",
+            "row_3": "Held in mUSD, MetaMask's 1:1 dollar-backed stablecoin"
+          }
+        },
+        "stablecoin_lending": {
+          "title": "Δανείστε {{asset}}",
+          "subtitle": "Earn rewards daily and withdraw anytime."
+        },
+        "pooled_staking": {
+          "title": "Ποντάρισμα σε ETH",
+          "subtitle": "Earn rewards daily and unstake anytime."
+        },
+        "trx_staking": {
+          "title": "Stake TRX",
+          "subtitle": "Earn rewards daily and unstake anytime."
+        }
+      },
+      "get_started": "Ξεκινήστε"
+    },
     "claimable_bonus_tooltip": "Το ετήσιο μπόνους που έχετε κερδίσει επειδή διατηρήσατε τα mUSD. Το μπόνους σας μπορείτε να το εξαργυρώσετε καθημερινά στο δίκτυο Linea.",
     "earn_a_percentage_bonus": "Κερδίστε ένα μπόνους {{percentage}}%",
     "percentage_bonus": "{{percentage}}% μπόνους",
@@ -7628,9 +7926,27 @@
     },
     "your_stablecoins": "Τα stablecoins σας"
   },
+  "earn_module": {
+    "new_tag": "Νέα",
+    "money_account": "Money Account",
+    "get_started": "Ξεκινήστε",
+    "rate_apy": "{{percentage}}% APY",
+    "rate_apr": "{{percentage}}% APR",
+    "get_rate_apy": "Κερδίστε {{percentage}}% APY",
+    "get_rate_apr": "Λάβετε {{percentage}}% APR",
+    "rate_unavailable": "Το επιτόκιο δεν είναι διαθέσιμο",
+    "balance_unavailable": "Το υπόλοιπο δεν είναι διαθέσιμο",
+    "asset_unavailable": "Το περιουσιακό στοιχείο δεν είναι διαθέσιμο",
+    "assets_unavailable": "Ορισμένες ευκαιρίες απόδοσης δεν φορτώθηκαν.",
+    "retry": "Επανάληψη",
+    "stake_or_lend_description": "Stake or lend your crypto to earn. Rates vary by asset and strategy",
+    "money_fallback_description": "Add assets to your Money account to start earning",
+    "more_ways_to_earn": "More ways to earn",
+    "empty_state_description": "No earning opportunities are available right now.",
+    "view_more": "Δείτε περισσότερα"
+  },
   "money": {
     "title": "Money",
-    "get_pro": "Get Pro",
     "your_balance": "Το υπόλοιπό σας",
     "apy_label": "{{percentage}}% APY",
     "apy_currency_suffix": " • mUSD",
@@ -7728,8 +8044,8 @@
     "potential_earnings": {
       "title": "Κερδίστε από τα κρυπτονομίσματά σας",
       "description": "Δείτε πώς τα χρήματά σας μπορούν να αυξηθούν με τον χρόνο, μετατρέποντας τα κρυπτονομίσματά σας σε mUSD.",
-      "description_with_amounts_prefix": "Μετατρέψτε τα",
-      "description_with_amounts_middle": "σε περιουσιακά στοιχεία και θα μπορούσατε να κερδίσετε έως και",
+      "description_with_amounts_prefix": "Add your",
+      "description_with_amounts_middle": "in assets to your Money account and you could earn up to",
       "description_with_amounts_suffix": "σε ένα έτος.",
       "add": "Προσθήκη",
       "convert_cta": "Μετατρέψτε τα κρυπτονομίσματά σας",
@@ -7795,7 +8111,8 @@
       "bank_account": "Τραπεζικός λογαριασμός",
       "add_musd": "Προσθέστε mUSD",
       "receive_external": "Εξωτερική διεύθυνση",
-      "coming_soon": "Προσεχώς"
+      "coming_soon": "Προσεχώς",
+      "new_badge": "Νέα"
     },
     "more_sheet": {
       "title": "Περισσότερα",
@@ -8125,7 +8442,7 @@
     "max_modal": {
       "title": "Μέγ.",
       "eth": {
-        "description": "Το μέγιστο είναι το συνολικό ποσό των ETH που διαθέτετε, μείον τα τέλη συναλλαγών που απαιτούνται για το ποντάρισμα. Είναι καλή ιδέα να διατηρείτε κάποια επιπλέον ETH στο πορτοφόλι σας για μελλοντικές συναλλαγές."
+        "description": "Max is the total amount of ETH you have, minus the network fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
       }
     },
     "use_max": "Χρήση μέγιστου",
@@ -8225,10 +8542,10 @@
       "tooltip": "Αναμενόμενη ετήσια αύξηση της αξίας του πονταρίσματός σας, με βάση το ποσοστό ανταμοιβών κατά την τελευταία εβδομάδα."
     },
     "estimated_gas_fee": {
-      "title": "Εκτιμώμενο τέλος συναλλαγής",
+      "title": "Estimated network fee",
       "gas_recipient": "Τα τέλη συναλλαγών καταβάλλονται σε λογισμικό κρυπτονομισμάτων που επεξεργάζεται τις συναλλαγές στο δίκτυο Ethereum. Το MetaMask δεν επωφελείται από τα τέλη συναλλαγών.",
       "gas_fluctuation": "Τα τέλη συναλλαγών είναι κατ' εκτίμηση και αυξομειώνονται ανάλογα με την κίνηση του δικτύου και την πολυπλοκότητα των συναλλαγών.",
-      "gas_learn_more": "Μάθετε περισσότερα για τα τέλη συναλλαγών"
+      "gas_learn_more": "Learn more about network fees"
     },
     "reward_frequency": {
       "title": "Συχνότητα ανταμοιβών",
@@ -8481,6 +8798,107 @@
       "limit": "Όριο",
       "recurring": "Επαναλαμβανόμενα"
     },
+    "orders": {
+      "tabs": {
+        "open_orders": "Ανοιχτές εντολές",
+        "history": "Ιστορικό"
+      },
+      "empty": {
+        "open_orders": "Οι ανοιχτές εντολές εμφανίζονται εδώ",
+        "history": "Το ιστορικό εντολών εμφανίζεται εδώ"
+      }
+    },
+    "limit": {
+      "pair": "{{source}} → {{dest}}",
+      "expiry": "Λήξη: {{timeLeft}}",
+      "limit_price": "Τιμή ορίου {{symbol}}",
+      "not_enough_gas": "Δεν έχετε αρκετά χρήματα για τα τέλη συναλλαγών",
+      "filled": "Εκτελέστηκε",
+      "filled_at": "Εκτελέστηκε στις {{date}}",
+      "expired": "Έληξε",
+      "expired_after": "Έληξε μετά από {{duration}}",
+      "buy_when": "Αγοράστε όταν",
+      "sell_when": "Πωλήστε όταν",
+      "is_at_or_below": "είναι στο ή κάτω από",
+      "is_at_or_above": "είναι στο ή πάνω από",
+      "quote_unit": "{{amount}} {{symbol}}",
+      "quote_unit_fallback": "{{amount}}",
+      "from_market": "(-{{percent}}% από αγορά)",
+      "from_market_above": "(+{{percent}}% από αγορά)",
+      "market": "Τιμή αγοράς",
+      "custom": "Προσαρμογή",
+      "expires": "Expires",
+      "expiration": "Expiration",
+      "expiration_option": {
+        "minutes": "{{count}} λεπτά",
+        "hour": "{{count}} ώρα",
+        "day": "{{count}} ημέρα",
+        "days": "{{count}} ημέρες",
+        "week": "{{count}} week",
+        "month": "{{count}} month"
+      },
+      "est_network_fee": "Est. network fee"
+    },
+    "recurring": {
+      "you_get": "Λαμβάνετε",
+      "every": "Κάθε",
+      "repeat": "Επανάληψη",
+      "times": "φορές",
+      "confirm": "Επιβεβαίωση",
+      "preview_order": "Preview Order",
+      "confirm_title": "Confirm recurring order",
+      "paying_all_orders": "Paying (all orders)",
+      "paying_per_order": "Paying (per order)",
+      "receiving": "Λήψη",
+      "est_receiving_per_order": "Est. receiving (per order)",
+      "est_receiving_all_orders": "Est. receiving (all orders)",
+      "expires_after": "Expires after",
+      "slippage_all_orders": "Slippage (all orders)",
+      "est_network_fee_per_order": "Est. network fee (per order)",
+      "repeat_info_title": "Επανάληψη εντολών",
+      "repeat_info_body": "Μεταβάλλουμε τυχαία τον χρόνο και το μέγεθος των εντολών σας, ώστε οι ανταλλαγές σας να μην ακολουθούν προβλέψιμο μοτίβο.",
+      "max_is": "Το μέγιστο είναι {{max}}",
+      "price_range": {
+        "label": "Εύρος τιμών",
+        "not_set": "Δεν έχει οριστεί",
+        "token": "Token",
+        "price": "Τιμή",
+        "exchange_rate": "Ισοτιμία συναλλάγματος",
+        "min_token_price": "Ελάχιστη τιμή {{symbol}}",
+        "max_token_price": "Μέγιστη τιμή {{symbol}}",
+        "min_placeholder": "Ελάχιστη τιμή",
+        "max_placeholder": "Μέγιστη τιμή",
+        "clear_all": "Εκκαθάριση όλων",
+        "token_price": "1 {{symbol}} = {{price}}",
+        "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
+      },
+      "unit": {
+        "minute": "λεπτό",
+        "hour": "ώρα",
+        "day": "ημέρα",
+        "week": "εβδομάδα",
+        "month": "μήνας"
+      },
+      "unit_plural": {
+        "minute": "λεπτά",
+        "hour": "ώρες",
+        "day": "ημέρες",
+        "week": "εβδομάδες",
+        "month": "μήνες"
+      },
+      "unit_option": {
+        "minute": "Λεπτό",
+        "hour": "Ώρα",
+        "day": "Ημέρα",
+        "week": "Εβδομάδα",
+        "month": "Μήνας"
+      },
+      "pair": "{{source}} → {{dest}}",
+      "schedule_summary": "{{interval}} / {{count}} εντολές",
+      "spend_summary": "Δαπανάτε {{amount}} {{symbol}} κάθε {{everyValue}} {{unit}}, για {{repeatCount}} επαναλήψεις",
+      "percent_filled": "Εκτελέστηκε κατά {{percent}}%",
+      "filled": "Εκτελέστηκε"
+    },
     "continue": "Συνέχεια",
     "confirm_bridge": "Διασύνδεση",
     "confirm_swap": "Ανταλλαγή",
@@ -8681,6 +9099,10 @@
     "insufficient_native_reserve_cta": "Χρήση μέγιστου επιτρεπόμενου",
     "insufficient_native_reserve_message": "Αυτό το δίκτυο απαιτεί να διατηρείτε τουλάχιστον {{minimumReserve}} {{ticker}} στον λογαριασμό σας. Μπορείτε να χρησιμοποιήσετε το πολύ {{maxSwappable}} {{ticker}}",
     "insufficient_native_reserve_title": "Απαιτείται ελάχιστο υπόλοιπο σε {{ticker}} που πρέπει να διατηρείται",
+    "dest_asset_require_activate_warning_cta": "Activate {{token}}",
+    "dest_asset_require_activate_warning_message": "This swap may fail. On {{network}} your account can't receive {{token}} until the token is activated in your wallet.",
+    "dest_asset_require_activate_warning_message_different_account": "This swap may fail. On {{network}} {{account}} can't receive {{token}} until you switch to that account and activate the token.",
+    "dest_asset_require_activate_warning_title": "Activate {{token}} on {{network}} first",
     "token_warning_suspicious_banner": "Το {{token}} έχει χαρακτηριστεί ως ύποπτο token.",
     "token_warning_malicious_banner": "Το {{token}} είναι κακόβουλο token. Να είστε προσεκτικοί όταν αλληλεπιδράτε με αυτό.",
     "token_warning_modal_suspicious_title": "Ύποπτο token",
@@ -8706,7 +9128,7 @@
     "status": "Κατάσταση",
     "date": "Ημερομηνία",
     "network": "Δίκτυο",
-    "total_gas_fee": "Σύνολο τελών συναλλαγών",
+    "total_gas_fee": "Total network fee",
     "estimated_completion": "Εκτ. ολοκλήρωση",
     "bridge_step_action_bridge_complete": "{{destSymbol}} ελήφθη στο {{destChainName}}",
     "bridge_step_action_bridge_pending": "Ελήφθησαν {{destSymbol}} στο {{destChainName}}",
@@ -9106,6 +9528,17 @@
       "learn_more": "Μάθετε περισσότερα",
       "got_it": "Κατανοητό"
     },
+    "uk_migration_bottom_sheet": {
+      "title": "Update your MetaMask Card",
+      "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "steps": {
+        "reverify_identity": "Re-verify your identity",
+        "get_new_card_number": "Get your new card number",
+        "convert_funds_usdc_base": "Convert your funds to USDC on Base"
+      },
+      "get_started": "Ξεκινήστε",
+      "remind_me_later": "Υπενθυμίστε μου αργότερα"
+    },
     "daimo_pay_modal": {
       "load_error": "Αποτυχία φόρτωσης της σελίδας πληρωμής. Παρακαλούμε δοκιμάστε ξανά.",
       "timeout_error": "Η επαλήθευση πληρωμής έληξε λόγω χρονικού ορίου. Παρακαλούμε ελέγξτε την κατάσταση της συναλλαγής σας.",
@@ -9464,6 +9897,12 @@
       }
     },
     "transactions": {
+      "title": "Συναλλαγές",
+      "empty": "Δεν υπάρχουν συναλλαγές ακόμη",
+      "load_error": "Δεν είναι δυνατή η φόρτωση των συναλλαγών",
+      "load_error_more": "Δεν ήταν δυνατή η φόρτωση περισσότερων",
+      "retry": "Προσπαθήστε ξανά",
+      "end_of_list": "Είστε πλήρως ενημερωμένοι",
       "pending": "Εκκρεμεί",
       "completed": "Ολοκληρώθηκε",
       "reversed": "Ακυρώθηκε",
@@ -9488,7 +9927,21 @@
         "misc": "Άλλο"
       },
       "view_on_explorer": "Προβολή στον εξερευνητή ομάδας καταχωρίσεων",
-      "report_cta": "Αναφορά συναλλαγής"
+      "report_cta": "Αναφέρετε ένα πρόβλημα",
+      "report_title": "Έχετε επικοινωνήσει με τον έμπορο;",
+      "report_body_merchant": "Τα περισσότερα προβλήματα με τις συναλλαγές επιλύονται πιο γρήγορα αν επικοινωνήσετε απευθείας με τον έμπορο.",
+      "report_body_continue": "Αν το έχετε ήδη δοκιμάσει, είμαστε εδώ για να σας βοηθήσουμε.",
+      "report_file": "Υποβολή αναφοράς",
+      "report_open_error": "Δεν ήταν δυνατό το άνοιγμα της εφαρμογής email σας",
+      "report_link_error": "Δεν ήταν δυνατό το άνοιγμα της φόρμας αναφοράς",
+      "report_email_subject": "Αναφορά συναλλαγής με κάρτα — {{transactionId}}",
+      "report_email_body": "Αναγνωριστικό συναλλαγής: {{transactionId}}",
+      "report_back": "Ακύρωση",
+      "you_withdrew": "Κάνατε ανάληψη",
+      "you_deposited": "Κάνατε κατάθεση",
+      "you_received": "Έχετε λάβει",
+      "manage_entry_title": "Ιστορικό συναλλαγών",
+      "manage_entry_description": "Αγορές και δραστηριότητα με κάρτα"
     },
     "card_spending_limit": {
       "title_change_token": "Αλλαγή token και δικτύου",
@@ -9724,7 +10177,7 @@
     },
     "notifications_nudge": {
       "title": "Μην το χάσετε",
-      "description": "Ενεργοποιήστε τις ειδοποιήσεις για να ενημερώνεστε για καμπάνιες.",
+      "description": "Ενεργοποιήστε τις ειδοποιήσεις για να ενημερώνεστε για τις καμπάνιες.",
       "turn_on_button": "Ενεργοποίηση",
       "loading": "Ενεργοποίηση ειδοποιήσεων...",
       "loading_description": "Αυτό μπορεί να διαρκέσει λίγα λεπτά.",
@@ -10138,10 +10591,12 @@
       "geo_locked_cta": "Έλεγχος επιλεξιμότητας",
       "geo_loading": "Έλεγχος περιοχής…",
       "remind_me_success_toast": "Θα σας ενημερώσουμε όταν ξεκινήσει αυτή η καμπάνια.",
-      "remind_me_save_error": "Δεν ήταν δυνατή η αποθήκευση της υπενθύμισης. Προσπαθήστε ξανά."
+      "remind_me_save_error": "Δεν ήταν δυνατή η αποθήκευση της υπενθύμισης. Προσπαθήστε ξανά.",
+      "view_details": "Δείτε λεπτομέρειες",
+      "view_details_accessibility": "Προβολή λεπτομερειών για {{campaignName}}"
     },
     "campaign_mechanics": {
-      "title": "Κανόνες"
+      "title": "Κανόνες και προϋποθέσεις συμμετοχής"
     },
     "campaign_details": {
       "start_date": "Ξεκινά: {{date}}",
@@ -10158,6 +10613,12 @@
       "swap_ondo_assets": "Ανταλλαγή με ψηφιακά περιουσιακά στοιχεία στην πλατφόρμα Ondo",
       "open_position": "Κάντε συναλλαγές τώρα",
       "how_it_works": "Πώς λειτουργεί",
+      "error_title": "Δεν ήταν δυνατή η φόρτωση αυτής της καμπάνιας",
+      "error_description": "Δεν ήταν δυνατή η φόρτωση αυτής της καμπάνιας. Προσπαθήστε ξανά.",
+      "stats_error_title": "Δεν ήταν δυνατή η φόρτωση των στατιστικών",
+      "stats_error_description": "Παρουσιάστηκε πρόβλημα κατά τη φόρτωση των στατιστικών σας. Προσπαθήστε ξανά.",
+      "retry": "Επανάληψη",
+      "last_checked_at": "Τελευταίος έλεγχος στις",
       "ondo": {
         "entries_closed_title": "Οι συμμετοχές έκλεισαν",
         "entries_closed_description": "Η περίοδος συμμετοχής έληξε. Ελέγχετε ξανά για περισσότερες καμπάνιες στο μέλλον."
@@ -10446,8 +10907,8 @@
       "you_received": "Έχετε λάβει",
       "token_received": "Έχετε λάβει token",
       "money_account": "Money Account",
-      "perps_account": "Λογαριασμός Perps 1",
-      "predictions_account": "Λογαριασμός Προβλέψεων 1",
+      "perps_account": "Perps λογαριασμού 1",
+      "predictions_account": "Προβλέψεις λογαριασμού 1",
       "steps_completed": "Βήματα ({{count}} ολοκληρώθηκαν)",
       "summary": "Περίληψη"
     },
@@ -10485,7 +10946,7 @@
     "bandwidth_fee": "Εύρος ζώνης",
     "energy_fee": "Ενέργεια",
     "bridge_fee": "Τέλη διασύνδεσης",
-    "gas_token_fee": "Τέλη συναλλαγών",
+    "gas_token_fee": "Τέλη δικτύου",
     "transaction_fee": "Τέλος συναλλαγής",
     "unknown_token": "Άγνωστο",
     "total_amount": "Συνολικό ποσό",
@@ -10521,13 +10982,13 @@
       "description": "Επιστρέψτε στην εφαρμογή για να συνεχίσετε."
     },
     "show_cli_link_success": {
-      "title": "Agent wallet successfully linked",
+      "title": "Το Agent wallet συνδέθηκε με επιτυχία",
       "description": "Επιστρέψτε στο CLI για να συνεχίσετε."
     },
     "push_nudge": {
       "title": "Μην χάνετε ποτέ καμία συναλλαγή",
       "description": "Λάβετε ειδοποιήσεις σε πραγματικό χρόνο για να ελέγχετε και να εγκρίνετε συναλλαγές από τη συνεδρία CLI σας.",
-      "turn_on_button": "Ενεργοποίηση ειδοποιήσεων",
+      "turn_on_button": "Ενεργοποίηση των ειδοποιήσεων",
       "preview_title": "Αίτημα συναλλαγής",
       "preview_message": "Ο βοηθός σας χρειάζεται έγκριση για ένα νέο όριο.",
       "preview_timestamp": "τώρα"
@@ -10535,8 +10996,8 @@
     "show_otp": {
       "title": "Πληκτρολογήστε αυτόν τον κωδικό",
       "description": "Πληκτρολογήστε το {{otp}} στο {{dappName}} για να ολοκληρώσετε τη σύνδεση. Αυτός ο κωδικός λήγει σε {{seconds}} δευτερόλεπτα.",
-      "modal_title": "Link MetaMask Agent wallet",
-      "modal_description": "Pair MetaMask Mobile with your MetaMask Agent wallet.",
+      "modal_title": "Σύνδεση MetaMask Agent wallet",
+      "modal_description": "Συνδέστε το MetaMask Mobile με το MetaMask Agent wallet σας.",
       "code_label": "ΠΛΗΚΤΡΟΛΟΓΗΣΤΕ ΤΟΝ ΚΩΔΙΚΟ ΣΤΟ ΤΕΡΜΑΤΙΚΟ",
       "expires_in": "Λήγει σε {{time}}",
       "expired": "Ο κωδικός έληξε",
@@ -10625,7 +11086,7 @@
     "view_all": "Προβολή όλων",
     "view_more": "Δείτε περισσότερα",
     "view_x_more": "Δείτε {{count}} ακόμη",
-    "enable_basic_functionality": "Ενεργοποίηση βασικής λειτουργικότητας",
+    "enable_basic_functionality": "Ενεργοποίηση βασικών λειτουργιών",
     "basic_functionality_disabled_title": "Η Εξερεύνηση δεν είναι διαθέσιμη",
     "basic_functionality_disabled_description": "Δεν είναι δυνατή η ανάκτηση των απαιτούμενων μεταδεδομένων όταν η βασική λειτουργικότητα είναι απενεργοποιημένη.",
     "empty_error_trending_state": {
@@ -10649,6 +11110,7 @@
       "all": "Όλα",
       "crypto": "Κρύπτο",
       "perps": "Συμβ.αορ.",
+      "earn": "Κερδίστε",
       "stocks": "Μετοχές",
       "predictions": "Προβλέψεις",
       "sites": "Ιστότοποι"
@@ -10812,6 +11274,7 @@
       "import_nfts": "Εισαγωγή NFT",
       "import_nfts_description": "Προσθέστε εύκολα τα συλλεκτικά σας αντικείμενα",
       "view_more": "Δείτε περισσότερα",
+      "earn": "Κερδίστε",
       "more": {
         "title": "Περισσότερα",
         "import_token": "Εισαγωγή token",
@@ -10833,7 +11296,6 @@
   "whats_happening": {
     "title": "Τι συμβαίνει",
     "ai": "AI",
-    "ai_generated": "Δημιουργήθηκε από AI",
     "outdated": "Παρωχημένα",
     "impact": {
       "bullish": "Ανοδικό",
@@ -10879,86 +11341,180 @@
     "deactivate_error": "Κάτι πήγε στραβά κατά την αφαίρεση του trustline. Προσπαθήστε ξανά.",
     "deactivate_error_non_zero_balance_stellar": "Έχετε ακόμα {{balance}} {{symbol}} σε αυτό το πορτοφόλι. Πρέπει να μεταφέρετε ή να ανταλλάξετε όλο το ποσό πριν απενεργοποιήσετε αυτό το στοιχείο στο Stellar."
   },
+  "pro_hub": {
+    "title": "MetaMask Pro",
+    "subtitle": "Η Pro συνδρομή σας",
+    "manage": "Διαχείριση συνδρομής",
+    "manage_plan": "Διαχείριση προγράμματος",
+    "earned_with_pro": "Κερδίσατε με το Pro",
+    "saved_with_pro": "Εξοικονομήσατε με το Pro",
+    "next_payment": "Η επόμενη πληρωμή σας, ύψους {{amount}}, είναι προγραμματισμένη για τις {{date}}.",
+    "member_pricing": {
+      "title": "Ειδική τιμολόγηση για μέλη στις συναλλαγές",
+      "allowance_currency": "${{amount}}",
+      "allowance_count_one": "{{count}} trade",
+      "allowance_count_other": "{{count}} trades",
+      "swaps": {
+        "label": "Ανταλλαγές",
+        "footnote": "Allowance resets monthly. Fees apply above $500."
+      },
+      "perps": {
+        "label": "Συμβ.αορ.",
+        "footnote": "Allowance resets monthly. Fees apply above $1,000."
+      },
+      "predict": {
+        "label": "Πρόβλεψη",
+        "footnote": "One prediction trade per month. Unused trades don't roll over."
+      }
+    },
+    "physical_card": {
+      "title": "Αποκτήστε τη φυσική σας κάρτα.",
+      "description": "Κερδίστε επιστροφή 3% σε mUSD σε περισσότερες από 150 εκατ. επιχειρήσεις όταν πραγματοποιείτε αγορές με την MetaMask Card.",
+      "cta": "Αποκτήστε την κάρτα"
+    },
+    "earned": {
+      "total_label": "Κερδίσατε από την εγγραφή σας στο Pro",
+      "interest_title": "Επιτόκιο",
+      "interest_subtitle": "Έως 7% APY στο υπόλοιπό σας στο Money account",
+      "card_cashback_title": "Επιστροφή χρημάτων από την κάρτα",
+      "card_cashback_subtitle": "3% σε mUSD για {{amount}}",
+      "paid_for_itself_title": "Έχετε ήδη καλύψει το κόστος του Pro",
+      "paid_for_itself_description": "Έχετε κερδίσει πίσω {{multiplier}}x τη συνδρομή σας των {{fee}} από την εγγραφή σας.",
+      "grow_title": "Αυξήστε το υπόλοιπό σας",
+      "grow_description": "Κάθε $1.000 στον Money account σας αποφέρει περίπου $70 τον χρόνο με έως και 7% APY.",
+      "add_money": "Προσθήκη χρημάτων"
+    },
+    "explore_benefits": "Εξερευνήστε τα οφέλη",
+    "membership": {
+      "title": "Η συνδρομή σας",
+      "plan": "Συνδρομή",
+      "earned_this_month": "Κερδίσατε αυτόν τον μήνα",
+      "saved_this_month": "Εξοικονομήσατε αυτόν τον μήνα",
+      "payment_details": "Στοιχεία πληρωμής",
+      "total": "Σύνολο",
+      "paying_with": "Τρόπος πληρωμής",
+      "renews_on": "Ανανέωση στις",
+      "manage": "Διαχείριση",
+      "contact_support": "Επικοινωνία με την υποστήριξη",
+      "cancel_membership": "Ακύρωση συνδρομής",
+      "earned_info": {
+        "title": "Κερδίσατε αυτόν τον μήνα",
+        "description": "Το ποσό που κερδίσατε μέσω APY και σε mUSD ως μέλος Pro."
+      },
+      "saved_info": {
+        "title": "Εξοικονομήσατε αυτόν τον μήνα",
+        "description": "Το ποσό που εξοικονομήσατε ως μέλος Pro από τις χρεώσεις του MetaMask για ανταλλαγές, perps και προβλέψεις αυτόν τον μήνα, καθώς και τις χρεώσεις από αναληψεις σε ATM και FX."
+      }
+    },
+    "cancel_membership": {
+      "title": "Γιατί θέλετε να ακυρώσετε;",
+      "subtitle": "Η συμμετοχή στην έρευνα είναι προαιρετική.",
+      "earned_as_member": "Κερδίσατε ως μέλος",
+      "membership_cost": "Κόστος συνδρομής",
+      "reason_issue": "Έχω ένα πρόβλημα με τη συνδρομή μου",
+      "reason_no_value": "Δεν αποκομίζω τα κέρδη που θα ήθελα",
+      "reason_no_benefits": "Δεν χρειάζομαι τα οφέλη",
+      "reason_support": "Η εμπειρία μου από την υποστήριξη δεν ήταν καλή",
+      "reason_other": "Άλλο",
+      "keep_membership": "Διατήρηση συνδρομής",
+      "cancel": "Άκυρο",
+      "success": {
+        "title": "Η συνδρομή ακυρώθηκε",
+        "description_prefix": "Η Pro συνδρομή σας ακυρώθηκε επιτυχώς. Δεν θα ανανεωθεί, και θα διατηρήσετε όλα τα οφέλη σας έως τις ",
+        "description_suffix": ".",
+        "done": "Τέλος"
+      }
+    }
+  },
   "pro_subscription": {
-    "title": "Earn more with Pro",
-    "description": "$4.99/mo ($49.99 for annual membership)",
-    "join_pro": "Join Pro",
+    "title": "Κερδίστε περισσότερα με την Pro συνδρομή",
+    "description": "$4,99/μήνα ($49,99 για ετήσια συνδρομή)",
+    "join_pro": "Αποκτήστε την Pro συνδρομή",
     "benefits": {
       "apy": {
-        "title": "Up to 7% APY on Money account",
-        "subtitle": "Paid in mUSD, no lockups"
+        "title": "Έως 7% APY στον Money account",
+        "subtitle": "Πληρωμή σε mUSD, χωρίς δεσμεύσεις"
       },
       "cashback": {
-        "title": "3% mUSD back on card purchases",
-        "subtitle": "Up to $1,000/mo, worldwide"
+        "title": "3% επιστροφή σε mUSD στις αγορές με κάρτα",
+        "subtitle": "Up to $12,000/yr, worldwide",
+        "subtitle_monthly": "Έως $1.000/μήνα, παγκοσμίως"
       },
       "member_pricing": {
-        "title": "Member pricing on trades",
-        "subtitle": "Including swaps, perps, and predictions"
+        "title": "Ειδική τιμολόγηση για μέλη στις συναλλαγές",
+        "subtitle": "Συμπεριλαμβανομένων των ανταλλαγών, perps και προβλέψεων"
       },
       "atm_fees": {
-        "title": "No added ATM or FX fees",
-        "subtitle": "Physical card included"
+        "title": "Χωρίς πρόσθετες χρεώσεις για αναλήψεις από ATM ή συναλλαγές συναλλάγματος",
+        "subtitle": "Περιλαμβάνεται η φυσική κάρτα",
+        "subtitle_monthly": "Η φυσική κάρτα διατίθεται ξεχωριστά"
       },
       "protection": {
-        "title": "Up to $10,000 in protection",
-        "subtitle": "On eligible extension transactions"
+        "title": "Προστασία έως και $10.000",
+        "subtitle": "Για επιλέξιμες συναλλαγές από την επέκταση"
       },
       "support": {
-        "title": "Real human support, around the clock",
-        "subtitle": "Response in minutes"
+        "title": "Υποστήριξη από πραγματικούς ανθρώπους, όλο το 24ωρο",
+        "subtitle": "Απάντηση μέσα σε λίγα λεπτά"
       }
     },
     "plans": {
       "annual": {
         "label": "Ετησίως",
-        "price": "$49.99",
-        "sub_price": "($4.15/mo)",
-        "badge": "2 months free",
-        "cta": "Join Pro for $4.15/month"
+        "price": "$49,99",
+        "sub_price": "($4,15/μήνα)",
+        "badge": "2 μήνες δωρεάν",
+        "cta": "Αποκτήστε την Pro συνδρομή με $4,15/μήνα"
       },
       "monthly": {
         "label": "Μηνιαία",
-        "price": "$4.99/mo",
-        "cta": "Join Pro for $4.99/month"
+        "price": "$4,99/μήνα",
+        "cta": "Αποκτήστε την Pro συνδρομή με $4,99/μήνα"
       }
     },
     "benefits_description": {
       "apy": {
-        "description": "Money account gives you up to ~4% APY on your balance. Members earn up to ~7% APY—accrued daily, paid in mUSD. APY is variable and not guaranteed."
+        "description": "As a Pro member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
+        "description2": "Το APY είναι μεταβλητό και δεν είναι εγγυημένο."
       },
       "cashback": {
-        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning the member rate immediately.",
+        "description": "Spend with your card and earn 3% mUSD back, paid straight to your Money balance—where it starts earning up to ~7% APY.",
         "points": [
-          "Monthly members: 3% back on up to $1,000 in purchases every month",
-          "Annual members: 3% back on up to $12,000 in purchases every year"
+          "Για τα μέλη με μηνιαία συνδρομή: 3% επιστροφή για αγορές έως και $1.000 κάθε μήνα",
+          "Για τα μέλη με ετήσια συνδρομή: 3% επιστροφή για αγορές έως και $12.000 κάθε χρόνο"
         ]
       },
       "member_pricing": {
-        "description": "Members pay no MetaMask fees on:",
+        "description": "Pay no MetaMask fees on:",
         "points": [
-          "$500/mo in swaps",
-          "$1,000/mo in perps",
-          "Up to 1 prediction/mo"
+          "$500/μήνα σε ανταλλαγές",
+          "$1.000/μήνα σε perps",
+          "Έως 1 πρόβλεψη/μήνα"
         ]
       },
       "atm_fees": {
-        "description": "MetaMask Card ships free for annual members. Use it at 150M+ merchants globally, anywhere Mastercard is accepted—no ATM fees or foreign transaction fees from MetaMask."
+        "description": "Η MetaMask Card αποστέλλεται δωρεάν στα μέλη με ετήσια συνδρομή. Χρησιμοποιήστε την σε περισσότερες από 150 εκατομμύρια επιχειρήσεις παγκοσμίως, όπου γίνεται δεκτή η Mastercard — χωρίς χρεώσεις για αναλήψεις από ATM ή χρεώσεις συναλλαγών σε ξένο νόμισμα από την MetaMask.",
+        "description_monthly": "Η MetaMask Card διατίθεται ξεχωριστά για μέλη με μηνιαία συνδρομή. Χρησιμοποιήστε την σε περισσότερες από 150 εκατ. επιχειρήσεις παγκοσμίως, οπουδήποτε γίνεται δεκτή η Mastercard — χωρίς χρεώσεις ανάληψης από ATM ή χρεώσεις συναλλαγών σε ξένο νόμισμα από το MetaMask."
       },
       "protection": {
-        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000.",
-        "sub_description": "Transaction protection offers asset coverage for extension across a range of supported interactions on popular blockchain networks. Members receive clear in-app alerts when a transaction is covered.",
+        "description": "Get protection on up to 100 MetaMask extension transactions per month, up to $10,000. Members receive clear in-app alerts when a transaction is covered.",
+        "sub_description": "Protection includes:",
+        "points": [
+          "DeFi swaps",
+          "NFT mints",
+          "Airdrop claims"
+        ],
         "learn_more": "Μάθετε περισσότερα",
-        "notes": "Note: Transaction protection does not protect against losses that occur before or after a transaction."
+        "notes": "Σημείωση: Η προστασία συναλλαγών δεν καλύπτει απώλειες που προκύπτουν πριν ή μετά από μια συναλλαγή."
       },
       "support": {
-        "description": "When something goes wrong, a real person responds in minutes—anytime, any day."
+        "description": "Get priority customer support from a real human—anytime, any day."
       }
     },
     "success": {
-      "title": "You just leveled up, {{name}}",
-      "description": "Time to start earning.",
-      "cta": "Continue"
+      "title": "Μόλις ανεβήκατε επίπεδο, {{name}}",
+      "description": "Ώρα να αρχίσετε να κερδίζετε.",
+      "cta": "Συνεχίστε"
     }
   }
 }
