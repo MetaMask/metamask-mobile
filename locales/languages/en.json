@@ -26,6 +26,10 @@
     "description_line2": "If you believe this is an error, contact support to request a review.",
     "contact_support": "Contact support"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
   },
