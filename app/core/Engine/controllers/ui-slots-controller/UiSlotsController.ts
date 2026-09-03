@@ -224,71 +224,86 @@ export class UiSlotsController extends BaseController<
       if (this.#activeRequestByScreen.get(screenId) !== request) {
         return 'ready';
       }
+      return this.#applyScreenResult(result, cached, key, screenId, locale);
+    } catch (error) {
+      return this.#handleLoadError(error, request, screenId, Boolean(cached));
+    }
+  }
 
-      if (result.status === 'not-modified') {
-        if (!cached) {
-          throw new Error('UI Slots returned 304 without cached content.');
-        }
-        // The active configuration already points at this content, so only the
-        // freshness metadata moves. Leaving `response` untouched keeps the
-        // rendered slot identity stable and consumers from re-rendering.
-        this.update((state) => {
-          const stored = state.screenConfigurations[key];
-          if (!stored) {
-            return;
-          }
+  #applyScreenResult(
+    result: FetchUiSlotsScreenResult,
+    cached: StoredScreenConfiguration | undefined,
+    key: string,
+    screenId: UiSlotsScreenId,
+    locale: string,
+  ): UiSlotsLoadOutcome {
+    if (result.status === 'not-modified') {
+      if (!cached) {
+        throw new Error('UI Slots returned 304 without cached content.');
+      }
+      // Keep the response identity stable; only its freshness metadata changed.
+      this.update((state) => {
+        const stored = state.screenConfigurations[key];
+        if (stored) {
           stored.fetchedAt = this.#now();
           stored.etag = result.etag ?? stored.etag;
-        });
-        return 'ready';
-      }
-
-      const { response, rejections } = parseUiSlotsResponse(
-        result.value,
-        this.#contractRegistry,
-      );
-      if (response.screenId !== screenId || response.locale !== locale) {
-        throw new Error('UI Slots response did not match the request.');
-      }
-      if (rejections.length > 0) {
-        this.#diagnostics.log('UI Slots response contained rejected slots', {
-          screenId,
-          configurationVersion: response.configurationVersion,
-          rejectedSlotCount: rejections.length,
-          rejectionCounts: countByCode(rejections),
-        });
-      }
-      this.#storeConfiguration(key, screenId, response, result.etag);
+        }
+      });
       return 'ready';
-    } catch (error) {
-      if (this.#activeRequestByScreen.get(screenId) !== request) {
-        return 'ready';
-      }
-      const validationError =
-        error instanceof UiSlotsResponseValidationError ? error : undefined;
-      const rejectionCounts = validationError
-        ? countByCode(validationError.rejections)
-        : undefined;
-      this.#diagnostics.error(
-        error instanceof Error
-          ? error
-          : new Error('Failed to load UI Slots configuration.'),
-        {
-          tags: { feature: 'ui-slots' },
-          context: {
-            name: UI_SLOTS_CONTROLLER_NAME,
-            data: {
-              screenId,
-              reason: validationError?.code ?? 'load-failed',
-              ...(rejectionCounts && Object.keys(rejectionCounts).length > 0
-                ? { rejectionCounts }
-                : {}),
-            },
+    }
+
+    const { response, rejections } = parseUiSlotsResponse(
+      result.value,
+      this.#contractRegistry,
+    );
+    if (response.screenId !== screenId || response.locale !== locale) {
+      throw new Error('UI Slots response did not match the request.');
+    }
+    if (rejections.length > 0) {
+      this.#diagnostics.log('UI Slots response contained rejected slots', {
+        screenId,
+        configurationVersion: response.configurationVersion,
+        rejectedSlotCount: rejections.length,
+        rejectionCounts: countByCode(rejections),
+      });
+    }
+    this.#storeConfiguration(key, screenId, response, result.etag);
+    return 'ready';
+  }
+
+  #handleLoadError(
+    error: unknown,
+    request: ActiveRequest,
+    screenId: UiSlotsScreenId,
+    hasCachedConfiguration: boolean,
+  ): UiSlotsLoadOutcome {
+    if (this.#activeRequestByScreen.get(screenId) !== request) {
+      return 'ready';
+    }
+    const validationError =
+      error instanceof UiSlotsResponseValidationError ? error : undefined;
+    const rejectionCounts = validationError
+      ? countByCode(validationError.rejections)
+      : undefined;
+    this.#diagnostics.error(
+      error instanceof Error
+        ? error
+        : new Error('Failed to load UI Slots configuration.'),
+      {
+        tags: { feature: 'ui-slots' },
+        context: {
+          name: UI_SLOTS_CONTROLLER_NAME,
+          data: {
+            screenId,
+            reason: validationError?.code ?? 'load-failed',
+            ...(rejectionCounts && Object.keys(rejectionCounts).length > 0
+              ? { rejectionCounts }
+              : {}),
           },
         },
-      );
-      return cached ? 'stale' : 'error';
-    }
+      },
+    );
+    return hasCachedConfiguration ? 'stale' : 'error';
   }
 
   async #fetchScreen(

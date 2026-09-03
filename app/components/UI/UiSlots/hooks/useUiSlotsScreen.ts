@@ -21,7 +21,7 @@ const subscribeToLocale = (onLocaleChanged: () => void) => {
 const getLocaleSnapshot = () => I18n.locale;
 
 export const normalizeUiSlotsLocale = (locale: string): string => {
-  const [language, ...subtags] = locale.replace(/_/gu, '-').split('-');
+  const [language, ...subtags] = locale.replaceAll('_', '-').split('-');
   return [
     (language || 'en').toLowerCase(),
     ...subtags.map((subtag) =>

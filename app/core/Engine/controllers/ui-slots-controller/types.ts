@@ -1,6 +1,6 @@
 import type {
   ControllerGetStateAction,
-  ControllerStateChangeEvent,
+  ControllerStateChangedEvent,
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 import type {
@@ -21,7 +21,7 @@ export interface UiSlotWidgetMap {}
 
 export interface UiSlotDataReferenceMap {}
 
-export type UiSlotsScreenId = keyof UiSlotsScreenIdMap & string;
+export type UiSlotsScreenId = keyof UiSlotsScreenIdMap;
 
 export type UiSlotWidget = UiSlotWidgetMap[keyof UiSlotWidgetMap];
 
@@ -88,7 +88,7 @@ export type UiSlotsControllerActions =
   | RemoteFeatureFlagControllerGetStateAction;
 
 export type UiSlotsControllerEvents =
-  | ControllerStateChangeEvent<
+  | ControllerStateChangedEvent<
       typeof UI_SLOTS_CONTROLLER_NAME,
       UiSlotsControllerState
     >

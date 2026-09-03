@@ -28,9 +28,9 @@ const resolveHomepagePredictMarketSlots = (
 
 function ActivePredictDiscoveryList({
   slots,
-}: {
+}: Readonly<{
   slots: readonly HomepagePredictMarketSlot[];
-}) {
+}>) {
   const host = useContext(PredictDiscoveryListHostContext);
   if (!host) {
     throw new Error('Predict discovery list host context is missing.');
@@ -72,7 +72,9 @@ export function BundledPredictDiscoveryList() {
   return <ActivePredictDiscoveryList slots={HOMEPAGE_PREDICT_MARKET_SLOTS} />;
 }
 
-export function PredictDiscoveryListWidget({ slot }: { slot: UiSlot }) {
+export function PredictDiscoveryListWidget({
+  slot,
+}: Readonly<{ slot: UiSlot }>) {
   const reference = slot.dataReferences?.find(
     isPredictHomepageMarketSlotReference,
   );

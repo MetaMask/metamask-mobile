@@ -5,7 +5,8 @@ import type { Json } from '@metamask/utils';
 const encodeArtifactPart = (value: string): string =>
   encodeURIComponent(value).replace(
     /[.!'()*]/gu,
-    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+    (character) =>
+      `%${(character.codePointAt(0) as number).toString(16).toUpperCase()}`,
   );
 
 export type FetchUiSlotsScreenResult =
