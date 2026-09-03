@@ -1663,8 +1663,12 @@
       "twap_empty_short": "No short TWAPs.",
       "twap_history_empty": "Your completed TWAPs will appear here.",
       "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
       "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
       "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
       "twap_load_error": "Unable to load the latest TWAP schedules.",
       "twap_retry": "Try again",
       "side_filter": {

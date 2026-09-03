@@ -196,16 +196,13 @@ export const usePerpsProTwapManagement = ({
 
   useEffect(() => {
     const selectionKey = terminatingSelection?.orderIdentityKey ?? null;
-    if (
-      selectionKey &&
-      terminatingOrder &&
-      openedSelectionRef.current !== selectionKey
-    ) {
+    if (!selectionKey || !terminatingOrder) {
+      openedSelectionRef.current = null;
+      return;
+    }
+    if (openedSelectionRef.current !== selectionKey) {
       openedSelectionRef.current = selectionKey;
       terminateSheetRef.current?.onOpenBottomSheet();
-    }
-    if (!selectionKey) {
-      openedSelectionRef.current = null;
     }
   }, [terminatingOrder, terminatingSelection]);
 
@@ -266,6 +263,7 @@ export const usePerpsProTwapManagement = ({
     Record<ProTwapView, PerpsProTwapEmptyMetadata>
   >(() => {
     const getMetadata = (
+      view: ProTwapView,
       allViewOrders: TwapOrder[],
       visibleViewOrders: TwapOrder[],
       sideFilteredViewOrders: TwapOrder[],
@@ -277,7 +275,7 @@ export const usePerpsProTwapManagement = ({
 
       return {
         filteredSideDescriptionKey: isSideFilterEmpty
-          ? getProTwapSideFilterEmptyDescriptionKey(sideFilter)
+          ? getProTwapSideFilterEmptyDescriptionKey(sideFilter, view)
           : undefined,
         filteredTicker:
           isTickerOnly &&
@@ -290,13 +288,20 @@ export const usePerpsProTwapManagement = ({
     };
 
     return {
-      active: getMetadata(allActiveOrders, visibleActiveOrders, activeOrders),
+      active: getMetadata(
+        'active',
+        allActiveOrders,
+        visibleActiveOrders,
+        activeOrders,
+      ),
       history: getMetadata(
+        'history',
         allHistoricalOrders,
         visibleHistoricalOrders,
         historicalOrders,
       ),
       fill_history: getMetadata(
+        'fill_history',
         allFillOrders,
         visibleFillOrders,
         sideFilteredFillOrders,

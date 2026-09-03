@@ -956,7 +956,8 @@ describe('PerpsProPositionsPanel', () => {
     );
 
     // Assert
-    expect(screen.getByText('No short TWAPs.')).toBeOnTheScreen();
+    expect(screen.getByText('No short TWAP history.')).toBeOnTheScreen();
+    expect(screen.queryByText('No short TWAPs.')).not.toBeOnTheScreen();
   });
 
   it('counts Chase rows after ticker and side filters', () => {

@@ -6,6 +6,7 @@ import {
   type ProPositionsSideFilter,
   type TwapOrder,
 } from '@metamask/perps-controller';
+import type { ProTwapView } from './proTwapViews';
 
 export type ProPositionSideFilter = ProPositionsSideFilter;
 
@@ -119,9 +120,20 @@ const SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
     long: 'perps.pro_positions_panel.orders_empty_long',
     short: 'perps.pro_positions_panel.orders_empty_short',
   },
-  twap: {
+} as const;
+
+const TWAP_SIDE_FILTER_EMPTY_DESCRIPTION_KEYS = {
+  active: {
     long: 'perps.pro_positions_panel.twap_empty_long',
     short: 'perps.pro_positions_panel.twap_empty_short',
+  },
+  history: {
+    long: 'perps.pro_positions_panel.twap_history_empty_long',
+    short: 'perps.pro_positions_panel.twap_history_empty_short',
+  },
+  fill_history: {
+    long: 'perps.pro_positions_panel.twap_fill_history_empty_long',
+    short: 'perps.pro_positions_panel.twap_fill_history_empty_short',
   },
 } as const;
 
@@ -148,5 +160,11 @@ export const getProOrderSideFilterEmptyDescriptionKey = (
 
 export const getProTwapSideFilterEmptyDescriptionKey = (
   sideFilter: ProOrderSideFilter,
-): string | undefined =>
-  getProSideFilterEmptyDescriptionKey(sideFilter, 'twap');
+  view: ProTwapView,
+): string | undefined => {
+  if (sideFilter === 'all') {
+    return undefined;
+  }
+
+  return TWAP_SIDE_FILTER_EMPTY_DESCRIPTION_KEYS[view][sideFilter];
+};

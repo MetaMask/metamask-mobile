@@ -5,6 +5,7 @@ import {
   filterProOrdersBySide,
   filterProPositionsBySide,
   filterProTwapOrdersBySide,
+  getProTwapSideFilterEmptyDescriptionKey,
 } from './proPositionSideFilter';
 
 const makePosition = (overrides: Partial<Position> = {}): Position => ({
@@ -223,5 +224,34 @@ describe('filterProTwapOrdersBySide', () => {
     );
 
     expect(result).toEqual(schedules);
+  });
+});
+
+describe('getProTwapSideFilterEmptyDescriptionKey', () => {
+  it.each([
+    ['active', 'long', 'perps.pro_positions_panel.twap_empty_long'],
+    ['active', 'short', 'perps.pro_positions_panel.twap_empty_short'],
+    ['history', 'long', 'perps.pro_positions_panel.twap_history_empty_long'],
+    ['history', 'short', 'perps.pro_positions_panel.twap_history_empty_short'],
+    [
+      'fill_history',
+      'long',
+      'perps.pro_positions_panel.twap_fill_history_empty_long',
+    ],
+    [
+      'fill_history',
+      'short',
+      'perps.pro_positions_panel.twap_fill_history_empty_short',
+    ],
+  ] as const)('uses %s copy for the %s filter', (view, side, expectedKey) => {
+    expect(getProTwapSideFilterEmptyDescriptionKey(side, view)).toBe(
+      expectedKey,
+    );
+  });
+
+  it('does not select copy when every side is visible', () => {
+    expect(getProTwapSideFilterEmptyDescriptionKey('all', 'history')).toBe(
+      undefined,
+    );
   });
 });
