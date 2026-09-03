@@ -1,10 +1,4 @@
-import React, {
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { startTransition, useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -40,18 +34,11 @@ import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
 import BridgeRecurringBuyView from './BridgeRecurringBuyView';
+import { useBridgeSession } from '../../hooks/useBridgeSession/BridgeSessionContext';
 
 const BridgeView = () => {
-  // `selectedTab` drives the tabs bar and updates urgently so a press is
-  // acknowledged on the same frame. `renderedTab` swaps the content, which is
-  // expensive enough to drop frames, so it is deferred to a transition instead
-  // of holding up that feedback.
-  const [selectedTab, setSelectedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
-  const [renderedTab, setRenderedTab] = useState<BridgeTabKey>(
-    BridgeTabKey.Market,
-  );
+  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab, latestSourceBalance } =
+    useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -256,10 +243,14 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <BridgeMarketView latestSourceBalance={latestSourceBalance} />
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView latestSourceBalance={latestSourceBalance} />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <BridgeRecurringBuyView latestSourceBalance={latestSourceBalance} />
           ) : null}
         </Box>
       </GestureDetector>
