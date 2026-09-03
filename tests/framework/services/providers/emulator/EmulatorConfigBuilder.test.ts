@@ -78,6 +78,16 @@ describe('EmulatorConfigBuilder', () => {
     });
   });
 
+  it('ignores stale iOS ports for Android capabilities', () => {
+    process.env.IOS_WDA_LOCAL_PORT = 'stale-wda-port';
+    process.env.IOS_MJPEG_SERVER_PORT = 'stale-mjpeg-port';
+
+    const config = new EmulatorConfigBuilder(createAndroidProject()).build();
+
+    expect(config.capabilities).not.toHaveProperty('appium:wdaLocalPort');
+    expect(config.capabilities).not.toHaveProperty('appium:mjpegServerPort');
+  });
+
   it('omits iOS WDA ports outside pool mode', () => {
     const config = new EmulatorConfigBuilder(createIosProject()).build();
 
