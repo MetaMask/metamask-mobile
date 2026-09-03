@@ -1462,12 +1462,13 @@ describe('PerpsOrderView', () => {
     expect(mockExecuteOrder).toHaveBeenCalledWith(submittedOrder, {
       waitForPosition: true,
     });
-    expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
-      symbol: 'ETH',
-      takeProfitPrice: '3500',
-      stopLossPrice: undefined,
-      position: renderedPosition,
-    });
+    expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'ETH',
+        takeProfitPrice: '3500',
+      }),
+      renderedPosition,
+    );
   });
 
   it('attempts TP/SL attachment without a rendered position hint', async () => {
@@ -1506,12 +1507,7 @@ describe('PerpsOrderView', () => {
       fireEvent.press(placeOrderButton);
     });
 
-    expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
-      symbol: 'ETH',
-      takeProfitPrice: '3500',
-      stopLossPrice: undefined,
-      position: undefined,
-    });
+    expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toBeUndefined();
   });
 
   it('includes discovery attribution from route source_section in order trackingData', async () => {

@@ -1578,12 +1578,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             return;
           }
 
-          await attachPostOrderTPSL({
-            symbol: orderForm.asset,
-            takeProfitPrice: orderForm.takeProfitPrice,
-            stopLossPrice: orderForm.stopLossPrice,
-            position: orderResult.position,
-          });
+          await attachPostOrderTPSL(orderParams, orderResult.position);
         } else {
           const orderResult = await executeOrder(orderParams);
           if (!orderResult?.success) {

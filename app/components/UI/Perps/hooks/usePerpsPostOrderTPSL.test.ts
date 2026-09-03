@@ -49,11 +49,13 @@ describe('usePerpsPostOrderTPSL', () => {
     const { result } = renderHook(() => usePerpsPostOrderTPSL());
 
     await act(async () => {
-      await result.current.attachPostOrderTPSL({
-        symbol: 'ETH',
-        takeProfitPrice: '3500',
+      await result.current.attachPostOrderTPSL(
+        {
+          symbol: 'ETH',
+          takeProfitPrice: '3500',
+        },
         position,
-      });
+      );
     });
 
     expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
@@ -68,11 +70,13 @@ describe('usePerpsPostOrderTPSL', () => {
     const { result } = renderHook(() => usePerpsPostOrderTPSL());
 
     await act(async () => {
-      await result.current.attachPostOrderTPSL({
-        symbol: 'ETH',
-        stopLossPrice: '2500',
-        position: undefined,
-      });
+      await result.current.attachPostOrderTPSL(
+        {
+          symbol: 'ETH',
+          stopLossPrice: '2500',
+        },
+        undefined,
+      );
     });
 
     expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({

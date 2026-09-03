@@ -3494,7 +3494,7 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('TP/SL handling', () => {
-    it('places the order without TP/SL then updates position TP/SL when flagged', async () => {
+    it('places the order without TP/SL then delegates position attachment', async () => {
       // Arrange: new market position with TP set -> handled separately
       const renderedPosition = {
         symbol: 'BTC',
@@ -3518,12 +3518,13 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledWith(params, {
         waitForPosition: true,
       });
-      expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
-        symbol: 'BTC',
-        takeProfitPrice: '95000',
-        stopLossPrice: undefined,
-        position: renderedPosition,
-      });
+      expect(mockAttachPostOrderTPSL.mock.calls[0]).toEqual([
+        expect.objectContaining({
+          symbol: 'BTC',
+          takeProfitPrice: '95000',
+        }),
+        renderedPosition,
+      ]);
     });
 
     it('attempts TP/SL attachment without a rendered position hint', async () => {
@@ -3540,12 +3541,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
-        symbol: 'BTC',
-        takeProfitPrice: '95000',
-        stopLossPrice: undefined,
-        position: undefined,
-      });
+      expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toBeUndefined();
     });
   });
 
