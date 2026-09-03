@@ -29,6 +29,7 @@ enum EVENT_NAME {
   // App
   APP_OPENED = 'App Opened',
   APP_INSTALLED = 'App Installed',
+  APP_UNLOCKED_FAILED = 'App Unlocked Failed',
 
   // Error
   ERROR = 'Error occurred',
@@ -542,7 +543,6 @@ enum EVENT_NAME {
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
   APP_UNLOCKED = 'App Unlocked',
-  APP_UNLOCKED_FAILED = 'App Unlocked Failed',
 
   // Reset Wallet Confirmed Modal
   RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
@@ -900,6 +900,7 @@ export enum PERMISSION_TYPE {
 const events = {
   APP_OPENED: generateOpt(EVENT_NAME.APP_OPENED),
   APP_INSTALLED: generateOpt(EVENT_NAME.APP_INSTALLED),
+  APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -1515,7 +1516,6 @@ const events = {
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
   APP_UNLOCKED: generateOpt(EVENT_NAME.APP_UNLOCKED),
-  APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
 
   // Delete Wallet Modal
   RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),
