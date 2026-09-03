@@ -92,6 +92,22 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).not.toHaveBeenCalled();
   });
 
+  it('does not fetch activity when enabled is false', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => usePredictActivity({ enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
+    expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isFetching).toBe(false);
+  });
+
   it('fetches activity automatically on mount', async () => {
     const { Wrapper } = createWrapper();
     const activity = createActivityPage(1);
