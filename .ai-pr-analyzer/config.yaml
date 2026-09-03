@@ -138,3 +138,9 @@ models:
 
 modes:
   - pr-risk-analysis
+
+# TEST 6: repo override wins over integration-probe's mode-local model.
+modeOverrides:
+  integration-probe:
+    models:
+      default: DeepSeek-V4-Pro
