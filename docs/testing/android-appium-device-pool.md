@@ -4,12 +4,10 @@ Android Appium smoke shards can boot two emulators in one job (`N=2`) and run
 two Playwright workers. iOS, matrix shard counts, Namespace runner sizes, and
 the golden snapshot prime job's one-emulator topology are unchanged.
 
-`ci.yml` sets `android-device-pool-size: 2` on the Android smoke workflow. Most
-Android smoke suites forward that input. MultiChain API and Network Expansion
-stay hardcoded at pool size `1` until worker-aware local dapp servers land
-(those suites bind a shared host port today). Fixture validation stays at one
+`ci.yml` sets `android-device-pool-size: 2` on the Android smoke workflow. Every
+Android smoke suite forwards that input. Fixture validation stays at one
 emulator and a cold boot. Set the input to `1` (workflow_dispatch or a ci.yml
-change) to revert remaining suites to the historical path.
+change) to revert a suite or all smoke jobs to the historical path.
 
 ## Golden fingerprint strategy
 
