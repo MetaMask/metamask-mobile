@@ -3,11 +3,16 @@ import React from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { View } from 'react-native';
 import styleSheet from './EarnTokenSelector.styles';
-import Text, {
+import {
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { AvatarTokenSize } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import SelectButton, {
   SelectButtonSize,
@@ -16,14 +21,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
@@ -42,7 +39,6 @@ const EarnTokenSelector = ({
 }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
-  const networkName = useSelector(selectNetworkName);
   const { getEarnToken, getOutputToken } = useEarnTokens();
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
@@ -105,14 +101,15 @@ const EarnTokenSelector = ({
   const renderStartAccessory = () => (
     <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork
+            twClassName="h-4 w-4 rounded bg-default"
+            src={
               tokenToRender?.chainId
-                ? getNetworkImageSource({ chainId: tokenToRender.chainId })
+                ? (getNetworkImageSource({
+                    chainId: tokenToRender.chainId,
+                  }) as React.ComponentProps<typeof BadgeNetwork>['src'])
                 : undefined
             }
           />
@@ -121,7 +118,8 @@ const EarnTokenSelector = ({
         {renderTokenAvatar()}
       </BadgeWrapper>
       <Text
-        variant={TextVariant.BodyMDMedium}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
         style={styles.tokenText}
         numberOfLines={1}
       >
@@ -134,8 +132,9 @@ const EarnTokenSelector = ({
     <View style={styles.endAccessoryContainer}>
       {apr ? (
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Success}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
           numberOfLines={1}
         >
           {`${apr}% APR`}
@@ -146,8 +145,9 @@ const EarnTokenSelector = ({
         undefined && (
         <Text
           style={styles.balanceText}
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
           ellipsizeMode="tail"
         >

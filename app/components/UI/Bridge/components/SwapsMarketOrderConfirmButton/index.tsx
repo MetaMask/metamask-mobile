@@ -3,7 +3,6 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
@@ -45,16 +44,6 @@ import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
-import { useABTest } from '../../../../../hooks';
-import {
-  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-} from './abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
-
-const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -70,16 +59,6 @@ export const SwapsMarketOrderConfirmButton = ({
   location,
   transactionActiveAbTests,
 }: Props) => {
-  const { variant: ctaButtonColorVariant } = useABTest(
-    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  );
-  const { themeAppearance } = useTheme();
-  const treatmentBackground =
-    themeAppearance === AppThemeKey.light
-      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-      : 'bg-success-default';
   const navigation = useNavigation<AppNavigationProp>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
@@ -318,12 +297,6 @@ export const SwapsMarketOrderConfirmButton = ({
   return (
     <Button
       variant={ButtonVariant.Primary}
-      twClassName={
-        ctaButtonColorVariant.hasSuccessColor ? treatmentBackground : undefined
-      }
-      textProps={
-        ctaButtonColorVariant.hasSuccessColor ? SUCCESS_TEXT_PROPS : undefined
-      }
       size={ButtonBaseSize.Lg}
       isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}

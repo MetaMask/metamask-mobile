@@ -54,7 +54,7 @@ export const useMarketInsights = (
     // AiDigestController owns the 10-minute cache and intentionally does not
     // cache empty results. React Query only coordinates active requests here.
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
   });
 
   useEffect(() => {

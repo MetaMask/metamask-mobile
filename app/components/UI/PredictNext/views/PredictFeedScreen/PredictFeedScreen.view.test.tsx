@@ -190,7 +190,6 @@ describe('PredictFeedScreen', () => {
         KALSHI_VENUE_ID,
         feedId,
         { limit: 20 },
-        undefined,
       );
     },
   );
@@ -227,7 +226,6 @@ describe('PredictFeedScreen', () => {
         KALSHI_VENUE_ID,
         feedId,
         { limit: 20 },
-        undefined,
       );
     },
   );
@@ -274,7 +272,6 @@ describe('PredictFeedScreen', () => {
       KALSHI_VENUE_ID,
       NFL_WIN_TOTALS_FEED_ID,
       { limit: 20 },
-      undefined,
     );
 
     fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.tab('games')));

@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux';
 import {
   selectBridgeControllerState,
   selectBridgeQuotes,
+  selectSlippage,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useEffect, useMemo } from 'react';
@@ -13,6 +14,7 @@ import {
 } from '@metamask/bridge-controller';
 import { useTokenBalanceInUsd } from '../useTokenBalanceInUsd';
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from '../useHasSufficientGasEvenIfGasIncludedOrSponsored';
+import { useUnifiedSwapBridgeContext } from '../useUnifiedSwapBridgeContext';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 
 /**
@@ -52,6 +54,8 @@ export const useBridgeQuoteEvents = ({
     : undefined;
 
   const sourceToken = useSelector(selectSourceToken);
+  const slippage = useSelector(selectSlippage);
+  const unifiedSwapBridgeContext = useUnifiedSwapBridgeContext();
   const fromTokenBalanceInUsd = useTokenBalanceInUsd(sourceToken ?? undefined);
   // NB: this is for gasless counter metrics purposes. It intentionally calculates balance insufficiency irrespective of gasless or sponsored quotes.
   const hasSufficientGasForQuote =
@@ -96,6 +100,17 @@ export const useBridgeQuoteEvents = ({
           recommendedQuote,
           fromTokenBalanceInUsd,
           hasSufficientGasForQuote,
+          {
+            custom_slippage: unifiedSwapBridgeContext.custom_slippage,
+            slippage_limit:
+              slippage === undefined ? undefined : Number(slippage),
+            usd_amount_source:
+              unifiedSwapBridgeContext.usd_amount_source || undefined,
+            token_symbol_source:
+              unifiedSwapBridgeContext.token_symbol_source || undefined,
+            token_symbol_destination:
+              unifiedSwapBridgeContext.token_symbol_destination || undefined,
+          },
         ),
       );
     }

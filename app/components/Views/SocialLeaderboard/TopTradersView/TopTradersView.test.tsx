@@ -266,13 +266,20 @@ const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
   expect(latestCalls).toEqual([
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: [
+          'base',
+          'solana',
+          'ethereum',
+          'bsc',
+          'robinhood',
+          'hyperliquid',
+        ],
         enabled: expected.all,
       }),
     ],
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: expected.tokens,
       }),
     ],
@@ -591,6 +598,53 @@ describe('TopTradersView', () => {
     });
   });
 
+  it('does not notify feed prefetch while the visible leaderboard query is in flight', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+
+    renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).not.toHaveBeenCalled();
+  });
+
+  it('notifies feed prefetch once the visible leaderboard query has fetched', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+    const { rerender } = renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    setTabResult(LANDING_TAB, { isFetching: false, hasFetched: true });
+    rerender(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds feed prefetch back while a warm Tokens cache revalidates', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+    setTabResult(LANDING_TAB, {
+      isLoading: false,
+      isFetching: true,
+      hasFetched: true,
+    });
+
+    renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).not.toHaveBeenCalled();
+  });
+
   it('narrows the enabled queries back to the visible tab when the sort changes', () => {
     jest.useFakeTimers();
     try {
@@ -653,14 +707,14 @@ describe('TopTradersView', () => {
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: true,
       }),
     );
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: false,
       }),
     );

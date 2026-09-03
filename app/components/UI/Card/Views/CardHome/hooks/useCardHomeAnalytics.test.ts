@@ -5,8 +5,10 @@ import { useCardHomeAnalytics } from './useCardHomeAnalytics';
 import type { CardHomeData } from '../../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   selectCardActiveProviderId,
+  selectCardHomeDataError,
   selectIsCardAuthenticated,
 } from '../../../../../../selectors/cardController';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -47,11 +49,18 @@ function setupHook(
   params: Partial<Parameters<typeof useCardHomeAnalytics>[0]> & {
     isAuthenticated?: boolean;
     activeProviderId?: string | null;
+    cardHomeDataError?: {
+      reason: string;
+      code: string | null;
+      statusCode: number | null;
+      at: number;
+    } | null;
   } = {},
 ) {
   const {
     isAuthenticated = true,
     activeProviderId = 'baanx',
+    cardHomeDataError = null,
     ...hookParams
   } = params;
   mockUseSelector.mockImplementation((selector) => {
@@ -60,6 +69,9 @@ function setupHook(
     }
     if (selector === selectCardActiveProviderId) {
       return activeProviderId;
+    }
+    if (selector === selectCardHomeDataError) {
+      return cardHomeDataError;
     }
     return undefined;
   });
@@ -81,6 +93,7 @@ function setupHook(
     useCardHomeAnalytics({
       data: mergedData,
       isLoading: false,
+      isError: false,
       hasSetupActions,
       balanceFormatted: '$10.00',
       rawTokenBalance: 10,
@@ -129,6 +142,7 @@ describe('useCardHomeAnalytics', () => {
       useCardHomeAnalytics({
         data: mockData,
         isLoading: false,
+        isError: false,
         hasSetupActions: false,
         balanceFormatted: '$10.00',
         rawTokenBalance: 10,
@@ -153,7 +167,7 @@ describe('useCardHomeAnalytics', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
-  it('does not track twice on re-render (hasTracked.current guard)', () => {
+  it('does not track twice on re-render (hasTrackedView guard)', () => {
     const { rerender } = setupHook();
     rerender();
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -266,5 +280,96 @@ describe('useCardHomeAnalytics', () => {
     // When primaryAsset is present but balance is still loading, isLoaded is false
     setupHook({ balanceFormatted: 'tokenBalanceLoading' });
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('tracks CARD_HOME_ERROR instead of CARD_HOME_VIEWED when isError is true', () => {
+    setupHook({
+      isError: true,
+      data: null,
+      cardHomeDataError: {
+        reason: 'no_evm_address',
+        code: null,
+        statusCode: null,
+        at: 1,
+      },
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_HOME_ERROR,
+    );
+    expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_HOME_VIEWED,
+    );
+    const builder = mockCreateEventBuilder.mock.results[0].value;
+    expect(builder.addProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'baanx',
+        error_reason: 'no_evm_address',
+      }),
+    );
+  });
+
+  it('tracks CARD_HOME_ERROR once while the error persists', () => {
+    const { rerender } = setupHook({
+      isError: true,
+      data: null,
+      cardHomeDataError: {
+        reason: 'network',
+        code: null,
+        statusCode: null,
+        at: 1,
+      },
+    });
+    rerender();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks CARD_HOME_VIEWED after recovering from an error', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectIsCardAuthenticated) {
+        return true;
+      }
+      if (selector === selectCardActiveProviderId) {
+        return 'baanx';
+      }
+      if (selector === selectCardHomeDataError) {
+        return null;
+      }
+      return undefined;
+    });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnValue({}),
+    });
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    } as never);
+
+    let isError = true;
+    const { rerender } = renderHook(() =>
+      useCardHomeAnalytics({
+        data: isError ? null : mockData,
+        isLoading: false,
+        isError,
+        hasSetupActions: false,
+        balanceFormatted: '$10.00',
+        rawTokenBalance: 10,
+        rawFiatNumber: 10,
+      }),
+    );
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_HOME_ERROR,
+    );
+
+    isError = false;
+    rerender();
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_HOME_VIEWED,
+    );
+    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 });

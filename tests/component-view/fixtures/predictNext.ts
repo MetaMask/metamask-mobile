@@ -1,5 +1,6 @@
 import { within } from '@testing-library/react-native';
 import Engine from '../../../app/core/Engine';
+import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import type {
   PredictDecimal,
@@ -7,6 +8,7 @@ import type {
   PredictEvent,
   PredictFeedId,
   PredictMarket,
+  PredictOutcome,
   PredictTimestamp,
 } from '../../../app/components/UI/PredictNext/types';
 
@@ -111,6 +113,140 @@ export const makePredictNextMultiMarketEvent = (): PredictEvent => ({
   ],
 });
 
+const makeGroupedMarket = ({
+  id,
+  key,
+  marketType,
+  option,
+  displayOrder,
+  yesLabel,
+  noLabel,
+  yesAskPrice,
+  noAskPrice,
+  yesGameSelection,
+}: {
+  id: string;
+  key: string;
+  marketType: (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES];
+  option: number;
+  displayOrder: number;
+  yesLabel: string;
+  noLabel: string;
+  yesAskPrice: string;
+  noAskPrice: string;
+  yesGameSelection?: PredictOutcome['gameSelection'];
+}): PredictMarket => ({
+  id: id as PredictEntityId,
+  question: `${yesLabel} at ${option}`,
+  status: 'active',
+  group: {
+    key,
+    groupType: 'marketSelector',
+    marketType,
+    option: { type: 'number', value: option },
+    displayOrder,
+  },
+  outcomes: [
+    {
+      id: `${id}-yes` as PredictEntityId,
+      side: 'yes',
+      label: yesLabel,
+      askPrice: yesAskPrice as PredictDecimal,
+      ...(yesGameSelection === undefined
+        ? {}
+        : { gameSelection: yesGameSelection }),
+    },
+    {
+      id: `${id}-no` as PredictEntityId,
+      side: 'no',
+      label: noLabel,
+      askPrice: noAskPrice as PredictDecimal,
+    },
+  ],
+});
+
+export const makePredictNextTotalsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-total', 'New England vs Seattle: Total Points'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-total-220-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 220.5,
+      displayOrder: 1,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.07',
+      noAskPrice: '0.93',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-total-218-5',
+      key: 'nfl-total-points',
+      marketType: 'total',
+      option: 218.5,
+      displayOrder: 0,
+      yesLabel: 'Over',
+      noLabel: 'Under',
+      yesAskPrice: '0.12',
+      noAskPrice: '0.88',
+    }),
+  ],
+});
+
+export const makePredictNextSpreadsEvent = (): PredictEvent => ({
+  ...makeEvent('nfl-spread', 'New England vs Seattle: Spread'),
+  markets: [
+    makeGroupedMarket({
+      id: 'nfl-spread-new-england-2-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: -2.5,
+      displayOrder: 0,
+      yesLabel: 'New England',
+      noLabel: 'Seattle',
+      yesAskPrice: '0.46',
+      noAskPrice: '0.54',
+      yesGameSelection: 'home',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-new-england-1-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: -1.5,
+      displayOrder: 1,
+      yesLabel: 'New England',
+      noLabel: 'Seattle',
+      yesAskPrice: '0.42',
+      noAskPrice: '0.58',
+      yesGameSelection: 'home',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-1-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: 1.5,
+      displayOrder: 2,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.58',
+      noAskPrice: '0.42',
+      yesGameSelection: 'away',
+    }),
+    makeGroupedMarket({
+      id: 'nfl-spread-seattle-2-5',
+      key: 'nfl-spreads',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: 2.5,
+      displayOrder: 3,
+      yesLabel: 'Seattle',
+      noLabel: 'New England',
+      yesAskPrice: '0.54',
+      noAskPrice: '0.46',
+      yesGameSelection: 'away',
+    }),
+  ],
+});
+
 export const makePredictNextGameEvent = (
   id: string,
   awayTeam: string,
@@ -169,6 +305,24 @@ export const makePredictNextGameEvent = (
           },
         ],
       },
+    ],
+  };
+};
+
+export const makePredictNextCompositeGameEvent = (): PredictEvent => {
+  const game = makePredictNextGameEvent(
+    'nfl-composite',
+    'New England',
+    'Seattle',
+    'NFL',
+  );
+
+  return {
+    ...game,
+    markets: [
+      ...game.markets,
+      ...makePredictNextTotalsEvent().markets,
+      ...makePredictNextSpreadsEvent().markets,
     ],
   };
 };

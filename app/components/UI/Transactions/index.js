@@ -30,19 +30,26 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -88,7 +95,6 @@ import {
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import {
@@ -178,7 +184,11 @@ const Transactions = (props) => {
     skipScrollOnClick,
     location,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
-    isActivityRedesignEnabled,
+    accountImportTime,
+    groupEvmAccountAddress,
+    networkConfigurationsByChainId,
+    allTokens,
+    bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
@@ -716,6 +726,11 @@ const Transactions = (props) => {
         navigation={navigation}
         onSpeedUpAction={onSpeedUpAction}
         onCancelAction={onCancelAction}
+        accountImportTime={accountImportTime}
+        groupEvmAccountAddress={groupEvmAccountAddress}
+        networkConfigurations={networkConfigurationsByChainId}
+        allTokens={allTokens}
+        bridgeHistory={bridgeHistory}
       />
     ) : null;
   };
@@ -730,7 +745,6 @@ const Transactions = (props) => {
   const filteredTransactions =
     filterDuplicateOutgoingTransactions(listTransactions);
   const shouldUseActivityRedesign =
-    isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
   const activityListData = shouldUseActivityRedesign
     ? groupActivityListItems(
@@ -929,7 +943,11 @@ Transactions.propTypes = {
     hideAwaitingConfirmation: PropTypes.func,
     showHardwareWalletError: PropTypes.func,
   }),
-  isActivityRedesignEnabled: PropTypes.bool,
+  accountImportTime: PropTypes.number,
+  groupEvmAccountAddress: PropTypes.string,
+  networkConfigurationsByChainId: PropTypes.object,
+  allTokens: PropTypes.object,
+  bridgeHistory: PropTypes.object,
 };
 
 Transactions.defaultProps = {
@@ -952,6 +970,19 @@ const mapStateToProps = (state, ownProps) => {
 
   return {
     accounts: selectAccounts(state),
+    accountImportTime: isAssetDetails
+      ? selectSelectedInternalAccount(state)?.metadata.importTime
+      : undefined,
+    groupEvmAccountAddress: isAssetDetails
+      ? selectSelectedAccountGroupEvmInternalAccount(state)?.address
+      : undefined,
+    networkConfigurationsByChainId: isAssetDetails
+      ? selectEvmNetworkConfigurationsByChainId(state)
+      : undefined,
+    allTokens: isAssetDetails ? selectAllTokens(state) : undefined,
+    bridgeHistory: isAssetDetails
+      ? selectBridgeHistoryForAccount(state)
+      : undefined,
     chainId: isAssetDetails ? ownProps.tokenChainId : selectChainId(state),
     networkClientId: isAssetDetails ? undefined : selectNetworkClientId(state),
     collectibleContracts: collectibleContractsSelector(state),
@@ -965,7 +996,6 @@ const mapStateToProps = (state, ownProps) => {
     primaryCurrency: selectPrimaryCurrency(state),
     gasEstimateType: selectGasFeeControllerEstimateType(state),
     networkType: isAssetDetails ? undefined : selectProviderType(state),
-    isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
   };
 };
 

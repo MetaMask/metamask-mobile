@@ -54,6 +54,11 @@ jest.mock('./instance-options/shield-api-service', () => ({
 jest.mock('./instance-options/claims-service', () => ({
   getClaimsServiceInstanceOptions: jest.fn(() => 'claims-service-options'),
 }));
+jest.mock('./instance-options/config-registry-api-service', () => ({
+  getConfigRegistryApiServiceInstanceOptions: jest.fn(
+    () => 'config-registry-api-service-options',
+  ),
+}));
 jest.mock('./instance-options/network-controller', () => ({
   getNetworkControllerInstanceOptions: jest.fn(() => 'network-options'),
 }));
@@ -89,6 +94,7 @@ describe('initializeWallet', () => {
         subscriptionService: 'subscription-service-options',
         shieldApiService: 'shield-api-service-options',
         claimsService: 'claims-service-options',
+        configRegistryApiService: 'config-registry-api-service-options',
         networkController: 'network-options',
         transactionController: 'transaction-options',
       },

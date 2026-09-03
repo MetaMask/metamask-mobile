@@ -82,7 +82,7 @@ function renderAssetOverviewMarketInsightsStack(
 ) {
   const Stack = createNativeStackNavigator();
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
   });
 
   const DefaultRouteProbe =

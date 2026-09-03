@@ -3,6 +3,7 @@ import { renderPredictNext } from '../../../../../../tests/component-view/render
 import Engine from '../../../../../core/Engine';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { focusManager } from '@tanstack/react-query';
+import { MarketFooterCardTestIds } from '../../events/markets/MarketFooterCard.testIds';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
@@ -45,14 +46,12 @@ describe('PredictHome', () => {
         'kalshi',
         'sports-football-nfl-games',
         { limit: 2 },
-        undefined,
       );
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         'sports-football-ncaa-games',
         { limit: 2 },
-        undefined,
       );
     });
 
@@ -162,14 +161,12 @@ describe('PredictHome', () => {
         'kalshi',
         feedId,
         { limit: 20 },
-        undefined,
       );
       expect(messengerCall).not.toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
         feedId,
         { limit: 2 },
-        undefined,
       );
     },
   );
@@ -310,13 +307,16 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(PredictEventScreenTestIds.PREDICT_SECTION),
+      await view.findByTestId(MarketFooterCardTestIds.ROOT),
     ).toBeOnTheScreen();
-    expect(messengerCall).toHaveBeenCalledWith(
-      'PredictMarketDataService:getEvent',
-      'kalshi',
-      'nfl-1',
-      undefined,
+    expect(messengerCall.mock.calls).toEqual(
+      expect.arrayContaining([
+        expect.arrayContaining([
+          'PredictMarketDataService:getEvent',
+          'kalshi',
+          'nfl-1',
+        ]),
+      ]),
     );
 
     fireEvent.press(view.getByTestId(PredictEventScreenTestIds.BACK));

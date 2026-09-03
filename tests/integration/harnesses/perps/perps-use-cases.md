@@ -16,6 +16,7 @@ Domain rollout phases and perps harness-shape detail: [`STRATEGY.md`](STRATEGY.m
 | Open short, market order                 |     |  ✓  | **✓** |     | Same as above; one CV variant covers both sides. E2E doesn't need duplication.                                           |
 | Open long, limit order                   |     |  ✓  | **✓** |     | I: limit-price branch through validation + asset-info lookup. CV: limit-price input UI.                                  |
 | Open short, limit order                  |     |     | **✓** |     | I only — short-limit doesn't need separate CV; covered by long-limit variant.                                            |
+| Start a TWAP strategy                    |     |  ✓  | **✓** |     | I: dedicated venue strategy action, accepted + rejected responses. CV: gated configuration and validation journey.       |
 | Edit existing limit order                |     |  ✓  | **✓** |     | I: real `editOrder` flow (price + size update). CV: edit-screen UI.                                                      |
 | Cancel single open order                 |     |  ✓  | **✓** |     | I: real `cancelOrder` action. CV: cancel button + confirmation.                                                          |
 | Cancel multiple open orders (cancel-all) |     |     | **✓** |     | Multi-cancel logic is purely controller; no UI variant beyond a button.                                                  |
@@ -96,9 +97,9 @@ These don't have user-facing flows; they're consumed by the layers above. Unit i
 | --------------- | ----: | ----------------------------------------------------------- |
 | **Unit**        |   ~30 | Pure helpers, calculations, selector composition            |
 | **CV**          |   ~22 | UI variant coverage; user actions on the screen             |
-| **Integration** |   ~32 | Every controller action that has user-visible state effects |
+| **Integration** |   ~33 | Every controller action that has user-visible state effects |
 | **E2E**         |    ~5 | Cold launch, real signing, network re-init, testnet toggle  |
-| **Total**       |   ~89 |                                                             |
+| **Total**       |   ~90 |                                                             |
 
 The shape: one CV test per UI variant, one integration test per public controller action (happy path + main rejection paths), one E2E per native-runtime concern, unit tests for everything pure. No use case is covered redundantly across layers; every use case is covered exactly where it's cheapest to detect a regression. PoC branches may keep side-by-side Shape A/B/C examples to compare harness boundaries, but the rollout matrix should assign one primary integration shape per use case before the suite hardens.
 

@@ -13,6 +13,7 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
@@ -465,6 +466,41 @@ describe('Engine', () => {
   });
 
   describe('RemoteFeatureFlagController startup fetch', () => {
+    const authStateWithCanonicalId = (
+      canonicalProfileId?: string,
+    ): AuthenticationControllerState =>
+      ({
+        isSignedIn: Boolean(canonicalProfileId),
+        srpSessionData: canonicalProfileId
+          ? {
+              'srp-1': { profile: { canonicalProfileId } },
+            }
+          : {},
+      }) as AuthenticationControllerState;
+
+    const spyForcedFlagRefresh = (engine: ReturnType<typeof Engine.init>) => {
+      const updateSpy = jest
+        .spyOn(
+          engine.context.RemoteFeatureFlagController,
+          'updateRemoteFeatureFlags',
+        )
+        .mockResolvedValue(undefined);
+      updateSpy.mockClear();
+      return updateSpy;
+    };
+
+    const publishAuthState = (
+      engine: ReturnType<typeof Engine.init>,
+      state: ReturnType<typeof authStateWithCanonicalId>,
+    ) => {
+      // @ts-expect-error accessing messenger for testing
+      engine.context.AuthenticationController.messenger.publish(
+        'AuthenticationController:stateChange',
+        state,
+        [],
+      );
+    };
+
     afterEach(() => {
       // `jest.mock` return values survive `restoreAllMocks()`, so reset the
       // ones these tests override back to their file-level defaults.
@@ -622,6 +658,48 @@ describe('Engine', () => {
           cacheTimestamp: 0,
         }),
       );
+    });
+
+    it('force-refreshes flags when a canonical profile id first becomes available', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {});
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('does not refresh flags when the canonical profile id is unchanged', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('force-refreshes flags when the canonical profile id changes', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id-1'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id-2'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('force-refreshes flags when the canonical profile id is cleared', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId());
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
     });
   });
 

@@ -316,4 +316,45 @@ describe('Benefits', () => {
       );
     });
   });
+
+  // ── Plan-specific content ──────────────────────────────────────────────────
+
+  describe('Plan-specific ATM fees content', () => {
+    it('shows monthly subtitle and description for atm_fees when monthly plan is selected', () => {
+      const { getByTestId, getByText, queryByText } = renderBenefits();
+
+      // Default is annual — verify annual subtitle is shown
+      expect(
+        getByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).toBeOnTheScreen();
+
+      // Switch to monthly plan
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+
+      // Subtitle should now be the monthly variant
+      expect(
+        getByText(
+          strings('pro_subscription.benefits.atm_fees.subtitle_monthly'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).not.toBeOnTheScreen();
+
+      // Open ATM fees detail sheet — description should be monthly variant
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('atm_fees')));
+      expect(
+        getByText(
+          strings(
+            'pro_subscription.benefits_description.atm_fees.description_monthly',
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('pro_subscription.benefits_description.atm_fees.description'),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+  });
 });

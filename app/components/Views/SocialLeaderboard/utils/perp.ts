@@ -71,6 +71,11 @@ type ClosedPositionFields = Pick<
 > & {
   /** De-leveraged collateral; present on raw feed payloads when `currentValueUSD` is omitted. */
   marginUsd?: number | null;
+  /**
+   * The API's own open/closed verdict. Absent on responses that predate the
+   * field, which is why the heuristics below still exist.
+   */
+  isOpen?: boolean;
 };
 
 type PerpTradeFields = Pick<
@@ -105,6 +110,11 @@ export function isPerpPosition(position: PerpPositionFields): boolean {
  * the profile tab) should prefer that signal and use this only as a fallback.
  */
 export function isClosedPosition(position: ClosedPositionFields): boolean {
+  // The API states it outright when it is new enough; everything below is the
+  // inference we needed before that.
+  if (position.isOpen !== undefined) {
+    return !position.isOpen;
+  }
   if (isPerpPosition(position)) {
     if (position.currentValueUSD != null) {
       return position.currentValueUSD === 0;

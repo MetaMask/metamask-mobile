@@ -21,6 +21,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
@@ -39,6 +40,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const isMax = useTransactionPayIsMaxAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
   const transactionMeta = useTransactionMetadataRequest();
+  const payingAccount = useTransactionPayingAccount();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const paymentOverride = useSelector((state: RootState) =>
@@ -55,6 +57,7 @@ export function useInsufficientPayTokenBalanceAlert({
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
     sourceChainId,
+    payingAccount,
   );
 
   // Single source of truth for the spendable balance across every Pay flow

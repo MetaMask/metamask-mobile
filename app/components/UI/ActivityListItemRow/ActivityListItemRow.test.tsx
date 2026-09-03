@@ -2132,11 +2132,11 @@ const EXPECTED_TITLES = {
   rampBuy: 'Bought',
   sell: 'Sold',
   rampSell: 'Sold',
-  claim: 'Claimed',
+  claim: 'Claimed ETH',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
-  stake: 'Staked Ethereum',
-  unstake: 'Unstaked Ethereum',
+  stake: 'Staked ETH',
+  unstake: 'Unstaked ETH',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
@@ -2216,6 +2216,97 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(getByText(EXPECTED_TITLES[type])).toBeOnTheScreen();
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
   });
+
+  it('names the staked asset for the avatar when an unstake moves no token', () => {
+    const item = makeItem({ type: 'unstake', status: 'success' });
+    const { getByTestId, getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByText('Unstaked ETH')).toBeOnTheScreen();
+    // The asset is named for the avatar only — no amount is invented.
+    expect(queryByText('+0 ETH')).toBeNull();
+  });
+
+  it('does not name an asset for non-EVM staking without a token', () => {
+    const item = makeItem({
+      type: 'unstake',
+      status: 'success',
+      chainId: 'tron:728126428',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('avatar-token-ETH')).toBeNull();
+  });
+
+  it('reads the ticker for an EVM ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: { amount: '1045000000000000', direction: 'in', symbol: 'ETH' },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed ETH')).toBeOnTheScreen();
+  });
+
+  it.each(['claim', 'unstake'] as const)(
+    'falls back to the ETH ticker for a tokenless EVM %s',
+    (type) => {
+      const item = makeItem({ type, status: 'success' });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByText(type === 'claim' ? 'Claimed ETH' : 'Unstaked ETH'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps the symbol for a non-ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'USDC',
+      },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed USDC')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['stake', 'Staked TRX'],
+    ['unstake', 'Unstaked TRX'],
+  ] as const)(
+    'reads the moved token symbol for non-EVM %s rows',
+    (type, expectedTitle) => {
+      const item = makeItem({
+        type,
+        status: 'success',
+        chainId: 'tron:728126428',
+        token: {
+          amount: '100',
+          decimals: 6,
+          direction: type === 'stake' ? 'out' : 'in',
+          symbol: 'TRX',
+        },
+      });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(getByText(expectedTitle)).toBeOnTheScreen();
+    },
+  );
 
   it('prefers the title override when provided (legacy swap/bridge contract)', () => {
     const item = makeItem({ type: 'swap', status: 'success' });
@@ -2450,7 +2541,7 @@ describe('ActivityListItemRow — pending rows', () => {
     const amount = getByTestId(`activity-primary-amount-${item.hash}`);
     const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
 
-    expect(title).toHaveTextContent('Unstaking Ethereum');
+    expect(title).toHaveTextContent('Unstaking ETH');
     expect(amount).toHaveTextContent('+0.0007901 ETH');
     expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
       flexShrink: 1,

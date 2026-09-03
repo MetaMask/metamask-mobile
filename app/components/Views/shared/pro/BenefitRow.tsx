@@ -23,13 +23,20 @@ interface BenefitRowProps {
   onPress?: (item: BenefitItem) => void;
   /** Trailing disclosure arrow. Defaults to true when `onPress` is provided. */
   showArrow?: boolean;
+  /** Selected plan — used to resolve plan-specific copy variants. */
+  selectedPlan?: string;
 }
 
 const BenefitRow = ({
   item,
   onPress,
   showArrow = Boolean(onPress),
+  selectedPlan,
 }: BenefitRowProps) => {
+  const subtitleKey =
+    selectedPlan === 'monthly' && item.subtitleMonthly
+      ? item.subtitleMonthly
+      : item.subtitle;
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -48,7 +55,7 @@ const BenefitRow = ({
           {strings(item.title)}
         </Text>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings(item.subtitle)}
+          {strings(subtitleKey)}
         </Text>
       </Box>
 

@@ -10,11 +10,14 @@ This document defines all Sentry performance traces and measurements for the Per
 - API integration timing
 - Data fetch operations
 
-## Three Tracing Approaches
+## Five tracing approaches
 
 1. `usePerpsMeasurement` — single-component screen/render measurements.
 2. Direct `trace()` / `setMeasurement()` — controller/WebSocket/API operations.
 3. `perpsCufTrace` — cross-surface, stream-confirmed **user-perceived CUF** spans (gesture in one surface → live-data render in another). Added in TAT-3509.
+4. `Perps Loading Session` — Homepage-only, lifecycle/context-generation readiness offsets. Global preload, connection, and WebSocket traces remain app-wide and authoritative for their own durations.
+5. `Perps Market Detail Session` — market-detail-mount-relative section
+   resolution for one Lite/Pro and account/provider/network generation.
 
 ### 1. `usePerpsMeasurement` Hook (UI Screens)
 
@@ -138,7 +141,7 @@ try {
 const startTime = performance.now();
 const result = await someOperation();
 setMeasurement(
-  PerpsMeasurementName.PERPS_GET_POSITIONS_OPERATION,
+  PerpsMeasurementName.PerpsGetPositionsOperation,
   performance.now() - startTime,
   'millisecond',
 );
@@ -158,18 +161,62 @@ setMeasurement(
 - **Request-acceptance gate:** cancel/close/TP-SL arm at the gesture but only complete as a success after the controller accepts the request (`acceptPerpsCufRequest`), so a coincidental stream change during a failed request is never recorded as success.
 - **Teardown:** `clearPendingPerpsCufTraces()` (called from the `PerpsConnectionManager` session-change handler) abandons pending confirmations as `disconnected` on an account/network/provider/HIP-3 switch, preserving the reconnect span.
 
-**Shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
+**CUF shared tags** (see `PERPS_CUF_TAG`): `feature`, `lifecycle_context` (`cold_process` | `background_resume` | `warm`, from `perpsLifecycleContext.ts`), plus flow variants — `variant` (`empty`/`position`/`order`, `funded`/`unfunded`), `direction`, `order_type`. **End data:** `success`, `boundary` (`stream`), `reason` (`request_failed`/`stream_timeout`/`controller_timeout`/`disconnected`/`superseded`/`exception`), and `toast_position_delta_ms` (signed; positive = position rendered after the toast) on market place-order.
+
+### 4. `Perps Loading Session` (Homepage Readiness)
+
+**Use for:** Correlating Homepage Perps readiness milestones within one mounted surface and one account/provider/network/HIP-3 generation.
+
+- The Homepage surface owns start, completion, cancellation, and resume.
+- Context changes cancel the old generation before starting the new one.
+- Position/order/account milestones must match the subscription's captured user identity; market/price milestones match the provider/network/HIP-3 identity.
+- App background and surface unmount end the current generation without a success/content outcome.
+- This trace does not replace Perps Home, market-detail, trade, operation-confirmation, preload, connection, or first-live traces.
+
+See [`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the complete measurement contract.
+
+### 5. `Perps Market Detail Session`
+
+**Use for:** Comparing when the independently loaded parts of Lite and Pro
+market detail become resolved from one screen-open anchor.
+
+**Location:**
+`app/components/UI/Perps/hooks/usePerpsMarketDetailSession.ts`
+
+- `PerpsMarketDetailLive` remains the minimum-useful-detail duration.
+- Child components report only the readiness they own, after their loading
+  state has committed.
+- Market/mode/account/provider/network/HIP-3 changes start a new generation.
+- Backgrounding and teardown cancel the generation.
+- `content`, valid `empty`, and `error` remain distinct section states.
+- A terminal section error ends the session with `success=false`,
+  `reason=section_error`, and `has_section_error=true`; latency filters exclude
+  that section's error row.
+- Disabled or collapsed sections use `not_applicable` and emit no numeric zero.
+- Chart and WebSocket traces keep their original anchors and durations.
+
+See the Market-detail readiness section in
+[`docs/perps/performance/ARCHITECTURE.md`](performance/ARCHITECTURE.md) for the
+measurement names and dashboard filters.
+
+Market-detail Live uses four bounded unsuccessful reasons:
+`generation_changed` when a newer symbol/account/network generation supersedes
+the open span, `stats_error` when stats subscription setup fails,
+`app_backgrounded` when the app leaves the foreground, and `owner_cancelled`
+when the screen stops owning the span. Dashboard latency filters exclude all
+four; reliability widgets count them by reason.
 
 ## Event Catalog
 
-### User-Perceived CUF Spans (11 events, TAT-3509)
+### User-Perceived CUF Spans (12 events, TAT-3509)
 
-**Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Op: `perps.operation`; differentiated by `span.description` (the TraceName).
+**Purpose:** Measure the full tap/open → live-data experience (not just screen paint) at MSO boundaries, each tagged for per-context p75. Most use op `perps.operation`; `PerpsMarketDetailSession` uses `perps.loading`. TraceName is stored as `span.description`.
 
 | TraceName                             | Boundary (gesture → render-complete with live data)                             | Approach                                        |
 | ------------------------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------- |
 | `PerpsEntryToLiveMarketList`          | Home mount → live market list (positions + markets + orders loaded)             | `usePerpsMeasurement` (`endConditions`)         |
-| `PerpsMarketDetailLive`               | Market detail mount → stats + price + account loaded                            | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsMarketDetailLive`               | Market detail mount → market + stats + price + account loaded                   | `usePerpsMeasurement` (`endConditions`)         |
+| `PerpsMarketDetailSession`            | Market detail mount → per-section resolved offsets for one Lite/Pro generation  | `usePerpsMarketDetailSession`                   |
 | `PerpsTradePageRender`                | Order view mount → price + fresh account (`!isLoadingAccount`)                  | `usePerpsMeasurement` (`endConditions`)         |
 | `PerpsPlaceOrderToPositionRendered`   | Market submit → matching position stream-rendered (+ `toast_position_delta_ms`) | `perpsCufTrace` (single-flight resolver)        |
 | `PerpsPlaceLimitOrderToOrderRendered` | Limit submit → order rests in orders stream OR fills into a position            | `perpsCufTrace` (`watchPerpsCufLimitRendered`)  |
@@ -202,18 +249,18 @@ setMeasurement(
 **Measurements (sub-operations):**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_TAB_LOADED` | ms | Tab screen render complete |
-| `PERPS_MARKETS_SCREEN_LOADED` | ms | Market list render |
-| `PERPS_ASSET_SCREEN_LOADED` | ms | Asset details render |
-| `PERPS_TRADE_SCREEN_LOADED` | ms | Order form render |
-| `PERPS_CLOSE_SCREEN_LOADED` | ms | Close position render |
-| `PERPS_WITHDRAWAL_SCREEN_LOADED` | ms | Withdrawal form render |
-| `PERPS_TRANSACTION_HISTORY_SCREEN_LOADED` | ms | History render |
-| `PERPS_ORDER_SUBMISSION_TOAST_LOADED` | ms | Toast display |
-| `PERPS_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Confirmation toast |
-| `PERPS_CLOSE_ORDER_SUBMISSION_TOAST_LOADED` | ms | Close toast |
-| `PERPS_CLOSE_ORDER_CONFIRMATION_TOAST_LOADED` | ms | Close confirmation |
-| `PERPS_LEVERAGE_BOTTOM_SHEET_LOADED` | ms | Leverage picker |
+| `perps.screen.tab_loaded` | ms | Tab screen render complete |
+| `perps.screen.markets_loaded` | ms | Market list render |
+| `perps.screen.asset_loaded` | ms | Asset details render |
+| `perps.screen.trade_loaded` | ms | Order form render |
+| `perps.screen.close_loaded` | ms | Close position render |
+| `perps.screen.withdrawal_loaded` | ms | Withdrawal form render |
+| `perps.screen.transaction_history_loaded` | ms | History render |
+| `perps.ui.order_submission_toast_loaded` | ms | Toast display |
+| `perps.ui.order_confirmation_toast_loaded` | ms | Confirmation toast |
+| `perps.ui.close_order_submission_toast_loaded` | ms | Close toast |
+| `perps.ui.close_order_confirmation_toast_loaded` | ms | Close confirmation |
+| `perps.ui.leverage_bottom_sheet_loaded` | ms | Leverage picker |
 
 ### Trading Operations (9 events)
 
@@ -255,17 +302,17 @@ setMeasurement(
 **Measurements (sub-operations):**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT` | ms | Transport connection |
-| `PERPS_WEBSOCKET_CONNECTION_WITH_PRELOAD` | ms | Connection + data preload |
-| `PERPS_WEBSOCKET_FIRST_POSITION_DATA` | ms | First position received |
-| `PERPS_WEBSOCKET_ACCOUNT_SWITCH_RECONNECTION` | ms | Account switch timing |
-| `PERPS_PROVIDER_INIT` | ms | Provider initialization |
-| `PERPS_ACCOUNT_STATE_FETCH` | ms | Account state load |
-| `PERPS_SUBSCRIPTIONS_PRELOAD` | ms | Subscription setup |
-| `PERPS_RECONNECTION_CLEANUP` | ms | Cleanup before reconnect |
-| `PERPS_CONTROLLER_REINIT` | ms | Controller restart |
-| `PERPS_NEW_ACCOUNT_FETCH` | ms | New account data |
-| `PERPS_RECONNECTION_PRELOAD` | ms | Reconnection subscriptions |
+| `perps.websocket.connection_establishment` | ms | Transport connection |
+| `perps.websocket.connection_with_preload` | ms | Connection + data preload |
+| `perps.websocket.first_position_data` | ms | First position received |
+| `perps.websocket.account_switch_reconnection` | ms | Account switch timing |
+| `perps.connection.provider_init` | ms | Provider initialization |
+| `perps.connection.account_state_fetch` | ms | Account state load |
+| `perps.connection.subscriptions_preload` | ms | Subscription setup |
+| `perps.connection.cleanup` | ms | Cleanup before reconnect |
+| `perps.connection.controller_reinit` | ms | Controller restart |
+| `perps.connection.new_account_fetch` | ms | New account data |
+| `perps.connection.reconnection_preload` | ms | Reconnection subscriptions |
 
 ### API Integrations (4 events)
 
@@ -279,10 +326,10 @@ setMeasurement(
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_REWARDS_FEE_DISCOUNT_API_CALL` | ms | Fee discount fetch (cached) |
-| `PERPS_REWARDS_POINTS_ESTIMATION_API_CALL` | ms | Points calculation (cached) |
-| `PERPS_REWARDS_ORDER_EXECUTION_FEE_DISCOUNT_API_CALL` | ms | Live discount during order |
-| `PERPS_DATA_LAKE_API_CALL` | ms | Order report submission |
+| `perps.api.rewards_fee_discount` | ms | Fee discount fetch (cached) |
+| `perps.api.rewards_points_estimation` | ms | Points calculation (cached) |
+| `perps.api.rewards_order_execution_fee_discount` | ms | Live discount during order |
+| `perps.api.data_lake_call` | ms | Order report submission |
 
 ### Data Fetch Operations (9 events)
 
@@ -303,10 +350,10 @@ setMeasurement(
 **Measurements:**
 | PerpsMeasurementName | Unit | Description |
 |---------------------|------|-------------|
-| `PERPS_GET_POSITIONS_OPERATION` | ms | Position fetch within trace |
-| `PERPS_GET_OPEN_ORDERS_OPERATION` | ms | Orders fetch within trace |
-| `PERPS_MARKET_DATA_PRELOAD` | ms | Market data background preload duration |
-| `PERPS_USER_DATA_PRELOAD` | ms | User data background preload duration |
+| `perps.operation.get_positions` | ms | Position fetch within trace |
+| `perps.operation.get_open_orders` | ms | Orders fetch within trace |
+| `perps.operation.market_data_preload` | ms | Market data background preload duration |
+| `perps.operation.user_data_preload` | ms | User data background preload duration |
 
 ### Market Data Updates (1 event)
 
@@ -353,7 +400,7 @@ const YourComponent = () => {
 ```typescript
 // In constants/performanceMetrics.ts
 export enum PerpsMeasurementName {
-  PERPS_YOUR_OPERATION = 'perps_your_operation',
+  PerpsYourOperation = 'perps.operation.your_operation',
 }
 
 // In your component
@@ -363,7 +410,7 @@ import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 const startTime = performance.now();
 await doSomething();
 setMeasurement(
-  PerpsMeasurementName.PERPS_YOUR_OPERATION,
+  PerpsMeasurementName.PerpsYourOperation,
   performance.now() - startTime,
   'millisecond',
 );
@@ -439,7 +486,7 @@ async yourOperation(params: Params): Promise<Result> {
 const subOpStart = performance.now();
 const data = await fetchData();
 setMeasurement(
-  PerpsMeasurementName.PERPS_YOUR_SUB_OPERATION,
+  PerpsMeasurementName.PerpsYourSubOperation,
   performance.now() - subOpStart,
   'millisecond',
   traceSpan, // Optional: attach to parent span
@@ -475,9 +522,8 @@ setMeasurement(
 
 ### PerpsMeasurementName Format
 
-- Pattern: `PERPS_<CATEGORY>_<ACTION>_<SUBJECT>`
-- All uppercase with underscores
-- Examples: `PERPS_WEBSOCKET_CONNECTION_ESTABLISHMENT`, `PERPS_GET_POSITIONS_OPERATION`
+- Enum keys use PascalCase. Values use `perps.<category>.<metric_name>`.
+- Examples: `PerpsWebsocketConnectionEstablishment = 'perps.websocket.connection_establishment'`, `PerpsGetPositionsOperation = 'perps.operation.get_positions'`
 
 ## Performance Markers (Development)
 

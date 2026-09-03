@@ -188,6 +188,36 @@ describe('buildPerpsOrderParams', () => {
     });
     expect(params).not.toHaveProperty('usdAmount');
   });
+
+  it('builds a routed TWAP order with strategy fields only', () => {
+    // Arrange / Act
+    const params = buildPerpsOrderParams({
+      ...base,
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      limitPrice: '80000',
+      triggerPrice: '81000',
+      takeProfitPrice: '95000',
+      stopLossPrice: '70000',
+    });
+
+    // Assert
+    expect(params).toMatchObject({
+      orderType: 'twap',
+      twapDuration: 90,
+      twapRandomize: true,
+      providerId: 'hyperliquid',
+      currentPrice: 90000,
+      priceAtCalculation: 90000,
+    });
+    expect(params).not.toHaveProperty('maxSlippageBps');
+    expect(params).not.toHaveProperty('price');
+    expect(params).not.toHaveProperty('triggerPrice');
+    expect(params).not.toHaveProperty('takeProfitPrice');
+    expect(params).not.toHaveProperty('stopLossPrice');
+  });
 });
 
 describe('buildPerpsOrderTrackingData', () => {

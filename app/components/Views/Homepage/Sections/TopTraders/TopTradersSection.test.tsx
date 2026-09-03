@@ -107,6 +107,20 @@ jest.mock('../../../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
 }));
 
+// TSA-1042 landing A/B test. Defaults to control (leaderboard landing); the
+// treatment cases override the resolved variant per test.
+const mockUseABTest = jest.fn(
+  (_flagKey: string, variants: Record<string, unknown>) => ({
+    variant: variants.control,
+    variantName: 'control',
+    isActive: false,
+  }),
+);
+jest.mock('../../../../../hooks/useABTest', () => ({
+  useABTest: (...args: [string, Record<string, unknown>]) =>
+    mockUseABTest(...args),
+}));
+
 const mockNavigateToSocialLeaderboard = jest.fn();
 jest.mock(
   '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
@@ -219,6 +233,11 @@ const channelsDisabledPreferences = {
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.control,
+      variantName: 'control',
+      isActive: false,
+    }));
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
     mockIsMasterNotificationsEnabled = true;
@@ -249,7 +268,7 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         sort: 'pnl',
         timeframe: '7d',
         limit: 50,
@@ -406,7 +425,7 @@ describe('TopTradersSection', () => {
 
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
       }),
     );
   });
@@ -459,7 +478,51 @@ describe('TopTradersSection', () => {
 
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
       expect.any(Function),
-      { source: 'home_carousel' },
+      {
+        source: 'home_carousel',
+        landingTab: 'leaderboard',
+        landingFeedAudience: undefined,
+      },
+    );
+  });
+
+  it('lands the section header on the Feed tab with the All audience for the treatment variant', () => {
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByText('Top traders'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+        landingTab: 'feed',
+        landingFeedAudience: 'all',
+      },
+    );
+  });
+
+  it('lands the view-more card on the Feed tab with the All audience for the treatment variant', () => {
+    mockUseABTest.mockImplementation((_flagKey, variants) => ({
+      variant: variants.treatment,
+      variantName: 'treatment',
+      isActive: true,
+    }));
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    fireEvent.press(screen.getByTestId('top-traders-view-more-card'));
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      {
+        source: 'home_carousel',
+        landingTab: 'feed',
+        landingFeedAudience: 'all',
+      },
     );
   });
 

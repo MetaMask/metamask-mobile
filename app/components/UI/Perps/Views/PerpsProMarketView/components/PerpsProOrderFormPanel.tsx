@@ -1,7 +1,11 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useState } from 'react';
+import type {
+  OrderType,
+  PerpsMarketData,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
@@ -12,13 +16,35 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
-import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
+import {
+  selectPerpsMobileScaleEnabledFlag,
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
+import { selectPerpsProvider } from '../../../selectors/perpsController';
+import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
+import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
+
+const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
+const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
+  'stop_limit',
+  'stop_market',
+  'take_profit_limit',
+  'take_profit_market',
+];
+const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
+const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
+const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
+const SCALE_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -46,6 +72,72 @@ const PerpsProOrderFormPanel = ({
   const isTriggeredOrdersEnabled = useSelector(
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
+  const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const isScaleFlagEnabled = useSelector(selectPerpsMobileScaleEnabledFlag);
+  const activeProvider = useSelector(selectPerpsProvider);
+  const selectedProviderId =
+    market.providerId ??
+    (activeProvider === 'aggregated' ? undefined : activeProvider);
+  const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
+  const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
+  const {
+    isLoadingOrderCapabilities,
+    orderCapabilities,
+    supportsTwapOrders,
+    supportsScaleOrders,
+    checkOrderCapability,
+  } = usePerpsProvider(
+    isScaleBaseEnabled || isTwapRolloutEnabled
+      ? {
+          symbol: market.symbol,
+          providerId: selectedProviderId,
+        }
+      : undefined,
+  );
+  const resolvedProviderId =
+    orderCapabilities?.status === 'ready'
+      ? orderCapabilities.providerId
+      : undefined;
+  // Controller v13 exposes executable TWAP limits for Hyperliquid only.
+  // Keep other providers undiscoverable until the capability contract owns
+  // each provider's complete placement limits.
+  const isTwapEnabled =
+    isTwapRolloutEnabled &&
+    supportsTwapOrders &&
+    resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
+  const isTwapAvailabilityPending =
+    isTwapRolloutEnabled && isLoadingOrderCapabilities;
+  const resolvedScaleProviderId =
+    resolvedProviderId === SCALE_SUPPORTED_PROVIDER
+      ? resolvedProviderId
+      : undefined;
+  const isScaleOrdersEnabled =
+    isScaleBaseEnabled &&
+    supportsScaleOrders &&
+    resolvedScaleProviderId !== undefined;
+  const isScaleOrderSupportPending =
+    isScaleBaseEnabled && isLoadingOrderCapabilities;
+  const checkScaleOrderSupport = useCallback(
+    () =>
+      resolvedScaleProviderId
+        ? checkOrderCapability('scale', resolvedScaleProviderId)
+        : Promise.resolve(false),
+    [checkOrderCapability, resolvedScaleProviderId],
+  );
+  const checkTwapOrderSupport = useCallback(
+    () => checkOrderCapability('twap', resolvedProviderId),
+    [checkOrderCapability, resolvedProviderId],
+  );
+  const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
+  const availableOrderTypes = useMemo<readonly OrderType[]>(
+    () => [
+      ...BASIC_ORDER_TYPES,
+      ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
+      ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
+      ...(isScaleOrdersEnabled ? SCALE_ORDER_TYPES : []),
+    ],
+    [areTriggeredOrdersEnabled, isScaleOrdersEnabled, isTwapEnabled],
+  );
   const {
     direction,
     onDirectionChange,
@@ -67,10 +159,12 @@ const PerpsProOrderFormPanel = ({
     onAddFundsPress,
     reduceOnly,
     onReduceOnlyChange,
+    twap,
     isTPSLConfigured,
     onTPSLPress,
     notices,
     summary,
+    scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading,
     onPlaceOrderPress,
@@ -97,15 +191,37 @@ const PerpsProOrderFormPanel = ({
     feeDiscountPercentage,
   } = usePerpsProOrderForm({
     market,
-    isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+    isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
+    isTwapEnabled,
+    isTwapAvailabilityPending,
+    resolvedTwapProviderId: resolvedProviderId,
+    checkTwapOrderSupport,
+    scaleProviderId: resolvedScaleProviderId,
+    isScaleOrdersEnabled,
+    isScaleOrderSupportPending,
+    checkScaleOrderSupport,
   });
 
   const { styles } = useStyles(createStyles, {});
-  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
   const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+  const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
+  const openTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(true),
+    [],
+  );
+  const closeTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(false),
+    [],
+  );
+
+  useEffect(() => {
+    if (orderType !== 'twap') {
+      setIsTwapDurationVisible(false);
+    }
+  }, [orderType]);
 
   const {
     cardRef: sizeCardRef,
@@ -114,10 +230,26 @@ const PerpsProOrderFormPanel = ({
     realign: onSizeFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
-  // One instance per field rather than a single shared handler: each keeps its
-  // own card measurement and stays inert unless its own field holds focus, so
-  // moving between fields needs no hand-off. The measured card here is the
-  // order-type card, which wraps the limit price row.
+  // Each Scale row owns its measurement so focus navigation can realign the
+  // newly focused row instead of measuring the full four-row card.
+  const scaleStartKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleEndKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleTotalOrdersKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+  const scaleSizeSkewKeyboardScroll = usePerpsProKeyboardScroll({
+    onRequestScrollBy,
+    scrollViewRef,
+  });
+
+  // Limit and trigger share the order-type card because only one is visible.
   const {
     cardRef: orderTypeCardRef,
     onFocus: onLimitPriceFocus,
@@ -169,6 +301,13 @@ const PerpsProOrderFormPanel = ({
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
         orderType={orderType}
+        scaleOrder={scaleOrder}
+        scaleKeyboardScroll={{
+          startPrice: scaleStartKeyboardScroll,
+          endPrice: scaleEndKeyboardScroll,
+          totalOrders: scaleTotalOrdersKeyboardScroll,
+          sizeSkew: scaleSizeSkewKeyboardScroll,
+        }}
         onOrderTypeButtonPress={onOrderTypeButtonPress}
         limitPrice={limitPrice}
         onLimitPriceChange={onLimitPriceChange}
@@ -191,6 +330,8 @@ const PerpsProOrderFormPanel = ({
         onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
         onReduceOnlyChange={onReduceOnlyChange}
+        twap={twap}
+        onTwapDurationPress={openTwapDuration}
         isTPSLConfigured={isTPSLConfigured}
         onTPSLPress={onTPSLPress}
         notices={notices}
@@ -223,8 +364,19 @@ const PerpsProOrderFormPanel = ({
             asset={market.symbol}
             direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
-            showSelectedIcon
-            showTriggeredTypes={showTriggeredTypes}
+            showOrderTypeIcons
+            availableOrderTypes={availableOrderTypes}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isTwapDurationVisible && orderType === 'twap' && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeTwapDuration}
+        >
+          <PerpsProTwapDurationBottomSheet
+            twap={twap}
+            onClose={closeTwapDuration}
           />
         </PerpsProModalPortal>
       )}

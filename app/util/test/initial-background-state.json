@@ -541,8 +541,8 @@
     "perpsBalances": {},
     "proLayoutPreferences": {
       "chartExpanded": true,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
@@ -763,6 +763,7 @@
     "cardHomeData": null,
     "cardHomeDataAddress": null,
     "cardHomeDataStatus": "idle",
+    "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
     "cardholderAccounts": [],

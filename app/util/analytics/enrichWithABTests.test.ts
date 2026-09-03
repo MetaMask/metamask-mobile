@@ -5,25 +5,9 @@ import { HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY } from '../../components/Views/Homepa
 import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
+import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
 
 describe('enrichWithABTests', () => {
-  it('loads swap AB configs when the Analytics barrel initializes first', () => {
-    jest.isolateModules(() => {
-      // Mirrors view-test bootstrap: core/Analytics before ab test registry.
-      /* eslint-disable @typescript-eslint/no-require-imports -- isolateModules load order */
-      require('../../core/Analytics');
-      const {
-        NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING,
-      } = require('../../components/UI/Bridge/components/GaslessQuickPickOptions/abTestConfig');
-      /* eslint-enable @typescript-eslint/no-require-imports */
-
-      expect(
-        NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING
-          .eventPropertyRequirements?.['Asset Viewed'],
-      ).toEqual({ trade_type: 'Swaps' });
-    });
-  });
-
   it('injects one active assignment for a matching allowlisted event', () => {
     const event = AnalyticsEventBuilder.createEventBuilder(
       'Token Details Opened',
@@ -96,19 +80,13 @@ describe('enrichWithABTests', () => {
     ).build();
 
     const result = enrichWithABTests(event, {
-      swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
-      swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'control',
+      [SWAP_DISCOVERY_FEED_REVAMP_AB_KEY]: { name: 'empty' },
+      [CHAIN_VALUE_ORDER_AB_KEY]: 'control',
     });
 
     expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'swapsSWAPS4135AbtestNumpadQuickAmounts',
-        'treatment',
-      ),
-      createActiveABTestAssignment(
-        'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-        'control',
-      ),
+      createActiveABTestAssignment(SWAP_DISCOVERY_FEED_REVAMP_AB_KEY, 'empty'),
+      createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'control'),
     ]);
   });
 
@@ -158,53 +136,6 @@ describe('enrichWithABTests', () => {
     });
   });
 
-  it('injects swap AB assignments for Asset Viewed only when trade_type is Swaps', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
-      .addProperties({
-        trade_type: 'Swaps',
-        implementation_type: 'native',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
-      swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'control',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(
-        'swapsSWAPS4135AbtestNumpadQuickAmounts',
-        'treatment',
-      ),
-      createActiveABTestAssignment(
-        'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-        'control',
-      ),
-    ]);
-  });
-
-  it.each(['Perps', 'Predict'] as const)(
-    'does not inject swap AB assignments for Asset Viewed when trade_type is %s',
-    (tradeType) => {
-      const event = AnalyticsEventBuilder.createEventBuilder('Asset Viewed')
-        .addProperties({
-          trade_type: tradeType,
-          implementation_type: 'native',
-        })
-        .build();
-
-      const result = enrichWithABTests(event, {
-        swapsSWAPS4135AbtestNumpadQuickAmounts: { name: 'treatment' },
-        swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'control',
-      });
-
-      expect(result.properties).toEqual({
-        trade_type: tradeType,
-        implementation_type: 'native',
-      });
-    },
-  );
-
   it('does nothing when the event is not allowlisted', () => {
     const event = AnalyticsEventBuilder.createEventBuilder('Unrelated Event')
       .addProperties({
@@ -227,8 +158,7 @@ describe('enrichWithABTests', () => {
     ).build();
 
     const result = enrichWithABTests(event, {
-      swapsSWAPS4135AbtestNumpadQuickAmounts: 42,
-      swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'unknown',
+      [CHAIN_VALUE_ORDER_AB_KEY]: 'unknown',
     });
 
     expect(result.properties).toEqual({});
@@ -258,7 +188,7 @@ describe('enrichWithABTests', () => {
       .addProperties({
         active_ab_tests: [
           {
-            key: 'swapsSWAPS4135AbtestNumpadQuickAmounts',
+            key: 'existingExperiment',
             value: 'manual-value',
             key_value_pair: 'incorrect=assignment',
           },
@@ -268,21 +198,14 @@ describe('enrichWithABTests', () => {
       .build();
 
     const result = enrichWithABTests(event, {
-      swapsSWAPS4135AbtestNumpadQuickAmounts: 'treatment',
-      swapsSWAPS4242AbtestTokenSelectorBalanceLayout: 'treatment',
+      [CHAIN_VALUE_ORDER_AB_KEY]: 'treatment',
     });
 
     expect(result.properties).toEqual({
       quote_count: 3,
       active_ab_tests: [
-        createActiveABTestAssignment(
-          'swapsSWAPS4135AbtestNumpadQuickAmounts',
-          'manual-value',
-        ),
-        createActiveABTestAssignment(
-          'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
-          'treatment',
-        ),
+        createActiveABTestAssignment('existingExperiment', 'manual-value'),
+        createActiveABTestAssignment(CHAIN_VALUE_ORDER_AB_KEY, 'treatment'),
       ],
     });
   });

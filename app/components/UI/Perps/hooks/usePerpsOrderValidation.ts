@@ -12,6 +12,7 @@ import {
   isTriggerOrderType,
   type OrderParams,
   type OrderFormState,
+  type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
@@ -48,10 +49,19 @@ interface UsePerpsOrderValidationParams {
   midPrice?: number;
   /** Asset size decimals used to canonicalize venue prices. */
   szDecimals?: number;
+  /** TWAP running time in whole minutes. */
+  twapDuration?: number;
+  /** Whether the venue should randomize TWAP suborder sizes. */
+  twapRandomize?: boolean;
+  /** Provider route required for strategy validation. */
+  providerId?: PerpsProviderType;
+  /** Protocol error codes whose UI is owned by the calling form. */
+  suppressedProtocolErrorCodes?: readonly string[];
 }
 
 interface ValidationState {
   protocolErrors: string[];
+  protocolInsufficientBalanceErrors: string[];
   warnings: string[];
   protocolValid: boolean;
   isValidating: boolean;
@@ -67,6 +77,12 @@ export interface ValidationAttempt {
 export interface ValidationResult extends ValidationAttempt {
   isValidating: boolean;
   validateNow: () => Promise<ValidationAttempt>;
+  /**
+   * The subset of `errors` caused by insufficient balance or margin. Callers
+   * that render their own insufficient-funds treatment use this to drop the
+   * duplicates without hiding the unrelated errors alongside them.
+   */
+  insufficientBalanceErrors: string[];
 }
 
 // Stable empty array references to prevent unnecessary re-renders
@@ -78,6 +94,10 @@ const FIELD_OWNED_PROTOCOL_ERRORS = new Set<string>([
   PERPS_ERROR_CODES.ORDER_PRICE_POSITIVE,
   PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_REQUIRED,
   PERPS_ERROR_CODES.ORDER_TRIGGER_PRICE_POSITIVE,
+]);
+const INSUFFICIENT_BALANCE_PROTOCOL_ERRORS = new Set<string>([
+  PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
+  PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
 ]);
 
 type OrderFormValidationData = Pick<
@@ -95,6 +115,9 @@ interface BuildOrderParamsInput {
   isFullClose?: boolean;
   triggerPrice?: string;
   szDecimals?: number;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  providerId?: PerpsProviderType;
 }
 
 interface ImmediateValidationInput {
@@ -117,14 +140,22 @@ interface ProtocolValidationErrorsInput {
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
   minimumOrderSize: number;
+  suppressedProtocolErrors: ReadonlySet<string>;
 }
 
 interface BuildValidationOutcomeInput {
   requestFieldIssues: OrderFormFieldIssue[];
   requestLocalErrors: string[];
   protocolErrors: string[];
+  protocolInsufficientBalanceErrors?: string[];
   warnings: string[];
   protocolValid: boolean;
+}
+
+/** Errors split by whether they describe an insufficient balance or margin. */
+interface ErrorsWithInsufficientBalance {
+  errors: string[];
+  insufficientBalanceErrors: string[];
 }
 
 interface ValidationOutcome {
@@ -159,17 +190,21 @@ const getImmediateValidationErrors = ({
   minimumOrderSize,
   reduceOnly,
   isFullClose,
-}: ImmediateValidationInput): string[] => {
+}: ImmediateValidationInput): ErrorsWithInsufficientBalance => {
   const errors: string[] = [];
+  const insufficientBalanceErrors: string[] = [];
   const requiredMargin = Number.parseFloat(marginRequired);
 
   if (requiredMargin > spendableBalance) {
-    errors.push(
-      strings('perps.order.validation.insufficient_balance', {
+    const insufficientBalanceError = strings(
+      'perps.order.validation.insufficient_balance',
+      {
         required: marginRequired,
         available: spendableBalance.toString(),
-      }),
+      },
     );
+    errors.push(insufficientBalanceError);
+    insufficientBalanceErrors.push(insufficientBalanceError);
   }
 
   const usdAmount = Number.parseFloat(originalUsdAmount || '0');
@@ -182,7 +217,7 @@ const getImmediateValidationErrors = ({
     );
   }
 
-  return errors;
+  return { errors, insufficientBalanceErrors };
 };
 
 const buildOrderParams = ({
@@ -195,6 +230,9 @@ const buildOrderParams = ({
   isFullClose,
   triggerPrice,
   szDecimals,
+  twapDuration,
+  twapRandomize,
+  providerId,
 }: BuildOrderParamsInput): OrderParams => ({
   symbol: orderForm.asset,
   isBuy: orderForm.direction === 'long',
@@ -216,6 +254,9 @@ const buildOrderParams = ({
     : {}),
   ...(reduceOnly !== undefined ? { reduceOnly } : {}),
   ...(isFullClose !== undefined ? { isFullClose } : {}),
+  ...(twapDuration !== undefined ? { twapDuration } : {}),
+  ...(twapRandomize !== undefined ? { twapRandomize } : {}),
+  ...(providerId !== undefined ? { providerId } : {}),
 });
 
 const getProtocolErrorContext = ({
@@ -268,15 +309,22 @@ const getProtocolValidationErrors = ({
   orderForm,
   existingPositionLeverage,
   minimumOrderSize,
-}: ProtocolValidationErrorsInput): string[] => {
+  suppressedProtocolErrors,
+}: ProtocolValidationErrorsInput): ErrorsWithInsufficientBalance => {
   const errors: string[] = [];
+  const insufficientBalanceErrors: string[] = [];
   const { error } = protocolValidation;
   const isFieldOwnedError =
     error !== undefined &&
     requestFieldIssues.length > 0 &&
     FIELD_OWNED_PROTOCOL_ERRORS.has(error);
 
-  if (!protocolValidation.isValid && error && !isFieldOwnedError) {
+  if (
+    !protocolValidation.isValid &&
+    error &&
+    !isFieldOwnedError &&
+    !suppressedProtocolErrors.has(error)
+  ) {
     const translatedError = translatePerpsError(
       error,
       getProtocolErrorContext({
@@ -291,6 +339,9 @@ const getProtocolValidationErrors = ({
     );
     if (!isDuplicate) {
       errors.push(translatedError);
+      if (INSUFFICIENT_BALANCE_PROTOCOL_ERRORS.has(error)) {
+        insufficientBalanceErrors.push(translatedError);
+      }
     }
   }
 
@@ -298,7 +349,7 @@ const getProtocolValidationErrors = ({
     errors.push(strings('perps.order.validation.failed'));
   }
 
-  return errors;
+  return { errors, insufficientBalanceErrors };
 };
 
 const getValidationWarnings = (leverage: number): string[] => {
@@ -313,6 +364,7 @@ const buildValidationOutcome = ({
   requestFieldIssues,
   requestLocalErrors,
   protocolErrors,
+  protocolInsufficientBalanceErrors = EMPTY_ERRORS,
   warnings,
   protocolValid,
 }: BuildValidationOutcomeInput): ValidationOutcome => {
@@ -337,6 +389,10 @@ const buildValidationOutcome = ({
     attempt,
     state: {
       protocolErrors: resolvedProtocolErrors,
+      protocolInsufficientBalanceErrors:
+        protocolInsufficientBalanceErrors.length > 0
+          ? protocolInsufficientBalanceErrors
+          : EMPTY_ERRORS,
       warnings: resolvedWarnings,
       protocolValid,
       isValidating: false,
@@ -368,6 +424,10 @@ export function usePerpsOrderValidation(
     triggerPrice,
     midPrice = assetPrice,
     szDecimals,
+    twapDuration,
+    twapRandomize,
+    providerId,
+    suppressedProtocolErrorCodes = EMPTY_ERRORS,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -391,11 +451,19 @@ export function usePerpsOrderValidation(
 
   const [validation, setValidation] = useState<ValidationState>({
     protocolErrors: EMPTY_ERRORS,
+    protocolInsufficientBalanceErrors: EMPTY_ERRORS,
     warnings: EMPTY_WARNINGS,
     protocolValid: false,
     isValidating: false, // Start with false to prevent initial flickering
   });
 
+  const stableSuppressedProtocolErrorCodes = useStableArray([
+    ...suppressedProtocolErrorCodes,
+  ]);
+  const suppressedProtocolErrors = useMemo(
+    () => new Set(stableSuppressedProtocolErrorCodes),
+    [stableSuppressedProtocolErrorCodes],
+  );
   const fieldIssues = useMemo(
     () =>
       getOrderFormFieldIssues({
@@ -417,7 +485,7 @@ export function usePerpsOrderValidation(
   );
 
   const minimumOrderSize = getMinimumOrderSize(network);
-  const localErrors = useMemo(
+  const immediateValidation = useMemo(
     () =>
       getImmediateValidationErrors({
         marginRequired,
@@ -436,6 +504,9 @@ export function usePerpsOrderValidation(
       spendableBalance,
     ],
   );
+  const localErrors = immediateValidation.errors;
+  const localInsufficientBalanceErrors =
+    immediateValidation.insufficientBalanceErrors;
 
   const isLocallyValid = localErrors.length === 0 && fieldIssues.length === 0;
 
@@ -447,9 +518,27 @@ export function usePerpsOrderValidation(
     [localErrors, validation.protocolErrors],
   );
 
+  const combinedInsufficientBalanceErrors = useMemo(
+    () =>
+      localInsufficientBalanceErrors.length > 0 ||
+      validation.protocolInsufficientBalanceErrors.length > 0
+        ? [
+            ...localInsufficientBalanceErrors,
+            ...validation.protocolInsufficientBalanceErrors,
+          ]
+        : EMPTY_ERRORS,
+    [
+      localInsufficientBalanceErrors,
+      validation.protocolInsufficientBalanceErrors,
+    ],
+  );
+
   // Use stable array references to prevent unnecessary re-renders
   const stableErrors = useStableArray(combinedErrors);
   const stableWarnings = useStableArray(validation.warnings);
+  const stableInsufficientBalanceErrors = useStableArray(
+    combinedInsufficientBalanceErrors,
+  );
 
   // Use ref to track debounce timer
   const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -513,6 +602,9 @@ export function usePerpsOrderValidation(
           isFullClose,
           triggerPrice,
           szDecimals,
+          twapDuration,
+          twapRandomize,
+          providerId,
         });
 
         // Get protocol-specific validation
@@ -526,17 +618,22 @@ export function usePerpsOrderValidation(
           protocolValidation,
         );
 
+        const protocolResult = getProtocolValidationErrors({
+          protocolValidation,
+          localErrors: requestLocalErrors,
+          requestFieldIssues,
+          orderForm: orderFormValidationData,
+          existingPositionLeverage,
+          minimumOrderSize,
+          suppressedProtocolErrors,
+        });
+
         return finalizeValidation({
           requestFieldIssues,
           requestLocalErrors,
-          protocolErrors: getProtocolValidationErrors({
-            protocolValidation,
-            localErrors: requestLocalErrors,
-            requestFieldIssues,
-            orderForm: orderFormValidationData,
-            existingPositionLeverage,
-            minimumOrderSize,
-          }),
+          protocolErrors: protocolResult.errors,
+          protocolInsufficientBalanceErrors:
+            protocolResult.insufficientBalanceErrors,
           warnings: getValidationWarnings(orderFormValidationData.leverage),
           protocolValid: protocolValidation.isValid,
         });
@@ -565,6 +662,10 @@ export function usePerpsOrderValidation(
       reduceOnly,
       szDecimals,
       triggerPrice,
+      twapDuration,
+      twapRandomize,
+      providerId,
+      suppressedProtocolErrors,
       validateOrder,
     ],
   );
@@ -658,5 +759,6 @@ export function usePerpsOrderValidation(
     isValid: validation.protocolValid && isLocallyValid,
     isValidating: validation.isValidating,
     validateNow,
+    insufficientBalanceErrors: stableInsufficientBalanceErrors,
   };
 }

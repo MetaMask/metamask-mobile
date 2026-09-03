@@ -18,6 +18,8 @@ import { formatPercentChange } from '../../../Trending/utils/formatPercentChange
 import { ExplorePill } from '../../../Trending/components/ExplorePill';
 import PerpsTokenLogo from '../PerpsTokenLogo/PerpsTokenLogo';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { formatPercentage } from '../../utils/formatUtils';
 import { PerpsRecentlyViewedRailSelectorsIDs } from '../../Perps.testIds';
 
 /** `source_section` value for market-details navigation and analytics originating from this rail. */
@@ -49,9 +51,23 @@ const PerpsRecentlyViewedPill: React.FC<{
     onPress(market, index);
   }, [onPress, market, index]);
 
-  const { changeLabel, changeTextColor } = useMemo(
-    () => formatPercentChange(market.change24hPercent),
-    [market.change24hPercent],
+  // Same live-price overlay as PerpsMarketRowItem so the pill % matches the list.
+  const livePrices = usePerpsLivePrices({
+    symbols: [market.symbol],
+    throttleMs: 3000,
+  });
+
+  const change24hPercent = useMemo(() => {
+    const livePercentChange = livePrices[market.symbol]?.percentChange24h;
+    if (livePercentChange === undefined || livePercentChange === '') {
+      return market.change24hPercent;
+    }
+    return formatPercentage(Number.parseFloat(livePercentChange));
+  }, [livePrices, market.change24hPercent, market.symbol]);
+
+  const { changeTextColor } = useMemo(
+    () => formatPercentChange(change24hPercent),
+    [change24hPercent],
   );
 
   return (
@@ -66,7 +82,7 @@ const PerpsRecentlyViewedPill: React.FC<{
         />
       }
       title={getPerpsDisplaySymbol(market.symbol)}
-      changeLabel={changeLabel}
+      changeLabel={change24hPercent}
       changeTextColor={changeTextColor}
     />
   );

@@ -191,7 +191,7 @@ const MoneyPotentialEarningsView = () => {
   const listHeader = useMemo(
     () => (
       <Box twClassName="px-4 py-3 gap-3">
-        <Text variant={TextVariant.HeadingMd}>
+        <Text variant={TextVariant.HeadingLg}>
           {strings('money.potential_earnings.title')}
         </Text>
 

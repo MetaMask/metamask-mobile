@@ -192,27 +192,100 @@ class BitcoinTestDapp {
   }
 
   /**
+   * Detect whether MetaMask's Bitcoin wallet-standard provider has registered
+   * in the page via the app-ready / register-wallet handshake.
+   */
+  private async isBitcoinWalletRegistered(): Promise<boolean> {
+    const count = await this.evaluate<number>(
+      `(() => {
+        let n = 0;
+        const handler = (event) => {
+          try {
+            event.detail.callback({ register() { n += 1; } });
+          } catch (_) {}
+        };
+        window.addEventListener('wallet-standard:register-wallet', handler);
+        try {
+          window.dispatchEvent(new Event('wallet-standard:app-ready'));
+        } catch (_) {}
+        window.removeEventListener('wallet-standard:register-wallet', handler);
+        return n;
+      })()`,
+    );
+    return (count ?? 0) > 0;
+  }
+
+  /**
+   * Poll until the Bitcoin wallet-standard provider registers, or the timeout
+   * elapses. Returns whether registration was observed (does not throw — the
+   * Connect recovery loop still handles empty-wallet outcomes).
+   */
+  private async waitForBitcoinWalletRegistered(
+    timeoutMs = 10_000,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (await this.isBitcoinWalletRegistered()) {
+        return true;
+      }
+      await wait(POLL_MS);
+    }
+    return false;
+  }
+
+  /**
+   * Best-effort close of the empty wallet-selection modal before remounting.
+   * Backdrop click / Escape match the dapp's modal dismiss handlers.
+   */
+  private async closeWalletSelectionModalBestEffort(): Promise<void> {
+    await this.evaluate(
+      `(() => {
+        const modal = document.querySelector(${JSON.stringify(
+          sel(walletSelectionModal.id),
+        )});
+        if (!modal) return false;
+        const overlay = modal.parentElement;
+        if (overlay instanceof HTMLElement) {
+          overlay.click();
+        }
+        document.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+        );
+        return true;
+      })()`,
+    );
+  }
+
+  /**
    * Opens the wallet-selection modal. On Android CI the Bitcoin provider can
-   * register after test-dapp-bitcoin's one-shot mount effect, leaving
+   * register after test-dapp-bitcoin's one-shot mount `useEffect([])`, leaving
    * wallets=[] ("No wallet available") until reload. Reload remounts the
-   * effect; re-tapping Connect alone cannot. One reload is often enough, but
-   * CI still flakes when the provider is slower than a single recovery —
-   * allow up to two reloads (three Connect attempts).
+   * effect; re-tapping Connect alone cannot.
+   *
+   * Blind reload loops (3 Connect attempts) still flake when the provider is
+   * slower than the remount. Wait for wallet-standard registration, then
+   * remount so the mount effect captures a non-empty wallets list before
+   * Connect. Retry that provider-ready remount path up to maxAttempts.
    */
   private async openWalletSelectionModal(): Promise<void> {
     const walletOptionSelector = `button${sel(
       walletSelectionModal.walletOption,
     )}`;
     const connectSelector = `button${sel(header.connect)}`;
-    const maxAttempts = 3;
+    const maxAttempts = 5;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       if (attempt > 1) {
-        await this.reloadDapp();
+        await this.closeWalletSelectionModalBestEffort();
       }
 
+      // Provider must be present *before* remount so the dapp's one-shot
+      // useEffect sees MetaMask Bitcoin instead of wallets=[].
+      await this.waitForBitcoinWalletRegistered(attempt === 1 ? 15_000 : 8_000);
+      await this.reloadDapp();
+
       await this.click(connectSelector);
-      const waitMs = attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 10_000;
+      const waitMs = attempt === maxAttempts ? CONNECT_TIMEOUT_MS : 12_000;
       const outcome = await this.waitForWalletModalOutcome(
         walletOptionSelector,
         waitMs,
@@ -223,7 +296,7 @@ class BitcoinTestDapp {
     }
 
     throw new Error(
-      `Timed out waiting for "${walletOptionSelector}" to appear after ${maxAttempts} connect attempt(s) with dapp reload`,
+      `Timed out waiting for "${walletOptionSelector}" to appear after ${maxAttempts} provider-ready reload + connect attempt(s)`,
     );
   }
 

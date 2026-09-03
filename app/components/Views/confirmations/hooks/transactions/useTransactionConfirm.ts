@@ -25,7 +25,6 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
-import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
@@ -54,8 +53,6 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
-  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
-    useMusdConfirmNavigation();
   const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
@@ -201,8 +198,6 @@ export function useTransactionConfirm() {
         } else {
           navigation.goBack();
         }
-      } else if (type === TransactionType.musdConversion) {
-        musdConversionNavigateOnConfirm();
       } else if (
         hasTransactionType(transactionMetadata, [
           TransactionType.moneyAccountDeposit,
@@ -239,7 +234,6 @@ export function useTransactionConfirm() {
       isGaslessSupportedSTX,
       navigation,
       navigateToPerpsHome,
-      musdConversionNavigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,

@@ -1580,6 +1580,52 @@ describe('Onboarding', () => {
       );
     });
 
+    it('does not report to Sentry when OAuth login is already in progress', async () => {
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      const loginInProgressError = new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(loginInProgressError);
+      (captureException as jest.Mock).mockClear();
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importSeedButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importSeedButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(false);
+      });
+
+      expect(captureException).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        }),
+      );
+    });
+
     it('shows iOS version warning sheet before Google login on iOS < 17.4', async () => {
       Platform.OS = 'ios';
       (Device.isIos as jest.Mock).mockReturnValue(true);

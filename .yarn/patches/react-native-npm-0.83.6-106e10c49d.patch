@@ -53,3 +53,24 @@ index fb99142850803e5afc47fcd1b7d58bef482da9fd..1790ef1b8289a7406249e137e3734604
        }
      end
  
+diff --git a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+index 1a3bce00363ee2dfc2ec2c2d0b8445a91e5c87d2..598c500ef5e03ad59bc57758f266066f03139973 100644
+--- a/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
++++ b/ReactCommon/react/featureflags/ReactNativeFeatureFlagsOverridesOSSStable.h
+@@ -29,6 +29,16 @@ class ReactNativeFeatureFlagsOverridesOSSStable : public ReactNativeFeatureFlags
+   {
+     return true;
+   }
++  bool fuseboxFrameRecordingEnabled() override
++  {
++#if defined(DEBUG) && defined(__APPLE__)
++    // React Native DevTools uses this flag to emit native frame events only
++    // while an explicit CDP Tracing session is active.
++    return true;
++#else
++    return false;
++#endif
++  }
+   bool useShadowNodeStateOnClone() override
+   {
+     return true;

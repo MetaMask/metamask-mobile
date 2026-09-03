@@ -59,7 +59,7 @@ const QuickBuyTokenSecurityBadge: React.FC<QuickBuyTokenSecurityBadgeProps> = ({
     queryFn: () => getCaipAssetIdForBridgeToken(token),
     enabled: shouldResolveBadge,
     staleTime: Infinity,
-    cacheTime: Infinity,
+    gcTime: Infinity,
   });
 
   const securityQueryKey = useMemo(
@@ -85,7 +85,7 @@ const QuickBuyTokenSecurityBadge: React.FC<QuickBuyTokenSecurityBadgeProps> = ({
       requestTokenSecurityForAsset(caipAssetId as CaipAssetType),
     enabled: shouldResolveBadge && Boolean(caipAssetId),
     staleTime: STALE_TIME_MS,
-    cacheTime: STALE_TIME_MS,
+    gcTime: STALE_TIME_MS,
   });
 
   const badge = useMemo(() => {

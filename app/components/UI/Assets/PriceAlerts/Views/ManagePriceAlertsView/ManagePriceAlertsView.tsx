@@ -120,7 +120,7 @@ const ManagePriceAlertsView: React.FC = () => {
     },
     retry: false,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
   });
 
   useEffect(() => {
