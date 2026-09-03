@@ -63,10 +63,10 @@ const runSync = async (): Promise<void> => {
     writeStoredEffectivePushState(isEffectivelyEnabled);
 
     if (wasEffectivelyEnabled && !osPermissionGranted) {
-      // Discriminate on the OS flag, not `pushEnabledInApp`. Engine init
-      // auto-disables the controller when native permission is off (common
-      // on Android process death after Settings). An in-app disable leaves
-      // OS permission granted, so it only clears the snapshot.
+      // Snapshot was on and OS permission is now off: this is an OS revocation.
+      // The in-app flag can already be false here because Engine turns push
+      // off when native permission is missing. An in-app disable keeps OS
+      // permission granted, so it does not enter this branch.
       trackPushNotificationsDisabled();
     } else if (isEffectivelyEnabled) {
       // Enabled or re-granted: restore the profile trait, which a previous
