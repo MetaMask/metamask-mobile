@@ -34,6 +34,12 @@ import {
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { store } from '../../../../store';
+import { selectPerpsSelectedAccountAddress } from '../selectors/selectedAccountAddress';
+import {
+  selectPerpsNetwork,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
@@ -69,17 +75,108 @@ type PerpsOrderTrackingValue = string | number | boolean;
 type PerpsOrderPositionSnapshot = Pick<Position, 'size'>;
 
 interface ControllerPlacementHandlers {
-  onSuccess: (
-    result: OrderResult,
-  ) => Position | undefined | Promise<Position | undefined>;
+  onSuccess: (result: OrderResult) => void | Promise<void>;
   onFailure?: () => void;
   onException?: () => void;
   onSettled?: () => void;
 }
 
+type PerpsPositionStream = ReturnType<typeof usePerpsStream>['positions'];
+
+export const PERPS_POSITION_HINT_WAIT_TIMEOUT_MS = 3000;
+
 const getPerpsOrderPositionSnapshot = (
   position?: PerpsOrderPositionSnapshot | null,
 ) => (position ? position.size : undefined);
+
+const getPerpsTradingContextKey = (): string => {
+  const state = store.getState();
+  return JSON.stringify([
+    selectPerpsSelectedAccountAddress(state) ?? '',
+    selectPerpsNetwork(state),
+    selectPerpsProvider(state) ?? '',
+  ]);
+};
+
+const findRenderedPosition = (
+  positions: Position[] | null,
+  symbol: string,
+  baselineSize: string | undefined,
+): Position | undefined => {
+  const position = positions?.find((candidate) => candidate.symbol === symbol);
+  return position && isPerpsFillRendered(position, baselineSize)
+    ? position
+    : undefined;
+};
+
+const waitForPositionRendered = (
+  positionsStream: PerpsPositionStream,
+  symbol: string,
+  baselineSize: string | undefined,
+  isContextCurrent: () => boolean,
+): Promise<Position | undefined> => {
+  if (!isContextCurrent()) {
+    return Promise.resolve(undefined);
+  }
+
+  const renderedPosition = findRenderedPosition(
+    positionsStream.getSnapshot(),
+    symbol,
+    baselineSize,
+  );
+  if (renderedPosition) {
+    return Promise.resolve(renderedPosition);
+  }
+
+  return new Promise((resolve) => {
+    let settled = false;
+    let unsubscribe: (() => void) | undefined;
+    let cancelTimeout = () => {
+      // Replaced after the timeout is scheduled.
+    };
+    const settle = (position?: Position) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cancelTimeout();
+      unsubscribe?.();
+      resolve(position);
+    };
+    const timeout = setTimeout(
+      () => settle(),
+      PERPS_POSITION_HINT_WAIT_TIMEOUT_MS,
+    );
+    cancelTimeout = () => clearTimeout(timeout);
+
+    try {
+      unsubscribe = positionsStream.subscribe({
+        callback: (positions) => {
+          if (!isContextCurrent()) {
+            settle();
+            return;
+          }
+          const position = findRenderedPosition(
+            positions,
+            symbol,
+            baselineSize,
+          );
+          if (position) {
+            settle(position);
+          }
+        },
+        throttleMs: 0,
+      });
+      // subscribe() may synchronously deliver a cached render before returning
+      // its cleanup callback.
+      if (settled) {
+        unsubscribe();
+      }
+    } catch {
+      settle();
+    }
+  });
+};
 
 /**
  * Hook to handle order execution flow
@@ -151,8 +248,8 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
-          const position = await handlers.onSuccess(result);
-          return position ? { ...result, position } : result;
+          await handlers.onSuccess(result);
+          return result;
         }
 
         handlers.onFailure?.();
@@ -298,6 +395,14 @@ export function usePerpsOrderExecution(
         positionsCache?.find((p) => p.symbol === orderParams.symbol) ?? null;
       const positionBaselineSnapshot =
         getPerpsOrderPositionSnapshot(positionBaseline);
+      const shouldWaitForPosition =
+        options.waitForPosition === true && isMarketOrder;
+      const tradingContextKey = shouldWaitForPosition
+        ? getPerpsTradingContextKey()
+        : undefined;
+      const isTradingContextCurrent = () =>
+        tradingContextKey !== undefined &&
+        getPerpsTradingContextKey() === tradingContextKey;
       if (isMarketOrder) {
         armPerpsPlaceOrderCuf(
           cufOpId,
@@ -323,7 +428,7 @@ export function usePerpsOrderExecution(
         }
       }, PERPS_CUF_STREAM_TIMEOUT_MS);
 
-      return executeControllerPlacement(orderParams, {
+      const placementResult = await executeControllerPlacement(orderParams, {
         onSettled: () => {
           controllerSettled = true;
         },
@@ -423,7 +528,7 @@ export function usePerpsOrderExecution(
               rendered.position,
             );
             onSuccess?.(position);
-            return position;
+            return;
           }
 
           // Stream quiet: unblock the toast now, end the span when the
@@ -433,35 +538,27 @@ export function usePerpsOrderExecution(
           );
           onSuccess?.();
 
-          const waitForLatePosition = waitForPerpsPlaceOrderPositionRendered(
+          waitForPerpsPlaceOrderPositionRendered(
             PERPS_CUF_STREAM_TIMEOUT_MS,
             cufOpId,
-          ).then((late) => {
-            // A newer order owns the span now; this continuation is stale.
-            if (!isPerpsPlaceOrderCufCurrent(cufOpId)) {
-              return undefined;
-            }
-            if (late) {
-              endCufRendered(late.renderedAt, toastShownAt);
-              return stream.positions
-                .getSnapshot()
-                ?.find((p) => p.symbol === orderParams.symbol);
-            }
-            endCuf({
-              [PERPS_CUF_TAG.SUCCESS]: false,
-              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+          )
+            .then((late) => {
+              // A newer order owns the span now; this continuation is stale.
+              if (!isPerpsPlaceOrderCufCurrent(cufOpId)) {
+                return;
+              }
+              if (late) {
+                endCufRendered(late.renderedAt, toastShownAt);
+              } else {
+                endCuf({
+                  [PERPS_CUF_TAG.SUCCESS]: false,
+                  [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+                });
+              }
+            })
+            .catch(() => {
+              // Telemetry failures must never change a successful order result.
             });
-            return undefined;
-          });
-
-          if (options.waitForPosition) {
-            return waitForLatePosition;
-          }
-
-          // Deliberately not awaited: ordinary order callers must not block on
-          // the stream-confirmation span.
-          waitForLatePosition.catch(() => undefined);
-          return undefined;
         },
         onFailure: () => {
           endCuf({
@@ -476,6 +573,25 @@ export function usePerpsOrderExecution(
           });
         },
       });
+
+      if (!placementResult?.success || !shouldWaitForPosition) {
+        return placementResult;
+      }
+      if (!isTradingContextCurrent()) {
+        return undefined;
+      }
+
+      const position = await waitForPositionRendered(
+        stream.positions,
+        orderParams.symbol,
+        positionBaselineSnapshot,
+        isTradingContextCurrent,
+      ).catch(() => undefined);
+      if (!isTradingContextCurrent()) {
+        return undefined;
+      }
+
+      return position ? { ...placementResult, position } : placementResult;
     },
     [executeControllerPlacement, stream, onSuccess],
   );

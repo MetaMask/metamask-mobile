@@ -3529,6 +3529,28 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
+    it('attempts TP/SL attachment without a rendered position hint', async () => {
+      // Arrange
+      mockOrderForm.takeProfitPrice = '95000';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+      });
+      const { result } = renderProForm();
+
+      // Act
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      // Assert
+      expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        takeProfitPrice: '95000',
+        stopLossPrice: undefined,
+        position: undefined,
+      });
+    });
+
     it('shows an error toast when the separate TP/SL update fails', async () => {
       // Arrange
       const renderedPosition = {

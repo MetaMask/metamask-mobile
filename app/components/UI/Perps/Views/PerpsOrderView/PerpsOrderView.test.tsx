@@ -1478,6 +1478,57 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('attempts TP/SL attachment without a rendered position hint', async () => {
+    const mockExecuteOrder = jest.fn().mockResolvedValue({
+      success: true,
+    });
+    const mockUpdatePositionTPSL = jest
+      .fn()
+      .mockResolvedValue({ success: true });
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        asset: 'ETH',
+        amount: '11',
+        leverage: 3,
+        direction: 'long',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: mockExecuteOrder,
+      isPlacing: false,
+    });
+    (usePerpsTrading as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsTrading,
+      updatePositionTPSL: mockUpdatePositionTPSL,
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+      symbol: 'ETH',
+      takeProfitPrice: '3500',
+      stopLossPrice: undefined,
+      position: undefined,
+    });
+  });
+
   it('includes discovery attribution from route source_section in order trackingData', async () => {
     const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
     (useRoute as jest.Mock).mockReturnValue({
