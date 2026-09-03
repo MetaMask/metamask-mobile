@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  DarkTheme,
   DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
@@ -19,6 +20,7 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { NavigationProviderProps } from './types';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { useTheme } from '../../../util/theme';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -29,6 +31,9 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
   children,
 }) => {
   const dispatch = useDispatch();
+  const { themeAppearance } = useTheme();
+  const navigationTheme =
+    themeAppearance === 'dark' ? DarkTheme : DefaultTheme;
 
   // Start the navigation-init trace exactly once, on first render. A lazy
   // useState initializer runs a single time and—unlike reading/writing a ref
@@ -79,12 +84,12 @@ const NavigationProvider: React.FC<NavigationProviderProps> = ({
     <NavigationContainer
       // Using transparent background to support transparent modals
       // The actual app background is handled by individual screens.
-      // Spread DefaultTheme so required fields (e.g. fonts in v7) stay defined —
-      // casting a partial object as Theme would hide that at compile time.
+      // Match MetaMask's active theme so native UIKit controls receive the
+      // correct appearance. Spread the full theme to preserve v7 fields.
       theme={{
-        ...DefaultTheme,
+        ...navigationTheme,
         colors: {
-          ...DefaultTheme.colors,
+          ...navigationTheme.colors,
           background: 'transparent',
         },
       }}
