@@ -9,7 +9,7 @@ import type {
   LendingMaxWithdrawalModalParams,
   LendingWithdrawalConfirmationParams,
 } from '../Earn.types';
-import type { EarnModuleAnalyticsContext } from './earnModuleEvents.types';
+import type { EarnModuleNavigationContext } from './earnModuleEvents.types';
 
 /**
  * Param list for screens inside the Earn screen stack (`EarnScreenStack`).
@@ -19,7 +19,7 @@ import type { EarnModuleAnalyticsContext } from './earnModuleEvents.types';
 export type EarnScreensStackParamList = {
   EarnSearchList:
     | {
-        analyticsContext?: EarnModuleAnalyticsContext;
+        analyticsContext?: EarnModuleNavigationContext;
       }
     | undefined;
   EarnLendingDepositConfirmation: LendingDepositConfirmationParams | undefined;

@@ -20,10 +20,17 @@ import {
   EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_SCREEN_NAMES,
 } from '../../../UI/Earn/constants/earnModuleEvents';
+import type { EarnModuleSurfaceLocation } from '../../../UI/Earn/types/earnModuleEvents.types';
 import {
-  getEarnModuleAnalyticsContext,
+  buildEarnModuleNavigationContext,
   getEarnModuleAssetProperties,
 } from '../../../UI/Earn/utils/earnModuleAnalytics';
+
+const EARN_SEARCH_ANALYTICS_CONTEXT: EarnModuleSurfaceLocation = {
+  component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,
+  screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_SEARCH,
+  entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
+};
 
 /**
  * Renders the appropriate Earn search result row and handles navigation.
@@ -46,11 +53,9 @@ const EarnSearchRow = ({
     component_name: MONEY_COMPONENT_NAMES.MONEY_ACCOUNT_ROW,
     screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_SEARCH,
   });
-  const { trackSurfaceClicked } = useEarnAnalytics({
-    component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,
-    screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE_SEARCH,
-    entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
-  });
+  const { trackSurfaceClicked } = useEarnAnalytics(
+    EARN_SEARCH_ANALYTICS_CONTEXT,
+  );
 
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -76,11 +81,10 @@ const EarnSearchRow = ({
     navigateFromEarnAsset(
       item.asset,
       TokenDetailsSource.ExploreSearch,
-      getEarnModuleAnalyticsContext(
-        TokenDetailsSource.ExploreSearch,
+      buildEarnModuleNavigationContext(
+        EARN_SEARCH_ANALYTICS_CONTEXT,
         position,
         resultCount,
-        EARN_MODULE_SCREEN_NAMES.EXPLORE_SEARCH,
       ),
     );
   }, [

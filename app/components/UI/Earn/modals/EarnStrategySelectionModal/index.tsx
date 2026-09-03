@@ -56,12 +56,12 @@ import {
   EARN_MODULE_COMPONENT_NAMES,
 } from '../../constants/earnModuleEvents';
 import { getEarnModuleAssetProperties } from '../../utils/earnModuleAnalytics';
-import type { EarnModuleAnalyticsContext } from '../../types/earnModuleEvents.types';
+import type { EarnModuleNavigationContext } from '../../types/earnModuleEvents.types';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 
 export interface EarnStrategySelectionModalRouteParams {
   earnAsset: EarnAsset;
-  analyticsContext?: EarnModuleAnalyticsContext;
+  analyticsContext?: EarnModuleNavigationContext;
 }
 
 type EarnStrategySelectionModalRoute = RouteProp<

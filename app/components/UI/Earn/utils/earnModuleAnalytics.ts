@@ -1,69 +1,12 @@
-import { TokenDetailsSource } from '../../TokenDetails/constants/constants';
-import {
-  EARN_MODULE_ENTRY_POINTS,
-  EARN_MODULE_COMPONENT_NAMES,
-  EARN_MODULE_STRATEGY_TYPES,
-  EARN_MODULE_SCREEN_NAMES,
-} from '../constants/earnModuleEvents';
+import { EARN_MODULE_STRATEGY_TYPES } from '../constants/earnModuleEvents';
 import type { EarnAsset } from '../types/earnAssets';
 import type {
-  EarnModuleAnalyticsContext,
+  EarnModuleNavigationContext,
   EarnModuleAssetProperties,
+  EarnModuleEventLocation,
 } from '../types/earnModuleEvents.types';
 import { formatChainIdForAnalytics } from './analytics';
 import { truncateNumber } from './number';
-
-// TODO: Simplify this. Feels like we're working against TokenDetailsSource.
-export const getEarnModuleEntryPoint = (
-  source: TokenDetailsSource,
-  screenName?: EARN_MODULE_SCREEN_NAMES,
-): EARN_MODULE_ENTRY_POINTS => {
-  switch (source) {
-    case TokenDetailsSource.HomeSection:
-      return EARN_MODULE_ENTRY_POINTS.HOMEPAGE;
-    case TokenDetailsSource.ExploreSearch:
-      return EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH;
-    case TokenDetailsSource.ExploreEarn:
-      if (screenName === EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB) {
-        return EARN_MODULE_ENTRY_POINTS.EXPLORE_NOW_TAB;
-      }
-      if (screenName === EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB) {
-        return EARN_MODULE_ENTRY_POINTS.EXPLORE_CRYPTO_TAB;
-      }
-      return EARN_MODULE_ENTRY_POINTS.EXPLORE;
-    default:
-      return EARN_MODULE_ENTRY_POINTS.EXPLORE;
-  }
-};
-
-export const getEarnModuleScreenName = (
-  source: TokenDetailsSource,
-): EARN_MODULE_SCREEN_NAMES => {
-  switch (source) {
-    case TokenDetailsSource.HomeSection:
-      return EARN_MODULE_SCREEN_NAMES.WALLET_HOME;
-    case TokenDetailsSource.ExploreNowMovers:
-    case TokenDetailsSource.ExploreNowStocks:
-      return EARN_MODULE_SCREEN_NAMES.EXPLORE_NOW_TAB;
-    case TokenDetailsSource.ExploreCryptoTrending:
-      return EARN_MODULE_SCREEN_NAMES.EXPLORE_CRYPTO_TAB;
-    default:
-      return EARN_MODULE_SCREEN_NAMES.EXPLORE;
-  }
-};
-
-export const getEarnModuleComponentName = (
-  source: TokenDetailsSource,
-): EARN_MODULE_COMPONENT_NAMES => {
-  switch (source) {
-    case TokenDetailsSource.HomeSection:
-      return EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION;
-    case TokenDetailsSource.ExploreSearch:
-      return EARN_MODULE_COMPONENT_NAMES.EXPLORE_SEARCH_EARN_SECTION;
-    default:
-      return EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION;
-  }
-};
 
 export const getEarnModuleAssetProperties = (
   earnAsset: EarnAsset,
@@ -113,15 +56,15 @@ export const getEarnModuleAssetProperties = (
   };
 };
 
-// TODO: Rename to something better. This is unintuitive.
-export const getEarnModuleAnalyticsContext = (
-  source: TokenDetailsSource,
+export const buildEarnModuleNavigationContext = (
+  location: Pick<EarnModuleEventLocation, 'entry_point' | 'screen_name'>,
   position?: number,
   assetsInList?: number,
-  screenName?: EARN_MODULE_SCREEN_NAMES,
-): EarnModuleAnalyticsContext => ({
-  entry_point: getEarnModuleEntryPoint(source, screenName),
-  ...(screenName ? { screen_name: screenName } : {}),
+): EarnModuleNavigationContext => ({
+  entry_point: location.entry_point,
+  ...(location.screen_name !== undefined
+    ? { screen_name: location.screen_name }
+    : {}),
   ...(position === undefined ? {} : { asset_position: position }),
   ...(assetsInList === undefined ? {} : { assets_in_list: assetsInList }),
 });

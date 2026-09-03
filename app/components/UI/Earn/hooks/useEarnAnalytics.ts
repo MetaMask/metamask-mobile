@@ -5,7 +5,7 @@ import { resolveTrackingLabel } from '../../Money/utils/moneyTrackingLabel';
 import { EARN_MODULE_BUTTON_TYPES } from '../constants/earnModuleEvents';
 import type {
   EarnModuleButtonClickedProperties,
-  EarnModuleLocationProperties,
+  EarnModuleEventLocation,
   EarnModuleRedirectProperties,
   EarnModuleSurfaceClickedProperties,
   EarnModuleSurfaceViewedProperties,
@@ -50,7 +50,7 @@ export const useEarnAnalytics = ({
   component_name,
   bottom_sheet_name,
   entry_point,
-}: EarnModuleLocationProperties) => {
+}: EarnModuleEventLocation) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const getLocationProperties = useCallback(

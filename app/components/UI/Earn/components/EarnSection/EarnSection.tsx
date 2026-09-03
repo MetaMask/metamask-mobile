@@ -71,15 +71,12 @@ import {
   EARN_MODULE_BUTTON_TYPES,
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_REDIRECT_TARGETS,
-  EARN_MODULE_SCREEN_NAMES,
 } from '../../constants/earnModuleEvents';
 import {
-  getEarnModuleAnalyticsContext,
+  buildEarnModuleNavigationContext,
   getEarnModuleAssetProperties,
-  getEarnModuleComponentName,
-  getEarnModuleEntryPoint,
-  getEarnModuleScreenName,
 } from '../../utils/earnModuleAnalytics';
+import type { EarnModuleSurfaceLocation } from '../../types/earnModuleEvents.types';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 
 interface EarnSectionHomeAnalytics {
@@ -89,7 +86,7 @@ interface EarnSectionHomeAnalytics {
 
 export interface EarnSectionProps {
   tokenDetailsSource: TokenDetailsSource;
-  screenName?: EARN_MODULE_SCREEN_NAMES;
+  analyticsContext: EarnModuleSurfaceLocation;
   homeAnalytics?: EarnSectionHomeAnalytics;
   showDividers?: boolean;
   refresh?: RefreshConfig;
@@ -163,7 +160,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
   (
     {
       tokenDetailsSource,
-      screenName,
+      analyticsContext,
       homeAnalytics,
       showDividers = false,
       refresh: exploreFeedRefreshConfig,
@@ -207,8 +204,11 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     // Money and Earn analytics intentionally separate because Money events have additional properties injected that are not relevant to Earn.
     const { isOnboardingRedirectNeeded, navigateToMoneyHome } =
       useMoneyNavigation();
-    const earnScreenName =
-      screenName ?? getEarnModuleScreenName(tokenDetailsSource);
+    const {
+      screen_name: earnScreenName,
+      entry_point: earnEntryPoint,
+      component_name: earnSectionComponentName,
+    } = analyticsContext;
     const { trackSurfaceClicked: trackMoneySurfaceClicked } = useMoneyAnalytics(
       {
         screen_name: earnScreenName,
@@ -219,23 +219,19 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       trackButtonClicked: trackEarnButtonClicked,
       trackComponentViewed: trackEarnComponentViewed,
       trackSurfaceClicked: trackEarnSurfaceClicked,
-    } = useEarnAnalytics({
-      screen_name: earnScreenName,
-      entry_point: getEarnModuleEntryPoint(
-        tokenDetailsSource,
-        earnScreenName,
-      ),
-    });
+    } = useEarnAnalytics(analyticsContext);
     const hasTrackedNonHomepageViewRef = useRef(false);
     const earnListAnalyticsContext = useMemo(
       () =>
-        getEarnModuleAnalyticsContext(
-          tokenDetailsSource,
+        buildEarnModuleNavigationContext(
+          {
+            entry_point: earnEntryPoint,
+            screen_name: earnScreenName,
+          },
           undefined,
           undefined,
-          earnScreenName,
         ),
-      [earnScreenName, tokenDetailsSource],
+      [earnEntryPoint, earnScreenName],
     );
 
     const earnSectionItemCount =
@@ -287,7 +283,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       onSectionViewed: homepageTelemetryEnabled
         ? () =>
             trackEarnComponentViewed({
-              component_name: getEarnModuleComponentName(tokenDetailsSource),
+              component_name: earnSectionComponentName,
             })
         : undefined,
     });
@@ -305,13 +301,13 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
       // TODO: Determine if we should track once per mount of per view.
       hasTrackedNonHomepageViewRef.current = true;
       trackEarnComponentViewed({
-        component_name: getEarnModuleComponentName(tokenDetailsSource),
+        component_name: earnSectionComponentName,
       });
     }, [
       enabled,
+      earnSectionComponentName,
       isHomepageSection,
       isLoading,
-      tokenDetailsSource,
       trackEarnComponentViewed,
     ]);
 
@@ -334,11 +330,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           analyticsContext: earnListAnalyticsContext,
         },
       });
-    }, [
-      earnListAnalyticsContext,
-      navigation,
-      trackEarnSurfaceClicked,
-    ]);
+    }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
 
     const handleViewMore = useCallback(() => {
       trackEarnSurfaceClicked({
@@ -351,11 +343,7 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
           analyticsContext: earnListAnalyticsContext,
         },
       });
-    }, [
-      earnListAnalyticsContext,
-      navigation,
-      trackEarnSurfaceClicked,
-    ]);
+    }, [earnListAnalyticsContext, navigation, trackEarnSurfaceClicked]);
 
     const handleAssetCardPress = useCallback(
       (asset: EarnAsset, position: number) => {
@@ -371,16 +359,19 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         navigateFromEarnAsset(
           asset,
           tokenDetailsSource,
-          getEarnModuleAnalyticsContext(
-            tokenDetailsSource,
+          buildEarnModuleNavigationContext(
+            {
+              entry_point: earnEntryPoint,
+              screen_name: earnScreenName,
+            },
             position,
             assetSlots.length,
-            earnScreenName,
           ),
         );
       },
       [
         assetSlots.length,
+        earnEntryPoint,
         earnScreenName,
         isOnboardingRedirectNeeded,
         navigateFromEarnAsset,

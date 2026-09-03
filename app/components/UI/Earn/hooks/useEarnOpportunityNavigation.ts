@@ -23,8 +23,7 @@ import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
 import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
-import type { EarnModuleAnalyticsContext } from '../types/earnModuleEvents.types';
-import { getEarnModuleAnalyticsContext } from '../utils/earnModuleAnalytics';
+import type { EarnModuleNavigationContext } from '../types/earnModuleEvents.types';
 
 const LOG_PREFIX = '[useEarnOpportunityNavigation]';
 
@@ -252,12 +251,11 @@ const useEarnOpportunityNavigation = () => {
     ],
   );
 
-  // TODO: Review usage and purpose of TokenDetailsSource since it's muddying up our tracking.
   const navigateFromEarnAsset = useCallback(
     (
       asset: EarnAsset,
       tokenDetailsSource?: TokenDetailsSource,
-      analyticsContext?: EarnModuleAnalyticsContext,
+      analyticsContext?: EarnModuleNavigationContext,
     ) => {
       if (!asset) {
         return;
@@ -295,19 +293,11 @@ const useEarnOpportunityNavigation = () => {
         return;
       }
 
-      const resolvedAnalyticsContext =
-        analyticsContext ??
-        (tokenDetailsSource
-          ? getEarnModuleAnalyticsContext(tokenDetailsSource)
-          : undefined);
-
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
         params: {
           earnAsset: asset,
-          ...(resolvedAnalyticsContext
-            ? { analyticsContext: resolvedAnalyticsContext }
-            : {}),
+          ...(analyticsContext ? { analyticsContext } : {}),
         },
       });
     },

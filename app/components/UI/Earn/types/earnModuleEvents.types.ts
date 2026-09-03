@@ -10,7 +10,7 @@ import {
   EARN_MODULE_SCREEN_NAMES,
 } from '../constants/earnModuleEvents';
 
-export interface EarnModuleLocationProperties {
+export interface EarnModuleEventLocation {
   screen_name?: EARN_MODULE_SCREEN_NAMES;
   component_name?: EARN_MODULE_COMPONENT_NAMES;
   bottom_sheet_name?: EARN_MODULE_BOTTOM_SHEET_NAMES;
@@ -18,15 +18,19 @@ export interface EarnModuleLocationProperties {
   entry_point: EARN_MODULE_ENTRY_POINTS;
 }
 
-export interface EarnModuleAnalyticsContext {
-  /** Entry point for the tracked Earn flow (e.g. homepage, explore_now_tab, explore_crypto_tab, explore_search) */
-  entry_point: EARN_MODULE_ENTRY_POINTS;
-  /** Screen name of the current screen. */
-  screen_name?: EARN_MODULE_SCREEN_NAMES;
-  /** One-based asset position in rendered list. */
+export type EarnModuleSurfaceLocation = Required<
+  Pick<
+    EarnModuleEventLocation,
+    'screen_name' | 'entry_point' | 'component_name'
+  >
+>;
+export type EarnModuleNavigationContext = Pick<
+  EarnModuleEventLocation,
+  'screen_name' | 'entry_point'
+> & {
   asset_position?: number;
   assets_in_list?: number;
-}
+};
 
 export interface EarnModuleAssetProperties {
   asset_symbol?: string;
@@ -63,7 +67,7 @@ export type EarnModuleSurfaceViewedProperties = Partial<
 > &
   Partial<
     Pick<
-      EarnModuleLocationProperties,
+      EarnModuleEventLocation,
       'screen_name' | 'component_name' | 'bottom_sheet_name'
     >
   >;
