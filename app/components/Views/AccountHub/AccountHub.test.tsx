@@ -196,6 +196,22 @@ describe('AccountHub', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
   });
 
+  it('opens Manage Accounts from the gear icon', () => {
+    const { getByTestId } = render(<AccountHub />);
+    const manageAccountsButton = getByTestId(
+      AccountHubSelectorsIDs.MANAGE_ACCOUNTS_BUTTON,
+    );
+
+    expect(manageAccountsButton).toHaveProp(
+      'accessibilityLabel',
+      'Manage accounts',
+    );
+
+    fireEvent.press(manageAccountsButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MANAGE_ACCOUNTS_VIEW);
+  });
+
   it('opens account group details from Info', () => {
     const { getByTestId } = render(<AccountHub />);
 
