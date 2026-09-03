@@ -562,6 +562,7 @@ describe('PredictMarketDetails', () => {
         ).not.toBeOnTheScreen();
       });
 
+      expect(await findByText(MOCK_PREDICT_MARKET.title)).toBeOnTheScreen();
       expect(await findByText('Yes • 0¢')).toBeOnTheScreen();
       expect(await findByText('No • 0¢')).toBeOnTheScreen();
     });
