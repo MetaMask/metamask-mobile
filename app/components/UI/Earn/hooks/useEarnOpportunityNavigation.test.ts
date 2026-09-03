@@ -249,12 +249,12 @@ describe('useEarnOpportunityNavigation', () => {
     expect(getEarnOpportunityDestination(earnAsset)).toBe(
       EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
     );
-    expect(
-      getEarnOpportunityRedirectTarget(earnAsset, true),
-    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING);
-    expect(
-      getEarnOpportunityRedirectTarget(earnAsset, false),
-    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT);
+    expect(getEarnOpportunityRedirectTarget(earnAsset, true)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING,
+    );
+    expect(getEarnOpportunityRedirectTarget(earnAsset, false)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+    );
   });
 
   it('resolves non-Money strategy destinations to Earn deposit', () => {
