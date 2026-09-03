@@ -22,6 +22,7 @@ import {
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
+import { getEffectiveFeeMode } from '../utils/transakQuoteParity';
 import {
   type Quote,
   isNativeProvider,
@@ -153,12 +154,22 @@ export function useContinueWithQuote(
     [navigation],
   );
 
-  // The aggregator-format `_quote` is used only by the caller to dispatch
+  // The aggregator-format quote is also the accepted pricing contract used
+  // to drive the authenticated native quote.
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
-    async (_quote: Quote, ctx: ContinueWithQuoteContext) => {
-      const { amount, assetId } = ctx;
+    async (quote: Quote, ctx: ContinueWithQuoteContext) => {
+      const { assetId } = ctx;
+      const amount =
+        ctx.headlessSessionId && getEffectiveFeeMode(quote) === 'fee-on-top'
+          ? Number(quote.quote.amountIn)
+          : ctx.amount;
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error(
+          'Native provider flow requires a valid quote principal',
+        );
+      }
       // Resolve every controller-coupled value through the override-first
       // ladder so headless callers (Phase 5) can drive this hook without
       // pre-seeding the RampsController.
@@ -202,6 +213,7 @@ export function useContinueWithQuote(
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
+            getEffectiveFeeMode(quote) === 'fee-on-top',
           );
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
@@ -229,6 +241,13 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
+        if (
+          error instanceof Error &&
+          'headlessBuyErrorCode' in error &&
+          error.headlessBuyErrorCode === 'QUOTE_CHANGED'
+        ) {
+          throw error;
+        }
         if (nativeCufOpId) {
           endRampsBuyCufChildTrace({
             id: nativeCufOpId,

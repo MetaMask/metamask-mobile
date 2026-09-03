@@ -247,6 +247,7 @@ describe('V2OtpCode', () => {
         'eip155:1',
         'pm-1',
         '100',
+        false,
       );
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
@@ -273,6 +274,30 @@ describe('V2OtpCode', () => {
         nativeFlowError: 'Limit exceeded',
       });
     });
+  });
+
+  it('does not navigate after QUOTE_CHANGED closes the headless flow', async () => {
+    jest.useRealTimers();
+    const quoteChangedError = Object.assign(new Error('Quote changed'), {
+      headlessBuyErrorCode: 'QUOTE_CHANGED',
+    });
+    mockVerifyUserOtp.mockResolvedValue({
+      accessToken: 'otp-token',
+      ttl: 3600,
+    });
+    mockSetAuthToken.mockResolvedValue(true);
+    mockGetBuyQuote.mockResolvedValue({ quoteId: 'q1', fiatAmount: 100 });
+    mockRouteAfterAuthentication.mockRejectedValue(quoteChangedError);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+    await act(async () => {
+      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('navigates to AMOUNT_INPUT when no amount/currency/assetId params', async () => {

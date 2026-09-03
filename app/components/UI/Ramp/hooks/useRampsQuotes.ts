@@ -25,6 +25,7 @@ export interface GetQuotesOptions {
   redirectUrl?: string;
   forceRefresh?: boolean;
   ttl?: number;
+  isFeeExcludedFromFiat?: boolean;
 }
 
 export interface UseRampsQuotesResult {
@@ -67,6 +68,7 @@ export function useRampsQuotes(
       providers: options?.providers,
       forceRefresh: options?.forceRefresh,
       ttl: options?.ttl,
+      isFeeExcludedFromFiat: options?.isFeeExcludedFromFiat,
     }),
     [
       options?.assetId,
@@ -77,6 +79,7 @@ export function useRampsQuotes(
       options?.providers,
       options?.forceRefresh,
       options?.ttl,
+      options?.isFeeExcludedFromFiat,
     ],
   );
 

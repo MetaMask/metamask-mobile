@@ -190,6 +190,14 @@ const NATIVE_PROVIDER_QUOTE = {
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   providerInfo: { type: 'native' as const, name: 'Transak', id: 'transak' },
+  quote: {
+    amountIn: 100,
+    paymentMethod: SELECTED_PAYMENT_METHOD.id,
+    feeMode: {
+      requested: 'fee-on-top' as const,
+      effective: 'fee-on-top' as const,
+    },
+  },
 } as const;
 
 const MOCK_TRANSAK_QUOTE = {
@@ -300,6 +308,7 @@ describe('useContinueWithQuote', () => {
         'eip155:1',
         '/payments/debit-credit-card',
         '100',
+        true,
       );
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
@@ -754,6 +763,7 @@ describe('useContinueWithQuote', () => {
       cryptoSymbol: 'mUSD',
       paymentMethodId: '/payments/sepa-bank-transfer',
       providerName: 'Headless Provider',
+      headlessSessionId: 'session-1',
     };
 
     it('routes native quote using only ctx overrides when controller has no selections', async () => {
@@ -779,7 +789,46 @@ describe('useContinueWithQuote', () => {
         HEADLESS_CTX.assetId,
         'eip155:59144',
         '/payments/sepa-bank-transfer',
+        '100',
+        true,
+      );
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
+    });
+
+    it('preserves the checkout amount for a fee-inclusive native quote', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedToken: null,
+          selectedProvider: null,
+          selectedPaymentMethod: null,
+          userRegion: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      mockRouteAfterAuth.mockResolvedValue(undefined);
+      const feeInclusiveQuote = {
+        ...NATIVE_PROVIDER_QUOTE,
+        quote: {
+          ...NATIVE_PROVIDER_QUOTE.quote,
+          feeMode: {
+            requested: 'fee-inclusive' as const,
+            effective: 'fee-inclusive' as const,
+          },
+        },
+      };
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, feeInclusiveQuote, HEADLESS_CTX);
+
+      expect(caught).toBeUndefined();
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'EUR',
+        HEADLESS_CTX.assetId,
+        'eip155:59144',
+        '/payments/sepa-bank-transfer',
         '250',
+        false,
       );
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 250);
     });
@@ -806,7 +855,7 @@ describe('useContinueWithQuote', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.ENTER_EMAIL,
         expect.objectContaining({
-          amount: '250',
+          amount: '100',
           currency: 'EUR',
           assetId: HEADLESS_CTX.assetId,
         }),

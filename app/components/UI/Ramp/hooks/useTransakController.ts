@@ -62,6 +62,7 @@ export interface UseTransakControllerResult {
     network: string,
     paymentMethod: string,
     fiatAmount: string,
+    isFeeExcludedFromFiat?: boolean,
   ) => Promise<TransakBuyQuote>;
   getKycRequirement: (quoteId: string) => Promise<TransakKycRequirement>;
   getAdditionalRequirements: (
@@ -216,13 +217,26 @@ export function useTransakController(): UseTransakControllerResult {
       network: string,
       paymentMethod: string,
       fiatAmount: string,
+      isFeeExcludedFromFiat = false,
     ) =>
-      getRampsController().transakGetBuyQuote(
+      (
+        getRampsController().transakGetBuyQuote as (
+          fiatCurrency: string,
+          cryptoCurrency: string,
+          network: string,
+          paymentMethod: string,
+          fiatAmount: string,
+          isFeeExcludedFromFiat?: boolean,
+        ) => ReturnType<
+          ReturnType<typeof getRampsController>['transakGetBuyQuote']
+        >
+      )(
         fiatCurrency,
         cryptoCurrency,
         network,
         paymentMethod,
         fiatAmount,
+        isFeeExcludedFromFiat,
       ),
     [],
   );

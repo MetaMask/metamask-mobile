@@ -49,6 +49,8 @@ import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { getSession } from '../../headless/sessionRegistry';
+import { getEffectiveFeeMode } from '../../utils/transakQuoteParity';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -280,15 +282,36 @@ const V2OtpCode = () => {
 
         if (amount && currency && assetId) {
           try {
+            const session = getSession(headlessSessionId);
+            const acceptedQuote = session?.params.quote;
+            const isFeeOnTop =
+              acceptedQuote &&
+              getEffectiveFeeMode(acceptedQuote) === 'fee-on-top';
+            const acceptedAmount = isFeeOnTop
+              ? String(acceptedQuote.quote.amountIn)
+              : amount;
+            const acceptedPaymentMethod =
+              session?.params.paymentMethodId ??
+              acceptedQuote?.quote.paymentMethod ??
+              selectedPaymentMethod?.id ??
+              '';
             const quote = await transakGetBuyQuote(
               currency,
               assetId,
               selectedToken?.chainId || '',
-              selectedPaymentMethod?.id || '',
-              amount,
+              acceptedPaymentMethod,
+              acceptedAmount,
+              Boolean(isFeeOnTop),
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
+            if (
+              routeError instanceof Error &&
+              'headlessBuyErrorCode' in routeError &&
+              routeError.headlessBuyErrorCode === 'QUOTE_CHANGED'
+            ) {
+              return;
+            }
             const nativeFlowError = parseUserFacingError(
               routeError,
               strings('deposit.otp_code.error'),

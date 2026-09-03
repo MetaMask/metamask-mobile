@@ -6,7 +6,7 @@ import {
 
 import Routes from '../../../../constants/navigation/Routes';
 
-interface NavigationNode {
+export interface NavigationNode {
   getParent?: () => NavigationNode | undefined;
   goBack?: () => void;
   pop?: () => void;
