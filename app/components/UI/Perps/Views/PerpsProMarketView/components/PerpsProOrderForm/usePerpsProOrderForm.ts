@@ -590,7 +590,8 @@ export const usePerpsProOrderForm = ({
   const { track } = usePerpsEventTracking();
   const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { attachPostOrderTPSL } = usePerpsPostOrderTPSL();
+  const { attachPostOrderTPSL, isAttachingPostOrderTPSL } =
+    usePerpsPostOrderTPSL();
 
   const {
     orderForm,
@@ -2692,14 +2693,14 @@ export const usePerpsProOrderForm = ({
         delete orderWithoutTPSL.takeProfitPrice;
         delete orderWithoutTPSL.stopLossPrice;
 
-        const orderResult = await executeOrder(orderWithoutTPSL, {
-          waitForPosition: true,
-        });
+        const orderResult = await executeOrder(orderWithoutTPSL);
         if (!orderResult?.success) {
           return;
         }
 
-        await attachPostOrderTPSL(orderParams, orderResult.position);
+        await attachPostOrderTPSL(orderParams, {
+          positionBaseline: currentMarketPosition,
+        });
       } else {
         const orderResult = await executeOrder(orderParams);
         if (!orderResult?.success) {
@@ -3390,6 +3391,7 @@ export const usePerpsProOrderForm = ({
         chaseProviderId === null)) ||
     isChaseMaxDistanceInvalid ||
     isPlacing ||
+    isAttachingPostOrderTPSL ||
     isAwaitingPositionModifyPreview ||
     isChasePreflightPending ||
     isScalePlacementPending ||
@@ -3840,7 +3842,10 @@ export const usePerpsProOrderForm = ({
     scaleOrder,
     isPlaceOrderDisabled,
     isPlaceOrderLoading:
-      isScalePlacementPending || isChasePreflightPending || isPlacing,
+      isScalePlacementPending ||
+      isChasePreflightPending ||
+      isPlacing ||
+      isAttachingPostOrderTPSL,
     onPlaceOrderPress,
     // Leverage sheet
     isLeverageVisible,

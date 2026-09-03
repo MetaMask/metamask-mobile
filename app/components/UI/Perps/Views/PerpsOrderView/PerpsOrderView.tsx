@@ -320,7 +320,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices } = usePerpsTrading();
-  const { attachPostOrderTPSL } = usePerpsPostOrderTPSL();
+  const { attachPostOrderTPSL, isAttachingPostOrderTPSL } =
+    usePerpsPostOrderTPSL();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1571,14 +1572,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           delete orderWithoutTPSL.takeProfitPrice;
           delete orderWithoutTPSL.stopLossPrice;
 
-          const orderResult = await executeOrder(orderWithoutTPSL, {
-            waitForPosition: true,
-          });
+          const orderResult = await executeOrder(orderWithoutTPSL);
           if (!orderResult?.success) {
             return;
           }
 
-          await attachPostOrderTPSL(orderParams, orderResult.position);
+          await attachPostOrderTPSL(orderParams, {
+            positionBaseline: currentMarketPosition,
+          });
         } else {
           const orderResult = await executeOrder(orderParams);
           if (!orderResult?.success) {
@@ -2199,13 +2200,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
+                isAttachingPostOrderTPSL ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || isAttachingPostOrderTPSL}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}
@@ -2219,13 +2221,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               isDisabled={
                 !orderValidation.isValid ||
                 isPlacingOrder ||
+                isAttachingPostOrderTPSL ||
                 doesStopLossRiskLiquidation ||
                 hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              isLoading={isPlacingOrder}
+              isLoading={isPlacingOrder || isAttachingPostOrderTPSL}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
             >
               {placeOrderLabel}

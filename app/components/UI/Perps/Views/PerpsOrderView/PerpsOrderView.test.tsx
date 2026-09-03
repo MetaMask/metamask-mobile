@@ -283,6 +283,7 @@ const mockDefaultUsePerpsMaxSlippage = () => ({
   setMaxSlippage: jest.fn(),
 });
 const mockAttachPostOrderTPSL = jest.fn().mockResolvedValue({ success: true });
+let mockIsAttachingPostOrderTPSL = false;
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
@@ -347,6 +348,7 @@ jest.mock('../../hooks', () => ({
   usePerpsOrderExecution: jest.fn(() => mockDefaultUsePerpsOrderExecution()),
   usePerpsPostOrderTPSL: jest.fn(() => ({
     attachPostOrderTPSL: mockAttachPostOrderTPSL,
+    isAttachingPostOrderTPSL: mockIsAttachingPostOrderTPSL,
   })),
   usePerpsOrderDepositTracking: jest.fn(() => ({
     handleDepositConfirm: jest.fn(),
@@ -1114,6 +1116,7 @@ describe('PerpsOrderView', () => {
     mockIsPayQuoteLoading = false;
     mockPayTotals = undefined;
     mockPayRequiredTokens = [];
+    mockIsAttachingPostOrderTPSL = false;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
@@ -1415,14 +1418,9 @@ describe('PerpsOrderView', () => {
     expect(mockSubmitted).toHaveBeenCalled();
   });
 
-  it('waits for the live position before attaching TP/SL to a new market position', async () => {
-    const renderedPosition = {
-      symbol: 'ETH',
-      size: '0.0037',
-    } as Position;
+  it('delegates new-position TP/SL after prompt order execution', async () => {
     const mockExecuteOrder = jest.fn().mockResolvedValue({
       success: true,
-      position: renderedPosition,
     });
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsOrderContext,
@@ -1459,15 +1457,13 @@ describe('PerpsOrderView', () => {
     const submittedOrder = mockExecuteOrder.mock.calls[0][0];
     expect(submittedOrder.takeProfitPrice).toBeUndefined();
     expect(submittedOrder.stopLossPrice).toBeUndefined();
-    expect(mockExecuteOrder).toHaveBeenCalledWith(submittedOrder, {
-      waitForPosition: true,
-    });
+    expect(mockExecuteOrder).toHaveBeenCalledWith(submittedOrder);
     expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith(
       expect.objectContaining({
         symbol: 'ETH',
         takeProfitPrice: '3500',
       }),
-      renderedPosition,
+      { positionBaseline: undefined },
     );
   });
 
@@ -1507,7 +1503,9 @@ describe('PerpsOrderView', () => {
       fireEvent.press(placeOrderButton);
     });
 
-    expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toBeUndefined();
+    expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toEqual({
+      positionBaseline: undefined,
+    });
   });
 
   it('includes discovery attribution from route source_section in order trackingData', async () => {
@@ -2342,6 +2340,18 @@ describe('PerpsOrderView', () => {
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // When placing order, button shows loading indicator
+      const placeOrderButton = await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      expect(placeOrderButton).toBeDisabled();
+      expect(placeOrderButton.props.accessibilityState?.busy).toBe(true);
+    });
+
+    it('keeps the button busy while post-order protection is attaching', async () => {
+      mockIsAttachingPostOrderTPSL = true;
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
       const placeOrderButton = await screen.findByTestId(
         PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
       );

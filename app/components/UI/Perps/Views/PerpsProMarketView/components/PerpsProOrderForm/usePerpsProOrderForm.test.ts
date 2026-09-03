@@ -53,6 +53,7 @@ const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockShowEligibilityModal = jest.fn();
 const mockAttachPostOrderTPSL = jest.fn().mockResolvedValue({ success: true });
+let mockIsAttachingPostOrderTPSL = false;
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
 let mockLiquidationPrice = '80000';
@@ -323,6 +324,7 @@ jest.mock('../../../../hooks', () => ({
   },
   usePerpsPostOrderTPSL: () => ({
     attachPostOrderTPSL: mockAttachPostOrderTPSL,
+    isAttachingPostOrderTPSL: mockIsAttachingPostOrderTPSL,
   }),
 }));
 
@@ -579,6 +581,7 @@ describe('usePerpsProOrderForm', () => {
     mockMarketDataError = null;
     mockMarketData = { szDecimals: 3, maxLeverage: 40 };
     mockIsPlacing = false;
+    mockIsAttachingPostOrderTPSL = false;
     mockIsEligible = true;
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
@@ -3494,16 +3497,20 @@ describe('usePerpsProOrderForm', () => {
   });
 
   describe('TP/SL handling', () => {
-    it('places the order without TP/SL then delegates position attachment', async () => {
+    it('keeps placement disabled while post-order protection is attaching', () => {
+      mockIsAttachingPostOrderTPSL = true;
+
+      const { result } = renderProForm();
+
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+      expect(result.current.isPlaceOrderLoading).toBe(true);
+    });
+
+    it('places the order without TP/SL then delegates attachment coordination', async () => {
       // Arrange: new market position with TP set -> handled separately
-      const renderedPosition = {
-        symbol: 'BTC',
-        size: '1',
-      } as Position;
       mockOrderForm.takeProfitPrice = '95000';
       mockExecuteOrder.mockResolvedValueOnce({
         success: true,
-        position: renderedPosition,
       });
       const { result } = renderProForm();
 
@@ -3515,16 +3522,33 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       const params = mockExecuteOrder.mock.calls[0][0];
       expect(params.takeProfitPrice).toBeUndefined();
-      expect(mockExecuteOrder).toHaveBeenCalledWith(params, {
-        waitForPosition: true,
-      });
+      expect(mockExecuteOrder).toHaveBeenCalledWith(params);
       expect(mockAttachPostOrderTPSL.mock.calls[0]).toEqual([
         expect.objectContaining({
           symbol: 'BTC',
           takeProfitPrice: '95000',
         }),
-        renderedPosition,
+        { positionBaseline: null },
       ]);
+    });
+
+    it('passes the pre-order position as the flip baseline', async () => {
+      mockExistingPosition = {
+        symbol: 'BTC',
+        size: '-0.0001',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      mockOrderForm.direction = 'long';
+      mockOrderForm.takeProfitPrice = '95000';
+      const { result } = renderProForm();
+
+      await act(async () => {
+        await result.current.onPlaceOrderPress();
+      });
+
+      expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toEqual({
+        positionBaseline: mockExistingPosition,
+      });
     });
 
     it('attempts TP/SL attachment without a rendered position hint', async () => {
@@ -3541,7 +3565,9 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toBeUndefined();
+      expect(mockAttachPostOrderTPSL.mock.calls[0][1]).toEqual({
+        positionBaseline: null,
+      });
     });
   });
 
