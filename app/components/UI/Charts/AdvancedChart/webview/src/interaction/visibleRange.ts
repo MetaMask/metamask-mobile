@@ -83,15 +83,24 @@ export function computeVisibleCandleCount(
   }
 }
 
-function fireZoom(): void {
+function postZoomCandleCount(): void {
   if (!getWidget() || !isChartReady()) return;
   const candleCount = attachedChart
     ? computeVisibleCandleCount(attachedChart)
     : undefined;
+  if (candleCount === undefined) {
+    return;
+  }
   postToRN('CHART_INTERACTED', {
     interaction_type: 'zoom',
-    ...(candleCount !== undefined ? { candleCount } : {}),
+    candleCount,
   });
+  debounce.zoomLastFiredAt = Date.now();
+}
+
+function fireZoom(): void {
+  if (!getWidget() || !isChartReady()) return;
+  postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
   debounce.zoomLastFiredAt = Date.now();
 }
 
@@ -104,6 +113,9 @@ function firePan(): void {
 }
 
 function scheduleZoom(): void {
+  // Report the zoom count immediately so a symbol/interval remount cannot
+  // drop the pending value before the analytics debounce fires.
+  postZoomCandleCount();
   if (debounce.zoomTimer) clearTimeout(debounce.zoomTimer);
   debounce.zoomTimer = setTimeout(() => {
     debounce.zoomTimer = null;

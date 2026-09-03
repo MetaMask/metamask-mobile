@@ -98,11 +98,45 @@ describe('usePerpsVisibleCandleCount', () => {
     // Chart-facing value should update immediately; the persist happens on
     // symbol change via the flush.
     expect(result.current.visibleCandleCount).toBe(60);
-    rerender({ symbol: 'ETH' });
+    act(() => {
+      rerender({ symbol: 'ETH' });
+    });
 
     expect(
       Engine.context.PerpsController.setVisibleCandleCount,
     ).toHaveBeenCalledWith(60);
     expect(result.current.visibleCandleCount).toBe(60);
+  });
+
+  it('syncs visible candle count when the persisted selector changes', () => {
+    mockUseSelector.mockReturnValue(30);
+
+    const { result, rerender } = renderHook(() =>
+      usePerpsVisibleCandleCount('BTC'),
+    );
+
+    expect(result.current.visibleCandleCount).toBe(30);
+
+    mockUseSelector.mockReturnValue(80);
+    rerender();
+
+    expect(result.current.visibleCandleCount).toBe(80);
+  });
+
+  it('does not sync persisted count while a pinch save is pending', () => {
+    const { result, rerender } = renderHook(() =>
+      usePerpsVisibleCandleCount('BTC'),
+    );
+
+    act(() => {
+      result.current.onVisibleCandleCountChange(90);
+    });
+
+    expect(result.current.visibleCandleCount).toBe(90);
+
+    mockUseSelector.mockReturnValue(80);
+    rerender();
+
+    expect(result.current.visibleCandleCount).toBe(90);
   });
 });

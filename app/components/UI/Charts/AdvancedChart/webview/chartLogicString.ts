@@ -2763,16 +2763,25 @@ function computeVisibleCandleCount(chart) {
         return undefined;
     }
 }
-function fireZoom() {
+function postZoomCandleCount() {
     if (!getWidget() || !isChartReady())
         return;
     const candleCount = attachedChart
         ? computeVisibleCandleCount(attachedChart)
         : undefined;
+    if (candleCount === undefined) {
+        return;
+    }
     postToRN('CHART_INTERACTED', {
         interaction_type: 'zoom',
-        ...(candleCount !== undefined ? { candleCount } : {}),
+        candleCount,
     });
+    debounce.zoomLastFiredAt = Date.now();
+}
+function fireZoom() {
+    if (!getWidget() || !isChartReady())
+        return;
+    postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
     debounce.zoomLastFiredAt = Date.now();
 }
 function firePan() {
@@ -2784,6 +2793,7 @@ function firePan() {
     postToRN('CHART_INTERACTED', { interaction_type: 'pan' });
 }
 function scheduleZoom() {
+    postZoomCandleCount();
     if (debounce.zoomTimer)
         clearTimeout(debounce.zoomTimer);
     debounce.zoomTimer = setTimeout(() => {

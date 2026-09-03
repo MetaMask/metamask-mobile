@@ -10,6 +10,7 @@ import {
 } from '../selectors/perpsController';
 import {
   PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  resolveTradableLastViewedMarketSymbol,
   buildDefaultProMarket,
   isPerpsProModeActive,
   useIsPerpsProModeActive,
@@ -44,6 +45,18 @@ jest.mock('../selectors/featureFlags', () => ({
 jest.mock('../selectors/perpsController', () => ({
   selectPerpsLastViewedMarketSymbol: jest.fn(() => 'BTC'),
   selectPerpsMode: jest.fn(),
+}));
+
+const tradableMarketsFixture = [{ symbol: 'BTC' }, { symbol: 'ETH' }];
+
+jest.mock('../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: jest.fn(() => ({
+    markets: tradableMarketsFixture,
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    refresh: jest.fn(),
+  })),
 }));
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -106,6 +119,15 @@ describe('perpsModeSwitch', () => {
     const market = buildDefaultProMarket('');
 
     expect(market.symbol).toBe(PERPS_DEFAULT_PRO_MARKET_SYMBOL);
+  });
+
+  it('falls back to BTC when the last-viewed symbol is not tradable', () => {
+    expect(
+      resolveTradableLastViewedMarketSymbol('DELISTED', ['BTC', 'ETH']),
+    ).toBe(PERPS_DEFAULT_PRO_MARKET_SYMBOL);
+    expect(buildDefaultProMarket('DELISTED', ['BTC', 'ETH']).symbol).toBe(
+      PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    );
   });
 
   describe('isPerpsProModeActive', () => {
@@ -242,8 +264,25 @@ describe('perpsModeSwitch', () => {
       expect(result.current({ source: 'main_action_button' })).toEqual({
         screen: Routes.PERPS.MARKET_DETAILS,
         params: {
-          market: buildDefaultProMarket('ETH'),
+          market: buildDefaultProMarket('ETH', ['BTC', 'ETH']),
           source: 'main_action_button',
+        },
+      });
+    });
+
+    it('falls back to BTC when the last viewed symbol is not tradable', () => {
+      stubPerpsModeSelectors({
+        flagEnabled: true,
+        mode: PerpsMode.Pro,
+        lastViewed: 'DELISTED',
+      });
+
+      const { result } = renderHook(() => useGetPerpsHomeNavigationTarget());
+
+      expect(result.current()).toEqual({
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: {
+          market: buildDefaultProMarket('DELISTED', ['BTC', 'ETH']),
         },
       });
     });

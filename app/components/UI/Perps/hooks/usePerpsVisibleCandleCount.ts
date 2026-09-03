@@ -95,6 +95,23 @@ export const usePerpsVisibleCandleCount = (
   );
 
   useEffect(() => {
+    if (pendingCountRef.current !== null) {
+      return;
+    }
+    const clamped = clampVisibleCandleCount(
+      typeof persistedCount === 'number'
+        ? persistedCount
+        : PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT,
+    );
+    if (clamped === visibleCountRef.current) {
+      return;
+    }
+    viewportRef.current = clamped;
+    visibleCountRef.current = clamped;
+    setVisibleCandleCount(clamped);
+  }, [persistedCount]);
+
+  useEffect(() => {
     flushPending();
     setVisibleCandleCount(viewportRef.current);
     visibleCountRef.current = viewportRef.current;

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -13,6 +13,7 @@ import {
   selectPerpsMode,
 } from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
+import { usePerpsMarkets } from '../hooks/usePerpsMarkets';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
@@ -27,14 +28,28 @@ export const PERPS_DEFAULT_PRO_MARKET_SYMBOL = 'BTC';
  * the remaining fields from the live markets stream, so a symbol-only payload
  * is sufficient to open `MARKET_DETAILS`.
  */
+export const resolveTradableLastViewedMarketSymbol = (
+  lastViewed: string,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
+): string => {
+  const symbol =
+    typeof lastViewed === 'string' && lastViewed.length > 0
+      ? lastViewed
+      : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+  if (!tradableSymbols) {
+    return symbol;
+  }
+  const tradableSet =
+    tradableSymbols instanceof Set ? tradableSymbols : new Set(tradableSymbols);
+  return tradableSet.has(symbol) ? symbol : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
+};
+
 export const buildDefaultProMarket = (
   symbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
 ): PerpsMarketData =>
   ({
-    symbol:
-      typeof symbol === 'string' && symbol.length > 0
-        ? symbol
-        : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+    symbol: resolveTradableLastViewedMarketSymbol(symbol, tradableSymbols),
   }) as unknown as PerpsMarketData;
 
 /**
@@ -85,12 +100,13 @@ export const resolvePerpsHomeNavigationTarget = (
   isProModeActive: boolean,
   extraParams: Record<string, unknown> = {},
   lastViewedMarketSymbol: string = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  tradableSymbols?: ReadonlySet<string> | readonly string[],
 ): PerpsHomeNavigationTarget => {
   if (isProModeActive) {
     return {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
-        market: buildDefaultProMarket(lastViewedMarketSymbol),
+        market: buildDefaultProMarket(lastViewedMarketSymbol, tradableSymbols),
         ...extraParams,
       },
     };
@@ -126,6 +142,11 @@ export const useGetPerpsHomeNavigationTarget = (): ((
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
+  const { markets } = usePerpsMarkets();
+  const tradableSymbols = useMemo(
+    () => new Set(markets.map((market) => market.symbol)),
+    [markets],
+  );
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>
@@ -135,8 +156,9 @@ export const useGetPerpsHomeNavigationTarget = (): ((
         typeof lastViewedMarketSymbol === 'string'
           ? lastViewedMarketSymbol
           : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+        tradableSymbols,
       ),
-    [isProModeActive, lastViewedMarketSymbol],
+    [isProModeActive, lastViewedMarketSymbol, tradableSymbols],
   );
 };
 

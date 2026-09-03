@@ -90,12 +90,26 @@ describe('attachVisibleRangeListeners', () => {
     emitZoom();
     emitZoom();
     emitZoom();
-    expect(bridge.postMessage).not.toHaveBeenCalled();
+    expect(bridge.postMessage).toHaveBeenCalledTimes(3);
+    const immediate = bridge.postMessage.mock.calls[0][0];
+    expect(immediate).toContain('"interaction_type":"zoom"');
+    expect(immediate).toContain('"candleCount":30');
     jest.advanceTimersByTime(450);
+    expect(bridge.postMessage).toHaveBeenCalledTimes(4);
+    const debounced = bridge.postMessage.mock.calls[3][0];
+    expect(debounced).toContain('"interaction_type":"zoom"');
+    expect(debounced).not.toContain('"candleCount"');
+  });
+
+  it('reports zoom candle count immediately before analytics debounce', () => {
+    const bridge = installRNBridge();
+    const { chart, emitZoom } = makeChart();
+    attachVisibleRangeListeners(chart);
+    emitZoom();
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
-    const last = bridge.postMessage.mock.calls[0][0];
-    expect(last).toContain('"interaction_type":"zoom"');
-    expect(last).toContain('"candleCount":30');
+    expect(bridge.postMessage.mock.calls[0][0]).toContain('"candleCount":30');
+    jest.advanceTimersByTime(450);
+    expect(bridge.postMessage).toHaveBeenCalledTimes(2);
   });
 
   it('debounces pan and emits CHART_INTERACTED with type=pan', () => {
@@ -202,7 +216,6 @@ describe('attachVisibleRangeListeners', () => {
       const { chart, emitZoom } = makeChart(range);
       attachVisibleRangeListeners(chart);
       emitZoom();
-      jest.advanceTimersByTime(450);
       return JSON.parse(bridge.postMessage.mock.calls[0][0]).payload
         ?.candleCount;
     };

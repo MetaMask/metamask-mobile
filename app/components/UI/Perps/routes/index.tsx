@@ -55,6 +55,7 @@ import {
   buildDefaultProMarket,
   useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { usePerpsMarkets } from '../hooks/usePerpsMarkets';
 
 /* eslint-disable-next-line */
 import { NavigationContext } from '@react-navigation/core';
@@ -258,6 +259,11 @@ const PerpsScreenStack = () => {
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
+  const { markets } = usePerpsMarkets();
+  const tradableSymbols = useMemo(
+    () => markets.map((market) => market.symbol),
+    [markets],
+  );
   const initialRouteName = isProModeActive
     ? Routes.PERPS.MARKET_DETAILS
     : Routes.PERPS.PERPS_HOME;
@@ -335,7 +341,10 @@ const PerpsScreenStack = () => {
                 initialParams={
                   isProModeActive
                     ? {
-                        market: buildDefaultProMarket(lastViewedMarketSymbol),
+                        market: buildDefaultProMarket(
+                          lastViewedMarketSymbol,
+                          tradableSymbols,
+                        ),
                       }
                     : undefined
                 }

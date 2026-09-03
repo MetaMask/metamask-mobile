@@ -219,11 +219,29 @@ export const usePerpsMarketListView = ({
   // independent `useState`s would make the second call clobber the first with
   // its stale render-scope value.
   // For each filter an explicit route/prop wins; otherwise restore last choice.
-  const [filters, setFilters] = useState<MarketListFilters>({
-    marketTypeFilter:
-      defaultMarketTypeFilter ?? persistedListPreferences.marketTypeFilter,
-    showFavoritesOnly:
-      showWatchlistOnly ?? persistedListPreferences.showFavoritesOnly,
+  // An explicit category clears a saved watchlist filter — the two are mutually
+  // exclusive, and Products/Related Markets/Home/deep links pass a category
+  // without intending to keep watchlist-only mode active.
+  const [filters, setFilters] = useState<MarketListFilters>(() => {
+    if (showWatchlistOnly !== undefined) {
+      return {
+        marketTypeFilter: showWatchlistOnly
+          ? 'all'
+          : (defaultMarketTypeFilter ??
+            persistedListPreferences.marketTypeFilter),
+        showFavoritesOnly: showWatchlistOnly,
+      };
+    }
+    if (defaultMarketTypeFilter !== undefined) {
+      return {
+        marketTypeFilter: defaultMarketTypeFilter,
+        showFavoritesOnly: false,
+      };
+    }
+    return {
+      marketTypeFilter: persistedListPreferences.marketTypeFilter,
+      showFavoritesOnly: persistedListPreferences.showFavoritesOnly,
+    };
   });
   const { marketTypeFilter, showFavoritesOnly } = filters;
 
@@ -262,7 +280,7 @@ export const usePerpsMarketListView = ({
     }
     applyFilters({
       marketTypeFilter: defaultMarketTypeFilter,
-      showFavoritesOnly: filtersRef.current.showFavoritesOnly,
+      showFavoritesOnly: false,
     });
   }, [applyFilters, defaultMarketTypeFilter]);
 

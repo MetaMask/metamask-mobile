@@ -1291,6 +1291,26 @@ describe('usePerpsMarketListView', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
+    it('clears a saved watchlist filter when opening with an explicit category', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'all',
+          showFavoritesOnly: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+      expect(result.current.favoritesState.showFavoritesOnly).toBe(false);
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
     it('does not overwrite the saved category when a route filter changes on rerender', () => {
       mockSelectorState({
         marketListPreference: {
