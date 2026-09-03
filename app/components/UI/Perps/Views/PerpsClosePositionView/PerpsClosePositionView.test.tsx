@@ -499,15 +499,15 @@ describe('PerpsClosePositionView', () => {
         true,
       );
 
-      fireEvent.press(
-        screen.getByTestId(
-          PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
-        ),
-      );
-
-      await waitFor(() => {
-        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+          ),
+        );
       });
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
 
       usePerpsLivePositionsMock.mockReturnValue({
         positions: [],

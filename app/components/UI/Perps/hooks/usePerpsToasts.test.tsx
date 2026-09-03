@@ -961,10 +961,13 @@ describe('usePerpsToasts', () => {
           hapticsType: NotificationMoment.Warning,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Position already closed', isBold: true },
+          {
+            label: strings('perps.close_position.already_closed'),
+            isBold: true,
+          },
           { label: '\n', isBold: false },
           {
-            label: 'This position was filled or closed already',
+            label: strings('perps.close_position.already_closed_subtitle'),
             isBold: false,
           },
         ]);

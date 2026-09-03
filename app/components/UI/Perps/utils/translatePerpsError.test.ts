@@ -325,21 +325,47 @@ describe('isPerpsErrorCode', () => {
 
 describe('isNoPositionFoundError', () => {
   it('returns true for a No position found string', () => {
-    expect(isNoPositionFoundError('No position found for BTC')).toBe(true);
+    // Arrange
+    const error = 'No position found for BTC';
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(true);
   });
 
   it('returns true for an Error wrapping No position found', () => {
-    expect(isNoPositionFoundError(new Error('No position found for ETH'))).toBe(
-      true,
-    );
+    // Arrange
+    const error = new Error('No position found for ETH');
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(true);
   });
 
   it('returns false for unrelated close errors', () => {
-    expect(isNoPositionFoundError('Insufficient margin')).toBe(false);
+    // Arrange
+    const error = 'Insufficient margin';
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(false);
   });
 
   it('returns false for null', () => {
-    expect(isNoPositionFoundError(null)).toBe(false);
+    // Arrange
+    const error = null;
+
+    // Act
+    const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(false);
   });
 });
 
