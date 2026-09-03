@@ -179,6 +179,9 @@ let mockExistingPosition: {
 
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
+let mockPositionModifyPreviewParams:
+  | { providerId?: PerpsProviderType }
+  | undefined;
 
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
@@ -300,12 +303,17 @@ jest.mock('../../../../hooks', () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
-  usePerpsPositionModifyPreview: () => ({
-    preview: mockPositionModifyPreview,
-    isCalculating: mockIsAwaitingPositionModifyPreview,
-    isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
-    error: null,
-  }),
+  usePerpsPositionModifyPreview: (params: {
+    providerId?: PerpsProviderType;
+  }) => {
+    mockPositionModifyPreviewParams = params;
+    return {
+      preview: mockPositionModifyPreview,
+      isCalculating: mockIsAwaitingPositionModifyPreview,
+      isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
+      error: null,
+    };
+  },
   usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
 }));
 
@@ -449,6 +457,7 @@ const renderProForm = (
     providerId?: PerpsProviderType;
     isScreenFocused?: boolean;
   } = {},
+  formMarket: PerpsMarketData = market,
 ) => {
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
@@ -458,7 +467,7 @@ const renderProForm = (
 
   return renderHook(() =>
     usePerpsProOrderForm({
-      market,
+      market: formMarket,
       isTriggeredOrdersEnabled,
       isTwapEnabled,
       isTwapAvailabilityPending,
@@ -539,6 +548,7 @@ describe('usePerpsProOrderForm', () => {
     });
     mockExistingPosition = null;
     mockPositionModifyPreview = { status: 'none' };
+    mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
@@ -1585,17 +1595,45 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('keeps ordinary placement on controller default routing', async () => {
-      const { result } = renderProForm();
+    it.each(['market', 'limit', 'stop_market'] as const)(
+      'routes a displayed provider through %s fees, validation, preview, and placement',
+      async (orderType) => {
+        mockOrderForm.type = orderType;
+        if (orderType === 'limit') {
+          mockOrderForm.limitPrice = '89000';
+        }
+        if (orderType === 'stop_market') {
+          mockContextValue.triggerPrice = '91000';
+        }
+        const myxMarket = { ...market, providerId: 'myx' } as PerpsMarketData;
+        const { result } = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          myxMarket,
+        );
 
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
+        expect(mockUsePerpsOrderFees).toHaveBeenLastCalledWith(
+          expect.objectContaining({ providerId: 'myx' }),
+        );
+        expect(mockOrderValidationParams?.providerId).toBe('myx');
+        expect(mockPositionModifyPreviewParams?.providerId).toBe('myx');
 
-      expect(mockExecuteOrder).toHaveBeenCalledWith(
-        expect.not.objectContaining({ providerId: expect.anything() }),
-      );
-    });
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderType,
+            providerId: 'myx',
+          }),
+        );
+      },
+    );
 
     it('keeps a non-Chase fingerprint out of Chase analytics', async () => {
       const { result } = renderProForm();

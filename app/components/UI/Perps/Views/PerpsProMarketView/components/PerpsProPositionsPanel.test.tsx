@@ -668,6 +668,57 @@ describe('PerpsProPositionsPanel', () => {
     );
   });
 
+  it('closes TWAP termination after stream completion during a read error', async () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+
+    // Act: a failed REST read preserves rows, while the authoritative stream
+    // moves this schedule out of the active partition.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ status: 'completed' })],
+      isLoading: false,
+      error: 'venue down',
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: clearing the selection also resumes live REST reconciliation.
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ pauseLiveRestReconciliation: false }),
+    );
+  });
+
   it('retains every accepted termination until that schedule completes', () => {
     // Arrange
     const firstOrder = makeTwapOrder();

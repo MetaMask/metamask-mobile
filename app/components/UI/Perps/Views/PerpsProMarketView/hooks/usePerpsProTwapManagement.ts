@@ -215,16 +215,12 @@ export const usePerpsProTwapManagement = ({
     }
     const contextChanged =
       terminatingSelection.contextIdentityKey !== contextIdentityKey;
-    if (
-      contextChanged ||
-      (!isLoading && !isRefreshing && error === null && !terminatingOrder)
-    ) {
+    if (contextChanged || (!isLoading && !isRefreshing && !terminatingOrder)) {
       closeTerminateSheet();
     }
   }, [
     closeTerminateSheet,
     contextIdentityKey,
-    error,
     isLoading,
     isRefreshing,
     terminatingOrder,
