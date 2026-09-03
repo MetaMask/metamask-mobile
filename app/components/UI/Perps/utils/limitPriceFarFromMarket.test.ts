@@ -66,7 +66,7 @@ describe('getLimitPriceFarFromMarketWarning', () => {
         bestBid: bid,
         bestAsk: ask,
       }),
-    ).toBe('perps.order.validation.limit_price_far_from_market');
+    ).toBe('perps.order.validation.limit_price_far_from_market_bid');
   });
 
   it('stays quiet at exactly the 5% long threshold', () => {
@@ -97,7 +97,7 @@ describe('getLimitPriceFarFromMarketWarning', () => {
         bestBid: bid,
         bestAsk: ask,
       }),
-    ).toBe('perps.order.validation.limit_price_far_from_market');
+    ).toBe('perps.order.validation.limit_price_far_from_market_ask');
   });
 
   it('skips reduce-only orders', () => {

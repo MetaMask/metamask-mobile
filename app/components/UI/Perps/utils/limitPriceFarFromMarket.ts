@@ -107,14 +107,13 @@ export const getLimitPriceFarFromMarketWarning = ({
   }
 
   const percent = Math.round(signedDistance * 100);
-  const reference = strings(
+
+  // Two complete sentences rather than interpolating a translated word, so
+  // languages needing declension or different word order stay translatable.
+  return strings(
     direction === 'long'
       ? 'perps.order.validation.limit_price_far_from_market_bid'
       : 'perps.order.validation.limit_price_far_from_market_ask',
+    { percent },
   );
-
-  return strings('perps.order.validation.limit_price_far_from_market', {
-    percent,
-    reference,
-  });
 };

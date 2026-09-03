@@ -122,6 +122,8 @@ import {
 import {
   CHASE_ORDER_UI_CONFIG,
   CHASE_RETAINED_STATUSES,
+  FAR_FROM_MARKET_WARNING_INTERACTION,
+  FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -689,6 +691,7 @@ export const usePerpsProOrderForm = ({
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
+  const lastTrackedFarFromMarketRef = useRef<string | undefined>(undefined);
   const submissionStateRef = useRef('');
   const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
@@ -2952,36 +2955,64 @@ export const usePerpsProOrderForm = ({
   const isTriggerOrderUnavailable =
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
-  const farFromMarketWarning = useMemo(
-    () =>
-      getLimitPriceFarFromMarketWarning({
-        orderType: isScaleOrder ? 'scale' : orderForm.type,
-        direction: orderForm.direction,
-        reduceOnly,
-        limitPrice: normalizedLimitPrice,
-        startPrice: scaleStartPrice,
-        endPrice: scaleEndPrice,
-        bestBid: currentTopOfBook?.bestBid
-          ? Number.parseFloat(currentTopOfBook.bestBid)
-          : undefined,
-        bestAsk: currentTopOfBook?.bestAsk
-          ? Number.parseFloat(currentTopOfBook.bestAsk)
-          : undefined,
-        szDecimals,
-      }),
-    [
-      currentTopOfBook?.bestAsk,
-      currentTopOfBook?.bestBid,
-      isScaleOrder,
-      normalizedLimitPrice,
-      orderForm.direction,
-      orderForm.type,
+  const farFromMarketWarning = useMemo(() => {
+    // Mirror scaleValidationNotice's gates: while an endpoint is still being
+    // typed a partial value ('9' toward '9500') transiently reads as far from
+    // market, and an invalid ladder has no real endpoint to measure.
+    if (
+      isScaleOrder &&
+      (!hasScaleValidationInteraction || !scaleLadderResult.success)
+    ) {
+      return undefined;
+    }
+    return getLimitPriceFarFromMarketWarning({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
       reduceOnly,
-      scaleEndPrice,
-      scaleStartPrice,
+      limitPrice: normalizedLimitPrice,
+      startPrice: scaleStartPrice,
+      endPrice: scaleEndPrice,
+      bestBid: currentTopOfBook?.bestBid
+        ? Number.parseFloat(currentTopOfBook.bestBid)
+        : undefined,
+      bestAsk: currentTopOfBook?.bestAsk
+        ? Number.parseFloat(currentTopOfBook.bestAsk)
+        : undefined,
       szDecimals,
-    ],
-  );
+    });
+  }, [
+    currentTopOfBook?.bestAsk,
+    currentTopOfBook?.bestBid,
+    hasScaleValidationInteraction,
+    isScaleOrder,
+    normalizedLimitPrice,
+    orderForm.direction,
+    orderForm.type,
+    reduceOnly,
+    scaleEndPrice,
+    scaleLadderResult.success,
+    scaleStartPrice,
+    szDecimals,
+  ]);
+
+  useEffect(() => {
+    if (!farFromMarketWarning) {
+      lastTrackedFarFromMarketRef.current = undefined;
+      return;
+    }
+    if (lastTrackedFarFromMarketRef.current === farFromMarketWarning) {
+      return;
+    }
+
+    lastTrackedFarFromMarketRef.current = farFromMarketWarning;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        FAR_FROM_MARKET_WARNING_INTERACTION,
+      [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: farFromMarketWarning,
+      ...scaleAnalyticsProperties,
+    });
+  }, [farFromMarketWarning, scaleAnalyticsProperties, track]);
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [

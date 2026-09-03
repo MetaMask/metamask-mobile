@@ -232,6 +232,12 @@ export const LIMIT_PRICE_CONFIG = {
   FatFingerDistanceFromMarket: 0.05,
 } as const;
 
+// Analytics identifiers for the fat-finger warning. WARNING_TYPE has no
+// far-from-market member upstream, so the literal lives here.
+export const FAR_FROM_MARKET_WARNING_INTERACTION =
+  'far_from_market_warning_shown';
+export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';
+
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';
 
 export const PERPS_GTM_WHATS_NEW_MODAL = 'perps-gtm-whats-new-modal';

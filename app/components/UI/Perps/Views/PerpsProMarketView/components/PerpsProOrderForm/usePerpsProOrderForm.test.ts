@@ -15,7 +15,11 @@ import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../../../constants/perpsAnalytics';
-import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
+import {
+  FAR_FROM_MARKET_WARNING_INTERACTION,
+  FAR_FROM_MARKET_WARNING_TYPE,
+  PERPS_TWAP_UI_CONFIG,
+} from '../../../../constants/perpsConfig';
 import { ChaseOrderRequestError } from '../../../../hooks/usePerpsChaseOrders';
 import type { OrderFormFieldIssue } from '../../../../utils/triggerOrderValidation';
 import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
@@ -5219,6 +5223,152 @@ describe('usePerpsProOrderForm', () => {
           scaleSkew: 2,
         }),
       );
+    });
+
+    describe('far-from-market warning', () => {
+      // Mocked top of book: bestBid 89999, bestAsk 90001. The 5% threshold
+      // puts the long trigger below 85499.05 and the short above 94501.05.
+      const configureFarLadder = (
+        result: ReturnType<typeof renderProForm>['result'],
+        startPrice: string,
+        endPrice: string,
+      ) => {
+        act(() => {
+          result.current.scaleOrder.onStartPriceChange(startPrice);
+          result.current.scaleOrder.onEndPriceChange(endPrice);
+          result.current.scaleOrder.onTotalOrdersChange('3');
+          result.current.scaleOrder.onSizeSkewChange('1.00');
+        });
+      };
+
+      it('pushes the far-from-market notice for a long ladder resting below the bid', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        configureFarLadder(result, '80000', '84000');
+
+        expect(result.current.notices).toContainEqual({
+          id: 'far-from-market',
+          variant: 'banner',
+          message: strings(
+            'perps.order.validation.limit_price_far_from_market_bid',
+            { percent: 11 },
+          ),
+        });
+      });
+
+      it('stays quiet for a ladder resting inside the threshold', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        configureFarLadder(result, '89000', '89500');
+
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+      });
+
+      it('stays quiet before any scale interaction so it cannot fire mid-keystroke', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+      });
+
+      it('stays quiet while the ladder itself is invalid', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        // Order count of 1 is below the minimum, so the ladder fails and its
+        // endpoints are not real prices to measure against.
+        act(() => {
+          result.current.scaleOrder.onStartPriceChange('80000');
+          result.current.scaleOrder.onEndPriceChange('84000');
+          result.current.scaleOrder.onTotalOrdersChange('1');
+        });
+
+        expect(result.current.notices).toContainEqual(
+          expect.objectContaining({ id: 'scale' }),
+        );
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+      });
+
+      it('never disables Place for a far-from-market ladder', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        configureFarLadder(result, '80000', '84000');
+
+        expect(result.current.notices).toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+        expect(result.current.isPlaceOrderDisabled).toBe(false);
+      });
+
+      it('emits the warning-shown event once per distinct message', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        configureFarLadder(result, '80000', '84000');
+
+        const shown = mockTrack.mock.calls.filter(
+          ([event, props]) =>
+            event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+            props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+              FAR_FROM_MARKET_WARNING_INTERACTION,
+        );
+
+        expect(shown).toHaveLength(1);
+        expect(shown[0][1]).toEqual(
+          expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
+            [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: strings(
+              'perps.order.validation.limit_price_far_from_market_bid',
+              { percent: 11 },
+            ),
+          }),
+        );
+      });
+
+      // The price card belongs to the limit-price field, which only renders
+      // its message after a blur, so this fallback is a limit-order path.
+      it('falls back to the far-from-market message on the limit price card', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        // setLimitPrice and the blur flag both live in the mocked order
+        // context, so seed them directly.
+        mockOrderForm.limitPrice = '80000';
+        mockContextValue.hasBlurredLimitPrice = true;
+
+        const { result } = renderProForm();
+
+        expect(result.current.priceCardMessage).toEqual({
+          severity: 'warning',
+          message: strings(
+            'perps.order.validation.limit_price_far_from_market_bid',
+            { percent: 11 },
+          ),
+        });
+      });
     });
   });
 
