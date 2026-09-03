@@ -1,0 +1,5 @@
+extends: pr-risk-analysis
+
+# TEST 2: a repo-owned mode definition sets its own runtime budget.
+config:
+  maxIterations: 9

@@ -138,8 +138,3 @@ models:
 
 modes:
   - pr-risk-analysis
-
-# TEST 1: repo config overrides the built-in mode's iteration budget.
-modeOverrides:
-  pr-risk-analysis:
-    maxIterations: 12
