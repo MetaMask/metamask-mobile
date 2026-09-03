@@ -1,11 +1,28 @@
 import { AppState } from 'react-native';
+import { assertBrazePushUnregistered } from '../../../Braze/unregisterPush';
+import { registerBrazePushToken } from '../../../Braze/registerPush';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
 import { toFcmDataStringRecord } from '../../../../util/notifications/utils/fcm-data';
 
-export const createRegToken = FCMService.createRegToken;
-export const deleteRegToken = FCMService.deleteRegToken;
+export const createRegToken = async (): Promise<string | null> => {
+  const token = await FCMService.createRegToken();
+  if (token) {
+    registerBrazePushToken(token);
+  }
+  return token;
+};
+
+/**
+ * Unregister this device from Braze before deleting the FCM token.
+ * Throws when Braze still holds a token so NaaP does not flip the in-app
+ * toggle off while Braze can still target the device.
+ */
+export const deleteRegToken = async (): Promise<boolean> => {
+  await assertBrazePushUnregistered();
+  return FCMService.deleteRegToken();
+};
 
 /**
  * FCM `notification_type` for on-chain wallet activity (send/receive/etc).
