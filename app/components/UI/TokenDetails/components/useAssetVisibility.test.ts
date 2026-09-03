@@ -318,11 +318,16 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('does nothing when accountId is undefined', () => {
+    it('calls hideAsset when accountId is undefined', () => {
       setupSelectors({ globalAccountId: undefined as unknown as string });
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
       act(() => result.current.handleHideToken());
-      expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
+      expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+        EVM_ASSET_ID,
+      );
+      expect(
+        Engine.context.AssetsController.removeCustomAsset,
+      ).not.toHaveBeenCalled();
     });
 
     it('calls unhideAsset when the EVM token is hidden via assetPreferences', () => {
@@ -368,7 +373,7 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('calls removeCustomAsset only when custom asset has no balance entry', () => {
+    it('calls removeCustomAsset and hideAsset when custom asset has no balance entry', () => {
       setupSelectors({
         customAssets: { [ACCOUNT_ID]: [EVM_ASSET_ID] },
       });
@@ -377,7 +382,9 @@ describe('useAssetVisibility', () => {
       expect(
         Engine.context.AssetsController.removeCustomAsset,
       ).toHaveBeenCalledWith(ACCOUNT_ID, EVM_ASSET_ID);
-      expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
+      expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+        EVM_ASSET_ID,
+      );
     });
 
     it('calls removeCustomAsset and hideAsset when custom asset also has balance', () => {
@@ -443,13 +450,15 @@ describe('useAssetVisibility', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('does nothing when token is not hidden, not custom, and has no balance', () => {
+    it('calls hideAsset when token is not hidden, not custom, and has no balance', () => {
       const { result } = renderHook(() => useAssetVisibility(evmToken()));
       act(() => result.current.handleHideToken());
       expect(
         Engine.context.AssetsController.unhideAsset,
       ).not.toHaveBeenCalled();
-      expect(Engine.context.AssetsController.hideAsset).not.toHaveBeenCalled();
+      expect(Engine.context.AssetsController.hideAsset).toHaveBeenCalledWith(
+        EVM_ASSET_ID,
+      );
       expect(
         Engine.context.AssetsController.removeCustomAsset,
       ).not.toHaveBeenCalled();

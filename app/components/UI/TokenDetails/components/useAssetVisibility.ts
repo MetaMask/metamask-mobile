@@ -45,8 +45,8 @@ export interface UseAssetVisibilityReturn {
   /**
    * Calls the correct AssetsController method based on the token's current state:
    * - already hidden → unhideAsset   (checked first: hideAsset keeps the balance entry)
-   * - not hidden + custom → removeCustomAsset
-   * - not hidden + balance entry → hideAsset (runs in addition to removeCustomAsset when both apply)
+   * - not hidden + custom → removeCustomAsset (when accountId is known)
+   * - not hidden → hideAsset (always; unified wallet lists filter on assetPreferences)
    */
   handleHideToken: () => void;
   /**
@@ -153,7 +153,7 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   );
 
   const handleHideToken = useCallback(() => {
-    if (!assetId || !accountId) return;
+    if (!assetId) return;
 
     const { AssetsController, MultichainAssetsController } = Engine.context;
 
@@ -166,19 +166,20 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         AssetsController.unhideAsset(assetId);
         // For non-EVM tokens the hidden state also lives in
         // MultichainAssetsController.allIgnoredAssets; addAssets restores it.
-        if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
+        if (accountId && allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
           MultichainAssetsController.addAssets([assetId], accountId);
         }
       } else {
         // Custom-added tokens typically also have an assetsBalance entry once
         // unified assets state hydrated the balance; removing only from
         // customAssets would leave a visible detected token unless we hide too.
-        if (isCustomAsset) {
+        if (isCustomAsset && accountId) {
           AssetsController.removeCustomAsset(accountId, assetId);
         }
-        if (isInAssetsBalance) {
-          AssetsController.hideAsset(assetId);
-        }
+        // hideAsset is global (assetPreferences) and is what unified wallet
+        // selectors use to filter the token list. Always call it when hiding so
+        // token-details hide works even if balance/custom lookups miss the entry.
+        AssetsController.hideAsset(assetId);
       }
     } catch (err) {
       Logger.log(err, 'useAssetVisibility: Failed to update token visibility');
@@ -187,7 +188,6 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
     assetId,
     accountId,
     isCustomAsset,
-    isInAssetsBalance,
     isHidden,
     allIgnoredNonEvmAssets,
   ]);
