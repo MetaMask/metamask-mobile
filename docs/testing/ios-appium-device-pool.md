@@ -121,7 +121,7 @@ SKIP_APP_REINSTALL=true \
 yarn appium-smoke:ios --grep SmokeAccounts
 ```
 
-Optional: `IOS_DEVICE_POOL="$IOS_DEVICE_POOL" yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios`
+Optional: `IOS_DEVICE_POOL_SIZE=2 IOS_DEVICE_POOL="$IOS_DEVICE_POOL" yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios`
 
 Use the Node version in `.nvmrc`.
 
