@@ -67,8 +67,11 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const { ensureBound } = useMoneyAccountSweepstakesBinding();
   const { showToast, RewardsToastOptions } = useRewardsToast();
 
-  const { stats, isLoading: isStatsLoading } =
-    useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
+  const {
+    stats,
+    isLoading: isStatsLoading,
+    hasError: hasStatsError,
+  } = useGetMoneyAccountSweepstakesStatsMe(displayCampaign?.id);
 
   const tileCampaign = useMemo(
     () => buildMoneyAccountSweepstakesTileCampaign(series),
@@ -80,9 +83,10 @@ const MoneyAccountSweepstakesCampaignDetailsView: React.FC = () => {
   const localizedText = details?.localizedText;
 
   const hasBalance = (stats?.currentBalanceUsd ?? 0) > 0;
+  const showStatsSection =
+    hasBalance || (optedInAny && (isStatsLoading || hasStatsError));
   const showHowItWorksSection =
-    Boolean(displayCampaign?.details?.howItWorks) && !hasBalance;
-  const showStatsSection = hasBalance;
+    Boolean(displayCampaign?.details?.howItWorks) && !showStatsSection;
 
   useTrackRewardsPageView({
     page_type: 'money_account_sweepstakes_campaign_details',
