@@ -672,11 +672,10 @@ describe('TradingViewChart — incremental update routing', () => {
     const reportCandleCount = (
       range: { from: number; to: number },
       dataLength: number,
+      isPinchZoomActive = true,
     ): number | undefined => {
       const template = createTradingViewChartTemplate(mockTheme, '', true);
-      const start = template.indexOf(
-        'var lastBarIndex = window.allCandleData.length - 1;',
-      );
+      const start = template.indexOf('if (window.isPinchZoomActive) {');
       const end = template.indexOf(
         "// Check if we're near the left edge (oldest data)",
       );
@@ -687,6 +686,7 @@ describe('TradingViewChart — incremental update routing', () => {
       const windowStub = {
         allCandleData: new Array(dataLength).fill({}),
         lastReportedVisibleCandleCount: null,
+        isPinchZoomActive,
         ZOOM_LIMITS: {
           MIN_CANDLES: 10,
           MAX_CANDLES: 250,
@@ -714,7 +714,7 @@ describe('TradingViewChart — incremental update routing', () => {
     });
 
     it.each([15, 30, 45, 90, 200])(
-      'round-trips applyZoom(%i) without drifting the persisted zoom',
+      'reports a user pinch showing %i candles without drift',
       (candleCount) => {
         const dataLength = 500;
 
@@ -728,9 +728,34 @@ describe('TradingViewChart — incremental update routing', () => {
     );
 
     it('ignores trailing whitespace beyond the last bar', () => {
-      // User panned the right edge into empty space past the latest candle;
+      // A pinch can leave the right edge in empty space past the latest candle;
       // only the 20 real candles behind it should be reported.
       expect(reportCandleCount({ from: 80, to: 140 }, 100)).toBe(20);
+    });
+
+    it('does not persist non-pinch range changes', () => {
+      const dataLength = 500;
+
+      expect(
+        reportCandleCount(
+          rangeFromApplyZoom(90, dataLength),
+          dataLength,
+          false,
+        ),
+      ).toBeUndefined();
+    });
+
+    it('tracks two-finger gestures on the chart container', () => {
+      const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+      expect(template).toContain(
+        "chartContainer.addEventListener('touchstart'",
+      );
+      expect(template).toContain(
+        'window.isPinchZoomActive = event.touches.length >= 2',
+      );
+      expect(template).toContain("chartContainer.addEventListener('touchend'");
+      expect(template).toContain('window.isPinchZoomActive = false');
     });
 
     it('clamps the reported count to the configured zoom limits', () => {
