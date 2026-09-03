@@ -46,6 +46,7 @@ import {
 import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { BridgeTabKey } from './BridgeView.constants';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -58,6 +59,19 @@ jest.mock(
     })),
   }),
 );
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    selectedTab: "market",
+    renderedTab: "market",
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: jest.fn().mockReturnValue({
+      displayBalance: '2.0',
+      atomicBalance: new BigNumber('2000000000000000000'),
+    }),
+  }),
+}));
 
 const mockState = {
   ...initialState,

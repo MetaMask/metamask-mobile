@@ -42,6 +42,19 @@ jest.mock('../../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useBridgeSession', () => ({
+  useBridgeSession: jest.fn().mockReturnValue({
+    selectedTab: "limit",
+    renderedTab: "limit",
+    setSelectedTab: jest.fn(),
+    setRenderedTab: jest.fn(),
+    latestSourceBalance: jest.fn().mockReturnValue({
+      displayBalance: '1.0',
+      atomicBalance: undefined,
+    }),
+  }),
+}));
+
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData: useBridgeQuoteDataMock } = jest.requireMock(
     '../../../hooks/useBridgeQuoteData',

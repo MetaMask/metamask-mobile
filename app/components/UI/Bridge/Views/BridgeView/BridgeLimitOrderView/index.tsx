@@ -7,15 +7,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  selectBridgeBalanceRefreshKey,
   selectSlippage,
-  selectSourceToken,
   setSlippage,
 } from '../../../../../../core/redux/slices/bridge';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs from '../../../components/OrdersTabs';
 import {
@@ -61,6 +56,7 @@ import {
 } from '../../../utils/currencyUtils';
 import { formatAmountWithLocaleSeparators } from '../../../utils/formatAmountWithLocaleSeparators';
 import { strings } from '../../../../../../../locales/i18n';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const formatTokenAmountValue = (
   amount: string | undefined,
@@ -71,9 +67,7 @@ interface BridgeLimitOrderViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
 }
 
-const BridgeLimitOrderViewContent = ({
-  latestSourceBalance,
-}: BridgeLimitOrderViewContentProps) => {
+const BridgeLimitOrderViewContent = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
@@ -90,6 +84,7 @@ const BridgeLimitOrderViewContent = ({
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
   const customPercentInputRef = useRef<ButtonPricePresetsSectionRef>(null);
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -446,24 +441,4 @@ const BridgeLimitOrderViewContent = ({
   );
 };
 
-const BridgeLimitOrderView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeLimitOrderViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeLimitOrderView;
+export default BridgeLimitOrderViewContent;

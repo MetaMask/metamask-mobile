@@ -31,7 +31,6 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
-  selectBridgeBalanceRefreshKey,
   selectBridgeControllerState,
   selectQuoteStreamComplete,
   selectSlippage,
@@ -49,10 +48,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeMarketView.styles';
 import { useInitialSourceToken } from '../../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../../hooks/useInitialDestToken';
@@ -128,16 +124,11 @@ import {
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
+import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-interface BridgeMarketViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeMarketViewContent = ({
-  latestSourceBalance,
-}: BridgeMarketViewContentProps) => {
+const BridgeMarketViewContent = () => {
   const [isNearBottom, setIsNearBottom] = useState(false);
 
   const { isStockMarketClosed } = useStockMarketHours();
@@ -272,6 +263,7 @@ const BridgeMarketViewContent = ({
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
+  const { latestSourceBalance } = useBridgeSession();
   const updateQuoteParams = useBridgeQuoteRequest({
     latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
   });
@@ -719,24 +711,4 @@ const BridgeMarketViewContent = ({
   );
 };
 
-const BridgeMarketView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeMarketViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeMarketView;
+export default BridgeMarketViewContent;

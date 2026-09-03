@@ -32,6 +32,7 @@ export const BridgeSessionProvider = ({
   const [selectedTab, setSelectedTab] = useState(BridgeTabKey.Market);
   const [renderedTab, setRenderedTab] = useState(BridgeTabKey.Market);
   const featureId = TAB_TO_FEATURE_ID[renderedTab];
+
   const sourceToken = useSelector(selectSourceToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const latestSourceBalance = useLatestBalance({
