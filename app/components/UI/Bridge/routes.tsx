@@ -74,6 +74,14 @@ export const BridgeScreenStack = () => (
       component={HwQrScanner}
       options={{ headerShown: false }}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.MODALS.ROOT}
+      component={BridgeModalStack}
+      options={{
+        ...clearNativeStackNavigatorOptions,
+        ...transparentModalScreenOptions,
+      }}
+    />
   </Stack.Navigator>
 );
 
