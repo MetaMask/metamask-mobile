@@ -49,8 +49,9 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+let mockLiquidationPrice = '80000';
 const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
-  liquidationPrice: '80000',
+  liquidationPrice: mockLiquidationPrice,
   isCalculating: false,
 }));
 let mockTotalFee = 5;
@@ -545,6 +546,7 @@ describe('usePerpsProOrderForm', () => {
     mockExistingPosition = null;
     mockPositionModifyPreview = { status: 'none' };
     mockIsAwaitingPositionModifyPreview = false;
+    mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -4515,6 +4517,36 @@ describe('usePerpsProOrderForm', () => {
         entryPrice: number;
       };
       expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
+    it('keeps Scale liquidation unavailable while position state loads', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockPositionStreamLoading = true;
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
+    it('keeps Scale liquidation unavailable when calculation returns zero', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockLiquidationPrice = '0.00';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
       expect(result.current.scaleOrder.liquidationPrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );

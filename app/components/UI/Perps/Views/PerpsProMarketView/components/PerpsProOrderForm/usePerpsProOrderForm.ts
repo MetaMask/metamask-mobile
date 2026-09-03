@@ -1499,7 +1499,7 @@ export const usePerpsProOrderForm = ({
   const canCalculateScaleLiquidation =
     scaleLadderResult.success &&
     !isPositionStreamLoading &&
-    currentMarketPosition === null;
+    !currentMarketPosition;
   const liquidationEntryPrice =
     isScaleOrder && !canCalculateScaleLiquidation ? 0 : effectivePrice;
   const liquidationPriceParams = useMemo(
@@ -3134,16 +3134,20 @@ export const usePerpsProOrderForm = ({
   // Existing positions need a position-aware controller preview, so Scale keeps
   // that estimate unavailable until the preview supports it.
   const scaleMargin = useMemo(() => {
-    // A successful ladder always carries a margin figure; the undefined check
-    // only narrows the non-Scale `marginRequired` arm of effectiveMarginRequired.
-    if (!scaleLadderResult.success || effectiveMarginRequired === undefined) {
+    // A successful Scale ladder carries a margin figure. The undefined check
+    // narrows effectiveMarginRequired before formatting.
+    if (
+      !isScaleOrder ||
+      !scaleLadderResult.success ||
+      effectiveMarginRequired === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
     return formatPerpsFiat(effectiveMarginRequired, {
       ranges: PRICE_RANGES_MINIMAL_VIEW,
     });
-  }, [effectiveMarginRequired, scaleLadderResult.success]);
+  }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
     if (!canCalculateScaleLiquidation || isLiquidationCalculating) {

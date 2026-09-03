@@ -669,18 +669,16 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent('$1');
     });
 
-    it('gives the Scale Est Liquidation row the same single-line treatment as Margin', () => {
+    it('limits Scale Margin and Est Liquidation values to one line', () => {
       renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
-      // `numberOfLines: 0` was the wrap allowance for the old "a → b" range.
-      // A single target value clips on one line like every other summary row.
       const margin = screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE);
       const liquidation = screen.getByTestId(
         ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
       );
 
-      expect(liquidation).not.toHaveProp('numberOfLines', 0);
-      expect(liquidation.props.numberOfLines).toBe(margin.props.numberOfLines);
+      expect(margin).toHaveProp('numberOfLines', 1);
+      expect(liquidation).toHaveProp('numberOfLines', 1);
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {

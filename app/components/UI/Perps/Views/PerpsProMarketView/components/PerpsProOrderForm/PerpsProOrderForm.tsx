@@ -84,6 +84,7 @@ const summaryKeyTextProps = {
 const summaryValueTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Medium,
+  numberOfLines: 1,
 };
 
 interface TPSLRowProps {
