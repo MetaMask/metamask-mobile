@@ -110,7 +110,12 @@ describe('prepareIosSimulatorPool', () => {
     }
   });
 
-  it('rejects pool sizes below one', async () => {
+  it.each([
+    ['zero', 0],
+    ['fractional', 1.5],
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+  ])('rejects non-positive-integer pool size: %s', async (_label, poolSize) => {
     const { execFileImpl } = createFakeExecFile(
       makeListDevicesJson([]),
       [],
@@ -118,10 +123,10 @@ describe('prepareIosSimulatorPool', () => {
 
     await expect(
       prepareIosSimulatorPool(
-        { baseName: BASE_NAME, poolSize: 0 },
+        { baseName: BASE_NAME, poolSize },
         execFileImpl,
       ),
-    ).rejects.toThrow('poolSize');
+    ).rejects.toThrow('Expected a positive integer');
   });
 
   it('boots the base simulator without clone or delete when pool size is one', async () => {

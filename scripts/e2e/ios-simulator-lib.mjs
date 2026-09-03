@@ -287,7 +287,7 @@ export async function prepareIosSimulatorPool(
   { baseName, poolSize },
   execFileImpl,
 ) {
-  if (poolSize < 1) {
+  if (!Number.isInteger(poolSize) || poolSize < 1) {
     throw new Error(
       `Invalid poolSize ${poolSize}. Expected a positive integer.`,
     );
