@@ -43,7 +43,10 @@ import {
 export const Amount = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { header: renderAmountHeader } = useSendNavbar().Amount;
-  const { location } = useParams<{ location?: string }>();
+  const { location, predefinedAmount } = useParams<{
+    location?: string;
+    predefinedAmount?: string;
+  }>();
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, value } = useSendContext();
   const { balance } = useBalance();
@@ -72,8 +75,20 @@ export const Amount = () => {
   const { isLoading: isNftLoading } = useRouteParams();
 
   useEffect(() => {
+    if (predefinedAmount) {
+      setFiatMode(false);
+      return;
+    }
     setFiatMode(primaryCurrency === 'Fiat');
-  }, [primaryCurrency, setFiatMode]);
+  }, [primaryCurrency, predefinedAmount, setFiatMode]);
+
+  useEffect(() => {
+    if (!predefinedAmount || amount) {
+      return;
+    }
+    setAmountInputTypeToken();
+    setAmount(predefinedAmount);
+  }, [predefinedAmount, amount, setAmountInputTypeToken]);
 
   useEffect(() => {
     if (location && location === InitSendLocation.AssetOverview) {

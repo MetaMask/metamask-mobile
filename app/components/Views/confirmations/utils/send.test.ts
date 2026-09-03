@@ -103,6 +103,32 @@ describe('handleSendPageNavigation', () => {
       });
     });
 
+    it('passes predefinedAmount to Amount screen when provided', () => {
+      const mockNavigate = jest.fn();
+      const predefinedRecipient = {
+        address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+        chainType: ChainType.SOLANA,
+      };
+      const asset = { name: 'USDC' } as AssetType;
+
+      handleSendPageNavigation(mockNavigate, {
+        location: InitSendLocation.QRScanner,
+        asset,
+        predefinedRecipient,
+        predefinedAmount: '25.515000',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('Send', {
+        screen: 'Amount',
+        params: {
+          asset,
+          location: InitSendLocation.QRScanner,
+          predefinedRecipient,
+          predefinedAmount: '25.515000',
+        },
+      });
+    });
+
     it('navigates to Recipient screen for ERC721 NFTs with predefinedRecipient', () => {
       const mockNavigate = jest.fn();
       const predefinedRecipient = {

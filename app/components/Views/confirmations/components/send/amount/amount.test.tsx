@@ -184,6 +184,18 @@ describe('Amount', () => {
     expect(getByTestId('send_amount').children[0]).toEqual('0.00');
   });
 
+  it('seeds token amount from predefinedAmount and stays in token mode', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId, getByText } = renderComponent();
+
+    expect(getByTestId('send_amount').children[0]).toEqual('25.515000');
+    expect(getByText('ETH')).toBeTruthy();
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalled();
+  });
+
   it('asset passed in nav params should be used if present', () => {
     mockUseSendContext.mockReturnValue({
       asset: {

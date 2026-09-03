@@ -15,6 +15,7 @@ import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
 import handleEthereumUrl from '../handlers/handleEthereumUrl';
+import handleSolanaUrl from '../handlers/handleSolanaUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 
 export type DeeplinkParseMode = 'execute' | 'resolve';
@@ -93,6 +94,16 @@ async function parseDeeplink({
           origin,
         }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
+        });
+        break;
+      case PROTOCOLS.SOLANA:
+        if (mode === 'resolve') {
+          return null;
+        }
+        handled();
+        handleSolanaUrl({
+          url,
+          origin,
         });
         break;
       // Specific to the browser screen

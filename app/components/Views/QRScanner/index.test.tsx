@@ -1088,6 +1088,50 @@ describe('QrScanner', () => {
         });
       });
 
+      it('routes Solana Pay URIs through DeeplinkManager instead of unrecognized QR path', async () => {
+        const solanaPayUri =
+          'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000&spl-token=EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+        mockDerivePredefinedRecipientParams.mockReturnValue(undefined);
+        (SharedDeeplinkManager.parse as jest.Mock).mockImplementation(
+          async (
+            _url: string,
+            opts?: { onHandled?: () => void },
+          ): Promise<boolean> => {
+            opts?.onHandled?.();
+            return true;
+          },
+        );
+
+        const mockOnScanSuccess = jest.fn();
+        renderWithProvider(<QrScanner onScanSuccess={mockOnScanSuccess} />, {
+          state: initialState,
+        });
+
+        await waitFor(() => {
+          expect(onCodeScannedCallback).toBeDefined();
+        });
+
+        await act(async () => {
+          onCodeScannedCallback?.([{ value: solanaPayUri }]);
+        });
+
+        await waitFor(() => {
+          expect(SharedDeeplinkManager.parse).toHaveBeenCalledWith(
+            solanaPayUri,
+            expect.objectContaining({
+              origin: 'qr-code',
+            }),
+          );
+          expect(mockAddProperties).toHaveBeenCalledWith({
+            [QRScannerEventProperties.SCAN_SUCCESS]: true,
+            [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+            [QRScannerEventProperties.SCAN_RESULT]: ScanResult.DEEPLINK_HANDLED,
+          });
+          expect(mockOnScanSuccess).not.toHaveBeenCalled();
+        });
+      });
+
       it('tracks unrecognized_qr_code when DeeplinkManager cannot handle a universal link', async () => {
         const deeplinksUtilModule = jest.requireMock(
           '../../../core/DeeplinkManager/util/deeplinks',
