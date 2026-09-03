@@ -144,7 +144,10 @@ export const runQuoteDataCases = ({
 }: {
   name: string;
   mockDispatch: jest.Mock;
-  renderHook: (options?: { latestSourceAtomicBalance?: BigNumber }) => {
+  renderHook: (options?: {
+    latestSourceAtomicBalance?: BigNumber;
+    featureId: FeatureId;
+  }) => {
     result: { current: ReturnType<typeof useBridgeQuoteData> };
     rerender: (props?: unknown) => void;
     unmount: () => void;
@@ -152,11 +155,13 @@ export const runQuoteDataCases = ({
 }) => {
   const renderUseBridgeQuoteData = (
     overrides: QuoteDataState = {},
-    hookOptions?: { latestSourceAtomicBalance?: BigNumber },
+    hookOptions?: {
+      latestSourceAtomicBalance?: BigNumber;
+    },
   ) => {
     const { selectSourceAmountSpy } = applyQuoteDataState(overrides);
     return {
-      ...renderHook(hookOptions),
+      ...renderHook({ ...hookOptions, featureId }),
       selectSourceAmountSpy,
     };
   };
