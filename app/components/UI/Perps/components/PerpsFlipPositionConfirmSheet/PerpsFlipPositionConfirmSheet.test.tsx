@@ -98,14 +98,16 @@ jest.mock('../../utils/formatUtils', () => ({
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
 
-jest.mock('@metamask/perps-controller', () => ({
-  getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
-  PERPS_EVENT_VALUE: {
-    SOURCE: {
-      POSITION_SCREEN: 'position_screen',
-    },
-  },
-}));
+jest.mock('@metamask/perps-controller', () => {
+  const actual = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    ...actual,
+    getPerpsDisplaySymbol: jest.fn((symbol) => symbol),
+  };
+});
 
 jest.mock('../PerpsFeesDisplay', () => {
   const ReactModule = jest.requireActual('react');

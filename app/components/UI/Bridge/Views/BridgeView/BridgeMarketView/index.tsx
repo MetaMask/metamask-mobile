@@ -112,7 +112,9 @@ import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/in
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
 import {
   InsufficientNativeReserveBanner,
+  MarketClosedBanner,
   MissingQuotePriceDataBanner,
+  OffHoursTradingBanner,
   QuoteErrorBanner,
   DestAssetRequireActivateBanner,
   SwapsBanners,
@@ -125,6 +127,7 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
+import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -136,6 +139,10 @@ const BridgeMarketViewContent = ({
   latestSourceBalance,
 }: BridgeMarketViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
+
+  const { isStockMarketClosed } = useStockMarketHours();
+  const wasStockMarketClosedRef = useRef(isStockMarketClosed);
+
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
   const isFiatToggleEnabled = useSelector(
@@ -399,7 +406,8 @@ const BridgeMarketViewContent = ({
     (isHardwareAddress && isSolanaSourced) ||
     !!blockaidError ||
     hasInsufficientGas ||
-    !walletAddress;
+    !walletAddress ||
+    isStockMarketClosed;
 
   const isDestAssetRequireActivate = useSelector(
     selectIsDestAssetRequireActivate,
@@ -448,6 +456,17 @@ const BridgeMarketViewContent = ({
     slippage,
     isSlippageUserOverride,
   ]);
+
+  // Quote stream errors (e.g. RWA_MARKET_UNAVAILABLE) persist until a new
+  // request. Re-fetch when the market-hours clock leaves the fully-closed
+  // window so the error does not stick until the user changes tokens.
+  useEffect(() => {
+    const wasClosed = wasStockMarketClosedRef.current;
+    wasStockMarketClosedRef.current = isStockMarketClosed;
+    if (wasClosed && !isStockMarketClosed && hasValidBridgeInputs) {
+      updateQuoteParams();
+    }
+  }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
 
   useTrackSwapPageViewed(location);
 
@@ -627,6 +646,8 @@ const BridgeMarketViewContent = ({
             <DestAssetRequireActivateBanner />
             <InsufficientNativeReserveBanner />
             <MissingQuotePriceDataBanner />
+            <OffHoursTradingBanner />
+            <MarketClosedBanner />
           </SwapsBanners>
 
           <Box
