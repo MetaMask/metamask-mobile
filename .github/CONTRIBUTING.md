@@ -34,8 +34,8 @@ Which runner fleet a job lands on is controlled by three repository-level Action
 
 Accepted values:
 
-- `namespace` — Namespace runners (`namespace-profile-*`).
-- Any other value (including an unset platform variable with no dispatch override) falls through to GitHub-hosted runners (`ubuntu-latest` on Linux, `macos-15` on macOS).
+- `namespace` — Namespace runners (`namespace-profile-*`). Default when a platform variable is unset.
+- Any other explicit value routes to GitHub-hosted runners (`ubuntu-latest` on Linux, `macos-15` on macOS).
 
 Resolution order, highest priority first:
 

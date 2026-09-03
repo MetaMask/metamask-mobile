@@ -20,7 +20,7 @@ on:
         type: string
         default: 'e2e'
       runner_provider:
-        description: 'Runner provider (namespace)'
+        description: 'Runner provider (namespace or GitHub-hosted fallback)'
         required: false
         type: string
         default: 'namespace'
