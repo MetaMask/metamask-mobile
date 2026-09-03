@@ -49,7 +49,6 @@ import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpe
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { useBridgeSession } from '../../../hooks/useBridgeSession/BridgeSessionContext';
 
-
 const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();

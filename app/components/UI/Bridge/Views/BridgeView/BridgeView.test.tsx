@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   fireGestureHandler,
   getByGestureTestId,
@@ -15,7 +16,8 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
+import BridgeViewContent from '.';
+import { BridgeSessionProvider } from '../../hooks/useBridgeSession/BridgeSessionContext';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -405,6 +407,12 @@ jest.mock('../../hooks/useIsGasIncluded7702Supported/index.ts', () => ({
   useIsGasIncluded7702Supported: (chainId?: string) =>
     mockUseIsGasIncluded7702Supported(chainId),
 }));
+
+const BridgeView = () => (
+  <BridgeSessionProvider>
+    <BridgeViewContent />
+  </BridgeSessionProvider>
+);
 
 describe('BridgeView', () => {
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;

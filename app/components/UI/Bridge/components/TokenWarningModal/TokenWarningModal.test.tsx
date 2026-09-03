@@ -39,8 +39,8 @@ jest.mock('../../hooks/useBridgeConfirm', () => ({
   useBridgeConfirm: jest.fn(),
 }));
 
-jest.mock('../../hooks/useBridgeQuoteData', () => ({
-  useBridgeQuoteData: jest.fn(),
+jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
+  useBridgeQuoteDataContext: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -61,7 +61,7 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useSelector } from 'react-redux';
 import {
   selectSourceToken,
@@ -78,8 +78,8 @@ const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
 >;
-const mockUseBridgeQuoteData = useBridgeQuoteData as jest.MockedFunction<
-  typeof useBridgeQuoteData
+const mockUseBridgeQuoteData = useBridgeQuoteDataContext as jest.MockedFunction<
+  typeof useBridgeQuoteDataContext
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
@@ -113,7 +113,7 @@ const mockActiveQuote = {
   },
 } as unknown as QuoteResponse;
 
-const defaultBridgeQuoteData: ReturnType<typeof useBridgeQuoteData> = {
+const defaultBridgeQuoteData: ReturnType<typeof useBridgeQuoteDataContext> = {
   bestQuote: null,
   quoteFetchError: null,
   activeQuote: undefined,
@@ -387,7 +387,7 @@ describe('TokenWarningModal', () => {
         activeQuote: {
           quote: { priceData: { priceImpact: undefined } },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -408,7 +408,7 @@ describe('TokenWarningModal', () => {
         activeQuote: {
           quote: { priceData: undefined },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -431,7 +431,7 @@ describe('TokenWarningModal', () => {
             priceData: { priceImpact: { amount: '0.25' } }, // exactly at threshold
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -455,7 +455,7 @@ describe('TokenWarningModal', () => {
             priceData: { priceImpact: { amount: '0.90' } },
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));
@@ -481,7 +481,7 @@ describe('TokenWarningModal', () => {
             priceData: { priceImpact: { amount: '0.40' } },
           },
         },
-      } as unknown as ReturnType<typeof useBridgeQuoteData>);
+      } as unknown as ReturnType<typeof useBridgeQuoteDataContext>);
 
       const { getByTestId } = renderModal();
       fireEvent.press(getByTestId('footer-secondary-button'));

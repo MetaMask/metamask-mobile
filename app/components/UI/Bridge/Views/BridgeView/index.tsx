@@ -37,8 +37,13 @@ import BridgeRecurringBuyView from './BridgeRecurringBuyView';
 import { useBridgeSession } from '../../hooks/useBridgeSession/BridgeSessionContext';
 
 const BridgeView = () => {
-  const { selectedTab, renderedTab, setSelectedTab, setRenderedTab, latestSourceBalance } =
-    useBridgeSession();
+  const {
+    selectedTab,
+    renderedTab,
+    setSelectedTab,
+    setRenderedTab,
+    latestSourceBalance,
+  } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const bridgeViewMode = useSelector(selectBridgeViewMode);
