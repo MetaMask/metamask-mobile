@@ -67,8 +67,6 @@ export function setBasicFunctionalityConsolidatedEnabled(
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch, getState) => {
-    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
-
     const {
       selectIsBasicFunctionalityConsolidationEnabled,
     } = require('../../selectors/featureFlagController/basicFunctionalityConsolidation');
@@ -76,7 +74,18 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
       syncConsolidatedBasicFunctionalityPreferences,
     } = require('../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences');
 
-    if (selectIsBasicFunctionalityConsolidationEnabled(getState())) {
+    // Evaluate consolidation eligibility before flipping BF. Silent-migration
+    // users are eligible via consistent all-on/all-off state; flipping BF first
+    // would make children look mixed and skip sync.
+    const shouldSyncConsolidatedPreferences =
+      selectIsBasicFunctionalityConsolidationEnabled(getState());
+
+    dispatch(setBasicFunctionality(basicFunctionalityEnabled));
+
+    if (shouldSyncConsolidatedPreferences) {
+      // Persist cohort membership so later toggles stay consolidated even after
+      // children briefly diverge from the previous consistent legacy state.
+      dispatch(setBasicFunctionalityConsolidatedEnabled(true));
       syncConsolidatedBasicFunctionalityPreferences(basicFunctionalityEnabled);
     }
 

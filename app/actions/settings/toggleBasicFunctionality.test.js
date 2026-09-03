@@ -1,4 +1,8 @@
-import { toggleBasicFunctionality, setBasicFunctionality } from './index';
+import {
+  toggleBasicFunctionality,
+  setBasicFunctionality,
+  setBasicFunctionalityConsolidatedEnabled,
+} from './index';
 import { selectIsBasicFunctionalityConsolidationEnabled } from '../../selectors/featureFlagController/basicFunctionalityConsolidation';
 import { syncConsolidatedBasicFunctionalityPreferences } from '../../util/basicFunctionality/syncConsolidatedBasicFunctionalityPreferences';
 
@@ -98,11 +102,44 @@ describe('toggleBasicFunctionality action', () => {
     consoleSpy.mockRestore();
   });
 
-  it('syncs consolidated preferences when consolidation is enabled', async () => {
+  it('syncs consolidated preferences when consolidation is enabled before toggle', async () => {
     mockSelectIsBasicFunctionalityConsolidationEnabled.mockReturnValue(true);
     const action = toggleBasicFunctionality(false);
     await action(mockDispatch, mockGetState);
 
+    expect(mockGetState).toHaveBeenCalled();
+    expect(
+      mockSelectIsBasicFunctionalityConsolidationEnabled,
+    ).toHaveBeenCalledWith({});
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setBasicFunctionalityConsolidatedEnabled(true),
+    );
+    expect(
+      mockSyncConsolidatedBasicFunctionalityPreferences,
+    ).toHaveBeenCalledWith(false);
+  });
+
+  it('evaluates consolidation eligibility before flipping BF so silent users still sync', async () => {
+    const callOrder = [];
+    mockSelectIsBasicFunctionalityConsolidationEnabled.mockImplementation(
+      () => {
+        callOrder.push('select');
+        return true;
+      },
+    );
+    mockDispatch.mockImplementation((action) => {
+      callOrder.push(action.type);
+      return action;
+    });
+
+    const action = toggleBasicFunctionality(false);
+    await action(mockDispatch, mockGetState);
+
+    expect(callOrder[0]).toBe('select');
+    expect(callOrder).toContain('TOGGLE_BASIC_FUNCTIONALITY');
+    expect(callOrder.indexOf('select')).toBeLessThan(
+      callOrder.indexOf('TOGGLE_BASIC_FUNCTIONALITY'),
+    );
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).toHaveBeenCalledWith(false);
@@ -115,5 +152,8 @@ describe('toggleBasicFunctionality action', () => {
     expect(
       mockSyncConsolidatedBasicFunctionalityPreferences,
     ).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setBasicFunctionalityConsolidatedEnabled(true),
+    );
   });
 });
