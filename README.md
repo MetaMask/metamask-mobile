@@ -28,6 +28,8 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Performance](./docs/performance/)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Internal Android distribution](./docs/readme/android-internal-distribution.md)
+- [Main nightly (`rc-nightly`) vs official RC](./docs/rc-nightly.md)
+- [Nightly OTA updates](./docs/nightly-ota-updates.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 - [Reassure Performance Testing (pilot)](./docs/readme/reassure.md)
