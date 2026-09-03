@@ -5,7 +5,10 @@ import {
 } from './UiSlotsController';
 import { PREDICT_UI_SLOTS_V1_CONTRACTS } from '../../../../components/UI/Predict/uiSlots/contracts/v1';
 import { UI_SLOTS_CONTRACT_MAJOR, UI_SLOTS_SOFT_TTL_MS } from './config';
-import type { UiSlotsReadTransport } from './UiSlotsApiReadClient';
+import {
+  UiSlotsHttpError,
+  type UiSlotsReadTransport,
+} from './UiSlotsApiReadClient';
 
 jest.mock('../../../../util/Logger');
 
@@ -98,6 +101,186 @@ describe('UiSlotsController', () => {
     expect(
       controller.state.screenConfigurations[buildConfigurationKey('en')]?.etag,
     ).toBe('"config-1"');
+  });
+
+  it('falls back by locale path and retries the preferred locale after the soft TTL', async () => {
+    let now = Date.parse('2026-08-13T10:00:00.000Z');
+    let preferredLocalePublished = false;
+    const fetchScreen = jest.fn(({ locale }: { locale: string }) => {
+      if (locale === 'pt-BR' && preferredLocalePublished) {
+        return Promise.resolve({
+          status: 'modified',
+          value: makeResponse({ locale: 'pt-BR' }),
+        });
+      }
+      if (locale === 'en') {
+        return Promise.resolve({
+          status: 'modified',
+          etag: '"en-config"',
+          value: makeResponse(),
+        });
+      }
+      return Promise.reject(new UiSlotsHttpError(404));
+    });
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      readClient: buildReadClient(fetchScreen),
+    });
+
+    await controller.loadScreen('wallet-home', 'pt-BR');
+
+    expect(fetchScreen.mock.calls.map(([request]) => request.locale)).toEqual([
+      'pt-BR',
+      'pt',
+      'en',
+    ]);
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('en'));
+    expect(controller.getNextRefreshAt('wallet-home', 'pt-BR')).toBe(
+      now + UI_SLOTS_SOFT_TTL_MS,
+    );
+
+    await controller.loadScreen('wallet-home', 'pt-BR');
+    expect(fetchScreen).toHaveBeenCalledTimes(3);
+
+    now += UI_SLOTS_SOFT_TTL_MS;
+    preferredLocalePublished = true;
+    await controller.loadScreen('wallet-home', 'pt-BR');
+
+    expect(fetchScreen).toHaveBeenLastCalledWith({
+      screenId: 'wallet-home',
+      locale: 'pt-BR',
+      etag: undefined,
+    });
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('pt-BR'));
+  });
+
+  it('keeps the active fallback visible while probing a preferred locale', async () => {
+    const now = Date.parse('2026-08-13T10:00:00.000Z');
+    let resolvePreferred:
+      | ((result: {
+          status: 'modified';
+          value: ReturnType<typeof makeResponse>;
+        }) => void)
+      | undefined;
+    const fetchScreen = jest.fn(
+      () =>
+        new Promise((resolve) => {
+          resolvePreferred = resolve;
+        }),
+    );
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      readClient: buildReadClient(fetchScreen),
+      state: {
+        ...defaultUiSlotsControllerState,
+        screenConfigurations: {
+          [buildConfigurationKey('en')]: {
+            response: makeResponse(),
+            fetchedAt: now,
+          },
+        },
+      },
+    });
+
+    const preferredRequest = controller.loadScreen('wallet-home', 'fr');
+
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('en'));
+    resolvePreferred?.({
+      status: 'modified',
+      value: makeResponse({ locale: 'fr' }),
+    });
+    await preferredRequest;
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('fr'));
+  });
+
+  it('rejects a preferred-locale response with a mismatched body locale without replacing the fallback', async () => {
+    const fetchScreen = jest.fn(({ locale }: { locale: string }) =>
+      Promise.resolve({
+        status: 'modified',
+        value: makeResponse({ locale: locale === 'en' ? 'en' : 'pt' }),
+      }),
+    );
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      readClient: buildReadClient(fetchScreen),
+    });
+    await controller.loadScreen('wallet-home', 'en');
+
+    const outcome = await controller.loadScreen('wallet-home', 'pt-BR');
+
+    expect(outcome).toBe('error');
+    expect(
+      controller.state.activeConfigurations['wallet-home']?.configurationKey,
+    ).toBe(buildConfigurationKey('en'));
+  });
+
+  it('keeps ETags isolated by locale', async () => {
+    let now = Date.parse('2026-08-13T10:00:00.000Z');
+    const fetchScreen = jest
+      .fn()
+      .mockResolvedValueOnce({
+        status: 'modified',
+        etag: '"en-config"',
+        value: makeResponse(),
+      })
+      .mockResolvedValueOnce({
+        status: 'modified',
+        etag: '"pt-config"',
+        value: makeResponse({ locale: 'pt-BR' }),
+      })
+      .mockResolvedValueOnce({
+        status: 'not-modified',
+        etag: '"en-config"',
+      });
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      readClient: buildReadClient(fetchScreen),
+    });
+    await controller.loadScreen('wallet-home', 'en');
+    await controller.loadScreen('wallet-home', 'pt-BR');
+
+    now += UI_SLOTS_SOFT_TTL_MS;
+    await controller.loadScreen('wallet-home', 'en');
+
+    expect(fetchScreen).toHaveBeenLastCalledWith({
+      screenId: 'wallet-home',
+      locale: 'en',
+      etag: '"en-config"',
+    });
+  });
+
+  it('uses bundled fallback and schedules revalidation when every locale is absent', async () => {
+    const now = Date.parse('2026-08-13T10:00:00.000Z');
+    const fetchScreen = jest.fn().mockRejectedValue(new UiSlotsHttpError(404));
+    const controller = new UiSlotsController({
+      ...controllerOptions,
+      now: () => now,
+      readClient: buildReadClient(fetchScreen),
+    });
+
+    const outcome = await controller.loadScreen('wallet-home', 'fr-FR');
+
+    expect(outcome).toBe('ready');
+    expect(getActiveSlots(controller)).toEqual([]);
+    expect(controller.getNextRefreshAt('wallet-home', 'fr-FR')).toBe(
+      now + UI_SLOTS_SOFT_TTL_MS,
+    );
+    expect(fetchScreen.mock.calls.map(([request]) => request.locale)).toEqual([
+      'fr-FR',
+      'fr',
+      'en',
+    ]);
   });
 
   it('deduplicates concurrent screen requests', async () => {

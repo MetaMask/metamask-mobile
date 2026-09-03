@@ -14,6 +14,7 @@ import {
   isRetryableUiSlotsError,
   type FetchUiSlotsScreenRequest,
   type FetchUiSlotsScreenResult,
+  UiSlotsHttpError,
   type UiSlotsReadTransport,
 } from './UiSlotsApiReadClient';
 import {
@@ -82,6 +83,14 @@ const countByCode = (
 const buildConfigurationKey = (screenId: UiSlotsScreenId, locale: string) =>
   `${screenId}:${encodeURIComponent(locale)}:${UI_SLOTS_CONTRACT_MAJOR}`;
 
+const getUiSlotsLocaleCandidates = (
+  screenId: UiSlotsScreenId,
+  locale: string,
+): string[] =>
+  screenId === 'wallet-home'
+    ? [...new Set([locale, locale.split('-')[0], 'en'])]
+    : [locale];
+
 export class UiSlotsController extends BaseController<
   typeof UI_SLOTS_CONTROLLER_NAME,
   UiSlotsControllerState,
@@ -93,6 +102,7 @@ export class UiSlotsController extends BaseController<
   readonly #now: () => number;
   readonly #diagnostics: UiSlotsDiagnostics;
   readonly #activeRequestByScreen = new Map<UiSlotsScreenId, ActiveRequest>();
+  readonly #missingConfigurationUntil = new Map<string, number>();
   /**
    * Responses already parsed against this build's contracts, so a persisted
    * configuration is validated once per session and its object identity stays
@@ -187,14 +197,23 @@ export class UiSlotsController extends BaseController<
     screenId: UiSlotsScreenId,
     locale: string,
   ): number | undefined {
-    const fetchedAt =
-      this.state.screenConfigurations[buildConfigurationKey(screenId, locale)]
-        ?.fetchedAt;
-    return this.#enabled &&
-      fetchedAt !== undefined &&
-      Number.isFinite(fetchedAt)
-      ? fetchedAt + UI_SLOTS_SOFT_TTL_MS
-      : undefined;
+    if (!this.#enabled) {
+      return undefined;
+    }
+    const refreshTimes = getUiSlotsLocaleCandidates(screenId, locale).flatMap(
+      (candidate) => {
+        const key = buildConfigurationKey(screenId, candidate);
+        const fetchedAt = this.state.screenConfigurations[key]?.fetchedAt;
+        const missingUntil = this.#missingConfigurationUntil.get(key);
+        return [
+          ...(fetchedAt !== undefined && Number.isFinite(fetchedAt)
+            ? [fetchedAt + UI_SLOTS_SOFT_TTL_MS]
+            : []),
+          ...(missingUntil === undefined ? [] : [missingUntil]),
+        ];
+      },
+    );
+    return refreshTimes.length > 0 ? Math.min(...refreshTimes) : undefined;
   }
 
   async #loadScreen(
@@ -202,32 +221,79 @@ export class UiSlotsController extends BaseController<
     locale: string,
     request: ActiveRequest,
   ): Promise<UiSlotsLoadOutcome> {
-    const key = buildConfigurationKey(screenId, locale);
-    const cached = this.#readCachedConfiguration(key, screenId, locale);
-
-    if (cached) {
-      this.#activateConfiguration(key, screenId, cached.response);
-      if (this.#now() - cached.fetchedAt < UI_SLOTS_SOFT_TTL_MS) {
-        return 'ready';
-      }
-    } else {
-      this.#clearActiveConfiguration(screenId);
+    const candidates = getUiSlotsLocaleCandidates(screenId, locale).map(
+      (candidate) => {
+        const key = buildConfigurationKey(screenId, candidate);
+        return {
+          locale: candidate,
+          key,
+          cached: this.#readCachedConfiguration(key, screenId, candidate),
+        };
+      },
+    );
+    const fallback = candidates.find(({ cached }) => cached);
+    if (fallback?.cached) {
+      this.#activateConfiguration(
+        fallback.key,
+        screenId,
+        fallback.cached.response,
+      );
     }
 
-    try {
-      const result = await this.#fetchScreen({
-        screenId,
-        locale,
-        etag: cached?.etag,
-      });
-
+    for (const { locale: candidate, key, cached } of candidates) {
       if (this.#activeRequestByScreen.get(screenId) !== request) {
         return 'ready';
       }
-      return this.#applyScreenResult(result, cached, key, screenId, locale);
-    } catch (error) {
-      return this.#handleLoadError(error, request, screenId, Boolean(cached));
+
+      if (cached) {
+        this.#activateConfiguration(key, screenId, cached.response);
+        if (this.#now() - cached.fetchedAt < UI_SLOTS_SOFT_TTL_MS) {
+          return 'ready';
+        }
+      } else {
+        const missingUntil = this.#missingConfigurationUntil.get(key);
+        if (missingUntil !== undefined && this.#now() < missingUntil) {
+          continue;
+        }
+        this.#missingConfigurationUntil.delete(key);
+      }
+
+      try {
+        const result = await this.#fetchScreen({
+          screenId,
+          locale: candidate,
+          etag: cached?.etag,
+        });
+
+        if (this.#activeRequestByScreen.get(screenId) !== request) {
+          return 'ready';
+        }
+        this.#missingConfigurationUntil.delete(key);
+        return this.#applyScreenResult(
+          result,
+          cached,
+          key,
+          screenId,
+          candidate,
+        );
+      } catch (error) {
+        if (
+          !cached &&
+          error instanceof UiSlotsHttpError &&
+          error.status === 404
+        ) {
+          this.#missingConfigurationUntil.set(
+            key,
+            this.#now() + UI_SLOTS_SOFT_TTL_MS,
+          );
+          continue;
+        }
+        return this.#handleLoadError(error, request, screenId, Boolean(cached));
+      }
     }
+
+    this.#clearActiveConfiguration(screenId);
+    return 'ready';
   }
 
   #applyScreenResult(

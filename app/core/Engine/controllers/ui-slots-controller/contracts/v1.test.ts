@@ -39,21 +39,6 @@ const validDiscovery = {
 };
 
 describe('parseUiSlotsResponse', () => {
-  it('rejects responses above the slot-count bound', () => {
-    const slots = Array.from({ length: 21 }, (_, index) => ({
-      ...validDiscovery,
-      slotId: `wallet-home.slot-${index}`,
-      contentId: `content-${index}`,
-    }));
-
-    expect(() =>
-      parseUiSlotsResponse(
-        makeResponse(slots),
-        MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-      ),
-    ).toThrow('invalid-slot-structure');
-  });
-
   it('strips additive envelope and slot fields', () => {
     const { response } = parseUiSlotsResponse(
       makeResponse([validDiscovery]),
@@ -127,26 +112,6 @@ describe('parseUiSlotsResponse', () => {
             validDiscovery.dataReferences[0],
             validDiscovery.dataReferences[0],
           ],
-        },
-      ]),
-      MOBILE_UI_SLOTS_CONTRACT_REGISTRY,
-    );
-
-    expect(parsed.response.slots).toEqual([]);
-    expect(parsed.rejections).toEqual([
-      { index: 0, code: 'invalid-data-reference' },
-    ]);
-  });
-
-  it('rejects slots above the data-reference-count bound', () => {
-    const parsed = parseUiSlotsResponse(
-      makeResponse([
-        {
-          ...validDiscovery,
-          dataReferences: Array.from(
-            { length: 11 },
-            () => validDiscovery.dataReferences[0],
-          ),
         },
       ]),
       MOBILE_UI_SLOTS_CONTRACT_REGISTRY,

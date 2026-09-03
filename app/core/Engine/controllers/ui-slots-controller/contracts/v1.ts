@@ -12,9 +12,6 @@ import {
 import type { UiSlot, UiSlotsScreenResponse } from '../types';
 import type { UiSlotsContractRegistry } from './registry';
 
-const MAX_SLOTS_PER_RESPONSE = 20;
-const MAX_DATA_REFERENCES_PER_SLOT = 10;
-
 export type UiSlotsRejectionCode =
   | 'invalid-action'
   | 'invalid-data-reference'
@@ -111,12 +108,6 @@ function parseUiSlot(
   if (base.actions?.length) {
     throw new UiSlotsContractError('invalid-action');
   }
-  if (
-    base.dataReferences &&
-    base.dataReferences.length > MAX_DATA_REFERENCES_PER_SLOT
-  ) {
-    throw new UiSlotsContractError('invalid-data-reference');
-  }
   const dataReferences = base.dataReferences?.map((reference) =>
     parseRegistered(
       reference,
@@ -178,9 +169,6 @@ export function parseUiSlotsResponse(
   rejections: UiSlotsRejection[];
 } {
   const envelope = mask(value, envelopeSchema);
-  if (envelope.slots.length > MAX_SLOTS_PER_RESPONSE) {
-    throw new UiSlotsResponseValidationError('invalid-slot-structure');
-  }
   const slots: UiSlot[] = [];
   const rejections: UiSlotsRejection[] = [];
   const candidates = envelope.slots.map((candidate, index) => {
