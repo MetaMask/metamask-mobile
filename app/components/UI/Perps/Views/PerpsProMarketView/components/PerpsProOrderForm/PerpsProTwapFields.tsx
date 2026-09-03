@@ -75,16 +75,25 @@ const PerpsProTwapFields = ({
     </ButtonBase>
     <Box twClassName="h-[54px] justify-center border-t border-muted px-3">
       <Checkbox
-        label={strings('perps.pro_order_form.twap.randomize')}
-        labelProps={{
-          variant: TextVariant.BodySm,
-          fontWeight: FontWeight.Regular,
-          color: TextColor.TextAlternative,
-          twClassName: 'ml-0 flex-1',
-        }}
+        // A string label is wrapped in the design system's own Text with a
+        // hardcoded `ml-3` that overrides `labelProps`. Under
+        // `flex-row-reverse` the label leads the row, so that margin indents it
+        // past the Runtime label above. Passing an element instead skips the
+        // wrapper, leaving both labels on the same left edge.
+        label={
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Regular}
+            color={TextColor.TextAlternative}
+            twClassName="flex-1"
+          >
+            {strings('perps.pro_order_form.twap.randomize')}
+          </Text>
+        }
         isSelected={twap.randomize}
         onChange={twap.onRandomizeChange}
         testID={ids.TWAP_RANDOMIZE}
+        accessibilityLabel={strings('perps.pro_order_form.twap.randomize')}
         accessibilityHint={strings(
           'perps.pro_order_form.twap.randomize_description',
           PERPS_TWAP_UI_CONFIG.RandomizeI18nValues,
