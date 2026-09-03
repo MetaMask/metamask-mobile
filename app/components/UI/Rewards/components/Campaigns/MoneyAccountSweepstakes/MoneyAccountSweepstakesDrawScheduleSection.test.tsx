@@ -46,6 +46,27 @@ jest.mock('../../../hooks/useGetMoneyAccountSweepstakesPrizePool', () => ({
     mockGetPrizePool(campaignId),
 }));
 
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: (key: string, params?: Record<string, unknown>) => {
+    const map: Record<string, string> = {
+      'rewards.campaign_prize_pool.current_label': 'Prize pool',
+      'rewards.campaign_prize_pool.next_label': 'Next prize',
+      'rewards.campaign_prize_pool.max_badge': 'Max',
+      'rewards.campaign_prize_pool.retry': 'Retry',
+      'rewards.campaign_prize_pool.error_title': 'Error',
+      'rewards.campaign_prize_pool.error_description': 'Error loading prize pool',
+      'rewards.campaign_winning.you_won': 'You won',
+    };
+    if (key === 'rewards.campaign_prize_pool.volume_subtext') {
+      return `Vol: ${params?.current} / ${params?.target}`;
+    }
+    if (key === 'rewards.campaign_prize_pool.max_tier_subtext') {
+      return `Max reached: ${params?.maxThreshold}`;
+    }
+    return map[key] ?? key;
+  },
+}));
+
 jest.mock('../../../utils/formatUtils', () => ({
   formatUsd: (value: number) =>
     `$${Number(value).toLocaleString('en-US', {

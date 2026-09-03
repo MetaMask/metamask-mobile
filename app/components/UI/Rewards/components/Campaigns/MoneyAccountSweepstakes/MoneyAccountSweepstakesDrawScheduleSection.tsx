@@ -140,7 +140,9 @@ const WeekRow: React.FC<WeekRowProps> = ({
             color={TextColor.TextAlternative}
             twClassName="flex-1"
           >
-            {weekTitle} · {localizedText.completeLabel}
+            <Text>{weekTitle}</Text>
+            {' · '}
+            {localizedText.completeLabel}
           </Text>
           {hasWon ? (
             <Button
@@ -173,18 +175,18 @@ const WeekRow: React.FC<WeekRowProps> = ({
             </Text>
           )}
         </Box>
+        <ActiveWeekPrizePool campaignId={campaign.id} />
       </Box>
     );
   }
 
   if (status === 'active') {
-    const entriesDisplay =
-      isParticipating && entryCount !== undefined
-        ? localizedText.entriesCountValue.replace(
+    const entriesDisplay = isParticipating
+      ? localizedText.entriesCountValue.replace(
             ENTRIES_COUNT_PLACEHOLDER,
             entryCount != null ? String(entryCount) : '-',
           )
-        : null;
+      : null;
 
     return (
       <Box

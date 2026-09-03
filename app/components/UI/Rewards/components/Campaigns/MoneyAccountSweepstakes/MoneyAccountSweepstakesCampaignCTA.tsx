@@ -35,7 +35,6 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
 > = ({ campaign, seriesStatus, localizedText }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
-  const shouldNavigateToAddMoneyRef = useRef(false);
   // Toast after Add Money closes — Rewards toast sits under native modals.
   const pendingNoFundingToastRef = useRef(false);
   const { showToast, RewardsToastOptions } = useRewardsToast();
@@ -108,21 +107,16 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
   const handleCustomOptIn = useCallback(async (): Promise<boolean> => {
     const result = await ensureOptedIn();
     if (result.reason === 'binding-conflict') {
+      setIsOptInSheetOpen(false);
       showBindingConflictToast();
-      shouldNavigateToAddMoneyRef.current = false;
       return false;
     }
-    shouldNavigateToAddMoneyRef.current = result.success;
     return result.success;
   }, [ensureOptedIn, showBindingConflictToast]);
 
   const handleOptInSheetClose = useCallback(() => {
     setIsOptInSheetOpen(false);
-    if (shouldNavigateToAddMoneyRef.current) {
-      shouldNavigateToAddMoneyRef.current = false;
-      navigateToAddMoney();
-    }
-  }, [navigateToAddMoney]);
+  }, []);
 
   const handlePress = useCallback(async () => {
     if (isGeoLoading) {
@@ -141,7 +135,6 @@ const MoneyAccountSweepstakesCampaignCTA: React.FC<
       navigateToAddMoney();
       return;
     }
-    shouldNavigateToAddMoneyRef.current = false;
     setIsOptInSheetOpen(true);
   }, [
     isGeoLoading,
