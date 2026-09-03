@@ -328,10 +328,7 @@ const BridgeMarketViewContent = ({
   );
 
   const isFooterVisible = useMemo(() => {
-    if (isLoading && !activeQuote && !needsNewQuote) {
-      return false;
-    }
-    if (needsNewQuote) {
+    if (needsNewQuote || (isLoading && !activeQuote)) {
       return true;
     }
     if (!activeQuote) {
