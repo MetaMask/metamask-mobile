@@ -49,10 +49,6 @@ jobs:
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
          vars.NAMESPACE_RUNNER_IOS || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ios-build' ||
-        inputs.runner_provider == 'bitrise' &&
-        (vars.BITRISE_BUILD_MACHINE_TYPE != '' &&
-         fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) ||
-         'bitrise_pool_name:bitrise-metamask-ios-build') ||
         'macos-15'
       }}
     outputs:

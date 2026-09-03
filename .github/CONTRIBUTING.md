@@ -35,7 +35,7 @@ Which runner fleet a job lands on is controlled by three repository-level Action
 Accepted values:
 
 - `namespace` — Namespace runners (`namespace-profile-*`).
-- `bitrise` — Bitrise Build Hub runners, only for workflows that explicitly support the Bitrise provider.
+- Any other value (including an unset platform variable with no dispatch override) falls through to GitHub-hosted runners (`ubuntu-latest` on Linux, `macos-15` on macOS).
 
 Resolution order, highest priority first:
 
@@ -45,7 +45,7 @@ Resolution order, highest priority first:
 
 Push-, schedule- and `merge_group`-triggered workflows have no dispatch inputs, so the platform variables are the way to steer them. When a platform variable is unset, the workflow defaults to Namespace.
 
-The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) use Namespace. BrowserStack native builds go through `build.yml` and follow the platform fleet. OTA (`eas-update-platform.yml`) and iOS BrowserStack upload follow `NAMESPACE_RUNNER_LINUX` (`ci-linux` vs `ubuntu-latest`). Android BrowserStack upload/repack follows `NAMESPACE_RUNNER_ANDROID` (`metamask-android-build`, which has JDK and `/opt/android-sdk`). Bitrise routing remains explicit and separate. Do not put that job on `ci-linux`.
+The production build chain (`build.yml`, `setup-node-modules.yml`, `upload-to-testflight.yml` and their callers) and PR CI (`ci.yml` plus the Android/iOS e2e build workflows) use Namespace. BrowserStack native builds go through `build.yml` and follow the platform fleet. OTA (`eas-update-platform.yml`) and iOS BrowserStack upload follow `NAMESPACE_RUNNER_LINUX` (`ci-linux` vs `ubuntu-latest`). Android BrowserStack upload/repack follows `NAMESPACE_RUNNER_ANDROID` (`metamask-android-build`, which has JDK and `/opt/android-sdk`). Do not put that job on `ci-linux`.
 
 The scheduled arm64 E2E APK build (`build-android-arm64-scheduled.yml`) uses `inherit`. It dual-uploads the release APK to both GitHub Actions and Namespace artifact stores so the local-repro `gh run download` path continues to work while the build runs on Namespace. Appium jobs and fixture validation follow the same resolution chain as the PR build jobs (converted in #35002).
 
@@ -53,7 +53,7 @@ A few short GitHub-hosted jobs stay on `ubuntu-latest` on purpose and do not fol
 
 #### Provider overrides
 
-The legacy runner rollback path has been retired. Namespace is the supported provider for migrated jobs. Bitrise may be selected explicitly only in workflows that document Bitrise support.
+The legacy Cirrus/`current` rollback path has been retired. Namespace is the supported provider for migrated jobs. Non-Namespace resolution routes to GitHub-hosted runners.
 
 In-flight runs are unaffected; the next run picks up the new value.
 
