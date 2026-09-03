@@ -83,6 +83,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
+import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
+import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -99,6 +101,13 @@ import {
   getLoginPerformanceTags,
   markLoginInteractionCompleted,
 } from './loginPerformanceTags';
+import {
+  getLoginUnlockFailureErrorType,
+  trackAppUnlocked,
+  trackAppUnlockedFailed,
+  UNLOCK_TYPE,
+  type UnlockType,
+} from './loginUnlockAnalytics';
 import {
   cancelHomepageReadyTrace,
   startHomepageReadyTrace,
@@ -143,6 +152,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   const [startFoxAnimation, setStartFoxAnimation] = useState<
     undefined | 'Start' | 'Loader'
   >(undefined);
+
+  useOnboardingLoadingStallTracker({
+    isLoading: loading,
+    screen: ONBOARDING_LOADING_STALL_SCREEN.LOGIN,
+    saveOnboardingEvent,
+  });
 
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<{ params: LoginRouteParams }, 'params'>>();
@@ -256,9 +271,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
   }, []);
 
   const handleLoginError = useCallback(
-    async (loginError: Error) => {
+    async (loginError: Error, unlockType: UnlockType) => {
       // Prioritize message property over toString for error handling
       const loginErrorMessage = loginError.message || loginError.toString();
+
+      trackAppUnlockedFailed({
+        unlockType,
+        reason: getLoginUnlockFailureErrorType(loginError),
+        saveOnboardingEvent,
+      });
 
       const isWrongPasswordError =
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR) ||
@@ -320,7 +341,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       setLoading(false);
       Logger.error(loginError, 'Failed to unlock');
     },
-    [handlePasswordError, handleVaultCorruption, navigation],
+    [
+      handlePasswordError,
+      handleVaultCorruption,
+      navigation,
+      saveOnboardingEvent,
+    ],
   );
 
   const unlockWithPassword = useCallback(async () => {
@@ -379,12 +405,16 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           }
         },
       );
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.PASSWORD,
+        saveOnboardingEvent,
+      });
     } catch (loginErr) {
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
-      await handleLoginError(loginErr as Error);
+      await handleLoginError(loginErr as Error, UNLOCK_TYPE.PASSWORD);
     }
     setLoading(false);
   }, [
@@ -394,6 +424,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     unlockWallet,
     getAuthType,
     checkIsSeedlessPasswordOutdated,
+    saveOnboardingEvent,
   ]);
 
   const unlockWithDeviceAuthentication = useCallback(async () => {
@@ -427,15 +458,19 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
           await unlockWallet();
         },
       );
+      trackAppUnlocked({
+        unlockType: UNLOCK_TYPE.BIOMETRIC,
+        saveOnboardingEvent,
+      });
     } catch (loginerror) {
       cancelHomepageReadyTrace({
         reason: 'unlock_failed',
         traceToken: homepageReadyTraceToken,
       });
-      await handleLoginError(loginerror as Error);
+      await handleLoginError(loginerror as Error, UNLOCK_TYPE.BIOMETRIC);
     }
     setLoading(false);
-  }, [unlockWallet, loading, handleLoginError]);
+  }, [unlockWallet, loading, handleLoginError, saveOnboardingEvent]);
 
   const toggleWarningModal = async () => {
     if (isProcessingForgotPassword.current) {

@@ -51,6 +51,13 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
+jest.mock(
+  '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
+  () => ({
+    useOnboardingLoadingStallTracker: jest.fn(),
+  }),
+);
+
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
     dismiss: jest.fn(),

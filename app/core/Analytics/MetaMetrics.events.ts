@@ -192,6 +192,7 @@ enum EVENT_NAME {
   WALLET_CREATION_ATTEMPTED = 'Wallet Creation Attempted',
   WALLET_CREATED = 'Wallet Created',
   WALLET_SETUP_FAILURE = 'Wallet Setup Failure',
+  ONBOARDING_LOADING_TIMED_OUT = 'Onboarding Loading Timed Out',
   WALLET_GOOGLE_IOS_WARNING_VIEWED = 'Wallet Google Ios Warning Viewed',
   WALLET_GOOGLE_IOS_ERROR_VIEWED = 'Wallet Google Ios Error Viewed',
   WALLET_CREATION_ERROR_SCREEN_VIEWED = 'Wallet Creation Error Screen Viewed',
@@ -541,6 +542,7 @@ enum EVENT_NAME {
 
   // Login screen
   LOGIN_SCREEN_VIEWED = 'Login Screen Viewed',
+  APP_UNLOCKED = 'App Unlocked',
 
   // Reset Wallet Confirmed Modal
   RESET_WALLET_CONFIRMED = 'Reset Wallet Confirmed',
@@ -1074,6 +1076,9 @@ const events = {
   WALLET_CREATION_ATTEMPTED: generateOpt(EVENT_NAME.WALLET_CREATION_ATTEMPTED),
   WALLET_CREATED: generateOpt(EVENT_NAME.WALLET_CREATED),
   WALLET_SETUP_FAILURE: generateOpt(EVENT_NAME.WALLET_SETUP_FAILURE),
+  ONBOARDING_LOADING_TIMED_OUT: generateOpt(
+    EVENT_NAME.ONBOARDING_LOADING_TIMED_OUT,
+  ),
   WALLET_GOOGLE_IOS_WARNING_VIEWED: generateOpt(
     EVENT_NAME.WALLET_GOOGLE_IOS_WARNING_VIEWED,
   ),
@@ -1511,6 +1516,7 @@ const events = {
 
   // Login screen
   LOGIN_SCREEN_VIEWED: generateOpt(EVENT_NAME.LOGIN_SCREEN_VIEWED),
+  APP_UNLOCKED: generateOpt(EVENT_NAME.APP_UNLOCKED),
 
   // Delete Wallet Modal
   RESET_WALLET_CONFIRMED: generateOpt(EVENT_NAME.RESET_WALLET_CONFIRMED),
