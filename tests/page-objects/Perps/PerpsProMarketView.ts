@@ -9,6 +9,7 @@ import {
   getPerpsProPositionRowSelector,
   PerpsModeSelectionBottomSheetSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
+  PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
@@ -206,7 +207,7 @@ class PerpsProMarketView {
     // iOS XCUITest often reports the BottomSheet container / cards as
     // isDisplayed=false while the sheet is on screen. Detect via isExisting
     // (title or Pro option), not isDisplayed.
-    if (await this.isModeSelectionSheetPresent(10000)) {
+    if (await this.isModeSelectionSheetPresent(2000)) {
       await this.confirmProModeOnSelectionSheet();
     }
 
@@ -450,11 +451,16 @@ class PerpsProMarketView {
   }
 
   async selectLimitOrderType(): Promise<void> {
-    await Gestures.waitAndTap(Matchers.getElementByText('Limit'), {
-      elemDescription: 'Select Limit order type',
-      checkForDisplayed: true,
-      timeout: 10000,
-    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+      ),
+      {
+        elemDescription: 'Select Limit order type',
+        checkForDisplayed: true,
+        timeout: 10000,
+      },
+    );
     // Wait for the Limit row to mount (Mid chip / empty-field pressable).
     await Assertions.expectElementToBeVisible(this.limitPriceField, {
       description: 'Pro limit price field after selecting Limit',
@@ -644,7 +650,7 @@ class PerpsProMarketView {
       this.positionsPanel,
       'Pro positions panel list',
     );
-    await Assertions.expectElementToNotBeVisible(this.positionRow(symbol), {
+    await Assertions.expectElementToNotExist(this.positionRow(symbol), {
       description: `Pro position row for ${symbol} should not be visible`,
       timeout: 10000,
     });
@@ -750,7 +756,7 @@ class PerpsProMarketView {
       this.positionsPanel,
       'Pro positions panel orders list',
     );
-    await Assertions.expectElementToNotBeVisible(this.orderRow(symbol, index), {
+    await Assertions.expectElementToNotExist(this.orderRow(symbol, index), {
       description: `Pro order row ${symbol}[${index}] should not be visible`,
       timeout: 10000,
     });

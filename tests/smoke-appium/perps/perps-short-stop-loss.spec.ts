@@ -95,6 +95,7 @@ appiumTest.describe(SmokePerps('Perps Pro - Short stop loss'), () => {
           await PerpsProMarketView.enterSize('500');
           await PerpsProMarketView.tapTpslSection();
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2700');
+          await PerpsProMarketView.waitForFeesReady();
           await PerpsProMarketView.tapPlaceOrderButton();
 
           await PerpsProMarketView.waitForPositionRow(
