@@ -202,6 +202,10 @@ export const TP_SL_VIEW_CONFIG = {
   // Reduces re-renders by batching price updates in the TP/SL screen
   PriceThrottleMs: 1000,
 
+  // WebSocket position update throttle delay (milliseconds)
+  // The screen only reads position existence, so it does not need every tick
+  PositionThrottleMs: 1000,
+
   // Maximum number of digits allowed in price/percentage input fields
   // Prevents overflow and maintains reasonable input constraints
   MaxInputDigits: MAX_PERPS_INPUT_DIGITS,
