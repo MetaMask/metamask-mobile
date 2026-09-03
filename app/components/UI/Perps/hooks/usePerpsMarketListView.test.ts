@@ -1252,5 +1252,108 @@ describe('usePerpsMarketListView', () => {
         }),
       );
     });
+
+    it('persists enabling the watchlist filter and clears the category', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      act(() => {
+        result.current.favoritesState.setShowFavoritesOnly(true);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'all',
+          showFavoritesOnly: true,
+        }),
+      );
+    });
+
+    it('does not overwrite the saved category with a route-provided filter', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the saved category when a route filter changes on rerender', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stock' });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the saved preferences with a route-provided watchlist filter', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      renderHook(() => usePerpsMarketListView({ showWatchlistOnly: true }));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('persists the user choice made after arriving with a route-provided filter', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      act(() => {
+        result.current.marketTypeFilterState.setMarketTypeFilter('forex');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'forex',
+          showFavoritesOnly: false,
+        }),
+      );
+    });
   });
 });
