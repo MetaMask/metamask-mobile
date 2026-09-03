@@ -66,6 +66,7 @@ import {
   isCardAuthTokenError,
   CardProviderIds,
   type CardProviderId,
+  type UserResponse,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
@@ -1563,6 +1564,22 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) =>
       patchContactDetails(details, tokens),
     );
+  }
+
+  /**
+   * Authenticated profile for the active provider (`GET /v1/user` on Baanx).
+   * Used by UK migration SignUp prefill while the Baanx session is still active.
+   */
+  async getUserDetails(): Promise<UserResponse> {
+    const provider = this.getActiveProvider();
+    const getUserDetails = provider.getUserDetails?.bind(provider);
+    if (!getUserDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'User details not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getUserDetails(tokens));
   }
 
   async updateAssetPriority(
