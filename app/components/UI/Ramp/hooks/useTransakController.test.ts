@@ -449,6 +449,7 @@ describe('useTransakController', () => {
         'ethereum',
         'card',
         '100',
+        true,
       );
       expect(quote).toEqual(mockQuote);
     });

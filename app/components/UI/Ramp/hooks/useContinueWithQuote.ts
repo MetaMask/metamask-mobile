@@ -22,6 +22,7 @@ import {
 } from '../utils/buildQuoteWithRedirectUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../utils/rampsNavigation';
 import { reportRampsError } from '../utils/reportRampsError';
+import { getEffectiveFeeMode } from '../utils/transakQuoteParity';
 import {
   type Quote,
   isNativeProvider,
@@ -123,6 +124,7 @@ export function useContinueWithQuote(
     selectedProvider,
     selectedPaymentMethod,
     userRegion,
+    getQuotes,
     getBuyWidgetData,
     addPrecreatedOrder,
   } = useRampsController();
@@ -152,12 +154,29 @@ export function useContinueWithQuote(
     [navigation],
   );
 
-  // The aggregator-format `_quote` is used only by the caller to dispatch
+  // The aggregator-format quote is also the accepted pricing contract used
+  // to drive the authenticated native quote.
   // to this branch via `isNativeProvider`. The native (Transak) path fetches
   // its own `TransakBuyQuote` via `transakGetBuyQuote` below.
   const continueNative = useCallback(
-    async (_quote: Quote, ctx: ContinueWithQuoteContext) => {
-      const { amount, assetId } = ctx;
+    async (quote: Quote, ctx: ContinueWithQuoteContext) => {
+      const { assetId } = ctx;
+      const isHeadlessFeeOnTop =
+        Boolean(ctx.headlessSessionId) &&
+        getEffectiveFeeMode(quote) === 'fee-on-top';
+      // UB2 native lookups historically always requested fee-on-top. Keep that
+      // default outside headless MMPay so this fee-mode work cannot flip UB2.
+      const isFeeExcludedFromFiat = ctx.headlessSessionId
+        ? isHeadlessFeeOnTop
+        : true;
+      const amount = isHeadlessFeeOnTop
+        ? Number(quote.quote.amountIn)
+        : ctx.amount;
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error(
+          'Native provider flow requires a valid quote principal',
+        );
+      }
       // Resolve every controller-coupled value through the override-first
       // ladder so headless callers (Phase 5) can drive this hook without
       // pre-seeding the RampsController.
@@ -201,6 +220,7 @@ export function useContinueWithQuote(
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
+            isFeeExcludedFromFiat,
           );
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
@@ -228,6 +248,13 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
+        if (
+          error instanceof Error &&
+          'headlessBuyErrorCode' in error &&
+          error.headlessBuyErrorCode === 'QUOTE_CHANGED'
+        ) {
+          throw error;
+        }
         if (nativeCufOpId) {
           endRampsBuyCufChildTrace({
             id: nativeCufOpId,
@@ -307,7 +334,34 @@ export function useContinueWithQuote(
         );
         useExternalBrowser = redirectConfig.useExternalBrowser;
         redirectUrl = redirectConfig.redirectUrl;
-        const quoteForWidget = buildQuoteWithRedirectUrl(quote, redirectUrl);
+        let checkoutQuote = quote;
+        const quotedAmount = Number(quote.quote.amountIn);
+
+        if (quotedAmount !== ctx.amount) {
+          const refreshedQuotes = await getQuotes({
+            assetId: ctx.assetId,
+            amount: ctx.amount,
+            walletAddress: effectiveWalletAddress ?? '',
+            paymentMethods: [ctx.paymentMethodId ?? quote.quote.paymentMethod],
+            providers: [quote.provider],
+            fiat: effectiveCurrency,
+            redirectUrl,
+            forceRefresh: true,
+          });
+          const refreshedQuote = refreshedQuotes.success?.find(
+            (candidate) => candidate.provider === quote.provider,
+          );
+
+          if (!refreshedQuote) {
+            throw new Error('No refreshed widget quote available');
+          }
+          checkoutQuote = refreshedQuote;
+        }
+
+        const quoteForWidget = buildQuoteWithRedirectUrl(
+          checkoutQuote,
+          redirectUrl,
+        );
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
         endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
@@ -427,6 +481,7 @@ export function useContinueWithQuote(
       walletAddress,
       currency,
       navigation,
+      getQuotes,
       getBuyWidgetData,
       addPrecreatedOrder,
       navigateAfterExternalBrowser,

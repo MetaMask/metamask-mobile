@@ -301,8 +301,24 @@ jest.mock('../constants', () => ({
 const mockQuote = {
   quoteId: 'test-quote-id',
   fiatAmount: 100,
-  cryptoAmount: 0.05,
+  cryptoAmount: 0.1,
   fiatCurrency: 'USD',
+  cryptoCurrency: 'ETH',
+  network: 'ethereum',
+  paymentMethod: 'credit_debit_card',
+  conversionPrice: 1000,
+  totalFee: 0.7,
+  feeBreakdown: [
+    { id: 'transak_fee', value: 0.4 },
+    { id: 'network_fee', value: 0.2 },
+    { id: 'partner_fee', value: 0.1 },
+  ],
+  requestedAssetId: 'eip155:42161/slip44:60',
+  requestedChainId: 'eip155:42161',
+  feeMode: {
+    requested: 'fee-on-top',
+    effective: 'fee-on-top',
+  },
 };
 
 describe('useTransakRouting', () => {
@@ -605,7 +621,27 @@ describe('useTransakRouting', () => {
         .getSession as jest.Mock;
       mockGetSession.mockReturnValue({
         id: 'hs-1',
-        params: { assetId: 'eip155:42161/slip44:60' },
+        params: {
+          assetId: 'eip155:42161/slip44:60',
+          quote: {
+            quote: {
+              amountIn: 100,
+              paymentMethod: '/payments/debit-credit-card',
+              providerFee: 0.4,
+              networkFee: 0.2,
+              extraFee: 0.1,
+              totalFees: 0.7,
+              feeMode: {
+                requested: 'fee-on-top',
+                effective: 'fee-on-top',
+              },
+              crypto: {
+                symbol: 'ETH',
+                network: { shortName: 'Ethereum' },
+              },
+            },
+          },
+        },
         callbacks: {
           onOrderCreated: jest.fn(),
           onClose: jest.fn(),
@@ -638,19 +674,144 @@ describe('useTransakRouting', () => {
         }),
       );
       await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
+        await result.current.routeAfterAuthentication(mockQuote as never, 50);
       });
 
       expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:42161');
       expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
         'test-ott',
-        mockQuote,
+        { ...mockQuote, fiatAmount: 100 },
         MOCK_WALLET_ADDRESS,
-        { theme: 'light' },
+        { theme: 'light', isFeeExcludedFromFiat: 'true' },
       );
+    });
+
+    it('uses the accepted principal with fee exclusion on the headless proxy path', async () => {
+      mockIsTransakWidgetUrlProxyEnabled = true;
+      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+        .getSession as jest.Mock;
+      mockGetSession.mockReturnValue({
+        params: {
+          amount: 50,
+          assetId: 'eip155:42161/slip44:60',
+          quote: {
+            quote: {
+              amountIn: 100,
+              paymentMethod: '/payments/debit-credit-card',
+              providerFee: 0.4,
+              networkFee: 0.2,
+              extraFee: 0.1,
+              totalFees: 0.7,
+              feeMode: {
+                requested: 'fee-on-top',
+                effective: 'fee-on-top',
+              },
+              crypto: {
+                symbol: 'ETH',
+                network: { shortName: 'Ethereum' },
+              },
+            },
+          },
+        },
+      });
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        lastName: 'Doe',
+        mobileNumber: '+1',
+        dob: '1990-01-01',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockCreateWidgetUrl.mockResolvedValue('https://proxy-widget.example.com');
+
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-fee-excluded' },
+        }),
+      );
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(mockQuote as never);
+      });
+
+      expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
+        { ...mockQuote, fiatAmount: 100 },
+        MOCK_WALLET_ADDRESS,
+        { widgetTheme: 'light', isFeeExcludedFromFiat: 'true' },
+      );
+    });
+
+    it('fails and dismisses the headless flow when the native quote reprices', async () => {
+      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+        .getSession as jest.Mock;
+      const mockFailSession = jest.requireMock('../headless/sessionRegistry')
+        .failSession as jest.Mock;
+      mockGetSession.mockReturnValue({
+        params: {
+          assetId: 'eip155:42161/slip44:60',
+          quote: {
+            quote: {
+              amountIn: 101,
+              paymentMethod: '/payments/debit-credit-card',
+              providerFee: 0.4,
+              networkFee: 0.2,
+              extraFee: 0.1,
+              totalFees: 0.7,
+              feeMode: {
+                requested: 'fee-on-top',
+                effective: 'fee-on-top',
+              },
+              crypto: {
+                symbol: 'ETH',
+                network: { shortName: 'Ethereum' },
+              },
+            },
+          },
+        },
+      });
+      const { result } = renderHook(() =>
+        useTransakRouting({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-repriced' },
+        }),
+      );
+
+      await expect(
+        act(async () => {
+          await result.current.routeAfterAuthentication(mockQuote as never);
+        }),
+      ).rejects.toMatchObject({
+        headlessBuyErrorCode: 'QUOTE_CHANGED',
+      });
+
+      expect(mockFailSession).toHaveBeenCalledWith(
+        'hs-repriced',
+        expect.objectContaining({
+          headlessBuyErrorCode: 'QUOTE_CHANGED',
+        }),
+        'QUOTE_CHANGED',
+      );
+      expect(
+        jest.requireMock('../../../../util/Logger').error,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          headlessBuyErrorCode: 'QUOTE_CHANGED',
+        }),
+        expect.objectContaining({
+          message: 'Transak quote changed after authentication',
+          code: 'QUOTE_CHANGED',
+          mismatches: expect.any(Array),
+        }),
+      );
+      expect(mockParentPop).toHaveBeenCalled();
+      expect(mockGetUserDetails).not.toHaveBeenCalled();
     });
 
     it('falls back to the selectedToken chain when there is no headless session', () => {
@@ -1006,6 +1167,43 @@ describe('useTransakRouting', () => {
             }),
           ],
         }),
+      );
+    });
+
+    it('checks limits with the Buy selected payment method when there is no headless session', async () => {
+      mockSelectedPaymentMethod = {
+        id: '/payments/sepa-bank-transfer',
+        isManualBankTransfer: false,
+      };
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/sepa-bank-transfer',
+        'SIMPLE',
       );
     });
 
@@ -1692,6 +1890,27 @@ describe('useTransakRouting', () => {
       baseRouteParams: { headlessSessionId: 'hs-1' },
     };
 
+    const headlessSessionWith = ({
+      paymentMethodId,
+      quotePaymentMethod,
+    }: {
+      paymentMethodId?: string;
+      quotePaymentMethod?: string;
+    }) => ({
+      id: 'hs-1',
+      status: 'continued',
+      params: {
+        amount: 100,
+        paymentMethodId,
+        quote: { quote: { paymentMethod: quotePaymentMethod } },
+      },
+      callbacks: {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      },
+    });
+
     const depositOrder = {
       id: 'order-hs',
       providerOrderId: 'order-hs',
@@ -2141,78 +2360,93 @@ describe('useTransakRouting', () => {
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
     });
 
-    it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {
-      const onOrderCreated = jest.fn();
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        status: 'continued',
-        params: { rampSurface: 'money_account' },
-        callbacks: {
-          onOrderCreated,
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        },
-      });
+    it('checks limits with the session Apple Pay method when the Buy catalog has no selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/apple-pay',
+          quotePaymentMethod: '/payments/apple-pay',
+        }),
+      );
+      mockSelectedPaymentMethod = null;
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/apple-pay',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
+    });
+
+    it('checks limits with the quote debit/card method when the Buy catalog has no selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
+      mockSelectedPaymentMethod = null;
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
+    });
+
+    it('prefers the session debit/card method over a stale Buy Apple Pay selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/debit-credit-card',
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
+      mockSelectedPaymentMethod = {
+        id: '/payments/apple-pay',
+        isManualBankTransfer: false,
+      };
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+    });
+
+    it('ignores a stale Buy manual bank transfer selection and routes the headless buy to the widget', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/debit-credit-card',
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
       mockSelectedPaymentMethod = {
         id: '/payments/bank-transfer',
         isManualBankTransfer: true,
       };
-      mockGetUserDetails.mockResolvedValue({
-        firstName: 'John',
-        address: {},
-      });
-      mockGetKycRequirement.mockResolvedValue({
-        status: 'APPROVED',
-        kycType: 'SIMPLE',
-      });
-      mockGetUserLimits.mockResolvedValue({
-        remaining: { '1': 10000, '30': 50000, '365': 200000 },
-      });
-      mockTransakCreateOrder.mockResolvedValue({
-        id: 'order-bank-1',
-        providerOrderId: 'order-bank-1',
-        provider: 'transak-native',
-        walletAddress: MOCK_WALLET_ADDRESS,
-        paymentDetails: { accountNumber: '12345' },
-      });
-      mockRefreshOrder.mockResolvedValue({
-        ...refreshedOrder,
-        providerOrderId: 'order-bank-1',
-      });
 
-      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+      await runApprovedFlowHeadless();
 
-      await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
-      });
-
-      expect(onOrderCreated).toHaveBeenCalledWith('order-bank-1');
-      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
-        reason: 'completed',
-      });
-      expect(mockParentPop).toHaveBeenCalled();
-      // Manual-bank headless branch now fires a HEADLESS terminal confirmed
-      // event (TRAM-3623 §4) that previously did not exist.
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_TRANSACTION_CONFIRMED',
+      expect(mockTransakCreateOrder).not.toHaveBeenCalled();
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: 'us-ca',
-          provider_order_id: 'order-bank-1',
+          routes: expect.arrayContaining([
+            expect.objectContaining({ name: 'Checkout' }),
+          ]),
         }),
       );
-      // Manual-bank headless branch also writes the terminal-failed context
-      // (TRAM-3623 §2), keyed by the same providerOrderId.
-      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith('order-bank-1', {
-        rampSurface: 'money_account',
-        region: 'us-ca',
-      });
-      // ...and the order toast stays suppressed on the headless path.
-      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
     });
 
     it('falls back to OrderDetails callback-resolution when session id is present but session is missing from registry', async () => {

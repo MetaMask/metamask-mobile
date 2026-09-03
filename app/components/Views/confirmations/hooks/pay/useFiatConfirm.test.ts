@@ -146,7 +146,11 @@ describe('useFiatConfirm', () => {
     });
 
     it('calls startHeadlessBuy with correct params when all data present', () => {
-      const mockQuote = { id: 'quote-1', provider: 'test' };
+      const mockQuote = {
+        id: 'quote-1',
+        provider: 'test',
+        quote: { amountIn: 55 },
+      };
 
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
@@ -166,7 +170,7 @@ describe('useFiatConfirm', () => {
         {
           quote: mockQuote,
           assetId: 'eip155:1/erc20:0xabc',
-          amount: 52,
+          amount: 55,
           paymentMethodId: 'pm-123',
           currency: 'USD',
           walletAddress: undefined,
@@ -183,7 +187,16 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: {
+          id: 'quote-1',
+          quote: {
+            amountIn: 50,
+            feeMode: {
+              requested: 'fee-on-top',
+              effective: 'fee-on-top',
+            },
+          },
+        },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -224,7 +237,16 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: {
+          id: 'quote-1',
+          quote: {
+            amountIn: 50,
+            feeMode: {
+              requested: 'fee-on-top',
+              effective: 'fee-on-top',
+            },
+          },
+        },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -265,7 +287,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -289,7 +311,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -314,7 +336,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -331,7 +353,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -360,7 +382,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -380,13 +402,22 @@ describe('useFiatConfirm', () => {
       expect(setHeadlessBuyErrorMock).toHaveBeenCalledWith(expect.any(String));
     });
 
-    it('uses zero amount when totals are unavailable', () => {
+    it('uses the accepted quote principal when totals are unavailable', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue(undefined);
 
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: {
+          id: 'quote-1',
+          quote: {
+            amountIn: 50,
+            feeMode: {
+              requested: 'fee-on-top',
+              effective: 'fee-on-top',
+            },
+          },
+        },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -397,12 +428,12 @@ describe('useFiatConfirm', () => {
       });
 
       expect(startHeadlessBuyMock).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 0 }),
+        expect.objectContaining({ amount: 50 }),
         expect.any(Object),
       );
     });
 
-    it('subtracts providerFiat fee from total for buy amount', () => {
+    it('requests the accepted principal for explicit fee-on-top quotes', () => {
       jest.mocked(useTransactionPayTotals).mockReturnValue({
         total: { fiat: '100.00', usd: '100.00' },
         fees: {
@@ -420,7 +451,17 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: {
+          id: 'quote-1',
+          providerInfo: { type: 'aggregator' },
+          quote: {
+            amountIn: 73.25,
+            feeMode: {
+              requested: 'fee-on-top',
+              effective: 'fee-on-top',
+            },
+          },
+        },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 
@@ -431,7 +472,75 @@ describe('useFiatConfirm', () => {
       });
 
       expect(startHeadlessBuyMock).toHaveBeenCalledWith(
-        expect.objectContaining({ amount: 85 }),
+        expect.objectContaining({ amount: 73.25 }),
+        expect.any(Object),
+      );
+    });
+
+    it('preserves the total for a fee-inclusive aggregator quote', () => {
+      jest.mocked(useTransactionPayTotals).mockReturnValue({
+        total: { fiat: '100.00', usd: '100.00' },
+      } as never);
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: {
+          id: 'quote-1',
+          providerInfo: { type: 'aggregator' },
+          quote: {
+            amountIn: 73.25,
+            feeMode: {
+              requested: 'fee-inclusive',
+              effective: 'fee-inclusive',
+            },
+          },
+        },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+      act(() => result.current.onFiatConfirm());
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 100 }),
+        expect.any(Object),
+      );
+    });
+
+    it('requests the typed amount for a native provider quote', () => {
+      jest.mocked(useTransactionPayTotals).mockReturnValue({
+        total: { fiat: '100.00', usd: '100.00' },
+        fees: {
+          metaMask: { fiat: '0', usd: '0' },
+          provider: { fiat: '0', usd: '0' },
+          providerFiat: { fiat: '15.00', usd: '15.00' },
+          sourceNetwork: {
+            estimate: { fiat: '0', usd: '0', raw: '0', human: '0' },
+            max: { fiat: '0', usd: '0', raw: '0', human: '0' },
+          },
+          targetNetwork: { fiat: '0', usd: '0' },
+        },
+      } as never);
+
+      jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+        selectedPaymentMethodId: 'pm-123',
+        amountFiat: '50.00',
+        rampsQuote: {
+          id: 'quote-1',
+          providerInfo: { type: 'native' },
+          quote: { amountIn: 50 },
+        },
+        caipAssetId: 'eip155:1/erc20:0xabc',
+      } as never);
+
+      const { result } = renderHook(() => useFiatConfirm());
+
+      act(() => {
+        result.current.onFiatConfirm();
+      });
+
+      expect(startHeadlessBuyMock).toHaveBeenCalledWith(
+        expect.objectContaining({ amount: 50 }),
         expect.any(Object),
       );
     });
@@ -440,7 +549,7 @@ describe('useFiatConfirm', () => {
       jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
         selectedPaymentMethodId: 'pm-123',
         amountFiat: '50.00',
-        rampsQuote: { id: 'quote-1' },
+        rampsQuote: { id: 'quote-1', quote: { amountIn: 50 } },
         caipAssetId: 'eip155:1/erc20:0xabc',
       } as never);
 

@@ -48,6 +48,7 @@ import {
   getSession,
 } from '../headless/sessionRegistry';
 import { dismissHeadlessFlow } from '../headless/headlessEntryNavigation';
+import { failHeadlessQuoteChanged } from '../headless/quoteChanged';
 import { getChainIdFromAssetId } from '../headless';
 import { setHeadlessOrderContext } from '../../../../core/Engine/controllers/ramps-controller/headlessOrderContextRegistry';
 import { emitTerminalOrderAnalyticsFromCallback } from '../../../../core/Engine/controllers/ramps-controller/event-handlers/analytics';
@@ -60,6 +61,12 @@ import {
   RAMPS_BUY_CUF_TAG,
 } from '../constants/rampsBuyCufTags';
 import { TraceName } from '../../../../util/trace';
+import {
+  assertTransakQuoteParity,
+  getEffectiveFeeMode,
+  hasExplicitFeeMode,
+  QuoteChangedError,
+} from '../utils/transakQuoteParity';
 
 // The native provider code must match the environment that `refreshOrder` /
 // `getOrderFromCallback` poll (from `getRampsEnvironment()`). Dev/UAT expose
@@ -231,6 +238,18 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const walletAddress =
     headlessSessionParams?.walletAddress ?? resolvedWalletAddress;
 
+  // A headless (MMPay) buy owns its own payment method: it comes from the
+  // quote the consumer picked, not from the Buy catalog selection, which
+  // belongs to Unified Buy and can be stale or empty on a headless start.
+  // The Buy selection is only a last-resort fallback here. Without a
+  // session this stays exactly the Buy-catalog value it has always been.
+  const effectivePaymentMethodId = headlessSessionId
+    ? (headlessSessionParams?.paymentMethodId ??
+      headlessSessionParams?.quote?.quote?.paymentMethod ??
+      selectedPaymentMethod?.id ??
+      '')
+    : selectedPaymentMethod?.id || '';
+
   const fiatCurrency = userRegion?.country?.currency || '';
   const regionIsoCode = userRegion?.regionCode || '';
 
@@ -255,7 +274,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             quote?.fiatAmount ?? session.params?.amount ?? 0,
           ),
           amountDestination: 0,
-          paymentMethodId: selectedPaymentMethod?.id || '',
+          paymentMethodId: effectivePaymentMethodId,
           region: regionIsoCode,
           chainId: (selectedToken?.chainId as string) || '',
           currencyDestination: selectedToken?.assetId || '',
@@ -271,7 +290,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     [
       headlessSessionId,
       trackEvent,
-      selectedPaymentMethod?.id,
+      effectivePaymentMethodId,
       regionIsoCode,
       selectedToken?.chainId,
       selectedToken?.assetId,
@@ -285,7 +304,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       try {
         const userLimits = await getUserLimits(
           fiatCurrency,
-          selectedPaymentMethod?.id || '',
+          effectivePaymentMethodId,
           kycType,
         );
 
@@ -368,7 +387,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
     [
       getUserLimits,
       fiatCurrency,
-      selectedPaymentMethod?.id,
+      effectivePaymentMethodId,
       headlessSessionId,
       emitHeadlessOrderFailed,
     ],
@@ -775,6 +794,30 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
   const routeAfterAuthentication = useCallback(
     async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
       try {
+        const headlessSession = getSession(headlessSessionId);
+        if (
+          headlessSession?.params?.quote &&
+          hasExplicitFeeMode(headlessSession.params.quote) &&
+          getEffectiveFeeMode(headlessSession.params.quote) === 'fee-on-top'
+        ) {
+          try {
+            assertTransakQuoteParity(headlessSession.params.quote, quote, {
+              currency:
+                headlessSession.params.currency ??
+                quote.fiatCurrency ??
+                fiatCurrency,
+              paymentMethod: effectivePaymentMethodId,
+            });
+          } catch (error) {
+            const quoteChangedError = failHeadlessQuoteChanged(
+              headlessSessionId,
+              navigation,
+              error,
+            );
+            throw quoteChangedError;
+          }
+        }
+
         const userDetails = await getUserDetails();
         const previousFormData = {
           firstName: userDetails?.firstName || '',
@@ -803,7 +846,14 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
               await checkUserLimits(quote, requirements.kycType);
 
-              if (selectedPaymentMethod?.isManualBankTransfer) {
+              // MMPay only starts Apple Pay and debit/card buys, so a
+              // leftover Buy bank-transfer selection must never create a
+              // bank order for a headless session. Unified Buy keeps the
+              // manual bank transfer path unchanged.
+              if (
+                !headlessSessionId &&
+                selectedPaymentMethod?.isManualBankTransfer
+              ) {
                 const depositOrder = await transakCreateOrder(
                   quote.quoteId,
                   walletAddress || '',
@@ -887,12 +937,43 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 });
               } else {
                 let paymentUrl: string;
+                const currentHeadlessSession = getSession(headlessSessionId);
+                const acceptedQuote = currentHeadlessSession?.params?.quote;
+                const acceptedPrincipal = Number(acceptedQuote?.quote.amountIn);
+                const useAcceptedPrincipal =
+                  acceptedQuote &&
+                  getEffectiveFeeMode(acceptedQuote) === 'fee-on-top' &&
+                  Number.isFinite(acceptedPrincipal);
+                const headlessAmount = useAcceptedPrincipal
+                  ? acceptedPrincipal
+                  : (amount ?? currentHeadlessSession?.params?.amount);
+
+                if (
+                  headlessSessionId &&
+                  (!Number.isFinite(headlessAmount) ||
+                    Number(headlessAmount) <= 0)
+                ) {
+                  throw new Error('Missing headless widget amount');
+                }
+
+                const widgetQuote =
+                  headlessSessionId && headlessAmount != null
+                    ? { ...quote, fiatAmount: headlessAmount }
+                    : quote;
+                const headlessWidgetParams: Record<string, string> =
+                  acceptedQuote &&
+                  getEffectiveFeeMode(acceptedQuote) === 'fee-on-top'
+                    ? { isFeeExcludedFromFiat: 'true' }
+                    : {};
 
                 if (isTransakWidgetUrlProxyEnabled) {
                   paymentUrl = await createWidgetUrl(
-                    quote,
+                    widgetQuote,
                     walletAddress || '',
-                    generateWidgetThemeParameters(themeAppearance, colors),
+                    {
+                      ...generateWidgetThemeParameters(themeAppearance, colors),
+                      ...headlessWidgetParams,
+                    },
                   );
                 } else {
                   const ottResponse = await requestOtt();
@@ -903,9 +984,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
                   paymentUrl = generatePaymentWidgetUrl(
                     ottResponse.ott,
-                    quote,
+                    widgetQuote,
                     walletAddress || '',
-                    generateThemeParameters(themeAppearance, colors),
+                    {
+                      ...generateThemeParameters(themeAppearance, colors),
+                      ...headlessWidgetParams,
+                    },
                   );
                 }
 
@@ -920,7 +1004,10 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               }
               return true;
             } catch (error) {
-              if (error instanceof LimitExceededError) {
+              if (
+                error instanceof LimitExceededError ||
+                error instanceof QuoteChangedError
+              ) {
                 throw error;
               }
               throw new Error(
@@ -1047,6 +1134,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
       navigation,
       baseRouteParams,
       fiatCurrency,
+      effectivePaymentMethodId,
       selectedToken?.assetId,
       getKycRequirement,
       getAdditionalRequirements,
