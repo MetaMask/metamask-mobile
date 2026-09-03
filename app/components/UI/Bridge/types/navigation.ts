@@ -37,6 +37,9 @@ export type BridgeScreensStackParamList = {
   QuoteSelectorView: undefined;
   HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
   HwQrScanner: HwQrScannerRouteParams | undefined;
+  BridgeModals:
+    | NavigatorScreenParams<BridgeModalsNavigationParamList>
+    | undefined;
 };
 
 /**
