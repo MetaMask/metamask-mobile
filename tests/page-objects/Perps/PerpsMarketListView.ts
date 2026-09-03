@@ -259,31 +259,22 @@ class PerpsMarketListView {
 
   async selectMarket(marketName: string) {
     const marketElement = this.getMarketRowElement(marketName);
-    await Utilities.executeWithRetry(
-      async () => {
-        const marketRowFound = await this.scrollToMarketRow(marketName);
+    const marketRowFound = await this.scrollToMarketRow(marketName);
 
-        if (!marketRowFound) {
-          await this.searchAndRevealMarketRow(marketName);
-        }
+    if (!marketRowFound) {
+      await this.searchAndRevealMarketRow(marketName);
+    }
 
-        // Scroll can "succeed" without the row mounting (FlatList / late mocks).
-        // Always fall back to search before the final tap when still missing.
-        if (!(await Utilities.isElementVisible(marketElement, 1500))) {
-          await this.searchAndRevealMarketRow(marketName);
-        }
+    // Scroll can "succeed" without the row mounting (FlatList / late mocks).
+    // Always fall back to search before the final tap when still missing.
+    if (!(await Utilities.isElementVisible(marketElement, 1500))) {
+      await this.searchAndRevealMarketRow(marketName);
+    }
 
-        await Gestures.waitAndTap(marketElement, {
-          elemDescription: `${marketName} market row`,
-          timeout: 5000,
-        });
-      },
-      {
-        interval: 1000,
-        timeout: 30000,
-        description: `select ${marketName} market row`,
-      },
-    );
+    await Gestures.waitAndTap(marketElement, {
+      elemDescription: `${marketName} market row`,
+      timeout: 15000,
+    });
   }
 
   /**

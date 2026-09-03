@@ -86,11 +86,7 @@ class PerpsE2EModifiers {
     await Utilities.executeWithRetry(
       async () => {
         if (Date.now() - lastEnqueueAt >= reenqueueEveryMs) {
-          await this.updateMarketPriceServer(
-            commandQueueServer,
-            symbol,
-            price,
-          );
+          await this.updateMarketPriceServer(commandQueueServer, symbol, price);
           lastEnqueueAt = Date.now();
         }
         await assertClosed();
