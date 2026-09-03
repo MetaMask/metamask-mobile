@@ -158,3 +158,12 @@ export function logBrazeBannerClick(placementId: string): void {
 export function resetBrazePluginForTesting(): void {
   brazePlugin = undefined;
 }
+
+export {
+  unregisterBrazePush,
+  BRAZE_UNREGISTER_PUSH_FAILURE_CODES,
+} from './unregisterPush';
+export type {
+  BrazeUnregisterPushFailureCode,
+  BrazeUnregisterPushResult,
+} from './unregisterPush';
