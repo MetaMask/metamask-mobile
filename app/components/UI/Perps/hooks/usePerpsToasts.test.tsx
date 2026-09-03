@@ -1328,6 +1328,30 @@ describe('usePerpsToasts', () => {
         ]);
       });
 
+      it('describes the position as open when post-order attachment fails', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+
+        const config =
+          result.current.PerpsToastOptions.positionManagement.tpsl
+            .postOrderAttachmentFailed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Warning,
+          hapticsType: NotificationMoment.Error,
+          hasNoTimeout: false,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Position opened without TP/SL', isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label:
+              'Add take profit or stop loss from the position card to protect this trade.',
+            isBold: false,
+          },
+        ]);
+      });
+
       it('returns update TPSL error configuration with custom error', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const customError = 'Network connection failed';

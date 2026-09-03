@@ -112,6 +112,7 @@ import {
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsPostOrderTPSL,
   usePerpsOrderValidation,
   usePerpsRewards,
   usePerpsToasts,
@@ -318,7 +319,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const latestAbandonPropsRef = useRef<Record<string, unknown>>({});
 
   const { isInitialized } = usePerpsConnection();
-  const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
+  const { subscribeToPrices } = usePerpsTrading();
+  const { attachPostOrderTPSL } = usePerpsPostOrderTPSL();
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
@@ -1576,23 +1578,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             return;
           }
 
-          const tpslResult = await updatePositionTPSL({
+          await attachPostOrderTPSL({
             symbol: orderForm.asset,
             takeProfitPrice: orderForm.takeProfitPrice,
             stopLossPrice: orderForm.stopLossPrice,
             position: orderResult.position,
           });
-
-          // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
-          if (!tpslResult.success) {
-            const errorMessage =
-              tpslResult.error || strings('perps.errors.unknown');
-            showToast(
-              PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-                errorMessage,
-              ),
-            );
-          }
         } else {
           const orderResult = await executeOrder(orderParams);
           if (!orderResult?.success) {
@@ -1643,12 +1634,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       currentMarketPosition,
       executeOrder,
       showToast,
+      attachPostOrderTPSL,
       updateOrderForm,
       setLimitPrice,
       PerpsToastOptions.formValidation.orderForm,
       PerpsToastOptions.orderManagement,
-      PerpsToastOptions.positionManagement.tpsl,
-      updatePositionTPSL,
       marginRequired,
       feeResults,
       source,

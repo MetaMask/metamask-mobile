@@ -52,7 +52,7 @@ const mockSetMaxSlippage = jest.fn();
 const mockHandleAddFunds = jest.fn();
 const mockCloseEligibilityModal = jest.fn();
 const mockShowEligibilityModal = jest.fn();
-const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
+const mockAttachPostOrderTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
 let mockLiquidationPrice = '80000';
@@ -220,10 +220,6 @@ const validationError = jest.fn((message: string) => ({
   id: 'validationError',
   message,
 }));
-const updateTPSLError = jest.fn((message: string) => ({
-  id: 'tpslError',
-  message,
-}));
 const limitPriceRequired = { id: 'limitPriceRequired' };
 
 const mockPerpsToastOptions = {
@@ -246,7 +242,6 @@ const mockPerpsToastOptions = {
     },
   },
   formValidation: { orderForm: { validationError, limitPriceRequired } },
-  positionManagement: { tpsl: { updateTPSLError } },
 };
 
 jest.mock('../../../../contexts/PerpsOrderContext', () => ({
@@ -326,7 +321,9 @@ jest.mock('../../../../hooks', () => ({
       error: null,
     };
   },
-  usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
+  usePerpsPostOrderTPSL: () => ({
+    attachPostOrderTPSL: mockAttachPostOrderTPSL,
+  }),
 }));
 
 jest.mock('../../../../hooks/usePerpsHomeActions', () => ({
@@ -599,7 +596,7 @@ describe('usePerpsProOrderForm', () => {
       mockContextValue.hasBlurredLimitPrice = false;
       mockContextValue.hasBlurredTriggerPrice = false;
     });
-    mockUpdatePositionTPSL.mockResolvedValue({ success: true });
+    mockAttachPostOrderTPSL.mockResolvedValue({ success: true });
     mockExecuteOrder.mockResolvedValue({ success: true });
     mockChaseOrders = [];
     mockGetChaseOrders.mockResolvedValue([]);
@@ -2983,7 +2980,7 @@ describe('usePerpsProOrderForm', () => {
         reduceOnly: true,
       });
       expect(params).not.toHaveProperty('takeProfitPrice');
-      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
+      expect(mockAttachPostOrderTPSL).not.toHaveBeenCalled();
       expect(submitted).toHaveBeenCalled();
       expect(mockClearPendingTradeConfiguration).toHaveBeenCalledWith('BTC');
       expect(mockUpdateOrderForm).toHaveBeenCalledWith({
@@ -3403,7 +3400,7 @@ describe('usePerpsProOrderForm', () => {
       expect(playImpact).not.toHaveBeenCalled();
     });
 
-    it('skips updatePositionTPSL and clearPendingConfig when the order fails (shouldHandleTPSLSeparately path)', async () => {
+    it('skips TP/SL attachment and pending-config clearing when the separate order fails', async () => {
       // Arrange: new market position with TP triggers the separate-TP/SL branch;
       // controller returns failure so post-processing must not run
       mockOrderForm.takeProfitPrice = '95000';
@@ -3419,7 +3416,7 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(mockUpdatePositionTPSL).not.toHaveBeenCalled();
+      expect(mockAttachPostOrderTPSL).not.toHaveBeenCalled();
       expect(mockClearPendingTradeConfiguration).not.toHaveBeenCalled();
     });
 
@@ -3521,7 +3518,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockExecuteOrder).toHaveBeenCalledWith(params, {
         waitForPosition: true,
       });
-      expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+      expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
         symbol: 'BTC',
         takeProfitPrice: '95000',
         stopLossPrice: undefined,
@@ -3543,38 +3540,12 @@ describe('usePerpsProOrderForm', () => {
       });
 
       // Assert
-      expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+      expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
         symbol: 'BTC',
         takeProfitPrice: '95000',
         stopLossPrice: undefined,
         position: undefined,
       });
-    });
-
-    it('shows an error toast when the separate TP/SL update fails', async () => {
-      // Arrange
-      const renderedPosition = {
-        symbol: 'BTC',
-        size: '1',
-      } as Position;
-      mockOrderForm.takeProfitPrice = '95000';
-      mockExecuteOrder.mockResolvedValueOnce({
-        success: true,
-        position: renderedPosition,
-      });
-      mockUpdatePositionTPSL.mockResolvedValue({
-        success: false,
-        error: 'nope',
-      });
-      const { result } = renderProForm();
-
-      // Act
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
-
-      // Assert
-      expect(updateTPSLError).toHaveBeenCalledWith('nope');
     });
   });
 

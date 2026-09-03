@@ -221,6 +221,7 @@ export interface PerpsToastOptionsConfig {
     tpsl: {
       updateTPSLSuccess: PerpsToastOptions;
       updateTPSLError: (error?: string) => PerpsToastOptions;
+      postOrderAttachmentFailed: PerpsToastOptions;
     };
     margin: {
       addSuccess: (assetSymbol: string, amount: string) => PerpsToastOptions;
@@ -1160,6 +1161,15 @@ const usePerpsToasts = (): {
               error || strings('perps.errors.tpslUpdateFailed'),
             ),
           }),
+          postOrderAttachmentFailed: {
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.position.tpsl.post_order_attachment_failed'),
+              strings(
+                'perps.position.tpsl.post_order_attachment_failed_description',
+              ),
+            ),
+          },
         },
         margin: {
           addSuccess: (assetSymbol: string, amount: string) => ({

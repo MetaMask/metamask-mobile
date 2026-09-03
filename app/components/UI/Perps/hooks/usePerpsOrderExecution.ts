@@ -44,7 +44,7 @@ import {
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
   onSubmitted?: () => void;
-  /** Called when the position has rendered via the stream (or, on stream timeout, without it). */
+  /** Called when the order is confirmed, without waiting for post-order work. */
   onSuccess?: (position?: Position) => void;
   onError?: (error: string) => void;
 }
@@ -83,7 +83,12 @@ interface ControllerPlacementHandlers {
 
 type PerpsPositionStream = ReturnType<typeof usePerpsStream>['positions'];
 
-export const PERPS_POSITION_HINT_WAIT_TIMEOUT_MS = 3000;
+/**
+ * Safety deadline for post-order work that requires the resulting position.
+ * The waiter resolves from stream delivery; this deadline only prevents a
+ * failed subscription from retaining resources indefinitely.
+ */
+export const PERPS_POST_ORDER_POSITION_CONFIRMATION_TIMEOUT_MS = 30000;
 
 const getPerpsOrderPositionSnapshot = (
   position?: PerpsOrderPositionSnapshot | null,
@@ -131,6 +136,7 @@ const waitForPositionRendered = (
   return new Promise((resolve) => {
     let settled = false;
     let unsubscribe: (() => void) | undefined;
+    let unsubscribeFromStore: (() => void) | undefined;
     let cancelTimeout = () => {
       // Replaced after the timeout is scheduled.
     };
@@ -141,11 +147,12 @@ const waitForPositionRendered = (
       settled = true;
       cancelTimeout();
       unsubscribe?.();
+      unsubscribeFromStore?.();
       resolve(position);
     };
     const timeout = setTimeout(
       () => settle(),
-      PERPS_POSITION_HINT_WAIT_TIMEOUT_MS,
+      PERPS_POST_ORDER_POSITION_CONFIRMATION_TIMEOUT_MS,
     );
     cancelTimeout = () => clearTimeout(timeout);
 
@@ -171,6 +178,16 @@ const waitForPositionRendered = (
       // its cleanup callback.
       if (settled) {
         unsubscribe();
+      }
+      if (!settled) {
+        unsubscribeFromStore = store.subscribe(() => {
+          if (!isContextCurrent()) {
+            settle();
+          }
+        });
+        if (!isContextCurrent()) {
+          settle();
+        }
       }
     } catch {
       settle();
@@ -417,7 +434,7 @@ export function usePerpsOrderExecution(
       // the span. Once the controller settles, stream-specific waits own the
       // timeout window and this watchdog must not race them.
       let controllerSettled = false;
-      setTimeout(() => {
+      const controllerWatchdog = setTimeout(() => {
         if (!controllerSettled) {
           // Distinct from stream_timeout: the controller request itself never
           // settled, rather than a settled request whose render never arrived.
@@ -431,6 +448,7 @@ export function usePerpsOrderExecution(
       const placementResult = await executeControllerPlacement(orderParams, {
         onSettled: () => {
           controllerSettled = true;
+          clearTimeout(controllerWatchdog);
         },
         onSuccess: async (result) => {
           if (isRestingOrder) {

@@ -262,11 +262,6 @@ const mockDefaultUsePerpsToasts = () => ({
         creationFailed: jest.fn(),
       },
     },
-    positionManagement: {
-      tpsl: {
-        updateTPSLError: jest.fn(),
-      },
-    },
     dataFetching: {
       market: {
         error: {
@@ -287,6 +282,7 @@ const mockDefaultUsePerpsMaxSlippage = () => ({
   maxSlippageSource: 'default',
   setMaxSlippage: jest.fn(),
 });
+const mockAttachPostOrderTPSL = jest.fn().mockResolvedValue({ success: true });
 
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
@@ -349,6 +345,9 @@ jest.mock('../../hooks', () => ({
     validateNow: jest.fn(),
   })),
   usePerpsOrderExecution: jest.fn(() => mockDefaultUsePerpsOrderExecution()),
+  usePerpsPostOrderTPSL: jest.fn(() => ({
+    attachPostOrderTPSL: mockAttachPostOrderTPSL,
+  })),
   usePerpsOrderDepositTracking: jest.fn(() => ({
     handleDepositConfirm: jest.fn(),
   })),
@@ -1425,9 +1424,6 @@ describe('PerpsOrderView', () => {
       success: true,
       position: renderedPosition,
     });
-    const mockUpdatePositionTPSL = jest
-      .fn()
-      .mockResolvedValue({ success: true });
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsOrderContext,
       orderForm: {
@@ -1450,10 +1446,6 @@ describe('PerpsOrderView', () => {
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
       placeOrder: mockExecuteOrder,
       isPlacing: false,
-    });
-    (usePerpsTrading as jest.Mock).mockReturnValue({
-      ...defaultMockHooks.usePerpsTrading,
-      updatePositionTPSL: mockUpdatePositionTPSL,
     });
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
@@ -1470,7 +1462,7 @@ describe('PerpsOrderView', () => {
     expect(mockExecuteOrder).toHaveBeenCalledWith(submittedOrder, {
       waitForPosition: true,
     });
-    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+    expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
       symbol: 'ETH',
       takeProfitPrice: '3500',
       stopLossPrice: undefined,
@@ -1482,9 +1474,6 @@ describe('PerpsOrderView', () => {
     const mockExecuteOrder = jest.fn().mockResolvedValue({
       success: true,
     });
-    const mockUpdatePositionTPSL = jest
-      .fn()
-      .mockResolvedValue({ success: true });
     (usePerpsOrderContext as jest.Mock).mockReturnValue({
       ...defaultMockHooks.usePerpsOrderContext,
       orderForm: {
@@ -1508,10 +1497,6 @@ describe('PerpsOrderView', () => {
       placeOrder: mockExecuteOrder,
       isPlacing: false,
     });
-    (usePerpsTrading as jest.Mock).mockReturnValue({
-      ...defaultMockHooks.usePerpsTrading,
-      updatePositionTPSL: mockUpdatePositionTPSL,
-    });
     render(<PerpsOrderView />, { wrapper: TestWrapper });
     const placeOrderButton = await screen.findByTestId(
       PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
@@ -1521,7 +1506,7 @@ describe('PerpsOrderView', () => {
       fireEvent.press(placeOrderButton);
     });
 
-    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+    expect(mockAttachPostOrderTPSL).toHaveBeenCalledWith({
       symbol: 'ETH',
       takeProfitPrice: '3500',
       stopLossPrice: undefined,

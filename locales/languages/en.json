@@ -2367,7 +2367,9 @@
       },
       "tpsl": {
         "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL"
+        "update_failed": "Failed to update TP/SL",
+        "post_order_attachment_failed": "Position opened without TP/SL",
+        "post_order_attachment_failed_description": "Add take profit or stop loss from the position card to protect this trade."
       },
       "margin": {
         "add_success": "Added ${{amount}} margin to {{asset}} position",

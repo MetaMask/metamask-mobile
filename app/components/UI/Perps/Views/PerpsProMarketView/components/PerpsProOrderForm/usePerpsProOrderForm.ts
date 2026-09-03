@@ -66,9 +66,9 @@ import {
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsPostOrderTPSL,
   usePerpsOrderValidation,
   usePerpsToasts,
-  usePerpsTrading,
   getPerpsToastLabels,
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
@@ -590,7 +590,7 @@ export const usePerpsProOrderForm = ({
   const { track } = usePerpsEventTracking();
   const { playImpact } = useHaptics();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
-  const { updatePositionTPSL } = usePerpsTrading();
+  const { attachPostOrderTPSL } = usePerpsPostOrderTPSL();
 
   const {
     orderForm,
@@ -2699,22 +2699,12 @@ export const usePerpsProOrderForm = ({
           return;
         }
 
-        const tpslResult = await updatePositionTPSL({
+        await attachPostOrderTPSL({
           symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
           position: orderResult.position,
         });
-
-        if (!tpslResult.success) {
-          const errorMessage =
-            tpslResult.error || strings('perps.errors.unknown');
-          showToast(
-            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              errorMessage,
-            ),
-          );
-        }
       } else {
         const orderResult = await executeOrder(orderParams);
         if (!orderResult?.success) {

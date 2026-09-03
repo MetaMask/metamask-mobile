@@ -1,7 +1,7 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { type OrderParams, type Position } from '@metamask/perps-controller';
 import {
-  PERPS_POSITION_HINT_WAIT_TIMEOUT_MS,
+  PERPS_POST_ORDER_POSITION_CONFIRMATION_TIMEOUT_MS,
   usePerpsOrderExecution,
 } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -43,9 +43,14 @@ const mockGetState = jest.fn(() => ({}));
 const mockSelectedAccountAddress = jest.fn(() => '0xabc');
 const mockSelectedPerpsNetwork = jest.fn(() => 'testnet');
 const mockSelectedPerpsProvider = jest.fn(() => 'hyperliquid');
+const mockStoreSubscribers = new Set<() => void>();
 jest.mock('../../../../store', () => ({
   store: {
     getState: () => mockGetState(),
+    subscribe: (callback: () => void) => {
+      mockStoreSubscribers.add(callback);
+      return () => mockStoreSubscribers.delete(callback);
+    },
   },
 }));
 jest.mock('../selectors/selectedAccountAddress', () => ({
@@ -71,6 +76,9 @@ const mockSubscribeToPositions = jest.fn(
     return () => mockPositionSubscribers.delete(callback);
   },
 );
+const notifyStoreChanged = () => {
+  mockStoreSubscribers.forEach((callback) => callback());
+};
 jest.mock('../providers/PerpsStreamManager', () => ({
   usePerpsStream: () => ({
     positions: {
@@ -121,6 +129,7 @@ describe('usePerpsOrderExecution', () => {
     mockSelectedPerpsNetwork.mockReturnValue('testnet');
     mockSelectedPerpsProvider.mockReturnValue('hyperliquid');
     mockPositionSubscribers.clear();
+    mockStoreSubscribers.clear();
     mockSubscribeToPositions.mockImplementation(
       ({ callback }: { callback: PositionsCallback }) => {
         mockPositionSubscribers.add(callback);
@@ -1146,7 +1155,58 @@ describe('usePerpsOrderExecution', () => {
       }
     });
 
-    it('clears placing state while the position hint wait remains pending', async () => {
+    it('returns a position rendered after the former three-second wait boundary', async () => {
+      jest.useFakeTimers();
+      try {
+        const formerPositionHintWaitTimeoutMs = 3000;
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order123',
+        });
+        const { result } = renderHook(() => usePerpsOrderExecution());
+        let placementResolved = false;
+        let placement: ReturnType<typeof result.current.placeOrder> | undefined;
+
+        await act(async () => {
+          placement = result.current.placeOrder(mockOrderParams, {
+            waitForPosition: true,
+          });
+          placement.then(() => {
+            placementResolved = true;
+          });
+          await Promise.resolve();
+        });
+        await act(async () => {
+          jest.advanceTimersByTime(PERPS_CUF_STREAM_CONFIRM_RACE_MS);
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+        await act(async () => {
+          jest.advanceTimersByTime(formerPositionHintWaitTimeoutMs + 1);
+          await Promise.resolve();
+        });
+
+        expect(placementResolved).toBe(false);
+
+        act(() => {
+          deliverPositions([mockPosition]);
+        });
+        let placementResult: Awaited<typeof placement>;
+        await act(async () => {
+          placementResult = await placement;
+        });
+
+        expect(placementResult).toEqual({
+          success: true,
+          orderId: 'order123',
+          position: mockPosition,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('clears placing state while post-order position confirmation remains pending', async () => {
       jest.useFakeTimers();
       try {
         mockPlaceOrder.mockResolvedValue({
@@ -1186,7 +1246,7 @@ describe('usePerpsOrderExecution', () => {
       }
     });
 
-    it('returns a successful order when the position hint wait times out', async () => {
+    it('returns the successful order at the position confirmation safety deadline', async () => {
       jest.useFakeTimers();
       try {
         const onError = jest.fn();
@@ -1211,7 +1271,9 @@ describe('usePerpsOrderExecution', () => {
           await Promise.resolve();
         });
         await act(async () => {
-          jest.advanceTimersByTime(PERPS_POSITION_HINT_WAIT_TIMEOUT_MS);
+          jest.advanceTimersByTime(
+            PERPS_POST_ORDER_POSITION_CONFIRMATION_TIMEOUT_MS,
+          );
           await Promise.resolve();
         });
         let placementResult: Awaited<typeof placement>;
@@ -1225,6 +1287,8 @@ describe('usePerpsOrderExecution', () => {
         });
         expect(onError).not.toHaveBeenCalled();
         expect(mockLoggerError).not.toHaveBeenCalled();
+        expect(mockPositionSubscribers.size).toBe(0);
+        expect(mockStoreSubscribers.size).toBe(0);
       } finally {
         jest.useRealTimers();
       }
@@ -1300,7 +1364,7 @@ describe('usePerpsOrderExecution', () => {
         });
         mockSelectedAccountAddress.mockReturnValue('0xdef');
         act(() => {
-          deliverPositions([mockPosition]);
+          notifyStoreChanged();
         });
         let placementResult: Awaited<typeof placement>;
         await act(async () => {
@@ -1309,6 +1373,8 @@ describe('usePerpsOrderExecution', () => {
 
         expect(placementResult).toBeUndefined();
         expect(onError).not.toHaveBeenCalled();
+        expect(mockPositionSubscribers.size).toBe(0);
+        expect(mockStoreSubscribers.size).toBe(0);
       } finally {
         jest.useRealTimers();
       }
