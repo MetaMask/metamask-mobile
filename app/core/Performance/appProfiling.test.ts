@@ -42,15 +42,15 @@ describe('appProfiling', () => {
   });
 
   it('starts and stops profiling when enabled', async () => {
-    (startProfiling as jest.Mock).mockResolvedValue(undefined);
+    (startProfiling as jest.Mock).mockReturnValue(true);
     (stopProfiling as jest.Mock).mockResolvedValue(
       '/sdcard/Download/profile.cpuprofile',
     );
 
-    const statuses: Array<{
+    const statuses: {
       isRecording: boolean;
       lastProfilePath: string | null;
-    }> = [];
+    }[] = [];
     const unsubscribe = subscribeAppProfilingStatus((status) => {
       statuses.push({
         isRecording: status.isRecording,
@@ -87,5 +87,15 @@ describe('appProfiling', () => {
     expect(path).toBeNull();
     expect(stopProfiling).not.toHaveBeenCalled();
     expect(getLastAppProfilingError()).toContain('no active profiling session');
+  });
+
+  it('records an error when startProfiling returns false', async () => {
+    (startProfiling as jest.Mock).mockReturnValue(false);
+
+    const started = await startAppProfiling(true);
+
+    expect(started).toBe(false);
+    expect(isAppProfilingRecording()).toBe(false);
+    expect(getLastAppProfilingError()).toContain('returned false');
   });
 });

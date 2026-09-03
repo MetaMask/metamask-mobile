@@ -63,7 +63,14 @@ export async function startAppProfiling(
   notifyListeners();
 
   try {
-    await startProfiling();
+    // startProfiling() is synchronous (returns boolean); await is harmless.
+    const started = await Promise.resolve(startProfiling());
+    if (!started) {
+      isRecording = false;
+      lastError = 'startProfiling returned false';
+      notifyListeners();
+      return false;
+    }
     isRecording = true;
     lastProfilePath = null;
     notifyListeners();

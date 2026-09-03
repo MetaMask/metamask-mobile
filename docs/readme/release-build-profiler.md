@@ -42,8 +42,11 @@ const path = await stopAppProfiling();
 ```
 
 Outside performance APKs these functions no-op. On Android, `stopProfiling(true)`
-writes the `.cpuprofile` under Downloads. `PerformanceProfilerStatus` exposes the
-path via `performance-profiler-result-ready` so Appium can wait and `pullFile`.
+writes the `.cpuprofile` under Downloads. `PerformanceProfilerStatus` mounts
+Appium Pressables (`performance-profiler-start` / `performance-profiler-stop`)
+and exposes the path via `performance-profiler-result-ready` so tests can wait
+and `pullFile`. Do **not** use deeplinks — unknown `metamask://e2e/profiler/*`
+URLs show MetaMask’s unsupported-link UI.
 
 Appium scenarios:
 

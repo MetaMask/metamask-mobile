@@ -5,6 +5,9 @@
  * hooks expose recording/result readiness and the on-device `.cpuprofile` path.
  * Only mounts when `IS_PERFORMANCE_TEST=true` — no deeplinks (those hit MetaMask's
  * unsupported-link / 404 UI).
+ *
+ * Touch targets are intentionally large (not 1×1): BrowserStack Appium can find
+ * tiny a11y nodes but often fails to deliver `click()` to RN Pressable onPress.
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
@@ -20,6 +23,8 @@ import {
 export const PERFORMANCE_PROFILER_STATUS_TEST_IDS = {
   start: 'performance-profiler-start',
   stop: 'performance-profiler-stop',
+  startAck: 'performance-profiler-start-ack',
+  stopAck: 'performance-profiler-stop-ack',
   recordingReady: 'performance-profiler-recording-ready',
   resultReady: 'performance-profiler-result-ready',
   error: 'performance-profiler-error',
@@ -28,28 +33,40 @@ export const PERFORMANCE_PROFILER_STATUS_TEST_IDS = {
 const styles = StyleSheet.create({
   hook: {
     position: 'absolute',
-    width: 1,
-    height: 1,
-    opacity: 0.01,
+    width: 48,
+    height: 48,
+    // Keep visible enough for Appium click delivery on BrowserStack; still
+    // effectively invisible to humans.
+    opacity: 0.05,
+    zIndex: 9999,
+    elevation: 9999,
   },
   start: {
     top: 0,
     left: 0,
   },
   stop: {
-    top: 2,
+    top: 0,
+    left: 52,
+  },
+  startAck: {
+    top: 52,
     left: 0,
   },
+  stopAck: {
+    top: 52,
+    left: 52,
+  },
   recordingReady: {
-    top: 4,
+    top: 104,
     left: 0,
   },
   resultReady: {
-    top: 6,
-    left: 0,
+    top: 104,
+    left: 52,
   },
   error: {
-    top: 8,
+    top: 156,
     left: 0,
   },
 });
@@ -60,6 +77,8 @@ const PerformanceProfilerStatus: React.FC = () => {
     lastProfilePath: null,
     lastError: null,
   });
+  const [startAcked, setStartAcked] = useState(false);
+  const [stopAcked, setStopAcked] = useState(false);
 
   useEffect(() => {
     if (!isPerformanceProfilingEnabled) {
@@ -69,12 +88,15 @@ const PerformanceProfilerStatus: React.FC = () => {
   }, []);
 
   const handleStart = useCallback(() => {
+    setStartAcked(true);
+    setStopAcked(false);
     startAppProfiling().catch(() => {
       // Errors are published via subscribeAppProfilingStatus (error hook).
     });
   }, []);
 
   const handleStop = useCallback(() => {
+    setStopAcked(true);
     stopAppProfiling().catch(() => {
       // Errors are published via subscribeAppProfilingStatus (error hook).
     });
@@ -91,6 +113,7 @@ const PerformanceProfilerStatus: React.FC = () => {
         accessibilityLabel={PERFORMANCE_PROFILER_STATUS_TEST_IDS.start}
         accessible
         importantForAccessibility="yes"
+        collapsable={false}
         onPress={handleStart}
         style={[styles.hook, styles.start]}
       />
@@ -99,9 +122,32 @@ const PerformanceProfilerStatus: React.FC = () => {
         accessibilityLabel={PERFORMANCE_PROFILER_STATUS_TEST_IDS.stop}
         accessible
         importantForAccessibility="yes"
+        collapsable={false}
         onPress={handleStop}
         style={[styles.hook, styles.stop]}
       />
+      {startAcked && (
+        <Pressable
+          testID={PERFORMANCE_PROFILER_STATUS_TEST_IDS.startAck}
+          accessibilityLabel={PERFORMANCE_PROFILER_STATUS_TEST_IDS.startAck}
+          accessible
+          importantForAccessibility="yes"
+          collapsable={false}
+          onPress={() => undefined}
+          style={[styles.hook, styles.startAck]}
+        />
+      )}
+      {stopAcked && (
+        <Pressable
+          testID={PERFORMANCE_PROFILER_STATUS_TEST_IDS.stopAck}
+          accessibilityLabel={PERFORMANCE_PROFILER_STATUS_TEST_IDS.stopAck}
+          accessible
+          importantForAccessibility="yes"
+          collapsable={false}
+          onPress={() => undefined}
+          style={[styles.hook, styles.stopAck]}
+        />
+      )}
       {status.isRecording && (
         <Pressable
           testID={PERFORMANCE_PROFILER_STATUS_TEST_IDS.recordingReady}
@@ -110,6 +156,7 @@ const PerformanceProfilerStatus: React.FC = () => {
           }
           accessible
           importantForAccessibility="yes"
+          collapsable={false}
           onPress={() => undefined}
           style={[styles.hook, styles.recordingReady]}
         />
@@ -120,6 +167,7 @@ const PerformanceProfilerStatus: React.FC = () => {
           accessibilityLabel={`${PERFORMANCE_PROFILER_STATUS_TEST_IDS.resultReady}:${status.lastProfilePath}`}
           accessible
           importantForAccessibility="yes"
+          collapsable={false}
           onPress={() => undefined}
           style={[styles.hook, styles.resultReady]}
         />
@@ -130,6 +178,7 @@ const PerformanceProfilerStatus: React.FC = () => {
           accessibilityLabel={`${PERFORMANCE_PROFILER_STATUS_TEST_IDS.error}:${status.lastError}`}
           accessible
           importantForAccessibility="yes"
+          collapsable={false}
           onPress={() => undefined}
           style={[styles.hook, styles.error]}
         />
