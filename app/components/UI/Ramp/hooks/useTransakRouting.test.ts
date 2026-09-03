@@ -1050,6 +1050,43 @@ describe('useTransakRouting', () => {
       );
     });
 
+    it('checks limits with the Buy selected payment method when there is no headless session', async () => {
+      mockSelectedPaymentMethod = {
+        id: '/payments/sepa-bank-transfer',
+        isManualBankTransfer: false,
+      };
+      mockGetUserDetails.mockResolvedValue({
+        firstName: 'John',
+        address: {},
+      });
+      mockGetKycRequirement.mockResolvedValue({
+        status: 'APPROVED',
+        kycType: 'SIMPLE',
+      });
+      mockGetUserLimits.mockResolvedValue({
+        remaining: { '1': 10000, '30': 50000, '365': 200000 },
+      });
+      mockRequestOtt.mockResolvedValue({ ott: 'test-ott' });
+      mockGeneratePaymentWidgetUrl.mockReturnValue(
+        'https://payment.example.com',
+      );
+
+      const { result } = renderHook(() => useTransakRouting());
+
+      await act(async () => {
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
+      });
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/sepa-bank-transfer',
+        'SIMPLE',
+      );
+    });
+
     it('throws LimitExceededError when daily limit is exceeded', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
@@ -1733,6 +1770,27 @@ describe('useTransakRouting', () => {
       baseRouteParams: { headlessSessionId: 'hs-1' },
     };
 
+    const headlessSessionWith = ({
+      paymentMethodId,
+      quotePaymentMethod,
+    }: {
+      paymentMethodId?: string;
+      quotePaymentMethod?: string;
+    }) => ({
+      id: 'hs-1',
+      status: 'continued',
+      params: {
+        amount: 100,
+        paymentMethodId,
+        quote: { quote: { paymentMethod: quotePaymentMethod } },
+      },
+      callbacks: {
+        onOrderCreated: jest.fn(),
+        onError: jest.fn(),
+        onClose: jest.fn(),
+      },
+    });
+
     const depositOrder = {
       id: 'order-hs',
       providerOrderId: 'order-hs',
@@ -2182,78 +2240,93 @@ describe('useTransakRouting', () => {
       expect(mockShowV2OrderToast).not.toHaveBeenCalled();
     });
 
-    it('routes manual bank transfer order success through headless callbacks without showing a toast', async () => {
-      const onOrderCreated = jest.fn();
-      mockGetSession.mockReturnValue({
-        id: 'hs-1',
-        status: 'continued',
-        params: { rampSurface: 'money_account' },
-        callbacks: {
-          onOrderCreated,
-          onError: jest.fn(),
-          onClose: jest.fn(),
-        },
-      });
+    it('checks limits with the session Apple Pay method when the Buy catalog has no selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/apple-pay',
+          quotePaymentMethod: '/payments/apple-pay',
+        }),
+      );
+      mockSelectedPaymentMethod = null;
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/apple-pay',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
+    });
+
+    it('checks limits with the quote debit/card method when the Buy catalog has no selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
+      mockSelectedPaymentMethod = null;
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+      expect(mockRequestOtt).toHaveBeenCalled();
+      expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalled();
+    });
+
+    it('prefers the session debit/card method over a stale Buy Apple Pay selection', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/debit-credit-card',
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
+      mockSelectedPaymentMethod = {
+        id: '/payments/apple-pay',
+        isManualBankTransfer: false,
+      };
+
+      await runApprovedFlowHeadless();
+
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+    });
+
+    it('ignores a stale Buy manual bank transfer selection and routes the headless buy to the widget', async () => {
+      mockGetSession.mockReturnValue(
+        headlessSessionWith({
+          paymentMethodId: '/payments/debit-credit-card',
+          quotePaymentMethod: '/payments/debit-credit-card',
+        }),
+      );
       mockSelectedPaymentMethod = {
         id: '/payments/bank-transfer',
         isManualBankTransfer: true,
       };
-      mockGetUserDetails.mockResolvedValue({
-        firstName: 'John',
-        address: {},
-      });
-      mockGetKycRequirement.mockResolvedValue({
-        status: 'APPROVED',
-        kycType: 'SIMPLE',
-      });
-      mockGetUserLimits.mockResolvedValue({
-        remaining: { '1': 10000, '30': 50000, '365': 200000 },
-      });
-      mockTransakCreateOrder.mockResolvedValue({
-        id: 'order-bank-1',
-        providerOrderId: 'order-bank-1',
-        provider: 'transak-native',
-        walletAddress: MOCK_WALLET_ADDRESS,
-        paymentDetails: { accountNumber: '12345' },
-      });
-      mockRefreshOrder.mockResolvedValue({
-        ...refreshedOrder,
-        providerOrderId: 'order-bank-1',
-      });
 
-      const { result } = renderHook(() => useTransakRouting(HEADLESS_CONFIG));
+      await runApprovedFlowHeadless();
 
-      await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
-      });
-
-      expect(onOrderCreated).toHaveBeenCalledWith('order-bank-1');
-      expect(mockCloseSession).toHaveBeenCalledWith('hs-1', {
-        reason: 'completed',
-      });
-      expect(mockParentPop).toHaveBeenCalled();
-      // Manual-bank headless branch now fires a HEADLESS terminal confirmed
-      // event (TRAM-3623 §4) that previously did not exist.
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_TRANSACTION_CONFIRMED',
+      expect(mockTransakCreateOrder).not.toHaveBeenCalled();
+      expect(mockGetUserLimits).toHaveBeenCalledWith(
+        'USD',
+        '/payments/debit-credit-card',
+        'SIMPLE',
+      );
+      expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
-          ramp_type: 'HEADLESS',
-          ramp_surface: 'money_account',
-          region: 'us-ca',
-          provider_order_id: 'order-bank-1',
+          routes: expect.arrayContaining([
+            expect.objectContaining({ name: 'Checkout' }),
+          ]),
         }),
       );
-      // Manual-bank headless branch also writes the terminal-failed context
-      // (TRAM-3623 §2), keyed by the same providerOrderId.
-      expect(mockSetHeadlessOrderContext).toHaveBeenCalledWith('order-bank-1', {
-        rampSurface: 'money_account',
-        region: 'us-ca',
-      });
-      // ...and the order toast stays suppressed on the headless path.
-      expect(mockShowV2OrderToast).not.toHaveBeenCalled();
     });
 
     it('falls back to OrderDetails callback-resolution when session id is present but session is missing from registry', async () => {
