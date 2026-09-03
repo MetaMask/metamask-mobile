@@ -54,24 +54,17 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: {
       subscribeOnceIf: (...args: unknown[]) => mockSubscribeOnceIf(...args),
       tryUnsubscribe: (...args: unknown[]) => mockTryUnsubscribe(...args),
-    },
-    context: {
-      TransactionController: {
-        state: {
-          get batchTransactionCounts() {
-            return mockBatchTransactionCounts;
-          },
-          get transactions() {
-            return mockTransactions;
-          },
-        },
-      },
-      TransactionPayController: {
-        state: {
-          get transactionData() {
-            return mockTransactionData;
-          },
-        },
+      call: (action: string) => {
+        if (action === 'TransactionController:getState') {
+          return {
+            batchTransactionCounts: mockBatchTransactionCounts,
+            transactions: mockTransactions,
+          };
+        }
+        if (action === 'TransactionPayController:getState') {
+          return { transactionData: mockTransactionData };
+        }
+        throw new Error(`Unexpected messenger action: ${action}`);
       },
     },
   },

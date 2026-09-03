@@ -26,7 +26,7 @@ interface UseLedgerConfirmOptions {
 }
 
 function getTransactionControllerState() {
-  return Engine.context.TransactionController.state;
+  return Engine.controllerMessenger.call('TransactionController:getState');
 }
 
 function getRequiredTransactionIds(transactionId: string): string[] {
@@ -43,8 +43,8 @@ function getRequiredTransactionIds(transactionId: string): string[] {
  */
 function getExpectedQuoteCount(transactionId: string): number {
   return (
-    Engine.context.TransactionPayController.state.transactionData[transactionId]
-      ?.quotes?.length ?? 1
+    Engine.controllerMessenger.call('TransactionPayController:getState')
+      .transactionData[transactionId]?.quotes?.length ?? 1
   );
 }
 
