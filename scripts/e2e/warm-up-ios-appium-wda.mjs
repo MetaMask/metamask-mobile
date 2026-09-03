@@ -123,6 +123,33 @@ export function buildWarmUpCapabilities({
 }
 
 /**
+ * Warm every simulator in a pool.
+ *
+ * @param {{
+ *   udids: string[];
+ *   wdaBundleIdBase: string;
+ *   simulatorName: string;
+ *   warmUp?: typeof warmUpIosAppiumWda;
+ * }} options
+ */
+export async function warmUpIosAppiumWdaSequentially({
+  udids,
+  wdaBundleIdBase,
+  simulatorName,
+  warmUp = warmUpIosAppiumWda,
+}) {
+  for (const [workerIndex, udid] of udids.entries()) {
+    await warmUp({
+      udid,
+      wdaBundleIdBase,
+      simulatorName,
+      wdaLocalPort: 8100 + workerIndex,
+      mjpegServerPort: 9100 + workerIndex,
+    });
+  }
+}
+
+/**
  * @param {{
  *   udid: string;
  *   wdaBundleIdBase: string;

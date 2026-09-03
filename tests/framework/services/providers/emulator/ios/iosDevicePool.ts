@@ -67,10 +67,10 @@ export function parseIosDevicePool(rawPool: string | undefined): string[] {
     return [];
   }
 
-  const udids = rawPool
-    .split(',')
-    .map((udid) => udid.trim())
-    .filter(Boolean);
+  const udids = rawPool.split(',').map((udid) => udid.trim());
+  if (udids.some((udid) => udid.length === 0)) {
+    throw new Error('IOS_DEVICE_POOL contains an empty simulator UDID.');
+  }
   const seen = new Set<string>();
 
   for (const udid of udids) {

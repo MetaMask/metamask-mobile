@@ -1,4 +1,7 @@
-import { buildWarmUpCapabilities } from './warm-up-ios-appium-wda.mjs';
+import {
+  buildWarmUpCapabilities,
+  warmUpIosAppiumWdaSequentially,
+} from './warm-up-ios-appium-wda.mjs';
 
 const BASE_OPTIONS = {
   udid: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
@@ -23,5 +26,49 @@ describe('buildWarmUpCapabilities', () => {
 
     expect(capabilities['appium:wdaLocalPort']).toBe(8101);
     expect(capabilities['appium:mjpegServerPort']).toBe(9101);
+  });
+});
+
+describe('warmUpIosAppiumWdaSequentially', () => {
+  it('does not start the next shared-Appium warm-up until the prior one resolves', async () => {
+    let resolveFirstWarmUp: (() => void) | undefined;
+    const firstWarmUp = new Promise<void>((resolve) => {
+      resolveFirstWarmUp = resolve;
+    });
+    const startedUdids: string[] = [];
+    const warmUp = jest.fn(async ({ udid }: { udid: string }) => {
+      startedUdids.push(udid);
+      if (udid === 'first-udid') {
+        await firstWarmUp;
+      }
+      return true;
+    });
+
+    const completion = warmUpIosAppiumWdaSequentially({
+      udids: ['first-udid', 'second-udid'],
+      wdaBundleIdBase: BASE_OPTIONS.wdaBundleIdBase,
+      simulatorName: BASE_OPTIONS.simulatorName,
+      warmUp,
+    });
+
+    await Promise.resolve();
+    expect(startedUdids).toEqual(['first-udid']);
+
+    resolveFirstWarmUp?.();
+    await completion;
+
+    expect(startedUdids).toEqual(['first-udid', 'second-udid']);
+    expect(warmUp).toHaveBeenNthCalledWith(1, {
+      ...BASE_OPTIONS,
+      udid: 'first-udid',
+      wdaLocalPort: 8100,
+      mjpegServerPort: 9100,
+    });
+    expect(warmUp).toHaveBeenNthCalledWith(2, {
+      ...BASE_OPTIONS,
+      udid: 'second-udid',
+      wdaLocalPort: 8101,
+      mjpegServerPort: 9101,
+    });
   });
 });

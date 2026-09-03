@@ -8,6 +8,7 @@
  *   node scripts/e2e/verify-appium-runner-connectivity.mjs ios
  *
  * Env:
+ *   IOS_DEVICE_POOL_SIZE — requested simulator count (defaults to 1)
  *   IOS_DEVICE_POOL — optional comma-separated pool UDIDs (N>1 prepare output)
  *   IOS_SIMULATOR_UDID — optional single-simulator target
  *   SKIP_E2E_CONNECTIVITY_VERIFY=true — skip all checks
@@ -21,6 +22,49 @@ const execAsync = promisify(exec);
 
 const BOOTED_SIMULATOR_UDID_PATTERN =
   /\(([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\)\s*\(Booted\)\s*$/u;
+const IOS_SIMULATOR_UDID_PATTERN =
+  /^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/u;
+
+/**
+ * @param {string | undefined} rawSize
+ * @returns {number}
+ */
+export function parseIosDevicePoolSize(rawSize) {
+  const value = rawSize?.trim() || '1';
+  if (!/^[1-9]\d*$/u.test(value)) {
+    throw new Error(
+      `Invalid IOS_DEVICE_POOL_SIZE "${value}". Expected a positive integer.`,
+    );
+  }
+
+  const poolSize = Number(value);
+  if (!Number.isSafeInteger(poolSize)) {
+    throw new Error(
+      `Invalid IOS_DEVICE_POOL_SIZE "${value}". Expected a positive integer.`,
+    );
+  }
+  return poolSize;
+}
+
+/**
+ * @param {string | undefined} rawPool
+ * @param {number} poolSize
+ * @returns {string[]}
+ */
+export function parseRequiredIosDevicePool(rawPool, poolSize) {
+  const udids = rawPool?.split(',').map((entry) => entry.trim()) ?? [];
+  const isValid =
+    udids.length === poolSize &&
+    udids.every((udid) => IOS_SIMULATOR_UDID_PATTERN.test(udid)) &&
+    new Set(udids).size === poolSize;
+
+  if (!isValid) {
+    throw new Error(
+      `IOS_DEVICE_POOL_SIZE (${poolSize}) requires IOS_DEVICE_POOL with exactly ${poolSize} valid unique UDIDs.`,
+    );
+  }
+  return udids;
+}
 
 /**
  * @param {string} line
@@ -60,15 +104,25 @@ export function assertBootedUdids(bootedLines, requiredUdids) {
 /**
  * @param {{
  *   execImpl?: typeof execAsync;
+ *   iosDevicePoolSize?: string;
  *   iosDevicePool?: string;
  *   iosSimulatorUdid?: string;
  * }} [options]
  */
-async function verifyIosAppiumRunnerConnectivity(options = {}) {
+export async function verifyIosAppiumRunnerConnectivity(options = {}) {
   const execImpl = options.execImpl ?? execAsync;
-  const devicePool = options.iosDevicePool ?? process.env.IOS_DEVICE_POOL?.trim();
+  const poolSize = parseIosDevicePoolSize(
+    options.iosDevicePoolSize ?? process.env.IOS_DEVICE_POOL_SIZE,
+  );
+  const devicePool = options.iosDevicePool ?? process.env.IOS_DEVICE_POOL;
   const udid =
     options.iosSimulatorUdid ?? process.env.IOS_SIMULATOR_UDID?.trim();
+  let requiredUdids = [];
+  if (poolSize > 1) {
+    requiredUdids = parseRequiredIosDevicePool(devicePool, poolSize);
+  } else if (udid) {
+    requiredUdids = [udid];
+  }
 
   const { stdout } = await execImpl('xcrun simctl list devices booted');
   const bootedLines = stdout
@@ -80,14 +134,8 @@ async function verifyIosAppiumRunnerConnectivity(options = {}) {
     throw new Error('No booted iOS simulator found');
   }
 
-  if (devicePool) {
-    const requiredUdids = devicePool
-      .split(',')
-      .map((entry) => entry.trim())
-      .filter(Boolean);
+  if (requiredUdids.length > 0) {
     assertBootedUdids(bootedLines, requiredUdids);
-  } else if (udid) {
-    assertBootedUdids(bootedLines, [udid]);
   }
 
   return bootedLines;
@@ -118,10 +166,9 @@ async function main() {
 
   try {
     const bootedLines = await verifyIosAppiumRunnerConnectivity();
-    const devicePool = process.env.IOS_DEVICE_POOL?.trim();
+    const poolSize = parseIosDevicePoolSize(process.env.IOS_DEVICE_POOL_SIZE);
 
-    if (devicePool) {
-      const poolSize = devicePool.split(',').filter((entry) => entry.trim()).length;
+    if (poolSize > 1) {
       console.log(
         `Booted iOS simulator pool detected (${poolSize} devices)`,
       );

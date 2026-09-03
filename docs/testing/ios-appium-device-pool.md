@@ -36,9 +36,10 @@ warm WDA on default port 8100. No `ios-device-pool` line. Playwright omits
 
 **N>1:** shutdown base if booted → delete clones named
 `${IOS_SIMULATOR_NAME} Appium Pool ${i}` → clone → parallel boot → WDA prebuild
-once → per-UDID WDA + app install (parallel across UDIDs) → warm WDA with ports
-`8100+i` / `9100+i`. Pool mode fails closed on missing WDA artifacts, failed
-simctl install, or warm-up failure (N=1 may fall back to xcodebuild).
+once → per-UDID WDA + app install (parallel across UDIDs) → warm WDA
+sequentially on the shared Appium server with ports `8100+i` / `9100+i`. Pool
+mode fails closed on missing WDA artifacts, failed simctl install, or warm-up
+failure (N=1 may fall back to xcodebuild).
 
 | Worker | UDID                        | `wdaLocalPort` | `mjpegServerPort` |
 | ------ | --------------------------- | -------------: | ----------------: |

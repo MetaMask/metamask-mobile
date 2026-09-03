@@ -29,7 +29,10 @@ import {
   installWdaOnSimulator,
   toWdaBundleIdBase,
 } from './wda-lib.mjs';
-import { warmUpIosAppiumWda } from './warm-up-ios-appium-wda.mjs';
+import {
+  warmUpIosAppiumWda,
+  warmUpIosAppiumWdaSequentially,
+} from './warm-up-ios-appium-wda.mjs';
 
 const simulatorName = process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';
 const appPath = process.env.IOS_APP_PATH;
@@ -135,17 +138,11 @@ if (installedWdaBundleIds.every(Boolean)) {
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
   if (poolSize > 1) {
-    await Promise.all(
-      udids.map((udid, workerIndex) =>
-        warmUpIosAppiumWda({
-          udid,
-          wdaBundleIdBase: iosWdaBundleIdBase,
-          simulatorName,
-          wdaLocalPort: 8100 + workerIndex,
-          mjpegServerPort: 9100 + workerIndex,
-        }),
-      ),
-    );
+    await warmUpIosAppiumWdaSequentially({
+      udids,
+      wdaBundleIdBase: iosWdaBundleIdBase,
+      simulatorName,
+    });
   } else {
     try {
       await warmUpIosAppiumWda({

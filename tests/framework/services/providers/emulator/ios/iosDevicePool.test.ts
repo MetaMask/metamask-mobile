@@ -84,6 +84,33 @@ describe('iosDevicePool', () => {
         ),
       ).toThrow('duplicate');
     });
+
+    it.each([
+      [
+        'an empty token between UDIDs',
+        '11111111-1111-1111-1111-111111111111,,22222222-2222-2222-2222-222222222222',
+      ],
+      ['a leading empty token', ',11111111-1111-1111-1111-111111111111'],
+      ['a trailing empty token', '11111111-1111-1111-1111-111111111111,'],
+    ])('rejects %s', (_label, rawPool) => {
+      expect(() => parseIosDevicePool(rawPool)).toThrow(
+        'IOS_DEVICE_POOL contains an empty simulator UDID.',
+      );
+    });
+
+    it('rejects an invalid UDID format', () => {
+      expect(() =>
+        parseIosDevicePool(
+          '11111111-1111-1111-1111-111111111111,not-a-udid',
+        ),
+      ).toThrow(
+        'IOS_DEVICE_POOL contains invalid simulator UDID "not-a-udid".',
+      );
+    });
+
+    it('keeps a blank pool equivalent to unset for the single-device path', () => {
+      expect(parseIosDevicePool('   ')).toEqual([]);
+    });
   });
 
   describe('deviceForWorker', () => {
