@@ -284,25 +284,26 @@ describe('PerpsProOrderForm', () => {
           ),
         },
       );
-      expect(
-        screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT),
-      ).toBeOnTheScreen();
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toBeOnTheScreen();
       expect(
         within(screen.getByTestId(ids.ORDER_TYPE_CARD)).getByTestId(
           ids.CHASE_MAX_DISTANCE_INPUT,
+          { includeHiddenElements: true },
         ),
       ).toBeOnTheScreen();
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'accessibilityLabel',
         `${strings('perps.order.chase.max_distance')} (USD)`,
       );
-      expect(
-        screen.getByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
-      ).toHaveTextContent('$');
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '0.00',
+        '',
       );
+      expect(
+        screen.getByRole('button', {
+          name: `${strings('perps.order.chase.max_distance')} (USD)`,
+        }),
+      ).toHaveProp('testID', `${ids.CHASE_MAX_DISTANCE_INPUT}-field`);
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
         'hitSlop',
         12,
@@ -332,6 +333,15 @@ describe('PerpsProOrderForm', () => {
       expect(
         screen.queryByTestId(ids.CHASE_MAX_DISTANCE_PREFIX),
       ).not.toBeOnTheScreen();
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'placeholder',
+        '',
+      );
+
+      fireEvent.press(
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      );
+
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
         '0%',
@@ -507,8 +517,12 @@ describe('PerpsProOrderForm', () => {
         ids.SCALE_END_PRICE,
         ids.SCALE_TOTAL_ORDERS,
       ]) {
-        expect(screen.getByTestId(inputTestID)).toHaveProp('value', '');
-        expect(screen.getByTestId(inputTestID)).toHaveProp('placeholder', '');
+        expect(getMountedInput(inputTestID)).toHaveProp('value', '');
+        expect(getMountedInput(inputTestID)).toHaveProp('placeholder', '');
+        expect(screen.getByTestId(`${inputTestID}-field`)).toHaveProp(
+          'accessibilityRole',
+          'button',
+        );
       }
       expect(
         within(
@@ -578,7 +592,7 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.MARGIN_MODE_BUTTON)).toBeDisabled();
       expect(screen.getByTestId(ids.LEVERAGE_BUTTON)).toBeDisabled();
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toBeDisabled();
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'isDisabled',
         true,
       );
@@ -1061,7 +1075,7 @@ describe('PerpsProOrderForm', () => {
     it('routes Chase keyboard navigation between max distance and size', () => {
       renderForm({ orderType: 'chase' });
 
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         chaseMaxDistanceAccessoryID,
       );
@@ -1157,7 +1171,7 @@ describe('PerpsProOrderForm', () => {
     it('mounts the Chase max-distance keyboard accessory with the Chase form', () => {
       renderForm({ orderType: 'chase' });
 
-      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+      expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'inputAccessoryViewID',
         chaseMaxDistanceAccessoryID,
       );
