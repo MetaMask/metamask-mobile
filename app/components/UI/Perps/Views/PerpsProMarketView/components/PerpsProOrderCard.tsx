@@ -40,6 +40,7 @@ import { isClosingOrder } from '../../../utils/orderDirection';
 import {
   formatOrderTypeLabel,
   getOrderPositionDirection,
+  getValidOrderPrice,
   getValidTriggerPrice,
   inferTriggerConditionKey,
   isTriggerOrder,
@@ -163,19 +164,26 @@ const PerpsProOrderCard = ({
     ? TagSeverity.Success
     : TagSeverity.Danger;
   const size = formatPositionSize(order.originalSize);
-  const { priceValue } = resolveOrderDisplayPriceAndLabel(order);
+  const { priceValue, labelKey } = resolveOrderDisplayPriceAndLabel(order);
+  const estimatedOrderPrice =
+    getValidOrderPrice(order) ?? getValidTriggerPrice(order);
   const validTriggerPrice = getValidTriggerPrice(order);
   const canEditPrice = Boolean(onEditPrice) && !isEditPriceDisabled;
   const canEditSize = Boolean(onEditSize) && !isEditSizeDisabled;
   const orderValue =
-    priceValue === null
+    estimatedOrderPrice === null
       ? PERPS_CONSTANTS.FallbackPriceDisplay
-      : formatPerpsFiat(Number.parseFloat(order.originalSize) * priceValue, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        });
+      : formatPerpsFiat(
+          Number.parseFloat(order.originalSize) * estimatedOrderPrice,
+          {
+            ranges: PRICE_RANGES_UNIVERSAL,
+          },
+        );
   const price =
     priceValue === null
-      ? strings('perps.order.market')
+      ? labelKey === 'perps.order.market_price'
+        ? strings('perps.order.market')
+        : PERPS_CONSTANTS.FallbackPriceDisplay
       : formatPerpsFiat(priceValue, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
@@ -289,9 +297,9 @@ const PerpsProOrderCard = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 rounded-xl border border-muted px-4 py-2"
+            twClassName="gap-4 rounded-xl border border-muted px-4 py-3"
           >
-            <Box twClassName="flex-1 gap-6">
+            <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.order_card.size')}
                 value={`${size} ${displaySymbol}`}
@@ -306,6 +314,13 @@ const PerpsProOrderCard = ({
               />
               <KeyValueItem
                 label={strings(
+                  'perps.pro_positions_panel.order_card.order_value',
+                )}
+                value={orderValue}
+                isHidden={privacyMode}
+              />
+              <KeyValueItem
+                label={strings(
                   'perps.pro_positions_panel.order_card.reduce_only',
                 )}
                 value={
@@ -315,21 +330,7 @@ const PerpsProOrderCard = ({
                 }
               />
             </Box>
-            <Box twClassName="flex-1 gap-6">
-              <KeyValueItem
-                label={strings(
-                  'perps.pro_positions_panel.order_card.order_value',
-                )}
-                value={orderValue}
-                isHidden={privacyMode}
-              />
-              <KeyValueItem
-                label={strings('perps.pro_positions_panel.order_card.tp_sl')}
-                value={tpSl}
-                isHidden={privacyMode}
-              />
-            </Box>
-            <Box twClassName="min-w-[120px] gap-6">
+            <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
                 label={strings('perps.pro_positions_panel.order_card.price')}
                 value={price}
@@ -350,29 +351,30 @@ const PerpsProOrderCard = ({
                 value={triggerCondition}
                 isHidden={privacyMode}
               />
+              <KeyValueItem
+                label={strings('perps.pro_positions_panel.order_card.tp_sl')}
+                value={tpSl}
+                isHidden={privacyMode}
+              />
             </Box>
           </Box>
         </Box>
 
-        <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2 px-2">
-          {onEditPrice && !isEditPriceDisabled ? (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              startIconName={IconName.Edit}
-              twClassName="flex-1 border-muted bg-background-default"
-              onPress={handleEditPricePress}
-              testID={PerpsProMarketViewSelectorsIDs.ORDER_EDIT}
-            >
-              {strings('perps.pro_positions_panel.order_card.edit')}
-            </Button>
-          ) : null}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2 px-2"
+        >
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
             isDanger
+            textProps={{
+              variant: TextVariant.BodySm,
+              fontWeight: FontWeight.Medium,
+            }}
             startIconName={IconName.Close}
-            twClassName="flex-1 border-muted bg-background-default"
+            twClassName="flex-1"
             onPress={() => onCancel?.(order)}
             isDisabled={isCancelDisabled}
             testID={PerpsProMarketViewSelectorsIDs.ORDER_CANCEL}

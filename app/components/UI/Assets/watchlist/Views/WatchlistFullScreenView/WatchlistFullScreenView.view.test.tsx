@@ -34,7 +34,6 @@ import { getTrendingTokenRowItemTestId } from '../../../../Trending/components/T
 import { TrendingViewSelectorsIDs } from '../../../../../Views/TrendingView/TrendingView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
-import ToastService from '../../../../../../core/ToastService/ToastService';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const SEARCH_TOKEN = mockTrendingTokensData[1];
@@ -47,7 +46,6 @@ beforeEach(() => {
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
-  jest.spyOn(ToastService, 'showToast').mockImplementation(() => undefined);
 });
 
 afterEach(() => {

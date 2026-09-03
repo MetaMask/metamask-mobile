@@ -1,8 +1,10 @@
 import React from 'react';
 import { cloneDeep } from 'lodash';
+import { fireEvent } from '@testing-library/react-native';
 import { BackHandler, ScrollView } from 'react-native';
 import {
   generateContractInteractionState,
+  mockTxId,
   personalSignatureConfirmationState,
   stakingClaimConfirmationState,
   stakingDepositConfirmationState,
@@ -10,6 +12,8 @@ import {
   typedSignV1ConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ConfirmationUIType } from '../../ConfirmationView.testIds';
+import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -18,6 +22,12 @@ import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 
 jest.mock('../../hooks/useConfirmActions');
+
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
@@ -614,5 +624,68 @@ describe('Confirm', () => {
 
     const bottomSheet = getByTestId('modal-confirmation-container');
     expect(bottomSheet).toBeDefined();
+  });
+
+  describe('confirmation load trace', () => {
+    const traceMock = jest.mocked(trace);
+    const endTraceMock = jest.mocked(endTrace);
+
+    it('records the load trace when a full screen confirmation paints', () => {
+      jest.mocked(useFullScreenConfirmation).mockReturnValue({
+        isFullScreenConfirmation: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(traceMock).not.toHaveBeenCalled();
+
+      fireEvent(getByTestId(ConfirmationUIType.FLAT), 'layout');
+
+      expect(traceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+          forceTransaction: true,
+        }),
+      );
+      expect(endTraceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+        }),
+      );
+    });
+
+    it('records the load trace when a modal confirmation paints', () => {
+      jest.mocked(useFullScreenConfirmation).mockReturnValue({
+        isFullScreenConfirmation: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: generateContractInteractionState,
+      });
+
+      fireEvent(getByTestId('transaction'), 'layout');
+
+      expect(traceMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.TransactionConfirmationLoad,
+          id: mockTxId,
+        }),
+      );
+    });
+
+    it('does not record the load trace for signature confirmations', () => {
+      const { getByTestId } = renderWithProvider(<Confirm />, {
+        state: personalSignatureConfirmationState,
+      });
+
+      fireEvent(getByTestId('personal_sign'), 'layout');
+
+      expect(traceMock).not.toHaveBeenCalled();
+      expect(endTraceMock).not.toHaveBeenCalled();
+    });
   });
 });

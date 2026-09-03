@@ -1,11 +1,7 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import {
-  Utilities,
-  sleep,
-  type EncapsulatedElementType,
-} from '../../framework';
+import { Utilities, sleep, type AppiumElement } from '../../framework';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
 
 class BrowserPlaygroundDapp {
@@ -18,7 +14,7 @@ class BrowserPlaygroundDapp {
   private getByDataTestId(
     testId: string,
     { lazy = false }: { lazy?: boolean } = {},
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const xpath = `//*[@data-testid="${testId}"]`;
     return lazy
       ? Matchers.getLazyElementByNativeXPath(xpath)
@@ -26,188 +22,188 @@ class BrowserPlaygroundDapp {
   }
 
   // App-level selectors
-  get connectLegacyButton(): EncapsulatedElementType {
+  get connectLegacyButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
-  get disconnectButton(): EncapsulatedElementType {
+  get disconnectButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
-  get errorSection(): EncapsulatedElementType {
+  get errorSection(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.ERROR_SECTION);
   }
 
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
-  get connectedScopesSection(): EncapsulatedElementType {
+  get connectedScopesSection(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.SCOPES_SECTION);
   }
 
   // Legacy EVM selectors
-  get legacyEvmCard(): EncapsulatedElementType {
+  get legacyEvmCard(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
-  get chainIdValue(): EncapsulatedElementType {
+  get chainIdValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
-  get accountsValue(): EncapsulatedElementType {
+  get accountsValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACCOUNTS_VALUE);
   }
 
-  get activeAccount(): EncapsulatedElementType {
+  get activeAccount(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
-  get responseText(): EncapsulatedElementType {
+  get responseText(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
-  get personalSignButton(): EncapsulatedElementType {
+  get personalSignButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN,
     );
   }
 
-  get signTypedDataV4Button(): EncapsulatedElementType {
+  get signTypedDataV4Button(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SIGN_TYPED_DATA_V4,
     );
   }
 
-  get sendTransactionButton(): EncapsulatedElementType {
+  get sendTransactionButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
     );
   }
 
-  get switchToMainnetButton(): EncapsulatedElementType {
+  get switchToMainnetButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_MAINNET,
     );
   }
 
-  get switchToPolygonButton(): EncapsulatedElementType {
+  get switchToPolygonButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_POLYGON,
     );
   }
 
-  get switchToGoerliButton(): EncapsulatedElementType {
+  get switchToGoerliButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_GOERLI,
     );
   }
 
-  get getBalanceButton(): EncapsulatedElementType {
+  get getBalanceButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_GET_BALANCE,
     );
   }
 
-  get blockNumberButton(): EncapsulatedElementType {
+  get blockNumberButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_BLOCK_NUMBER,
     );
   }
 
-  get gasPriceButton(): EncapsulatedElementType {
+  get gasPriceButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_GAS_PRICE);
   }
 
   // Wagmi selectors
-  get connectWagmiButton(): EncapsulatedElementType {
+  get connectWagmiButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CONNECT_BUTTON);
   }
 
-  get wagmiDisconnectButton(): EncapsulatedElementType {
+  get wagmiDisconnectButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_DISCONNECT_BUTTON);
   }
 
-  get wagmiCard(): EncapsulatedElementType {
+  get wagmiCard(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CARD);
   }
 
-  get wagmiChainIdValue(): EncapsulatedElementType {
+  get wagmiChainIdValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_CHAIN_ID_VALUE);
   }
 
-  get wagmiAccountValue(): EncapsulatedElementType {
+  get wagmiAccountValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_ACCOUNT_VALUE);
   }
 
-  get wagmiActiveAccount(): EncapsulatedElementType {
+  get wagmiActiveAccount(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_ACTIVE_ACCOUNT);
   }
 
-  get wagmiBalanceValue(): EncapsulatedElementType {
+  get wagmiBalanceValue(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_BALANCE_VALUE);
   }
 
-  get wagmiSignMessageInput(): EncapsulatedElementType {
+  get wagmiSignMessageInput(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_MESSAGE);
   }
 
-  get wagmiSignMessageButton(): EncapsulatedElementType {
+  get wagmiSignMessageButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_BUTTON_SIGN_MESSAGE);
   }
 
-  get wagmiSignatureResult(): EncapsulatedElementType {
+  get wagmiSignatureResult(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_SIGNATURE_RESULT);
   }
 
-  get wagmiSendTxToAddressInput(): EncapsulatedElementType {
+  get wagmiSendTxToAddressInput(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_TO_ADDRESS);
   }
 
-  get wagmiSendTxAmountInput(): EncapsulatedElementType {
+  get wagmiSendTxAmountInput(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_INPUT_AMOUNT);
   }
 
-  get wagmiSendTransactionButton(): EncapsulatedElementType {
+  get wagmiSendTransactionButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.WAGMI_BUTTON_SEND_TRANSACTION,
     );
   }
 
-  get wagmiTxHashResult(): EncapsulatedElementType {
+  get wagmiTxHashResult(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.WAGMI_TX_HASH_RESULT);
   }
 
-  getWagmiSwitchChainButton(chainId: number): EncapsulatedElementType {
+  getWagmiSwitchChainButton(chainId: number): Promise<AppiumElement> {
     return this.getByDataTestId(
       `${MMConnectDappTestIds.WAGMI_BTN_SWITCH_CHAIN}-${chainId}`,
     );
   }
 
   // Solana selectors
-  get solanaCard(): EncapsulatedElementType {
+  get solanaCard(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.SOLANA_CARD);
   }
 
-  get solanaConnectButton(): EncapsulatedElementType {
+  get solanaConnectButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.SOLANA_CONNECT_BUTTON);
   }
 
-  get solanaDisconnectButton(): EncapsulatedElementType {
+  get solanaDisconnectButton(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.SOLANA_DISCONNECT_BUTTON);
   }
 
-  get solanaAddressContainer(): EncapsulatedElementType {
+  get solanaAddressContainer(): Promise<AppiumElement> {
     return this.getByDataTestId(MMConnectDappTestIds.SOLANA_ADDRESS_CONTAINER);
   }
 
-  get solanaSignMessageButton(): EncapsulatedElementType {
+  get solanaSignMessageButton(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.SOLANA_SIGN_MESSAGE_BUTTON,
     );
   }
 
-  get solanaSignedMessageResult(): EncapsulatedElementType {
+  get solanaSignedMessageResult(): Promise<AppiumElement> {
     return this.getByDataTestId(
       MMConnectDappTestIds.SOLANA_SIGNED_MESSAGE_RESULT,
     );
@@ -216,7 +212,7 @@ class BrowserPlaygroundDapp {
   getScopeCard(
     scope: string,
     { lazy = false }: { lazy?: boolean } = {},
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedScope = scope.toLowerCase().replace(/:/g, '-');
     return this.getByDataTestId(
       `${MMConnectDappTestIds.SCOPE_CARD}-${escapedScope}`,
@@ -582,7 +578,7 @@ class BrowserPlaygroundDapp {
   }
 
   private async assertElementContainsText(
-    elem: EncapsulatedElementType,
+    elem: Promise<AppiumElement>,
     expected: string,
     description: string,
   ): Promise<void> {

@@ -145,7 +145,7 @@ switch (urlObj.protocol.replace(':', '')) {
 ### 3. Signature Verification (for HTTPS links)
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 if (hasSignature(validatedUrl)) {
   const result = await verifyDeeplinkSignature(validatedUrl);
 
@@ -179,7 +179,7 @@ Unless the action is whitelisted or bypassed, users see an interstitial:
 ### 5. Action Routing
 
 ```typescript
-// In app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// In app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 switch (action) {
   case SUPPORTED_ACTIONS.SWAP:
     handleSwapUrl({ swapPath });
@@ -209,6 +209,52 @@ https://link.metamask.io/{action}?{parameters}
 
 ```
 https://link.metamask.io/buy?chain=1&token=ETH
+```
+
+### Explore Search Campaign Link
+
+Use this mobile deeplink for campaigns about a real-world name or event that
+can match multiple instrument types:
+
+```
+https://link.metamask.io/trending?screen=search&q=Apple
+```
+
+Contract:
+
+- Minimum MetaMask Mobile version: `8.3.0`.
+- `screen=search` is required. A standalone `q` or `query` parameter opens the
+  default Explore feed instead of Search.
+- `q` is the canonical query parameter. `query` is an alias used only when `q`
+  is missing, empty, or whitespace. If both are non-empty, `q` wins.
+- Values are URL-decoded and trimmed before prefilling the search input. Encode
+  spaces and special characters, for example:
+  `https://link.metamask.io/trending?screen=search&q=Apple%20Inc`.
+- A missing, empty, or whitespace-only query still opens Explore Search with
+  an empty input.
+- The prefilled query runs through the same Explore Search feeds and ranking as
+  a query entered in-app. Feed availability can still vary by app version and
+  feature configuration.
+- Users can clear or edit the query normally.
+- Search-open analytics reports `entry_point: deeplink`; normal deeplink
+  analytics also records the `trending` route and supported UTM parameters.
+- This is a mobile destination. Universal Links on iOS and App Links on Android
+  support `link.metamask.io`; campaign links must also be configured in the
+  Branch LinkHub as described in [Overview](#overview).
+
+For test builds, replace the host:
+
+```
+https://link-test.metamask.io/trending?screen=search&q=Apple
+```
+
+Generate dynamic links with `URLSearchParams` instead of concatenating an
+unescaped query:
+
+```javascript
+const url = new URL('https://link.metamask.io/trending');
+url.searchParams.set('screen', 'search');
+url.searchParams.set('q', campaignQuery);
 ```
 
 #### Swap Link (CAIP-19 Format)
@@ -258,7 +304,7 @@ export enum ACTIONS {
 ### Step 2: Add to Supported Actions
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 enum SUPPORTED_ACTIONS {
   // ... existing actions
   YOUR_NEW_ACTION = ACTIONS.YOUR_NEW_ACTION,
@@ -304,7 +350,7 @@ export const handleYourAction = async ({
 ### Step 4: Import and Add Routing Logic
 
 ```typescript
-// app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts
+// app/core/DeeplinkManager/handlers/handleUniversalLink.ts
 import { handleYourAction } from './handleYourAction';
 
 async function handleUniversalLink(/* ... */) {
@@ -413,9 +459,11 @@ MetaMask Mobile tracks deep link usage through a consolidated `DEEP_LINK_USED` a
 - Signature validation results
 - Interstitial modal interactions
 - UTM parameters for attribution
-- Route-specific sensitive properties
+- Route-specific sensitive properties (deprecated leftover; see [Deep Link Analytics](./deeplink-analytics.md))
 
-For comprehensive analytics documentation, see [Deep Link Analytics](./deeplink-analytics.md).
+`DEEP_LINK_USED` still attaches those sensitive fields today, which triggers dual anonymous / non-anonymous emission. `addSensitiveProperties` is deprecated. New tracking, including new deep link routes, uses `addProperties` only. When you edit this event, review each sensitive field and drop it or move it to `addProperties` when that is safe.
+
+For the full property list and extraction, see [Deep Link Analytics](./deeplink-analytics.md).
 
 ### Quick Overview
 
@@ -423,7 +471,7 @@ The analytics system:
 
 - Fetches Branch.io parameters once per deep link to detect deferred deep links
 - Creates analytics contexts with all relevant information
-- Tracks a single `DEEP_LINK_USED` event with both standard and sensitive properties
+- Tracks a single `DEEP_LINK_USED` event. Standard fields go through `addProperties`; leftover route-specific fields still go through deprecated `addSensitiveProperties`
 - Handles errors gracefully without blocking deep link processing
 
 ## Testing Links
@@ -572,9 +620,9 @@ const inAppLinkSources = [
 
 - [MetaMask Signer (Consensys employees only)](https://api.signer.link.metamask.consensys.io)
 - [Signature Verification Implementation](../../app/core/DeeplinkManager/utils/verifySignature.ts)
-- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts)
+- [Universal Link Handler](../../app/core/DeeplinkManager/handlers/handleUniversalLink.ts)
 - [Deeplink Constants](../../app/constants/deeplinks.ts)
-- [Test Suite](../../app/core/DeeplinkManager/handlers/legacy/__tests__/handleUniversalLink.test.ts)
+- [Test Suite](../../app/core/DeeplinkManager/handlers/__tests__/handleUniversalLink.test.ts)
 - [Link Signer API](https://github.com/MetaMask/link-signer-api)
 
 ## Example: Complete Flow

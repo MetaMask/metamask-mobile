@@ -268,15 +268,22 @@ export class OAuthMockttpService {
    *
    */
   private async setupAuthServerProxy(server: Mockttp): Promise<void> {
-    // Proxy token requests to backend QA mock
+    // Proxy token/mint requests to backend QA mock.
+    // Google/Apple use /oauth/token; Telegram's mock handler uses /oauth/mint.
     const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
     console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
+    console.log(
+      `[E2E MockServer] Registering mock for: ${AUTH_SERVICE_BASE_URL}/api/v1/oauth/mint`,
+    );
 
     await server
       .forPost('/proxy')
       .matching((request) => {
         const url = this.getDecodedProxiedURL(request.url);
-        return url.includes('/api/v1/oauth/token');
+        return (
+          url.includes('/api/v1/oauth/token') ||
+          url.includes('/api/v1/oauth/mint')
+        );
       })
       .asPriority(1000)
       .thenCallback(async (request) => {

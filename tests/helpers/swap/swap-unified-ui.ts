@@ -4,7 +4,6 @@ import PostTradeBottomSheet from '../../page-objects/swaps/PostTradeBottomSheet'
 import { Assertions } from '../../framework';
 import { createLogger } from '../../framework/logger';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 const logger = createLogger({ name: 'SwapUnifiedUI' });
 
@@ -68,6 +67,7 @@ export async function submitSwapUnifiedUI(
   // Set custom slippage if provided
   if (options?.slippage) {
     await SlippageModal.setCustomSlippage(options.slippage);
+    await QuoteView.waitForQuoteReady({ timeout: 60000 });
     // Verify the slippage has been updated in the quote view
     await QuoteView.verifySlippageDisplayed(options.slippage);
   } else {
@@ -83,31 +83,9 @@ export async function checkSwapActivity(
   sourceTokenSymbol: string,
   destTokenSymbol: string,
 ) {
-  const FIRST_ROW: number = 0;
-  const SECOND_ROW: number = 1;
-
   // Post-trade modal is always shown after confirm; open Activity from there.
   await PostTradeBottomSheet.tapViewActivity();
 
   // Check the swap activity completed
-  await Assertions.expectElementToBeVisible(ActivitiesView.title);
-
-  await Assertions.expectElementToBeVisible(
-    ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
-  );
-  await Assertions.expectElementToHaveText(
-    ActivitiesView.transactionStatus(FIRST_ROW),
-    ActivitiesViewSelectorsText.CONFIRM_TEXT,
-  );
-
-  // Check the token approval completed
-  if (sourceTokenSymbol !== 'ETH') {
-    await Assertions.expectElementToBeVisible(
-      ActivitiesView.swapApprovalActivityTitle(),
-    );
-    await Assertions.expectElementToHaveText(
-      ActivitiesView.transactionStatus(SECOND_ROW),
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-    );
-  }
+  await Assertions.expectElementToBeVisible(ActivitiesView.redesignedScreen);
 }

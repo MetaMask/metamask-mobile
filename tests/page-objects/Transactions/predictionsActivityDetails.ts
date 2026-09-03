@@ -2,30 +2,30 @@ import { PredictActivityDetailsSelectorsIDs } from '../../../app/components/UI/P
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
 class PredictActivityDetails {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.CONTAINER,
     );
   }
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
     );
   }
 
-  get amountDisplay(): EncapsulatedElementType {
+  get amountDisplay(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY,
     );
   }
 
-  amountElement(amount: string): EncapsulatedElementType {
+  amountElement(amount: string): Promise<AppiumElement> {
     if (!PlatformDetector.isIOSAppium()) {
       return this.amountDisplay;
     }

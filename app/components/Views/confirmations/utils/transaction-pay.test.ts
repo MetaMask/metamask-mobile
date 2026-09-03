@@ -14,7 +14,6 @@ import {
   isTokenBlocked,
   replaceAccountInNestedTransactions,
   resolvePreferredPayToken,
-  setMoneyAccountDepositMaxAtomic,
 } from './transaction-pay';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import Logger from '../../../../util/Logger';
@@ -1036,32 +1035,6 @@ describe('Transaction Pay Utils', () => {
       updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
-    });
-  });
-
-  describe('setMoneyAccountDepositMaxAtomic', () => {
-    const TRANSACTION_ID = 'tx-max-atomic';
-
-    const setTransactionConfigMock = jest.mocked(
-      Engine.context.TransactionPayController.setTransactionConfig,
-    );
-
-    it('sets atomic to false when isMax is true', () => {
-      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, true);
-
-      const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
-
-      expect(config.atomic).toBe(false);
-    });
-
-    it('clears atomic (to undefined) when isMax is false', () => {
-      setMoneyAccountDepositMaxAtomic(TRANSACTION_ID, false);
-
-      const config: Record<string, unknown> = { atomic: false };
-      setTransactionConfigMock.mock.calls[0][1](config as never);
-
-      expect(config.atomic).toBeUndefined();
     });
   });
 });

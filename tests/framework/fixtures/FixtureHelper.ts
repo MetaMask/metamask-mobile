@@ -772,7 +772,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload was Detox-only (device.reloadReactNative); Appium
-    // uses softReloadAppForFixtures / fixture bootstrap instead (MMQA-2230).
+    // uses softReloadAppForFixtures / fixture bootstrap instead.
 
     if (mockServerInstance) {
       try {

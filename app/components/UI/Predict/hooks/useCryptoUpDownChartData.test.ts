@@ -65,7 +65,7 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        cacheTime: 0,
+        gcTime: 0,
         retry: false,
       },
     },
@@ -104,6 +104,7 @@ const createMarket = (overrides: Partial<TestMarket> = {}): TestMarket => ({
 describe('useCryptoUpDownChartData', () => {
   let liveUpdateHandler: ((update: CryptoPriceUpdate) => void) | undefined;
   let historicalData: LivelinePoint[];
+  let queryFnShouldFail = false;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -111,6 +112,7 @@ describe('useCryptoUpDownChartData', () => {
     jest.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
 
     liveUpdateHandler = undefined;
+    queryFnShouldFail = false;
     historicalData = [
       { time: 100, value: 50000 },
       { time: 200, value: 51000 },
@@ -134,11 +136,13 @@ describe('useCryptoUpDownChartData', () => {
         eventStartTime,
         variant,
         endDate,
+        twapWindowSeconds,
       }: {
         symbol: string;
         eventStartTime: string;
         variant: string;
         endDate?: string;
+        twapWindowSeconds?: number;
       }) => ({
         queryKey: [
           'predict',
@@ -147,8 +151,12 @@ describe('useCryptoUpDownChartData', () => {
           eventStartTime,
           variant,
           endDate ?? '',
+          twapWindowSeconds ?? '',
         ],
-        queryFn: async () => historicalData,
+        queryFn: async () => {
+          if (queryFnShouldFail) throw new Error('fetch failed');
+          return historicalData;
+        },
       }),
     );
   });
@@ -166,15 +174,18 @@ describe('useCryptoUpDownChartData', () => {
       return refetchInterval();
     };
 
-    const recordFailures = (count: number): void => {
-      const onError = mockLastUseQueryConfig.current?.onError as () => void;
+    const recordFailures = async (count: number): Promise<void> => {
+      queryFnShouldFail = true;
       for (let i = 0; i < count; i += 1) {
-        onError();
+        await (
+          mockLastUseQueryConfig.current?.queryFn as () => Promise<void>
+        )().catch(() => null);
       }
     };
 
-    const recordSuccess = (): void => {
-      (mockLastUseQueryConfig.current?.onSuccess as () => void)();
+    const recordSuccess = async (): Promise<void> => {
+      queryFnShouldFail = false;
+      await (mockLastUseQueryConfig.current?.queryFn as () => Promise<void>)();
     };
 
     const sendLiveTick = (price = 51000, timestamp = 100): void => {
@@ -232,32 +243,32 @@ describe('useCryptoUpDownChartData', () => {
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('backs off, stops, then recovers as failures accumulate and clear', () => {
+    it('backs off, stops, then recovers as failures accumulate and clear', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
       expect(evaluateRefetchInterval()).toBe(10000);
-      recordFailures(3);
+      await recordFailures(3);
       expect(evaluateRefetchInterval()).toBe(30000);
-      recordFailures(2); // 5 total
+      await recordFailures(2); // 5 total
       expect(evaluateRefetchInterval()).toBe(60000);
-      recordFailures(2); // 7 total
+      await recordFailures(2); // 7 total
       expect(evaluateRefetchInterval()).toBe(false);
       // A successful fetch resets the count and restores the base cadence.
-      recordSuccess();
+      await recordSuccess();
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('resets the circuit breaker when the live stream recovers', () => {
+    it('resets the circuit breaker when the live stream recovers', async () => {
       const { Wrapper } = createWrapper();
       const market = createLiveMarket();
 
       renderHook(() => useCryptoUpDownChartData(market), { wrapper: Wrapper });
 
       // Polling keeps failing until it disables itself.
-      recordFailures(7);
+      await recordFailures(7);
       expect(evaluateRefetchInterval()).toBe(false);
 
       // The socket recovers and delivers a tick -> breaker resets, polling paused.
@@ -270,7 +281,7 @@ describe('useCryptoUpDownChartData', () => {
       expect(evaluateRefetchInterval()).toBe(10000);
     });
 
-    it('does not poll for a non-live (historical-only) chart', () => {
+    it('does not poll for a non-live (historical-only) chart', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
 
@@ -284,7 +295,7 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(evaluateRefetchInterval()).toBe(false);
       // Even with many failures recorded, a disabled poll stays disabled.
-      recordFailures(99);
+      await recordFailures(99);
       expect(evaluateRefetchInterval()).toBe(false);
     });
   });
@@ -342,6 +353,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -350,6 +362,36 @@ describe('useCryptoUpDownChartData', () => {
       ]);
       expect(result.current.value).toBe(51500);
       expect(result.current.loading).toBe(false);
+    });
+
+    it('coalesces rapid live ticks to five React updates per second', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        for (let index = 0; index < 20; index += 1) {
+          liveUpdateHandler?.({
+            symbol: 'btc/usd',
+            price: 51000 + index,
+            timestamp: 100 + index,
+          });
+          jest.advanceTimersByTime(50);
+        }
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 51000 },
+        { time: 103, value: 51003 },
+        { time: 107, value: 51007 },
+        { time: 111, value: 51011 },
+        { time: 115, value: 51015 },
+        { time: 119, value: 51019 },
+      ]);
+      expect(result.current.value).toBe(51019);
     });
 
     it('keeps loading true until the live chart has enough points to render', () => {
@@ -379,6 +421,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -413,6 +456,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52000,
           timestamp: 1040,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -428,6 +472,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52500,
           timestamp: 1055,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -573,11 +618,13 @@ describe('useCryptoUpDownChartData', () => {
           price: 51000,
           timestamp: 100,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
           timestamp: 130,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 52000,
@@ -718,10 +765,14 @@ describe('useCryptoUpDownChartData', () => {
       expect(result.current.value).toBe(51000);
     });
 
-    it('removes Chainlink history when the same market switches to TWAP', async () => {
+    it('replaces Chainlink history when the same market switches to TWAP', async () => {
       const { Wrapper } = createWrapper();
       const market = createMarket();
       const twapMarket = createMarket({ twapWindowSeconds: 30 });
+      const twapHistory = [
+        { time: 300, value: 52000 },
+        { time: 305, value: 52100 },
+      ];
 
       const { result, rerender } = renderHook(
         ({ activeMarket }: { activeMarket: TestMarket }) =>
@@ -736,11 +787,13 @@ describe('useCryptoUpDownChartData', () => {
         expect(result.current.data).toEqual(historicalData);
       });
 
+      historicalData = twapHistory;
       rerender({ activeMarket: twapMarket });
 
-      expect(result.current.data).toEqual([]);
-      expect(result.current.value).toBe(0);
-      expect(result.current.loading).toBe(true);
+      await waitFor(() => {
+        expect(result.current.data).toEqual(twapHistory);
+      });
+      expect(result.current.value).toBe(52100);
     });
 
     it('accepts live updates after changing away from a reset market', () => {
@@ -819,6 +872,38 @@ describe('useCryptoUpDownChartData', () => {
       expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
         '',
         expect.any(Function),
+      );
+    });
+
+    it('fetches the requested trailing window for TWAP feed sparklines', async () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({ twapWindowSeconds: 60 });
+
+      const { result } = renderHook(
+        () =>
+          useCryptoUpDownChartData(market, undefined, {
+            liveUpdatesEnabled: false,
+            historicalWindow: {
+              startDate: '2025-12-31T22:00:00.000Z',
+            },
+          }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.data).toEqual(historicalData);
+      });
+      expect(mockCryptoPriceHistoryOptions).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        eventStartTime: '2025-12-31T22:00:00.000Z',
+        variant: 'fiveminute',
+        endDate: undefined,
+        twapWindowSeconds: 60,
+      });
+      expect(mockUseLiveCryptoPrices).toHaveBeenLastCalledWith(
+        '',
+        expect.any(Function),
+        60,
       );
     });
 
@@ -1182,6 +1267,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51600,
           timestamp: 270,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -1234,6 +1320,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       rerender({ targetPrice: undefined });
@@ -1329,6 +1416,50 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(result.current.isLive).toBe(false);
       expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
+    });
+
+    it('commits a pending update when the chart freezes before its timer runs', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T00:00:00.100Z',
+      });
+      historicalData = [];
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 50000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 101,
+        });
+      });
+      act(() => {
+        jest.setSystemTime(new Date('2026-01-01T00:00:00.101Z'));
+        rerender({ activeMarket: market });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 101, value: 51000 },
+      ]);
+      expect(result.current.value).toBe(51000);
+      expect(result.current.isLive).toBe(false);
     });
 
     it('accepts live updates after switching from an expired market', () => {
@@ -1783,6 +1914,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -2000,6 +2132,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.connectionError).toBe(false);

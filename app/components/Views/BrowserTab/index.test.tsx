@@ -240,6 +240,29 @@ describe('BrowserTab', () => {
       );
     });
 
+    it('returns to the home tabs when close button is pressed and opened from explore search', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} fromExploreSearch />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      // Pops the Explore search screen too, so the last visited tab is shown.
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        undefined,
+        { pop: true },
+      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
     it('navigates to Card Home when close button is pressed and opened from card', async () => {
       renderWithProvider(<BrowserTab {...mockProps} fromCard />, {
         state: mockInitialState,
@@ -282,6 +305,27 @@ describe('BrowserTab', () => {
         },
         { pop: true },
       );
+      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+        Routes.TRENDING_VIEW,
+        expect.anything(),
+      );
+    });
+
+    it('goes back when close button is pressed from Earn strategy selection', async () => {
+      renderWithProvider(
+        <BrowserTab {...mockProps} fromEarnStrategySelection />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(screen.getByTestId('browser-tab-close-button'));
+
+      expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
       expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
         Routes.TRENDING_VIEW,
         expect.anything(),

@@ -23,6 +23,8 @@ interface SwapsKeypadProps {
   decimals: number;
   onChange: (data: KeypadChangeData) => void;
   periodButtonProps?: KeypadComponentProps['periodButtonProps'];
+  isInteractable?: boolean;
+  onClose?: () => void;
 }
 
 export const SwapsKeypad = forwardRef<
@@ -30,7 +32,16 @@ export const SwapsKeypad = forwardRef<
   PropsWithChildren<SwapsKeypadProps>
 >(
   (
-    { value, currency, decimals, onChange, periodButtonProps, children },
+    {
+      value,
+      currency,
+      decimals,
+      onChange,
+      periodButtonProps,
+      children,
+      isInteractable = false,
+      onClose,
+    },
     ref,
   ) => {
     const bottomSheetRef = useRef<BottomSheetDialogRef>(null);
@@ -40,7 +51,8 @@ export const SwapsKeypad = forwardRef<
     const handleClose = useCallback(() => {
       isOpenRef.current = false;
       setIsRendered(false);
-    }, []);
+      onClose?.();
+    }, [onClose]);
 
     useImperativeHandle(ref, () => ({
       open: () => {
@@ -64,7 +76,7 @@ export const SwapsKeypad = forwardRef<
     return (
       <BottomSheetDialog
         ref={bottomSheetRef}
-        isInteractable={false}
+        isInteractable={isInteractable}
         onClose={handleClose}
         onStartShouldSetResponder={() =>
           // Prevents the native gesture system from bubbling up

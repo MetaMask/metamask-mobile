@@ -15,7 +15,6 @@ import { AlertMessage } from '../../alerts/alert-message';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
 import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
 import { PayWithRow, PayWithRowSkeleton } from '../../rows/pay-with-row';
-import { PercentageRow } from '../../rows/percentage-row';
 import {
   DepositKeyboard,
   DepositKeyboardSkeleton,
@@ -37,7 +36,6 @@ import {
 } from '../../../hooks/pay/useAutomaticTransactionPayToken';
 import { useIsFiatPaymentAvailable } from '../../../hooks/pay/useIsFiatPaymentAvailable';
 import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
-import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import {
   CustomAmount,
   CustomAmountSkeleton,
@@ -135,8 +133,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     useClearConfirmationOnBackSwipe();
 
-    const { canSelectWithdrawToken } = useTransactionPayWithdraw();
-
     useAutomaticTransactionPayToken({
       autoSelectFiatPayment,
       disable: disablePay,
@@ -158,7 +154,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       amountFiat,
       amountFiatDebounced,
       amountHuman,
-      amountHumanDebounced,
       hasInput,
       hasPrefetchedQuote,
       isDepositPrefillEnabled,
@@ -178,10 +173,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     // Fiat was selected (explicitly or because no crypto tokens are available)
     // with no crypto pay token — deposit prefill has nothing to prefill from.
-    const skipDepositPrefill =
+    const isFiatPrefillSkip =
       Boolean(autoSelectFiatPayment) ||
-      (Boolean(selectedFiatPaymentMethodId) && !payToken) ||
-      (!hasAvailableTokens && !payToken);
+      (Boolean(selectedFiatPaymentMethodId) && !payToken);
+    const skipDepositPrefill =
+      isFiatPrefillSkip || (!hasAvailableTokens && !payToken);
 
     const accountNoFundsAlert = useAccountNoFundsAlert();
     const hasAccountNoFunds = accountNoFundsAlert.length > 0;
@@ -222,7 +218,6 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       useTransactionCustomAmountAlerts({
         isInputChanged,
         isKeyboardVisible: stage === CustomAmountStage.AmountInput,
-        pendingTokenAmount: amountHumanDebounced,
         pendingFiatAmount: amountFiatDebounced,
       });
 
@@ -379,6 +374,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const hasAlert =
       stage !== CustomAmountStage.Loading && Boolean(alertMessage);
 
+    const canEditZeroAmount =
+      !isPrefillPending &&
+      !isDepositPrefillLoading &&
+      (amountFiat === '0' || amountFiat === '');
+
     const hasBlockingAlert = hasAlert && !headlessBuyError;
 
     // Keep payment details fixed while the amount update prepares the request.
@@ -395,11 +395,11 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             hasAlert={hasAlert}
             isLoading={
               !hasAccountNoFunds &&
-              !skipDepositPrefill &&
+              !isFiatPrefillSkip &&
               (isPrefillPending || isDepositPrefillLoading)
             }
             onPress={
-              stage === CustomAmountStage.Loading
+              stage === CustomAmountStage.Loading && !canEditZeroAmount
                 ? undefined
                 : handleAmountPress
             }
@@ -453,14 +453,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               {disablePay !== true && hasPaymentOption && (
                 <PayWithRow isResultReady />
               )}
-              {!hasAccountNoFunds && (
-                <CustomAmountTotals
-                  amountFiat={amountFiat}
-                  canSelectWithdrawToken={canSelectWithdrawToken}
-                  stage={stage}
-                />
-              )}
-              <PercentageRow />
+              {!hasAccountNoFunds && <CustomAmountTotals stage={stage} />}
             </View>
           )}
           {footerText && (

@@ -18,6 +18,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   getPerpsDisplaySymbol,
+  PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   PERPS_EVENT_PROPERTY,
   type Order,
@@ -95,7 +96,9 @@ const getOrderListDisplay = (order: Order): OrderListDisplay => {
         ? formatPerpsFiat(priceValue, {
             ranges: PRICE_RANGES_UNIVERSAL,
           })
-        : strings('perps.order.market'),
+        : labelKey === 'perps.order.market_price'
+          ? strings('perps.order.market')
+          : PERPS_CONSTANTS.FallbackPriceDisplay,
     subvalueText: strings(labelKey),
     subvalueColor: TextColor.TextAlternative,
   };

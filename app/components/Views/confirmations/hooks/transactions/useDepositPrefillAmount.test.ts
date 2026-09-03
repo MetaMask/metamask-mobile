@@ -415,6 +415,7 @@ describe('useDepositPrefillAmount', () => {
 
       expect(result.current.hasPrefilled).toBe(true);
       expect(result.current.prefillAmount).toBe('800');
+      expect(result.current.isLoading).toBe(false);
     });
   });
 

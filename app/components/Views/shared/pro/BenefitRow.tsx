@@ -23,32 +23,39 @@ interface BenefitRowProps {
   onPress?: (item: BenefitItem) => void;
   /** Trailing disclosure arrow. Defaults to true when `onPress` is provided. */
   showArrow?: boolean;
+  /** Selected plan — used to resolve plan-specific copy variants. */
+  selectedPlan?: string;
 }
 
 const BenefitRow = ({
   item,
   onPress,
   showArrow = Boolean(onPress),
+  selectedPlan,
 }: BenefitRowProps) => {
+  const subtitleKey =
+    selectedPlan === 'monthly' && item.subtitleMonthly
+      ? item.subtitleMonthly
+      : item.subtitle;
   const content = (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Start}
-      twClassName="py-3 gap-x-4"
+      twClassName="py-2.5 gap-x-3"
     >
       <Icon
         name={IconName.CheckBold}
-        size={IconSize.Lg}
+        size={IconSize.Md}
         color={IconColor.IconDefault}
-        twClassName="shrink-0"
+        twClassName="shrink-0 mt-0.5"
       />
 
-      <Box twClassName="flex-1 flex-col gap-y-1">
+      <Box twClassName="flex-1 flex-col gap-y-0.5">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(item.title)}
         </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings(item.subtitle)}
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {strings(subtitleKey)}
         </Text>
       </Box>
 

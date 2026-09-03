@@ -11,6 +11,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import {
   Box,
   Label,
@@ -86,6 +88,13 @@ const ManualBackupStep1 = () => {
 
   const backupFlow = route?.params?.backupFlow || false;
   const settingsBackup = route?.params?.settingsBackup || false;
+
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.MANUAL_BACKUP_STEP1,
+    contentReady: true,
+    isEmpty: false,
+    fullyDisplayed: ready,
+  });
 
   const steps = MANUAL_BACKUP_STEPS;
 

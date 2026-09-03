@@ -4,6 +4,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -30,6 +31,7 @@ const LINEA_MUSD_CHECKSUM_ADDRESS =
   '0xacA92E438df0B2401fF60dA7E4337B687a2435DA';
 const OWNED_ACCOUNT_ADDRESS = '0xAa60919dd0d0964B76620dAaF08bF357e1c9DD73';
 const OWNED_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+const MOCK_MONEY_ACCOUNT_ADDRESS = '0x3333333333333333333333333333333333333333';
 
 const mockState = {
   user: {
@@ -168,6 +170,12 @@ jest.mock('../../../selectors/multichain', () => ({
   selectMultichainAssetsRates: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(() => ({
+    address: MOCK_MONEY_ACCOUNT_ADDRESS,
+  })),
+}));
+
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
@@ -202,6 +210,10 @@ jest.mock('../../../util/networks', () => ({
 }));
 
 jest.mock('../../../util/address', () => ({
+  areAddressesEqual: jest.fn(
+    (first: string, second: string) =>
+      first.toLowerCase() === second.toLowerCase(),
+  ),
   renderShortAddress: jest.fn((address: string) => `${address.slice(0, 6)}...`),
   safeToChecksumAddress: jest.requireActual('../../../util/address')
     .safeToChecksumAddress,
@@ -671,6 +683,84 @@ describe('ActivityListItemRow — row content', () => {
     );
     expect(getByTestId('activity-secondary-amount-0xabc').props.children).toBe(
       '+$200.34',
+    );
+  });
+
+  it('renders an EOA transfer to Money as a deposit with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'send',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Deposited mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `To: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-2.5 mUSD',
+    );
+  });
+
+  it('uses deposit copy and hides amounts for a cancelled EOA transfer to Money', () => {
+    const item = makeItem({
+      type: 'send',
+      status: 'cancelled',
+      from: OWNED_ACCOUNT_ADDRESS,
+      to: MOCK_MONEY_ACCOUNT_ADDRESS,
+      token: {
+        amount: '2500000',
+        decimals: 6,
+        direction: 'out',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Deposit cancelled',
+    );
+    expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+    expect(queryByTestId('activity-secondary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders a Money Account withdrawal as a received transfer with Money account counterparty', () => {
+    const item = makeItem({
+      type: 'receive',
+      from: MOCK_MONEY_ACCOUNT_ADDRESS,
+      to: OWNED_ACCOUNT_ADDRESS,
+      token: {
+        amount: '1750000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'mUSD',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Received mUSD',
+    );
+    expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
+      `From: ${strings('transaction_details.label.money_account')}`,
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+1.75 mUSD',
     );
   });
 
@@ -2131,11 +2221,11 @@ const EXPECTED_TITLES = {
   rampBuy: 'Bought',
   sell: 'Sold',
   rampSell: 'Sold',
-  claim: 'Claimed',
+  claim: 'Claimed ETH',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
-  stake: 'Staked Ethereum',
-  unstake: 'Unstaked Ethereum',
+  stake: 'Staked ETH',
+  unstake: 'Unstaked ETH',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
@@ -2215,6 +2305,97 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
     expect(getByText(EXPECTED_TITLES[type])).toBeOnTheScreen();
     expect(queryByText(strings('transactions.interaction'))).toBeNull();
   });
+
+  it('names the staked asset for the avatar when an unstake moves no token', () => {
+    const item = makeItem({ type: 'unstake', status: 'success' });
+    const { getByTestId, getByText, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('avatar-token-ETH')).toBeOnTheScreen();
+    expect(getByText('Unstaked ETH')).toBeOnTheScreen();
+    // The asset is named for the avatar only — no amount is invented.
+    expect(queryByText('+0 ETH')).toBeNull();
+  });
+
+  it('does not name an asset for non-EVM staking without a token', () => {
+    const item = makeItem({
+      type: 'unstake',
+      status: 'success',
+      chainId: 'tron:728126428',
+    });
+    const { queryByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(queryByTestId('avatar-token-ETH')).toBeNull();
+  });
+
+  it('reads the ticker for an EVM ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: { amount: '1045000000000000', direction: 'in', symbol: 'ETH' },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed ETH')).toBeOnTheScreen();
+  });
+
+  it.each(['claim', 'unstake'] as const)(
+    'falls back to the ETH ticker for a tokenless EVM %s',
+    (type) => {
+      const item = makeItem({ type, status: 'success' });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByText(type === 'claim' ? 'Claimed ETH' : 'Unstaked ETH'),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps the symbol for a non-ETH claim', () => {
+    const item = makeItem({
+      type: 'claim',
+      status: 'success',
+      token: {
+        amount: '1000000',
+        decimals: 6,
+        direction: 'in',
+        symbol: 'USDC',
+      },
+    });
+    const { getByText } = render(<ActivityListItemRow item={item} index={0} />);
+
+    expect(getByText('Claimed USDC')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['stake', 'Staked TRX'],
+    ['unstake', 'Unstaked TRX'],
+  ] as const)(
+    'reads the moved token symbol for non-EVM %s rows',
+    (type, expectedTitle) => {
+      const item = makeItem({
+        type,
+        status: 'success',
+        chainId: 'tron:728126428',
+        token: {
+          amount: '100',
+          decimals: 6,
+          direction: type === 'stake' ? 'out' : 'in',
+          symbol: 'TRX',
+        },
+      });
+      const { getByText } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(getByText(expectedTitle)).toBeOnTheScreen();
+    },
+  );
 
   it('prefers the title override when provided (legacy swap/bridge contract)', () => {
     const item = makeItem({ type: 'swap', status: 'success' });
@@ -2419,6 +2600,58 @@ describe('ActivityListItemRow — pending rows', () => {
     expect(getByTestId('activity-subtitle-0xabc').props.children).toBe(
       'To: 0x1234...',
     );
+  });
+
+  it('keeps the pending spinner inside the title column when an amount is present', () => {
+    const item: ActivityListItem = {
+      type: 'unstake',
+      chainId: 'eip155:1',
+      status: 'pending',
+      timestamp: 1_787_646_540_000,
+      hash: '0xactivitypendingunstakelayout',
+      isEarliestNonce: true,
+      data: {
+        token: {
+          direction: 'in',
+          symbol: 'ETH',
+          decimals: 18,
+          amount: '790100000000000',
+        },
+      },
+    };
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} {...pendingHandlers()} />,
+    );
+
+    const title = getByTestId(`activity-title-${item.hash}`);
+    const spinnerContainer = getByTestId(
+      `activity-pending-spinner-container-${item.hash}`,
+    );
+    const amount = getByTestId(`activity-primary-amount-${item.hash}`);
+    const amountColumn = getByTestId(`activity-amount-column-${item.hash}`);
+
+    expect(title).toHaveTextContent('Unstaking ETH');
+    expect(amount).toHaveTextContent('+0.0007901 ETH');
+    expect(ReactNativeStyleSheet.flatten(title.props.style)).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(title.parent?.props.style),
+    ).toMatchObject({
+      flexShrink: 1,
+      minWidth: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(spinnerContainer.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
+    expect(
+      ReactNativeStyleSheet.flatten(amountColumn.props.style),
+    ).toMatchObject({
+      flexShrink: 0,
+    });
   });
 
   it('renders queued rows with an hourglass prefix and no title spinner', () => {

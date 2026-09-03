@@ -10,6 +10,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
+import ExploreEarnSection from '../components/ExploreEarnSection';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { getCaipChainIdFromAssetId } from '../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import { TokenRowItem } from '../feeds/tokens/TokenRowItem';
@@ -46,6 +47,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../search/abTestConfig';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -116,6 +118,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isEarnSectionVisible = useSelector(selectIsExploreEarnSectionVisible);
   const { openQuickBuy } = useTrendingQuickBuySheet();
 
   const { variant: quickBuyVariant } = useABTest(
@@ -219,6 +222,13 @@ const CryptoTabContent: React.FC<TabProps> = ({
       });
     }
 
+    if (isEarnSectionVisible) {
+      items.push({
+        key: 'earn',
+        content: <ExploreEarnSection tabName="Crypto" refresh={refresh} />,
+      });
+    }
+
     if (showPredictions) {
       items.push({
         key: 'predictions',
@@ -242,6 +252,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   }, [
     showTokens,
     showCryptoPerps,
+    isEarnSectionVisible,
     showPredictions,
     navigation,
     tokens.data,

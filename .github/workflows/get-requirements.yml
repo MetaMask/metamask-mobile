@@ -15,7 +15,7 @@ on:
         description: 'Whether Android E2E tests and builds should run (true when Android-specific or shared files changed)'
         value: ${{ jobs.detect-changes.outputs.android_e2e_needed }}
       ios_e2e_needed:
-        description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed)'
+        description: 'Whether iOS E2E tests and builds should run (true when iOS-specific or shared files changed). On pull requests targeting main, path filters alone never enable it — iOS must be requested via the run-appium-ios-tests label, or via skip-smart-e2e-selection when path filters already require iOS. It then matches run_appium_ios, so the app is only built when iOS E2E will run.'
         value: ${{ jobs.detect-changes.outputs.ios_e2e_needed }}
       changed_spec_files:
         description: 'Space-separated list of changed E2E spec file paths only — never the full changed-file list, which overflows ARG_MAX and kills this job on large PRs. Smoke test workflows use this to run modified spec files twice for flakiness detection (catches flaky tests before they land on main)'
@@ -30,7 +30,7 @@ on:
         description: 'Whether performance E2E tests should be forced to run via the run-performance-tests PR label'
         value: ${{ jobs.detect-changes.outputs.run_performance }}
       run_appium_ios:
-        description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label or e2e smoke infra / smoke-appium file changes'
+        description: 'Whether Appium iOS smoke tests should also run on an eligible PR via the run-appium-ios-tests label (also opts into the iOS native build on Android-only PRs), skip-smart-e2e-selection when path filters require iOS, or e2e smoke infra / smoke-appium file changes. Always false when no iOS app is built. The smoke-infra trigger applies to release/* PRs only; on PRs targeting main this equals ios_e2e_needed.'
         value: ${{ jobs.detect-changes.outputs.run_appium_ios }}
       native_build_needed:
         description: 'Whether fresh iOS/Android native E2E builds are required. False when only E2E/performance test files changed — CI reuses main branch builds instead.'
@@ -153,6 +153,7 @@ jobs:
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
           SHOULD_SKIP_E2E: ${{ steps.skip-e2e-tag.outputs.SKIP == 'true' || steps.check-labels.outputs.SKIP_E2E == 'true' }}
+          SKIP_SMART_SELECTION: ${{ steps.check-labels.outputs.SKIP_SMART_SELECTION }}
           LABEL_BLOCKS_MERGE: ${{ steps.check-labels.outputs.LABEL_BLOCKS_MERGE }}
           RUN_PERFORMANCE_LABEL: ${{ steps.check-labels.outputs.RUN_PERFORMANCE }}
           RUN_APPIUM_IOS_LABEL: ${{ steps.check-labels.outputs.RUN_APPIUM_IOS }}
@@ -167,4 +168,4 @@ jobs:
           IOS_COUNT: ${{ steps.filter.outputs.ios_count }}
           ANDROID_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.android_or_ignorable_count }}
           IOS_OR_IGNORABLE_COUNT: ${{ steps.filter.outputs.ios_or_ignorable_count }}
-        run: node .github/scripts/run-compute-e2e-platform-flags.cjs
+        run: node .github/scripts/qa-automation/e2e-ci-orchestration/run-compute-e2e-platform-flags.mjs

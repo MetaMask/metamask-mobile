@@ -69,6 +69,7 @@ const {
   FEES_ROW,
   PNL_ROW,
   LIMIT_PRICE_ROW,
+  TRIGGER_PRICE_ROW,
   FILLED_ROW,
   TOTAL_FEE_ROW,
   RATE_ROW,
@@ -724,16 +725,35 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
       within(sizeRow).getByText(getPerpsPriceValue(order?.size) ?? ''),
     ).toBeOnTheScreen();
 
-    const limitPriceRow = getByTestId(LIMIT_PRICE_ROW);
-    expect(limitPriceRow).toHaveTextContent(
-      strings('perps.transactions.order.limit_price'),
-      { exact: false },
-    );
-    expect(
-      within(limitPriceRow).getByText(
-        getPerpsPriceValue(order?.limitPrice) ?? '',
-      ),
-    ).toBeOnTheScreen();
+    if (order?.triggerPrice) {
+      const triggerPriceRow = getByTestId(TRIGGER_PRICE_ROW);
+      expect(triggerPriceRow).toHaveTextContent(
+        strings('perps.order.trigger_price'),
+        { exact: false },
+      );
+      expect(
+        within(triggerPriceRow).getByText(
+          getPerpsPriceValue(order.triggerPrice) ?? '',
+        ),
+      ).toBeOnTheScreen();
+    } else {
+      expect(queryByTestId(TRIGGER_PRICE_ROW)).not.toBeOnTheScreen();
+    }
+
+    if (order?.limitPrice) {
+      const limitPriceRow = getByTestId(LIMIT_PRICE_ROW);
+      expect(limitPriceRow).toHaveTextContent(
+        strings('perps.transactions.order.limit_price'),
+        { exact: false },
+      );
+      expect(
+        within(limitPriceRow).getByText(
+          getPerpsPriceValue(order.limitPrice) ?? '',
+        ),
+      ).toBeOnTheScreen();
+    } else {
+      expect(queryByTestId(LIMIT_PRICE_ROW)).not.toBeOnTheScreen();
+    }
 
     expect(getByTestId(FILLED_ROW)).toHaveTextContent(filled, {
       exact: false,
@@ -792,7 +812,10 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
   it('shows filled stop-market-close-short order details with Total fee and explorer', async () => {
     await expectOrderDetails({
       item: buildActivityCvPerpsOrderItem('stopMarketCloseShort'),
-      title: strings('transactions.activity_stop_market_close_short'),
+      title: strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.stop_market.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
       filled: '100%',
       status: strings('transactions.activity_order_status_filled'),
       statusColor: TextColor.SuccessDefault,
@@ -803,7 +826,10 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
   it('shows canceled take-profit order details with Try again', async () => {
     await expectOrderDetails({
       item: buildActivityCvPerpsOrderItem('takeProfitCanceled'),
-      title: strings('transactions.activity_limit_close_short'),
+      title: strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.take_profit_limit.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
       filled: '0%',
       status: strings('transactions.activity_order_status_canceled'),
       statusColor: TextColor.ErrorDefault,
@@ -814,7 +840,10 @@ describeForPlatforms('ActivityDetails — Perps orders', () => {
   it('shows filled take-profit order details with explorer and no Try again', async () => {
     await expectOrderDetails({
       item: buildActivityCvPerpsOrderItem('takeProfitFilled'),
-      title: strings('transactions.activity_limit_close_short'),
+      title: strings('transactions.activity_trigger_order_close', {
+        orderType: strings('perps.order.type.take_profit_limit.title'),
+        direction: strings('perps.market.close_short').toLowerCase(),
+      }),
       filled: '100%',
       status: strings('transactions.activity_order_status_filled'),
       statusColor: TextColor.SuccessDefault,

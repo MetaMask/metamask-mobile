@@ -2,7 +2,7 @@ import { BrowserViewSelectorsIDs } from '../../../../../app/components/Views/Bro
 import Assertions from '../../../../framework/Assertions';
 import Matchers from '../../../../framework/Matchers';
 import { PlatformDetector } from '../../../../framework/PlatformLocator';
-import PlaywrightContextHelpers from '../../../../framework/PlaywrightContextHelpers';
+import AppiumContextHelpers from '../../../../framework/AppiumContextHelpers';
 
 const VISITED_TARGET_LEAKED_XPATH =
   "//p[@id='result' and contains(text(), 'visited-target.html was visited')]";
@@ -36,7 +36,7 @@ class HistoryDisclosureWebsite {
    */
   async verifyVisitedTargetNotLeaked(pageUrl: string): Promise<void> {
     if (PlatformDetector.isAndroid()) {
-      await PlaywrightContextHelpers.switchToNativeContext();
+      await AppiumContextHelpers.switchToNativeContext();
       await Assertions.expectElementToBeVisible(
         Matchers.getElementByAndroidUIAutomator(
           '.textContains("No history leaked")',

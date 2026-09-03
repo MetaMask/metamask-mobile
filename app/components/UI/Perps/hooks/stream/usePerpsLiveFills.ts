@@ -31,10 +31,9 @@ export function usePerpsLiveFills(
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const [fills, setFills] = useState<OrderFill[]>(EMPTY_FILLS);
-  // FillStreamChannel.getCachedData() always returns [] (never null),
-  // so subscribe() will always call the callback synchronously in useEffect.
-  // Start with false to avoid a 1-frame skeleton flash.
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => stream.fills.getSnapshot() === null,
+  );
   const lastFillsRef = useRef<OrderFill[]>(EMPTY_FILLS);
   const hasReceivedFirstUpdate = useRef(false);
 
@@ -46,9 +45,15 @@ export function usePerpsLiveFills(
 
     const unsubscribe = stream.fills.subscribe({
       callback: (newFills) => {
-        // null/undefined means no cached data yet, keep loading state
-        if (newFills === null || newFills === undefined) {
-          // Keep isInitialLoading as true, fills as empty array
+        if (
+          newFills === null ||
+          newFills === undefined ||
+          stream.fills.getSnapshot() === null
+        ) {
+          hasReceivedFirstUpdate.current = false;
+          setIsInitialLoading(true);
+          lastFillsRef.current = EMPTY_FILLS;
+          setFills(EMPTY_FILLS);
           return;
         }
 

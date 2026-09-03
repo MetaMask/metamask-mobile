@@ -17,6 +17,7 @@ import {
   MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK,
   selectMusdBalanceChainIds,
   MUSD_BALANCE_CHAIN_IDS_FALLBACK,
+  selectExploreEarnSectionEnabledFlag,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { Json } from '@metamask/utils';
@@ -2195,6 +2196,82 @@ describe('Earn Feature Flag Selectors', () => {
       const result = selectMusdBalanceChainIds(stateWithMissingChainIds);
 
       expect(result).toEqual(MUSD_BALANCE_CHAIN_IDS_FALLBACK);
+    });
+  });
+
+  describe('selectExploreEarnSectionEnabledFlag', () => {
+    it('returns true when remote flag is enabled and version check passes', () => {
+      process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'false';
+
+      const stateWithEnabledRemoteFlag = createStateWithRemoteFlags({
+        earnExploreSectionEnabled: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectExploreEarnSectionEnabledFlag(
+        stateWithEnabledRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is disabled', () => {
+      process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'true';
+
+      const stateWithDisabledRemoteFlag = createStateWithRemoteFlags({
+        earnExploreSectionEnabled: {
+          enabled: false,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      const result = selectExploreEarnSectionEnabledFlag(
+        stateWithDisabledRemoteFlag,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag minimum version exceeds app version', () => {
+      process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'true';
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const stateWithVersionMismatch = createStateWithRemoteFlags({
+        earnExploreSectionEnabled: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+
+      const result = selectExploreEarnSectionEnabledFlag(
+        stateWithVersionMismatch,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('falls back to local flag when remote flag is invalid', () => {
+      process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'true';
+
+      const stateWithInvalidRemoteFlag = createStateWithRemoteFlags({
+        earnExploreSectionEnabled: null,
+      });
+
+      const result = selectExploreEarnSectionEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('falls back to false when remote flag is unavailable and local flag is disabled', () => {
+      process.env.MM_EXPLORE_EARN_SECTION_ENABLED = 'false';
+
+      const result = selectExploreEarnSectionEnabledFlag(mockedEmptyFlagsState);
+
+      expect(result).toBe(false);
     });
   });
 });

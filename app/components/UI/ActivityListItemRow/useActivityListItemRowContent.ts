@@ -1,6 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Formatters } from '@metamask/client-utils';
-import type { Hex } from '@metamask/utils';
+import { KnownCaipNamespace, type Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
@@ -10,6 +10,7 @@ import {
   selectCurrentCurrency,
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
+import { selectPrimaryMoneyAccount } from '../../../selectors/moneyAccountController';
 import { getFormatters, useFormatters } from '../../hooks/useFormatters';
 import { useConvertToFiat } from '../../hooks/useConvertToFiat';
 import { useTokensData } from '../../hooks/useTokensData/useTokensData';
@@ -19,7 +20,7 @@ import {
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../Earn/constants/musd';
-import { renderShortAddress } from '../../../util/address';
+import { areAddressesEqual, renderShortAddress } from '../../../util/address';
 import {
   applyDisplaySign,
   type ActivityKind,
@@ -47,6 +48,7 @@ import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 import {
   ACTIVITY_FALLBACK_TITLE_RESOLVERS,
   resolvePerpsOrderStatusLabel,
+  resolvePerpsTriggerOrderTitle,
   TOKEN_ACTION_LABELS,
 } from './titleLabels';
 
@@ -319,7 +321,12 @@ function resolveFallbackTitle(item: ActivityListItem): string {
     strings('transactions.interaction');
 
   if (isPerpsOrderKind(item.type)) {
-    return base;
+    return item.data.perpsTriggerOrderType
+      ? resolvePerpsTriggerOrderTitle(
+          item.type,
+          item.data.perpsTriggerOrderType,
+        )
+      : base;
   }
   return withDomainStatusSuffix(base, item.status);
 }
@@ -470,7 +477,7 @@ function resolveAvatarTokens(
   }
 
   const { data } = item;
-  return uniqueTokens([
+  const tokens = uniqueTokens([
     'sourceToken' in data
       ? enrichStablecoinTokenMetadata(data.sourceToken, item.chainId)
       : undefined,
@@ -481,10 +488,24 @@ function resolveAvatarTokens(
       ? enrichStablecoinTokenMetadata(data.token, item.chainId)
       : undefined,
   ]);
+
+  return tokens.length === 0 && isEvmStakingKind(item)
+    ? [{ direction: 'in', symbol: 'ETH', assetId: `${item.chainId}/slip44:60` }]
+    : tokens;
 }
 
 function isNamelessNftToken(token: TokenAmount | undefined): boolean {
   return Boolean(token?.amount && !token.symbol && !token.assetId);
+}
+
+/** EVM pooled staking is ETH-only; other chains stake their own asset. */
+function isEvmStakingKind(item: ActivityListItem): boolean {
+  return (
+    (item.type === 'stake' ||
+      item.type === 'unstake' ||
+      item.type === 'claim') &&
+    item.chainId.startsWith(`${KnownCaipNamespace.Eip155}:`)
+  );
 }
 
 function resolveCoreContent(
@@ -492,6 +513,7 @@ function resolveCoreContent(
   formatters: Formatters,
   bridgeHistoryItem?: BridgeHistoryItem,
   counterpartyName?: string,
+  isMoneyAccountCounterparty = false,
 ): Omit<
   ActivityListItemRowContent,
   'avatarTokens' | 'primaryAmount' | 'secondaryAmount'
@@ -502,12 +524,27 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol ?? '';
       const address = item.type === 'receive' ? item.data.from : item.data.to;
-      const label = item.type === 'receive' ? 'Received' : 'Sent';
-      const pendingLabel = item.type === 'receive' ? 'Receiving' : 'Sending';
-      const failedLabel =
-        item.type === 'receive' ? 'Receive failed' : 'Send failed';
-      const cancelledLabel =
-        item.type === 'receive' ? 'Receive cancelled' : 'Send cancelled';
+      const isMoneyDeposit = item.type === 'send' && isMoneyAccountCounterparty;
+      const label = isMoneyDeposit
+        ? strings('money.transaction.deposited')
+        : item.type === 'receive'
+          ? 'Received'
+          : 'Sent';
+      const pendingLabel = isMoneyDeposit
+        ? strings('money.transaction.depositing')
+        : item.type === 'receive'
+          ? 'Receiving'
+          : 'Sending';
+      const failedLabel = isMoneyDeposit
+        ? strings('money.transaction.deposit_failed')
+        : item.type === 'receive'
+          ? 'Receive failed'
+          : 'Send failed';
+      const cancelledLabel = isMoneyDeposit
+        ? 'Deposit cancelled'
+        : item.type === 'receive'
+          ? 'Receive cancelled'
+          : 'Send cancelled';
       const subtitlePrefix = item.type === 'receive' ? 'From' : 'To';
       const counterpartyLabel =
         counterpartyName ||
@@ -642,14 +679,12 @@ function resolveCoreContent(
       const token = item.data.token;
       const symbol = token?.symbol;
       const isNamelessNftBuy = item.type === 'buy' && isNamelessNftToken(token);
-      // Pooled staking is ETH-only, so stake/unstake read the full asset name
-      // ("Staked Ethereum" / "Unstaked Ethereum") rather than the "ETH" symbol.
-      const isStakingKind = item.type === 'stake' || item.type === 'unstake';
       let displayNoun = symbol;
-      if (isStakingKind) {
-        displayNoun = 'Ethereum';
-      } else if (isNamelessNftBuy) {
+      if (isNamelessNftBuy) {
         displayNoun = 'NFT';
+      } else if (!symbol && isEvmStakingKind(item)) {
+        // The unstake leg moves no token, so there is no ticker to read.
+        displayNoun = 'ETH';
       }
       const labels = TOKEN_ACTION_LABELS[item.type];
 
@@ -1115,7 +1150,7 @@ export function useActivityListItemRowContent(
       : item.type === 'send'
         ? item.data.to
         : undefined;
-  const counterpartyName = useAccountNames(
+  const accountGroupName = useAccountNames(
     counterpartyAddress
       ? [
           {
@@ -1126,12 +1161,22 @@ export function useActivityListItemRowContent(
         ]
       : [],
   )[0];
+  const moneyAccountAddress = useSelector(selectPrimaryMoneyAccount)?.address;
+  const isMoneyAccountCounterparty = Boolean(
+    counterpartyAddress &&
+      moneyAccountAddress &&
+      areAddressesEqual(counterpartyAddress, moneyAccountAddress),
+  );
+  const counterpartyName = isMoneyAccountCounterparty
+    ? strings('transaction_details.label.money_account')
+    : accountGroupName;
 
   const content = resolveCoreContent(
     item,
     formatters,
     bridgeHistoryItem,
     counterpartyName,
+    isMoneyAccountCounterparty,
   );
 
   let basePrimaryToken: TokenAmount | undefined;

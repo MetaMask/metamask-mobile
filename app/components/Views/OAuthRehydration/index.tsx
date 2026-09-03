@@ -85,6 +85,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -170,6 +171,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   useNavigationPerformance({
     destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
     destinationReady: true,
+  });
+
+  // TTC only — do not pass finalLoading as isLoading. That flag is password
+  // submit / delete-in-progress, not an initial data-fetch cycle, and would
+  // emit misleading OnboardingScreenDataFetch success/unmount spans.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -611,21 +621,18 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             password,
             authPreference: authData,
             onBeforeNavigate: async () => {
-              await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // End the onboarding-journey spans with success BEFORE unlockWallet
-              // navigates to home. Navigation resets the stack and unmounts the
-              // Onboarding screen, whose cleanup ends OnboardingJourneyOverall with
-              // success:false. unlockWallet awaits onBeforeNavigate prior to that
-              // navigation, so ending the spans here guarantees the success value is
-              // recorded first and the later unmount cleanup (and the no-longer-needed
-              // post-return endTrace calls) safely no-op — otherwise a completed social
-              // login would be misrecorded as abandoned.
+              // End unlock/journey spans before the biometric keychain upgrade so
+              // human biometric wait is excluded from Password Login Attempt (and
+              // parent journey) duration. Still must finish before unlockWallet
+              // navigates home: navigation unmounts Onboarding, whose cleanup would
+              // otherwise end OnboardingJourneyOverall with success:false.
               if (passwordLoginAttemptTraceCtxRef.current) {
                 endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
                 passwordLoginAttemptTraceCtxRef.current = null;
               }
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
+              await upgradeKeychainAuthAfterSuccessfulUnlock();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
             parentContext: passwordLoginAttemptCtx ?? journeyCtx,

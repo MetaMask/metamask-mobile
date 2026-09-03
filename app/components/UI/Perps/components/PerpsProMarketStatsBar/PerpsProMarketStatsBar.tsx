@@ -99,9 +99,31 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   nextFundingTime,
   fundingIntervalHours,
   testID = PerpsProMarketViewSelectorsIDs.STATS_BAR,
+  onResolvedStateChange,
 }) => {
   const { styles } = useStyles(createStyles, {});
   const marketStats = usePerpsMarketStats(symbol);
+
+  useEffect(() => {
+    if (marketStats.hasError) {
+      onResolvedStateChange?.(symbol, 'error');
+      return;
+    }
+    if (marketStats.dataSymbol !== symbol) {
+      onResolvedStateChange?.(symbol, 'loading');
+      return;
+    }
+    onResolvedStateChange?.(
+      symbol,
+      marketStats.hasLiveData ? 'content' : 'loading',
+    );
+  }, [
+    marketStats.dataSymbol,
+    marketStats.hasError,
+    marketStats.hasLiveData,
+    onResolvedStateChange,
+    symbol,
+  ]);
 
   // Live funding + mark/oracle, throttled to match PerpsMarketStatisticsCard.
   const livePrices = usePerpsLivePrices({
@@ -146,10 +168,23 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const fundingValue = `${fundingRateDisplay} / ${fundingCountdown}`;
 
   const fundingValueColor: TextColor = useMemo(() => {
-    const rate = liveFunding ?? parseFloat(marketStats.fundingRate ?? '');
-    if (isNaN(rate) || rate === 0) return TextColor.TextDefault;
-    if (rate > 0) return TextColor.SuccessDefault;
-    return TextColor.ErrorDefault;
+    if (liveFunding !== undefined) {
+      if (liveFunding === 0) return TextColor.TextDefault;
+      return liveFunding > 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault;
+    }
+
+    if (
+      !marketStats.fundingRate ||
+      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay
+    ) {
+      return TextColor.TextDefault;
+    }
+
+    return marketStats.fundingRate.startsWith('-')
+      ? TextColor.ErrorDefault
+      : TextColor.SuccessDefault;
   }, [liveFunding, marketStats.fundingRate]);
 
   // PriceUpdate exposes a single markPrice field. Lite's statistics card uses

@@ -15,7 +15,7 @@ export const MODAL_CONFIRMATION_DANGER_BUTTON_ID =
 // Sample consts
 const SAMPLE_MODALCONFIRMATION_ROUTE_PROPS: ModalConfirmationRoute = {
   params: {
-    title: 'Sample ModalConfirmation Title',
+    title: 'Sample modal confirmation title',
     description: 'Sample ModalConfirmation description',
     onConfirm: () => {
       console.log('Modal Confirmation clicked');
@@ -23,8 +23,8 @@ const SAMPLE_MODALCONFIRMATION_ROUTE_PROPS: ModalConfirmationRoute = {
     onCancel: () => {
       console.log('Modal Confirmation cancelled');
     },
-    cancelLabel: 'ModalConfirmation Cancel',
-    confirmLabel: 'ModalConfirmation Label',
+    cancelLabel: 'Cancel',
+    confirmLabel: 'Confirm',
     isDanger: false,
   },
 };

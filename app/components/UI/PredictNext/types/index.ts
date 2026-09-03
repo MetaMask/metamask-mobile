@@ -1,3 +1,5 @@
+import { PREDICT_MARKET_TYPES } from '../constants';
+
 export type PredictVenueId = string & { readonly __brand: 'PredictVenueId' };
 export type PredictEntityId = string & { readonly __brand: 'PredictEntityId' };
 export type PredictFeedId = string & { readonly __brand: 'PredictFeedId' };
@@ -22,6 +24,23 @@ export type PredictMarketStatus =
 
 export type PredictOutcomeSide = 'yes' | 'no';
 export type PredictGameSelection = 'home' | 'away' | 'draw';
+export type PredictMarketType =
+  | (typeof PREDICT_MARKET_TYPES)[keyof typeof PREDICT_MARKET_TYPES]
+  | (string & {});
+export type PredictMarketGroupType = 'marketSelector' | (string & {});
+
+export interface PredictMarketOption {
+  type: 'number';
+  value: number;
+}
+
+export interface PredictMarketGroup {
+  key: string;
+  groupType: PredictMarketGroupType;
+  marketType?: PredictMarketType;
+  option?: PredictMarketOption;
+  displayOrder?: number;
+}
 
 export interface PredictSport {
   id: PredictEntityId;
@@ -68,6 +87,28 @@ export interface PredictSportsContext {
   game?: PredictGame;
 }
 
+export type PredictMarketHistoryRange =
+  | 'LIVE'
+  | '1D'
+  | '1W'
+  | '1M'
+  | '1Y'
+  | 'ALL';
+
+export interface PredictMarketHistoryPoint {
+  timestamp: PredictTimestamp;
+  yesPrice: PredictDecimal;
+  noPrice: PredictDecimal;
+}
+
+export interface PredictMarketHistory {
+  venueId: PredictVenueId;
+  marketId: PredictEntityId;
+  range: PredictMarketHistoryRange;
+  observedAt: PredictTimestamp;
+  points: readonly PredictMarketHistoryPoint[];
+}
+
 export interface PredictOutcome {
   id: PredictEntityId;
   side: PredictOutcomeSide;
@@ -80,8 +121,10 @@ export interface PredictOutcome {
 export interface PredictMarket {
   id: PredictEntityId;
   question: string;
+  rules?: string;
   outcomes: readonly [PredictOutcome, PredictOutcome];
   status: PredictMarketStatus;
+  group?: PredictMarketGroup;
   volume?: string;
   volume24h?: string;
   createdAt?: PredictTimestamp;
@@ -91,11 +134,17 @@ export interface PredictMarket {
   resolvesAt?: PredictTimestamp;
 }
 
+export interface PredictSettlementSource {
+  name: string;
+  url: PredictHttpsUrl;
+}
+
 export interface PredictEvent {
   venueId: PredictVenueId;
   id: PredictEntityId;
   title: string;
   subtitle?: string;
+  rules?: string;
   startsAt?: PredictTimestamp;
   closesAt?: PredictTimestamp;
   updatedAt?: PredictTimestamp;
@@ -105,6 +154,7 @@ export interface PredictEvent {
   volume24h?: string;
   imageUrl?: string;
   sports?: PredictSportsContext;
+  settlementSources?: readonly PredictSettlementSource[];
   markets: readonly PredictMarket[];
 }
 

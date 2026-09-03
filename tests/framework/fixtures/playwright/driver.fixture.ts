@@ -14,12 +14,11 @@ import {
   isDeviceHealthError,
   requestSharedSessionRecreate,
 } from '../../services/appium/sessionRecovery.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import UnifiedGestures from '../../UnifiedGestures.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import type { ServiceProvider } from '../../services';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
 
-const logger = createPlaywrightLogger('driver');
+const logger = createAppiumLogger('driver');
 
 async function configureImplicitWait(
   drv: WebdriverIO.Browser,
@@ -114,7 +113,6 @@ export const driverFixture = {
       await configureImplicitWait(drv, implicitMs);
 
       globalThis.driver = drv;
-      UnifiedGestures.resetStrategy();
 
       const platformName = (await drv.capabilities)?.platformName;
       const windowSize = await drv.getWindowSize();
@@ -240,7 +238,6 @@ export const driverFixture = {
 
         try {
           delete globalThis.driver;
-          UnifiedGestures.resetStrategy();
         } catch (error) {
           logger.error('Failed to clean up global driver:', error);
         }

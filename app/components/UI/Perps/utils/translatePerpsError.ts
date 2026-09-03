@@ -21,6 +21,9 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
+  [PERPS_ERROR_CODES.PROVIDER_NOT_FOUND]: 'perps.errors.providerNotAvailable',
+  [PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE]:
+    'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
   [PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND]:
     'perps.errors.bridgeContractNotFound',
@@ -106,6 +109,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.strategyFieldUnsupported',
   [PERPS_ERROR_CODES.ORDER_STRATEGY_MARKET_UNSUPPORTED]:
     'perps.errors.orderValidation.strategyMarketUnsupported',
+  [PERPS_ERROR_CODES.ORDER_STRATEGY_ROUTE_UNAVAILABLE]:
+    'perps.errors.orderValidation.strategyMarketUnsupported',
   [PERPS_ERROR_CODES.ORDER_STRATEGY_HANDLE_UNKNOWN]:
     'perps.errors.orderValidation.strategyHandleUnknown',
   [PERPS_ERROR_CODES.ORDER_STRATEGY_CANCEL_INCOMPLETE]:
@@ -138,6 +143,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.chaseAbandoned',
   [PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE]:
     'perps.errors.orderValidation.chaseTouchUnavailable',
+  [PERPS_ERROR_CODES.ORDER_CHASE_MAX_DISTANCE_INVALID]:
+    'perps.errors.orderValidation.chaseMaxDistanceInvalid',
   // HyperLiquid client/service errors
   [PERPS_ERROR_CODES.EXCHANGE_CLIENT_NOT_AVAILABLE]:
     'perps.errors.exchangeClientNotAvailable',
@@ -173,6 +180,7 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.MARGIN_ADJUSTMENT_FAILED]:
     'perps.errors.marginAdjustmentFailed',
   [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
+  [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
@@ -369,6 +377,23 @@ export function isPerpsErrorCode(
   return error === code;
 }
 
+/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
+const NO_POSITION_FOUND_PATTERN = /No position found/i;
+
+/**
+ * True when the venue rejected the request because the position was already
+ * filled, closed, or liquidated — a stale-state race, not a user-side failure.
+ */
+export function isNoPositionFoundError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : '';
+  return NO_POSITION_FOUND_PATTERN.test(message);
+}
+
 /**
  * Parameters for handling Perps errors
  */
@@ -439,6 +464,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         errorParams.token = context?.token || 'Unknown';
         break;
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
+      case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
         errorParams.providerId = context?.providerId || 'Unknown';
         break;
       // Add other error codes that need parameters as they arise

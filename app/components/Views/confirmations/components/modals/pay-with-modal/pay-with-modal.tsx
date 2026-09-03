@@ -32,9 +32,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isTransactionPayWithdraw } from '../../../utils/transaction';
-import { useMusdConversionTokens } from '../../../../../UI/Earn/hooks/useMusdConversionTokens';
 import { HIDE_NETWORK_FILTER_TYPES } from '../../../constants/confirmations';
-import { useMusdPaymentToken } from '../../../../../UI/Earn/hooks/useMusdPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { markPerpsPaymentTokenSelection } from '../../../../../UI/Perps/utils/perpsPaymentTokenSelection';
@@ -69,9 +67,6 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
-  const { onPaymentTokenChange: onMusdPaymentTokenChange } =
-    useMusdPaymentToken();
   const { onPaymentTokenChange: onPerpsPaymentTokenChange } =
     usePerpsPaymentToken();
   const perpsBalanceTokenFilter = usePerpsBalanceTokenFilter();
@@ -157,13 +152,6 @@ export function PayWithModal() {
         }
 
         if (
-          hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-        ) {
-          onMusdPaymentTokenChange(token);
-          return;
-        }
-
-        if (
           hasTransactionType(transactionMeta, [
             TransactionType.perpsDepositAndOrder,
           ])
@@ -234,7 +222,6 @@ export function PayWithModal() {
       isPredictContext,
       isWithdraw,
       navigation,
-      onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
       payToken,
@@ -261,10 +248,6 @@ export function PayWithModal() {
       let filteredTokens: TokenListItem[] = availableTokens;
 
       if (
-        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-      ) {
-        filteredTokens = musdTokenFilter(availableTokens);
-      } else if (
         hasTransactionType(transactionMeta, [
           TransactionType.perpsDepositAndOrder,
         ])
@@ -280,7 +263,6 @@ export function PayWithModal() {
       blockedTokens,
       fiatPayment,
       withdrawTokenFilter,
-      musdTokenFilter,
       payToken,
       requiredTokens,
       transactionMeta,
