@@ -46,9 +46,7 @@ appiumTest.describe(SmokeMoney('CardHome - Add Funds'), () => {
           await Assertions.expectElementToBeVisible(
             WalletView.navbarCardButton,
           );
-          // Retry Card open until Add Funds is ready — a single navbar tap can
-          // miss navigation (card-view-title never appears; only "Card Button
-          // Viewed" analytics) or land on the Card Home error screen.
+          // Open until Add Funds is visible; re-tap navbar only if still on wallet.
           await CardHomeView.openFromWallet(() =>
             WalletView.tapNavbarCardButton(),
           );
