@@ -1,0 +1,1287 @@
+diff --git a/dist/components/ActionListItem/ActionListItem.cjs b/dist/components/ActionListItem/ActionListItem.cjs
+index c591a15842b3dc4e89853cae76196456a15d147e..d61f41fa28a2bf6050df9f41188e43666ffc3c78 100644
+--- a/dist/components/ActionListItem/ActionListItem.cjs
++++ b/dist/components/ActionListItem/ActionListItem.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ActionListItem = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/ActionListItem/ActionListItem.mjs b/dist/components/ActionListItem/ActionListItem.mjs
+index afeb3b0f886730b6701a3f328cc3fb6dd8653fb9..8556a2496c1ace1657c49c244b95fb1d6845d81e 100644
+--- a/dist/components/ActionListItem/ActionListItem.mjs
++++ b/dist/components/ActionListItem/ActionListItem.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback } from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native";
+diff --git a/dist/components/AvatarBase/AvatarBase.cjs b/dist/components/AvatarBase/AvatarBase.cjs
+index 02820051eae04863aa31790726bf27c45a572f54..55b1f16cb62d41bff64bb20baace0fd43758271d 100644
+--- a/dist/components/AvatarBase/AvatarBase.cjs
++++ b/dist/components/AvatarBase/AvatarBase.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarBase = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Text_1 = require("../Text/index.cjs");
+diff --git a/dist/components/AvatarBase/AvatarBase.mjs b/dist/components/AvatarBase/AvatarBase.mjs
+index 4dc43bd783ce755425dab2a2ac381950e4f9595b..1aac73852a86e0d903b8340e64a6aaec82c553fb 100644
+--- a/dist/components/AvatarBase/AvatarBase.mjs
++++ b/dist/components/AvatarBase/AvatarBase.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { AvatarBaseSize, AvatarBaseShape, mergeTwClassName } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/AvatarGroup/AvatarGroup.cjs b/dist/components/AvatarGroup/AvatarGroup.cjs
+index d00244ad4d3db1cbeb215e4e35172236333dfd8c..99c910d41b32b3f64a991dc4266af4576257eb4e 100644
+--- a/dist/components/AvatarGroup/AvatarGroup.cjs
++++ b/dist/components/AvatarGroup/AvatarGroup.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarGroup = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const AvatarAccount_1 = require("../AvatarAccount/index.cjs");
+diff --git a/dist/components/AvatarGroup/AvatarGroup.mjs b/dist/components/AvatarGroup/AvatarGroup.mjs
+index ba2049962ffe35d7a05dd32404481758d13d050c..89637a7f36fdeb259440a1954f7083db2a076057 100644
+--- a/dist/components/AvatarGroup/AvatarGroup.mjs
++++ b/dist/components/AvatarGroup/AvatarGroup.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { AvatarBaseShape, AvatarGroupSize, AvatarGroupVariant, TextColor } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/AvatarIcon/AvatarIcon.cjs b/dist/components/AvatarIcon/AvatarIcon.cjs
+index a739fec8255e94d1aa73628327bf12f9cb3a22bc..bbdbae465501f5ffc801467a50dd79c4e0963920 100644
+--- a/dist/components/AvatarIcon/AvatarIcon.cjs
++++ b/dist/components/AvatarIcon/AvatarIcon.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.AvatarIcon = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const AvatarBase_1 = require("../AvatarBase/index.cjs");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/AvatarIcon/AvatarIcon.mjs b/dist/components/AvatarIcon/AvatarIcon.mjs
+index ea5a5452ef88a6bd454fe43bed0a5aaf243ab863..02f3a445b8c824c2d090aea3768ff5b55ac6783f 100644
+--- a/dist/components/AvatarIcon/AvatarIcon.mjs
++++ b/dist/components/AvatarIcon/AvatarIcon.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { AvatarBaseShape, AvatarIconSeverity, AvatarIconSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { AvatarBase } from "../AvatarBase/index.mjs";
+diff --git a/dist/components/BadgeCount/BadgeCount.cjs b/dist/components/BadgeCount/BadgeCount.cjs
+index 552444c041a03136400a8c3baee5f611a4584d8c..4cf118b0ac14920e085d90f692bc14fabe4fd15d 100644
+--- a/dist/components/BadgeCount/BadgeCount.cjs
++++ b/dist/components/BadgeCount/BadgeCount.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeCount = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Text_1 = require("../Text/index.cjs");
+diff --git a/dist/components/BadgeCount/BadgeCount.mjs b/dist/components/BadgeCount/BadgeCount.mjs
+index 9a94684511488b5de46e236abc7ba6a2f7ad6435..84d9bd9928ef8800108f4541fbe62c62d522035c 100644
+--- a/dist/components/BadgeCount/BadgeCount.mjs
++++ b/dist/components/BadgeCount/BadgeCount.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BadgeCountSize, mergeTwClassName } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/BadgeIcon/BadgeIcon.cjs b/dist/components/BadgeIcon/BadgeIcon.cjs
+index 18bdf44878177d3e94a8f27bf2927d93909bf7db..def38cd6e4eb363b0b8cea7ff850a23fd01008cc 100644
+--- a/dist/components/BadgeIcon/BadgeIcon.cjs
++++ b/dist/components/BadgeIcon/BadgeIcon.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeIcon = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/BadgeIcon/BadgeIcon.mjs b/dist/components/BadgeIcon/BadgeIcon.mjs
+index 01022eefc425d1fbd796d07bbb5a6a032787759b..871fcb7e8af81c418c095332d3b87c182709d42a 100644
+--- a/dist/components/BadgeIcon/BadgeIcon.mjs
++++ b/dist/components/BadgeIcon/BadgeIcon.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { IconColor, IconSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/BadgeStatus/BadgeStatus.cjs b/dist/components/BadgeStatus/BadgeStatus.cjs
+index 8b60f3ab32faddfd9bea1150dc26929de29db0d7..43d97286ecd8e1a30bc2df3e682ac56fb54a8936 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.cjs
++++ b/dist/components/BadgeStatus/BadgeStatus.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeStatus = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const BadgeStatus_constants_1 = require("./BadgeStatus.constants.cjs");
+diff --git a/dist/components/BadgeStatus/BadgeStatus.mjs b/dist/components/BadgeStatus/BadgeStatus.mjs
+index 77f76c81e354dfe36346783a1d524cdac42d5723..b1fce8d54009514eae60c3fc6510c06eed92d050 100644
+--- a/dist/components/BadgeStatus/BadgeStatus.mjs
++++ b/dist/components/BadgeStatus/BadgeStatus.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BadgeStatusSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.cjs b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+index c7a25cc10d8f3dd48b6982b45db3a692694d8151..3259d4a509c63abb19f23042f5c69f8b80960892 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.cjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BadgeWrapper = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const CIRCULAR_ANCHOR_EDGE_INSET = '7%';
+diff --git a/dist/components/BadgeWrapper/BadgeWrapper.mjs b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+index dd922a39407b9f52eab6faa5ac500cbb34ab6d10..17d0a2a5db8157ec06f581bfd66459d76537af35 100644
+--- a/dist/components/BadgeWrapper/BadgeWrapper.mjs
++++ b/dist/components/BadgeWrapper/BadgeWrapper.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BadgeWrapperPosition, BadgeWrapperPositionAnchorShape } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/BannerBase/BannerBase.cjs b/dist/components/BannerBase/BannerBase.cjs
+index e18bbcfc1fe6a689f2ef37e0009f04497fade607..c0fa680d45d870952e4a20bb3fccf84163bd0065 100644
+--- a/dist/components/BannerBase/BannerBase.cjs
++++ b/dist/components/BannerBase/BannerBase.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BannerBase = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const react_1 = __importStar(require("react"));
+ const Box_1 = require("../Box/index.cjs");
+ const Button_1 = require("../Button/index.cjs");
+diff --git a/dist/components/BannerBase/BannerBase.mjs b/dist/components/BannerBase/BannerBase.mjs
+index 98144afef274afcd54e00761da9052050decad85..668d2de673c0705d260667768c776a8828fbdb56 100644
+--- a/dist/components/BannerBase/BannerBase.mjs
++++ b/dist/components/BannerBase/BannerBase.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BannerBaseActionButtonLayout, BoxAlignItems, BoxBackgroundColor, BoxFlexDirection, ButtonIconSize, ButtonSize, ButtonVariant, FontWeight, IconName, mergeTwClassName, TextVariant } from "@metamask-previews/design-system-shared";
+-import { typography } from "@metamask-previews/design-tokens";
++import { typography } from "@metamask/design-tokens";
+ import $React, { useState } from "react";
+ const React = $importDefault($React);
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/BottomSheet/BottomSheet.cjs b/dist/components/BottomSheet/BottomSheet.cjs
+index 031890770187b6fe587834bfec900e18ad78faf0..2b45283127ccddf086fdf88647023f91faae75e7 100644
+--- a/dist/components/BottomSheet/BottomSheet.cjs
++++ b/dist/components/BottomSheet/BottomSheet.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheet = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+diff --git a/dist/components/BottomSheet/BottomSheet.mjs b/dist/components/BottomSheet/BottomSheet.mjs
+index 3d310770afef4792ef5105f3d18f08e37db34860..313f9c938905e4b6732510e1f2cb06ebb023611d 100644
+--- a/dist/components/BottomSheet/BottomSheet.mjs
++++ b/dist/components/BottomSheet/BottomSheet.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
+ const React = $importDefault($React);
+ import { BackHandler, KeyboardAvoidingView, Platform } from "react-native";
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+index f21a87a8f109fd5c9e8f639a0c053385726cdd71..7fcd10847c9c599737d33b0961cf63c06aaf9002 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.cjs
+@@ -24,8 +24,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetDialog = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const lodash_1 = require("lodash");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
+index d7d856cfc99426f06335be0068c79bc91db964ff..5f69c559a48a688bdd0f8dcae39d47c10f3fda02 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.DEFAULT_BOTTOMSHEETDIALOG_DISMISSTHRESHOLD = exports.DEFAULT_BOTTOMSHEETDIALOG_SWIPETHRESHOLD_DURATION = exports.DEFAULT_BOTTOMSHEETDIALOG_DISPLAY_DURATION = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ // Defaults
+ /**
+  * The animation duration used for initial render.
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
+index be2966b11817bba725500c28d4c5c6742549aeeb..9ad2a2f1a1640518d8676217c943426146d590cb 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.cts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * The animation duration used for initial render.
+  */
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
+index d2b527dbe2621ba4f40af23fefa6ef858727d2bd..29e2942a260ef24cbf9e1e99fba746fd69c1f475 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.d.mts
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ /**
+  * The animation duration used for initial render.
+  */
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
+index 0b49be5cc770cea03779b3e0ec5c00d288a2f8be..cca18fa087970b411c40d32ab77cb0f82b920337 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.constants.mjs
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ // Defaults
+ /**
+  * The animation duration used for initial render.
+diff --git a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+index 2b03f202cc83351af1b2ca84dcda83e5fcc12393..d48eb56d611614affc8dd2bac497a498d1f88784 100644
+--- a/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
++++ b/dist/components/BottomSheetDialog/BottomSheetDialog.mjs
+@@ -4,8 +4,8 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { Theme, useTailwind, useTheme } from "@metamask-previews/design-system-twrnc-preset";
+-import { darkTheme, lightTheme } from "@metamask-previews/design-tokens";
++import { Theme, useTailwind, useTheme } from "@metamask/design-system-twrnc-preset";
++import { darkTheme, lightTheme } from "@metamask/design-tokens";
+ import $lodash from "lodash";
+ const { debounce } = $lodash;
+ import $React, { forwardRef, useCallback, useEffect, useMemo, useRef, useImperativeHandle } from "react";
+diff --git a/dist/components/BottomSheetFooter/BottomSheetFooter.cjs b/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
+index f937ff614930514c0978a341864da3d51e8a5dc8..052028a87f1bbdb85aedec3a8fff7506713d3164 100644
+--- a/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
++++ b/dist/components/BottomSheetFooter/BottomSheetFooter.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetFooter = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ // External dependencies.
+diff --git a/dist/components/BottomSheetFooter/BottomSheetFooter.mjs b/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
+index 2e65b438bff73c270509b79e75d3e7c4088f2a0a..576dcb3ed7c8fe20f8112437193a11d1c20ddad9 100644
+--- a/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
++++ b/dist/components/BottomSheetFooter/BottomSheetFooter.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/BottomSheetHeader/BottomSheetHeader.cjs b/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
+index 65287dde8d6c9182cf4e7edfd18aaf76f355f5f1..4b1768de8dd29b7137362f2cc824dbfb1a42ce95 100644
+--- a/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
++++ b/dist/components/BottomSheetHeader/BottomSheetHeader.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetHeader = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ // External dependencies.
+ const ButtonIcon_1 = require("../ButtonIcon/index.cjs");
+diff --git a/dist/components/BottomSheetHeader/BottomSheetHeader.mjs b/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
+index 854bb2ee3eac733b650c5a6aca3cfd1d546c6795..4dffe764949c68329c1386a3218945fa1ec068cd 100644
+--- a/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
++++ b/dist/components/BottomSheetHeader/BottomSheetHeader.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ // External dependencies.
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
+index 06a7895abf28ba01d46210de74b5e2bdc2202d3f..2f1f57f34048a27a32a051ea03fff16bb4f6109a 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.BottomSheetOverlay = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const BottomSheetOverlay_constants_1 = require("./BottomSheetOverlay.constants.cjs");
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
+index e0045739cf78e37d46628e3ee7b233368a3c3cbb..f24896dd622de0477b5b1ab1dcb7cb6a8b90434d 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.DEFAULT_OVERLAY_ANIMATION_DURATION = void 0;
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ // Defaults
+ exports.DEFAULT_OVERLAY_ANIMATION_DURATION = design_tokens_1.AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.cjs.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
+index 5930cb32dcce32a46a5568e186a2c1b54be51961..b1fee1a0c9214de7f999172e89f20230a0319654 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.cts
+@@ -1,3 +1,3 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ export declare const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.d.cts.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
+index 1a5413d0ce4d480b4eb4ac38b42e44358b01d05c..ad8d520b9eea286498ad323f2e9b79b345eed58b 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.d.mts
+@@ -1,3 +1,3 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ export declare const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.d.mts.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
+index 75f88d62acf1b70efb0a9025061291c4886f4cfe..32ff043f52f682f22e5f4c78f31fe6572e0da6a4 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.constants.mjs
+@@ -1,4 +1,4 @@
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ // Defaults
+ export const DEFAULT_OVERLAY_ANIMATION_DURATION = AnimationDuration.Fast;
+ //# sourceMappingURL=BottomSheetOverlay.constants.mjs.map
+\ No newline at end of file
+diff --git a/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs b/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
+index ecd4fa513a35d1eef27243d58d33f08e930a26fd..4620680810fb9dc3d8caf5b4185307d4e50c9dec 100644
+--- a/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
++++ b/dist/components/BottomSheetOverlay/BottomSheetOverlay.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect, useRef } from "react";
+ const React = $importDefault($React);
+ import { Animated, Easing, TouchableOpacity } from "react-native";
+diff --git a/dist/components/Box/Box.cjs b/dist/components/Box/Box.cjs
+index 9cbc4b2aa72397c0ecf88ce36b6f33541a4c6170..72564fdc3b36f4eddc15e0815b26b273623230e6 100644
+--- a/dist/components/Box/Box.cjs
++++ b/dist/components/Box/Box.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Box = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const Box_constants_1 = require("./Box.constants.cjs");
+diff --git a/dist/components/Box/Box.mjs b/dist/components/Box/Box.mjs
+index 4c2af94cbf55e41713f430e28b717f9af3feb98f..45dcd8e23aa95b8e227453c790f76ed2247e2bb5 100644
+--- a/dist/components/Box/Box.mjs
++++ b/dist/components/Box/Box.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/ButtonBase/ButtonBase.cjs b/dist/components/ButtonBase/ButtonBase.cjs
+index a0a5340d956fb800dd2b85a877b50d2abaeedb67..1cced63c56586c68a4187643b2f385ce4f13fff9 100644
+--- a/dist/components/ButtonBase/ButtonBase.cjs
++++ b/dist/components/ButtonBase/ButtonBase.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonBase = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const Box_1 = require("../Box/index.cjs");
+ const BoxRow_1 = require("../BoxRow/index.cjs");
+diff --git a/dist/components/ButtonBase/ButtonBase.mjs b/dist/components/ButtonBase/ButtonBase.mjs
+index 9fff8b1d6322d4cc644633d4fb69253f67511712..96bb823931cccb3f5c5b8a4377606e59d8faad27 100644
+--- a/dist/components/ButtonBase/ButtonBase.mjs
++++ b/dist/components/ButtonBase/ButtonBase.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { ButtonBaseSize, FontWeight, mergeTwClassName, TextColor } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/ButtonFilter/ButtonFilter.cjs b/dist/components/ButtonFilter/ButtonFilter.cjs
+index 6f996aa0aa42dd1a87d99af07d0d1ba35ca6f8ac..4248d74998e35f5dd416d6a58380d78be8aa9f87 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.cjs
++++ b/dist/components/ButtonFilter/ButtonFilter.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonFilter = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const ButtonBase_1 = require("../ButtonBase/index.cjs");
+ const ButtonFilter = ({ isActive = false, twClassName, textProps, style, ...props }) => {
+diff --git a/dist/components/ButtonFilter/ButtonFilter.mjs b/dist/components/ButtonFilter/ButtonFilter.mjs
+index 61cc52228c1d2bfbb8882416a1ea27148e47c9e7..869144ffb352ec09b92da21723cc53721e641f59 100644
+--- a/dist/components/ButtonFilter/ButtonFilter.mjs
++++ b/dist/components/ButtonFilter/ButtonFilter.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { ButtonBase } from "../ButtonBase/index.mjs";
+diff --git a/dist/components/ButtonHero/ButtonHero.cjs b/dist/components/ButtonHero/ButtonHero.cjs
+index 10b37e5aa09ec34e9a3c354ad96fbdd6ddbb85b8..292b9724cdceb21201e15a351f9d7d560d1675a6 100644
+--- a/dist/components/ButtonHero/ButtonHero.cjs
++++ b/dist/components/ButtonHero/ButtonHero.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonHero = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const ButtonBase_1 = require("../ButtonBase/index.cjs");
+ /**
+diff --git a/dist/components/ButtonHero/ButtonHero.mjs b/dist/components/ButtonHero/ButtonHero.mjs
+index b05e3c9103e2a0998d5aa2129f5a55281c7d6161..57c0148aa1b72b5516592d858e69b698799c164b 100644
+--- a/dist/components/ButtonHero/ButtonHero.mjs
++++ b/dist/components/ButtonHero/ButtonHero.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { Theme, ThemeProvider } from "@metamask-previews/design-system-twrnc-preset";
++import { Theme, ThemeProvider } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { ButtonBase } from "../ButtonBase/index.mjs";
+diff --git a/dist/components/ButtonIcon/ButtonIcon.cjs b/dist/components/ButtonIcon/ButtonIcon.cjs
+index b54d205af17a9158936ed32a38c1a8c7d90ca9f7..87cc8cb4f8db8eae0282545b7630f83a3846e082 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.cjs
++++ b/dist/components/ButtonIcon/ButtonIcon.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ButtonIcon = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const Icon_1 = require("../Icon/index.cjs");
+ const ButtonAnimated_1 = require("../temp-components/ButtonAnimated/index.cjs");
+diff --git a/dist/components/ButtonIcon/ButtonIcon.mjs b/dist/components/ButtonIcon/ButtonIcon.mjs
+index ee54d20b806f83f6e0e7d56ff1ea23dd621748f6..a85ba3f00e9889f282655e352d6fc9fec4a0520e 100644
+--- a/dist/components/ButtonIcon/ButtonIcon.mjs
++++ b/dist/components/ButtonIcon/ButtonIcon.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { IconColor, ButtonIconSize, ButtonIconVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useState } from "react";
+ const React = $importDefault($React);
+ import { Icon } from "../Icon/index.mjs";
+diff --git a/dist/components/Card/Card.cjs b/dist/components/Card/Card.cjs
+index 45de164dd2d74967cc4aa21be7eb540b9bfbfc66..07ef013ca7548f684b4ff7f19ffcf813846acdb5 100644
+--- a/dist/components/Card/Card.cjs
++++ b/dist/components/Card/Card.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Card = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Card = ({ children, onPress, twClassName, touchableOpacityProps, style, ...props }) => {
+diff --git a/dist/components/Card/Card.mjs b/dist/components/Card/Card.mjs
+index 04e8aa2f8a732beadc5dc097223699b2326e5694..01f7cf525661dad5eaa3b578e4b1d768fe59c0ca 100644
+--- a/dist/components/Card/Card.mjs
++++ b/dist/components/Card/Card.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { TouchableOpacity, View } from "react-native";
+diff --git a/dist/components/Checkbox/Checkbox.cjs b/dist/components/Checkbox/Checkbox.cjs
+index e6e1c0224cd63eecc45a59b715f13ba3ed0d3777..8861ae23b09c88a53a6bac9f2aa45bc90c628ba3 100644
+--- a/dist/components/Checkbox/Checkbox.cjs
++++ b/dist/components/Checkbox/Checkbox.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Checkbox = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/Checkbox/Checkbox.mjs b/dist/components/Checkbox/Checkbox.mjs
+index 0b7c352d510ca188e79f61e572dfd9d623adee5f..9b8e7751e0550a1deb30337f59bf952bbc9ad96c 100644
+--- a/dist/components/Checkbox/Checkbox.mjs
++++ b/dist/components/Checkbox/Checkbox.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useRef, useImperativeHandle, useCallback, useEffect } from "react";
+ const React = $importDefault($React);
+ import { Pressable, Animated, Easing } from "react-native";
+diff --git a/dist/components/FilterButtonGroup/FilterButtonGroup.cjs b/dist/components/FilterButtonGroup/FilterButtonGroup.cjs
+index 518be9435458806b6bac2e31dfcb75e7f862736a..5adc3fbe298ee464c7233ec24c48791d19562d6e 100644
+--- a/dist/components/FilterButtonGroup/FilterButtonGroup.cjs
++++ b/dist/components/FilterButtonGroup/FilterButtonGroup.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.FilterButtonGroup = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const FilterButtonGroup = ({ value, onChange, variant, children, twClassName, style, contentContainerStyle, ...scrollRest }) => {
+diff --git a/dist/components/FilterButtonGroup/FilterButtonGroup.mjs b/dist/components/FilterButtonGroup/FilterButtonGroup.mjs
+index 96e38d7c2a4a1482adb8c473fc52144b2123828c..97a3d678438373a4a6af46763c803d25fdd4df5c 100644
+--- a/dist/components/FilterButtonGroup/FilterButtonGroup.mjs
++++ b/dist/components/FilterButtonGroup/FilterButtonGroup.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { FilterButtonGroupContext } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { ScrollView } from "react-native";
+diff --git a/dist/components/HeaderBase/HeaderBase.cjs b/dist/components/HeaderBase/HeaderBase.cjs
+index 04c48deec4f4e1c5b8cfffe5ef634dbb35c4ec2c..e043bdd96dd1efa74f05ef0dd6ad15e0443ef2bf 100644
+--- a/dist/components/HeaderBase/HeaderBase.cjs
++++ b/dist/components/HeaderBase/HeaderBase.cjs
+@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HeaderBase = void 0;
+ // Third party dependencies.
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+diff --git a/dist/components/HeaderBase/HeaderBase.mjs b/dist/components/HeaderBase/HeaderBase.mjs
+index 7bcff8ac9dc28997b056077e2ae4f923e2e6fdfc..1e25fbd5bb7cc101469118968051f7383a1dc386 100644
+--- a/dist/components/HeaderBase/HeaderBase.mjs
++++ b/dist/components/HeaderBase/HeaderBase.mjs
+@@ -6,7 +6,7 @@ function $importDefault(module) {
+ }
+ // Third party dependencies.
+ import { TextVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback, useState } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.cjs b/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.cjs
+index 06023d6ebe9bca014134f1d5a1e8e7f4abc29bc1..01db1adb5ae220882b9f4c332e770b1a45b14b7f 100644
+--- a/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.cjs
++++ b/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.cjs
+@@ -28,7 +28,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HeaderStandardAnimated = void 0;
+ // Third party dependencies.
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const react_1 = __importDefault(require("react"));
+ const react_native_reanimated_1 = __importStar(require("react-native-reanimated"));
+ // External dependencies.
+diff --git a/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.mjs b/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.mjs
+index a6690ce685a3e857f599d1779500260104106b59..5dc10ecfbbdf896a4032246d240406074a789401 100644
+--- a/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.mjs
++++ b/dist/components/HeaderStandardAnimated/HeaderStandardAnimated.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { AnimationDuration } from "@metamask-previews/design-tokens";
++import { AnimationDuration } from "@metamask/design-tokens";
+ import $React from "react";
+ const React = $importDefault($React);
+ import Animated, { useAnimatedStyle, useDerivedValue, withTiming } from "react-native-reanimated";
+diff --git a/dist/components/HeaderSubpage/HeaderSubpage.cjs b/dist/components/HeaderSubpage/HeaderSubpage.cjs
+index 919a71378a92c4b7dc2cb268cc722cfc3a60ee3b..494a2824316d8a027f0f1489caf200a4ca0bb191 100644
+--- a/dist/components/HeaderSubpage/HeaderSubpage.cjs
++++ b/dist/components/HeaderSubpage/HeaderSubpage.cjs
+@@ -26,7 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.HeaderSubpage = void 0;
+ // Third party dependencies.
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_safe_area_context_1 = require("react-native-safe-area-context");
+diff --git a/dist/components/HeaderSubpage/HeaderSubpage.mjs b/dist/components/HeaderSubpage/HeaderSubpage.mjs
+index 78a7bbf66f21203936ce7af047761bd862edea52..b7964837082eee129a748d4d96f7284320768955 100644
+--- a/dist/components/HeaderSubpage/HeaderSubpage.mjs
++++ b/dist/components/HeaderSubpage/HeaderSubpage.mjs
+@@ -6,7 +6,7 @@ function $importDefault(module) {
+ }
+ // Third party dependencies.
+ import { mergeTwClassName } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
+diff --git a/dist/components/Icon/Icon.cjs b/dist/components/Icon/Icon.cjs
+index 4253e19fec18867b2f9e5d16ed36a3a4ee6ca2c4..af397356fa1eae2a57030a917d7c61bbb2c95356 100644
+--- a/dist/components/Icon/Icon.cjs
++++ b/dist/components/Icon/Icon.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Icon = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Icon_assets_1 = require("./Icon.assets.cjs");
+diff --git a/dist/components/Icon/Icon.mjs b/dist/components/Icon/Icon.mjs
+index b4e1f1ef905beed65951ee1c0d054930cace945d..cbc8aa5e3a214783474600c71ea2b036ce9ab00c 100644
+--- a/dist/components/Icon/Icon.mjs
++++ b/dist/components/Icon/Icon.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { IconColor, IconSize } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { StyleSheet } from "react-native";
+diff --git a/dist/components/Input/Input.cjs b/dist/components/Input/Input.cjs
+index edccb7ac02b76fe9603c278eb2a73e08938f9f7d..876e5e33cb5db7b463f851ea88237066d23c4120 100644
+--- a/dist/components/Input/Input.cjs
++++ b/dist/components/Input/Input.cjs
+@@ -2,8 +2,8 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Input = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const react_1 = require("react");
+ const react_native_1 = require("react-native");
+ const Text_constants_1 = require("../Text/Text.constants.cjs");
+diff --git a/dist/components/Input/Input.constants.cjs b/dist/components/Input/Input.constants.cjs
+index 7431833ab658bf372202bc34fc0122cb85415719..e3d868eb2808c67c1e58e568d9ed9e2f421e3ad9 100644
+--- a/dist/components/Input/Input.constants.cjs
++++ b/dist/components/Input/Input.constants.cjs
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MAP_TEXT_VARIANT_INPUT_METRICS = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_tokens_1 = require("@metamask/design-tokens");
+ /**
+  * Typographic metrics for Input: same tokens as `text-*` utilities but **without** `lineHeight`.
+  * React Native `TextInput` aligns single-line text more predictably when line height is not set
+diff --git a/dist/components/Input/Input.constants.mjs b/dist/components/Input/Input.constants.mjs
+index 6dadc4a91e9feda7691c6bb31374e29d8a8d43cb..725ffe43957796aa56d6ab455c0d97e314df6a98 100644
+--- a/dist/components/Input/Input.constants.mjs
++++ b/dist/components/Input/Input.constants.mjs
+@@ -1,5 +1,5 @@
+ import { TextVariant } from "@metamask-previews/design-system-shared";
+-import { typography } from "@metamask-previews/design-tokens";
++import { typography } from "@metamask/design-tokens";
+ /**
+  * Typographic metrics for Input: same tokens as `text-*` utilities but **without** `lineHeight`.
+  * React Native `TextInput` aligns single-line text more predictably when line height is not set
+diff --git a/dist/components/Input/Input.mjs b/dist/components/Input/Input.mjs
+index 6a4ed538b6c98af7e4cb83f4c0e9331d7f59895e..c953adf482af65d60d60d12e7178322c9bc1134f 100644
+--- a/dist/components/Input/Input.mjs
++++ b/dist/components/Input/Input.mjs
+@@ -1,6 +1,6 @@
+ import { FontFamily, TextVariant } from "@metamask-previews/design-system-shared";
+-import { Theme, useTailwind, useTheme } from "@metamask-previews/design-system-twrnc-preset";
+-import { darkTheme, lightTheme } from "@metamask-previews/design-tokens";
++import { Theme, useTailwind, useTheme } from "@metamask/design-system-twrnc-preset";
++import { darkTheme, lightTheme } from "@metamask/design-tokens";
+ import { forwardRef, useCallback, useEffect, useMemo, useState } from "react";
+ import { Platform, TextInput } from "react-native";
+ import { TWCLASSMAP_TEXT_VARIANT_FONTWEIGHT, TWCLASSMAP_TEXT_FONTWEIGHT } from "../Text/Text.constants.mjs";
+diff --git a/dist/components/KeyValueRow/KeyValueRow.cjs b/dist/components/KeyValueRow/KeyValueRow.cjs
+index b50fc1ba25f5150741e0ea034a44fdb96ad6598d..81b9c26d9276d1cd21f5f480a85ee1cc210c919e 100644
+--- a/dist/components/KeyValueRow/KeyValueRow.cjs
++++ b/dist/components/KeyValueRow/KeyValueRow.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueRow = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const Box_1 = require("../Box/index.cjs");
+ const BoxRow_1 = require("../BoxRow/index.cjs");
+diff --git a/dist/components/KeyValueRow/KeyValueRow.mjs b/dist/components/KeyValueRow/KeyValueRow.mjs
+index 975c5ea081fbac3c770971583ee2462121631e6d..f7bff28ca62d876b33bd9f639864670c9126117c 100644
+--- a/dist/components/KeyValueRow/KeyValueRow.mjs
++++ b/dist/components/KeyValueRow/KeyValueRow.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { ButtonIconSize, FontWeight, IconColor, KeyValueRowVariant, TextColor, TextVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/KeyValueSelect/KeyValueSelect.cjs b/dist/components/KeyValueSelect/KeyValueSelect.cjs
+index 638bf9356e002981dacf0954a759b56e8c2ae692..540e7d9060e3cc088d025881cd574f501766d8a8 100644
+--- a/dist/components/KeyValueSelect/KeyValueSelect.cjs
++++ b/dist/components/KeyValueSelect/KeyValueSelect.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.KeyValueSelect = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const KeyValueRow_1 = require("../KeyValueRow/index.cjs");
+diff --git a/dist/components/KeyValueSelect/KeyValueSelect.mjs b/dist/components/KeyValueSelect/KeyValueSelect.mjs
+index 775d45a44e22eaa75580ed1f7f30a2fbb22a5ce3..f7dc98744f5b282f2377178715e80eb75dbbf06e 100644
+--- a/dist/components/KeyValueSelect/KeyValueSelect.mjs
++++ b/dist/components/KeyValueSelect/KeyValueSelect.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { mergeTwClassName, SelectButtonSize, SelectButtonVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef } from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native";
+diff --git a/dist/components/ListItem/ListItem.cjs b/dist/components/ListItem/ListItem.cjs
+index 094e7091b56aa4e7775b0c0da39ee52a01945f71..5c7e1886788aae4ffe97d8c15fe7af2cc58d09b0 100644
+--- a/dist/components/ListItem/ListItem.cjs
++++ b/dist/components/ListItem/ListItem.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.ListItem = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/ListItem/ListItem.mjs b/dist/components/ListItem/ListItem.mjs
+index a7bbc4fb17dd02ee98772aa8fe91c3768b054cfb..31cb57125e69f6e1b3b02d4bb701c3e21b727b17 100644
+--- a/dist/components/ListItem/ListItem.mjs
++++ b/dist/components/ListItem/ListItem.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BoxAlignItems, ContentVariant, mergeTwClassName } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native";
+diff --git a/dist/components/MainActionButton/MainActionButton.cjs b/dist/components/MainActionButton/MainActionButton.cjs
+index 5b16d36ed63907698418861b6009612ea3eba893..5373b0f7ea4dfaf38ae695f99e1d8962eae3fdf8 100644
+--- a/dist/components/MainActionButton/MainActionButton.cjs
++++ b/dist/components/MainActionButton/MainActionButton.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.MainActionButton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const Icon_1 = require("../Icon/index.cjs");
+ const ButtonAnimated_1 = require("../temp-components/ButtonAnimated/index.cjs");
+diff --git a/dist/components/MainActionButton/MainActionButton.mjs b/dist/components/MainActionButton/MainActionButton.mjs
+index a4d9570a12fe31efcedaebeb500f3939fb07df7c..9f85cb008d6187d548545ba32efd1a30b0ca9095 100644
+--- a/dist/components/MainActionButton/MainActionButton.mjs
++++ b/dist/components/MainActionButton/MainActionButton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Icon, IconColor, IconSize } from "../Icon/index.mjs";
+diff --git a/dist/components/RadioButton/RadioButton.cjs b/dist/components/RadioButton/RadioButton.cjs
+index 501db7f4215c5b3e75cfec77986dcc4593d93f2b..5ef4f2784392245d18b57a9cfa15d679c6fbd425 100644
+--- a/dist/components/RadioButton/RadioButton.cjs
++++ b/dist/components/RadioButton/RadioButton.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.RadioButton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const TextOrChildren_1 = require("../temp-components/TextOrChildren/index.cjs");
+diff --git a/dist/components/RadioButton/RadioButton.mjs b/dist/components/RadioButton/RadioButton.mjs
+index c938cd0ec994badf59a0803d3ba1e436e07fc557..9d941e5d6212959dde4b2ae21193a2af112d256b 100644
+--- a/dist/components/RadioButton/RadioButton.mjs
++++ b/dist/components/RadioButton/RadioButton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { View, TouchableOpacity } from "react-native";
+diff --git a/dist/components/SectionDivider/SectionDivider.cjs b/dist/components/SectionDivider/SectionDivider.cjs
+index 3571ccf4d2cf966afe1b486aa997c1901d973d84..ef230a22600a7fa13a54266f9d9e471ab1b94a66 100644
+--- a/dist/components/SectionDivider/SectionDivider.cjs
++++ b/dist/components/SectionDivider/SectionDivider.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SectionDivider = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const Box_1 = require("../Box/index.cjs");
+ exports.SectionDivider = (0, react_1.forwardRef)(({ borderWidth, borderColor, marginVertical, twClassName, style, ...rest }, ref) => {
+diff --git a/dist/components/SectionDivider/SectionDivider.mjs b/dist/components/SectionDivider/SectionDivider.mjs
+index 883e667aa77435bc360df091e0696130d5428545..75302ea58f78ad71646c5e0de98970a1f1faac12 100644
+--- a/dist/components/SectionDivider/SectionDivider.mjs
++++ b/dist/components/SectionDivider/SectionDivider.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { BoxBorderColor } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef } from "react";
+ const React = $importDefault($React);
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/SectionHeader/SectionHeader.cjs b/dist/components/SectionHeader/SectionHeader.cjs
+index 8b88f50e21131529e50a3030b45bb1d2902c2848..a6808ed6b026a8b8e7b8e9c944c5f71c4b76fc7a 100644
+--- a/dist/components/SectionHeader/SectionHeader.cjs
++++ b/dist/components/SectionHeader/SectionHeader.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.SectionHeader = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/SectionHeader/SectionHeader.mjs b/dist/components/SectionHeader/SectionHeader.mjs
+index 0d5cdb4a66a5ac98c251d0efe5d62c134f6800aa..19336a09b1c823d7b3b9ef0e456e734e888f9dc4 100644
+--- a/dist/components/SectionHeader/SectionHeader.mjs
++++ b/dist/components/SectionHeader/SectionHeader.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { IconColor, IconName, IconSize, mergeTwClassName, TextColor, TextVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native";
+diff --git a/dist/components/Skeleton/Skeleton.cjs b/dist/components/Skeleton/Skeleton.cjs
+index 871b841a0a3e41b7a3167ea5f87ff0e9d22d3d3a..4c461705a5b82a9db375c1b47503f3c58a2f6d39 100644
+--- a/dist/components/Skeleton/Skeleton.cjs
++++ b/dist/components/Skeleton/Skeleton.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Skeleton = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const Skeleton = ({ height, width, children, hideChildren = false, style, childrenWrapperProps, animatedViewProps, twClassName, autoPlay = true, ...props }) => {
+diff --git a/dist/components/Skeleton/Skeleton.mjs b/dist/components/Skeleton/Skeleton.mjs
+index 9a7ca44c719999d2363282d6d6ed9ca5d11c10be..5495b79410954de3fc0f2535f82a06a1b68f7e05 100644
+--- a/dist/components/Skeleton/Skeleton.mjs
++++ b/dist/components/Skeleton/Skeleton.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect, useRef } from "react";
+ const React = $importDefault($React);
+ import { Animated, View } from "react-native";
+diff --git a/dist/components/Slider/Slider.cjs b/dist/components/Slider/Slider.cjs
+index 1ca097fa46577362b1ea7f9863bd0330922117ca..b61b7222612152fa3b8ee04033b1542b773068af 100644
+--- a/dist/components/Slider/Slider.cjs
++++ b/dist/components/Slider/Slider.cjs
+@@ -28,7 +28,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Slider = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+diff --git a/dist/components/Slider/Slider.mjs b/dist/components/Slider/Slider.mjs
+index 30396fbda1a2ade2f2c3b82e1edf331fa6c9c757..01dcd99c46d8d8e0549328344b8fb53eb88da7fa 100644
+--- a/dist/components/Slider/Slider.mjs
++++ b/dist/components/Slider/Slider.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { FontWeight, TextColor, TextVariant, SliderMarkColor } from "@metamask-previews/design-system-shared";
+-import { getThemeColors, useTailwind, useTheme } from "@metamask-previews/design-system-twrnc-preset";
++import { getThemeColors, useTailwind, useTheme } from "@metamask/design-system-twrnc-preset";
+ import $React, { useCallback, useMemo } from "react";
+ const React = $importDefault($React);
+ import { Pressable } from "react-native";
+diff --git a/dist/components/Switch/Switch.cjs b/dist/components/Switch/Switch.cjs
+index c271d142622ddb0d08102d231326f7454349752d..f0ba4dad6b1f2decdbef272e3151848a8c4ea76a 100644
+--- a/dist/components/Switch/Switch.cjs
++++ b/dist/components/Switch/Switch.cjs
+@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Switch = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const react_native_1 = require("react-native");
+ const Text_1 = require("../Text/index.cjs");
+diff --git a/dist/components/Switch/Switch.mjs b/dist/components/Switch/Switch.mjs
+index 48004c6b6e242eb21c0924761bcf16ab30a32518..dea0e4b6f744b79eda2925e58ddb61bad2946efd 100644
+--- a/dist/components/Switch/Switch.mjs
++++ b/dist/components/Switch/Switch.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Switch as RNSwitch, Platform, View } from "react-native";
+diff --git a/dist/components/Tag/Tag.cjs b/dist/components/Tag/Tag.cjs
+index 29f7a7475b49b3f012859bed1c3fd29c85f482ed..7b5bd783d41103a6ed83a0ae15eb619567d0acd3 100644
+--- a/dist/components/Tag/Tag.cjs
++++ b/dist/components/Tag/Tag.cjs
+@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Tag = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importDefault(require("react"));
+ const Box_1 = require("../Box/index.cjs");
+ const BoxRow_1 = require("../BoxRow/index.cjs");
+diff --git a/dist/components/Tag/Tag.mjs b/dist/components/Tag/Tag.mjs
+index 63f7cbcaf6a9d6397d3be730b00c70c4a1119c10..afe225634f5e4eb2604776d5df3f4f92aa0a286f 100644
+--- a/dist/components/Tag/Tag.mjs
++++ b/dist/components/Tag/Tag.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { FontWeight, TagSeverity, TextVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React from "react";
+ const React = $importDefault($React);
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/Text/Text.cjs b/dist/components/Text/Text.cjs
+index cb5ceca2e6a132ce06de56b7ea0a19fafb1351fe..a255bd60864ccadd911cde1e84979ca097719a5b 100644
+--- a/dist/components/Text/Text.cjs
++++ b/dist/components/Text/Text.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Text = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const Text_constants_1 = require("./Text.constants.cjs");
+diff --git a/dist/components/Text/Text.mjs b/dist/components/Text/Text.mjs
+index a5b5a96ba5ff9d7f9055cb19bc2900fb51005a0f..afc59e841904e08e4a3fa17748d07673d68c0cbc 100644
+--- a/dist/components/Text/Text.mjs
++++ b/dist/components/Text/Text.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ import { FontFamily, FontStyle, TextColor, TextVariant } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useMemo } from "react";
+ const React = $importDefault($React);
+ import { Text as RNText } from "react-native";
+diff --git a/dist/components/TextArea/TextArea.cjs b/dist/components/TextArea/TextArea.cjs
+index d6f4874ebc0727fb4b43d0be6501d4750a50f971..d6ec70d83af76720a418beb325eda85370438162 100644
+--- a/dist/components/TextArea/TextArea.cjs
++++ b/dist/components/TextArea/TextArea.cjs
+@@ -1,7 +1,7 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TextArea = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = require("react");
+ const react_native_1 = require("react-native");
+ const Input_1 = require("../Input/index.cjs");
+diff --git a/dist/components/TextArea/TextArea.mjs b/dist/components/TextArea/TextArea.mjs
+index 76f47c075f4dbee2c9e9ff8ca9e879aa35899f41..d4b83e3ea7d0f7648a2bd55eb4af6575bb68b3d9 100644
+--- a/dist/components/TextArea/TextArea.mjs
++++ b/dist/components/TextArea/TextArea.mjs
+@@ -1,4 +1,4 @@
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import { forwardRef, useCallback, useEffect, useState } from "react";
+ import { TextInput } from "react-native";
+ import { Input } from "../Input/index.mjs";
+diff --git a/dist/components/TextField/TextField.cjs b/dist/components/TextField/TextField.cjs
+index b4adab66de9b1bd39163d2adc9b907009f15f97f..7976adeea5f9bf15b5f4fbcea46c858cf00d84ff 100644
+--- a/dist/components/TextField/TextField.cjs
++++ b/dist/components/TextField/TextField.cjs
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TextField = void 0;
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = require("react");
+ const react_native_1 = require("react-native");
+ const Box_1 = require("../Box/index.cjs");
+diff --git a/dist/components/TextField/TextField.mjs b/dist/components/TextField/TextField.mjs
+index 20c05ee862644c963d4132cbbeef0fac230d7b71..25341203a519572de5bf65654d36f33518e5a39c 100644
+--- a/dist/components/TextField/TextField.mjs
++++ b/dist/components/TextField/TextField.mjs
+@@ -1,5 +1,5 @@
+ import { mergeTwClassName } from "@metamask-previews/design-system-shared";
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import { forwardRef, useCallback, useState } from "react";
+ import { View } from "react-native";
+ import { Box } from "../Box/index.mjs";
+diff --git a/dist/components/TextFieldSearch/TextFieldSearch.cjs b/dist/components/TextFieldSearch/TextFieldSearch.cjs
+index e9591f1c569860e01798ff81d6d054ca90f609d8..886921e1d6d188ac9d57ae4ec0f27ac305938b6f 100644
+--- a/dist/components/TextFieldSearch/TextFieldSearch.cjs
++++ b/dist/components/TextFieldSearch/TextFieldSearch.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.TextFieldSearch = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const ButtonIcon_1 = require("../ButtonIcon/index.cjs");
+ const Icon_1 = require("../Icon/index.cjs");
+diff --git a/dist/components/TextFieldSearch/TextFieldSearch.mjs b/dist/components/TextFieldSearch/TextFieldSearch.mjs
+index f18ff446739078ad6c6deb435fe6411b5fe95522..6fde6c66384abe552d85baee2e78688a1e51a579 100644
+--- a/dist/components/TextFieldSearch/TextFieldSearch.mjs
++++ b/dist/components/TextFieldSearch/TextFieldSearch.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useCallback } from "react";
+ const React = $importDefault($React);
+ import { ButtonIcon, ButtonIconSize } from "../ButtonIcon/index.mjs";
+diff --git a/dist/components/Toast/Toast.cjs b/dist/components/Toast/Toast.cjs
+index 6ec372dea0a5216a7b0e86e8f4d911ec6f62e36e..5be1e6e8c93494cc590b628007c8d43582aacfa9 100644
+--- a/dist/components/Toast/Toast.cjs
++++ b/dist/components/Toast/Toast.cjs
+@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Toast = void 0;
+ // Third party dependencies.
+ const design_system_shared_1 = require("@metamask-previews/design-system-shared");
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
+-const design_tokens_1 = require("@metamask-previews/design-tokens");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
++const design_tokens_1 = require("@metamask/design-tokens");
+ const react_1 = __importDefault(require("react"));
+ // External dependencies.
+ const BannerBase_1 = require("../BannerBase/index.cjs");
+diff --git a/dist/components/Toast/Toast.mjs b/dist/components/Toast/Toast.mjs
+index fdae77effa1e4f77ff97affc71be1a839919675a..5382f9599c4381c02b635a511799e7b849be1ced 100644
+--- a/dist/components/Toast/Toast.mjs
++++ b/dist/components/Toast/Toast.mjs
+@@ -6,8 +6,8 @@ function $importDefault(module) {
+ }
+ // Third party dependencies.
+ import { BoxBackgroundColor, BoxBorderColor, ButtonSize, IconSize, mergeTwClassName, TextColor } from "@metamask-previews/design-system-shared";
+-import { Theme, useTheme } from "@metamask-previews/design-system-twrnc-preset";
+-import { lightTheme } from "@metamask-previews/design-tokens";
++import { Theme, useTheme } from "@metamask/design-system-twrnc-preset";
++import { lightTheme } from "@metamask/design-tokens";
+ import $React from "react";
+ const React = $importDefault($React);
+ // External dependencies.
+diff --git a/dist/components/Toast/Toaster.cjs b/dist/components/Toast/Toaster.cjs
+index ee91b52aecf07142028e7184346bcb55eacddd97..80e8a16649d90c513bb76b45817aa8af631cf4c3 100644
+--- a/dist/components/Toast/Toaster.cjs
++++ b/dist/components/Toast/Toaster.cjs
+@@ -25,7 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.toast = exports.Toaster = void 0;
+ // Third party dependencies.
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_gesture_handler_1 = require("react-native-gesture-handler");
+diff --git a/dist/components/Toast/Toaster.mjs b/dist/components/Toast/Toaster.mjs
+index 89e0e3e332535fa502ab8f0efc30aabbcc116bfe..7c621f6f9ae037f2ded1791423880869358f36a5 100644
+--- a/dist/components/Toast/Toaster.mjs
++++ b/dist/components/Toast/Toaster.mjs
+@@ -5,7 +5,7 @@ function $importDefault(module) {
+     return module;
+ }
+ // Third party dependencies.
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { forwardRef, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
+ const React = $importDefault($React);
+ import { Dimensions } from "react-native";
+diff --git a/dist/components/temp-components/Spinner/Spinner.cjs b/dist/components/temp-components/Spinner/Spinner.cjs
+index 46f1b2808d67af17526041f2c3c0af073e23f1c4..f5cfbd80f600d3969e0f39916d379f777b656a84 100644
+--- a/dist/components/temp-components/Spinner/Spinner.cjs
++++ b/dist/components/temp-components/Spinner/Spinner.cjs
+@@ -24,7 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Spinner = void 0;
+-const design_system_twrnc_preset_1 = require("@metamask-previews/design-system-twrnc-preset");
++const design_system_twrnc_preset_1 = require("@metamask/design-system-twrnc-preset");
+ const react_1 = __importStar(require("react"));
+ const react_native_1 = require("react-native");
+ const react_native_reanimated_1 = __importStar(require("react-native-reanimated"));
+diff --git a/dist/components/temp-components/Spinner/Spinner.mjs b/dist/components/temp-components/Spinner/Spinner.mjs
+index 3d58791691af9ae8af5e9d8fc2c0b9489a8671d4..587fa59ab58eb79114800303fb430701a6762ac5 100644
+--- a/dist/components/temp-components/Spinner/Spinner.mjs
++++ b/dist/components/temp-components/Spinner/Spinner.mjs
+@@ -4,7 +4,7 @@ function $importDefault(module) {
+     }
+     return module;
+ }
+-import { useTailwind } from "@metamask-previews/design-system-twrnc-preset";
++import { useTailwind } from "@metamask/design-system-twrnc-preset";
+ import $React, { useEffect } from "react";
+ const React = $importDefault($React);
+ import { View } from "react-native";
