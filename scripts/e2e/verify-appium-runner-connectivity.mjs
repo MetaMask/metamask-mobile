@@ -14,17 +14,42 @@
  */
 
 import { exec } from 'node:child_process';
+import { basename } from 'node:path';
 import { promisify } from 'node:util';
 
 const execAsync = promisify(exec);
+
+const BOOTED_SIMULATOR_UDID_PATTERN =
+  /\(([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})\)\s*\(Booted\)\s*$/u;
+
+/**
+ * @param {string} line
+ * @returns {string | null}
+ */
+export function parseBootedSimulatorUdid(line) {
+  const match = line.trim().match(BOOTED_SIMULATOR_UDID_PATTERN);
+  return match?.[1] ?? null;
+}
+
+/**
+ * @param {string[]} bootedLines
+ * @returns {string[]}
+ */
+export function parseBootedSimulatorUdids(bootedLines) {
+  return bootedLines
+    .map((line) => parseBootedSimulatorUdid(line))
+    .filter((udid) => udid !== null);
+}
 
 /**
  * @param {string[]} bootedLines
  * @param {string[]} requiredUdids
  */
 export function assertBootedUdids(bootedLines, requiredUdids) {
+  const bootedUdids = new Set(parseBootedSimulatorUdids(bootedLines));
+
   for (const udid of requiredUdids) {
-    if (!bootedLines.some((line) => line.includes(udid))) {
+    if (!bootedUdids.has(udid)) {
       throw new Error(
         `Booted simulator ${udid} not found. Booted devices:\n${bootedLines.join('\n')}`,
       );
@@ -49,7 +74,7 @@ async function verifyIosAppiumRunnerConnectivity(options = {}) {
   const bootedLines = stdout
     .split('\n')
     .map((line) => line.trim())
-    .filter((line) => line.includes('(Booted)'));
+    .filter((line) => parseBootedSimulatorUdid(line) !== null);
 
   if (bootedLines.length === 0) {
     throw new Error('No booted iOS simulator found');
@@ -66,6 +91,14 @@ async function verifyIosAppiumRunnerConnectivity(options = {}) {
   }
 
   return bootedLines;
+}
+
+function isDirectScriptExecution() {
+  const entry = process.argv[1];
+  return (
+    entry != null &&
+    basename(entry) === 'verify-appium-runner-connectivity.mjs'
+  );
 }
 
 async function main() {
@@ -108,7 +141,7 @@ async function main() {
   }
 }
 
-if (process.argv[1]?.endsWith('verify-appium-runner-connectivity.mjs')) {
+if (isDirectScriptExecution()) {
   main().catch((error) => {
     console.error(error);
     process.exit(1);
