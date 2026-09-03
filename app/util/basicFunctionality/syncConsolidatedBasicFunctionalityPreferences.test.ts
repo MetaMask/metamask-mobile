@@ -46,11 +46,17 @@ describe('syncConsolidatedBasicFunctionalityPreferences', () => {
       Engine.context.PreferencesController.setDisplayNftMedia,
     ).toHaveBeenCalledWith(true);
     expect(
-      Engine.context.PreferencesController.setIsIpfsGatewayEnabled,
-    ).toHaveBeenCalledWith(true);
-    expect(
       Engine.context.PreferencesController.setUseSafeChainsListValidation,
     ).toHaveBeenCalledWith(true);
+  });
+
+  it('does not sync IPFS gateway so it stays independent like extension', () => {
+    syncConsolidatedBasicFunctionalityPreferences(true);
+    syncConsolidatedBasicFunctionalityPreferences(false);
+
+    expect(
+      Engine.context.PreferencesController.setIsIpfsGatewayEnabled,
+    ).not.toHaveBeenCalled();
   });
 
   it('disables all consolidated preference toggles when enabled is false', () => {

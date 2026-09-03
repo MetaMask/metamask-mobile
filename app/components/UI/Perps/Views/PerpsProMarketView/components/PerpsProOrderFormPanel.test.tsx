@@ -92,8 +92,8 @@ const DEFAULT_SCALE_ORDER: PerpsProScaleOrderModel = {
   onSizeSkewBlur: jest.fn(),
   onSizeSkewInfoPress: jest.fn(),
   rungs: [],
-  marginRange: PERPS_CONSTANTS.FallbackPriceDisplay,
-  liquidationRange: PERPS_CONSTANTS.FallbackPriceDisplay,
+  margin: PERPS_CONSTANTS.FallbackPriceDisplay,
+  liquidationPrice: PERPS_CONSTANTS.FallbackPriceDisplay,
   fees: PERPS_CONSTANTS.FallbackPriceDisplay,
 };
 

@@ -52,6 +52,19 @@ jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: jest.fn(),
 }));
 
+jest.mock('../../selectors/featureFlags', () => {
+  const feeCollection = {
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  };
+
+  return {
+    ...jest.requireActual('../../selectors/featureFlags'),
+    selectPredictFeeCollectionFlag: jest.fn(() => feeCollection),
+  };
+});
+
 const mockUseIsFocused = useIsFocused as jest.MockedFunction<
   typeof useIsFocused
 >;
@@ -253,7 +266,7 @@ describe('PredictCryptoUpDownPosition', () => {
     renderPosition({ position });
 
     expect(screen.getByText('Down')).toBeOnTheScreen();
-    expect(screen.getByText('-$25')).toBeOnTheScreen();
+    expect(screen.getByText('-$28')).toBeOnTheScreen();
     expect(mockUsePredictOrderPreview).toHaveBeenCalledWith(
       expect.objectContaining({
         autoRefreshTimeout: undefined,
@@ -305,6 +318,28 @@ describe('PredictCryptoUpDownPosition', () => {
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
     expect(mockClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a thin winning claim visible after resolution', () => {
+    const position = createPosition({
+      id: 'position-thin-win',
+      claimable: true,
+      currentValue: 101,
+      initialValue: 100,
+      status: PredictPositionStatus.WON,
+    });
+
+    renderPosition({
+      position,
+      marketStatus: PredictMarketStatus.RESOLVED,
+    });
+
+    expect(screen.getByText(/Won \$101/u)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        getPredictCryptoUpDownPositionSelector.claimButton(position.id),
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('does not call claim when the guarded claim action is blocked', () => {
