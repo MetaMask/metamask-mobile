@@ -15872,6 +15872,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-navigation/bottom-tabs@patch:@react-navigation/bottom-tabs@npm%3A7.18.14#~/.yarn/patches/@react-navigation-bottom-tabs-npm-7.18.14-df728dcd08.patch":
+  version: 7.18.14
+  resolution: "@react-navigation/bottom-tabs@patch:@react-navigation/bottom-tabs@npm%3A7.18.14#~/.yarn/patches/@react-navigation-bottom-tabs-npm-7.18.14-df728dcd08.patch::version=7.18.14&hash=e1a301"
+  dependencies:
+    "@react-navigation/elements": "npm:^2.9.36"
+    color: "npm:^4.2.3"
+    sf-symbols-typescript: "npm:^2.1.0"
+  peerDependencies:
+    "@react-navigation/native": ^7.3.14
+    react: ">= 18.2.0"
+    react-native: "*"
+    react-native-safe-area-context: ">= 4.0.0"
+    react-native-screens: ">= 4.0.0"
+  checksum: 10/4d0b97130972b3dd35ec79587c81c306ea6754fcea8025d6eb4c3f178f11ef26629e52232d90f1da771356e69f671691436499637e33978e18b67eb912d8cb31
+  languageName: node
+  linkType: hard
+
 "@react-navigation/core@npm:^7.21.11":
   version: 7.21.11
   resolution: "@react-navigation/core@npm:7.21.11"
@@ -40231,7 +40248,7 @@ __metadata:
     "@react-native/jest-preset": "npm:0.85.3"
     "@react-native/metro-config": "npm:0.83.0"
     "@react-native/typescript-config": "npm:0.83.0"
-    "@react-navigation/bottom-tabs": "npm:7.18.14"
+    "@react-navigation/bottom-tabs": "patch:@react-navigation/bottom-tabs@npm%3A7.18.14#~/.yarn/patches/@react-navigation-bottom-tabs-npm-7.18.14-df728dcd08.patch"
     "@react-navigation/native": "npm:7.3.14"
     "@react-navigation/native-stack": "npm:7.18.6"
     "@reduxjs/toolkit": "npm:^1.9.7"
@@ -40477,7 +40494,7 @@ __metadata:
     react-native-render-html: "npm:^6.3.4"
     react-native-reorderable-list: "npm:^0.18.1"
     react-native-safe-area-context: "npm:~5.8.0"
-    react-native-screens: "npm:~4.25.2"
+    react-native-screens: "patch:react-native-screens@npm%3A4.25.2#~/.yarn/patches/react-native-screens-npm-4.25.2-0de6719d95.patch"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "patch:react-native-share@npm%3A12.3.1#~/.yarn/patches/react-native-share-npm-12.3.1-be09b19fc2.patch"
     react-native-size-matters: "npm:0.4.0"
@@ -46832,7 +46849,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:~4.25.2":
+"react-native-screens@npm:4.25.2":
   version: 4.25.2
   resolution: "react-native-screens@npm:4.25.2"
   dependencies:
@@ -46842,6 +46859,19 @@ __metadata:
     react: "*"
     react-native: ">=0.82.0"
   checksum: 10/b0fca70d7aafbd8ff993c0e0329ee78fe453391eaff9556e87fb619d0d58b93b497e47ff5477a1028ecad35d4165f47c833ccb22049e59c5d55a1c55a13029b0
+  languageName: node
+  linkType: hard
+
+"react-native-screens@patch:react-native-screens@npm%3A4.25.2#~/.yarn/patches/react-native-screens-npm-4.25.2-0de6719d95.patch":
+  version: 4.25.2
+  resolution: "react-native-screens@patch:react-native-screens@npm%3A4.25.2#~/.yarn/patches/react-native-screens-npm-4.25.2-0de6719d95.patch::version=4.25.2&hash=8c5bbd"
+  dependencies:
+    react-freeze: "npm:^1.0.0"
+    warn-once: "npm:^0.1.0"
+  peerDependencies:
+    react: "*"
+    react-native: ">=0.82.0"
+  checksum: 10/883503ffc378e2f75adfefd8dc8f6e4b4ab07bb12a7d142ce4bc9c4760054d9bc3024b98fff08c008e35bb196676ba2a9826b54798d8ab86d9e3aa0dea37b98c
   languageName: node
   linkType: hard
 

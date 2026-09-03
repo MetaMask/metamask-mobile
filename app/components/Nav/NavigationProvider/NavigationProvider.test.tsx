@@ -6,6 +6,7 @@ import { View, Text } from 'react-native';
 import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import {
+  DarkTheme,
   DefaultTheme,
   NavigationContainer,
   NavigationContainerRef,
@@ -13,6 +14,7 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { getNavIntegration } from '../../../util/sentry/utils';
+import { mockTheme, ThemeContext } from '../../../util/theme';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -29,13 +31,6 @@ jest.mock('../../../util/sentry/utils', () => {
   };
   return {
     getNavIntegration: jest.fn(() => mockIntegration),
-  };
-});
-
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
   };
 });
 
@@ -128,6 +123,30 @@ describe('NavigationProvider', () => {
       ...DefaultTheme,
       colors: {
         ...DefaultTheme.colors,
+        background: 'transparent',
+      },
+    });
+  });
+
+  it('uses DarkTheme when MetaMask is in dark mode', () => {
+    const darkAppTheme = {
+      ...mockTheme,
+      themeAppearance: 'dark',
+    };
+    const { UNSAFE_getByType } = render(
+      <ThemeContext.Provider value={darkAppTheme}>
+        <NavigationProvider>
+          <View />
+        </NavigationProvider>
+      </ThemeContext.Provider>,
+    );
+
+    const container = UNSAFE_getByType(NavigationContainer);
+
+    expect(container.props.theme).toEqual({
+      ...DarkTheme,
+      colors: {
+        ...DarkTheme.colors,
         background: 'transparent',
       },
     });
