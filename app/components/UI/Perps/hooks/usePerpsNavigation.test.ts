@@ -12,6 +12,17 @@ import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
 import { selectPerpsMode } from '../selectors/perpsController';
 
+jest.mock('./usePerpsMarkets', () => ({
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [{ symbol: 'BTC', volumeNumber: 1 }],
+    isLoading: false,
+    isRefreshing: false,
+    error: null,
+    hasResolvedInitialData: true,
+    refresh: jest.fn(),
+  })),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),

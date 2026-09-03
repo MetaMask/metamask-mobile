@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { PerpsMode, type PerpsMarketData } from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import {
@@ -13,7 +13,6 @@ import {
   selectPerpsMode,
 } from '../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
-import { usePerpsMarkets } from '../hooks/usePerpsMarkets';
 import type { PerpsStackParamList } from '../types/navigation';
 
 /**
@@ -142,13 +141,6 @@ export const useGetPerpsHomeNavigationTarget = (): ((
 ) => PerpsHomeNavigationTarget) => {
   const isProModeActive = useIsPerpsProModeActive();
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
-  const { markets, hasResolvedInitialData } = usePerpsMarkets();
-  const tradableSymbols = useMemo(() => {
-    if (!hasResolvedInitialData) {
-      return undefined;
-    }
-    return new Set(markets.map((market) => market.symbol));
-  }, [hasResolvedInitialData, markets]);
 
   return useCallback(
     (extraParams?: Record<string, unknown>) =>
@@ -158,9 +150,8 @@ export const useGetPerpsHomeNavigationTarget = (): ((
         typeof lastViewedMarketSymbol === 'string'
           ? lastViewedMarketSymbol
           : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
-        tradableSymbols,
       ),
-    [isProModeActive, lastViewedMarketSymbol, tradableSymbols],
+    [isProModeActive, lastViewedMarketSymbol],
   );
 };
 

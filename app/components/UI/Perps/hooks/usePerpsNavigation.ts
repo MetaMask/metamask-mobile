@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -25,8 +26,12 @@ import {
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   navigateToPerpsHomeTarget,
-  useGetPerpsHomeNavigationTarget,
+  PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  resolvePerpsHomeNavigationTarget,
+  useIsPerpsProModeActive,
 } from '../utils/perpsModeSwitch';
+import { selectPerpsLastViewedMarketSymbol } from '../selectors/perpsController';
+import { usePerpsMarkets } from './usePerpsMarkets';
 
 /**
  * Navigation handler result interface
@@ -158,14 +163,29 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
-  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
+  const isProModeActive = useIsPerpsProModeActive();
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
+  const { markets, hasResolvedInitialData } = usePerpsMarkets();
+  const tradableSymbols = useMemo(() => {
+    if (!hasResolvedInitialData) {
+      return undefined;
+    }
+    return markets.map((market) => market.symbol);
+  }, [hasResolvedInitialData, markets]);
 
   const navigateToHome = useCallback(
     (source?: string) => {
-      const target = getPerpsHomeNavigationTarget({ source });
+      const target = resolvePerpsHomeNavigationTarget(
+        isProModeActive,
+        { source },
+        typeof lastViewedMarketSymbol === 'string'
+          ? lastViewedMarketSymbol
+          : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+        tradableSymbols,
+      );
       navigateToPerpsHomeTarget(navigation, target);
     },
-    [navigation, getPerpsHomeNavigationTarget],
+    [navigation, isProModeActive, lastViewedMarketSymbol, tradableSymbols],
   );
 
   const navigateToMarketList = useCallback(
