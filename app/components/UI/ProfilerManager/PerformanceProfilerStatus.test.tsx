@@ -44,8 +44,12 @@ describe('PerformanceProfilerStatus', () => {
     jest.clearAllMocks();
     statusListener = null;
   });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
 
   it('renders start/stop controls and acks presses', () => {
+    jest.useFakeTimers();
     const { getByTestId, queryByTestId } = render(
       <PerformanceProfilerStatus />,
     );
@@ -59,6 +63,9 @@ describe('PerformanceProfilerStatus', () => {
     ).toBeNull();
 
     fireEvent.press(getByTestId(PERFORMANCE_PROFILER_STATUS_TEST_IDS.start));
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
 
     expect(mockStartAppProfiling).toHaveBeenCalledTimes(1);
     expect(

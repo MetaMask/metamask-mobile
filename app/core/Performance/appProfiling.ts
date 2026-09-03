@@ -9,7 +9,10 @@
  * `react-native-release-profiler` in app code, gated to performance APKs.
  */
 
-import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import {
+  startProfiling,
+  stopProfilingToExternalFiles,
+} from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
@@ -85,7 +88,8 @@ export async function startAppProfiling(
 
 /**
  * Stops the active profiling session and returns the on-device profile path.
- * On Android, `stopProfiling(true)` copies the `.cpuprofile` into Downloads.
+ * On Android, `stopProfilingToExternalFiles()` writes the `.cpuprofile` to
+ * app-scoped external storage, which Appium can pull without Downloads.
  * No-ops unless this is a performance-test APK with an active session.
  */
 export async function stopAppProfiling(
@@ -105,7 +109,7 @@ export async function stopAppProfiling(
   notifyListeners();
 
   try {
-    const path = await stopProfiling(true);
+    const path = await stopProfilingToExternalFiles();
     isRecording = false;
 
     if (typeof path === 'string' && path.length > 0) {
