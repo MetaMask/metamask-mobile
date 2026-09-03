@@ -99,8 +99,18 @@ describe('iosDevicePool', () => {
       );
     });
 
+    it('does not assign when IOS_DEVICE_POOL is populated but size defaults to one', () => {
+      expect(
+        deviceForWorker(0, {
+          IOS_DEVICE_POOL:
+            '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
+        }),
+      ).toBeUndefined();
+    });
+
     it('assigns distinct UDIDs and WDA ports to two workers', () => {
       const env = {
+        IOS_DEVICE_POOL_SIZE: '2',
         IOS_DEVICE_POOL:
           '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
       };
@@ -119,6 +129,7 @@ describe('iosDevicePool', () => {
     it('rejects a worker index outside the configured pool', () => {
       expect(() =>
         deviceForWorker(2, {
+          IOS_DEVICE_POOL_SIZE: '2',
           IOS_DEVICE_POOL:
             '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
         }),
@@ -129,8 +140,23 @@ describe('iosDevicePool', () => {
   });
 
   describe('applyIosDevicePoolToWorker', () => {
+    it('does not mutate env when IOS_DEVICE_POOL is populated but size defaults to one', () => {
+      const env: Record<string, string | undefined> = {
+        IOS_DEVICE_POOL:
+          '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
+        IOS_SIMULATOR_UDID: 'existing-udid',
+      };
+      expect(applyIosDevicePoolToWorker(0, env)).toBeUndefined();
+      expect(env).toEqual({
+        IOS_DEVICE_POOL:
+          '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
+        IOS_SIMULATOR_UDID: 'existing-udid',
+      });
+    });
+
     it('exports one worker assignment for Appium', () => {
       const env: Record<string, string | undefined> = {
+        IOS_DEVICE_POOL_SIZE: '2',
         IOS_DEVICE_POOL:
           '11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222',
       };

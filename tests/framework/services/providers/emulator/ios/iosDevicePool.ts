@@ -110,18 +110,13 @@ export function deviceForWorker(
   env: Record<string, string | undefined> = process.env,
 ): IosWorkerDevice | undefined {
   const poolSize = resolveIosDevicePoolSize(env);
-  const udids = iosDevicePoolUdids(env);
-
-  if (udids.length === 0) {
-    if (poolSize > 1) {
-      throw new Error(
-        `IOS_DEVICE_POOL_SIZE (${poolSize}) requires IOS_DEVICE_POOL with ${poolSize} UDIDs. iOS simulator UDIDs cannot be derived from pool size.`,
-      );
-    }
+  if (poolSize <= 1) {
     return undefined;
   }
 
-  if (poolSize > 1 && udids.length !== poolSize) {
+  const udids = iosDevicePoolUdids(env);
+
+  if (udids.length === 0 || udids.length !== poolSize) {
     throw new Error(
       `IOS_DEVICE_POOL_SIZE (${poolSize}) requires IOS_DEVICE_POOL with ${poolSize} UDIDs. iOS simulator UDIDs cannot be derived from pool size.`,
     );
