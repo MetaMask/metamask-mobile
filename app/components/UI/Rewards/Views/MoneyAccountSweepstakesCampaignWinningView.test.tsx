@@ -35,6 +35,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../utils/formatUtils', () => ({
   formatOrdinalRank: (rank: number) => `${rank}-rank`,
+  formatUsd: (value: number) => `$${value.toFixed(2)}`,
 }));
 
 const mockUseOutcome = useMoneyAccountSweepstakesOutcome as jest.MockedFunction<
