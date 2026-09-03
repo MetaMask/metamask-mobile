@@ -84,6 +84,7 @@ const summaryKeyTextProps = {
 const summaryValueTextProps = {
   variant: TextVariant.BodyXs,
   fontWeight: FontWeight.Medium,
+  numberOfLines: 1,
 };
 
 interface TPSLRowProps {
@@ -220,9 +221,15 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
   ) : null;
 
 const summaryRowClassName = 'h-5 px-0';
-const summaryRangeRowClassName = 'min-h-10 h-auto px-0';
+// Margin and Est liquidation both render a "before → after" pair on a resize,
+// so they grow to a second line instead of clipping a long value.
+const summaryBeforeAfterRowClassName = 'min-h-5 h-auto px-0';
 const summaryFeesRowClassName = 'min-h-6 h-auto px-0';
 const summaryRowStyle = { paddingHorizontal: 0 } as const;
+const summaryBeforeAfterValueTextProps = {
+  ...summaryValueTextProps,
+  numberOfLines: 2,
+};
 const SLIPPAGE_EDIT_HIT_SLOP = 12;
 const CHASE_UNIT_HIT_SLOP = 12;
 
@@ -241,8 +248,8 @@ const OrderSummary = ({
       keyLabel={strings('perps.order.margin')}
       value={margin}
       keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      valueTextProps={summaryBeforeAfterValueTextProps}
+      twClassName={summaryBeforeAfterRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_MARGIN}
     />
@@ -250,8 +257,8 @@ const OrderSummary = ({
       keyLabel={strings('perps.pro_order_form.est_liquidation')}
       value={liquidationPrice}
       keyTextProps={summaryKeyTextProps}
-      valueTextProps={summaryValueTextProps}
-      twClassName={summaryRowClassName}
+      valueTextProps={summaryBeforeAfterValueTextProps}
+      twClassName={summaryBeforeAfterRowClassName}
       style={summaryRowStyle}
       testID={ids.SUMMARY_LIQUIDATION}
     />
@@ -404,7 +411,7 @@ const ScalePreview = ({
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.scale.margin')}
-        value={model.marginRange}
+        value={model.margin}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={{
           ...summaryValueTextProps,
@@ -415,14 +422,13 @@ const ScalePreview = ({
       />
       <KeyValueRow
         keyLabel={strings('perps.pro_order_form.est_liquidation')}
-        value={model.liquidationRange}
+        value={model.liquidationPrice}
         keyTextProps={summaryKeyTextProps}
         valueTextProps={{
           ...summaryValueTextProps,
-          numberOfLines: 0,
           testID: ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
         }}
-        twClassName={summaryRangeRowClassName}
+        twClassName={summaryRowClassName}
         style={summaryRowStyle}
       />
       <KeyValueRow

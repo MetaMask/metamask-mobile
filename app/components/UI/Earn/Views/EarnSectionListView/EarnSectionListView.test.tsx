@@ -604,6 +604,18 @@ describe('EarnSectionListView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render More Ways content when no supported assets exist', () => {
+    render(<EarnSectionListView />);
+
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_TITLE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MORE_WAYS_SUBTITLE),
+    ).toBeNull();
+    expect(screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.DIVIDER)).toBeNull();
+  });
+
   it('navigates back, to Money, and to View all', () => {
     const moneyAssets = createMoneyAssets(6);
     mockUseEarnAssetCatalogue.mockReturnValue(
