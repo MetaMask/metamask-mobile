@@ -112,6 +112,7 @@ import {
   getPerpsOrderTpSlWarnings,
   type PerpsOrderTpSlWarnings,
 } from '../../../../utils/tpslValidation';
+import { getLimitPriceFarFromMarketWarning } from '../../../../utils/limitPriceFarFromMarket';
 import {
   canonicalizeOrderPrice,
   getLimitPriceCrossingWarning,
@@ -122,6 +123,8 @@ import {
 import {
   CHASE_ORDER_UI_CONFIG,
   CHASE_RETAINED_STATUSES,
+  FAR_FROM_MARKET_WARNING_INTERACTION,
+  FAR_FROM_MARKET_WARNING_TYPE,
   MAX_PERPS_INPUT_DIGITS,
   PERPS_TWAP_UI_CONFIG,
   PROVIDER_CONFIG,
@@ -635,6 +638,7 @@ export const usePerpsProOrderForm = ({
   const [scaleSizeSkew, setScaleSizeSkew] = useState(SCALE_DEFAULT_SKEW);
   const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
     useState(false);
+  const [hasBlurredScalePrice, setHasBlurredScalePrice] = useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
@@ -694,6 +698,7 @@ export const usePerpsProOrderForm = ({
   const lastTrackedScaleValidationRef = useRef<
     ScaleOrderValidationCode | undefined
   >(undefined);
+  const lastTrackedFarFromMarketRef = useRef<string | undefined>(undefined);
   const submissionStateRef = useRef('');
   const complianceStateRef = useRef('');
   const lifecycleGenerationRef = useRef(0);
@@ -2519,6 +2524,7 @@ export const usePerpsProOrderForm = ({
         setScaleTotalOrders('');
         setScaleSizeSkew(SCALE_DEFAULT_SKEW);
         setHasScaleValidationInteraction(false);
+        setHasBlurredScalePrice(false);
         setReduceOnly(false);
         return;
       }
@@ -2970,6 +2976,81 @@ export const usePerpsProOrderForm = ({
   const isTriggerOrderUnavailable =
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
+  const farFromMarketWarning = useMemo(() => {
+    // Wait for start/end blur. Change-time interaction is too early:
+    // a partial start ('8') still ladders if end and count are filled.
+    if (isScaleOrder && (!hasBlurredScalePrice || !scaleLadderResult.success)) {
+      return undefined;
+    }
+    // setLimitPrice updates every keystroke, so '9' of '90000' would warn.
+    if (!isScaleOrder && !hasBlurredLimitPrice) {
+      return undefined;
+    }
+    return getLimitPriceFarFromMarketWarning({
+      orderType: orderForm.type,
+      direction: orderForm.direction,
+      reduceOnly,
+      limitPrice: normalizedLimitPrice,
+      startPrice: scaleStartPrice,
+      endPrice: scaleEndPrice,
+      bestBid: currentTopOfBook?.bestBid
+        ? Number.parseFloat(currentTopOfBook.bestBid)
+        : undefined,
+      bestAsk: currentTopOfBook?.bestAsk
+        ? Number.parseFloat(currentTopOfBook.bestAsk)
+        : undefined,
+      szDecimals,
+    });
+  }, [
+    currentTopOfBook?.bestAsk,
+    currentTopOfBook?.bestBid,
+    hasBlurredLimitPrice,
+    hasBlurredScalePrice,
+    isScaleOrder,
+    normalizedLimitPrice,
+    orderForm.direction,
+    orderForm.type,
+    reduceOnly,
+    scaleEndPrice,
+    scaleLadderResult.success,
+    scaleStartPrice,
+    szDecimals,
+  ]);
+
+  useEffect(() => {
+    if (!farFromMarketWarning) {
+      lastTrackedFarFromMarketRef.current = undefined;
+      return;
+    }
+    if (lastTrackedFarFromMarketRef.current === farFromMarketWarning) {
+      return;
+    }
+
+    lastTrackedFarFromMarketRef.current = farFromMarketWarning;
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        FAR_FROM_MARKET_WARNING_INTERACTION,
+      [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
+      [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: farFromMarketWarning,
+      // Limit orders must not inherit empty scale fields (Number('') is 0).
+      ...(isScaleOrder
+        ? scaleAnalyticsProperties
+        : {
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderForm.type,
+            [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
+          }),
+    });
+  }, [
+    farFromMarketWarning,
+    isScaleOrder,
+    orderForm.asset,
+    orderForm.type,
+    reduceOnly,
+    scaleAnalyticsProperties,
+    track,
+  ]);
+
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
       ...(scaleValidationNotice ? [scaleValidationNotice] : []),
@@ -3045,10 +3126,20 @@ export const usePerpsProOrderForm = ({
       });
     }
 
+    if (isScaleOrder && farFromMarketWarning) {
+      list.push({
+        id: 'far-from-market',
+        variant: 'banner',
+        message: farFromMarketWarning,
+      });
+    }
+
     return list;
   }, [
     reduceOnly,
     scaleValidationNotice,
+    farFromMarketWarning,
+    isScaleOrder,
     isReduceOnlyPositionLoading,
     isTriggerOrderUnavailable,
     marketDataBlockingReason,
@@ -3212,10 +3303,12 @@ export const usePerpsProOrderForm = ({
       onStartPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice);
         }),
       onStartPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
           );
@@ -3223,10 +3316,12 @@ export const usePerpsProOrderForm = ({
       onEndPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice);
         }),
       onEndPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
           );
@@ -3460,13 +3555,18 @@ export const usePerpsProOrderForm = ({
       midPrice: assetData.price,
       szDecimals,
     });
-    if (!warning) {
+    if (warning) {
+      return { severity: 'warning' as const, message: warning };
+    }
+
+    if (!farFromMarketWarning) {
       return undefined;
     }
 
-    return { severity: 'warning' as const, message: warning };
+    return { severity: 'warning' as const, message: farFromMarketWarning };
   }, [
     assetData.price,
+    farFromMarketWarning,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     isScaleOrder,
