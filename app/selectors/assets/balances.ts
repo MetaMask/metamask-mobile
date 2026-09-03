@@ -87,19 +87,22 @@ function stripAssetsInfoForAggregation(
 }
 
 /**
- * TEMPORARY: drop `assetsBalance` rows that have no matching `assetsInfo`.
+ * TEMPORARY: drop EVM `assetsBalance` rows that have no matching `assetsInfo`.
  * Orphan balances can remain after spam cleanup races with a later Accounts
  * API merge; they should not inflate aggregated fiat.
  *
  * Must run before {@link stripAssetsInfoForAggregation}.
  *
  * @param assetsControllerState - AssetsController state slice.
- * @returns Copy of state without balances that lack assetsInfo.
+ * @returns Copy of state without EVM balances that lack assetsInfo.
  */
 export function augmentTempExcludeMissingAssetsInfo(
   assetsControllerState: AssetsControllerState,
 ): AssetsControllerState {
   const assetsInfo = assetsControllerState.assetsInfo ?? {};
+  const isEvmAssetId = (assetId: string) =>
+    assetId.startsWith(`${KnownCaipNamespace.Eip155}:`);
+
   return {
     ...assetsControllerState,
     assetsBalance: Object.fromEntries(
@@ -107,8 +110,9 @@ export function augmentTempExcludeMissingAssetsInfo(
         ([accountId, assets]) => [
           accountId,
           Object.fromEntries(
-            Object.entries(assets).filter(([assetId]) =>
-              Boolean(assetsInfo[assetId]),
+            Object.entries(assets).filter(
+              ([assetId]) =>
+                !isEvmAssetId(assetId) || Boolean(assetsInfo[assetId]),
             ),
           ),
         ],
