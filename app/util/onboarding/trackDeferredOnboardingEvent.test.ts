@@ -52,13 +52,14 @@ describe('trackDeferredOnboardingEvent', () => {
     );
   });
 
-  it('tracks when metrics are disabled and no saver is provided', () => {
+  it('drops the event when metrics are disabled and no saver is provided', () => {
     mockIsEnabled.mockReturnValue(false);
 
     trackDeferredOnboardingEvent(MetaMetricsEvents.APP_UNLOCKED, {
       unlock_type: 'password',
     });
 
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+    expect(saveOnboardingEvent).not.toHaveBeenCalled();
   });
 });
