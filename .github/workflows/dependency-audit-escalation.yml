@@ -215,19 +215,26 @@ jobs:
       # already use. Only checked out when there's something to look at, so a
       # clean audit never pays for it.
       #
-      # Pinned to a specific commit (not the `v1` tag flaky-unit-test-
-      # detection.yml uses): v1 still has a validateProvidedFiles() check in
+      # Pinned to a commit SHA, not a movable tag/branch (same reasoning as
+      # pinning third-party Actions). Not the `v1` tag flaky-unit-test-
+      # detection.yml uses: v1 still has a validateProvidedFiles() check in
       # src/index.ts requiring every --changed-files entry to already be a
       # committed git diff against the base branch, which the advisory
       # context file this script writes (untracked, no diff yet) can never
-      # satisfy. That check is gone as of this commit.
+      # satisfy.
+      #
+      # v2.3.0 (MetaMask/ai-analyzer#47) is required: it's what lets
+      # mode.yaml's `config.maxIterations`/`config.models` below actually
+      # take effect — on the previously-pinned commit those fields were
+      # silently ignored and every mode got the hardcoded 15-iteration,
+      # tier-heuristic default.
       - name: Checkout AI Analyzer
         id: checkout-ai-analyzer
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: 68870b76360431110ae00b27a0072d3011e6238c
+          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348 # v2.3.0
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
@@ -246,6 +253,14 @@ jobs:
           NODE_PATH: ${{ github.workspace }}/.ai-analyzer-action/node_modules
           GH_TOKEN: ${{ steps.get-token.outputs.token }}
           OWNER_GH: ${{ steps.owner.outputs.github }}
+          # This mode's job is narrow (pick one of 4 enum actions per
+          # advisory against a fixed schema) and its "auto" heuristic fires
+          # for every MetaMask/* repo — a live test showed it loading
+          # generic repo skills (PR-review/PR-creation/changelog) that have
+          # nothing to do with dependency triage, burning an iteration and
+          # apparently confusing the model into calling the finalize tool
+          # with a shape that didn't match finalize-schema.json at all.
+          AI_ANALYZER_METAMASK_SKILLS: 'off'
         run: |
           yarn ts-node --transpile-only scripts/attempt-audit-fix.ts audit-fix-result.json
           MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")

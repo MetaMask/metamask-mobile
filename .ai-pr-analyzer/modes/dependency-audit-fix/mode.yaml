@@ -2,3 +2,19 @@ id: dependency-audit-fix
 description: Proposes package.json/yarn.lock fixes for dependency-audit advisories found by `yarn audit:ci`
 finalizeToolName: finalize_dependency_audit_fix
 outputFile: .ai-pr-analyzer/dependency-audit-fix.json
+config:
+  # A live test run against this repo's real advisories hit the (default)
+  # 15-iteration budget without finalizing — it spent several iterations
+  # re-reading package.json and retrying grep_codebase after being told not
+  # to (see task-prompt.md), then fell back to "no proposal" for every
+  # advisory in the batch instead of a real decision. 30 gives real headroom
+  # for that kind of AI-side redundancy without being unbounded.
+  maxIterations: 30
+  # This mode's decisions get applied to package.json/yarn.lock (verified
+  # independently by attempt-audit-fix.ts before anything is trusted, but
+  # still): always use the stronger model rather than leaving it to the
+  # repo's cost-driven default/escalation heuristics, which exist for
+  # higher-volume, lower-stakes modes than a handful of audit advisories a
+  # month.
+  models:
+    default: claude-sonnet-5

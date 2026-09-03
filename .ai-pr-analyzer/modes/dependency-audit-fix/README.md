@@ -6,13 +6,13 @@ Consumed by [`scripts/attempt-audit-fix.ts`](../../../scripts/attempt-audit-fix.
 
 ## Files
 
-| File                   | Purpose                                                                      |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `mode.yaml`            | Mode identity — `id`, `finalizeToolName`, `outputFile`                       |
-| `system-prompt.md`     | AI role, untrusted-input handling, and the four allowed proposal actions     |
-| `task-prompt.md`       | Per-run instructions and file-access allowlist, receives `{{changed_files}}` |
-| `finalize-schema.json` | JSON Schema the AI must satisfy when calling `finalize_dependency_audit_fix` |
-| `fallback.json`        | Deterministic `conservative` / `empty` results when the AI can't complete    |
+| File                   | Purpose                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `mode.yaml`            | Mode identity (`id`, `finalizeToolName`, `outputFile`) and runtime overrides (`config.maxIterations`, `config.models`) |
+| `system-prompt.md`     | AI role, untrusted-input handling, and the four allowed proposal actions                                               |
+| `task-prompt.md`       | Per-run instructions and file-access allowlist, receives `{{changed_files}}`                                           |
+| `finalize-schema.json` | JSON Schema the AI must satisfy when calling `finalize_dependency_audit_fix`                                           |
+| `fallback.json`        | Deterministic `conservative` / `empty` results when the AI can't complete                                              |
 
 The AI never edits any file — it only investigates (`read_file` on package.json and the advisory context file) and returns a structured proposal. `scripts/attempt-audit-fix.ts` applies each proposed change itself, then re-runs the same `yarn dedupe` / `yarn constraints` / re-audit checks before trusting that a given advisory is actually fixed. A proposal that doesn't independently verify is discarded — the advisory stays in `manual`.
 
@@ -62,5 +62,6 @@ Written to `.ai-pr-analyzer/dependency-audit-fix.json` (per `outputFile` in `mod
 
 ## Editing the mode
 
-- **Prompt tweaks**: edit `system-prompt.md` / `task-prompt.md`. See [MetaMask/ai-analyzer docs/adding-a-new-mode.md](https://github.com/MetaMask/ai-analyzer/blob/v1/docs/adding-a-new-mode.md) for the full template-variable reference.
+- **Prompt tweaks**: edit `system-prompt.md` / `task-prompt.md`. See [MetaMask/ai-analyzer docs/adding-a-new-mode.md](https://github.com/MetaMask/ai-analyzer/blob/v2.3.0/docs/adding-a-new-mode.md) for the full template-variable reference.
 - **Schema changes**: keep `finalize-schema.json` and `fallback.json` in sync (both must satisfy the same shape), and update the apply/verify logic in `scripts/attempt-audit-fix.ts` to match.
+- **Iteration budget / model**: `mode.yaml`'s `config.maxIterations` and `config.models.default` only take effect with `MetaMask/ai-analyzer` v2.3.0+ (see [`dependency-audit-escalation.yml`](../../../.github/workflows/dependency-audit-escalation.yml)'s pinned commit) — earlier versions silently ignore per-mode `config` and fall back to the hardcoded 15-iteration, cost-tiered default for every mode.
