@@ -3,11 +3,11 @@ PODS:
   - BEMCheckBox (1.4.1)
   - boost (1.84.0)
   - Branch (1.43.2)
-  - braze-react-native-sdk (19.1.0):
+  - braze-react-native-sdk (23.0.0):
     - boost
-    - BrazeKit (~> 14.0.1)
-    - BrazeLocation (~> 14.0.1)
-    - BrazeUI (~> 14.0.1)
+    - BrazeKit (~> 18.2.0)
+    - BrazeLocation (~> 18.2.0)
+    - BrazeUI (~> 18.2.0)
     - DoubleConversion
     - fast_float
     - fmt
@@ -34,11 +34,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - BrazeKit (14.0.4)
-  - BrazeLocation (14.0.4):
-    - BrazeKit (= 14.0.4)
-  - BrazeUI (14.0.4):
-    - BrazeKit (= 14.0.4)
+  - BrazeKit (18.2.0)
+  - BrazeLocation (18.2.0):
+    - BrazeKit (= 18.2.0)
+  - BrazeUI (18.2.0):
+    - BrazeKit (= 18.2.0)
   - BVLinearGradient (2.8.3):
     - React-Core
   - CocoaAsyncSocket (7.6.5)
@@ -5119,10 +5119,10 @@ SPEC CHECKSUMS:
   BEMCheckBox: 5ba6e37ade3d3657b36caecc35c8b75c6c2b1a4e
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   Branch: 4ac024cb3c29b0ef628048694db3c4cfa679beb0
-  braze-react-native-sdk: 81f97f9dd9aae9e89e8ff4083e473e6cb8930cd7
-  BrazeKit: ba951d2299c1d16b541cf35cdd7250d03e28a0fb
-  BrazeLocation: d6938a737f123bb9e6632246d1abea40eeb12768
-  BrazeUI: 1d733e1dea4d81f95f261b52cc6e4b91a0eccca8
+  braze-react-native-sdk: 7de8df8f0f0b32a2bea8a1f5c61fe7056d394283
+  BrazeKit: 7096d0fedf79e7263bb055b986ade1cc52ad1897
+  BrazeLocation: 992159c8dc5d2a5f9e4a168d2e2780cf9c4aa6dd
+  BrazeUI: 98385f0fde85fa70dafc27f893cb34d7abbf7d7b
   BVLinearGradient: cb006ba232a1f3e4f341bb62c42d1098c284da70
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
@@ -5331,6 +5331,6 @@ SPEC CHECKSUMS:
   Yoga: cf2a67aa1c8a225f0cb98a5f531d6f305d3f12e5
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 765be4dd3d78fecfb151a4b9e4a55956b1ebf8aa
+PODFILE CHECKSUM: 8ab1965c9a078b7717e0a1be96b480bf83c34809
 
 COCOAPODS: 1.16.2
