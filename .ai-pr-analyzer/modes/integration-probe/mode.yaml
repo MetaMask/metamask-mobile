@@ -5,6 +5,6 @@ finalizeToolName: finalize_integration_probe
 outputFile: integration-probe.json
 labels: false
 
-# TEST 3: differs from pr-risk-analysis (9), forcing a separate loop.
+# TEST 4: matches pr-risk-analysis (9), allowing one shared loop.
 config:
-  maxIterations: 6
+  maxIterations: 9
