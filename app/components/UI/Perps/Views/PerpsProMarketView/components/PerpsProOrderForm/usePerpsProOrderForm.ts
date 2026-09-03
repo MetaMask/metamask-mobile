@@ -3122,11 +3122,9 @@ export const usePerpsProOrderForm = ({
   // rather than a per-rung spread: the margin the whole ladder requires and the
   // liquidation price at its average entry.
   const scaleMargin = useMemo(() => {
-    if (
-      !scaleLadderResult.success ||
-      effectiveMarginRequired === undefined ||
-      effectiveMarginRequired === null
-    ) {
+    // A successful ladder always carries a margin figure; the undefined check
+    // only narrows the non-Scale `marginRequired` arm of effectiveMarginRequired.
+    if (!scaleLadderResult.success || effectiveMarginRequired === undefined) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

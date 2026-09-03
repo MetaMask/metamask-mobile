@@ -669,15 +669,18 @@ describe('PerpsProOrderForm', () => {
       ).toHaveTextContent('$1');
     });
 
-    it('renders the Scale Margin and Est Liquidation rows without a before/after arrow', () => {
+    it('gives the Scale Est Liquidation row the same single-line treatment as Margin', () => {
       renderForm({ orderType: 'scale', scaleOrder: createScaleOrder() });
 
-      expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE),
-      ).not.toHaveTextContent('→');
-      expect(
-        screen.getByTestId(ids.SCALE_PREVIEW_LIQUIDATION_VALUE),
-      ).not.toHaveTextContent('→');
+      // `numberOfLines: 0` was the wrap allowance for the old "a → b" range.
+      // A single target value clips on one line like every other summary row.
+      const margin = screen.getByTestId(ids.SCALE_PREVIEW_MARGIN_VALUE);
+      const liquidation = screen.getByTestId(
+        ids.SCALE_PREVIEW_LIQUIDATION_VALUE,
+      );
+
+      expect(liquidation).not.toHaveProp('numberOfLines', 0);
+      expect(liquidation.props.numberOfLines).toBe(margin.props.numberOfLines);
     });
 
     it('omits ordinary price and TP/SL rows for Scale', () => {

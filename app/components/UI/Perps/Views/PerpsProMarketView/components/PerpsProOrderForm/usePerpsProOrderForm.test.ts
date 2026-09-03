@@ -4473,6 +4473,27 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.scaleOrder.liquidationPrice).toBe('$80,000');
     });
 
+    it('falls back on both Scale summary rows when the ladder is invalid', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      // Start and end collapse to the same tick, so no ladder can be built.
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100.123456');
+        result.current.scaleOrder.onEndPriceChange('100.123457');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(result.current.scaleOrder.rungs).toEqual([]);
+      expect(result.current.scaleOrder.margin).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
     it('weights a below-one Scale skew toward the start of the range', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
