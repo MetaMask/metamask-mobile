@@ -638,23 +638,28 @@ describe('useTransakRouting', () => {
         }),
       );
       await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
+        await result.current.routeAfterAuthentication(mockQuote as never, 50);
       });
 
       expect(mockUseRampAccountAddress).toHaveBeenCalledWith('eip155:42161');
       expect(mockGeneratePaymentWidgetUrl).toHaveBeenCalledWith(
         'test-ott',
-        mockQuote,
+        { ...mockQuote, fiatAmount: 50 },
         MOCK_WALLET_ADDRESS,
         { theme: 'light', isFeeExcludedFromFiat: 'true' },
       );
     });
 
-    it('excludes the fee from the widget fiat amount on the headless proxy path', async () => {
+    it('uses the entered amount with fee exclusion on the headless proxy path', async () => {
       mockIsTransakWidgetUrlProxyEnabled = true;
+      const mockGetSession = jest.requireMock('../headless/sessionRegistry')
+        .getSession as jest.Mock;
+      mockGetSession.mockReturnValue({
+        params: {
+          amount: 50,
+          assetId: 'eip155:42161/slip44:60',
+        },
+      });
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
         lastName: 'Doe',
@@ -679,14 +684,11 @@ describe('useTransakRouting', () => {
       );
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(
-          mockQuote as never,
-          mockQuote.fiatAmount,
-        );
+        await result.current.routeAfterAuthentication(mockQuote as never);
       });
 
       expect(mockCreateWidgetUrl).toHaveBeenCalledWith(
-        mockQuote,
+        { ...mockQuote, fiatAmount: 50 },
         MOCK_WALLET_ADDRESS,
         { widgetTheme: 'light', isFeeExcludedFromFiat: 'true' },
       );

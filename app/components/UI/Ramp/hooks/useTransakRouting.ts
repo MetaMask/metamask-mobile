@@ -887,13 +887,24 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                 });
               } else {
                 let paymentUrl: string;
+                const headlessAmount =
+                  amount ?? getSession(headlessSessionId)?.params.amount;
+
+                if (headlessSessionId && headlessAmount == null) {
+                  throw new Error('Missing headless widget amount');
+                }
+
+                const widgetQuote =
+                  headlessSessionId && headlessAmount != null
+                    ? { ...quote, fiatAmount: headlessAmount }
+                    : quote;
                 const headlessWidgetParams = headlessSessionId
                   ? { isFeeExcludedFromFiat: 'true' }
                   : {};
 
                 if (isTransakWidgetUrlProxyEnabled) {
                   paymentUrl = await createWidgetUrl(
-                    quote,
+                    widgetQuote,
                     walletAddress || '',
                     {
                       ...generateWidgetThemeParameters(themeAppearance, colors),
@@ -909,7 +920,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
                   paymentUrl = generatePaymentWidgetUrl(
                     ottResponse.ott,
-                    quote,
+                    widgetQuote,
                     walletAddress || '',
                     {
                       ...generateThemeParameters(themeAppearance, colors),
