@@ -455,9 +455,14 @@ describe('usePerpsTwapOrders', () => {
     expect(result.current.twapOrders).toStrictEqual([refreshedOrder]);
   });
 
-  it('commits a controller stream ahead of an older REST read', async () => {
+  it('retains a streamed order when a later REST read omits it', async () => {
     // Arrange
     const streamed = buildTwapOrder({ orderId: 'streamed' });
+    let resolveRead: ((orders: TwapOrder[]) => void) | undefined;
+    const pendingRead = new Promise<TwapOrder[]>((resolve) => {
+      resolveRead = resolve;
+    });
+    mockController.getTwapOrders.mockReturnValueOnce(pendingRead);
     const unsubscribe = jest.fn();
     mockController.subscribeToTwapOrders.mockImplementation(
       (params: { callback: (orders: TwapOrder[]) => void }) => {
@@ -470,12 +475,18 @@ describe('usePerpsTwapOrders', () => {
     const { result, unmount } = renderHook(() =>
       usePerpsTwapOrders({ enableLiveUpdates: true, skipInitialFetch: true }),
     );
-
-    // Assert
     await waitFor(() =>
-      expect(result.current.twapOrders).toStrictEqual([streamed]),
+      expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1),
     );
-    expect(mockController.getTwapOrders).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveRead?.([]);
+      await pendingRead;
+    });
+
+    // Assert: wait for the stale REST response to finish so this cannot pass
+    // against the transient streamed state that preceded reconciliation.
+    await waitFor(() => expect(result.current.isRefreshing).toBe(false));
+    expect(result.current.twapOrders).toStrictEqual([streamed]);
     unmount();
     expect(unsubscribe).toHaveBeenCalled();
   });

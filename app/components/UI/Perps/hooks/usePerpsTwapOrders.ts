@@ -374,17 +374,12 @@ export const usePerpsTwapOrders = (
           );
 
           // REST contributes unbounded history, fills, and recovered provider
-          // partitions. If a stream landed after this read began, retain its
-          // newer schedule fields while merging in the complementary REST
-          // fills. A newer provider snapshot may remove only stale active rows;
-          // REST-only terminal history is never removed by the capped stream.
-          for (const [
-            identity,
-            streamRevision,
-          ] of streamedOrderRevisionRef.current) {
-            if (streamRevision <= streamRevisionAtRequestStart) {
-              continue;
-            }
+          // partitions. Retain every current row delivered by the authoritative
+          // schedule stream, even when that row arrived before this read began,
+          // while merging in complementary REST fills. A newer provider snapshot
+          // may remove only stale active rows; REST-only terminal history is
+          // never removed by the capped stream.
+          for (const identity of streamedOrderRevisionRef.current.keys()) {
             const streamedOrder = currentOrdersByIdentity.get(identity);
             if (streamedOrder) {
               mergedOrdersByIdentity.set(
