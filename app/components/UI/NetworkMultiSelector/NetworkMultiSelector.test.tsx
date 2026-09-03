@@ -9,6 +9,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import NetworkMultiSelector from './NetworkMultiSelector';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
 
@@ -55,6 +56,10 @@ jest.mock('../../hooks/useAddPopularNetwork', () => ({
   useAddPopularNetwork: jest.fn(),
 }));
 
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: jest.fn(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
   Provider: jest.requireActual('react-redux').Provider,
@@ -90,6 +95,7 @@ const mockStore = createStore(() => ({}));
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
   const mockAddPopularNetwork = jest.fn();
+  const mockEnableAllPopularNetworks = jest.fn();
   const mockOnLocalNetworkSelect = jest.fn();
   const mockDismissModal = jest.fn();
 
@@ -102,6 +108,9 @@ describe('NetworkMultiSelector', () => {
   >;
   const mockUseAddPopularNetwork = useAddPopularNetwork as jest.MockedFunction<
     typeof useAddPopularNetwork
+  >;
+  const mockUseNetworkEnablement = useNetworkEnablement as jest.MockedFunction<
+    typeof useNetworkEnablement
   >;
   const mockUseSelector = jest.mocked(useSelector);
 
@@ -171,6 +180,10 @@ describe('NetworkMultiSelector', () => {
       addPopularNetwork: mockAddPopularNetwork,
     });
 
+    mockUseNetworkEnablement.mockReturnValue({
+      enableAllPopularNetworks: mockEnableAllPopularNetworks,
+    } as unknown as ReturnType<typeof useNetworkEnablement>);
+
     mockUseSelector.mockReturnValue([]);
   });
 
@@ -181,7 +194,7 @@ describe('NetworkMultiSelector', () => {
       );
       expect(
         getByTestId(NETWORK_MULTI_SELECTOR_TEST_IDS.POPULAR_NETWORKS_CONTAINER),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('calls useNetworksByNamespace with Popular network type', () => {
@@ -386,7 +399,7 @@ describe('NetworkMultiSelector', () => {
       expect(typeof customNetworkProps.onNetworkAdd).toBe('function');
     });
 
-    it('adds a new popular network via Redux (unaffected by local selection)', async () => {
+    it('adds a new popular network via Redux and locally selects it, so the lists filter to it immediately', async () => {
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector {...defaultRenderProps} />,
       );
@@ -407,7 +420,49 @@ describe('NetworkMultiSelector', () => {
       await customNetworkProps.onNetworkAdd(newNetwork);
 
       expect(mockAddPopularNetwork).toHaveBeenCalledWith(newNetwork);
-      expect(mockOnLocalNetworkSelect).not.toHaveBeenCalled();
+      expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith(['eip155:137']);
+    });
+
+    it('re-enables all popular networks in Redux after adding one, so switching back to "all popular networks" is not left showing only the new network', async () => {
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector {...defaultRenderProps} />,
+      );
+
+      const networkList = getByTestId('mock-network-multi-selector-list');
+      const customNetworkProps =
+        networkList.props.additionalNetworksComponent.props.children.props;
+
+      await customNetworkProps.onNetworkAdd({
+        chainId: '0x89',
+        nickname: 'Polygon',
+        rpcUrl: 'https://polygon-rpc.com',
+        ticker: 'MATIC',
+        warning: false,
+      });
+
+      // addPopularNetwork exclusively enables just the new network in
+      // NetworkEnablementController; this call must undo that side effect.
+      expect(mockEnableAllPopularNetworks).toHaveBeenCalled();
+    });
+
+    it('dismisses the modal after adding a network, so the stale nav-params selection state is never shown', async () => {
+      const { getByTestId } = renderWithProvider(
+        <NetworkMultiSelector {...defaultRenderProps} />,
+      );
+
+      const networkList = getByTestId('mock-network-multi-selector-list');
+      const customNetworkProps =
+        networkList.props.additionalNetworksComponent.props.children.props;
+
+      await customNetworkProps.onNetworkAdd({
+        chainId: '0x89',
+        nickname: 'Polygon',
+        rpcUrl: 'https://polygon-rpc.com',
+        ticker: 'MATIC',
+        warning: false,
+      });
+
+      expect(mockDismissModal).toHaveBeenCalled();
     });
   });
 

@@ -84,13 +84,13 @@ describe('DeFiPositionsControlBar', () => {
 
     expect(
       getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
-    ).toBeDefined();
+    ).toBeOnTheScreen();
   });
 
   it('shows "Popular Networks" when no network filter is set', () => {
     const { getByText } = renderComponent();
 
-    expect(getByText(strings('wallet.popular_networks'))).toBeDefined();
+    expect(getByText(strings('wallet.popular_networks'))).toBeOnTheScreen();
   });
 
   it('shows the selected network name when a single network is filtered', () => {
@@ -98,7 +98,7 @@ describe('DeFiPositionsControlBar', () => {
       networkFilter: ['eip155:1'],
     });
 
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
   });
 
   it('navigates to network manager, passing the local filter, when filter button is pressed', () => {
@@ -133,8 +133,6 @@ describe('DeFiPositionsControlBar', () => {
   it('renders the sort button', () => {
     const { getByTestId } = renderComponent();
 
-    expect(
-      getByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
-    ).toBeDefined();
+    expect(getByTestId(WalletViewSelectorsIDs.SORT_BUTTON)).toBeOnTheScreen();
   });
 });

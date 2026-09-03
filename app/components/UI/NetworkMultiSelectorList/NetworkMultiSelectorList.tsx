@@ -87,8 +87,10 @@ const NetworkMultiSelectList = ({
   // Use the appropriate chain ID based on whether EVM is selected
   // For EVM: convert hex chain ID to CAIP format (e.g., "0x1" -> "eip155:1")
   // For non-EVM: use the already CAIP-formatted chain ID (e.g., "solana:mainnet")
-  // Fallback to EVM chain ID if non-EVM chain ID is undefined (prevents edit/delete
-  // options from incorrectly appearing on all networks)
+  // Fallback to EVM chain ID if non-EVM chain ID is undefined (prevents the
+  // active-network flag from incorrectly appearing on all networks). This is
+  // the true active network, not the local list filter - used only to tell
+  // NetworkManager it needs to switch away before deleting this network.
   const selectedChainIdCaip = isEvmSelected
     ? formatChainIdToCaip(evmChainId)
     : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
@@ -222,8 +224,8 @@ const NetworkMultiSelectList = ({
         openModal({
           isVisible: true,
           caipChainId: network.caipChainId,
-          displayEdit:
-            selectedChainIdCaip !== network.caipChainId && !network.isMainChain,
+          displayEdit: !network.isMainChain,
+          isActiveNetwork: selectedChainIdCaip === network.caipChainId,
           networkTypeOrRpcUrl: network.networkTypeOrRpcUrl || '',
           isReadOnly: false,
         });

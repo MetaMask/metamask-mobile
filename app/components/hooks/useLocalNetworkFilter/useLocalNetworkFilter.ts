@@ -6,7 +6,11 @@ import {
   type CaipChainId,
 } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
-import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
+import { useSelector } from 'react-redux';
+import {
+  selectEnabledNetworks,
+  selectEVMEnabledNetworks,
+} from '../../../selectors/networkEnablementController';
 
 /**
  * Local, Redux-free network filter for a list (Tokens, NFTs, DeFi). `null`
@@ -17,39 +21,39 @@ import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnableme
 export const useLocalNetworkFilter = () => useState<CaipChainId[] | null>(null);
 
 /**
- * Narrows a local network filter (or "all popular networks" when `null`)
- * down to Hex EVM chain IDs, for consumers that are EVM-only (e.g.
+ * Narrows a local network filter (or all currently-enabled EVM networks when
+ * `null`) down to Hex EVM chain IDs, for consumers that are EVM-only (e.g.
  * NftDetectionController, DeFi positions).
  */
 export const useEvmChainIdsForLocalFilter = (
   networkFilter: CaipChainId[] | null,
 ): Hex[] => {
-  const { popularEvmNetworks } = useNetworkEnablement();
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
   return useMemo(() => {
     if (!networkFilter) {
-      return popularEvmNetworks;
+      return enabledEvmNetworks;
     }
     return networkFilter
       .filter(
         (id) => parseCaipChainId(id).namespace === KnownCaipNamespace.Eip155,
       )
       .map((id) => toHex(parseCaipChainId(id).reference));
-  }, [networkFilter, popularEvmNetworks]);
+  }, [networkFilter, enabledEvmNetworks]);
 };
 
 /**
- * Resolves a local network filter (or "all popular networks" when `null`)
- * down to the CAIP chain IDs to query, for multichain-aware consumers (e.g.
- * the tokens and NFTs lists) that aren't EVM-only.
+ * Resolves a local network filter (or all currently-enabled networks when
+ * `null`) down to the CAIP chain IDs to query, for multichain-aware
+ * consumers (e.g. the tokens and NFTs lists) that aren't EVM-only.
  */
 export const useChainIdsForLocalFilter = (
   networkFilter: CaipChainId[] | null,
 ): CaipChainId[] => {
-  const { popularNetworks } = useNetworkEnablement();
+  const enabledNetworks = useSelector(selectEnabledNetworks);
 
   return useMemo(
-    () => networkFilter ?? popularNetworks,
-    [networkFilter, popularNetworks],
+    () => networkFilter ?? enabledNetworks,
+    [networkFilter, enabledNetworks],
   );
 };

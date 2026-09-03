@@ -25,11 +25,12 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 
 let mockPopularEvmNetworks: string[] = ['0x1'];
 jest.mock(
-  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  '../../../../hooks/useLocalNetworkFilter/useLocalNetworkFilter',
   () => ({
-    useNetworkEnablement: () => ({
-      popularEvmNetworks: mockPopularEvmNetworks,
-    }),
+    ...jest.requireActual(
+      '../../../../hooks/useLocalNetworkFilter/useLocalNetworkFilter',
+    ),
+    useEvmChainIdsForLocalFilter: () => mockPopularEvmNetworks,
   }),
 );
 

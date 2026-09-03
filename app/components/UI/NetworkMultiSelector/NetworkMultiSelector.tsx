@@ -1,6 +1,8 @@
 // third party dependencies
 import React, { useCallback, useState, useMemo, memo } from 'react';
-import { CaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +21,7 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useSelector } from 'react-redux';
 import { getAdditionalNetworksList } from '../../../selectors/configRegistry';
 
@@ -94,15 +97,41 @@ const NetworkMultiSelector = ({
   const displayAreAllNetworksSelected = localSelectedChainIds == null;
 
   const { addPopularNetwork } = useAddPopularNetwork();
+  const { enableAllPopularNetworks } = useNetworkEnablement();
 
   /**
    * Handler for adding a popular network directly without confirmation.
+   * Also locally selects the newly added network so the Tokens/NFT/DeFi
+   * lists filter to it right away, matching the previous Redux-driven
+   * auto-select behavior.
    */
   const handleAddPopularNetwork = useCallback(
     async (networkConfiguration: ExtendedNetwork) => {
       await addPopularNetwork(networkConfiguration);
+      // addPopularNetwork exclusively enables just this one network in
+      // NetworkEnablementController (disabling every other network as a
+      // side effect). That's fine for the active-network switch it also
+      // does, but it corrupts the Redux "enabled networks" set that
+      // useChainIdsForLocalFilter falls back to when the local filter is
+      // null ("all popular networks") - without this, switching back to
+      // "all popular networks" would show only the just-added network's
+      // assets. Restore the invariant here.
+      enableAllPopularNetworks();
+      const hexChainId = toHex(networkConfiguration.chainId) as Hex;
+      onLocalNetworkSelect([formatChainIdToCaip(hexChainId)]);
+      // Selecting an already-added network (onSelectNetwork) dismisses the
+      // modal immediately; do the same here. Otherwise the modal keeps
+      // showing localSelectedChainIds from the (now-stale) navigation
+      // params it was opened with, so the newly added network's row
+      // wouldn't appear checked until the modal is reopened.
+      dismissModal?.();
     },
-    [addPopularNetwork],
+    [
+      addPopularNetwork,
+      enableAllPopularNetworks,
+      onLocalNetworkSelect,
+      dismissModal,
+    ],
   );
 
   const showNetworkModal = useCallback(

@@ -77,6 +77,7 @@ jest.mock('@metamask/controller-utils', () => ({
 
 // Mock external dependencies
 const mockOnLocalNetworkSelect = jest.fn();
+let mockLocalSelectedChainIds: string[] | null = null;
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -89,7 +90,9 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       params: {
         onLocalNetworkSelect: mockOnLocalNetworkSelect,
-        localSelectedChainIds: null,
+        get localSelectedChainIds() {
+          return mockLocalSelectedChainIds;
+        },
       },
     }),
   };
@@ -230,11 +233,7 @@ jest.mock('../../../../locales/i18n', () => ({
 
 // Mock popular networks to prevent import chain issues
 jest.mock('../../../constants/popular-networks', () => ({
-  POPULAR_NETWORK_CHAIN_IDS: {
-    ETHEREUM_MAINNET: '0x1',
-    POLYGON_MAINNET: '0x89',
-    ARBITRUM_MAINNET: '0xa4b1',
-  },
+  POPULAR_NETWORK_CHAIN_IDS: new Set(['0x1', '0x89', '0xa4b1']),
 }));
 
 // Mock custom networks
@@ -248,6 +247,9 @@ jest.mock('../../../core/Engine', () => ({
     context: {
       NetworkController: {
         removeNetwork: jest.fn(),
+      },
+      MultichainNetworkController: {
+        setActiveNetwork: jest.fn(),
       },
     },
   },
@@ -316,6 +318,7 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
     openModal: (args: {
       caipChainId: string;
       displayEdit: boolean;
+      isActiveNetwork: boolean;
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
@@ -330,12 +333,27 @@ jest.mock('../NetworkMultiSelector/NetworkMultiSelector', () => {
           openModal({
             caipChainId: 'eip155:1',
             displayEdit: true,
+            isActiveNetwork: false,
             networkTypeOrRpcUrl: 'https://mainnet.infura.io',
             isReadOnly: false,
           })
         }
       >
         <RNText>Open Modal</RNText>
+      </RNTouchableOpacity>
+      <RNTouchableOpacity
+        testID="open-modal-button-active-network"
+        onPress={() =>
+          openModal({
+            caipChainId: 'eip155:1',
+            displayEdit: true,
+            isActiveNetwork: true,
+            networkTypeOrRpcUrl: 'https://mainnet.infura.io',
+            isReadOnly: false,
+          })
+        }
+      >
+        <RNText>Open Modal (active network)</RNText>
       </RNTouchableOpacity>
       {openRpcModal && (
         <RNTouchableOpacity
@@ -364,6 +382,7 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
     openModal: (args: {
       caipChainId: string;
       displayEdit: boolean;
+      isActiveNetwork: boolean;
       networkTypeOrRpcUrl: string;
       isReadOnly: boolean;
     }) => void;
@@ -378,6 +397,7 @@ jest.mock('../CustomNetworkSelector/CustomNetworkSelector', () => {
           openModal({
             caipChainId: 'eip155:137',
             displayEdit: false,
+            isActiveNetwork: false,
             networkTypeOrRpcUrl: 'https://polygon-rpc.com',
             isReadOnly: false,
           })
@@ -712,6 +732,7 @@ describe('NetworkManager Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocalSelectedChainIds = null;
 
     // Reset all mocks to their default implementations
     (useNetworksByNamespace as jest.Mock).mockImplementation(() => ({
@@ -764,6 +785,39 @@ describe('NetworkManager Component', () => {
       const tabView = getByTestId('scrollable-tab-view');
 
       expect(tabView.props.initialPage).toBe(0); // Popular tab
+    });
+
+    it('sets initial tab to popular when locally filtered to a popular network, even if Redux enablement disagrees', () => {
+      mockLocalSelectedChainIds = ['eip155:1'];
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {},
+      });
+
+      const { getByTestId } = renderComponent();
+      const tabView = getByTestId('scrollable-tab-view');
+
+      expect(tabView.props.initialPage).toBe(0); // Popular tab
+    });
+
+    it('sets initial tab to custom when locally filtered to a custom network, even if Redux enablement disagrees', () => {
+      mockLocalSelectedChainIds = ['eip155:31337'];
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
+      });
+
+      const { getByTestId } = renderComponent();
+      const tabView = getByTestId('scrollable-tab-view');
+
+      expect(tabView.props.initialPage).toBe(1); // Custom tab
     });
 
     it('sets initial tab to custom networks when no networks are enabled', () => {
@@ -955,6 +1009,28 @@ describe('NetworkManager Component', () => {
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         removedChainId: '0x1',
       });
+    });
+
+    it('switches the active network to mainnet before removing it when deleting the active network', async () => {
+      const { getByTestId } = renderComponent();
+
+      const openModalButton = getByTestId('open-modal-button-active-network');
+      fireEvent.press(openModalButton);
+
+      await waitFor(() => {
+        const deleteButton = getByTestId('account-action-app_settings.delete');
+        fireEvent.press(deleteButton);
+      });
+
+      const confirmButton = getByTestId('footer-button-app_settings.delete');
+      fireEvent.press(confirmButton);
+
+      await waitFor(() => {
+        expect(
+          Engine.context.MultichainNetworkController.setActiveNetwork,
+        ).toHaveBeenCalledWith('mainnet-1');
+      });
+      expect(mockRemoveNetwork).toHaveBeenCalledWith('0x1');
     });
   });
 
@@ -1266,6 +1342,92 @@ describe('NetworkManager Component', () => {
       // (we only allow deleting non-active networks, so no need to switch)
       expect(mockDisableNetwork).toHaveBeenCalledWith('eip155:1');
       expect(mockEnableNetwork).not.toHaveBeenCalled();
+    });
+
+    it('resets the local network filter when the deleted network was the active filter', async () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+        },
+      });
+      mockLocalSelectedChainIds = ['eip155:1'];
+
+      const { getByTestId } = renderComponent();
+
+      const openModalButton = getByTestId('open-modal-button');
+      fireEvent.press(openModalButton);
+
+      await waitFor(() => {
+        const deleteButton = getByTestId('account-action-app_settings.delete');
+        fireEvent.press(deleteButton);
+      });
+
+      const confirmButton = getByTestId('footer-button-app_settings.delete');
+      fireEvent.press(confirmButton);
+
+      expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith(null);
+    });
+
+    it('does not touch the local network filter when the deleted network is not the active filter', async () => {
+      mockUseNetworkEnablement.mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
+        namespace: 'eip155',
+        enabledNetworksForCurrentNamespace: {},
+        networkEnablementController: {} as never,
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
+        enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {
+          '0x1': true,
+          '0x89': true,
+        },
+      });
+      mockLocalSelectedChainIds = ['eip155:137'];
+
+      const { getByTestId } = renderComponent();
+
+      const openModalButton = getByTestId('open-modal-button');
+      fireEvent.press(openModalButton);
+
+      await waitFor(() => {
+        const deleteButton = getByTestId('account-action-app_settings.delete');
+        fireEvent.press(deleteButton);
+      });
+
+      const confirmButton = getByTestId('footer-button-app_settings.delete');
+      fireEvent.press(confirmButton);
+
+      expect(mockOnLocalNetworkSelect).not.toHaveBeenCalled();
     });
   });
 });

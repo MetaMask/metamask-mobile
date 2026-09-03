@@ -1,18 +1,18 @@
 import { act, renderHook } from '@testing-library/react-native';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
 import {
   useLocalNetworkFilter,
   useEvmChainIdsForLocalFilter,
   useChainIdsForLocalFilter,
 } from './useLocalNetworkFilter';
-import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 
-jest.mock('../useNetworkEnablement/useNetworkEnablement', () => ({
-  useNetworkEnablement: jest.fn(),
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
-const mockUseNetworkEnablement = useNetworkEnablement as jest.MockedFunction<
-  typeof useNetworkEnablement
+const mockUseSelector = useSelector as jest.MockedFunction<
+  typeof useSelector
 >;
 
 beforeEach(() => {
@@ -38,18 +38,28 @@ describe('useLocalNetworkFilter', () => {
 });
 
 describe('useEvmChainIdsForLocalFilter', () => {
-  const popularEvmNetworks: Hex[] = ['0x1', '0x89'];
+  const fakeState = {
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: { '0x1': true, '0x89': true },
+          },
+        },
+      },
+    },
+  };
 
   beforeEach(() => {
-    mockUseNetworkEnablement.mockReturnValue({
-      popularEvmNetworks,
-    } as unknown as ReturnType<typeof useNetworkEnablement>);
+    mockUseSelector.mockImplementation((selector) =>
+      (selector as (state: typeof fakeState) => unknown)(fakeState),
+    );
   });
 
-  it('falls back to popularEvmNetworks when the filter is null', () => {
+  it('falls back to all enabled EVM networks when the filter is null', () => {
     const { result } = renderHook(() => useEvmChainIdsForLocalFilter(null));
 
-    expect(result.current).toBe(popularEvmNetworks);
+    expect(result.current).toEqual(['0x1', '0x89']);
   });
 
   it('narrows a CAIP filter down to Hex EVM chain IDs', () => {
@@ -75,22 +85,35 @@ describe('useEvmChainIdsForLocalFilter', () => {
 });
 
 describe('useChainIdsForLocalFilter', () => {
-  const popularNetworks: CaipChainId[] = [
-    'eip155:1',
-    'eip155:137',
-    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  ];
+  const fakeState = {
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: {
+            eip155: { '0x1': true, '0x89': true },
+            solana: {
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+            },
+          },
+        },
+      },
+    },
+  };
 
   beforeEach(() => {
-    mockUseNetworkEnablement.mockReturnValue({
-      popularNetworks,
-    } as unknown as ReturnType<typeof useNetworkEnablement>);
+    mockUseSelector.mockImplementation((selector) =>
+      (selector as (state: typeof fakeState) => unknown)(fakeState),
+    );
   });
 
-  it('falls back to popularNetworks when the filter is null', () => {
+  it('falls back to all enabled networks when the filter is null', () => {
     const { result } = renderHook(() => useChainIdsForLocalFilter(null));
 
-    expect(result.current).toBe(popularNetworks);
+    expect(result.current).toEqual([
+      'eip155:1',
+      'eip155:137',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    ]);
   });
 
   it('returns the filter unchanged when set', () => {
