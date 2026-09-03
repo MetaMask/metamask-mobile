@@ -200,7 +200,10 @@ const SCALE_ERROR_I18N_KEYS: Record<ScaleOrderValidationCode, string> = {
   calculation_error: 'perps.order.validation.error',
 };
 
-const getScaleValidationMessage = (code: ScaleOrderValidationCode): string =>
+const getScaleValidationMessage = (
+  code: ScaleOrderValidationCode,
+  minOrderValue: number,
+): string =>
   strings(
     SCALE_ERROR_I18N_KEYS[code],
     code === 'invalid_order_count'
@@ -208,7 +211,9 @@ const getScaleValidationMessage = (code: ScaleOrderValidationCode): string =>
           minOrderCount: SCALE_ORDER_COUNT.min,
           maxOrderCount: SCALE_ORDER_COUNT.max,
         }
-      : undefined,
+      : code === 'minimum_lot'
+        ? { minOrderValue }
+        : undefined,
   );
 
 const coerceScaleSkew = (value: string): string => {
@@ -1800,9 +1805,17 @@ export const usePerpsProOrderForm = ({
     return {
       id: 'scale',
       variant: 'banner',
-      message: getScaleValidationMessage(scaleLadderResult.code),
+      message: getScaleValidationMessage(
+        scaleLadderResult.code,
+        scaleMinimumOrderAmount,
+      ),
     };
-  }, [hasScaleValidationInteraction, isScaleOrder, scaleLadderResult]);
+  }, [
+    hasScaleValidationInteraction,
+    isScaleOrder,
+    scaleLadderResult,
+    scaleMinimumOrderAmount,
+  ]);
 
   useEffect(() => {
     if (
@@ -2369,7 +2382,10 @@ export const usePerpsProOrderForm = ({
         if (!latestScale.scaleLadderResult.success) {
           showToast(
             PerpsToastOptions.formValidation.orderForm.validationError(
-              getScaleValidationMessage(latestScale.scaleLadderResult.code),
+              getScaleValidationMessage(
+                latestScale.scaleLadderResult.code,
+                scaleMinimumOrderAmount,
+              ),
             ),
           );
           return;

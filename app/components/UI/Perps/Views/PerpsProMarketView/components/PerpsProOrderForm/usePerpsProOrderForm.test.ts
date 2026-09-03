@@ -5,6 +5,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
+  TRADING_DEFAULTS,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
   type PerpsMarketData,
@@ -4355,6 +4356,7 @@ describe('usePerpsProOrderForm', () => {
             id: 'scale',
             message: strings(
               'perps.pro_order_form.scale.validation.minimum_lot',
+              { minOrderValue: TRADING_DEFAULTS.amount.mainnet },
             ),
           }),
         ]),
@@ -4882,7 +4884,9 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
-        strings('perps.pro_order_form.scale.validation.minimum_lot'),
+        strings('perps.pro_order_form.scale.validation.minimum_lot', {
+          minOrderValue: TRADING_DEFAULTS.amount.mainnet,
+        }),
       );
     });
 
