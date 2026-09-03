@@ -86,6 +86,10 @@ const ProfilerManager: React.FC<ProfilerManagerProps> = ({
       const timestamp = Date.now();
       const newSessionId = `${appId}_v${appVersion}_${timestamp}`;
 
+      // Yield to the event loop before the synchronous startProfiling() call
+      // so React can commit any pending state updates first. startProfiling()
+      // blocks the JS thread on cold start, delaying the recording-ready signal.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
       await startProfiling();
       setIsRecording(true);
       setSessionId(newSessionId);

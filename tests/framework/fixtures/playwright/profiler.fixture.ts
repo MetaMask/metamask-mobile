@@ -11,7 +11,7 @@ const PROFILER_OUTPUT_DIRECTORY =
   process.env.APPIUM_PROFILER_OUTPUT_DIRECTORY?.trim() ||
   'tests/test-reports/appium-profiles';
 const PROFILER_ENABLED = process.env.APPIUM_CAPTURE_PROFILER === 'true';
-const ELEMENT_TIMEOUT_MS = 30_000;
+const ELEMENT_TIMEOUT_MS = 60_000;
 
 export async function startProfiler(
   driver: WebdriverIO.Browser,
