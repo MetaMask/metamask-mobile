@@ -1569,16 +1569,24 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           delete orderWithoutTPSL.takeProfitPrice;
           delete orderWithoutTPSL.stopLossPrice;
 
-          const orderResult = await executeOrder(orderWithoutTPSL);
+          const orderResult = await executeOrder(orderWithoutTPSL, {
+            waitForPosition: true,
+          });
           if (!orderResult?.success) {
             return;
           }
 
-          const tpslResult = await updatePositionTPSL({
-            symbol: orderForm.asset,
-            takeProfitPrice: orderForm.takeProfitPrice,
-            stopLossPrice: orderForm.stopLossPrice,
-          });
+          const tpslResult = orderResult.position
+            ? await updatePositionTPSL({
+                symbol: orderForm.asset,
+                takeProfitPrice: orderForm.takeProfitPrice,
+                stopLossPrice: orderForm.stopLossPrice,
+                position: orderResult.position,
+              })
+            : {
+                success: false,
+                error: strings('perps.errors.position_not_found'),
+              };
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
           if (!tpslResult.success) {

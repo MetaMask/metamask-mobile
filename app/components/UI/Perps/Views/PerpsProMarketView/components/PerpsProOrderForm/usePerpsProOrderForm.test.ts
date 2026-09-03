@@ -10,6 +10,7 @@ import {
   formatHyperLiquidPrice,
   type PerpsMarketData,
   type PerpsProviderType,
+  type Position,
   type PositionModifyPreviewResult,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
@@ -3498,7 +3499,15 @@ describe('usePerpsProOrderForm', () => {
   describe('TP/SL handling', () => {
     it('places the order without TP/SL then updates position TP/SL when flagged', async () => {
       // Arrange: new market position with TP set -> handled separately
+      const renderedPosition = {
+        symbol: 'BTC',
+        size: '1',
+      } as Position;
       mockOrderForm.takeProfitPrice = '95000';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        position: renderedPosition,
+      });
       const { result } = renderProForm();
 
       // Act
@@ -3509,16 +3518,28 @@ describe('usePerpsProOrderForm', () => {
       // Assert
       const params = mockExecuteOrder.mock.calls[0][0];
       expect(params.takeProfitPrice).toBeUndefined();
+      expect(mockExecuteOrder).toHaveBeenCalledWith(params, {
+        waitForPosition: true,
+      });
       expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
         symbol: 'BTC',
         takeProfitPrice: '95000',
         stopLossPrice: undefined,
+        position: renderedPosition,
       });
     });
 
     it('shows an error toast when the separate TP/SL update fails', async () => {
       // Arrange
+      const renderedPosition = {
+        symbol: 'BTC',
+        size: '1',
+      } as Position;
       mockOrderForm.takeProfitPrice = '95000';
+      mockExecuteOrder.mockResolvedValueOnce({
+        success: true,
+        position: renderedPosition,
+      });
       mockUpdatePositionTPSL.mockResolvedValue({
         success: false,
         error: 'nope',

@@ -1046,6 +1046,52 @@ describe('usePerpsOrderExecution', () => {
       });
     });
 
+    it('returns a late stream position when the caller requires it', async () => {
+      jest.useFakeTimers();
+      try {
+        const onSuccess = jest.fn();
+        mockPlaceOrder.mockResolvedValue({
+          success: true,
+          orderId: 'order123',
+        });
+
+        const { result } = renderHook(() =>
+          usePerpsOrderExecution({ onSuccess }),
+        );
+
+        let placement: ReturnType<typeof result.current.placeOrder> | undefined;
+        await act(async () => {
+          placement = result.current.placeOrder(mockOrderParams, {
+            waitForPosition: true,
+          });
+          await Promise.resolve();
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(PERPS_CUF_STREAM_CONFIRM_RACE_MS);
+          await Promise.resolve();
+        });
+        expect(onSuccess).toHaveBeenCalledWith();
+
+        mockGetPositionsSnapshot.mockReturnValue([mockPosition]);
+        act(() => {
+          handlePerpsCufPositionsDelivered([mockPosition]);
+        });
+
+        let placementResult: Awaited<typeof placement>;
+        await act(async () => {
+          placementResult = await placement;
+        });
+        expect(placementResult).toEqual({
+          success: true,
+          orderId: 'order123',
+          position: mockPosition,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
     it('forwards trackingData to controller on partial fill without client trade analytics', async () => {
       const onSuccess = jest.fn();
       const paramsWithTracking: OrderParams = {

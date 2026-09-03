@@ -71,6 +71,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type Position,
 } from '@metamask/perps-controller';
 import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
@@ -1413,6 +1414,68 @@ describe('PerpsOrderView', () => {
       expect(mockShowToast).toHaveBeenCalled();
     });
     expect(mockSubmitted).toHaveBeenCalled();
+  });
+
+  it('waits for the live position before attaching TP/SL to a new market position', async () => {
+    const renderedPosition = {
+      symbol: 'ETH',
+      size: '0.0037',
+    } as Position;
+    const mockExecuteOrder = jest.fn().mockResolvedValue({
+      success: true,
+      position: renderedPosition,
+    });
+    const mockUpdatePositionTPSL = jest
+      .fn()
+      .mockResolvedValue({ success: true });
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        asset: 'ETH',
+        amount: '11',
+        leverage: 3,
+        direction: 'long',
+        type: 'market',
+        limitPrice: undefined,
+        takeProfitPrice: '3500',
+        stopLossPrice: undefined,
+        balancePercent: 10,
+      },
+      handleMinAmount: jest.fn(),
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder: mockExecuteOrder,
+      isPlacing: false,
+    });
+    (usePerpsTrading as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsTrading,
+      updatePositionTPSL: mockUpdatePositionTPSL,
+    });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    const submittedOrder = mockExecuteOrder.mock.calls[0][0];
+    expect(submittedOrder.takeProfitPrice).toBeUndefined();
+    expect(submittedOrder.stopLossPrice).toBeUndefined();
+    expect(mockExecuteOrder).toHaveBeenCalledWith(submittedOrder, {
+      waitForPosition: true,
+    });
+    expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
+      symbol: 'ETH',
+      takeProfitPrice: '3500',
+      stopLossPrice: undefined,
+      position: renderedPosition,
+    });
   });
 
   it('includes discovery attribution from route source_section in order trackingData', async () => {

@@ -43,8 +43,23 @@ interface UsePerpsOrderExecutionParams {
   onError?: (error: string) => void;
 }
 
+interface PlaceOrderOptions {
+  /**
+   * Continue waiting for the live position after the confirmation-toast race.
+   * Use when a follow-up operation requires the newly rendered position.
+   */
+  waitForPosition?: boolean;
+}
+
+interface PerpsOrderExecutionResult extends OrderResult {
+  position?: Position;
+}
+
 interface UsePerpsOrderExecutionReturn {
-  placeOrder: (params: OrderParams) => Promise<OrderResult | undefined>;
+  placeOrder: (
+    params: OrderParams,
+    options?: PlaceOrderOptions,
+  ) => Promise<PerpsOrderExecutionResult | undefined>;
   isPlacing: boolean;
   lastResult?: OrderResult;
   error?: string;
@@ -54,7 +69,9 @@ type PerpsOrderTrackingValue = string | number | boolean;
 type PerpsOrderPositionSnapshot = Pick<Position, 'size'>;
 
 interface ControllerPlacementHandlers {
-  onSuccess: (result: OrderResult) => void | Promise<void>;
+  onSuccess: (
+    result: OrderResult,
+  ) => Position | undefined | Promise<Position | undefined>;
   onFailure?: () => void;
   onException?: () => void;
   onSettled?: () => void;
@@ -104,7 +121,7 @@ export function usePerpsOrderExecution(
     async (
       orderParams: OrderParams,
       handlers: ControllerPlacementHandlers,
-    ): Promise<OrderResult | undefined> => {
+    ): Promise<PerpsOrderExecutionResult | undefined> => {
       let controllerSettled = false;
       const markControllerSettled = () => {
         if (!controllerSettled) {
@@ -134,15 +151,16 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
-          await handlers.onSuccess(result);
-        } else {
-          handlers.onFailure?.();
-          const errorMessage =
-            result.error || strings('perps.order.error.unknown');
-          setError(errorMessage);
-          DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
-          onError?.(errorMessage);
+          const position = await handlers.onSuccess(result);
+          return position ? { ...result, position } : result;
         }
+
+        handlers.onFailure?.();
+        const errorMessage =
+          result.error || strings('perps.order.error.unknown');
+        setError(errorMessage);
+        DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
+        onError?.(errorMessage);
 
         return result;
       } catch (err) {
@@ -196,7 +214,10 @@ export function usePerpsOrderExecution(
   );
 
   const placeOrder = useCallback(
-    async (orderParams: OrderParams): Promise<OrderResult | undefined> => {
+    async (
+      orderParams: OrderParams,
+      options: PlaceOrderOptions = {},
+    ): Promise<PerpsOrderExecutionResult | undefined> => {
       // Market orders measure submit -> position rendered (toast coupled to the
       // same stream render) via PerpsPlaceOrderToPositionRendered. Limit and
       // trigger orders measure submit -> resting order rendered in the orders
@@ -209,7 +230,10 @@ export function usePerpsOrderExecution(
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.
-          onSuccess: () => onSuccess?.(),
+          onSuccess: () => {
+            onSuccess?.();
+            return undefined;
+          },
         });
       }
 
@@ -379,51 +403,65 @@ export function usePerpsOrderExecution(
                 );
               }
             }
-          } else {
-            // Wait briefly for the stream to render the new/changed position so
-            // the confirmation toast fires together with it.
-            const rendered = await waitForPerpsPlaceOrderPositionRendered(
-              PERPS_CUF_STREAM_CONFIRM_RACE_MS,
-              cufOpId,
+            return undefined;
+          }
+
+          // Wait briefly for the stream to render the new/changed position so
+          // the confirmation toast fires together with it.
+          const rendered = await waitForPerpsPlaceOrderPositionRendered(
+            PERPS_CUF_STREAM_CONFIRM_RACE_MS,
+            cufOpId,
+          );
+          const toastShownAt = Date.now();
+          if (rendered) {
+            endCufRendered(rendered.renderedAt, toastShownAt);
+            const position = stream.positions
+              .getSnapshot()
+              ?.find((p) => p.symbol === orderParams.symbol);
+            DevLogger.log(
+              'usePerpsOrderExecution: Position rendered by stream',
+              rendered.position,
             );
-            const toastShownAt = Date.now();
-            if (rendered) {
-              endCufRendered(rendered.renderedAt, toastShownAt);
-              const position = stream.positions
+            onSuccess?.(position);
+            return position;
+          }
+
+          // Stream quiet: unblock the toast now, end the span when the
+          // position finally renders (or record the miss on timeout).
+          DevLogger.log(
+            'usePerpsOrderExecution: Position not rendered yet, toasting without it',
+          );
+          onSuccess?.();
+
+          const waitForLatePosition = waitForPerpsPlaceOrderPositionRendered(
+            PERPS_CUF_STREAM_TIMEOUT_MS,
+            cufOpId,
+          ).then((late) => {
+            // A newer order owns the span now; this continuation is stale.
+            if (!isPerpsPlaceOrderCufCurrent(cufOpId)) {
+              return undefined;
+            }
+            if (late) {
+              endCufRendered(late.renderedAt, toastShownAt);
+              return stream.positions
                 .getSnapshot()
                 ?.find((p) => p.symbol === orderParams.symbol);
-              DevLogger.log(
-                'usePerpsOrderExecution: Position rendered by stream',
-                rendered.position,
-              );
-              onSuccess?.(position);
-            } else {
-              // Stream quiet: unblock the toast now, end the span when the
-              // position finally renders (or record the miss on timeout).
-              DevLogger.log(
-                'usePerpsOrderExecution: Position not rendered yet, toasting without it',
-              );
-              onSuccess?.();
-              // Deliberately not awaited: the caller must not block on the span.
-              waitForPerpsPlaceOrderPositionRendered(
-                PERPS_CUF_STREAM_TIMEOUT_MS,
-                cufOpId,
-              ).then((late) => {
-                // A newer order owns the span now; this continuation is stale.
-                if (!isPerpsPlaceOrderCufCurrent(cufOpId)) {
-                  return;
-                }
-                if (late) {
-                  endCufRendered(late.renderedAt, toastShownAt);
-                } else {
-                  endCuf({
-                    [PERPS_CUF_TAG.SUCCESS]: false,
-                    [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
-                  });
-                }
-              });
             }
+            endCuf({
+              [PERPS_CUF_TAG.SUCCESS]: false,
+              [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.STREAM_TIMEOUT,
+            });
+            return undefined;
+          });
+
+          if (options.waitForPosition) {
+            return waitForLatePosition;
           }
+
+          // Deliberately not awaited: ordinary order callers must not block on
+          // the stream-confirmation span.
+          waitForLatePosition.catch(() => undefined);
+          return undefined;
         },
         onFailure: () => {
           endCuf({

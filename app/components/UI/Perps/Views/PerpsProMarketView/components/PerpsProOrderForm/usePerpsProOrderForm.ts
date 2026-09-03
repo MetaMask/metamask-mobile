@@ -2692,16 +2692,24 @@ export const usePerpsProOrderForm = ({
         delete orderWithoutTPSL.takeProfitPrice;
         delete orderWithoutTPSL.stopLossPrice;
 
-        const orderResult = await executeOrder(orderWithoutTPSL);
+        const orderResult = await executeOrder(orderWithoutTPSL, {
+          waitForPosition: true,
+        });
         if (!orderResult?.success) {
           return;
         }
 
-        const tpslResult = await updatePositionTPSL({
-          symbol: orderForm.asset,
-          takeProfitPrice: orderForm.takeProfitPrice,
-          stopLossPrice: orderForm.stopLossPrice,
-        });
+        const tpslResult = orderResult.position
+          ? await updatePositionTPSL({
+              symbol: orderForm.asset,
+              takeProfitPrice: orderForm.takeProfitPrice,
+              stopLossPrice: orderForm.stopLossPrice,
+              position: orderResult.position,
+            })
+          : {
+              success: false,
+              error: strings('perps.errors.position_not_found'),
+            };
 
         if (!tpslResult.success) {
           const errorMessage =
