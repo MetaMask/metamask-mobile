@@ -3,7 +3,6 @@ import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomShee
 import AddAccountBottomSheet from '../page-objects/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../page-objects/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../page-objects/importAccount/SuccessImportAccountView';
-import WalletView from '../page-objects/wallet/WalletView';
 import Assertions from '../framework/Assertions';
 import SRPListItemComponent from '../page-objects/wallet/MultiSrp/Common/SRPListItemComponent';
 import SrpQuizModal from '../page-objects/Settings/SecurityAndPrivacy/SrpQuizModal';
@@ -20,6 +19,7 @@ import Utilities from '../framework/Utilities';
 import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
 import {
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -33,8 +33,7 @@ export const openImportSrpFromAccountList = async (): Promise<void> => {
 };
 
 export const goToImportSrp = async () => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openImportSrpFromAccountList();
 };
 
@@ -86,8 +85,7 @@ export const openAccountActionsFromAccountList = async (
 };
 
 export const goToAccountActions = async (accountIndex: number) => {
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
+  await ensureAccountListOpenPlaywright();
   await openAccountActionsFromAccountList(accountIndex);
 };
 

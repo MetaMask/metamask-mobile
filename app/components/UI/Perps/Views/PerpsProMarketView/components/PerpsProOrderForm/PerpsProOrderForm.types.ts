@@ -123,6 +123,8 @@ export interface PerpsProOrderFormProps {
   onLeveragePress?: () => void;
   orderType: OrderType;
   scaleOrder: PerpsProScaleOrderModel;
+  /** Live controller count used by the Chase limit guard. */
+  activeChaseCount?: number;
   scaleKeyboardScroll?: PerpsProScaleKeyboardScroll;
   onOrderTypeButtonPress: () => void;
   limitPrice: string;
@@ -137,6 +139,11 @@ export interface PerpsProOrderFormProps {
   /** Fires on every limit price field tap, including while already focused. */
   onLimitPriceFieldPress?: () => void;
   onUseMidPricePress?: () => void;
+  chaseMaxDistance?: string;
+  onChaseMaxDistanceChange?: (value: string) => void;
+  chaseMaxDistanceUnit?: 'usd' | 'percent';
+  onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
+  chaseReferencePrice?: string;
   triggerPrice?: string;
   onTriggerPriceChange?: (value: string) => void;
   onTriggerPriceFocus?: () => void;
@@ -170,5 +177,5 @@ export interface PerpsProOrderFormProps {
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;
   isPlaceOrderLoading?: boolean;
-  onPlaceOrderPress: () => void;
+  onPlaceOrderPress: () => Promise<void>;
 }

@@ -9,6 +9,7 @@ import {
   formatPercentage,
   formatLargeNumber,
   formatVolume,
+  formatCoinVolume,
   formatPositionSize,
   formatLeverage,
   parseCurrencyString,
@@ -802,6 +803,32 @@ describe('formatUtils', () => {
       expect(formatVolume(1000000000000)).toBe('$1.00T');
       expect(formatVolume(2500000000000)).toBe('$2.50T');
       expect(formatVolume(2500000000000, 0)).toBe('$3T');
+    });
+  });
+
+  describe('formatCoinVolume', () => {
+    it('formats candle volume without a USD prefix', () => {
+      const volume = 0.33;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('0.33');
+    });
+
+    it('keeps magnitude suffixes without a dollar sign', () => {
+      const volume = 123456;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('123K');
+    });
+
+    it('keeps the minus sign in front of negative coin volume', () => {
+      const volume = -1000000;
+
+      const result = formatCoinVolume(volume);
+
+      expect(result).toBe('-1.00M');
     });
   });
 
