@@ -130,7 +130,17 @@ describe('MoneyAccountSweepstakesDrawScheduleSection', () => {
     }));
     // Mirrors the real hook: no campaign id means no fetch and no pool.
     mockGetPrizePool.mockImplementation((campaignId: string | undefined) => ({
-      prizePool: campaignId ? { unlockedPoolUsd: 4125 } : null,
+      prizePool: campaignId
+        ? {
+            totalVolumeUsd: 0,
+            unlockedPoolUsd: 4125,
+            thresholdsUsd: [],
+            poolScheduleUsd: [],
+            numberOfWinners: 2,
+            minPrizeUsd: 0,
+            maxPrizeUsd: 4125,
+          }
+        : null,
       isLoading: false,
       hasError: false,
       refetch: jest.fn(),

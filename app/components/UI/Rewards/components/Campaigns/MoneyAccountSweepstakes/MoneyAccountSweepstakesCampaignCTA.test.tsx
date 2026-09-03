@@ -117,6 +117,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.campaign.opt_in_cta': 'Opt in',
       'rewards.campaign.geo_loading': 'Checking eligibility',
+      'rewards.campaign.geo_locked_cta': 'Not available in your region',
       'rewards.campaign.geo_locked_toast_title': 'Not available in your region',
       'rewards.campaign.geo_locked_toast_description':
         "This campaign isn't available where you are. Check back later for new campaigns.",
@@ -193,7 +194,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
       />,
     );
 
-    expect(getByText('Join the Sweepstakes')).toBeOnTheScreen();
+    expect(getByText('Not available in your region')).toBeOnTheScreen();
     fireEvent.press(getByTestId(CAMPAIGN_CTA_TEST_IDS.CTA_BUTTON));
 
     expect(mockEntriesClosed).toHaveBeenCalledWith(
