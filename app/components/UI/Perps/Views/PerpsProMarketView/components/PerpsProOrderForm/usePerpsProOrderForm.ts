@@ -981,7 +981,7 @@ export const usePerpsProOrderForm = ({
       ? scaleProviderId
       : isChaseOrder
         ? (chaseProviderId ?? undefined)
-        : undefined;
+        : market.providerId;
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
   const checkTwapOrderSupportRef = useRef(checkTwapOrderSupport);

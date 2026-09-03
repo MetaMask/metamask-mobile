@@ -109,6 +109,10 @@ export const MAX_PERPS_INPUT_DIGITS = 9;
 const MINUTES_PER_HOUR = 60;
 const HOURS_PER_DAY = 24;
 const TWAP_DEFAULT_DURATION_MINUTES = 30;
+const TWAP_LIVE_UPDATE_INTERVAL_MS = 5000;
+const TWAP_DISCOVERY_INTERVAL_MS = 30_000;
+const TWAP_HISTORY_PAGE_SIZE = 20;
+const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
@@ -143,6 +147,14 @@ export const PERPS_TWAP_UI_CONFIG = {
   RandomizeI18nValues: {
     randomizeVariancePercent: TWAP_RANDOMIZE_VARIANCE_PERCENT,
   },
+  /** REST fill reconciliation while the venue schedule stream is active. */
+  LiveUpdateIntervalMs: TWAP_LIVE_UPDATE_INTERVAL_MS,
+  /** Low-cadence discovery while rollout is off and the TWAP tab is hidden. */
+  DiscoveryIntervalMs: TWAP_DISCOVERY_INTERVAL_MS,
+  /** Maximum schedule cards mounted on one History page. */
+  HistoryPageSize: TWAP_HISTORY_PAGE_SIZE,
+  /** Maximum fill rows mounted on one Fill History page. */
+  FillHistoryPageSize: TWAP_FILL_HISTORY_PAGE_SIZE,
 } as const;
 
 export const CHASE_ORDER_UI_CONFIG = {
@@ -375,6 +387,8 @@ export const STOP_LOSS_PROMPT_CONFIG = {
 export const PROVIDER_CONFIG = {
   /** Default perpetual DEX provider when no explicit selection exists */
   DefaultProvider: 'hyperliquid' as const,
+  /** Controller mode that aggregates reads across active providers. */
+  AggregatedProvider: 'aggregated' as const,
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: false,
 } as const;
