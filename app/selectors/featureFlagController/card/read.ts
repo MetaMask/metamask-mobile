@@ -8,6 +8,7 @@ import {
   DEFAULT_IMMERSVE_CONFIG,
   DEFAULT_IMMERSVE_COUNTRIES,
   defaultCardFeatureFlag,
+  defaultCardUkMigrationFlag,
 } from './defaults';
 import type {
   CardFeatureFlag,
@@ -15,6 +16,8 @@ import type {
   CardProviderChains,
   CardProviderFlagKeys,
   CardProviderTokenConfig,
+  CardUkMigrationFlag,
+  CardUkMigrationState,
   ImmersveProgramConfig,
 } from './types';
 
@@ -254,4 +257,129 @@ export function resolveCardProviderForCountry(
     }
   }
   return FALLBACK_CARD_PROVIDER_ID;
+}
+
+const normalizeCardUkMigrationFlag = (
+  raw: unknown,
+): CardUkMigrationFlag | null => {
+  let source: unknown = raw;
+  if (
+    typeof raw === 'object' &&
+    raw !== null &&
+    'value' in raw &&
+    isNonEmptyObject((raw as { value?: unknown }).value)
+  ) {
+    source = (raw as { value: unknown }).value;
+  }
+
+  if (!isNonEmptyObject(source)) {
+    return null;
+  }
+
+  const { enabled, minimumVersion, startDate, endDate, countries } = source;
+
+  if (typeof enabled !== 'boolean' || typeof minimumVersion !== 'string') {
+    return null;
+  }
+
+  return {
+    enabled,
+    minimumVersion,
+    ...(typeof startDate === 'string' ? { startDate } : {}),
+    ...(typeof endDate === 'string' ? { endDate } : {}),
+    ...(Array.isArray(countries) &&
+    countries.every((entry): entry is string => typeof entry === 'string')
+      ? { countries }
+      : {}),
+  };
+};
+
+/** The `cardUkMigration` flag, or null when absent / invalid. */
+export function readCardUkMigrationFlag(
+  flags: CardRemoteFeatureFlags,
+): CardUkMigrationFlag | null {
+  return normalizeCardUkMigrationFlag(flags?.cardUkMigration);
+}
+
+const parseIsoDate = (value: string | undefined): Date | null => {
+  if (!value) {
+    return null;
+  }
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+/**
+ * Resolves migration phase from the remote flag bag.
+ * `endDate` is the deadline (soft → forced), not a feature-off time.
+ * Missing or invalid `startDate` / `endDate`, or `startDate >= endDate`,
+ * is treated like `enabled: false`.
+ */
+export function resolveCardUkMigrationState(
+  flags: CardRemoteFeatureFlags,
+  now: Date = new Date(),
+): CardUkMigrationState {
+  const remoteFlag = readCardUkMigrationFlag(flags);
+  const flag = remoteFlag ?? defaultCardUkMigrationFlag;
+  const countries =
+    flag.countries && flag.countries.length > 0 ? flag.countries : ['GB'];
+  const start = parseIsoDate(flag.startDate);
+  const end = parseIsoDate(flag.endDate);
+  const inactiveState: CardUkMigrationState = {
+    phase: 'off',
+    isActive: false,
+    deadline: end,
+    countries,
+  };
+
+  const localEnabled = process.env.MM_CARD_UK_MIGRATION_ENABLED === 'true';
+  const gateOpen =
+    (remoteFlag ? validatedVersionGatedFeatureFlag(flag) : undefined) ??
+    localEnabled;
+
+  if (!gateOpen || !start || !end || start >= end) {
+    return inactiveState;
+  }
+
+  if (now < start) {
+    return inactiveState;
+  }
+
+  if (now >= end) {
+    return {
+      phase: 'forced',
+      isActive: true,
+      deadline: end,
+      countries,
+    };
+  }
+
+  return {
+    phase: 'soft',
+    isActive: true,
+    deadline: end,
+    countries,
+  };
+}
+
+/** Whether a Baanx UK card user should see migration prompts. */
+export function isCardUkMigrationEligible(
+  state: CardUkMigrationState,
+  params: {
+    providerId: CardProviderId | null | undefined;
+    /** ISO country/region (Baanx `countryOfResidence` or Immersve `regionCode`). */
+    regionCode: string | null | undefined;
+  },
+): boolean {
+  if (!state.isActive) {
+    return false;
+  }
+  if (params.providerId !== CardProviderIds.Baanx) {
+    return false;
+  }
+  const region = params.regionCode?.toUpperCase();
+  if (!region) {
+    return false;
+  }
+  return state.countries.some((country) => country.toUpperCase() === region);
 }

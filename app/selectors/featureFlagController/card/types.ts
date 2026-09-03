@@ -8,6 +8,30 @@ export interface GateVersionedFeatureFlag {
   minimumVersion: string;
 }
 
+export type CardUkMigrationPhase = 'off' | 'soft' | 'forced';
+
+/** Remote `cardUkMigration` flag — version gate plus migration schedule.
+ * Both `startDate` and `endDate` are required for any active phase; missing,
+ * invalid, or inverted (`startDate >= endDate`) dates resolve to off
+ * (same as `enabled: false`).
+ */
+export interface CardUkMigrationFlag {
+  enabled: boolean;
+  minimumVersion: string;
+  startDate?: string;
+  endDate?: string;
+  countries?: string[];
+}
+
+export interface CardUkMigrationState {
+  phase: CardUkMigrationPhase;
+  /** `soft` or `forced` — migration prompts may show. */
+  isActive: boolean;
+  /** Parsed from `endDate` for sheet / blocking copy. */
+  deadline: Date | null;
+  countries: string[];
+}
+
 export interface SupportedToken {
   address?: string | null;
   decimals?: number | null;

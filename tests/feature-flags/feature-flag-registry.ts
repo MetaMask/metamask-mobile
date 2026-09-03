@@ -3827,6 +3827,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardUkMigration: {
+    name: 'cardUkMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+      countries: ['GB'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   mobileMinimumVersions: {
     name: 'mobileMinimumVersions',
     type: FeatureFlagType.Remote,

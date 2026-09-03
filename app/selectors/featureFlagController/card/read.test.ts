@@ -6,12 +6,15 @@ import {
   defaultCardFeatureFlag,
 } from './defaults';
 import {
+  isCardUkMigrationEligible,
   readCardFeatureFlag,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
+  readCardUkMigrationFlag,
   resolveCardProviderForCountry,
+  resolveCardUkMigrationState,
 } from './read';
 
 jest.mock('react-native-device-info', () => ({
@@ -326,6 +329,221 @@ describe('card feature flag readers', () => {
           'GB',
         ),
       ).toBe('baanx');
+    });
+  });
+
+  describe('readCardUkMigrationFlag', () => {
+    it('returns null when absent or invalid', () => {
+      expect(readCardUkMigrationFlag(undefined)).toBeNull();
+      expect(readCardUkMigrationFlag({ cardUkMigration: {} })).toBeNull();
+    });
+
+    it('unwraps a progressive-rollout value wrapper', () => {
+      expect(
+        readCardUkMigrationFlag({
+          cardUkMigration: {
+            name: 'treatment',
+            value: {
+              enabled: true,
+              minimumVersion: '0.0.0',
+              startDate: '2026-09-01T00:00:00.000Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+              countries: ['GB'],
+            },
+          },
+        }),
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '0.0.0',
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-09-30T23:59:59.999Z',
+        countries: ['GB'],
+      });
+    });
+  });
+
+  describe('resolveCardUkMigrationState', () => {
+    const softFlag = {
+      enabled: true,
+      minimumVersion: '0.0.0',
+      startDate: '2026-09-01T00:00:00.000Z',
+      endDate: '2026-09-30T23:59:59.999Z',
+      countries: ['GB'],
+    };
+
+    it('is off when the flag is absent', () => {
+      expect(resolveCardUkMigrationState(undefined).phase).toBe('off');
+    });
+
+    it('is off when disabled', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: { ...softFlag, enabled: false } },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when version gate fails', () => {
+      mockGetVersion.mockReturnValue('8.0.0');
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              minimumVersion: '9.0.0',
+            },
+          },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off before startDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-08-31T23:59:59.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is soft between startDate and endDate', () => {
+      const state = resolveCardUkMigrationState(
+        { cardUkMigration: softFlag },
+        new Date('2026-09-15T12:00:00.000Z'),
+      );
+      expect(state).toEqual({
+        phase: 'soft',
+        isActive: true,
+        deadline: new Date('2026-09-30T23:59:59.999Z'),
+        countries: ['GB'],
+      });
+    });
+
+    it('is forced at and after endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-09-30T23:59:59.999Z'),
+        ).phase,
+      ).toBe('forced');
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: softFlag },
+          new Date('2026-10-01T00:00:00.000Z'),
+        ).phase,
+      ).toBe('forced');
+    });
+
+    it('is off when startDate is missing', () => {
+      const { startDate: _startDate, ...withoutStart } = softFlag;
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: withoutStart },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when endDate is missing', () => {
+      const { endDate: _endDate, ...withoutEnd } = softFlag;
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: withoutEnd },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when a date is invalid', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: 'not-a-date',
+            },
+          },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when startDate equals endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: '2026-09-30T23:59:59.999Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+            },
+          },
+          new Date('2026-09-30T23:59:59.999Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('is off when startDate is after endDate', () => {
+      expect(
+        resolveCardUkMigrationState(
+          {
+            cardUkMigration: {
+              ...softFlag,
+              startDate: '2026-10-01T00:00:00.000Z',
+              endDate: '2026-09-30T23:59:59.999Z',
+            },
+          },
+          new Date('2026-10-02T00:00:00.000Z'),
+        ).phase,
+      ).toBe('off');
+    });
+
+    it('defaults countries to GB when omitted', () => {
+      const { countries: _countries, ...withoutCountries } = softFlag;
+      expect(
+        resolveCardUkMigrationState(
+          { cardUkMigration: withoutCountries },
+          new Date('2026-09-15T12:00:00.000Z'),
+        ).countries,
+      ).toEqual(['GB']);
+    });
+  });
+
+  describe('isCardUkMigrationEligible', () => {
+    const activeState = {
+      phase: 'soft' as const,
+      isActive: true,
+      deadline: new Date('2026-09-30T23:59:59.999Z'),
+      countries: ['GB'],
+    };
+
+    it('requires an active phase, Baanx provider, and matching region', () => {
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'GB',
+        }),
+      ).toBe(true);
+      expect(
+        isCardUkMigrationEligible(
+          { ...activeState, isActive: false, phase: 'off' },
+          { providerId: 'baanx', regionCode: 'GB' },
+        ),
+      ).toBe(false);
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'immersve',
+          regionCode: 'GB',
+        }),
+      ).toBe(false);
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'US',
+        }),
+      ).toBe(false);
     });
   });
 });
