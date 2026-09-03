@@ -2,6 +2,7 @@ import React from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -16,7 +17,12 @@ import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigati
 import useEarnToasts, {
   type EarnToastOptions,
 } from '../../hooks/useEarnToasts';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EARN_MODULE_BOTTOM_SHEET_NAMES,
+  EARN_MODULE_REDIRECT_TARGETS,
+} from '../../constants/earnModuleEvents';
 import type {
   EarnAsset,
   EarnAssetId,
@@ -24,10 +30,26 @@ import type {
   EarnExperienceType,
 } from '../../types/earnAssets';
 
+let mockIsOnboardingRedirectNeeded = false;
+
 jest.mock('@react-navigation/native');
 jest.mock('@metamask/design-system-twrnc-preset');
-jest.mock('../../hooks/useEarnOpportunityNavigation');
+jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  getEarnExperienceRedirectTarget: jest.fn(() =>
+    mockIsOnboardingRedirectNeeded ? 'money_onboarding' : 'money_deposit',
+  ),
+}));
 jest.mock('../../hooks/useEarnToasts');
+jest.mock('../../hooks/useEarnAnalytics', () => ({
+  useEarnAnalytics: jest.fn(),
+}));
+jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
+  useMoneyNavigation: jest.fn(() => ({
+    isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
+  })),
+}));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
@@ -39,6 +61,9 @@ const mockUseEarnOpportunityNavigation =
     typeof useEarnOpportunityNavigation
   >;
 const mockUseEarnToasts = jest.mocked(useEarnToasts);
+const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
+const mockTrackBottomSheetViewed = jest.fn();
+const mockTrackButtonClicked = jest.fn();
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
@@ -108,6 +133,14 @@ const createDiscoveryEarnAsset = (
 describe('EarnStrategySelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsOnboardingRedirectNeeded = false;
+    mockUseEarnAnalytics.mockReturnValue({
+      trackScreenViewed: jest.fn(),
+      trackComponentViewed: jest.fn(),
+      trackBottomSheetViewed: mockTrackBottomSheetViewed,
+      trackSurfaceClicked: jest.fn(),
+      trackButtonClicked: mockTrackButtonClicked,
+    });
     mockUseNavigation.mockReturnValue({
       goBack,
     } as unknown as ReturnType<typeof useNavigation>);
@@ -286,6 +319,67 @@ describe('EarnStrategySelectionModal', () => {
       );
     });
   });
+
+  it.each([
+    [false, EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT],
+    [true, EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING],
+  ])(
+    'tracks final Money strategy and %s onboarding destination',
+    async (isOnboardingNeeded, expectedRedirectTarget) => {
+      mockIsOnboardingRedirectNeeded = isOnboardingNeeded;
+      const earnAsset = createEarnAsset([
+        createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc'),
+        createExperience(EARN_EXPERIENCES.STABLECOIN_LENDING, 'lending:usdc'),
+      ]);
+      mockUseRoute.mockReturnValue({
+        params: {
+          earnAsset,
+          analyticsContext: {
+            entry_point: 'homepage',
+            source_surface_name: 'homepage_earn_section',
+            asset_position: 2,
+            assets_in_list: 5,
+          },
+        },
+      } as unknown as ReturnType<typeof useRoute>);
+
+      render(<EarnStrategySelectionModal />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(
+            EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
+          ).props.accessibilityState,
+        ).toEqual({ selected: true });
+      });
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId(
+            EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+          ),
+        );
+        await Promise.resolve();
+      });
+
+      expect(mockUseEarnAnalytics).toHaveBeenCalledWith(
+        expect.objectContaining({
+          bottom_sheet_name:
+            EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
+          source_surface_name: 'homepage_earn_section',
+        }),
+      );
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_intent: 'get_started',
+          strategy_type: 'MONEY_ACCOUNT_DEPOSIT',
+          strategy_position: 1,
+          strategies_in_list: 2,
+          redirect_target: expectedRedirectTarget,
+        }),
+      );
+    },
+  );
 
   it('shows a toast when deposit navigation fails', async () => {
     const error = new Error('deposit navigation failed');

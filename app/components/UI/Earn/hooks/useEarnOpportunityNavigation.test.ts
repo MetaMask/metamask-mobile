@@ -20,7 +20,12 @@ import type { TokenI } from '../../Tokens/types';
 import { earnAssetToToken } from '../utils/earnAssets';
 import { isEarnAssetBalanceBelowMinDepositAmount } from '../utils/earnAssets/earnAssetBalance';
 import type { EarnToastOptions } from './useEarnToasts';
-import useEarnOpportunityNavigation from './useEarnOpportunityNavigation';
+import useEarnOpportunityNavigation, {
+  getEarnExperienceRedirectTarget,
+  getEarnOpportunityDestination,
+  getEarnOpportunityRedirectTarget,
+} from './useEarnOpportunityNavigation';
+import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
 
 const mockNavigate = jest.fn();
 const assetAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const;
@@ -63,6 +68,10 @@ jest.mock('../utils/earnAssets', () => ({
 jest.mock('../utils/earnAssets/earnAssetBalance', () => ({
   __esModule: true,
   isEarnAssetBalanceBelowMinDepositAmount: jest.fn(),
+}));
+jest.mock('../utils/analytics', () => ({
+  formatChainIdForAnalytics: (chainId?: string | number) =>
+    chainId === undefined ? undefined : String(chainId),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -229,6 +238,32 @@ describe('useEarnOpportunityNavigation', () => {
     mockEngineSetMultichainActiveNetwork.mockResolvedValue(undefined);
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+  });
+
+  it('resolves opportunity destinations without using Money onboarding state', () => {
+    mockIsEarnAssetBalanceBelowMinDepositAmount.mockReturnValue(false);
+    const earnAsset = createEarnAsset(1, [
+      createExperience('MONEY_ACCOUNT_DEPOSIT'),
+    ]);
+
+    expect(getEarnOpportunityDestination(earnAsset)).toBe(
+      EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+    );
+    expect(
+      getEarnOpportunityRedirectTarget(earnAsset, true),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING);
+    expect(
+      getEarnOpportunityRedirectTarget(earnAsset, false),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT);
+  });
+
+  it('resolves non-Money strategy destinations to Earn deposit', () => {
+    expect(
+      getEarnExperienceRedirectTarget(
+        createExperience(EARN_EXPERIENCES.POOLED_STAKING),
+        false,
+      ),
+    ).toBe(EARN_MODULE_REDIRECT_TARGETS.EARN_DEPOSIT);
   });
 
   it('does not navigate when the asset is undefined', () => {

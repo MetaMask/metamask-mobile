@@ -24,6 +24,7 @@ import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
+import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
@@ -33,11 +34,19 @@ import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import type { EarnAssetId } from '../../types/earnAssets';
 import type { EarnSectionRankedAsset } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
+import {
+  EARN_MODULE_COMPONENT_NAMES,
+  EARN_MODULE_ENTRY_POINTS,
+} from '../../constants/earnModuleEvents';
 import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
 import { EarnSectionTestIds } from './EarnSection.testIds';
 import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
 import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import Logger from '../../../../../util/Logger';
+
+const mockEarnTrackButtonClicked = jest.fn();
+const mockEarnTrackComponentViewed = jest.fn();
+const mockEarnTrackSurfaceClicked = jest.fn();
 
 jest.mock('@react-navigation/native');
 jest.mock('react-redux', () => ({
@@ -52,6 +61,13 @@ jest.mock('../../../../UI/Money/selectors/visibility');
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
 jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
 jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
+jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
+  useEarnAnalytics: jest.fn(() => ({
+    trackButtonClicked: mockEarnTrackButtonClicked,
+    trackComponentViewed: mockEarnTrackComponentViewed,
+    trackSurfaceClicked: mockEarnTrackSurfaceClicked,
+  })),
+}));
 jest.mock('../../../../../util/Logger');
 jest.mock(
   '../../../../UI/Assets/components/AssetLogo/AssetLogo',
@@ -69,6 +85,7 @@ const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
 const mockUseEarnOpportunityNavigation = jest.mocked(
   useEarnOpportunityNavigation,
 );
+const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
@@ -246,6 +263,10 @@ describe('EarnSection', () => {
     expect(
       screen.getByText(strings('homepage.sections.earn')),
     ).toBeOnTheScreen();
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    });
   });
 
   it('navigates both Earn section view-all actions to the market list', () => {
@@ -265,6 +286,14 @@ describe('EarnSection', () => {
     expect(navigate).toHaveBeenNthCalledWith(2, Routes.EARN.ROOT, {
       screen: Routes.EARN.SEARCH_LIST,
     });
+    expect(mockEarnTrackButtonClicked).toHaveBeenCalledWith(
+      expect.objectContaining({ button_intent: 'view_all' }),
+    );
+    expect(mockEarnTrackSurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_VIEW_MORE_CARD,
+      }),
+    );
   });
 
   it('disables Homepage telemetry for shared Explore rendering', () => {
@@ -291,11 +320,16 @@ describe('EarnSection', () => {
         sectionIndex: 2,
         totalSectionsLoaded: 5,
         fireImmediateWhenNoView: true,
+        onSectionViewed: expect.any(Function),
       }),
     );
     expect(mockUseSectionPerformance).toHaveBeenCalledWith(
       expect.objectContaining({ enabled: true }),
     );
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
+      entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
+    });
   });
 
   it('disables Homepage telemetry while Home is unfocused', () => {
@@ -527,6 +561,15 @@ describe('EarnSection', () => {
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       assetSlot.asset,
       TokenDetailsSource.ExploreEarn,
+      expect.objectContaining({
+        entry_point: 'explore',
+      }),
+    );
+    expect(mockEarnTrackSurfaceClicked).toHaveBeenCalledWith(
+      expect.objectContaining({
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_ASSET_CARD,
+        asset_position: 1,
+      }),
     );
   });
 
@@ -540,6 +583,9 @@ describe('EarnSection', () => {
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       zeroBalanceAssetSlot.asset,
       TokenDetailsSource.HomeSection,
+      expect.objectContaining({
+        entry_point: 'homepage',
+      }),
     );
   });
 
