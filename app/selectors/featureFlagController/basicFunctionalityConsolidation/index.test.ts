@@ -16,6 +16,7 @@ describe('basicFunctionalityConsolidation selectors', () => {
   let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
   beforeEach(() => {
+    // Clears call counts, keeps implementations
     jest.clearAllMocks();
     mockHasMinimumRequiredVersion = jest.spyOn(
       remoteFeatureFlagModule,
@@ -25,7 +26,8 @@ describe('basicFunctionalityConsolidation selectors', () => {
   });
 
   afterEach(() => {
-    mockHasMinimumRequiredVersion?.mockRestore();
+    // Restores all spies to their original implementations
+    jest.restoreAllMocks();
   });
 
   describe('selectMobileUxBftcConsolidationFlagEnabled', () => {
