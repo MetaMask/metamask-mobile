@@ -17,6 +17,7 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
+import { assertBrazePushUnregistered } from '../../../core/Braze/unregisterPush';
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
@@ -41,6 +42,10 @@ jest.mock('../../../core/Engine', () => ({
   controllerMessenger: {
     call: jest.fn(),
   },
+}));
+
+jest.mock('../../../core/Braze/unregisterPush', () => ({
+  assertBrazePushUnregistered: jest.fn().mockResolvedValue(undefined),
 }));
 
 beforeEach(() => {
@@ -233,11 +238,34 @@ describe('helpers - enablePushNotifications()', () => {
 });
 
 describe('helpers - disablePushNotifications()', () => {
-  it('invoke notification services method', async () => {
+  it('unregisters Braze push before disabling NaaP push', async () => {
     await disablePushNotifications();
+
+    expect(assertBrazePushUnregistered).toHaveBeenCalled();
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
+    expect(
+      jest.mocked(assertBrazePushUnregistered).mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      jest.mocked(
+        Engine.context.NotificationServicesController.disablePushNotifications,
+      ).mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not disable NaaP push when Braze unregister fails', async () => {
+    jest
+      .mocked(assertBrazePushUnregistered)
+      .mockRejectedValueOnce(new Error('Failed to unregister Braze push'));
+
+    await expect(disablePushNotifications()).rejects.toThrow(
+      'Failed to unregister Braze push',
+    );
+
+    expect(
+      Engine.context.NotificationServicesController.disablePushNotifications,
+    ).not.toHaveBeenCalled();
   });
 });
 

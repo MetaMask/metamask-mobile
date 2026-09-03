@@ -109,3 +109,35 @@ export async function unregisterBrazePush(): Promise<BrazeUnregisterPushResult> 
     };
   }
 }
+
+const ALREADY_UNREGISTERED_CODES: ReadonlySet<BrazeUnregisterPushFailureCode> =
+  new Set(['NO_PUSH_TOKEN', 'SDK_UNAVAILABLE', 'SDK_DISABLED']);
+
+/**
+ * Whether this device is not registered for Braze push (success, or a
+ * non-registered state such as no stored token).
+ */
+export function isBrazePushUnregistered(
+  result: BrazeUnregisterPushResult,
+): boolean {
+  if (result.success) {
+    return true;
+  }
+
+  return ALREADY_UNREGISTERED_CODES.has(result.code);
+}
+
+/**
+ * Unregister this device from Braze push, throwing when Braze still holds a
+ * token (so callers do not delete the FCM token or flip the in-app toggle).
+ */
+export async function assertBrazePushUnregistered(): Promise<void> {
+  const result = await unregisterBrazePush();
+  if (result.success || ALREADY_UNREGISTERED_CODES.has(result.code)) {
+    return;
+  }
+
+  throw new Error(
+    `Failed to unregister Braze push: ${result.code} ${result.message}`,
+  );
+}
