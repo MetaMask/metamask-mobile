@@ -225,6 +225,11 @@ export const LIMIT_PRICE_CONFIG = {
   // at least (1 - 0.95) = 5% of the larger one. We block submission up front
   // instead of letting the order fail at the exchange.
   MaxDeviationFromMarket: 0.95,
+
+  // Non-blocking fat-finger warning when a limit/scale price rests farther
+  // from the near-touch (best bid long, best ask short) than this ratio.
+  // Strictly greater than 5% so deep-accumulation scales at 5% stay quiet.
+  FatFingerDistanceFromMarket: 0.05,
 } as const;
 
 export { FUNDING_RATE_CONFIG } from '@metamask/perps-controller';

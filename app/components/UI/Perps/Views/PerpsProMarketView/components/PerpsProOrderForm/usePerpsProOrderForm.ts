@@ -112,6 +112,7 @@ import {
   getPerpsOrderTpSlWarnings,
   type PerpsOrderTpSlWarnings,
 } from '../../../../utils/tpslValidation';
+import { getLimitPriceFarFromMarketWarning } from '../../../../utils/limitPriceFarFromMarket';
 import {
   canonicalizeOrderPrice,
   getLimitPriceCrossingWarning,
@@ -2951,6 +2952,37 @@ export const usePerpsProOrderForm = ({
   const isTriggerOrderUnavailable =
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
+  const farFromMarketWarning = useMemo(
+    () =>
+      getLimitPriceFarFromMarketWarning({
+        orderType: isScaleOrder ? 'scale' : orderForm.type,
+        direction: orderForm.direction,
+        reduceOnly,
+        limitPrice: normalizedLimitPrice,
+        startPrice: scaleStartPrice,
+        endPrice: scaleEndPrice,
+        bestBid: currentTopOfBook?.bestBid
+          ? Number.parseFloat(currentTopOfBook.bestBid)
+          : undefined,
+        bestAsk: currentTopOfBook?.bestAsk
+          ? Number.parseFloat(currentTopOfBook.bestAsk)
+          : undefined,
+        szDecimals,
+      }),
+    [
+      currentTopOfBook?.bestAsk,
+      currentTopOfBook?.bestBid,
+      isScaleOrder,
+      normalizedLimitPrice,
+      orderForm.direction,
+      orderForm.type,
+      reduceOnly,
+      scaleEndPrice,
+      scaleStartPrice,
+      szDecimals,
+    ],
+  );
+
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
       ...(scaleValidationNotice ? [scaleValidationNotice] : []),
@@ -3026,10 +3058,20 @@ export const usePerpsProOrderForm = ({
       });
     }
 
+    if (isScaleOrder && farFromMarketWarning) {
+      list.push({
+        id: 'far-from-market',
+        variant: 'banner',
+        message: farFromMarketWarning,
+      });
+    }
+
     return list;
   }, [
     reduceOnly,
     scaleValidationNotice,
+    farFromMarketWarning,
+    isScaleOrder,
     isReduceOnlyPositionLoading,
     isTriggerOrderUnavailable,
     marketDataBlockingReason,
@@ -3445,13 +3487,18 @@ export const usePerpsProOrderForm = ({
       midPrice: assetData.price,
       szDecimals,
     });
-    if (!warning) {
+    if (warning) {
+      return { severity: 'warning' as const, message: warning };
+    }
+
+    if (!farFromMarketWarning) {
       return undefined;
     }
 
-    return { severity: 'warning' as const, message: warning };
+    return { severity: 'warning' as const, message: farFromMarketWarning };
   }, [
     assetData.price,
+    farFromMarketWarning,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
     orderForm.direction,
