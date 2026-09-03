@@ -63,6 +63,28 @@ jest.mock('expo-modules-core', () => ({
   LegacyEventEmitter: jest.fn(),
 }));
 
+// SPIKE(TMCU-1277): the native tab bar is a Fabric component with no Jest
+// harness. Tests run the JS tab bar (flag mocked to `false`); the native
+// packages resolve to inert stubs so importing MainNavigator never touches
+// native code. A dedicated test flips the flag to cover the native wiring.
+jest.mock('react-native-bottom-tabs', () => ({
+  __esModule: true,
+  default: () => null,
+  useBottomTabBarHeight: () => 0,
+  BottomTabBarHeightContext: jest.requireActual('react').createContext(0),
+  SceneMap: () => () => null,
+}));
+jest.mock('@bottom-tabs/react-navigation', () => ({
+  createNativeBottomTabNavigator: jest.fn().mockReturnValue({
+    Navigator: 'NativeTabNavigator',
+    Screen: 'NativeTabScreen',
+  }),
+}));
+jest.mock('../../components/Nav/Main/tabBarSpikeFlags', () => ({
+  DUMMY_TAB_SCREENS: false,
+  NATIVE_TAB_BAR: false,
+}));
+
 // Mock expo-screen-capture: it reaches for a native module at import time, so
 // importing it unmocked throws in Jest.
 jest.mock('expo-screen-capture', () => ({

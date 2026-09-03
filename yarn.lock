@@ -2209,6 +2209,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bottom-tabs/react-navigation@npm:1.4.0":
+  version: 1.4.0
+  resolution: "@bottom-tabs/react-navigation@npm:1.4.0"
+  dependencies:
+    color: "npm:^5.0.0"
+  peerDependencies:
+    "@react-navigation/native": ">=7"
+    react: "*"
+    react-native: "*"
+    react-native-bottom-tabs: "*"
+  checksum: 10/483e3b37ad3812bcdcbb3280ba2a2443d4e4fc9b7dee635c10a899511a43988e39daf02bdafd88f019e42e6a4af78db81986da315c03c6a967832f756bc5dcb8
+  languageName: node
+  linkType: hard
+
 "@braze/react-native-sdk@npm:19.1.0":
   version: 19.1.0
   resolution: "@braze/react-native-sdk@npm:19.1.0"
@@ -28191,7 +28205,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"color@npm:^5.0.2":
+"color@npm:^5.0.0, color@npm:^5.0.2":
   version: 5.0.3
   resolution: "color@npm:5.0.3"
   dependencies:
@@ -40033,6 +40047,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/register": "npm:^7.24.6"
     "@babel/runtime": "npm:^7.25.0"
+    "@bottom-tabs/react-navigation": "npm:1.4.0"
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
@@ -40443,6 +40458,7 @@ __metadata:
     react-native-background-timer: "npm:2.1.1"
     react-native-ble-plx: "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch"
     react-native-blob-util: "npm:^0.19.9"
+    react-native-bottom-tabs: "npm:1.4.0"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
     react-native-confetti: "npm:^0.1.0"
@@ -46178,6 +46194,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-bottom-tabs@npm:1.4.0":
+  version: 1.4.0
+  resolution: "react-native-bottom-tabs@npm:1.4.0"
+  dependencies:
+    react-freeze: "npm:^1.0.0"
+    sf-symbols-typescript: "npm:^2.0.0"
+    use-latest-callback: "npm:^0.2.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/1e04140ba421fd943731f177a99653b7d8a0ef60f52887c4a3ec9fc6124b009248144309d5678dd74d1bdaaf98145e929bec0a4da0576e21cbc6074e83a3bb8b
+  languageName: node
+  linkType: hard
+
 "react-native-branch@npm:^5.6.2":
   version: 5.6.2
   resolution: "react-native-branch@npm:5.6.2"
@@ -49336,7 +49366,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sf-symbols-typescript@npm:^2.1.0, sf-symbols-typescript@npm:^2.2.0":
+"sf-symbols-typescript@npm:^2.0.0, sf-symbols-typescript@npm:^2.1.0, sf-symbols-typescript@npm:^2.2.0":
   version: 2.2.0
   resolution: "sf-symbols-typescript@npm:2.2.0"
   checksum: 10/8623e148bf86151692d3ccb3149122c091b256162a39f4c4f78472811ffe92e3c77a83841a7381a5dc0bc6505ebb73e7ca8901cb077004872d7ee1cb4e5be9d4
@@ -52879,7 +52909,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-latest-callback@npm:^0.2.4":
+"use-latest-callback@npm:^0.2.1, use-latest-callback@npm:^0.2.4":
   version: 0.2.6
   resolution: "use-latest-callback@npm:0.2.6"
   peerDependencies:

@@ -207,17 +207,28 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import { createNativeBottomTabNavigator } from '@bottom-tabs/react-navigation';
+import { useMoneyNavigation } from '../../UI/Money/hooks/useMoneyNavigation';
+import { trackExploreSearchOpened } from '../../Views/TrendingView/search/analytics';
+import {
+  NATIVE_SEARCH_TAB_ROUTE,
+  NATIVE_TAB_BAR_MINIMIZE_BEHAVIOR,
+  nativeSearchTabOptions,
+  nativeTabOptions,
+} from '../../../component-library/components/Navigation/TabBarNative/TabBarNative.constants';
 import DummyTabScreen from './DummyTabScreen';
+import NativeTabSceneInset from './NativeTabSceneInset';
+import { DUMMY_TAB_SCREENS, NATIVE_TAB_BAR } from './tabBarSpikeFlags';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+// SPIKE(TMCU-1277): Apple's tab bar, selected by `NATIVE_TAB_BAR`.
+const NativeTab = createNativeBottomTabNavigator();
 
-// SPIKE(TMCU-1277): swap the four treatment tabs for trivially cheap screens so
-// the floating tab bar's slide can be judged without screen mount cost. Flip to
-// `true`, reload, compare. `DUMMY_TAB_SCREEN_WEIGHT` in DummyTabScreen dials the
-// cost back in to reproduce a heavy mount. Options are left untouched on every
-// tab so screen content is the only variable. Not for the real branch.
-const DUMMY_TAB_SCREENS = false;
+// Module scope so the navigator sees one stable layout function.
+const renderNativeSceneLayout = ({ children }) => (
+  <NativeTabSceneInset>{children}</NativeTabSceneInset>
+);
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -650,6 +661,10 @@ const HomeTabs = () => {
     trackMoneyTabPressRef.current = fn;
   }, []);
 
+  // Native bar only. The JS bars resolve both of these themselves.
+  const { colors } = useTheme();
+  const { navigateToMoneyHome } = useMoneyNavigation();
+
   const accountsLength = useSelector(selectAccountsLength);
 
   const chainId = useSelector((state) => {
@@ -857,84 +872,196 @@ const HomeTabs = () => {
         {isMoneyAccountEnabled ? (
           <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
         ) : null}
-        <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-          <Tab.Navigator
+        {NATIVE_TAB_BAR ? (
+          /*
+           * SPIKE(TMCU-1277): Apple's tab bar. Same screens and options as the
+           * JS navigator below, plus SF Symbol icons and a search-role tab,
+           * which iOS 26 renders as the detached circle beside the pill. The
+           * bar's own height reaches the screens through `screenLayout`.
+           */
+          <NativeTab.Navigator
             initialRouteName={Routes.WALLET.HOME}
-            tabBar={renderTabBar}
             screenOptions={{ headerShown: false }}
+            screenLayout={renderNativeSceneLayout}
+            tabBarActiveTintColor={colors.text.default}
+            minimizeBehavior={NATIVE_TAB_BAR_MINIMIZE_BEHAVIOR}
+            hapticFeedbackEnabled
           >
-            {/* Home Tab */}
-            <Tab.Screen
+            <NativeTab.Screen
               name={Routes.WALLET.HOME}
-              options={options.home}
               component={
                 DUMMY_TAB_SCREENS ? DummyTabScreen : WalletTabStackFlow
               }
+              options={{
+                ...options.home,
+                ...nativeTabOptions(TabBarIconKey.Wallet),
+              }}
+              listeners={{ tabPress: () => options.home.callback?.() }}
             />
-
-            <>
-              <Tab.Screen
-                name={Routes.TRENDING_VIEW}
-                options={{
-                  ...options.trending,
-                  isSelected: (rootScreenName) =>
-                    [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
-                      rootScreenName,
-                    ),
-                }}
-                component={DUMMY_TAB_SCREENS ? DummyTabScreen : ExploreHome}
-              />
-              <Tab.Screen
-                name={Routes.BROWSER.HOME}
-                options={{
-                  ...options.browser,
-                  isHidden: true,
-                }}
-                component={BrowserFlowUnmountOnTabBlur}
-              />
-            </>
-
-            {isFloatingTabBar ? null : (
-              <Tab.Screen
-                name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                options={options.trade}
-                component={WalletTabStackFlow}
-              />
-            )}
-
+            <NativeTab.Screen
+              name={Routes.TRENDING_VIEW}
+              component={DUMMY_TAB_SCREENS ? DummyTabScreen : ExploreHome}
+              options={{
+                ...options.trending,
+                ...nativeTabOptions(TabBarIconKey.Trending),
+              }}
+              listeners={{
+                tabPress: () => options.trending.callback?.(),
+                blur: () => options.trending.onLeave?.(),
+              }}
+            />
+            {/* Reachable from Explore, never from the bar. */}
+            <NativeTab.Screen
+              name={Routes.BROWSER.HOME}
+              component={BrowserFlowUnmountOnTabBlur}
+              options={{
+                ...options.browser,
+                ...nativeTabOptions(TabBarIconKey.Browser),
+                tabBarItemHidden: true,
+              }}
+              listeners={{ tabPress: () => options.browser.callback?.() }}
+            />
             {isMoneyAccountVisible ? (
-              <Tab.Screen
+              <NativeTab.Screen
                 name={Routes.MONEY.ROOT}
-                options={options.money}
                 component={
                   DUMMY_TAB_SCREENS ? DummyTabScreen : MoneyTabScreenStack
                 }
+                options={{
+                  ...options.money,
+                  ...nativeTabOptions(TabBarIconKey.Money),
+                }}
+                // Same path as the JS bars: the hook also owns the first-time
+                // onboarding redirect.
+                listeners={{
+                  tabPress: () => {
+                    options.money.callback?.();
+                    navigateToMoneyHome();
+                  },
+                }}
               />
             ) : (
-              <Tab.Screen
+              <NativeTab.Screen
                 name={Routes.TRANSACTIONS_VIEW}
-                options={options.activity}
                 component={TransactionsHomeUnmountOnTabBlur}
+                options={{
+                  ...options.activity,
+                  ...nativeTabOptions(TabBarIconKey.Activity),
+                }}
+                listeners={{ tabPress: () => options.activity.callback?.() }}
               />
             )}
-
             {showSocialTab ? (
-              <Tab.Screen
+              <NativeTab.Screen
                 name={Routes.SOCIAL_LEADERBOARD.TAB}
-                options={options.social}
                 component={
                   DUMMY_TAB_SCREENS ? DummyTabScreen : SocialTradersTabsView
                 }
+                options={{
+                  ...options.social,
+                  ...nativeTabOptions(TabBarIconKey.Social),
+                }}
               />
             ) : (
-              <Tab.Screen
+              <NativeTab.Screen
                 name={Routes.REWARDS_VIEW}
-                options={options.rewards}
                 component={RewardsHomeUnmountOnTabBlur}
+                options={{
+                  ...options.rewards,
+                  ...nativeTabOptions(TabBarIconKey.Rewards),
+                }}
+                listeners={{ tabPress: () => options.rewards.callback?.() }}
               />
             )}
-          </Tab.Navigator>
-        </FloatingTabBarInsetContext.Provider>
+            <NativeTab.Screen
+              name={NATIVE_SEARCH_TAB_ROUTE}
+              component={ExploreSearchScreen}
+              options={nativeSearchTabOptions()}
+              listeners={{
+                tabPress: () => trackExploreSearchOpened('nav_bar'),
+              }}
+            />
+          </NativeTab.Navigator>
+        ) : (
+          <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
+            <Tab.Navigator
+              initialRouteName={Routes.WALLET.HOME}
+              tabBar={renderTabBar}
+              screenOptions={{ headerShown: false }}
+            >
+              {/* Home Tab */}
+              <Tab.Screen
+                name={Routes.WALLET.HOME}
+                options={options.home}
+                component={
+                  DUMMY_TAB_SCREENS ? DummyTabScreen : WalletTabStackFlow
+                }
+              />
+
+              <>
+                <Tab.Screen
+                  name={Routes.TRENDING_VIEW}
+                  options={{
+                    ...options.trending,
+                    isSelected: (rootScreenName) =>
+                      [Routes.TRENDING_VIEW, Routes.BROWSER.HOME].includes(
+                        rootScreenName,
+                      ),
+                  }}
+                  component={DUMMY_TAB_SCREENS ? DummyTabScreen : ExploreHome}
+                />
+                <Tab.Screen
+                  name={Routes.BROWSER.HOME}
+                  options={{
+                    ...options.browser,
+                    isHidden: true,
+                  }}
+                  component={BrowserFlowUnmountOnTabBlur}
+                />
+              </>
+
+              {isFloatingTabBar ? null : (
+                <Tab.Screen
+                  name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+                  options={options.trade}
+                  component={WalletTabStackFlow}
+                />
+              )}
+
+              {isMoneyAccountVisible ? (
+                <Tab.Screen
+                  name={Routes.MONEY.ROOT}
+                  options={options.money}
+                  component={
+                    DUMMY_TAB_SCREENS ? DummyTabScreen : MoneyTabScreenStack
+                  }
+                />
+              ) : (
+                <Tab.Screen
+                  name={Routes.TRANSACTIONS_VIEW}
+                  options={options.activity}
+                  component={TransactionsHomeUnmountOnTabBlur}
+                />
+              )}
+
+              {showSocialTab ? (
+                <Tab.Screen
+                  name={Routes.SOCIAL_LEADERBOARD.TAB}
+                  options={options.social}
+                  component={
+                    DUMMY_TAB_SCREENS ? DummyTabScreen : SocialTradersTabsView
+                  }
+                />
+              ) : (
+                <Tab.Screen
+                  name={Routes.REWARDS_VIEW}
+                  options={options.rewards}
+                  component={RewardsHomeUnmountOnTabBlur}
+                />
+              )}
+            </Tab.Navigator>
+          </FloatingTabBarInsetContext.Provider>
+        )}
       </TrendingQuickBuySheetProvider>
     </PredictPreviewSheetProvider>
   );

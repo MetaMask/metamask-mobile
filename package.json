@@ -260,6 +260,7 @@
     "@metamask/bridge-controller@npm:^80.1.0": "patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch"
   },
   "dependencies": {
+    "@bottom-tabs/react-navigation": "1.4.0",
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@consensys/on-ramp-sdk": "2.1.12",
     "@craftzdog/react-native-buffer": "^6.1.0",
@@ -533,6 +534,7 @@
     "react-native-background-timer": "2.1.1",
     "react-native-ble-plx": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "react-native-blob-util": "^0.19.9",
+    "react-native-bottom-tabs": "1.4.0",
     "react-native-branch": "^5.6.2",
     "react-native-browser-polyfill": "0.1.2",
     "react-native-confetti": "^0.1.0",
