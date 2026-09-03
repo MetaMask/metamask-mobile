@@ -73,22 +73,6 @@ const ActiveWeekPrizePool: React.FC<{ campaignId: string }> = ({
   );
 };
 
-const UpcomingWeekPrizePool: React.FC<{ campaignId: string }> = ({
-  campaignId,
-}) => {
-  const { prizePool, isLoading, hasError, refetch } =
-    useGetMoneyAccountSweepstakesPrizePool(campaignId);
-
-  return (
-    <MoneyAccountSweepstakesPrizePool
-      prizePool={prizePool}
-      isLoading={isLoading}
-      hasError={hasError}
-      refetch={refetch}
-    />
-  );
-};
-
 interface WeekRowProps {
   campaign: CampaignDto;
   weekNumber: number;
@@ -272,7 +256,7 @@ const WeekRow: React.FC<WeekRowProps> = ({
           {dateRange}
         </Text>
       </Box>
-      <UpcomingWeekPrizePool campaignId={campaign.id} />
+      <ActiveWeekPrizePool campaignId={campaign.id} />
     </Box>
   );
 };
