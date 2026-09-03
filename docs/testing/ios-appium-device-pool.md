@@ -130,7 +130,7 @@ Logs: `iOS device pool size=2 workers=2`, `iOS pool worker 0/1` with UDID and
 pool** records pool size/workers, Playwright outcome, and `duration_ms` from
 `playwright-report.json` (`stats.duration`).
 
-Namespace profile `metamask-ios-e2e` is **6 CPU × 14 GB** (observed 2026-09-03);
+Namespace profile `namespace-profile-metamask-ios-e2e` is **6 CPU × 14 GB** (observed 2026-09-03);
 two sims + two WDAs risk RAM pressure and ~15m preemptions. Compare pooled
 SmokeAccounts shards to `main` N=1 on wall clock, `duration_ms`, prepare time,
 peak CPU/RAM, and flakes before expanding suites or reducing `total_splits`.
