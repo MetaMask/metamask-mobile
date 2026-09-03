@@ -110,7 +110,13 @@ function buildActiveQuoteState(
 }
 
 function renderFooter(state: DeepPartial<RootState>) {
-  return renderWithProvider(<BridgeLimitOrderFooterView />, { state });
+  return renderWithProvider(
+    <BridgeLimitOrderFooterView
+      onCTAPress={jest.fn()}
+      ctaLabel="Create Order"
+    />,
+    { state },
+  );
 }
 
 describe('BridgeLimitOrderFooterView', () => {

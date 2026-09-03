@@ -94,6 +94,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         type: 'commitCustomPercent',
         limitPrice: '130',
         isTrackingMarket: false,
+        customValue: '8',
       });
 
       expect(result).toEqual({
@@ -110,12 +111,30 @@ describe('limitOrderPriceAdjustReducer', () => {
         type: 'commitCustomPercent',
         limitPrice: '100',
         isTrackingMarket: true,
+        customValue: '0',
       });
 
       expect(result).toEqual({
         ...modifiedState,
         limitPrice: '100',
         isTrackingMarket: true,
+        customValue: '0',
+      });
+    });
+
+    it('stores the clamped custom value when a capped percent is committed', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'commitCustomPercent',
+        limitPrice: '199',
+        isTrackingMarket: false,
+        customValue: '99',
+      });
+
+      expect(result).toEqual({
+        ...modifiedState,
+        limitPrice: '199',
+        isTrackingMarket: false,
+        customValue: '99',
       });
     });
   });
