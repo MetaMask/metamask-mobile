@@ -2,7 +2,10 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
+import {
+  PERPS_TWAP_UI_CONFIG,
+  PROVIDER_CONFIG,
+} from '../../../constants/perpsConfig';
 import {
   getPerpsProTwapFillRowSelector,
   getPerpsProTwapRowSelector,
@@ -72,6 +75,7 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
 });
 
 const ids = PerpsProMarketViewSelectorsIDs;
+const DEFAULT_PROVIDER_ID = PROVIDER_CONFIG.DefaultProvider;
 
 const renderPanel = (
   props: Partial<React.ComponentProps<typeof PerpsProTwapPanel>> = {},
@@ -116,7 +120,9 @@ describe('PerpsProTwapPanel', () => {
     // Assert
     expect(screen.getByTestId(ids.TWAP_LIST)).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector(DEFAULT_PROVIDER_ID, 'twap-1'),
+      ),
     ).toBeOnTheScreen();
   });
 
@@ -150,7 +156,9 @@ describe('PerpsProTwapPanel', () => {
 
     // Assert: a finished schedule has nothing left to stop
     expect(
-      screen.queryByTestId(getPerpsProTwapTerminateSelector(undefined, 'done')),
+      screen.queryByTestId(
+        getPerpsProTwapTerminateSelector(DEFAULT_PROVIDER_ID, 'done'),
+      ),
     ).toBeNull();
   });
 
@@ -167,7 +175,7 @@ describe('PerpsProTwapPanel', () => {
     // Assert: the active view shows schedules, not fills
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f1'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'f1'),
       ),
     ).toBeNull();
 
@@ -177,17 +185,17 @@ describe('PerpsProTwapPanel', () => {
     // Assert: both slices of the one schedule are now listed individually
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f1'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'f1'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'f2'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'f2'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapTerminateSelector(undefined, 'twap-1'),
+        getPerpsProTwapTerminateSelector(DEFAULT_PROVIDER_ID, 'twap-1'),
       ),
     ).toBeNull();
   });
@@ -207,12 +215,16 @@ describe('PerpsProTwapPanel', () => {
     // Assert: the newest page is bounded to 50 rows
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-50'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'fill-50',
+        ),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'fill-0'),
       ),
     ).toBeNull();
 
@@ -222,12 +234,16 @@ describe('PerpsProTwapPanel', () => {
     // Assert: paging replaces the mounted rows instead of accumulating them
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'fill-0'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-50'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'fill-50',
+        ),
       ),
     ).toBeNull();
     expect(screen.getByTestId(ids.TWAP_FILL_PAGE_LABEL)).toHaveTextContent(
@@ -269,7 +285,11 @@ describe('PerpsProTwapPanel', () => {
     );
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'scope-fill-50'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'scope-fill-50',
+        ),
       ),
     ).toBeOnTheScreen();
   });
@@ -286,7 +306,11 @@ describe('PerpsProTwapPanel', () => {
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-0'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'first-0',
+        ),
       ),
     ).toBeOnTheScreen();
 
@@ -313,12 +337,20 @@ describe('PerpsProTwapPanel', () => {
     // Assert: page one remains selected; array identity alone is not a filter.
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-0'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'first-0',
+        ),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'first-50'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'first-50',
+        ),
       ),
     ).toBeNull();
   });
@@ -359,12 +391,16 @@ describe('PerpsProTwapPanel', () => {
     // Assert
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-0'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'fill-0'),
       ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-appended'),
+        getPerpsProTwapFillRowSelector(
+          DEFAULT_PROVIDER_ID,
+          'twap-1',
+          'fill-appended',
+        ),
       ),
     ).toBeNull();
   });
@@ -403,7 +439,7 @@ describe('PerpsProTwapPanel', () => {
     // Assert: page three clamps to the new last page, not page one.
     expect(
       await screen.findByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'next-0'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'next-0'),
       ),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(ids.TWAP_FILL_NEXT)).toBeDisabled();
@@ -460,11 +496,13 @@ describe('PerpsProTwapPanel', () => {
 
     // Assert
     expect(
-      screen.getByTestId(getPerpsProTwapRowSelector(undefined, 'history-0')),
+      screen.getByTestId(
+        getPerpsProTwapRowSelector(DEFAULT_PROVIDER_ID, 'history-0'),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(
-        getPerpsProTwapRowSelector(undefined, `history-${pageSize}`),
+        getPerpsProTwapRowSelector(DEFAULT_PROVIDER_ID, `history-${pageSize}`),
       ),
     ).toBeNull();
 
@@ -474,11 +512,13 @@ describe('PerpsProTwapPanel', () => {
     // Assert
     expect(
       screen.getByTestId(
-        getPerpsProTwapRowSelector(undefined, `history-${pageSize}`),
+        getPerpsProTwapRowSelector(DEFAULT_PROVIDER_ID, `history-${pageSize}`),
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(getPerpsProTwapRowSelector(undefined, 'history-0')),
+      screen.queryByTestId(
+        getPerpsProTwapRowSelector(DEFAULT_PROVIDER_ID, 'history-0'),
+      ),
     ).toBeNull();
     expect(screen.getByTestId(ids.TWAP_HISTORY_PAGE_LABEL)).toHaveTextContent(
       'Page 2 of 2',
@@ -525,7 +565,7 @@ describe('PerpsProTwapPanel', () => {
     );
     expect(
       screen.getByTestId(
-        getPerpsProTwapRowSelector(undefined, 'scope-history-0'),
+        getPerpsProTwapRowSelector(DEFAULT_PROVIDER_ID, 'scope-history-0'),
       ),
     ).toBeOnTheScreen();
   });
@@ -571,7 +611,10 @@ describe('PerpsProTwapPanel', () => {
     // Assert
     expect(
       await screen.findByTestId(
-        getPerpsProTwapRowSelector(undefined, `next-history-${pageSize}`),
+        getPerpsProTwapRowSelector(
+          DEFAULT_PROVIDER_ID,
+          `next-history-${pageSize}`,
+        ),
       ),
     ).toBeOnTheScreen();
     expect(screen.getByTestId(ids.TWAP_HISTORY_NEXT)).toBeDisabled();
@@ -728,7 +771,9 @@ describe('PerpsProTwapPanel', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector(DEFAULT_PROVIDER_ID, 'twap-1'),
+      ),
     );
 
     // Assert

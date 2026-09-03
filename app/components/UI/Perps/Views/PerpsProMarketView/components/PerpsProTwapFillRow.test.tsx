@@ -2,11 +2,13 @@ import { render, screen } from '@testing-library/react-native';
 import type { TwapOrder, TwapOrderFill } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   getPerpsProTwapFillRowSelector,
   getPerpsProTwapFillValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
+import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 
 jest.mock('react-redux', () => ({
@@ -33,6 +35,8 @@ const twapOrder: TwapOrder = {
   lastUpdated: 1_700_000_600_000,
   fills: [],
 };
+
+const DEFAULT_PROVIDER_ID = PROVIDER_CONFIG.DefaultProvider;
 
 const buildFill = (overrides: Partial<TwapOrderFill> = {}): TwapOrderFill => ({
   fillId: 'fill-1',
@@ -129,7 +133,7 @@ describe('PerpsProTwapFillRow', () => {
     // Assert
     expect(
       screen.getByTestId(
-        getPerpsProTwapFillRowSelector(undefined, 'twap-1', 'fill-1'),
+        getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'fill-1'),
       ),
     ).toBeOnTheScreen();
   });
@@ -184,7 +188,7 @@ describe('PerpsProTwapFillRow', () => {
           screen.getByTestId(
             getPerpsProTwapFillValueSelector(
               baseTestID,
-              row.twapOrder.providerId,
+              getTwapOrderProviderId(row.twapOrder),
               row.twapOrder.orderId,
               row.fill.fillId,
             ),

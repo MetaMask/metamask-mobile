@@ -56,6 +56,7 @@ import {
   getPerpsProTwapValueSelector,
 } from '../../Perps.testIds';
 import { formatProOrderCardTimestamp } from '../../utils/formatUtils';
+import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
 
 const ids = PerpsProOrderFormSelectorsIDs;
 const TIMEOUT_MS = 5000;
@@ -695,7 +696,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         await screen.findByTestId(
           getPerpsProTwapTerminateSelector(
-            activeTwap.providerId,
+            getTwapOrderProviderId(activeTwap),
             activeTwap.orderId,
           ),
         ),
@@ -715,7 +716,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const cardValueTestID = (baseTestID: string) =>
         getPerpsProTwapValueSelector(
           baseTestID,
-          completeTwap.providerId,
+          getTwapOrderProviderId(completeTwap),
           completeTwap.orderId,
         );
 
@@ -834,7 +835,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const fillValueTestID = (baseTestID: string) =>
         getPerpsProTwapFillValueSelector(
           baseTestID,
-          completeTwap.providerId,
+          getTwapOrderProviderId(completeTwap),
           completeTwap.orderId,
           completeTwapFill.fillId,
         );
@@ -877,7 +878,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       const { store } = renderProMarketWithTwapFlag(true);
       await openTwapManagementTab();
       const terminateTestID = getPerpsProTwapTerminateSelector(
-        activeTwap.providerId,
+        getTwapOrderProviderId(activeTwap),
         activeTwap.orderId,
       );
       expect(await screen.findByTestId(terminateTestID)).toBeOnTheScreen();
@@ -932,7 +933,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       expect(
         await screen.findByTestId(
           getPerpsProTwapTerminateSelector(
-            activeTwap.providerId,
+            getTwapOrderProviderId(activeTwap),
             activeTwap.orderId,
           ),
         ),
@@ -962,7 +963,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       renderProMarketWithTwapFlag(false);
       await openTwapManagementTab();
       const terminateTestID = getPerpsProTwapTerminateSelector(
-        activeTwap.providerId,
+        getTwapOrderProviderId(activeTwap),
         activeTwap.orderId,
       );
       const terminateButton = await screen.findByTestId(terminateTestID);
@@ -1016,7 +1017,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       await openTwapManagementTab();
       const terminateButton = await screen.findByTestId(
         getPerpsProTwapTerminateSelector(
-          activeTwap.providerId,
+          getTwapOrderProviderId(activeTwap),
           activeTwap.orderId,
         ),
       );
@@ -1065,7 +1066,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         fireEvent.press(
           await screen.findByTestId(
             getPerpsProTwapTerminateSelector(
-              activeTwap.providerId,
+              getTwapOrderProviderId(activeTwap),
               activeTwap.orderId,
             ),
           ),

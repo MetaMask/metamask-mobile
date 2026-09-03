@@ -2,12 +2,14 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { PERPS_CONSTANTS, type TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import { formatProOrderCardTimestamp } from '../../../utils/formatUtils';
+import { getTwapOrderProviderId } from '../../../utils/twapOrderUtils';
 import PerpsProTwapCard from './PerpsProTwapCard';
 
 jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
@@ -69,9 +71,10 @@ const buildTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
 });
 
 const ids = PerpsProMarketViewSelectorsIDs;
+const DEFAULT_PROVIDER_ID = PROVIDER_CONFIG.DefaultProvider;
 const DOTS_SHORT = '•'.repeat(6);
 const getDefaultValueTestID = (baseTestID: string) =>
-  getPerpsProTwapValueSelector(baseTestID, undefined, 'twap-1');
+  getPerpsProTwapValueSelector(baseTestID, DEFAULT_PROVIDER_ID, 'twap-1');
 
 describe('PerpsProTwapCard', () => {
   beforeEach(() => {
@@ -249,7 +252,7 @@ describe('PerpsProTwapCard', () => {
 
   it('offers Terminate only when a handler is supplied', () => {
     const terminateTestId = getPerpsProTwapTerminateSelector(
-      undefined,
+      DEFAULT_PROVIDER_ID,
       'twap-1',
     );
 
@@ -282,7 +285,7 @@ describe('PerpsProTwapCard', () => {
     fireEvent.press(
       screen.getByTestId(
         getPerpsProTwapTerminateSelector(
-          twapOrder.providerId,
+          DEFAULT_PROVIDER_ID,
           twapOrder.orderId,
         ),
       ),
@@ -305,7 +308,9 @@ describe('PerpsProTwapCard', () => {
 
     // Act
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector(undefined, 'twap-1')),
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector(DEFAULT_PROVIDER_ID, 'twap-1'),
+      ),
     );
 
     // Assert
@@ -345,7 +350,7 @@ describe('PerpsProTwapCard', () => {
       screen.getByTestId(
         getPerpsProTwapValueSelector(
           ids.TWAP_MARKET,
-          firstOrder.providerId,
+          getTwapOrderProviderId(firstOrder),
           firstOrder.orderId,
         ),
       ),
@@ -354,7 +359,7 @@ describe('PerpsProTwapCard', () => {
       screen.getByTestId(
         getPerpsProTwapValueSelector(
           ids.TWAP_MARKET,
-          secondOrder.providerId,
+          getTwapOrderProviderId(secondOrder),
           secondOrder.orderId,
         ),
       ),
@@ -372,7 +377,7 @@ describe('PerpsProTwapCard', () => {
       screen.getByTestId(
         getPerpsProTwapValueSelector(
           ids.TWAP_MARKET_BUTTON,
-          twapOrder.providerId,
+          DEFAULT_PROVIDER_ID,
           twapOrder.orderId,
         ),
       ),
@@ -393,7 +398,7 @@ describe('PerpsProTwapCard', () => {
     const marketButton = screen.getByTestId(
       getPerpsProTwapValueSelector(
         ids.TWAP_MARKET_BUTTON,
-        twapOrder.providerId,
+        DEFAULT_PROVIDER_ID,
         twapOrder.orderId,
       ),
     );

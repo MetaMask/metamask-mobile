@@ -43,7 +43,10 @@ import {
   formatTwapDuration,
   formatTwapProgressPercent,
 } from '../../../utils/twapFormat';
-import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
+import {
+  getTwapDirectionLabelKey,
+  getTwapOrderProviderId,
+} from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapCardProps {
   twapOrder: TwapOrder;
@@ -131,6 +134,7 @@ const PerpsProTwapCard = ({
     : TagSeverity.Danger;
   const createdAtLabel = formatProOrderCardTimestamp(twapOrder.startedAt);
   const statusLabel = strings(STATUS_LABEL_KEYS[twapOrder.status]);
+  const providerId = getTwapOrderProviderId(twapOrder);
 
   const totalSize = formatPositionSize(twapOrder.size);
   const executedSize = formatPositionSize(twapOrder.executedSize);
@@ -140,11 +144,7 @@ const PerpsProTwapCard = ({
 
   const handlePress = onPress ? () => onPress(twapOrder) : undefined;
   const getValueTestID = (baseTestID: string) =>
-    getPerpsProTwapValueSelector(
-      baseTestID,
-      twapOrder.providerId,
-      twapOrder.orderId,
-    );
+    getPerpsProTwapValueSelector(baseTestID, providerId, twapOrder.orderId);
 
   return (
     // The card owns a Terminate button, so this wrapper stays out of the
@@ -154,10 +154,7 @@ const PerpsProTwapCard = ({
       onPress={handlePress}
       disabled={!handlePress}
       accessible={false}
-      testID={getPerpsProTwapRowSelector(
-        twapOrder.providerId,
-        twapOrder.orderId,
-      )}
+      testID={getPerpsProTwapRowSelector(providerId, twapOrder.orderId)}
     >
       <Box twClassName="gap-3 py-3">
         <Pressable
@@ -341,7 +338,7 @@ const PerpsProTwapCard = ({
               onPress={() => onTerminate(twapOrder)}
               isDisabled={isTerminateDisabled}
               testID={getPerpsProTwapTerminateSelector(
-                twapOrder.providerId,
+                providerId,
                 twapOrder.orderId,
               )}
             >

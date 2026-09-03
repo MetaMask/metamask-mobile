@@ -29,7 +29,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import type { ProTwapFillRow } from '../utils/proTwapViews';
-import { getTwapDirectionLabelKey } from '../../../utils/twapOrderUtils';
+import {
+  getTwapDirectionLabelKey,
+  getTwapOrderProviderId,
+} from '../../../utils/twapOrderUtils';
 
 interface PerpsProTwapFillRowProps {
   row: ProTwapFillRow;
@@ -43,6 +46,7 @@ interface PerpsProTwapFillRowProps {
 const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
   const privacyMode = useSelector(selectPrivacyMode);
   const { fill, twapOrder } = row;
+  const providerId = getTwapOrderProviderId(twapOrder);
   const displaySymbol = getPerpsDisplaySymbol(twapOrder.symbol);
   const isBuySide = fill.side === 'buy';
   const directionLabel = strings(
@@ -54,7 +58,7 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
   const getValueTestID = (baseTestID: string) =>
     getPerpsProTwapFillValueSelector(
       baseTestID,
-      twapOrder.providerId,
+      providerId,
       twapOrder.orderId,
       fill.fillId,
     );
@@ -63,7 +67,7 @@ const PerpsProTwapFillRowItem = ({ row }: PerpsProTwapFillRowProps) => {
     <Box
       twClassName="gap-1 px-2 py-3"
       testID={getPerpsProTwapFillRowSelector(
-        twapOrder.providerId,
+        providerId,
         twapOrder.orderId,
         fill.fillId,
       )}

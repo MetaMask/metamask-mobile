@@ -1,5 +1,3 @@
-import { PROVIDER_CONFIG } from './constants/perpsConfig';
-
 // ========================================
 // PERPS CANDLESTICK CHART SELECTORS
 // ========================================
@@ -654,19 +652,19 @@ export const getPerpsProChaseTerminateSelector = (
   `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
 
 const getPerpsProTwapIdentitySelectorSuffix = (
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
-) => `${providerId ?? PROVIDER_CONFIG.DefaultProvider}-${orderId}`;
+) => `${providerId}-${orderId}`;
 
 export const getPerpsProTwapValueSelector = (
   baseTestID: string,
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
 ) =>
   `${baseTestID}-${getPerpsProTwapIdentitySelectorSuffix(providerId, orderId)}`;
 
 export const getPerpsProTwapRowSelector = (
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
 ) =>
   getPerpsProTwapValueSelector(
@@ -676,7 +674,7 @@ export const getPerpsProTwapRowSelector = (
   );
 
 export const getPerpsProTwapTerminateSelector = (
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
 ) =>
   getPerpsProTwapValueSelector(
@@ -687,14 +685,14 @@ export const getPerpsProTwapTerminateSelector = (
 
 export const getPerpsProTwapFillValueSelector = (
   baseTestID: string,
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
   fillId: string,
 ) =>
   `${getPerpsProTwapValueSelector(baseTestID, providerId, orderId)}-${fillId}`;
 
 export const getPerpsProTwapFillRowSelector = (
-  providerId: string | undefined,
+  providerId: string,
   orderId: string,
   fillId: string,
 ) =>
