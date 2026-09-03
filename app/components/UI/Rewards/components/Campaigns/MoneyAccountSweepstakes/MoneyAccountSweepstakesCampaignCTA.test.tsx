@@ -332,7 +332,7 @@ describe('MoneyAccountSweepstakesCampaignCTA', () => {
       />,
     );
 
-    expect(getByText('Join the Sweepstakes')).toBeOnTheScreen();
+    expect(getByText('Add funds')).toBeOnTheScreen();
     expect(queryByText('View official rules')).toBeNull();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(latestOptInSheetProps).toBeNull();

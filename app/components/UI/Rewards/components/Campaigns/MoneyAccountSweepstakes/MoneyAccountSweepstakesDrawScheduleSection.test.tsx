@@ -52,6 +52,7 @@ jest.mock('../../../utils/formatUtils', () => ({
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`,
+  formatCompactUsd: (value: number) => `$${value}`,
 }));
 
 jest.mock('../CampaignTile.utils', () => {
