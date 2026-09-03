@@ -14,10 +14,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import AccountCell from '../../../../component-library/components-temp/MultichainAccounts/AccountCell';
 import type { AccountAvatarVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import { strings } from '../../../../../locales/i18n';
 import {
   getManageAccountRowId,
   getManageAccountRowEyeToggleId,
+  getManageAccountRowEyeIconId,
   getManageAccountRowRemoveId,
+  getManageAccountRowRemoveIconId,
 } from '../ManageAccounts.testIds';
 
 /**
@@ -95,12 +98,12 @@ const ManageAccountRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4"
       testID={getManageAccountRowId(accountGroup.id)}
-      accessibilityElementsHidden={isHidden}
-      importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
     >
       <Box
         twClassName={`flex-1 ${isHidden ? 'opacity-50' : ''}`}
         pointerEvents={isHidden ? 'none' : 'auto'}
+        accessibilityElementsHidden={isHidden}
+        importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
       >
         <AccountCell
           accountGroup={accountGroup}
@@ -114,11 +117,16 @@ const ManageAccountRow = ({
           size={ButtonIconSize.Md}
           onPress={handleRemove}
           isDisabled={isHidden}
-          accessibilityLabel="Remove account"
+          accessibilityLabel={strings(
+            'multichain_accounts.account_details.remove_account',
+          )}
           accessibilityRole="button"
           testID={getManageAccountRowRemoveId(accountGroup.id)}
           style={tw.style(showsHideToggle ? 'mx-1' : 'ml-3')}
-          iconProps={{ color: IconColor.ErrorDefault }}
+          iconProps={{
+            color: IconColor.ErrorDefault,
+            testID: getManageAccountRowRemoveIconId(accountGroup.id),
+          }}
         />
       ) : null}
       {showsHideToggle ? (
@@ -127,10 +135,17 @@ const ManageAccountRow = ({
           size={ButtonIconSize.Md}
           onPress={handleToggleHidden}
           isDisabled={false}
-          accessibilityLabel={isHidden ? 'Unhide account' : 'Hide account'}
+          accessibilityLabel={strings(
+            isHidden
+              ? 'multichain_accounts.account_details.unhide_account'
+              : 'multichain_accounts.account_details.hide_account',
+          )}
           accessibilityRole="button"
           testID={getManageAccountRowEyeToggleId(accountGroup.id)}
           style={tw.style('ml-3')}
+          iconProps={{
+            testID: getManageAccountRowEyeIconId(accountGroup.id),
+          }}
         />
       ) : null}
     </Box>

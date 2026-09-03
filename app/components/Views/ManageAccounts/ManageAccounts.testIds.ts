@@ -14,7 +14,9 @@ export const ManageAccountsViewSelectorsIDs = {
 
 const ROW_ID_PREFIX = 'manage-accounts-row-';
 const ROW_EYE_TOGGLE_ID_PREFIX = 'manage-accounts-row-eye-toggle-';
+const ROW_EYE_ICON_ID_PREFIX = 'manage-accounts-row-eye-icon-';
 const ROW_REMOVE_ID_PREFIX = 'manage-accounts-row-remove-';
+const ROW_REMOVE_ICON_ID_PREFIX = 'manage-accounts-row-remove-icon-';
 const SECTION_HEADER_ID_PREFIX = 'manage-accounts-section-header-';
 const SECTION_HEADER_REMOVE_ID_PREFIX =
   'manage-accounts-section-header-remove-';
@@ -32,9 +34,17 @@ export const getManageAccountRowId = (groupId: string): string =>
 export const getManageAccountRowEyeToggleId = (groupId: string): string =>
   `${ROW_EYE_TOGGLE_ID_PREFIX}${groupId}`;
 
+/** Test ID for the eye / eye-slash icon inside the hide toggle. */
+export const getManageAccountRowEyeIconId = (groupId: string): string =>
+  `${ROW_EYE_ICON_ID_PREFIX}${groupId}`;
+
 /** Test ID for the remove (minus) control on a management row. */
 export const getManageAccountRowRemoveId = (groupId: string): string =>
   `${ROW_REMOVE_ID_PREFIX}${groupId}`;
+
+/** Test ID for the minus icon inside the remove control. */
+export const getManageAccountRowRemoveIconId = (groupId: string): string =>
+  `${ROW_REMOVE_ICON_ID_PREFIX}${groupId}`;
 
 /** Test ID for a wallet section header. */
 export const getManageAccountSectionHeaderId = (walletName: string): string =>

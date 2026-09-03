@@ -1,12 +1,9 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { AccountGroupId } from '@metamask/account-api';
-import {
-  Icon,
-  IconColor,
-  IconName,
-} from '@metamask/design-system-react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../util/theme';
 import { AvatarAccountType } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { AccountCellIds } from '../../../../component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import {
@@ -19,7 +16,9 @@ import ManageAccountRow, { ManageAccountRowVariant } from './ManageAccountRow';
 import {
   getManageAccountRowId,
   getManageAccountRowEyeToggleId,
+  getManageAccountRowEyeIconId,
   getManageAccountRowRemoveId,
+  getManageAccountRowRemoveIconId,
 } from '../ManageAccounts.testIds';
 
 jest.mock('@react-navigation/native', () => ({
@@ -70,12 +69,6 @@ describe('ManageAccountRow', () => {
     );
   };
 
-  const findIconByName = (
-    utils: ReturnType<typeof renderRow>,
-    name: IconName,
-  ) =>
-    utils.UNSAFE_queryAllByType(Icon).find((icon) => icon.props.name === name);
-
   describe('hide variant (entropy / HD rows)', () => {
     it('fires onToggleHidden with the inverted value on the eye of a visible row', () => {
       const onToggleHidden = jest.fn();
@@ -105,11 +98,7 @@ describe('ManageAccountRow', () => {
         onToggleHidden,
       });
 
-      fireEvent.press(
-        getByTestId(getManageAccountRowEyeToggleId(GROUP_ID), {
-          includeHiddenElements: true,
-        }),
-      );
+      fireEvent.press(getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)));
 
       expect(onToggleHidden).toHaveBeenCalledTimes(1);
       expect(onToggleHidden).toHaveBeenCalledWith(GROUP_ID, false);
@@ -124,13 +113,13 @@ describe('ManageAccountRow', () => {
 
       const eyeToggle = utils.getByTestId(
         getManageAccountRowEyeToggleId(GROUP_ID),
-        {
-          includeHiddenElements: true,
-        },
       );
 
+      const eyeIcon = utils.getByTestId(getManageAccountRowEyeIconId(GROUP_ID));
+
       expect(eyeToggle.props.accessibilityLabel).toBe('Unhide account');
-      expect(findIconByName(utils, IconName.EyeSlash)).toBeDefined();
+      expect(eyeIcon).toBeOnTheScreen();
+      expect(eyeIcon.props.name).toBe(IconName.EyeSlash);
     });
 
     it('marks a hidden row non-interactive while keeping the eye enabled', () => {
@@ -154,15 +143,24 @@ describe('ManageAccountRow', () => {
           ).length > 0,
       );
 
-      expect(row.props.accessibilityElementsHidden).toBe(true);
-      expect(row.props.importantForAccessibility).toBe('no-hide-descendants');
+      // The outer row must NOT hide its trailing actions from accessibility.
+      expect(row.props.accessibilityElementsHidden).toBeFalsy();
+      expect(row.props.importantForAccessibility).not.toBe(
+        'no-hide-descendants',
+      );
+      // The accessibility hiding is scoped to the content region only.
       expect(nonInteractiveContentRegions.length).toBeGreaterThan(0);
       expect(
-        getByTestId(getManageAccountRowEyeToggleId(GROUP_ID), {
-          includeHiddenElements: true,
-        }),
-      ).toBeEnabled();
-      expect(findIconByName(utils, IconName.EyeSlash)).toBeDefined();
+        nonInteractiveContentRegions[0].props.accessibilityElementsHidden,
+      ).toBe(true);
+      expect(
+        nonInteractiveContentRegions[0].props.importantForAccessibility,
+      ).toBe('no-hide-descendants');
+      // The eye toggle stays reachable by default (no `includeHiddenElements`).
+      expect(getByTestId(getManageAccountRowEyeToggleId(GROUP_ID))).toBeEnabled();
+      expect(
+        getByTestId(getManageAccountRowEyeIconId(GROUP_ID)),
+      ).toBeOnTheScreen();
     });
 
     it('keeps a visible row interactive outside the content region', () => {
@@ -176,11 +174,16 @@ describe('ManageAccountRow', () => {
       const nonInteractiveRegions = root.findAll(
         (node) => node.props.pointerEvents === 'none',
       );
+      const hiddenFromA11y = root.findAll(
+        (node) => node.props.accessibilityElementsHidden === true,
+      );
+      const eyeIcon = getByTestId(getManageAccountRowEyeIconId(GROUP_ID));
 
-      expect(row.props.accessibilityElementsHidden).toBe(false);
+      expect(row.props.accessibilityElementsHidden).toBeFalsy();
       expect(nonInteractiveRegions).toHaveLength(0);
-      expect(findIconByName(utils, IconName.EyeSlash)).toBeUndefined();
-      expect(findIconByName(utils, IconName.Eye)).toBeDefined();
+      expect(hiddenFromA11y).toHaveLength(0);
+      expect(eyeIcon).toBeOnTheScreen();
+      expect(eyeIcon.props.name).toBe(IconName.Eye);
     });
 
     it('renders no remove control', () => {
@@ -203,13 +206,18 @@ describe('ManageAccountRow', () => {
       const removeControl = utils.getByTestId(
         getManageAccountRowRemoveId(GROUP_ID),
       );
-      const removeIcon = findIconByName(utils, IconName.RemoveMinus);
+      const removeIcon = utils.getByTestId(
+        getManageAccountRowRemoveIconId(GROUP_ID),
+      );
 
       expect(removeControl.props.accessibilityLabel).toBe('Remove account');
       expect(removeControl.props.accessibilityRole).toBe('button');
       expect(removeControl).toBeEnabled();
-      expect(removeIcon).toBeDefined();
-      expect(removeIcon?.props.color).toBe(IconColor.ErrorDefault);
+      expect(removeIcon).toBeOnTheScreen();
+      expect(removeIcon.props.name).toBe(IconName.RemoveMinus);
+      expect(removeIcon).toHaveStyle({
+        color: mockTheme.colors.error.default,
+      });
     });
 
     it('fires onRemove with the group ID on press', () => {
@@ -249,6 +257,11 @@ describe('ManageAccountRow', () => {
         onRemove,
       });
 
+      const eyeIcon = utils.getByTestId(getManageAccountRowEyeIconId(GROUP_ID));
+      const removeIcon = utils.getByTestId(
+        getManageAccountRowRemoveIconId(GROUP_ID),
+      );
+
       expect(
         utils.getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)).props
           .accessibilityLabel,
@@ -256,8 +269,10 @@ describe('ManageAccountRow', () => {
       expect(
         utils.getByTestId(getManageAccountRowRemoveId(GROUP_ID)),
       ).toBeOnTheScreen();
-      expect(findIconByName(utils, IconName.Eye)).toBeDefined();
-      expect(findIconByName(utils, IconName.RemoveMinus)).toBeDefined();
+      expect(eyeIcon).toBeOnTheScreen();
+      expect(eyeIcon.props.name).toBe(IconName.Eye);
+      expect(removeIcon).toBeOnTheScreen();
+      expect(removeIcon.props.name).toBe(IconName.RemoveMinus);
     });
 
     it('fires each control independently', () => {
@@ -288,12 +303,11 @@ describe('ManageAccountRow', () => {
         onRemove,
       });
 
-      const eyeToggle = getByTestId(getManageAccountRowEyeToggleId(GROUP_ID), {
-        includeHiddenElements: true,
-      });
-      const removeControl = getByTestId(getManageAccountRowRemoveId(GROUP_ID), {
-        includeHiddenElements: true,
-      });
+      const eyeToggle = getByTestId(getManageAccountRowEyeToggleId(GROUP_ID));
+      const removeControl = getByTestId(
+        getManageAccountRowRemoveId(GROUP_ID),
+        { includeHiddenElements: true },
+      );
 
       expect(eyeToggle).toBeEnabled();
       expect(removeControl).toBeDisabled();

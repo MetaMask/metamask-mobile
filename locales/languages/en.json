@@ -9268,7 +9268,9 @@
       "set_up": "Set up",
       "secret_recovery_phrase": "Secret Recovery Phrase",
       "back_up": "Back up",
-      "remove_account": "Remove account"
+      "remove_account": "Remove account",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Addresses",
