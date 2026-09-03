@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { TextVariant } from '@metamask/design-system-react-native';
 import {
   ImpactMoment,
@@ -265,5 +266,15 @@ describe('PerpsProSizeInput', () => {
     expect(onAddFundsPress).not.toHaveBeenCalled();
     expect(playImpact).not.toHaveBeenCalled();
     expect(mockInputFocus).not.toHaveBeenCalled();
+  });
+
+  it('draws the size card borderless', () => {
+    renderInput();
+
+    const cardStyle = StyleSheet.flatten(
+      screen.getByTestId(PerpsProOrderFormSelectorsIDs.SIZE_CARD).props.style,
+    );
+
+    expect(cardStyle.borderWidth).toBeFalsy();
   });
 });

@@ -142,6 +142,8 @@ describe('LedgerDmk', () => {
     mockBridge.updateSessionId.mockResolvedValue(true);
     legacyLedgerKeyring = new LegacyLedgerKeyring({ bridge: mockBridge });
     ledgerKeyring = new LedgerKeyring({
+      // @ts-expect-error: Two different types with this name exist, but they
+      // are unrelated.
       legacyKeyring: legacyLedgerKeyring,
       entropySource: 'test-entropy-source',
     });

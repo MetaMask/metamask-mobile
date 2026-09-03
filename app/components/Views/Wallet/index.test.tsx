@@ -56,11 +56,28 @@ let mockPerpsEnabled = true;
 let mockPerpsGTMModalEnabled = false;
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn(() => mockPerpsEnabled),
+  selectPerpsMobileChaseEnabledFlag: jest.fn(() => false),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
   selectPerpsGtmOnboardingModalEnabledFlag: jest.fn(
     () => mockPerpsGTMModalEnabled,
   ),
   selectPerpsProModeEnabledFlag: jest.fn(() => false),
+}));
+
+jest.mock(
+  '../Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus',
+  () => ({
+    useFeatureNotificationsStatus: () => ({ isPushEnabled: true }),
+  }),
+);
+
+jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
+  usePerpsChaseOrders: () => ({
+    chaseOrders: [],
+    hasLiveChaseOrders: false,
+    isChaseOrderDiscoveryResolved: true,
+    suspendChaseOrders: jest.fn().mockResolvedValue([]),
+  }),
 }));
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
