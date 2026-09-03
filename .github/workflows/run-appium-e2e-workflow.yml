@@ -88,6 +88,11 @@ on:
         required: false
         type: number
         default: 1
+      ios-device-pool-size:
+        description: 'iOS simulator count and Playwright worker count'
+        required: false
+        type: number
+        default: 1
 
 permissions:
   contents: read
@@ -130,6 +135,7 @@ jobs:
       # This intentionally invalidates the old 8-core cache once.
       ANDROID_EMULATOR_CI_CORES: '4'
       ANDROID_DEVICE_POOL_SIZE: ${{ inputs.android-device-pool-size }}
+      IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
 
     steps:
       - name: Checkout (Namespace)
@@ -457,6 +463,7 @@ jobs:
         timeout-minutes: 30
         run: node scripts/e2e/prepare-ios-appium-runner.mjs
         env:
+          IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
           IOS_SIMULATOR_NAME: iPhone 16 Pro
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_BUNDLE_ID: io.metamask.MetaMask
@@ -468,6 +475,8 @@ jobs:
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
         env:
+          IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
+          IOS_DEVICE_POOL: ${{ steps.prepare-ios-appium.outputs.ios-device-pool }}
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
 
       - name: Run Appium smoke tests (Android)
@@ -540,6 +549,8 @@ jobs:
           SKIP_APPIUM_STOP: 'true'
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
+          IOS_DEVICE_POOL: ${{ steps.prepare-ios-appium.outputs.ios-device-pool }}
           IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
           IOS_WDA_PREINSTALLED: ${{ steps.prepare-ios-appium.outputs.ios-wda-preinstalled }}
           IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
@@ -548,18 +559,39 @@ jobs:
           USE_PREBUILT_WDA: 'true'
           IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
           IOS_PRE_LAUNCH_SETTLE_MS: '1500'
+          E2E_WORKERS: ${{ inputs.ios-device-pool-size }}
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
+          echo "iOS device pool size=${IOS_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
           read -r -a specs <<< "${SPEC_FILES}"
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project ios-smoke \
             --grep "${{ inputs.test_suite_tag }}" \
             --pass-with-no-tests
+
+      - name: Record iOS device pool impact
+        if: ${{ inputs.platform == 'ios' && always() && steps.run-tests-ios.outcome != 'skipped' }}
+        run: |
+          set -euo pipefail
+          report='tests/test-reports/playwright-json/playwright-report.json'
+          duration_ms='n/a'
+          if [[ -f "$report" ]]; then
+            duration_ms="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(r.stats?.duration ?? "n/a"));' "$report")"
+          fi
+          {
+            echo "### iOS device pool"
+            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- pool size / workers: ${{ inputs.ios-device-pool-size }}"
+            echo "- Playwright outcome: ${{ steps.run-tests-ios.outcome }}"
+            echo "- Playwright duration_ms: ${duration_ms}"
+            echo
+            echo "Compare this job wall clock and Namespace CPU/RAM to the same suite on main (N=1)."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Write / merge Appium shard status (for re-runs)
         if: ${{ always() && (steps.run-tests-android.outcome == 'success' || steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'success' || steps.run-tests-ios.outcome == 'failure') }}
