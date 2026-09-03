@@ -90,9 +90,14 @@ const PerformanceProfilerStatus: React.FC = () => {
   const handleStart = useCallback(() => {
     setStartAcked(true);
     setStopAcked(false);
-    startAppProfiling().catch(() => {
-      // Errors are published via subscribeAppProfilingStatus (error hook).
-    });
+    // Yield to the event loop so setStartAcked renders before startProfiling()
+    // runs — startProfiling() is synchronous and can block the JS thread on
+    // cold start, which would otherwise delay the start-ack element appearing.
+    setTimeout(() => {
+      startAppProfiling().catch(() => {
+        // Errors are published via subscribeAppProfilingStatus (error hook).
+      });
+    }, 0);
   }, []);
 
   const handleStop = useCallback(() => {

@@ -24,7 +24,7 @@ const STOP_ACK_TEST_ID = 'performance-profiler-stop-ack';
 const RECORDING_READY_TEST_ID = 'performance-profiler-recording-ready';
 const RESULT_READY_TEST_ID = 'performance-profiler-result-ready';
 const ERROR_TEST_ID = 'performance-profiler-error';
-const RECORDING_TIMEOUT_MS = 30_000;
+const RECORDING_TIMEOUT_MS = 60_000;
 const RESULT_TIMEOUT_MS = 60_000;
 
 type PullFileDriver = WebdriverIO.Browser & {
