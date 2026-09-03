@@ -17,6 +17,12 @@ import { ensureError } from '../utils/predictErrorHandler';
 
 export interface UsePredictActivityOptions {
   limit?: number;
+  /**
+   * When false, skip the activity fetch. Used to keep hidden history tabs
+   * from hitting `getActivity` on mount (PredictPositionsView keeps both
+   * tab contents mounted).
+   */
+  enabled?: boolean;
 }
 
 export interface UsePredictActivityResult
@@ -30,6 +36,7 @@ export interface UsePredictActivityResult
 
 export function usePredictActivity({
   limit = PREDICT_ACTIVITY_PAGE_SIZE,
+  enabled = true,
 }: UsePredictActivityOptions = {}): UsePredictActivityResult {
   type PredictActivityQueryKey = ReturnType<
     typeof predictQueries.activity.keys.byAddress
@@ -42,12 +49,15 @@ export function usePredictActivity({
   const address = evmAccount?.address;
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     ensurePolygonNetworkExists().catch(() => undefined);
-  }, [ensurePolygonNetworkExists]);
+  }, [enabled, ensurePolygonNetworkExists]);
 
   const queryResult = useInfiniteQuery({
     ...predictQueries.activity.options({ address: address ?? '', limit }),
-    enabled: Boolean(address),
+    enabled: enabled && Boolean(address),
   });
 
   const activity = useMemo(() => {

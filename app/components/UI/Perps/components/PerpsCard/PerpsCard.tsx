@@ -9,6 +9,7 @@ import {
   ListItemVariant,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -23,16 +24,13 @@ import {
   PERPS_EVENT_PROPERTY,
   type Order,
   type PerpsMarketData,
-  type Position,
 } from '@metamask/perps-controller';
 import {
   formatPerpsFiat,
   formatPositionSize,
-  formatPnl,
-  formatPercentage,
-  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { getPerpsPositionHeaderDisplay } from '../../utils/positionDisplay';
 import {
   formatOrderLabel,
   resolveOrderDisplayPriceAndLabel,
@@ -44,14 +42,6 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
-interface PositionListDisplay {
-  title: string;
-  description: string;
-  valueText: string;
-  subvalueText: string;
-  subvalueColor: TextColor;
-}
-
 interface OrderListDisplay {
   title: string;
   description: string;
@@ -59,30 +49,6 @@ interface OrderListDisplay {
   subvalueText: string;
   subvalueColor: TextColor;
 }
-
-const getPositionListDisplay = (position: Position): PositionListDisplay => {
-  const isLong = parseFloat(position.size) > 0;
-  const displaySymbol = getPerpsDisplaySymbol(position.symbol);
-  const absoluteSize = Math.abs(parseFloat(position.size));
-  const directionLower = isLong
-    ? strings('perps.market.long_lowercase')
-    : strings('perps.market.short_lowercase');
-
-  const pnlValue = parseFloat(position.unrealizedPnl);
-  const roeValue = parseFloat(position.returnOnEquity) * 100;
-
-  return {
-    // Match main: leverage lives in the title string (e.g. "ETH 3x long")
-    title: `${displaySymbol} ${position.leverage.value}x ${directionLower}`,
-    description: `${formatPositionSize(absoluteSize.toString())} ${displaySymbol}`,
-    valueText: formatPerpsFiat(position.positionValue, {
-      ranges: PRICE_RANGES_MINIMAL_VIEW,
-    }),
-    subvalueText: `${formatPnl(pnlValue)} (${formatPercentage(roeValue, 1)})`,
-    subvalueColor:
-      pnlValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-  };
-};
 
 const getOrderListDisplay = (order: Order): OrderListDisplay => {
   const displaySymbol = getPerpsDisplaySymbol(order.symbol);
@@ -129,7 +95,9 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
 
   const symbol = position?.symbol || order?.symbol || '';
 
-  const positionDisplay = position ? getPositionListDisplay(position) : null;
+  const positionDisplay = position
+    ? getPerpsPositionHeaderDisplay(position)
+    : null;
   const orderDisplay = order ? getOrderListDisplay(order) : null;
 
   const handlePress = useCallback(() => {
@@ -182,7 +150,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     return null;
   }
 
-  const title = positionDisplay?.title ?? orderDisplay?.title ?? '';
+  const title = positionDisplay?.displaySymbol ?? orderDisplay?.title ?? '';
   const descriptionNode = (
     <SensitiveText
       variant={TextVariant.BodySm}
@@ -198,17 +166,21 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     <SensitiveText
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
-      color={TextColor.TextDefault}
+      color={
+        privacyMode && position
+          ? TextColor.TextDefault
+          : (positionDisplay?.pnlColor ?? TextColor.TextDefault)
+      }
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
     >
-      {positionDisplay?.valueText ?? orderDisplay?.valueText ?? ''}
+      {positionDisplay?.pnlText ?? orderDisplay?.valueText ?? ''}
     </SensitiveText>
   );
   const subvalueColor =
     privacyMode && position
       ? TextColor.TextDefault
-      : (positionDisplay?.subvalueColor ??
+      : (positionDisplay?.pnlColor ??
         orderDisplay?.subvalueColor ??
         TextColor.TextDefault);
   const subvalueNode = position ? (
@@ -219,7 +191,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
       isHidden={privacyMode}
       length={SensitiveTextLength.Short}
     >
-      {positionDisplay?.subvalueText ?? ''}
+      {positionDisplay?.roeText ?? ''}
     </SensitiveText>
   ) : (
     <Text
@@ -231,14 +203,29 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
     </Text>
   );
 
+  // TAT-3776's Figma position row uses 8px vertical padding. Reset the
+  // ListItem minimum so its 40px avatar determines the row height.
+  const rowClassName = position ? 'min-h-0 py-2' : undefined;
+
   return (
     <ListItem
       isInteractive
       variant={ListItemVariant.TwoLines}
+      twClassName={rowClassName}
       avatar={
         symbol ? <PerpsTokenLogo symbol={symbol} size={iconSize} /> : undefined
       }
       title={title}
+      titleEndAccessory={
+        positionDisplay ? (
+          <Tag
+            severity={positionDisplay.directionSeverity}
+            testID={testID ? `${testID}-direction-tag` : undefined}
+          >
+            {positionDisplay.directionLabel}
+          </Tag>
+        ) : undefined
+      }
       description={descriptionNode}
       value={valueNode}
       subvalue={subvalueNode}
@@ -266,7 +253,7 @@ const PerpsCardWithMarketLookup: React.FC<PerpsCardProps> = (props) => {
  * PerpsCard Component
  *
  * A unified list row for positions and orders on the Perps home tab.
- * Uses MMDS ListItem defaults (including horizontal padding).
+ * Uses MMDS ListItem defaults, with compact position spacing from TAT-3776.
  *
  * When `onPress` is provided, stream/market lookup is skipped so the card can
  * render outside PerpsStreamProvider (e.g. Asset overview).

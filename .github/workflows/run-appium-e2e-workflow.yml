@@ -83,6 +83,11 @@ on:
         required: false
         type: boolean
         default: true
+      android-device-pool-size:
+        description: 'Android emulator count and Playwright worker count'
+        required: false
+        type: number
+        default: 1
 
 permissions:
   contents: read
@@ -121,7 +126,10 @@ jobs:
       ANDROID_SYSTEM_IMAGE_API_LEVEL: '36'
       ANDROID_SYSTEM_IMAGE_TAG: ${{ inputs.android-tag }}
       ANDROID_SYSTEM_IMAGE_ABI: x86_64
-      ANDROID_EMULATOR_CI_CORES: '8'
+      # Shared golden strategy: prime and every shard use the 4-core shape.
+      # This intentionally invalidates the old 8-core cache once.
+      ANDROID_EMULATOR_CI_CORES: '4'
+      ANDROID_DEVICE_POOL_SIZE: ${{ inputs.android-device-pool-size }}
 
     steps:
       - name: Checkout (Namespace)
@@ -482,18 +490,40 @@ jobs:
           ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
           ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
           ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
+          E2E_WORKERS: ${{ inputs.android-device-pool-size }}
           # Required for Anvil mainnet forks (SmokeStake and other fork-based suites).
           MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
           # Disable retries for fixture validation — failures must surface immediately. - Otherwise it will fall back to playwright config default
           APPIUM_RETRIES_OVERRIDE: ${{ inputs.test_suite_tag == 'FixtureValidation' && '0' || '' }}
         run: |
           set -euo pipefail
+          echo "Android device pool size=${ANDROID_DEVICE_POOL_SIZE} workers=${E2E_WORKERS}"
           read -r -a specs <<< "${SPEC_FILES}"
           yarn playwright test "${specs[@]}" \
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
             --grep "${{ inputs.test_suite_tag }}" \
             --pass-with-no-tests
+
+      - name: Record Android device pool impact
+        if: ${{ inputs.platform == 'android' && always() && steps.run-tests-android.outcome != 'skipped' }}
+        run: |
+          set -euo pipefail
+          report='tests/test-reports/playwright-json/playwright-report.json'
+          duration_ms='n/a'
+          if [[ -f "$report" ]]; then
+            duration_ms="$(node -e 'const fs=require("fs"); const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(r.stats?.duration ?? "n/a"));' "$report")"
+          fi
+          {
+            echo "### Android device pool"
+            echo "- suite: \`${{ inputs.test-suite-name }}\`"
+            echo "- pool size / workers: ${{ inputs.android-device-pool-size }}"
+            echo "- boot mode: \`${{ inputs.android-emulator-boot-mode }}\`"
+            echo "- Playwright outcome: ${{ steps.run-tests-android.outcome }}"
+            echo "- Playwright duration_ms: ${duration_ms}"
+            echo
+            echo "Compare this job wall clock and Namespace CPU/RAM to the same suite on main (N=1)."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run Appium smoke tests (iOS)
         id: run-tests-ios

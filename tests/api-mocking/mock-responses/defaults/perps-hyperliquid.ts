@@ -23,9 +23,19 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
   ],
   POST: [
     {
+      // Must include statuses — HyperLiquidProvider reads resting/filled oid.
+      // Bare `{ status: 'ok' }` surfaces as Order failed in the UI.
       urlEndpoint: hyperliquidExchangeEndpoint,
       responseCode: 200,
-      response: { status: 'ok' },
+      response: {
+        status: 'ok',
+        response: {
+          type: 'order',
+          data: {
+            statuses: [{ resting: { oid: 100001 } }],
+          },
+        },
+      },
       priority: hyperliquidMockPriority,
     },
     {
