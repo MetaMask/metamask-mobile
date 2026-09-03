@@ -79,9 +79,9 @@ jobs:
     runs-on: >-
       ${{
         ((inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_ANDROID) ||
-         vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         'namespace') == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
-        (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
+        (inputs.platform == 'ios' && 'macos-15' || 'ubuntu-latest')
       }}
     # github_environment of main-rc in builds.yml; see the build_name input.
     environment: build-rc
@@ -89,7 +89,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           (inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_ANDROID) ||
-          vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          'namespace'
         }}
       ARTIFACT_NAME: ${{ inputs.platform == 'ios' && format('ios-ipa-{0}', inputs.build_name) || format('android-apk-{0}', inputs.build_name) }}
     outputs:

@@ -178,7 +178,7 @@ jobs:
 
   update-fixtures:
     name: Export & update fixtures
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
+    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-e2e' || 'macos-15' }}
     timeout-minutes: 45
     permissions:
       actions: write

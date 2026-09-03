@@ -40,7 +40,6 @@ on:
         options:
           - inherit
           - namespace
-          - current
         default: inherit
       force_build:
         description: Force a fresh build even if the fingerprint is unchanged

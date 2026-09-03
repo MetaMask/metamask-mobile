@@ -56,27 +56,26 @@ on:
 jobs:
   build-android-apks:
     name: Build Android E2E APKs
-    # The current arm uses the 48 GB Cirrus runner with lower priority outside releases.
+    # Namespace is the supported runner for Android E2E builds. GitHub-hosted labels are
+    # retained only as a defensive fallback for explicitly overridden provider values.
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_ANDROID || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-android-build' ||
-        (startsWith(github.base_ref, 'release/') &&
-         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-         fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
+        'ubuntu-latest'
       }}
     timeout-minutes: 40
     env:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_ANDROID || 'namespace'
         }}
       GRADLE_USER_HOME: >-
         ${{
           (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-           vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+           vars.NAMESPACE_RUNNER_ANDROID || 'namespace') == 'namespace' &&
           '/home/runner/_work/.gradle' || '/home/admin/_work/.gradle'
         }}
       CACHE_GENERATION: v1 # Increment this to bust the cache (v1, v2, v3, etc.)
@@ -228,7 +227,7 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && inputs.reuse-main-builds-only != true }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -239,7 +238,7 @@ jobs:
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false && (inputs.reuse-main-builds-only == true || (steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -431,7 +430,7 @@ jobs:
       #
       # Deliberately placed *before* the Gradle cache restores rather than directly
       # before the build, which is where the iOS equivalent sits. "Restore Gradle
-      # dependencies from branch cache" below is `cirruslabs/cache` (not `/restore`),
+      # dependencies from branch cache" below is `actions/cache` (not `/restore`),
       # so it saves at post-job whenever its key missed. Today a miss is always
       # followed by a compile, so what it saves is populated; if a late reuse could
       # skip the compile after that step had run, the post-job save would write a
@@ -570,12 +569,12 @@ jobs:
 
       # Skipped on Namespace runners because the Namespace cache action above
       # already handles `${GRADLE_USER_HOME}/caches` and `wrapper` — running
-      # cirruslabs/cache on top of it would be redundant work and a redundant
+      # actions/cache on top of it would be redundant work and a redundant
       # save at end of run.
       - name: Restore Gradle dependencies from branch cache
         id: gradle-cache-restore
         # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
@@ -590,7 +589,7 @@ jobs:
 
       - name: Restore Gradle dependencies from main cache
         # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
         env:
           GRADLE_CACHE_VERSION: 1
@@ -704,8 +703,8 @@ jobs:
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          METRO_MAX_WORKERS: '6'
+          NODE_OPTIONS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '--max-old-space-size=8192' || '--max-old-space-size=4096' }}
+          METRO_MAX_WORKERS: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '6' || '4' }}
           RAMP_INTERNAL_BUILD: 'true'
           SEEDLESS_ONBOARDING_ENABLED: 'true'
           MM_NOTIFICATIONS_UI_ENABLED: 'true'

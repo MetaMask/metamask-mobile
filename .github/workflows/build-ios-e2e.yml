@@ -47,11 +47,13 @@ jobs:
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-         vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+         vars.NAMESPACE_RUNNER_IOS || 'namespace') == 'namespace' &&
         'namespace-profile-metamask-ios-build' ||
-        (startsWith(github.base_ref, 'release/') &&
-         fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl"]') ||
-         fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe-xl", "low-priority"]'))
+        inputs.runner_provider == 'bitrise' &&
+        (vars.BITRISE_BUILD_MACHINE_TYPE != '' &&
+         fromJSON(format('["bitrise_pool_name:bitrise-metamask-ios-build","{0}"]', vars.BITRISE_BUILD_MACHINE_TYPE)) ||
+         'bitrise_pool_name:bitrise-metamask-ios-build') ||
+        'macos-15'
       }}
     outputs:
       artifacts-url: ${{ steps.set-artifacts-url.outputs.artifacts-url }}
@@ -61,7 +63,7 @@ jobs:
       RESOLVED_RUNNER_PROVIDER: >-
         ${{
           inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
-          vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+          vars.NAMESPACE_RUNNER_IOS || 'namespace'
         }}
       IOS_APP_CACHE_VERSION: 2
       XCODE_CACHE_VERSION: 1
@@ -235,7 +237,7 @@ jobs:
         id: ios-app-cache-restore
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && inputs.reuse-main-builds-only != true }}
         # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -245,7 +247,7 @@ jobs:
         id: ios-app-cache-restore-main
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.source-fingerprint != '' && (inputs.reuse-main-builds-only == true || (steps.ios-app-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main')) }}
         # This will only restore the cache, not update it
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ios/build/Build/Products/Release-iphonesimulator/MetaMask.app
@@ -297,7 +299,7 @@ jobs:
         id: xcode-restore-cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' }}
         # This action automatically updates the cache at the end of the workflow
-        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -307,7 +309,7 @@ jobs:
       - name: Restore Xcode derived data from main cache
         if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.gate.outputs.needs-native-build == 'true' && steps.xcode-restore-cache.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         id: xcode-restore-cache-main
-        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: |
             ~/Library/Developer/Xcode/DerivedData
@@ -867,7 +869,7 @@ jobs:
           echo "Upload Status Summary:"
           echo "- APP (Simulator): namespace=${{ steps.upload-app-namespace.outcome }} github=${{ steps.upload-app.outcome }}"
           echo "- Build metadata: namespace=${{ steps.upload-metadata-namespace.outcome }} github=${{ steps.upload-metadata.outcome }}"
-          echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} current=${{ steps.upload-sourcemap.outcome }}"
+          echo "- Source Map: namespace=${{ steps.upload-sourcemap-namespace.outcome }} github=${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: '${{ github.repository }}'
