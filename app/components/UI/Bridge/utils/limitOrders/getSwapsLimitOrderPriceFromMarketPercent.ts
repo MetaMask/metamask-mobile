@@ -1,8 +1,6 @@
 import { BigNumber } from 'bignumber.js';
-import {
-  formatFiatInputAmount,
-  formatTokenInputAmountFromFiat,
-} from '../sourceAmountInputMode';
+import { formatTokenInputAmountFromFiat } from '../sourceAmountInputMode';
+import { formatLimitOrderFiatPrice } from './formatLimitOrderFiatPrice';
 
 /**
  * Snapshot of the quoted-token market price after applying a signed percent
@@ -33,10 +31,7 @@ export const getSwapsLimitOrderPriceFromMarketPercent = ({
     return undefined;
   }
 
-  const adjustedFiatAmount = formatFiatInputAmount(
-    '1',
-    adjustedMarketFiat.toNumber(),
-  );
+  const adjustedFiatAmount = formatLimitOrderFiatPrice(adjustedMarketFiat);
 
   if (isLimitFiatMode) {
     return adjustedFiatAmount;

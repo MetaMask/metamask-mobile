@@ -17,8 +17,8 @@ type RemoteFeatureFlagControllerInstanceOptions =
   WalletOptions['instanceOptions']['remoteFeatureFlagController'];
 
 /**
- * @param options.messenger - Root messenger; resolves the MetaMetrics id from
- * `AnalyticsController` lazily at fetch time.
+ * @param options.messenger - Root messenger; resolves the MetaMetrics id and
+ * canonical profile id lazily at fetch / init time.
  * @param options.state - Initial wallet state; `prevClientVersion` is read from
  * the persisted `AppMetadataController` so the controller can invalidate cached
  * flags when the client version changes between sessions.
@@ -39,8 +39,28 @@ export function getRemoteFeatureFlagControllerInstanceOptions({
         distribution: getFeatureFlagAppDistribution(),
       },
     }),
+    // Apply default feature flag values here.
+    defaultFeatureFlags: {
+      // Example:
+      // 'feature-flag-name': true,
+    },
+    // Flags that are used in flows prior to authentication should be added here.
+    metaMetricsFlags: [
+      // Example:
+      // 'feature-flag-name',
+    ],
     getMetaMetricsId: () =>
       messenger.call('AnalyticsController:getState').analyticsId,
+    getCanonicalProfileId: () => {
+      const { srpSessionData } = messenger.call(
+        'AuthenticationController:getState',
+      );
+
+      return (
+        Object.entries(srpSessionData ?? {})?.[0]?.[1]?.profile
+          ?.canonicalProfileId ?? ''
+      );
+    },
     clientVersion: getBaseSemVerVersion(),
     fetchInterval: __DEV__
       ? 1000

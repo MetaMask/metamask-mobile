@@ -151,54 +151,6 @@ describe('useMMPayHardwareAccountAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for Ledger wallet on mUSD conversion when feature flag is disabled', () => {
-    isHardwareAccountMock.mockReturnValue(true);
-    isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(HARDWARE_PAY_DISABLED);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.musdConversion,
-      txParams: {
-        from: HARDWARE_ADDRESS,
-      },
-    } as TransactionMeta);
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual([EXPECTED_ALERT]);
-  });
-
-  it('returns no alert for Ledger wallet on mUSD conversion when feature flag is enabled', () => {
-    isHardwareAccountMock.mockReturnValue(true);
-    isQRHardwareAccountMock.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.musdConversion,
-      txParams: {
-        from: HARDWARE_ADDRESS,
-      },
-    } as TransactionMeta);
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('returns alert for QR wallet on mUSD conversion even when feature flag is enabled', () => {
-    isHardwareAccountMock.mockReturnValue(true);
-    isQRHardwareAccountMock.mockReturnValue(true);
-    useSelectorMock.mockReturnValue(HARDWARE_PAY_ENABLED);
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.musdConversion,
-      txParams: {
-        from: HARDWARE_ADDRESS,
-      },
-    } as TransactionMeta);
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual([EXPECTED_ALERT]);
-  });
-
   it('returns no alert for Ledger paying account on money account deposit when feature flag is enabled', () => {
     isHardwareAccountMock.mockImplementation(
       (address) => address === OVERRIDE_ADDRESS,

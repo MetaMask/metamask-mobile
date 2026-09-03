@@ -1,4 +1,7 @@
+import { BigNumber } from 'bignumber.js';
+import { LimitOrderExecutionType } from '../../constants/limitOrders';
 import { getSwapsLimitOrderPriceFromMarketPercent } from './getSwapsLimitOrderPriceFromMarketPercent';
+import { getSwapsLimitOrderPriceMarketComparison } from './getSwapsLimitOrderPriceMarketComparison';
 
 const tokenModeDefaults = {
   counterFiatRate: 2000,
@@ -81,6 +84,28 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
 
       expect(result).toBe('95');
     });
+
+    it('keeps sub-dollar market fiat so market compares as zero percent', () => {
+      const marketFiat = 0.10298176120674981;
+
+      const result = getSwapsLimitOrderPriceFromMarketPercent({
+        counterFiatRate: 2448.4,
+        counterTokenDecimals: 18,
+        isLimitFiatMode: true,
+        marketFiat,
+        signedPercent: 0,
+      });
+
+      expect(result).not.toBe('0.1');
+      expect(
+        getSwapsLimitOrderPriceMarketComparison({
+          limitFiat: result,
+          marketFiat,
+          executionType: LimitOrderExecutionType.BUY,
+          threshold: 0,
+        }),
+      ).toBeUndefined();
+    });
   });
 
   describe('token limit price mode', () => {
@@ -109,6 +134,31 @@ describe('getSwapsLimitOrderPriceFromMarketPercent', () => {
       });
 
       expect(result).toBe('0.0475');
+    });
+
+    it('does not round sub-dollar market through two-decimal fiat in token mode', () => {
+      const marketFiat = 0.10298176120674981;
+      const counterFiatRate = 2448.4;
+
+      const result = getSwapsLimitOrderPriceFromMarketPercent({
+        counterFiatRate,
+        counterTokenDecimals: 18,
+        isLimitFiatMode: false,
+        marketFiat,
+        signedPercent: 0,
+      });
+
+      expect(result).not.toBe('0.00004');
+      expect(
+        getSwapsLimitOrderPriceMarketComparison({
+          limitFiat: new BigNumber(result ?? 0)
+            .multipliedBy(counterFiatRate)
+            .toString(),
+          marketFiat,
+          executionType: LimitOrderExecutionType.BUY,
+          threshold: 0,
+        }),
+      ).toBeUndefined();
     });
 
     it('returns undefined when counter fiat rate is unavailable', () => {

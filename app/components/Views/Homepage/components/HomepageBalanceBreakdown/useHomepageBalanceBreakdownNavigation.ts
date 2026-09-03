@@ -58,7 +58,7 @@ export function useHomepageBalanceBreakdownNavigation({
 
       switch (key) {
         case 'money':
-          navigateToMoneyHome(analyticsContext);
+          navigateToMoneyHome({ analyticsContext });
           break;
         case 'tokens':
           navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, {

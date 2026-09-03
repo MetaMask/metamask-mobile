@@ -31,6 +31,7 @@ import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
+import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
@@ -43,9 +44,10 @@ import {
   getChartLimitOrderLines,
 } from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import PerpsCandlePeriodSelector, {
-  type PerpsCandlePeriodOption,
-} from '../../../components/PerpsCandlePeriodSelector/PerpsCandlePeriodSelector';
+import {
+  CandlePeriodSelector,
+  type CandlePeriodOption,
+} from '../../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
@@ -73,13 +75,16 @@ const PRO_CANDLE_PERIODS = [
   { label: '15m', value: CandlePeriod.FifteenMinutes },
   { label: '1h', value: CandlePeriod.OneHour },
   { label: '1d', value: CandlePeriod.OneDay },
-] as const satisfies readonly PerpsCandlePeriodOption[];
+] as const satisfies readonly CandlePeriodOption[];
 
 interface PerpsProChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
   isAdvancedChartEnabled: boolean;
+  configuredChartLibrary: string;
   effectiveChartLibrary: string;
+  marketContextKey: string;
+  isMarketContextReady: boolean;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
   onChartError: (error?: Error | string) => void;
@@ -90,6 +95,12 @@ interface PerpsProChartPanelProps {
   currentPrice: number;
   /** Forwards Advanced Chart latest-bar close into `usePerpsSyncedChartPrice`. */
   onLatestPriceChange?: (price: number | undefined) => void;
+  onResolvedStateChange?: (
+    symbol: string,
+    state: PerpsMarketDetailSectionState,
+    contextKey: string,
+  ) => void;
+  onFreshDelivery?: () => void;
 }
 
 /**
@@ -99,12 +110,17 @@ const PerpsProChartPanel = ({
   symbol,
   selectedCandlePeriod,
   isAdvancedChartEnabled,
+  configuredChartLibrary,
   effectiveChartLibrary,
+  marketContextKey,
+  isMarketContextReady,
   onCandlePeriodChange,
   onMorePress,
   onChartError,
   currentPrice,
   onLatestPriceChange,
+  onResolvedStateChange,
+  onFreshDelivery,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -115,6 +131,7 @@ const PerpsProChartPanel = ({
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
+  const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
   // reported close. Symbol/period/flag resets are owned by
@@ -130,13 +147,97 @@ const PerpsProChartPanel = ({
     [effectiveChartLibrary],
   );
 
-  const { candleData, hasHistoricalData, fetchMoreHistory } =
-    usePerpsLiveCandles({
-      symbol,
-      interval: selectedCandlePeriod,
-      duration: TimeDuration.YearToDate,
-      throttleMs: 1000,
-    });
+  const {
+    candleData,
+    isLoading,
+    hasHistoricalData,
+    fetchMoreHistory,
+    deliveryRevision = 0,
+  } = usePerpsLiveCandles({
+    symbol,
+    interval: selectedCandlePeriod,
+    duration: TimeDuration.YearToDate,
+    throttleMs: 1000,
+    resetKey: marketContextKey,
+    enabled: isMarketContextReady,
+  });
+  const previousDeliveryRevisionRef = useRef(deliveryRevision);
+  useEffect(() => {
+    if (
+      effectiveChartLibrary !== PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED &&
+      deliveryRevision > previousDeliveryRevisionRef.current
+    ) {
+      onFreshDelivery?.();
+    }
+    previousDeliveryRevisionRef.current = deliveryRevision;
+  }, [deliveryRevision, effectiveChartLibrary, onFreshDelivery]);
+  useEffect(() => {
+    if (!isMarketContextReady) {
+      setOhlcData(null);
+      setIsFullscreenChartVisible(false);
+    }
+  }, [isMarketContextReady, marketContextKey]);
+
+  useEffect(() => {
+    if (!isChartExpanded) {
+      onResolvedStateChange?.(symbol, 'not_applicable', chartContextKey);
+      return;
+    }
+    onResolvedStateChange?.(symbol, 'loading', chartContextKey);
+  }, [
+    chartContextKey,
+    isAdvancedChartEnabled,
+    isChartExpanded,
+    isMarketContextReady,
+    onResolvedStateChange,
+    selectedCandlePeriod,
+    symbol,
+  ]);
+
+  useEffect(() => {
+    if (
+      isChartExpanded &&
+      isMarketContextReady &&
+      !isAdvancedChartEnabled &&
+      candleData?.symbol === symbol &&
+      candleData.interval === selectedCandlePeriod &&
+      !isLoading
+    ) {
+      onResolvedStateChange?.(
+        symbol,
+        hasHistoricalData ? 'content' : 'empty',
+        chartContextKey,
+      );
+    }
+  }, [
+    candleData?.interval,
+    candleData?.symbol,
+    chartContextKey,
+    hasHistoricalData,
+    isAdvancedChartEnabled,
+    isChartExpanded,
+    isLoading,
+    isMarketContextReady,
+    onResolvedStateChange,
+    selectedCandlePeriod,
+    symbol,
+  ]);
+
+  const handleAdvancedChartResolved = useCallback(
+    (
+      resolvedSeriesKey: string,
+      state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>,
+    ) => {
+      const expectedSeriesKey = `${symbol}|${selectedCandlePeriod}`;
+      if (
+        resolvedSeriesKey === expectedSeriesKey ||
+        resolvedSeriesKey.startsWith(`${expectedSeriesKey}|`)
+      ) {
+        onResolvedStateChange?.(symbol, state, chartContextKey);
+      }
+    },
+    [chartContextKey, onResolvedStateChange, selectedCandlePeriod, symbol],
+  );
   const { existingPosition } = useHasExistingPosition({
     asset: symbol,
     loadOnMount: true,
@@ -201,10 +302,17 @@ const PerpsProChartPanel = ({
     });
   }, [chartAnalyticsProperties, symbol, track]);
 
-  let chartContent: React.ReactNode;
-  if (isAdvancedChartEnabled) {
+  let chartContent: React.ReactNode = (
+    <Skeleton
+      height={PRO_CHART_HEIGHT}
+      width="100%"
+      testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
+    />
+  );
+  if (isMarketContextReady && isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
+        key={`${symbol}|${marketContextKey}`}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}
@@ -214,13 +322,21 @@ const PerpsProChartPanel = ({
         szDecimals={marketData?.szDecimals}
         onCrosshairDataChange={setOhlcData}
         onLatestPriceChange={onLatestPriceChange}
+        onResolved={handleAdvancedChartResolved}
+        onFreshDelivery={onFreshDelivery}
         onError={onChartError}
         fallbackCandleData={candleData}
+        fallbackDeliveryRevision={deliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
         paginationDuration={TimeDuration.YearToDate}
       />
     );
-  } else if (hasHistoricalData) {
+  } else if (
+    isMarketContextReady &&
+    candleData?.symbol === symbol &&
+    candleData.interval === selectedCandlePeriod &&
+    !isLoading
+  ) {
     chartContent = (
       <TradingViewChart
         ref={chartRef}
@@ -234,14 +350,6 @@ const PerpsProChartPanel = ({
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
         testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
-      />
-    );
-  } else {
-    chartContent = (
-      <Skeleton
-        height={PRO_CHART_HEIGHT}
-        width="100%"
-        testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
       />
     );
   }
@@ -287,7 +395,7 @@ const PerpsProChartPanel = ({
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
               >
-                <PerpsCandlePeriodSelector
+                <CandlePeriodSelector
                   selectedPeriod={selectedCandlePeriod}
                   onPeriodChange={onCandlePeriodChange}
                   onMorePress={onMorePress}
@@ -317,7 +425,7 @@ const PerpsProChartPanel = ({
                 onError={onChartError}
               >
                 <Box twClassName="relative flex-1">
-                  {ohlcData ? (
+                  {isMarketContextReady && ohlcData ? (
                     <Box twClassName="absolute left-0 right-0 top-0 z-10">
                       <PerpsOHLCVBar
                         open={ohlcData.open}
@@ -346,20 +454,22 @@ const PerpsProChartPanel = ({
           PerpsProMarketViewSelectorsIDs.CHART_SERVICE_INTERRUPTION_BANNER
         }
       />
-      <PerpsChartFullscreenModal
-        isVisible={isFullscreenChartVisible}
-        candleData={candleData}
-        tpslLines={tpslLines}
-        selectedInterval={selectedCandlePeriod}
-        visibleCandleCount={visibleCandleCount}
-        onClose={() => setIsFullscreenChartVisible(false)}
-        onIntervalChange={onCandlePeriodChange}
-        isAdvancedChartEnabled={isAdvancedChartEnabled}
-        symbol={symbol}
-        positionSize={existingPosition?.size}
-        szDecimals={marketData?.szDecimals}
-        fallbackFetchMoreHistory={fetchMoreHistory}
-      />
+      {isMarketContextReady && (
+        <PerpsChartFullscreenModal
+          isVisible={isFullscreenChartVisible}
+          candleData={candleData}
+          tpslLines={tpslLines}
+          selectedInterval={selectedCandlePeriod}
+          visibleCandleCount={visibleCandleCount}
+          onClose={() => setIsFullscreenChartVisible(false)}
+          onIntervalChange={onCandlePeriodChange}
+          isAdvancedChartEnabled={isAdvancedChartEnabled}
+          symbol={symbol}
+          positionSize={existingPosition?.size}
+          szDecimals={marketData?.szDecimals}
+          fallbackFetchMoreHistory={fetchMoreHistory}
+        />
+      )}
     </>
   );
 };

@@ -6,6 +6,7 @@ import {
   TransakServiceMessenger,
   TransakEnvironment,
 } from '@metamask/ramps-controller';
+import { getRampsClientIdentity } from './ramps-service-init';
 
 /**
  * When RAMPS_ENVIRONMENT is set (set by builds.yml), uses it directly.
@@ -59,6 +60,7 @@ export const transakServiceInit: MessengerClientInitFunction<
     context: getTransakContext(),
     fetch,
     referrerDomain: getBundleId(),
+    ...getRampsClientIdentity(),
   });
 
   return {

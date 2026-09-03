@@ -3,11 +3,10 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
-import { useSelector } from 'react-redux';
+import { useSelector, useStore } from 'react-redux';
 import {
   selectBridgeFeatureFlags,
   selectIsSolanaSourced,
@@ -17,7 +16,9 @@ import {
   selectSourceAmount,
   selectSourceToken,
   selectDestToken,
+  selectIsStockMarketClosed,
 } from '../../../../../core/redux/slices/bridge';
+import type { RootState } from '../../../../../reducers';
 import { isNegativeSecurityType } from '../../utils/tokenSecurityUtils';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -45,16 +46,7 @@ import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable';
-import { useABTest } from '../../../../../hooks';
-import {
-  SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-  SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-} from './abTestConfig';
-import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../../util/theme';
-import { AppThemeKey } from '../../../../../util/theme/models';
-
-const SUCCESS_TEXT_PROPS = { color: TextColor.SuccessInverse } as const;
+import { useStockMarketHours } from '../../hooks/useStockMarketHours';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -70,17 +62,8 @@ export const SwapsMarketOrderConfirmButton = ({
   location,
   transactionActiveAbTests,
 }: Props) => {
-  const { variant: ctaButtonColorVariant } = useABTest(
-    SWAPS_CTA_BUTTON_COLOR_AB_KEY,
-    SWAPS_CTA_BUTTON_COLOR_VARIANTS,
-    SWAPS_CTA_BUTTON_COLOR_EXPOSURE_METADATA,
-  );
-  const { themeAppearance } = useTheme();
-  const treatmentBackground =
-    themeAppearance === AppThemeKey.light
-      ? `bg-[${LIGHT_MODE_SUCCESS_GREEN}]`
-      : 'bg-success-default';
   const navigation = useNavigation<AppNavigationProp>();
+  const store = useStore<RootState>();
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const destToken = useSelector(selectDestToken);
@@ -98,6 +81,10 @@ export const SwapsMarketOrderConfirmButton = ({
     ? !!isHardwareAccount(selectedAddress)
     : false;
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  // Shared one-minute clock. Parent re-renders are not enough: after quotes
+  // settle the store stops updating, and a memoized button would keep the
+  // last "Market is closed" label until the user changes tokens.
+  const { isStockMarketClosed } = useStockMarketHours();
 
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
@@ -193,9 +180,12 @@ export const SwapsMarketOrderConfirmButton = ({
   // True when the sourceAmount changed from what the current quote was
   // fetched for (stale quote during debounce window).
   const isPendingQuoteRefresh = isSourceAmountChanged && hasNonZeroSourceAmount;
+  // The ref covers the gap while a refresh has cleared the active quote; once
+  // a quote is present, its slippage is the source of truth.
   const isPendingSlippageRefresh =
     Boolean(isSlippageUserOverride) &&
-    (slippage !== settledSlippageRef.current || isActiveQuoteSlippageMismatch);
+    (isActiveQuoteSlippageMismatch ||
+      (!activeQuote && slippage !== settledSlippageRef.current));
 
   const isSubmitDisabled =
     !hasNonZeroSourceAmount ||
@@ -211,9 +201,19 @@ export const SwapsMarketOrderConfirmButton = ({
     (isHardwareAddress && isSolanaSourced) ||
     hasError ||
     hasInsufficientGas ||
-    !walletAddress;
+    !walletAddress ||
+    isStockMarketClosed;
 
   const handleContinue = async () => {
+    // Re-check at tap time so a stock selected during off-hours cannot be
+    // submitted after the window has closed, even if the last poll is stale.
+    if (selectIsStockMarketClosed(store.getState(), Date.now())) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL,
+      });
+      return;
+    }
+
     const securityData = destToken?.securityData;
     if (isNegativeSecurityType(securityData?.type)) {
       const params: TokenWarningModalParams = {
@@ -275,6 +275,7 @@ export const SwapsMarketOrderConfirmButton = ({
   };
 
   const buttonIsInLoadingState =
+    !isStockMarketClosed &&
     !needsNewQuote &&
     !hasError &&
     (isLoading ||
@@ -285,6 +286,10 @@ export const SwapsMarketOrderConfirmButton = ({
     isSubmitDisabled;
 
   const label = useMemo(() => {
+    if (isStockMarketClosed) {
+      return strings('bridge.market_closed.title');
+    }
+
     if (needsNewQuote) {
       return strings('quote_expired_modal.get_new_quote');
     }
@@ -313,23 +318,20 @@ export const SwapsMarketOrderConfirmButton = ({
     hasInsufficientGas,
     isSubmittingTx,
     needsNewQuote,
+    isStockMarketClosed,
   ]);
 
   return (
     <Button
       variant={ButtonVariant.Primary}
-      twClassName={
-        ctaButtonColorVariant.hasSuccessColor ? treatmentBackground : undefined
-      }
-      textProps={
-        ctaButtonColorVariant.hasSuccessColor ? SUCCESS_TEXT_PROPS : undefined
-      }
       size={ButtonBaseSize.Lg}
       isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
       isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-      isDisabled={needsNewQuote ? false : isSubmitDisabled}
+      isDisabled={
+        isStockMarketClosed || (needsNewQuote ? false : isSubmitDisabled)
+      }
     >
       {label}
     </Button>

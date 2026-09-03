@@ -47,6 +47,44 @@ describe('getSwapsLimitOrderPriceMarketComparison', () => {
     );
   });
 
+  describe('zero displayed percent', () => {
+    it.each([LimitOrderExecutionType.BUY, LimitOrderExecutionType.SELL])(
+      'returns undefined for %s when limit fiat equals market fiat',
+      (executionType) => {
+        const result = getSwapsLimitOrderPriceMarketComparison({
+          limitFiat: '100',
+          marketFiat: 100,
+          executionType,
+          threshold: 0,
+        });
+
+        expect(result).toBeUndefined();
+      },
+    );
+
+    it('returns undefined for sell when percent above market rounds to zero', () => {
+      const result = getSwapsLimitOrderPriceMarketComparison({
+        limitFiat: '100.001',
+        marketFiat: 100,
+        executionType: LimitOrderExecutionType.SELL,
+        threshold: 0,
+      });
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for buy when percent below market rounds to zero', () => {
+      const result = getSwapsLimitOrderPriceMarketComparison({
+        limitFiat: '99.999',
+        marketFiat: 100,
+        executionType: LimitOrderExecutionType.BUY,
+        threshold: 0,
+      });
+
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('sell execution type', () => {
     it('returns undefined when limit is within the threshold above market', () => {
       const result = getSwapsLimitOrderPriceMarketComparison({
