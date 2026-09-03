@@ -76,7 +76,7 @@ describe('getLimitPriceFarFromMarketWarning', () => {
 
   it('stays quiet at exactly the 5% long threshold', () => {
     const limitPrice = String(
-      bid * (1 - LIMIT_PRICE_CONFIG.FatFingerDistanceFromMarket),
+      bid * (1 - LIMIT_PRICE_CONFIG.FarFromMarketThreshold),
     );
 
     expect(
@@ -106,8 +106,7 @@ describe('getLimitPriceFarFromMarketWarning', () => {
   });
 
   it('never renders a percentage at or below the 5% threshold', () => {
-    // 5.4% below the bid warns, but Math.round would display it as '5%',
-    // contradicting the rule that only distances above 5% warn.
+    // 5.4% must display as 6%, not 5%.
     const message = getLimitPriceFarFromMarketWarning({
       orderType: 'limit',
       direction: 'long',

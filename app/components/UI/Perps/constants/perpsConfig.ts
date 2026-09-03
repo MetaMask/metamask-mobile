@@ -230,14 +230,13 @@ export const LIMIT_PRICE_CONFIG = {
   // instead of letting the order fail at the exchange.
   MaxDeviationFromMarket: 0.95,
 
-  // Non-blocking fat-finger warning when a limit/scale price rests farther
-  // from the near-touch (best bid long, best ask short) than this ratio.
-  // Strictly greater than 5% so deep-accumulation scales at 5% stay quiet.
-  FatFingerDistanceFromMarket: 0.05,
+  // Warn when a limit/scale price is more than 5% from the near-touch
+  // (best bid long, best ask short). Equal to 5% does not warn.
+  FarFromMarketThreshold: 0.05,
 } as const;
 
-// Analytics identifiers for the fat-finger warning. WARNING_TYPE has no
-// far-from-market member upstream, so the literal lives here.
+// Local warning-type literal. PERPS_EVENT_VALUE.WARNING_TYPE has no
+// far-from-market member.
 export const FAR_FROM_MARKET_WARNING_INTERACTION =
   'far_from_market_warning_shown';
 export const FAR_FROM_MARKET_WARNING_TYPE = 'limit_price_far_from_market';

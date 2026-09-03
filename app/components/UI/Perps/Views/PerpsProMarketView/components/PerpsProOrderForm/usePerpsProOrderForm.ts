@@ -2961,14 +2961,12 @@ export const usePerpsProOrderForm = ({
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
   const farFromMarketWarning = useMemo(() => {
-    // Scale prices commit on blur, matching limit's hasBlurredLimitPrice.
-    // hasScaleValidationInteraction is too early: a partial start ('8') still
-    // succeeds when end and order count are already filled.
+    // Wait for start/end blur. Change-time interaction is too early:
+    // a partial start ('8') still ladders if end and count are filled.
     if (isScaleOrder && (!hasBlurredScalePrice || !scaleLadderResult.success)) {
       return undefined;
     }
-    // setLimitPrice fires per character, so every prefix of '90000' would
-    // otherwise read as far from market.
+    // setLimitPrice updates every keystroke, so '9' of '90000' would warn.
     if (!isScaleOrder && !hasBlurredLimitPrice) {
       return undefined;
     }
@@ -3018,9 +3016,7 @@ export const usePerpsProOrderForm = ({
         FAR_FROM_MARKET_WARNING_INTERACTION,
       [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
       [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: farFromMarketWarning,
-      // Scale properties are scale-shaped only. On a limit order the empty
-      // scale inputs coerce to 0/1 and pass the isInteger/isFinite guards,
-      // which would ship junk and mislabel order_type as scale.
+      // Limit orders must not inherit empty scale fields (Number('') is 0).
       ...(isScaleOrder
         ? scaleAnalyticsProperties
         : {

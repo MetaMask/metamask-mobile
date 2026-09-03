@@ -5349,8 +5349,7 @@ describe('usePerpsProOrderForm', () => {
     });
 
     describe('far-from-market warning', () => {
-      // Mocked top of book: bestBid 89999, bestAsk 90001. The 5% threshold
-      // puts the long trigger below 85499.05 and the short above 94501.05.
+      // Mock TOB: bid 89999, ask 90001. 5% long trigger is 85499.05.
       const configureFarLadder = (
         result: ReturnType<typeof renderProForm>['result'],
         startPrice: string,
@@ -5471,8 +5470,7 @@ describe('usePerpsProOrderForm', () => {
         mockOrderForm.amount = '600';
 
         const { result } = renderProForm();
-        // Order count of 1 is below the minimum, so the ladder fails and its
-        // endpoints are not real prices to measure against.
+        // Count 1 is below the minimum, so the ladder is invalid.
         act(() => {
           result.current.scaleOrder.onStartPriceChange('80000');
           result.current.scaleOrder.onEndPriceChange('84000');
@@ -5551,8 +5549,7 @@ describe('usePerpsProOrderForm', () => {
         expect(payload[PERPS_EVENT_PROPERTY.ORDER_TYPE]).toBe(
           PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
         );
-        // Number('') is 0 and passes isInteger/isFinite, so an unguarded
-        // spread would ship scale_order_count=0 / scale_skew=1 on a limit.
+        // Number('') is 0, so an unguarded spread would tag a limit as scale.
         expect(payload).not.toHaveProperty(
           PERPS_EVENT_PROPERTY.SCALE_ORDER_COUNT,
         );
@@ -5562,8 +5559,7 @@ describe('usePerpsProOrderForm', () => {
         );
       });
 
-      // The price card belongs to the limit-price field, which only renders
-      // its message after a blur, so this fallback is a limit-order path.
+      // Price-card copy is blur-gated and only exists on the limit path.
       it('emits no telemetry while a limit price is still being typed', () => {
         mockOrderForm.type = 'limit';
         mockOrderForm.direction = 'long';
@@ -5572,8 +5568,7 @@ describe('usePerpsProOrderForm', () => {
         mockContextValue.hasBlurredLimitPrice = false;
 
         const { rerender } = renderProForm();
-        // setLimitPrice fires per character, and the percentage is baked into
-        // the message, so every partial would otherwise be a distinct event.
+        // Each keystroke would otherwise emit a distinct percent event.
         for (const partial of ['9', '90', '900', '9000', '90000']) {
           mockOrderForm.limitPrice = partial;
           rerender(undefined as never);
@@ -5610,8 +5605,7 @@ describe('usePerpsProOrderForm', () => {
         mockOrderForm.direction = 'long';
         mockOrderForm.amount = '600';
 
-        // setLimitPrice and the blur flag both live in the mocked order
-        // context, so seed them directly.
+        // Limit price and blur live on the mocked context.
         mockOrderForm.limitPrice = '80000';
         mockContextValue.hasBlurredLimitPrice = true;
 

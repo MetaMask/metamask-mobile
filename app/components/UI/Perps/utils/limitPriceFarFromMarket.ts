@@ -25,8 +25,8 @@ const parseCanonicalPrice = (
 };
 
 /**
- * Price to compare against the near-touch. Limit uses the single limit.
- * Scale uses the endpoint farthest from market (lowest long, highest short).
+ * Price compared to the near-touch. Limit uses the limit price.
+ * Scale uses the farthest endpoint (lowest long, highest short).
  */
 export const getFarthestRestingLimitPrice = ({
   orderType,
@@ -62,8 +62,8 @@ export const getFarthestRestingLimitPrice = ({
 };
 
 /**
- * Non-blocking copy when a limit/scale price is abnormally far from the
- * near-touch. Reduce-only closes skip this check.
+ * Warning when a limit/scale price is more than 5% from the near-touch.
+ * Reduce-only orders skip this.
  */
 export const getLimitPriceFarFromMarketWarning = ({
   orderType,
@@ -102,16 +102,14 @@ export const getLimitPriceFarFromMarketWarning = ({
       ? (referencePrice - price) / referencePrice
       : (price - referencePrice) / referencePrice;
 
-  if (signedDistance <= LIMIT_PRICE_CONFIG.FatFingerDistanceFromMarket) {
+  if (signedDistance <= LIMIT_PRICE_CONFIG.FarFromMarketThreshold) {
     return undefined;
   }
 
-  // Ceil, not round: the warning only fires above the 5% threshold, and
-  // rounding 5.4% down to '5%' reads as contradicting that rule.
+  // Ceil so 5.4% displays as 6%, not 5% (the warning only fires above 5%).
   const percent = Math.ceil(signedDistance * 100);
 
-  // Two complete sentences rather than interpolating a translated word, so
-  // languages needing declension or different word order stay translatable.
+  // Complete sentence keys so translations can inflect.
   return strings(
     direction === 'long'
       ? 'perps.order.validation.limit_price_far_from_market_bid'
