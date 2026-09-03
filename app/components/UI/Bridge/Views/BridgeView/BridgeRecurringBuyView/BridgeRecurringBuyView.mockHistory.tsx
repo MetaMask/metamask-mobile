@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  FontWeight,
   Tag,
   TagSeverity,
   TextColor,
@@ -19,7 +18,7 @@ const MOCK_DEST_TOKEN: BridgeToken = {
 };
 
 const MOCK_RECURRING_HISTORY_ORDER = {
-  id: 'mock-recurring-history-filled',
+  id: 'mock-recurring-history-completed',
   token: MOCK_DEST_TOKEN,
 };
 
@@ -29,17 +28,22 @@ function renderRecurringHistoryOrder(item: MockRecurringHistoryOrder) {
   return (
     <OpenOrderRow
       token={item.token}
-      title={strings('bridge.tabs.recurring')}
-      subtitle={strings('bridge.recurring.pair', {
+      title={strings('bridge.recurring.pair', {
         source: 'ETH',
         dest: item.token.symbol,
       })}
+      subtitle={strings('bridge.recurring.schedule_summary', {
+        interval: '1 day',
+        count: '5',
+      })}
       primaryValue={`+0.325 ${item.token.symbol}`}
-      secondaryValue="-0.1 ETH"
+      secondaryValue={strings('bridge.recurring.percent_filled', {
+        percent: '49',
+      })}
       primaryColor={TextColor.SuccessDefault}
       titleEndAccessory={
-        <Tag severity={TagSeverity.Success}>
-          {strings('bridge.recurring.filled')}
+        <Tag severity={TagSeverity.Neutral}>
+          {strings('bridge.recurring.completed')}
         </Tag>
       }
     />

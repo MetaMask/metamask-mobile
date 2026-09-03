@@ -969,7 +969,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('shows a filled history row after pressing the History tab', async () => {
+  it('shows a completed history row after pressing the History tab', async () => {
     const renderResult = renderBridgeView();
 
     await openRecurringTab(renderResult);
@@ -982,35 +982,29 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       interval: '1 day',
       count: '5',
     });
+    const completed = strings('bridge.recurring.completed');
 
-    expect(renderResult.getAllByText(pair)).toHaveLength(2);
+    expect(renderResult.getAllByText(pair)).toHaveLength(1);
     expect(
       renderResult.getByText(strings('bridge.all_networks')),
     ).toBeOnTheScreen();
     expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
-    expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
-    ).toBeOnTheScreen();
+    expect(renderResult.queryByText(completed)).not.toBeOnTheScreen();
 
     fireEvent.press(
       renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
     );
 
     await waitFor(() => {
-      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
+      expect(renderResult.getByText(completed)).toBeOnTheScreen();
     });
     expect(
       renderResult.queryByText(strings('bridge.orders.empty.history')),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       renderResult.getByText(strings('bridge.all_networks')),
     ).toBeOnTheScreen();
-    expect(
-      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
-    ).toBeGreaterThan(0);
-    expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
-    ).toBeOnTheScreen();
+    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
     expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
     expect(renderResult.getAllByText(pair)).toHaveLength(1);
   });
