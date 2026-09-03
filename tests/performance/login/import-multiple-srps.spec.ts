@@ -1,13 +1,13 @@
 import { test as perfTest } from '../../framework/fixtures/playwright';
 import TimerHelper from '../../framework/TimerHelper';
-import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
+import { AppiumAssertions } from '../../framework';
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import AddAccountBottomSheet from '../../page-objects/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { Performance, PerformanceAccountList } from '../../tags.performance.js';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import AppiumGestures from '../../framework/AppiumGestures';
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
   perfTest.setTimeout(30 * 60 * 1000);
@@ -48,8 +48,8 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
 
       await WalletView.tapIdenticon();
       await accountListTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(AccountListBottomSheet.accountList),
+        await AppiumAssertions.expectElementToBeVisible(
+          AccountListBottomSheet.accountList,
           {
             description: 'Account list should be visible',
           },
@@ -60,8 +60,8 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       await AccountListBottomSheet.tapAddAccountButton();
 
       await addAccountTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(AddAccountBottomSheet.importSrpButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          AddAccountBottomSheet.importSrpButton,
           {
             description: 'Add account bottom sheet should be visible',
             timeout: 60000,
@@ -75,17 +75,14 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       });
 
       await ImportWalletView.typeSecretRecoveryPhrase(importedSrp, false);
-      await PlaywrightGestures.hideKeyboard();
+      await AppiumGestures.hideKeyboard();
       await ImportWalletView.tapContinueButton(false);
 
       await walletReadyTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.headerRoot),
-          {
-            description:
-              'Wallet main screen should be visible after importing SRP',
-          },
-        );
+        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot, {
+          description:
+            'Wallet main screen should be visible after importing SRP',
+        });
       });
 
       performanceTracker.addTimers(

@@ -3,9 +3,9 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { noop } from 'lodash';
 import { View } from 'react-native';
 
-import Text from '../../../../../component-library/components/Texts/Text';
 import { EditAmountKeyboard } from './edit-amount-keyboard';
 import { strings } from '../../../../../../locales/i18n';
+import { Text } from '@metamask/design-system-react-native';
 
 describe('EditAmountKeyboard', () => {
   it('calls onChange when digit pressed', () => {

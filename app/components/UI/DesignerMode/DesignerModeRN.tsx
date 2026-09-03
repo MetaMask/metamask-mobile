@@ -1295,7 +1295,7 @@ function createDesignerStyles() {
 
     // Backdrop
     backdrop: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: C.backdrop,
     } as ViewStyle,
 

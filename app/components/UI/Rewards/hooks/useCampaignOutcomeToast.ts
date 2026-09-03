@@ -56,7 +56,7 @@ export function useCampaignOutcomeToast(
   const dismissed = useSelector(selectDismissedCampaignOutcomeToasts);
 
   const targetCampaign = useMemo(() => {
-    const completed = campaigns
+    const completed = (campaigns ?? [])
       .filter(
         (c) => c.type === campaignType && getCampaignStatus(c) === 'complete',
       )

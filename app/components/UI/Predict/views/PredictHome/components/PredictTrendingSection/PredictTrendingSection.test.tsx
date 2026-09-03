@@ -157,8 +157,9 @@ describe('PredictTrendingSection', () => {
     const header = getByTestId(PREDICT_TRENDING_SECTION_TEST_IDS.HEADER);
     expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.trending_title'))).toBeOnTheScreen();
-    // The chevron renders only when the header is pressable (onPress set).
-    expect(getByTestId('section-header-arrow-icon')).toBeOnTheScreen();
+    expect(
+      getByTestId(PREDICT_TRENDING_SECTION_TEST_IDS.HEADER_CHEVRON),
+    ).toBeOnTheScreen();
 
     fireEvent.press(header);
 

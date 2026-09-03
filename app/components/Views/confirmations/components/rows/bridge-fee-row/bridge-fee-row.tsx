@@ -1,9 +1,5 @@
 import React, { ReactNode, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   TransactionMeta,
@@ -42,6 +38,11 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { resolveTransactionType } from '../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
@@ -131,12 +132,12 @@ function TransactionFeeRow({
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
-  const labelColor = isDisabled ? TextColor.Muted : undefined;
+  const labelColor = isDisabled ? TextColor.TextMuted : undefined;
   const valueColor = isDisabled
-    ? TextColor.Muted
+    ? TextColor.TextMuted
     : hasAlert
-      ? TextColor.Error
-      : TextColor.Alternative;
+      ? TextColor.ErrorDefault
+      : TextColor.TextAlternative;
 
   return (
     <AlertRow
@@ -158,7 +159,7 @@ function TransactionFeeRow({
         <PaidByLabel />
       ) : (
         <Text
-          variant={TextVariant.BodyMD}
+          variant={TextVariant.BodyMd}
           color={valueColor}
           testID={ConfirmationRowComponentIDs.TRANSACTION_FEE}
         >
@@ -182,7 +183,7 @@ function PaidByLabel() {
         color={IconColor.Success}
         size={IconSize.Sm}
       />
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
         {strings('transactions.paid_by_metamask')}
       </Text>
     </Box>
@@ -209,8 +210,6 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.predict_withdraw.transaction_fee',
   [TransactionType.predictDeposit]:
     'confirm.tooltip.predict_deposit.transaction_fee',
-  [TransactionType.musdConversion]:
-    'confirm.tooltip.musd_conversion.transaction_fee',
   [TransactionType.moneyAccountWithdraw]:
     'confirm.tooltip.money_account_withdraw.transaction_fee',
   [TransactionType.moneyAccountDeposit]:
@@ -272,28 +271,28 @@ function FeesTooltip({
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.network_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{networkFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{networkFeeUsd}</Text>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.provider_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{providerFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{providerFeeUsd}</Text>
       </Box>
       <Box
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
       >
-        <Text color={TextColor.Alternative}>
+        <Text color={TextColor.TextAlternative}>
           {strings('confirm.label.metamask_fee')}
         </Text>
-        <Text color={TextColor.Alternative}>{metaMaskFeeUsd}</Text>
+        <Text color={TextColor.TextAlternative}>{metaMaskFeeUsd}</Text>
       </Box>
     </Box>
   );

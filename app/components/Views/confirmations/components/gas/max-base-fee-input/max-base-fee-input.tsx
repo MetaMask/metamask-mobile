@@ -4,9 +4,6 @@ import { Hex } from '@metamask/utils';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../locales/i18n';
 import { hexWEIToDecGWEI } from '../../../../../../util/conversions';
 import { limitToMaximumDecimalPlaces } from '../../../../../../util/number';
@@ -16,12 +13,13 @@ import { convertGasInputToHexWEI, normalizeGasInput } from '../../../utils/gas';
 import { validateMaxBaseFee } from '../../../utils/validations/gas';
 import { TextFieldWithLabel } from '../../UI/text-field-with-label';
 import styleSheet from './max-base-fee-input.styles';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const InfoLabel = ({ children }: { children: React.ReactNode }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Text variant={TextVariant.BodySM} style={styles.infoLabel}>
+    <Text variant={TextVariant.BodySm} style={styles.infoLabel}>
       {children}
     </Text>
   );
@@ -89,7 +87,7 @@ export const MaxBaseFeeInput = ({
   return (
     <View style={styles.container}>
       <TextFieldWithLabel
-        endAccessory={<Text variant={TextVariant.BodySM}>GWEI</Text>}
+        endAccessory={<Text variant={TextVariant.BodySm}>GWEI</Text>}
         error={error}
         inputType="max-base-fee"
         keyboardType="numeric"

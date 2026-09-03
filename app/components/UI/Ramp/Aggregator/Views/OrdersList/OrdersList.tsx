@@ -34,7 +34,10 @@ import {
   type DisplayOrder,
 } from '../../../utils/displayOrder';
 import { toDateFormat } from '../../../../../../util/date';
-import { addCurrencySymbol, renderFiat } from '../../../../../../util/number';
+import {
+  addCurrencySymbol,
+  renderFiat,
+} from '../../../../../../util/number/bigint';
 import Text, {
   TextColor,
   TextVariant,

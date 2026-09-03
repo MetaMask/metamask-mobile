@@ -204,6 +204,7 @@ const buildResult = (
   traders: fixtureTraders,
   isLoading: false,
   isFetching: true,
+  hasFetched: false,
   error: null,
   refresh: mockRefresh as () => Promise<void>,
   toggleFollow: mockToggleFollow,
@@ -248,6 +249,12 @@ jest.mock(
   }),
 );
 
+let mockIsMasterNotificationsEnabled = true;
+jest.mock('../../../../selectors/notifications', () => ({
+  ...jest.requireActual('../../../../selectors/notifications'),
+  selectIsMetamaskNotificationsEnabled: () => mockIsMasterNotificationsEnabled,
+}));
+
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
   useTopTraders: (options?: UseTopTradersHookOptions) =>
     mockUseTopTradersHook(options),
@@ -259,13 +266,20 @@ const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
   expect(latestCalls).toEqual([
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        chains: [
+          'base',
+          'solana',
+          'ethereum',
+          'bsc',
+          'robinhood',
+          'hyperliquid',
+        ],
         enabled: expected.all,
       }),
     ],
     [
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: expected.tokens,
       }),
     ],
@@ -322,6 +336,7 @@ describe('TopTradersView', () => {
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
+    mockIsMasterNotificationsEnabled = true;
     mockHasNotificationPreferences.mockReturnValue(true);
     mockRouteParams = {};
     mockNotificationPreferences = { ...defaultNotificationPreferences };
@@ -583,6 +598,53 @@ describe('TopTradersView', () => {
     });
   });
 
+  it('does not notify feed prefetch while the visible leaderboard query is in flight', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+
+    renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).not.toHaveBeenCalled();
+  });
+
+  it('notifies feed prefetch once the visible leaderboard query has fetched', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+    const { rerender } = renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    setTabResult(LANDING_TAB, { isFetching: false, hasFetched: true });
+    rerender(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds feed prefetch back while a warm Tokens cache revalidates', () => {
+    const onVisibleLeaderboardSettled = jest.fn();
+    setTabResult(LANDING_TAB, {
+      isLoading: false,
+      isFetching: true,
+      hasFetched: true,
+    });
+
+    renderWithProvider(
+      <TopTradersView
+        onVisibleLeaderboardSettled={onVisibleLeaderboardSettled}
+      />,
+    );
+
+    expect(onVisibleLeaderboardSettled).not.toHaveBeenCalled();
+  });
+
   it('narrows the enabled queries back to the visible tab when the sort changes', () => {
     jest.useFakeTimers();
     try {
@@ -645,14 +707,14 @@ describe('TopTradersView', () => {
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       1,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: true,
       }),
     );
     expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({
-        chains: ['base', 'solana', 'ethereum'],
+        chains: ['base', 'solana', 'ethereum', 'bsc', 'robinhood'],
         enabled: false,
       }),
     );
@@ -820,6 +882,23 @@ describe('TopTradersView', () => {
         Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
         expect.objectContaining({ onSetupComplete: expect.any(Function) }),
       );
+    });
+
+    it('intercepts the follow with the feature notifications gate when the master toggle is off', async () => {
+      mockIsMasterNotificationsEnabled = false;
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getAllByText('Follow')[0]);
+      });
+
+      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
+        params: { feature: 'socialAI', autoDismiss: true },
+      });
     });
 
     it('performs the follow when the deferred setup action runs', async () => {

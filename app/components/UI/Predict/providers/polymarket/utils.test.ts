@@ -235,6 +235,20 @@ describe('polymarket utils', () => {
     nyk: createNbaTeam('nyk', { color: 'blue' }),
   };
 
+  const nflTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+    ne: createNbaTeam('ne', {
+      name: 'New England Patriots',
+      alias: 'Patriots',
+      league: 'nfl',
+    }),
+    den: createNbaTeam('den', {
+      name: 'Denver Broncos',
+      alias: 'Broncos',
+      league: 'nfl',
+      color: 'blue',
+    }),
+  };
+
   const createSportsMarket = ({
     id,
     sportsMarketType,
@@ -300,6 +314,29 @@ describe('polymarket utils', () => {
     startTime: '2026-06-12T20:00:00.000Z',
     live: false,
     ended: false,
+  });
+
+  const createNflGameEvent = (
+    markets: PolymarketApiEvent['markets'],
+  ): PolymarketApiEvent => ({
+    ...createNbaGameEvent(markets),
+    id: 'nfl-game-event',
+    slug: 'nfl-ne-den-2026-09-10',
+    title: 'New England Patriots vs Denver Broncos',
+    series: [
+      {
+        id: 'nfl-series',
+        slug: 'nfl-2026',
+        title: 'NFL 2026',
+        recurrence: 'daily',
+      },
+    ],
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: 'nfl', label: 'NFL', slug: 'nfl' },
+    ],
+    teams: Object.values(nflTeamsByAbbreviation),
+    gameId: 'nfl-game-1',
   });
 
   const createEsportsTeam = (
@@ -591,6 +628,178 @@ describe('polymarket utils', () => {
     expect(market.outcomeGroups?.[1].outcomes).toEqual([
       expect.objectContaining({ sportsMarketType: 'first_half_moneyline' }),
     ]);
+  });
+
+  it('parses NFL game lines, team totals, and player props into groups', () => {
+    const markets = [
+      createSportsMarket({
+        id: 'moneyline',
+        sportsMarketType: 'moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'spread',
+        sportsMarketType: 'spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -3.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -3.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'total',
+        sportsMarketType: 'totals',
+        overrides: {
+          groupItemTitle: 'O/U 43.5',
+          line: 43.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-moneyline',
+        sportsMarketType: 'first_half_moneyline',
+        overrides: {
+          groupItemTitle: 'Patriots',
+          outcomes: '["Patriots","Broncos"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-spread',
+        sportsMarketType: 'first_half_spreads',
+        overrides: {
+          groupItemTitle: 'Patriots -1.5',
+          outcomes: '["Patriots","Broncos"]',
+          line: -1.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'first-half-total',
+        sportsMarketType: 'first_half_totals',
+        overrides: {
+          groupItemTitle: 'O/U 20.5',
+          line: 20.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'home-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Patriots O/U 23.5',
+          groupItemThreshold: 2,
+          line: 23.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'away-total',
+        sportsMarketType: 'team_totals',
+        overrides: {
+          groupItemTitle: 'Broncos O/U 17.5',
+          line: 17.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'anytime-touchdown',
+        sportsMarketType: 'anytime_touchdowns',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Anytime Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'first-touchdown',
+        sportsMarketType: 'first_touchdowns',
+        overrides: {
+          groupItemTitle: 'RJ Harvey: First Touchdown',
+        },
+      }),
+      createSportsMarket({
+        id: 'rushing-yards',
+        sportsMarketType: 'rushing_yards',
+        overrides: {
+          groupItemTitle: 'Rhamondre Stevenson: Rushing Yards O/U 49.5',
+          line: 49.5,
+        },
+      }),
+      createSportsMarket({
+        id: 'receiving-yards',
+        sportsMarketType: 'receiving_yards',
+        overrides: {
+          groupItemTitle: 'Stefon Diggs: Receiving Yards O/U 59.5',
+          line: 59.5,
+        },
+      }),
+    ];
+    const event = createNflGameEvent(markets);
+    const enabledSportsMarketTypes = [
+      'moneyline',
+      'spreads',
+      'totals',
+      'first_half_moneyline',
+      'first_half_spreads',
+      'first_half_totals',
+      'team_totals',
+      'anytime_touchdowns',
+      'first_touchdowns',
+      'rushing_yards',
+      'receiving_yards',
+    ];
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'sports',
+      teamLookup: (_league, abbreviation) =>
+        nflTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nfl'],
+      enabledSportsMarketTypes,
+    });
+
+    expect(market.game).toMatchObject({
+      league: 'nfl',
+      homeTeam: { abbreviation: 'den' },
+      awayTeam: { abbreviation: 'ne' },
+    });
+    expect(market.outcomes).toHaveLength(markets.length);
+    expect(
+      new Set(market.outcomes.map((outcome) => outcome.sportsMarketType)),
+    ).toEqual(new Set(enabledSportsMarketTypes));
+    expect(
+      market.outcomes.find((outcome) => outcome.id === 'home-total'),
+    ).toEqual(
+      expect.objectContaining({
+        groupItemTitle: 'Patriots O/U 23.5',
+        groupItemThreshold: 2,
+        line: 23.5,
+        tokens: expect.arrayContaining([
+          expect.objectContaining({ title: 'Over' }),
+          expect.objectContaining({ title: 'Under' }),
+        ]),
+      }),
+    );
+    expect(market.outcomeGroups?.map((group) => group.key)).toEqual([
+      'game_lines',
+      'team_totals',
+      'halves',
+      'first_half',
+      'touchdowns',
+      'rushing',
+      'receiving',
+    ]);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'team_totals')
+        ?.subgroups?.map((subgroup) => subgroup.title),
+    ).toEqual(['Patriots Totals', 'Broncos Totals']);
+    expect(
+      market.outcomeGroups
+        ?.find((group) => group.key === 'first_half')
+        ?.subgroups?.map((subgroup) => subgroup.key),
+    ).toEqual(['first_half_moneyline', 'first_half_spreads']);
+    expect(
+      market.outcomeGroups?.flatMap((group) => [
+        ...group.outcomes,
+        ...(group.subgroups?.flatMap((subgroup) => subgroup.outcomes) ?? []),
+      ]),
+    ).toHaveLength(markets.length);
   });
 
   it('parses every supported CS2 market into one match with map groups', () => {

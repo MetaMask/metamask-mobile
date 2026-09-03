@@ -31,7 +31,6 @@ const baseProps = {
   onImageError: jest.fn(),
   cardType: CardType.VIRTUAL,
   cardStatus: CardStatus.ACTIVE,
-  walletAddress: undefined,
 };
 
 describe('CardImageSection', () => {

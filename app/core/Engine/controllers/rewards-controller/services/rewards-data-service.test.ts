@@ -4449,6 +4449,7 @@ describe('RewardsDataService', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -4465,6 +4466,7 @@ describe('RewardsDataService', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -5947,6 +5949,82 @@ describe('RewardsDataService', () => {
       await expect(
         service.getPredictThePitchPrizePool(mockCampaignId),
       ).rejects.toThrow('Get Predict The Pitch prize pool failed: 503');
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+    const mockToken = 'test-bearer-token';
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+    });
+
+    it('POSTs the money account address and returns bound on 201', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 201,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://uat.rewards.test/wr/money-account/binding',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toBe('bound');
+    });
+
+    it('returns bound on 200 (idempotent re-assert)', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('bound');
+    });
+
+    it('returns conflict on 409', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 409,
+      } as unknown as Response);
+
+      const result = await service.registerMoneyAccountBinding(
+        mockSubscriptionId,
+        mockAddress,
+      );
+
+      expect(result).toBe('conflict');
+    });
+
+    it('throws on other non-ok statuses', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as unknown as Response);
+
+      await expect(
+        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+      ).rejects.toThrow('Register Money Account binding failed: 500');
     });
   });
 });

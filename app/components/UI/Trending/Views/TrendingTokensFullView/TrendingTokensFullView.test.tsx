@@ -47,12 +47,12 @@ const mockUseRoute = jest.fn<
 >(() => ({ params: undefined }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
   useRoute: () => mockUseRoute(),
-  createNavigatorFactory: () => ({}),
 }));
 
 jest.mock('../../hooks/useTrendingRequest/useTrendingRequest');

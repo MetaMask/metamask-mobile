@@ -1,4 +1,4 @@
-import { renderNumber } from '../../../../util/number';
+import { renderNumber } from '../../../../util/number/bigint';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 
 // order.cryptoAmount is already in human-readable form (e.g. 0.05 ETH),

@@ -30,19 +30,26 @@ import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import NotificationManager from '../../../core/NotificationManager';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { collectibleContractsSelector } from '../../../reducers/collectibles';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../selectors/accountsController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
+import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
 import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectGasFeeControllerEstimateType } from '../../../selectors/gasFeeController';
 import {
   selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
+import { selectAllTokens } from '../../../selectors/tokensController';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { isHardwareAccount } from '../../../util/address';
 import Logger from '../../../util/Logger';
@@ -88,7 +95,6 @@ import {
 import { skipHardwareWalletErrorIfReplacementSubmitted } from '../../../core/HardwareWallet/skipHardwareWalletErrorIfReplacementSubmitted';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
 import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
 import {
@@ -96,6 +102,11 @@ import {
   groupActivityListItems,
 } from '../../../util/activity-adapters';
 import { mapTransactionToActivityItem } from './AssetDetailsActivityListItem.utils';
+
+// Stable reference so Token Details (which doesn't use `providerConfig`) never
+// sees a "changed" prop from `mapStateToProps` and re-renders needlessly; a
+// fresh `{}` literal on every store update would break shallow-equality.
+const EMPTY_PROVIDER_CONFIG = {};
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -173,12 +184,15 @@ const Transactions = (props) => {
     skipScrollOnClick,
     location,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
-    isActivityRedesignEnabled,
+    accountImportTime,
+    groupEvmAccountAddress,
+    networkConfigurationsByChainId,
+    allTokens,
+    bridgeHistory,
   } = props;
   const theme = useContext(ThemeContext) || mockTheme;
   const { colors } = theme;
   const [selectedTransactions, setSelectedTransactions] = useState(new Map());
-  const [ready, setReady] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [cancelIsOpen, setCancelIsOpen] = useState(false);
   const [speedUpIsOpen, setSpeedUpIsOpen] = useState(false);
@@ -304,32 +318,32 @@ const Transactions = (props) => {
 
   useEffect(() => {
     mountedRef.current = true;
-    const timeout = setTimeout(() => {
-      if (!mountedRef.current) {
-        return;
-      }
-      setReady(true);
-      const txToView = NotificationManager.getTransactionToView();
-      if (txToView) {
-        notificationTimeoutRef.current = setTimeout(() => {
-          const { transactions: latestTransactions } =
-            latestMountPropsRef.current;
-          const index = latestTransactions.findIndex(
-            (tx) => txToView === tx.id,
-          );
-          if (index >= 0) {
-            toggleDetailsViewRef.current?.(txToView, index);
-          }
-        }, 1000);
-      }
-      latestMountPropsRef.current.onRefSet?.(flatListRef);
-    }, 100);
+    const txToView = NotificationManager.getTransactionToView();
+    // getTransactionToView() destructively pops the id, so if we unmount
+    // before actually acting on it (e.g. a fast remount or navigating away
+    // before the 1s delay elapses), push it back so a later mount can still
+    // open it instead of silently dropping the notification deep-link.
+    let shouldRequeue = Boolean(txToView);
+    if (txToView) {
+      notificationTimeoutRef.current = setTimeout(() => {
+        shouldRequeue = false;
+        const { transactions: latestTransactions } =
+          latestMountPropsRef.current;
+        const index = latestTransactions.findIndex((tx) => txToView === tx.id);
+        if (index >= 0) {
+          toggleDetailsViewRef.current?.(txToView, index);
+        }
+      }, 1000);
+    }
+    latestMountPropsRef.current.onRefSet?.(flatListRef);
 
     return () => {
       mountedRef.current = false;
-      clearTimeout(timeout);
       if (notificationTimeoutRef.current) {
         clearTimeout(notificationTimeoutRef.current);
+      }
+      if (shouldRequeue) {
+        NotificationManager.setTransactionToView(txToView);
       }
     };
   }, []);
@@ -712,6 +726,11 @@ const Transactions = (props) => {
         navigation={navigation}
         onSpeedUpAction={onSpeedUpAction}
         onCancelAction={onCancelAction}
+        accountImportTime={accountImportTime}
+        groupEvmAccountAddress={groupEvmAccountAddress}
+        networkConfigurations={networkConfigurationsByChainId}
+        allTokens={allTokens}
+        bridgeHistory={bridgeHistory}
       />
     ) : null;
   };
@@ -726,7 +745,6 @@ const Transactions = (props) => {
   const filteredTransactions =
     filterDuplicateOutgoingTransactions(listTransactions);
   const shouldUseActivityRedesign =
-    isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
   const activityListData = shouldUseActivityRedesign
     ? groupActivityListItems(
@@ -748,7 +766,7 @@ const Transactions = (props) => {
   return (
     <PriceChartProvider>
       <View style={styles.wrapper}>
-        {!ready || loading ? (
+        {loading ? (
           renderLoader()
         ) : (
           <View style={styles.wrapper}>
@@ -925,7 +943,11 @@ Transactions.propTypes = {
     hideAwaitingConfirmation: PropTypes.func,
     showHardwareWalletError: PropTypes.func,
   }),
-  isActivityRedesignEnabled: PropTypes.bool,
+  accountImportTime: PropTypes.number,
+  groupEvmAccountAddress: PropTypes.string,
+  networkConfigurationsByChainId: PropTypes.object,
+  allTokens: PropTypes.object,
+  bridgeHistory: PropTypes.object,
 };
 
 Transactions.defaultProps = {
@@ -939,27 +961,49 @@ Transactions.defaultProps = {
   },
 };
 
-const mapStateToProps = (state) => ({
-  accounts: selectAccounts(state),
-  chainId: selectChainId(state),
-  networkClientId: selectNetworkClientId(state),
-  collectibleContracts: collectibleContractsSelector(state),
-  currentCurrency: selectCurrentCurrency(state),
-  selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
-  networkConfigurations: selectNetworkConfigurations(state),
-  providerConfig: selectProviderConfig(state),
-  gasFeeEstimates: selectGasFeeEstimates(state),
-  primaryCurrency: selectPrimaryCurrency(state),
-  gasEstimateType: selectGasFeeControllerEstimateType(state),
-  networkType: selectProviderType(state),
-  isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
-});
+const mapStateToProps = (state, ownProps) => {
+  // Token Details always carries its own `tokenChainId` and must not react to
+  // network switches elsewhere in the app (which would re-render this screen
+  // for a chain it isn't even showing). Only the Activity tab (no
+  // `tokenChainId`) needs the globally selected network.
+  const isAssetDetails = Boolean(ownProps.tokenChainId);
+
+  return {
+    accounts: selectAccounts(state),
+    accountImportTime: isAssetDetails
+      ? selectSelectedInternalAccount(state)?.metadata.importTime
+      : undefined,
+    groupEvmAccountAddress: isAssetDetails
+      ? selectSelectedAccountGroupEvmInternalAccount(state)?.address
+      : undefined,
+    networkConfigurationsByChainId: isAssetDetails
+      ? selectEvmNetworkConfigurationsByChainId(state)
+      : undefined,
+    allTokens: isAssetDetails ? selectAllTokens(state) : undefined,
+    bridgeHistory: isAssetDetails
+      ? selectBridgeHistoryForAccount(state)
+      : undefined,
+    chainId: isAssetDetails ? ownProps.tokenChainId : selectChainId(state),
+    networkClientId: isAssetDetails ? undefined : selectNetworkClientId(state),
+    collectibleContracts: collectibleContractsSelector(state),
+    currentCurrency: selectCurrentCurrency(state),
+    selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
+    networkConfigurations: selectNetworkConfigurations(state),
+    providerConfig: isAssetDetails
+      ? EMPTY_PROVIDER_CONFIG
+      : selectProviderConfig(state),
+    gasFeeEstimates: selectGasFeeEstimates(state),
+    primaryCurrency: selectPrimaryCurrency(state),
+    gasEstimateType: selectGasFeeControllerEstimateType(state),
+    networkType: isAssetDetails ? undefined : selectProviderType(state),
+  };
+};
 
 const mapDispatchToProps = (dispatch) => ({
   showAlert: (config) => dispatch(showAlert(config)),
 });
 
-export { Transactions as UnconnectedTransactions };
+export { Transactions as UnconnectedTransactions, mapStateToProps };
 
 const TransactionsWithHardwareWallet = (props) => {
   const hardwareWallet = useHardwareWallet();

@@ -127,7 +127,7 @@ describe('useCliLoginPushNudge', () => {
 
     expect(Alert.alert).toHaveBeenCalledWith(
       'Something went wrong',
-      "We couldn't enable notifications. Please try again later.",
+      "We couldn't turn on notifications. Please try again later.",
     );
     expect(result.current.isVisible).toBe(false);
   });

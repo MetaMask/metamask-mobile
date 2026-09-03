@@ -32,7 +32,6 @@ interface CardImageSectionProps {
   onImageError: () => void;
   cardType: CardType | undefined;
   cardStatus: CardStatus | undefined;
-  walletAddress: string | undefined;
   cardSensitiveDetails?: CardSensitiveDetails | null;
   onCopyDetail?: (value: string) => void;
 }
@@ -85,7 +84,6 @@ const CardImageSection = ({
   onImageError,
   cardType,
   cardStatus,
-  walletAddress,
   cardSensitiveDetails,
   onCopyDetail,
 }: CardImageSectionProps) => {
@@ -214,8 +212,6 @@ const CardImageSection = ({
     <CardImage
       type={cardType ?? CardType.VIRTUAL}
       status={cardStatus ?? CardStatus.ACTIVE}
-      address={walletAddress}
-      testID={walletAddress ? CardHomeSelectors.CARD_WALLET_ADDRESS : undefined}
     />
   );
 };

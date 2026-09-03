@@ -1,7 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AddressListIds } from '../../../app/components/Views/MultichainAccounts/AddressList/AddressList.testIds';
-import { EncapsulatedElementType, getDriver } from '../../framework';
+import { type AppiumElement, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import Utilities from '../../framework/Utilities';
 
@@ -12,11 +12,11 @@ const MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID =
 class AddressList {
   private screenReady = false;
 
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddressListIds.GO_BACK);
   }
 
-  networkNameElement(networkName: string): EncapsulatedElementType {
+  networkNameElement(networkName: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(
         `//*[@resource-id='${MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}' and contains(@text,'${networkName}')]`,

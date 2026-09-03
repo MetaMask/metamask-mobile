@@ -1,5 +1,6 @@
 import type { Order, Position } from '@metamask/perps-controller';
 import {
+  DEFAULT_PRO_ORDER_SIDE_FILTER,
   DEFAULT_PRO_POSITION_SIDE_FILTER,
   filterProOrdersBySide,
   filterProPositionsBySide,
@@ -84,15 +85,12 @@ describe('filterProOrdersBySide', () => {
       makeOrder({ orderId: 'short', side: 'sell' }),
     ];
 
-    const result = filterProOrdersBySide(
-      orders,
-      DEFAULT_PRO_POSITION_SIDE_FILTER,
-    );
+    const result = filterProOrdersBySide(orders, DEFAULT_PRO_ORDER_SIDE_FILTER);
 
     expect(result).toEqual(orders);
   });
 
-  it('filters orders by their resulting position direction', () => {
+  it('filters opening orders by their own side', () => {
     const longOrder = makeOrder({ orderId: 'long', side: 'buy' });
     const shortOrder = makeOrder({ orderId: 'short', side: 'sell' });
 
@@ -103,15 +101,59 @@ describe('filterProOrdersBySide', () => {
     expect(shortResult).toEqual([shortOrder]);
   });
 
-  it('uses reduce-only direction when filtering closing orders', () => {
+  it('groups a reduce-only close-long order under short, not long', () => {
     const closeLongOrder = makeOrder({
       orderId: 'close-long',
       side: 'sell',
       reduceOnly: true,
     });
 
-    const result = filterProOrdersBySide([closeLongOrder], 'long');
+    const longResult = filterProOrdersBySide([closeLongOrder], 'long');
+    const shortResult = filterProOrdersBySide([closeLongOrder], 'short');
 
-    expect(result).toEqual([closeLongOrder]);
+    expect(longResult).toEqual([]);
+    expect(shortResult).toEqual([closeLongOrder]);
+  });
+
+  it('groups a trigger close-long order under short, not long', () => {
+    const tpslCloseLongOrder = makeOrder({
+      orderId: 'tpsl-close-long',
+      side: 'sell',
+      isTrigger: true,
+      detailedOrderType: 'Stop Market',
+    });
+
+    const longResult = filterProOrdersBySide([tpslCloseLongOrder], 'long');
+    const shortResult = filterProOrdersBySide([tpslCloseLongOrder], 'short');
+
+    expect(longResult).toEqual([]);
+    expect(shortResult).toEqual([tpslCloseLongOrder]);
+  });
+
+  it('groups a reduce-only close-short order under long, not short', () => {
+    const closeShortOrder = makeOrder({
+      orderId: 'close-short',
+      side: 'buy',
+      reduceOnly: true,
+    });
+
+    const longResult = filterProOrdersBySide([closeShortOrder], 'long');
+    const shortResult = filterProOrdersBySide([closeShortOrder], 'short');
+
+    expect(longResult).toEqual([closeShortOrder]);
+    expect(shortResult).toEqual([]);
+  });
+
+  it('keeps closing orders in the list when the filter is all', () => {
+    const closeLongOrder = makeOrder({
+      orderId: 'close-long',
+      side: 'sell',
+      reduceOnly: true,
+    });
+    const orders = [makeOrder({ orderId: 'open-long' }), closeLongOrder];
+
+    const result = filterProOrdersBySide(orders, DEFAULT_PRO_ORDER_SIDE_FILTER);
+
+    expect(result).toEqual(orders);
   });
 });

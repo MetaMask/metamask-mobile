@@ -132,6 +132,10 @@ jest.mock('../../utils/tokenUtils', () => ({
   getNativeSourceToken: jest.fn(),
 }));
 
+jest.mock('../../utils/swapBridgePageLoadTrace', () => ({
+  startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
+}));
+
 const mockFetchPopularTokens = jest.fn().mockResolvedValue(undefined);
 jest.mock('../useFetchPopularTokens', () => ({
   useFetchPopularTokens: jest.fn(
@@ -231,22 +235,26 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: {
-          address: mockNativeAsset.address,
-          name: 'Ether',
-          symbol: mockNativeAsset.symbol,
-          image: '',
-          decimals: mockNativeAsset.decimals,
-          chainId: mockChainId,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: mockNativeAsset.address,
+            name: 'Ether',
+            symbol: mockNativeAsset.symbol,
+            image: '',
+            decimals: mockNativeAsset.decimals,
+            chainId: mockChainId,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -271,16 +279,20 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: mockToken,
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
-        autoFocusSourceAmountInput: true,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: mockToken,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          autoFocusSourceAmountInput: true,
+        },
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -313,16 +325,20 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps(overrideToken);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: overrideToken,
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
-        autoFocusSourceAmountInput: true,
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: overrideToken,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          autoFocusSourceAmountInput: true,
+        },
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -357,23 +373,27 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          name: 'Ether',
-          symbol: 'ETH',
-          image: '',
-          decimals: 18,
-          chainId: '0x1',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            name: 'Ether',
+            symbol: 'ETH',
+            image: '',
+            decimals: 18,
+            chainId: '0x1',
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+          autoFocusSourceAmountInput: true,
         },
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
-        autoFocusSourceAmountInput: true,
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -389,15 +409,19 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: mockNativeAsset,
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: mockNativeAsset,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+        },
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -418,15 +442,19 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: mockNativeAsset,
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: mockNativeAsset,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+        },
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(0);
   });
 
@@ -476,6 +504,7 @@ describe('useSwapBridgeNavigation', () => {
           autoFocusSourceAmountInput: true,
         }),
       }),
+      { pop: true },
     );
   });
 
@@ -511,22 +540,26 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          name: 'Polygon',
-          symbol: 'MATIC',
-          image: '',
-          decimals: 18,
-          chainId: '0x89', // Should be converted to hex format
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            name: 'Polygon',
+            symbol: 'MATIC',
+            image: '',
+            decimals: 18,
+            chainId: '0x89', // Should be converted to hex format
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -558,22 +591,26 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps();
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: {
-          address: '0x0000000000000000000000000000000000000000',
-          name: 'Ether',
-          symbol: 'ETH',
-          image: '',
-          decimals: 18,
-          chainId: '0x1', // Should use mainnet fallback
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: {
+            address: '0x0000000000000000000000000000000000000000',
+            name: 'Ether',
+            symbol: 'ETH',
+            image: '',
+            decimals: 18,
+            chainId: '0x1', // Should use mainnet fallback
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
         },
-        sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Unified,
-        location: 'Main View',
       },
-    });
+      { pop: true },
+    );
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
   });
 
@@ -590,15 +627,19 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: mockNativeAsset,
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: mockNativeAsset,
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
+          },
         },
-      });
+        { pop: true },
+      );
       expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
     });
   });
@@ -722,16 +763,20 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps(sourceOverride, destOverride);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: sourceOverride,
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
-          autoFocusSourceAmountInput: true,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: sourceOverride,
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
+            autoFocusSourceAmountInput: true,
+          },
         },
-      });
+        { pop: true },
+      );
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
     });
 
@@ -756,23 +801,27 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps(sourceOverride);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          // Overridden because native on Arc
-          sourceToken: {
-            symbol: 'USDC',
-            name: 'USDC',
-            address: ARC_USDC_ERC20_ADDRESS,
-            chainId: ARC_HEX_CHAIN_ID,
-            decimals: 6,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            // Overridden because native on Arc
+            sourceToken: {
+              symbol: 'USDC',
+              name: 'USDC',
+              address: ARC_USDC_ERC20_ADDRESS,
+              chainId: ARC_HEX_CHAIN_ID,
+              decimals: 6,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
+            autoFocusSourceAmountInput: true,
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
-          autoFocusSourceAmountInput: true,
         },
-      });
+        { pop: true },
+      );
     });
 
     it('falls back to native token when default dest same as source', () => {
@@ -903,22 +952,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: solanaAssetId, // Should use assetId for balance lookup
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            decimals: 9,
-            chainId: SolScope.Mainnet,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: solanaAssetId, // Should use assetId for balance lookup
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              decimals: 9,
+              chainId: SolScope.Mainnet,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('keeps Solana chain ID in CAIP format for Bridge', () => {
@@ -955,22 +1008,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            decimals: 9,
-            chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              decimals: 9,
+              chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('uses assetId for Bitcoin native token address', () => {
@@ -1009,22 +1066,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: bitcoinAssetId, // Should use assetId for balance lookup
-            name: 'Bitcoin',
-            symbol: 'BTC',
-            image: '',
-            decimals: 8,
-            chainId: BtcScope.Mainnet,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: bitcoinAssetId, // Should use assetId for balance lookup
+              name: 'Bitcoin',
+              symbol: 'BTC',
+              image: '',
+              decimals: 8,
+              chainId: BtcScope.Mainnet,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('navigates to Bridge when goToSwaps is called and token chainId is Solana', () => {
@@ -1065,22 +1126,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            decimals: 9,
-            chainId: SolScope.Mainnet,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              decimals: 9,
+              chainId: SolScope.Mainnet,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('uses EVM address for EVM chains', () => {
@@ -1119,22 +1184,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: evmAddress, // Should use address for EVM chains
-            name: 'Ether',
-            symbol: 'ETH',
-            image: '',
-            decimals: 18,
-            chainId: mockChainId,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: evmAddress, // Should use address for EVM chains
+              name: 'Ether',
+              symbol: 'ETH',
+              image: '',
+              decimals: 18,
+              chainId: mockChainId,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('navigates to Bridge when goToSwaps is called and selected chainId is Solana', () => {
@@ -1175,22 +1244,26 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: {
-            address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
-            name: 'Solana',
-            symbol: 'SOL',
-            image: '',
-            decimals: 9,
-            chainId: SolScope.Mainnet,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: {
+            sourceToken: {
+              address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+              name: 'Solana',
+              symbol: 'SOL',
+              image: '',
+              decimals: 9,
+              chainId: SolScope.Mainnet,
+            },
+            sourcePage: mockSourcePage,
+            bridgeViewMode: BridgeViewMode.Unified,
+            location: 'Main View',
           },
-          sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
-          location: 'Main View',
         },
-      });
+        { pop: true },
+      );
     });
 
     it('dispatches destToken with CAIP chain ID format', () => {
@@ -1420,14 +1493,18 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: expect.objectContaining({
-          sourceToken: mockSourceToken,
-          sourcePage: mockSourcePage,
-          location: 'Token View',
-        }),
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: expect.objectContaining({
+            sourceToken: mockSourceToken,
+            sourcePage: mockSourcePage,
+            location: 'Token View',
+          }),
+        },
+        { pop: true },
+      );
 
       expect(mockTrackEvent).toHaveBeenCalled();
     });
@@ -1454,12 +1531,16 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: expect.objectContaining({
-          transactionActiveAbTests: abTests,
-        }),
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: expect.objectContaining({
+            transactionActiveAbTests: abTests,
+          }),
+        },
+        { pop: true },
+      );
     });
 
     it('omits transactionActiveAbTests from bridge params when caller does not provide them', () => {
@@ -1475,12 +1556,16 @@ describe('useSwapBridgeNavigation', () => {
 
       result.current.goToSwaps();
 
-      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-        screen: 'BridgeView',
-        params: expect.not.objectContaining({
-          transactionActiveAbTests: expect.anything(),
-        }),
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'Bridge',
+        {
+          screen: 'BridgeView',
+          params: expect.not.objectContaining({
+            transactionActiveAbTests: expect.anything(),
+          }),
+        },
+        { pop: true },
+      );
     });
   });
 
@@ -1497,14 +1582,18 @@ describe('useSwapBridgeNavigation', () => {
 
     result.current.goToSwaps(undefined, undefined, undefined, true);
 
-    expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
-      screen: 'BridgeView',
-      params: expect.objectContaining({
-        sourceToken: mockSourceToken,
-        sourcePage: mockSourcePage,
-        location: 'Token View',
-        scrollToTopOnNav: true,
-      }),
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Bridge',
+      {
+        screen: 'BridgeView',
+        params: expect.objectContaining({
+          sourceToken: mockSourceToken,
+          sourcePage: mockSourcePage,
+          location: 'Token View',
+          scrollToTopOnNav: true,
+        }),
+      },
+      { pop: true },
+    );
   });
 });

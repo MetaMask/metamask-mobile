@@ -2,22 +2,22 @@ import { OnboardingCryptoExperienceQuestionnaireTestIds } from '../../../app/com
 import type { CryptoExperienceLevel } from '../../../app/components/Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire.types';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class OnboardingCryptoExperienceQuestionnaireView {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingCryptoExperienceQuestionnaireTestIds.SCREEN,
     );
   }
 
-  get continueButton(): EncapsulatedElementType {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       OnboardingCryptoExperienceQuestionnaireTestIds.CONTINUE_BUTTON,
     );
   }
 
-  getOptionById(id: CryptoExperienceLevel): EncapsulatedElementType {
+  getOptionById(id: CryptoExperienceLevel): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${OnboardingCryptoExperienceQuestionnaireTestIds.OPTION_PREFIX}${id}`,
     );

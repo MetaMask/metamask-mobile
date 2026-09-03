@@ -22,6 +22,12 @@ export interface PredictFeedCarouselConfig extends VersionGatedFeatureFlag {
   mode: 'live' | 'custom';
   title?: string;
   deeplink?: string;
+  /**
+   * Series IDs pinned to the front of the Live Now carousel, first = highest
+   * priority. Unknown IDs are ignored. Empty keeps the default composition
+   * order (sports interleaved with crypto).
+   */
+  priorityOrder: string[];
   contentSource: {
     /** `live-now` reuses PRED-834 composition; `query-results` renders results directly. */
     composition: 'query-results' | 'live-now';

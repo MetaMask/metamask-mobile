@@ -13,12 +13,12 @@ import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModa
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
 import SwitchChainModal from '../../page-objects/MMConnect/SwitchChainModal.js';
 import AddChainModal from '../../page-objects/MMConnect/AddChainModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   DappServer,
   DappVariants,
-  PlaywrightGestures,
+  Gestures,
   TestDapps,
   sleep,
 } from '../../framework/index.js';
@@ -104,7 +104,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       //
       // Login and navigate to dapp
       //
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -117,12 +117,12 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       // Connect via WAGMI
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectWagmi();
       }, DAPP_URL);
 
       // Handle connection approval in MetaMask
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapEditAccountsButton();
@@ -148,7 +148,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       // Verify connection and switch to Sepolia
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiConnected(true);
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('1');
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_1_ADDRESS);
@@ -157,7 +157,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('11155111');
         // Sign a message on Sepolia
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Sepolia');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage({
           shouldCooldown: true,
           timeToCooldown: 2000,
@@ -165,7 +165,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       }, DAPP_URL);
 
       // Cancel sign request
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Sepolia');
         await SignModal.tapCancelButton();
@@ -179,11 +179,11 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       // Switch to OP Mainnet (requires approval since unselected earlier)
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapWagmiSwitchChain(10); // OP Mainnet
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SwitchChainModal.assertNetworkText('OP');
         await SwitchChainModal.tapConnectButton({
@@ -196,14 +196,14 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('10');
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello OP');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('OP');
         await SignModal.tapCancelButton();
@@ -226,13 +226,13 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       // Verify account change and add CELO chain
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiActiveAccount(ACCOUNT_3_ADDRESS);
         // Try to switch to Celo (will trigger add chain)
         await BrowserPlaygroundDapp.tapWagmiSwitchChain(42220);
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await AddChainModal.assertText('42220');
         await AddChainModal.assertText('Celo');
@@ -246,17 +246,17 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertWagmiChainIdValue('42220');
         await BrowserPlaygroundDapp.typeWagmiSignMessage('Hello Celo');
-        await PlaywrightGestures.hideKeyboard();
+        await Gestures.hideKeyboard();
         await BrowserPlaygroundDapp.tapWagmiSignMessage({
           shouldCooldown: true,
           timeToCooldown: 2000,
         });
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.assertNetworkText('Celo');
         await SignModal.tapCancelButton({
@@ -273,7 +273,7 @@ appiumTest.describe.skip(SmokeMMConnect('Wagmi chain switching'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

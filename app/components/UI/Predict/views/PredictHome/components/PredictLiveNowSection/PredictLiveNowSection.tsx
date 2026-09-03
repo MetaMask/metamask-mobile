@@ -174,7 +174,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
         endIconProps={{
           testID: PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER_CHEVRON,
         }}
-        twClassName="p-0 mb-2"
+        twClassName="px-0 pt-0 mb-1"
       />
 
       <Box twClassName="-mx-4">

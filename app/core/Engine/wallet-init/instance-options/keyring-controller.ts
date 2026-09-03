@@ -10,9 +10,14 @@ type KeyringControllerInstanceOptions = NonNullable<
 /**
  * @param messenger - Needed to build the V1 keyring builders, some of which
  * interact with the shared bus.
+ * TODO: Remove this parameter when we remove the DMK feature flag.
+ * @param useDmk - Resolved DMK flag, threaded into the keyring builders so the
+ * Ledger bridge choice agrees with the adapter choice.
  */
 export function getKeyringControllerInstanceOptions(
   messenger: RootMessenger,
+  // TODO: Remove this parameter when we remove the DMK feature flag.
+  useDmk: boolean,
 ): KeyringControllerInstanceOptions {
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -20,7 +25,7 @@ export function getKeyringControllerInstanceOptions(
 
   return {
     encryptor,
-    keyringBuilders: getKeyringBuilders(messenger),
+    keyringBuilders: getKeyringBuilders(messenger, useDmk),
     keyringV2Builders: getKeyringV2Builders(),
   };
 }

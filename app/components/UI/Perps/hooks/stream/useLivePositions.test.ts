@@ -6,6 +6,11 @@ import {
 } from './usePerpsLivePositions';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 
+let mockSelectedAddress = '0x1111111111111111111111111111111111111111';
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockSelectedAddress),
+}));
+
 // Mock Engine for lazy isInitialLoading check
 let mockCachedUserData: {
   positions: Position[];
@@ -71,6 +76,7 @@ describe('usePerpsLivePositions', () => {
     jest.useFakeTimers();
     mockCachedUserData = null;
     mockChannelPositionsSnapshot = undefined;
+    mockSelectedAddress = '0x1111111111111111111111111111111111111111';
   });
 
   afterEach(() => {
@@ -90,6 +96,7 @@ describe('usePerpsLivePositions', () => {
       // Assert
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs,
       });
     });
@@ -194,6 +201,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current).toEqual({
         positions: [],
         isInitialLoading: true,
+        deliveryRevision: 0,
       });
 
       // Simulate positions update
@@ -210,6 +218,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -225,6 +234,7 @@ describe('usePerpsLivePositions', () => {
       // Assert
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 0,
       });
     });
@@ -247,6 +257,7 @@ describe('usePerpsLivePositions', () => {
 
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 0,
       });
 
@@ -257,6 +268,7 @@ describe('usePerpsLivePositions', () => {
       expect(mockUnsubscribe1).toHaveBeenCalled();
       expect(mockPositionsSubscribe).toHaveBeenCalledWith({
         callback: expect.any(Function),
+        onDelivery: expect.any(Function),
         throttleMs: 2000,
       });
     });
@@ -279,6 +291,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: [],
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -303,6 +316,7 @@ describe('usePerpsLivePositions', () => {
       expect(result.current).toEqual({
         positions: [],
         isInitialLoading: true,
+        deliveryRevision: 0,
       });
     });
 
@@ -334,6 +348,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: validPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
     });
@@ -346,7 +361,7 @@ describe('usePerpsLivePositions', () => {
       });
       mockPricesSubscribe.mockReturnValue(jest.fn());
 
-      const { result } = renderHook(() => usePerpsLivePositions());
+      const { result, rerender } = renderHook(() => usePerpsLivePositions());
 
       // First: receive real positions (simulate loaded state)
       act(() => {
@@ -357,6 +372,11 @@ describe('usePerpsLivePositions', () => {
         expect(result.current.isInitialLoading).toBe(false);
         expect(result.current.positions).toEqual([mockPosition]);
       });
+
+      mockSelectedAddress = '0x2222222222222222222222222222222222222222';
+      rerender(undefined);
+      expect(result.current.positions).toEqual([]);
+      expect(result.current.isInitialLoading).toBe(true);
 
       // Account switch: receive null (clearCache)
       act(() => {
@@ -400,6 +420,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: firstPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
       });
 
@@ -416,6 +437,7 @@ describe('usePerpsLivePositions', () => {
         expect(result.current).toEqual({
           positions: secondPositions,
           isInitialLoading: false,
+          deliveryRevision: 0,
         });
         expect(result.current.positions).not.toContain(mockPosition);
       });

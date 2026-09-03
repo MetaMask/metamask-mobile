@@ -6,9 +6,11 @@ import {
   BADGE_PROPS,
 } from '../AccountBalance/AccountBalance.constants';
 import { AvatarAccountType } from '../../../components/Avatars/Avatar';
+import { BadgeVariant } from '../../../components/Badges/Badge';
+import { BADGENETWORK_TEST_ID } from '../../../components/Badges/Badge/variants/BadgeNetwork/BadgeNetwork.constants';
 
 describe('AccountBase', () => {
-  it('renders AccountBase with network badge when badgeProps.src is provided', () => {
+  it('renders network badge when badgeProps.imageSource is provided', () => {
     render(
       <AccountBase
         accountBalance={0}
@@ -23,10 +25,10 @@ describe('AccountBase', () => {
     );
 
     expect(screen.getByTestId('account-base')).toBeOnTheScreen();
-    expect(screen.getByTestId('account-base-network-badge')).toBeOnTheScreen();
+    expect(screen.getByTestId(BADGENETWORK_TEST_ID)).toBeOnTheScreen();
   });
 
-  it('renders without network badge when badgeProps.src is missing', () => {
+  it('renders without network badge when badgeProps.imageSource is missing', () => {
     render(
       <AccountBase
         accountBalance={0}
@@ -35,14 +37,15 @@ describe('AccountBase', () => {
         accountName={''}
         accountBalanceLabel={''}
         accountAddress={TEST_ACCOUNT_ADDRESS}
-        badgeProps={{ name: 'Ethereum' }}
+        badgeProps={{
+          variant: BadgeVariant.Network,
+          name: 'Ethereum',
+        }}
         avatarAccountType={AvatarAccountType.Maskicon}
       />,
     );
 
     expect(screen.getByTestId('account-base')).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('account-base-network-badge'),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByTestId(BADGENETWORK_TEST_ID)).not.toBeOnTheScreen();
   });
 });

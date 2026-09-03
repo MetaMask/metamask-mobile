@@ -1,6 +1,6 @@
 # PredictNext UI component architecture
 
-PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event detail, Market groups, and charts. Keep simple leaf components simple.
+PredictNext core UI uses composition to keep product variants explicit and reusable without accumulating mode props. Apply this guidance to complex, reusable structures such as Event cards, Event Screens, Market groups, and charts. Keep simple leaf components simple.
 
 ## Rules
 
@@ -22,13 +22,13 @@ Create explicit product compositions instead, such as `EventCardStandard` and `E
 A compound API is appropriate when a reusable structure has independently useful parts or sibling parts share state. For example:
 
 ```tsx
-<EventDetail.Root>
-  <EventDetail.Header />
-  <EventDetail.Content>
+<EventScreen.Root>
+  <EventScreen.Header />
+  <EventScreen.Content>
     <MarketList />
-    <EventDetail.About />
-  </EventDetail.Content>
-</EventDetail.Root>
+    <EventScreen.About />
+  </EventScreen.Content>
+</EventScreen.Root>
 ```
 
 When sibling parts need shared state, expose the smallest typed provider contract needed by current callers. Separate it into `state`, `actions`, and presentation metadata where that distinction is useful. The provider owns the state mechanism; presentational parts consume the interface rather than importing product hooks or services.
@@ -58,3 +58,7 @@ For each complex core UI story:
 - use MetaMask design-system components and tokens first.
 
 The goal is not to make every component compound. The goal is to make complex product UI flexible through visible composition while leaving simple code simple.
+
+## Ownership and visibility
+
+Composition does not determine project-wide visibility. Public variants belong at their owning feature or domain module boundary; primitives and compound parts used only to implement those variants stay under that module's `internal/` directory. Consumers outside the module import through its deliberate `index.ts` API and never deep-import internal parts. See [`module-structure.md`](./module-structure.md).

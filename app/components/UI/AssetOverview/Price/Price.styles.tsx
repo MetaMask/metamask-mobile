@@ -55,7 +55,7 @@ const styleSheet = (params: { theme: Theme }) =>
       alignSelf: 'stretch',
     } as ViewStyle,
     noDataOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 2,

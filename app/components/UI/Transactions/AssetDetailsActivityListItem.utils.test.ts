@@ -274,7 +274,7 @@ describe('AssetDetailsActivityListItem utils', () => {
       );
     });
 
-    it('degrades to swapIncomplete without the quote, which is the bug this enrichment fixes', () => {
+    it('keeps the swap kind without a quote when destination metadata is missing', () => {
       const item = mapTransactionToActivityItem({
         transaction: createSwap(),
         assetSymbol: 'USDC',
@@ -282,7 +282,7 @@ describe('AssetDetailsActivityListItem utils', () => {
         currentChainId: '0x1',
       });
 
-      expect(item.type).toBe('swapIncomplete');
+      expect(item.type).toBe('swap');
     });
 
     it('falls back to legacy swapMetaData symbols when there is no quote', () => {

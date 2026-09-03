@@ -16,6 +16,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Logger from '../../../../../util/Logger';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 
@@ -116,23 +117,56 @@ const ImmersveKYCModal: React.FC = () => {
     () => setStatus((s) => (s === 'error' ? s : 'loaded')),
     [],
   );
-  const handleError = useCallback(() => {
-    setStatus('error');
-    // onError + onHttpError often both fire for one failure.
-    if (hasTrackedLoadError.current) {
-      return;
-    }
-    hasTrackedLoadError.current = true;
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_LOAD_ERROR,
-          }),
-        )
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder]);
+  const handleError = useCallback(
+    (event?: {
+      nativeEvent?: { statusCode?: number; description?: string };
+    }) => {
+      setStatus('error');
+      // onError + onHttpError often both fire for one failure.
+      if (hasTrackedLoadError.current) {
+        return;
+      }
+      hasTrackedLoadError.current = true;
+
+      let urlHost: string | undefined;
+      let redirectHost: string | undefined;
+      try {
+        urlHost = url ? new URL(url).host : undefined;
+      } catch {
+        urlHost = undefined;
+      }
+      try {
+        redirectHost = redirectUrl ? new URL(redirectUrl).host : undefined;
+      } catch {
+        redirectHost = undefined;
+      }
+
+      Logger.error(new Error('Immersve KYC webview load failed'), {
+        tags: { feature: 'card', provider: 'immersve' },
+        context: {
+          name: 'ImmersveKYCModal',
+          data: {
+            method: 'handleError',
+            urlHost,
+            redirectHost,
+            retryKey,
+            httpStatus: event?.nativeEvent?.statusCode,
+          },
+        },
+      });
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.KYC_WEBVIEW_LOAD_ERROR,
+            }),
+          )
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, url, redirectUrl, retryKey],
+  );
 
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {

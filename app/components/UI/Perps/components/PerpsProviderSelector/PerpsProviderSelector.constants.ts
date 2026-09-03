@@ -21,6 +21,11 @@ export const PROVIDER_DISPLAY_INFO: Record<
     name: 'MYX',
     description: 'BNB Chain perps (Beta)',
   },
+  lighter: {
+    id: 'lighter',
+    name: 'Lighter',
+    description: 'Lighter perps',
+  },
   aggregated: {
     id: 'aggregated',
     name: 'All Providers',

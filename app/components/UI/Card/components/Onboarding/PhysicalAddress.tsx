@@ -62,6 +62,7 @@ import { COINME_TERMS_URL, CRB_PRIVACY_POLICY_URL } from '../../constants';
 import { getCardUsDisclosureUrls } from '../../util/registrationSettings';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
+const VERIFICATION_POLLING_TIMEOUT_MS = 6000;
 
 export const AddressFields = ({
   addressLine1,
@@ -248,14 +249,21 @@ const PhysicalAddress = () => {
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
     null,
   );
+  const pollingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
   const { data: registrationSettings } = useRegistrationSettings();
 
-  // Cleanup polling interval on unmount
+  // Cleanup polling timers on unmount
   useEffect(
     () => () => {
+      isMountedRef.current = false;
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
+      }
+      if (pollingTimeoutRef.current) {
+        clearTimeout(pollingTimeoutRef.current);
+        pollingTimeoutRef.current = null;
       }
     },
     [],
@@ -516,9 +524,7 @@ const PhysicalAddress = () => {
         });
 
         if (storeResult.success) {
-          // Sync controller state: sets CardController.isAuthenticated = true
-          // and providerData.baanx.location so route guards read the correct state.
-          await Engine.context.CardController.validateAndRefreshSession().catch(
+          await Engine.context.CardController.syncSessionAfterExternalAuth().catch(
             () => undefined,
           );
         }
@@ -544,6 +550,13 @@ const PhysicalAddress = () => {
           if (pollingIntervalRef.current) {
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
+          }
+          if (pollingTimeoutRef.current) {
+            clearTimeout(pollingTimeoutRef.current);
+            pollingTimeoutRef.current = null;
+          }
+          if (!isMountedRef.current) {
+            return;
           }
           setIsPollingVerification(false);
           dispatch(resetOnboardingState());
@@ -613,13 +626,11 @@ const PhysicalAddress = () => {
             pollVerificationState();
           }, VERIFICATION_POLLING_INTERVAL_MS);
 
-          // Set a timeout to stop polling after a reasonable time and redirect to Card Home
-          // This prevents infinite polling if the status never changes
-          setTimeout(() => {
+          pollingTimeoutRef.current = setTimeout(() => {
             if (pollingIntervalRef.current) {
               stopPollingAndNavigate({ name: Routes.CARD.HOME });
             }
-          }, VERIFICATION_POLLING_INTERVAL_MS * 2); // Poll 2 times max (6 seconds total)
+          }, VERIFICATION_POLLING_TIMEOUT_MS);
         }
 
         return;

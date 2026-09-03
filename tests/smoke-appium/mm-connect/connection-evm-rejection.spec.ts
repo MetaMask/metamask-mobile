@@ -10,7 +10,7 @@ import BrowserPlaygroundDapp from '../../page-objects/MMConnect/BrowserPlaygroun
 import AndroidScreenHelpers from '../../page-objects/MMConnect/AndroidScreenHelpers.js';
 import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModal.js';
 import SignModal from '../../page-objects/MMConnect/SignModal.js';
-import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers.js';
 import {
   DappServer,
   DappVariants,
@@ -92,7 +92,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       const platform = currentDeviceDetails.platform;
       const DAPP_URL = getDappUrlForBrowser(platform);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await loginToAppPlaywright();
         await ensureAccountGroupsFinishedLoading(currentDeviceDetails);
         await launchMobileBrowser();
@@ -100,11 +100,11 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       });
       await sleep(5000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await unlockIfLockScreenVisible();
         await DappConnectionModal.tapConnectButton({
@@ -117,14 +117,14 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapCancelButton({
           shouldCooldown: true,
@@ -136,17 +136,17 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue('rejected');
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.assertConnected(false);
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton({
           shouldCooldown: true,
@@ -158,14 +158,14 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapCancelButton({
           shouldCooldown: true,
@@ -177,16 +177,16 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue('rejected');
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
         await BrowserPlaygroundDapp.tapConnectLegacy();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await DappConnectionModal.tapConnectButton({
           shouldCooldown: true,
@@ -198,14 +198,14 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertConnected(true);
         await BrowserPlaygroundDapp.assertChainIdValue('0x1');
         await BrowserPlaygroundDapp.assertActiveAccount(ACCOUNT_1_ADDRESS);
         await BrowserPlaygroundDapp.tapPersonalSign();
       }, DAPP_URL);
 
-      await PlaywrightContextHelpers.withNativeAction(async () => {
+      await AppiumContextHelpers.withNativeAction(async () => {
         await AndroidScreenHelpers.tapOpenDeeplinkWithMetaMask();
         await SignModal.tapCancelButton({
           shouldCooldown: true,
@@ -217,7 +217,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       await switchToMobileBrowser();
       await sleep(1000);
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.assertResponseValue('rejected');
       }, DAPP_URL);
 
@@ -225,7 +225,7 @@ appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
       // Reset dapp state
       //
 
-      await PlaywrightContextHelpers.withWebAction(async () => {
+      await AppiumContextHelpers.withWebAction(async () => {
         await BrowserPlaygroundDapp.tapDisconnect();
       }, DAPP_URL);
     },

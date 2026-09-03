@@ -105,19 +105,44 @@ const VerifyIdentity = () => {
           case VeriffSdk.statusCanceled:
             break;
           case VeriffSdk.statusError:
-            Logger.error(
-              new Error('Veriff verification failed'),
-              `Veriff verification failed with error=${result.error}`,
-            );
+            Logger.error(new Error('Veriff verification failed'), {
+              tags: { feature: 'card', provider: 'baanx' },
+              context: {
+                name: 'VerifyIdentity',
+                data: {
+                  method: 'veriffSdk',
+                  status: 'error',
+                  errorCode: result.error,
+                  country: selectedCountry?.key,
+                },
+              },
+            });
             break;
         }
       } catch (error) {
-        Logger.error(error as Error, 'Veriff SDK launch failed unexpectedly');
+        Logger.error(error as Error, {
+          tags: { feature: 'card', provider: 'baanx' },
+          context: {
+            name: 'VerifyIdentity',
+            data: {
+              method: 'veriffSdk',
+              status: 'launch_failed',
+              country: selectedCountry?.key,
+            },
+          },
+        });
       } finally {
         setIsLaunchingVeriff(false);
       }
     }
-  }, [navigation, sessionUrl, trackEvent, createEventBuilder, veriffBranding]);
+  }, [
+    navigation,
+    sessionUrl,
+    trackEvent,
+    createEventBuilder,
+    veriffBranding,
+    selectedCountry?.key,
+  ]);
 
   useEffect(() => {
     trackEvent(

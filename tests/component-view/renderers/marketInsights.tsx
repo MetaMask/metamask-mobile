@@ -2,6 +2,7 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
@@ -95,9 +96,12 @@ export function renderMarketInsightsViewWithNavigation(
     builder.withOverrides(overrides);
   }
   const state = builder.build();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
 
   const stackTree = (
-    <QueryClientBoundary>
+    <QueryClientProvider client={queryClient}>
       <AccessRestrictedProvider>
         <RootStack.Navigator
           initialRouteName={Routes.MARKET_INSIGHTS.VIEW}
@@ -118,7 +122,7 @@ export function renderMarketInsightsViewWithNavigation(
           />
         </RootStack.Navigator>
       </AccessRestrictedProvider>
-    </QueryClientBoundary>
+    </QueryClientProvider>
   );
 
   return renderWithProvider(stackTree, { state });

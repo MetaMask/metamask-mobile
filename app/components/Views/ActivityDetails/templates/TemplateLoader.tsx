@@ -41,7 +41,6 @@ export function TemplateLoader({
     case 'bridge':
       return <BridgeDetails item={item} />;
     case 'swap':
-    case 'swapIncomplete':
     case 'convert':
     case 'lendingDeposit':
     case 'lendingWithdrawal':
@@ -74,6 +73,8 @@ export function TemplateLoader({
       );
     case 'buy':
     case 'sell':
+    case 'rampBuy':
+    case 'rampSell':
       return isRampActivityListItem(item) ? (
         <RampDetails item={item} />
       ) : (

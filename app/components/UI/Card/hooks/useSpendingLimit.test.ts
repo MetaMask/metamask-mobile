@@ -1732,6 +1732,36 @@ describe('useSpendingLimit', () => {
       expect(result.current.isUiInteractionLocked).toBe(true);
     });
 
+    it('shouldBlockNavigation mirrors isUiInteractionLocked until an intentional exit', () => {
+      mockUseCardDelegation.mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+        error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.shouldBlockNavigation()).toBe(true);
+    });
+
+    it('shouldBlockNavigation returns false after skip starts an intentional exit', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      act(() => {
+        result.current.skip();
+      });
+
+      expect(result.current.shouldBlockNavigation()).toBe(false);
+      expect(mockNavigation.dispatch).toHaveBeenCalled();
+    });
+
     it('returns false when Money Account linkage is processing outside onboarding', async () => {
       const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
         address: '0xMonadUsdc',
@@ -1894,6 +1924,55 @@ describe('useSpendingLimit', () => {
       expect(result.current.isMoneyAccountSource).toBe(true);
       expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
       expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('upgrades an auto-picked wallet default to Money Account when canLink resolves late', () => {
+      const priorityToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: null,
+          canLink: false,
+        }),
+      );
+
+      const { result, rerender } = renderHook(
+        (props) => useSpendingLimit(props),
+        {
+          initialProps: createDefaultParams({
+            flow: 'onboarding',
+            priorityToken,
+          }),
+        },
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.selectedToken).toEqual(priorityToken);
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+
+      rerender(
+        createDefaultParams({
+          flow: 'onboarding',
+          priorityToken,
+        }),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
     });
 
     it('preselects Money Account on the onboarding flow even when balance is zero', () => {

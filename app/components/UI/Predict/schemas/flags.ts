@@ -61,6 +61,10 @@ export const PredictFeedCarouselSchema = defaulted(
     ),
     title: optional(string()),
     deeplink: optional(string()),
+    priorityOrder: defaulted(
+      array(string()),
+      () => DEFAULT_PREDICT_FEED_CAROUSEL_FLAG.priorityOrder,
+    ),
     contentSource: defaulted(
       type({
         composition: defaulted(

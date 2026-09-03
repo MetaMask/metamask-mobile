@@ -37,10 +37,11 @@ import {
   buildMockPredictPosition,
 } from '../../../../../../tests/component-view/fixtures/predict';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from '../../components/PredictGameDetailsContent/PredictGameDetailsContent.testIds';
-import type {
-  PredictMarket,
-  PredictPosition,
-  PredictPriceHistoryPoint,
+import {
+  PredictPositionStatus,
+  type PredictMarket,
+  type PredictPosition,
+  type PredictPriceHistoryPoint,
 } from '../../types';
 
 const MARKET_ID = MOCK_PREDICT_MARKET.id;
@@ -475,7 +476,8 @@ describe('PredictMarketDetails', () => {
       );
       // The current value stays behind a skeleton until the sell-order preview
       // query settles, which happens after the tab content is already on screen.
-      await findByText('$60');
+      // Display is cash-out proceeds after fees ($60 gross → $57.60 net).
+      await findByText('$57.60');
 
       const positionsTab = getByTestId(
         PredictMarketDetailsSelectorsIDs.POSITIONS_TAB_CONTENT,
@@ -483,7 +485,7 @@ describe('PredictMarketDetails', () => {
       expect(
         within(positionsTab).getByText('$50 on Yes to win $50'),
       ).toBeOnTheScreen();
-      expect(within(positionsTab).getByText('$60')).toBeOnTheScreen();
+      expect(within(positionsTab).getByText('$57.60')).toBeOnTheScreen();
       expect(
         within(positionsTab).getByTestId(
           PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
@@ -545,8 +547,17 @@ describe('PredictMarketDetails', () => {
         ],
       });
 
-      const { findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
+      });
+
+      const screen = await findByTestId(
+        PredictMarketDetailsSelectorsIDs.SCREEN,
+      );
+      await waitFor(() => {
+        expect(
+          within(screen).getByText(MOCK_PREDICT_MARKET.title),
+        ).toBeOnTheScreen();
       });
 
       expect(await findByText('Yes • 0¢')).toBeOnTheScreen();
@@ -653,6 +664,7 @@ describe('PredictMarketDetails', () => {
           marketId: MOCK_PREDICT_CLOSED_MARKET.id,
           claimable: true,
           percentPnl: 42,
+          status: PredictPositionStatus.WON,
         }),
       ]);
       const claimSpy = controllerMock('claimWithConfirmation');

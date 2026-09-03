@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { uniqBy } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
@@ -60,6 +60,15 @@ import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/is
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import {
+  DEFAULT_RECURRING_EVERY_VALUE,
+  initialRecurringState,
+  validateRecurringSchedule,
+  type RecurringIntervalUnit,
+  type RecurringPriceRange,
+  type RecurringState,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -108,12 +117,20 @@ export interface BridgeState {
   selectedQuoteRequestId: string | undefined;
   balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
+
+  // Batch Sell
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
     Record<CaipAssetType, string | undefined>
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+
+  // Recurring
+  recurring: RecurringState;
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: CaipChainId | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -146,6 +163,12 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
+  recurring: initialRecurringState,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -205,6 +228,25 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
+    setRecurringEveryValue: (state, action: PayloadAction<string>) => {
+      state.recurring.everyValue = action.payload;
+    },
+    setRecurringRepeatCount: (state, action: PayloadAction<string>) => {
+      state.recurring.repeatCount = action.payload;
+    },
+    setRecurringEveryUnit: (
+      state,
+      action: PayloadAction<RecurringIntervalUnit>,
+    ) => {
+      state.recurring.everyUnit = action.payload;
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
+    },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -239,6 +281,7 @@ const slice = createSlice({
       const sourceToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.sourceToken, sourceToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       state.sourceToken = sourceToken;
     },
@@ -246,6 +289,7 @@ const slice = createSlice({
       const destToken = normalizeBridgeToken(action.payload);
       if (didTokenChange(state.destToken, destToken)) {
         clearSlippageState(state);
+        state.recurring.priceRange = undefined;
       }
       // Update selectedDestChainId to match the destination token's chain ID
       state.destToken = destToken;
@@ -300,6 +344,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setOrdersNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.ordersNetworkFilter = action.payload;
     },
     setVisiblePillChainIds: (
       state,
@@ -425,6 +475,36 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectRecurring = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
+);
+
+export const selectRecurringEveryValue = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyValue,
+);
+
+export const selectRecurringEveryUnit = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyUnit,
+);
+
+export const selectRecurringRepeatCount = createSelector(
+  selectRecurring,
+  (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
+);
+
+export const selectRecurringScheduleValidation = createSelector(
+  selectRecurring,
+  validateRecurringSchedule,
 );
 
 export const selectIsMaxSourceAmount = createSelector(
@@ -806,11 +886,19 @@ export const selectControllerFields = createSelector(
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (requiredControllerFields, selectedQuoteRequestId) => {
+  (readOnlyRequiredControllerFields, selectedQuoteRequestId) => {
+    // This is a workaround to enable adding metadata to intent
+    // quotes during QuoteResponse migration.
+    const clonedQuotes = cloneDeep(readOnlyRequiredControllerFields.quotes);
+    const requiredControllerFields = {
+      ...readOnlyRequiredControllerFields,
+      quotes: clonedQuotes,
+    };
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -828,6 +916,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -843,6 +932,7 @@ export const selectBatchSellQuotes = createSelector(
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 
@@ -983,6 +1073,11 @@ export const selectTokenSelectorNetworkFilter = createSelector(
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
 );
 
+export const selectOrdersNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.ordersNetworkFilter,
+);
+
 export const selectVisiblePillChainIds = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.visiblePillChainIds,
@@ -1066,6 +1161,10 @@ export const {
   setSourceAmount,
   setSourceAmountAsMax,
   setDestAmount,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,
@@ -1086,6 +1185,7 @@ export const {
   setIsGasIncluded7702Supported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   updateHardwareWalletsSwaps,

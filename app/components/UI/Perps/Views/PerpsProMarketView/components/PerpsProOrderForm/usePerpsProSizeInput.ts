@@ -26,17 +26,23 @@ export interface UsePerpsProSizeInputParams {
   szDecimals: number;
   maxPossibleAmount: number;
   maxDigits?: number;
+  /** Keeps the canonical USD denomination visible and disables switching. */
+  forceUsd?: boolean;
   /**
    * When true, the size field stays empty and slider drags are visual-only
    * (used for reduce-only `no_position` / `wrong_side`).
    */
   keepSizeEmpty?: boolean;
+  /** Preserve reactive maximum recalculation after a Chase MAX selection. */
+  preserveMaxIntent?: boolean;
 }
 
 export interface UsePerpsProSizeInputResult {
   sizeInput: PerpsProSizeInputModel;
   sizeSlider: PerpsProSizeSliderModel;
   effectiveUsdAmount: string;
+  /** True when the user last committed the slider at its maximum. */
+  isAtMaxAmount: boolean;
   commitPendingSliderPreview: () => boolean;
 }
 
@@ -123,12 +129,15 @@ export const usePerpsProSizeInput = ({
   szDecimals,
   maxPossibleAmount,
   maxDigits,
+  forceUsd = false,
   keepSizeEmpty = false,
+  preserveMaxIntent = false,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
-    Number.isFinite(effectivePrice) && effectivePrice > 0;
+    !forceUsd && Number.isFinite(effectivePrice) && effectivePrice > 0;
   const [denominationUnit, setDenominationUnit] =
     useState<SizeDenominationUnit>('usd');
+  const activeDenominationUnit = forceUsd ? 'usd' : denominationUnit;
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
@@ -141,7 +150,9 @@ export const usePerpsProSizeInput = ({
   const assetDraft = assetDraftState.value;
   const [isSizeFocused, setIsSizeFocused] = useState(false);
   const [sliderPreview, setSliderPreview] = useState<string | null>(null);
+  const [isAtMaxAmount, setIsAtMaxAmount] = useState(false);
   const sliderPreviewRef = useRef<string | null>(null);
+  const sliderAtMaxRef = useRef(false);
   const lastUsdAmountRef = useRef(usdAmount);
   // Tracks USD amounts this hook just committed so external clamps (leverage /
   // balance / payment-token caps) can be distinguished from our own setAmount
@@ -153,13 +164,28 @@ export const usePerpsProSizeInput = ({
     setSliderPreview(null);
   }, []);
 
+  const clearSliderMaxIntent = useCallback(() => {
+    sliderAtMaxRef.current = false;
+    setIsAtMaxAmount(false);
+  }, []);
+
+  const cancelPendingSliderPreview = useCallback(() => {
+    if (sliderPreviewRef.current === null) {
+      return;
+    }
+
+    clearSliderPreview();
+    clearSliderMaxIntent();
+  }, [clearSliderMaxIntent, clearSliderPreview]);
+
   const wasKeepSizeEmptyRef = useRef(keepSizeEmpty);
   useEffect(() => {
     if (wasKeepSizeEmptyRef.current && !keepSizeEmpty) {
       clearSliderPreview();
+      clearSliderMaxIntent();
     }
     wasKeepSizeEmptyRef.current = keepSizeEmpty;
-  }, [clearSliderPreview, keepSizeEmpty]);
+  }, [clearSliderMaxIntent, clearSliderPreview, keepSizeEmpty]);
 
   const commitUsdAmount = useCallback(
     (nextUsdAmount: string) => {
@@ -190,7 +216,7 @@ export const usePerpsProSizeInput = ({
       // and avoid overwriting a blur snap with a stale usdAmount before the
       // parent echoes the pending internal commit.
       if (
-        denominationUnit === 'asset' &&
+        activeDenominationUnit === 'asset' &&
         canToggleDenomination &&
         assetDraftState.source === 'canonical' &&
         !isSizeFocused &&
@@ -215,7 +241,19 @@ export const usePerpsProSizeInput = ({
     }
 
     // External canonical update (amount clamp, reset, payment-token change).
+    const clampedMaximum = new BigNumber(
+      clampSliderUsdAmount(maxPossibleAmount, maxPossibleAmount),
+    );
+    const preservesMaxIntent =
+      preserveMaxIntent &&
+      sliderAtMaxRef.current &&
+      maxPossibleAmount > 0 &&
+      clampedMaximum.gt(0) &&
+      new BigNumber(usdAmount || 0).eq(clampedMaximum);
     clearSliderPreview();
+    if (!preservesMaxIntent) {
+      clearSliderMaxIntent();
+    }
     setUsdDraft(usdAmount);
     if (canToggleDenomination) {
       setAssetDraftState({
@@ -226,10 +264,13 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraftState.source,
     canToggleDenomination,
+    clearSliderMaxIntent,
     clearSliderPreview,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     isSizeFocused,
+    maxPossibleAmount,
+    preserveMaxIntent,
     szDecimals,
     usdAmount,
   ]);
@@ -238,10 +279,10 @@ export const usePerpsProSizeInput = ({
     () => ({
       maxDigits,
       maxDecimalPlaces:
-        denominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
+        activeDenominationUnit === 'usd' ? 2 : getDecimalPlaces(szDecimals),
       acceptedDecimalSeparators: ['.', ','],
     }),
-    [denominationUnit, maxDigits, szDecimals],
+    [activeDenominationUnit, maxDigits, szDecimals],
   );
 
   const onChange = useCallback(
@@ -250,7 +291,8 @@ export const usePerpsProSizeInput = ({
         return;
       }
 
-      const previousValue = denominationUnit === 'usd' ? usdDraft : assetDraft;
+      const previousValue =
+        activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
       const result = normalizeNumericTextInput(
         text,
         previousValue,
@@ -263,8 +305,9 @@ export const usePerpsProSizeInput = ({
       // A valid keyboard edit supersedes any preview left by an interrupted
       // slider gesture. Invalid edits preserve the current displayed value.
       clearSliderPreview();
+      clearSliderMaxIntent();
 
-      if (denominationUnit === 'usd') {
+      if (activeDenominationUnit === 'usd') {
         setUsdDraft(result.value);
         commitUsdAmount(result.value || '0');
         return;
@@ -280,9 +323,10 @@ export const usePerpsProSizeInput = ({
     [
       assetDraft,
       canToggleDenomination,
+      clearSliderMaxIntent,
       clearSliderPreview,
       commitUsdAmount,
-      denominationUnit,
+      activeDenominationUnit,
       effectivePrice,
       inputOptions,
       keepSizeEmpty,
@@ -296,7 +340,7 @@ export const usePerpsProSizeInput = ({
       return;
     }
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       const finalizedDraft = finalizeNumericTextInput(usdDraft);
       setUsdDraft(finalizedDraft);
       commitUsdAmount(finalizedDraft || '0');
@@ -341,7 +385,7 @@ export const usePerpsProSizeInput = ({
     assetDraftState.source,
     canToggleDenomination,
     commitUsdAmount,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     szDecimals,
@@ -349,9 +393,9 @@ export const usePerpsProSizeInput = ({
   ]);
 
   const onFocus = useCallback(() => {
-    clearSliderPreview();
+    cancelPendingSliderPreview();
     setIsSizeFocused(true);
-  }, [clearSliderPreview]);
+  }, [cancelPendingSliderPreview]);
 
   const onToggleDenomination = useCallback(() => {
     if (!canToggleDenomination || keepSizeEmpty) {
@@ -359,8 +403,9 @@ export const usePerpsProSizeInput = ({
     }
 
     clearSliderPreview();
+    clearSliderMaxIntent();
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
       setAssetDraftState({
         value: getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals),
@@ -379,9 +424,10 @@ export const usePerpsProSizeInput = ({
     canToggleDenomination,
     clearSliderPreview,
     commitUsdAmount,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
+    clearSliderMaxIntent,
     szDecimals,
     usdDraft,
   ]);
@@ -395,7 +441,7 @@ export const usePerpsProSizeInput = ({
       return sliderPreview;
     }
 
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       return finalizeNumericTextInput(usdDraft) || '0';
     }
 
@@ -415,7 +461,7 @@ export const usePerpsProSizeInput = ({
     assetDraft,
     assetDraftState.source,
     canToggleDenomination,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     sliderPreview,
@@ -426,15 +472,20 @@ export const usePerpsProSizeInput = ({
   const onSliderValueChange = useCallback(
     (value: number) => {
       const nextUsdAmount = clampSliderUsdAmount(value, maxPossibleAmount);
+      const atMax = value >= maxPossibleAmount;
       sliderPreviewRef.current = nextUsdAmount;
+      sliderAtMaxRef.current = atMax;
       setSliderPreview(nextUsdAmount);
+      setIsAtMaxAmount(atMax);
     },
     [maxPossibleAmount],
   );
 
   const commitSliderUsdAmount = useCallback(
-    (nextUsdAmount: string) => {
+    (nextUsdAmount: string, atMax = false) => {
       const didCommitCanonicalAmount = commitUsdAmount(nextUsdAmount);
+      sliderAtMaxRef.current = atMax;
+      setIsAtMaxAmount(atMax);
       setUsdDraft(nextUsdAmount);
       if (canToggleDenomination) {
         setAssetDraftState({
@@ -457,13 +508,16 @@ export const usePerpsProSizeInput = ({
   const onSliderDragEnd = useCallback(
     (value: number) => {
       const nextUsdAmount = clampSliderUsdAmount(value, maxPossibleAmount);
+      const atMax = value >= maxPossibleAmount;
       if (keepSizeEmpty) {
         sliderPreviewRef.current = nextUsdAmount;
+        sliderAtMaxRef.current = atMax;
         setSliderPreview(nextUsdAmount);
+        setIsAtMaxAmount(atMax);
         return;
       }
 
-      commitSliderUsdAmount(nextUsdAmount);
+      commitSliderUsdAmount(nextUsdAmount, atMax);
     },
     [commitSliderUsdAmount, keepSizeEmpty, maxPossibleAmount],
   );
@@ -471,14 +525,20 @@ export const usePerpsProSizeInput = ({
   const onSliderDragCancel = useCallback(() => {
     if (keepSizeEmpty) {
       clearSliderPreview();
+      clearSliderMaxIntent();
       return;
     }
 
     const nextUsdAmount = sliderPreviewRef.current;
     if (nextUsdAmount !== null) {
-      commitSliderUsdAmount(nextUsdAmount);
+      commitSliderUsdAmount(nextUsdAmount, sliderAtMaxRef.current);
     }
-  }, [clearSliderPreview, commitSliderUsdAmount, keepSizeEmpty]);
+  }, [
+    clearSliderMaxIntent,
+    clearSliderPreview,
+    commitSliderUsdAmount,
+    keepSizeEmpty,
+  ]);
 
   const commitPendingSliderPreview = useCallback((): boolean => {
     if (keepSizeEmpty) {
@@ -490,7 +550,7 @@ export const usePerpsProSizeInput = ({
       return false;
     }
 
-    return commitSliderUsdAmount(nextUsdAmount);
+    return commitSliderUsdAmount(nextUsdAmount, sliderAtMaxRef.current);
   }, [commitSliderUsdAmount, keepSizeEmpty]);
 
   const value = useMemo(() => {
@@ -499,9 +559,9 @@ export const usePerpsProSizeInput = ({
     }
 
     if (sliderPreview === null) {
-      return denominationUnit === 'usd' ? usdDraft : assetDraft;
+      return activeDenominationUnit === 'usd' ? usdDraft : assetDraft;
     }
-    if (denominationUnit === 'usd') {
+    if (activeDenominationUnit === 'usd') {
       return sliderPreview;
     }
     if (canToggleDenomination) {
@@ -511,7 +571,7 @@ export const usePerpsProSizeInput = ({
   }, [
     assetDraft,
     canToggleDenomination,
-    denominationUnit,
+    activeDenominationUnit,
     effectivePrice,
     keepSizeEmpty,
     sliderPreview,
@@ -521,10 +581,10 @@ export const usePerpsProSizeInput = ({
 
   const denomination = useMemo<PerpsProSizeDenomination>(
     () =>
-      denominationUnit === 'usd'
+      activeDenominationUnit === 'usd'
         ? { unit: 'usd' }
         : { unit: 'asset', symbol: assetSymbol },
-    [assetSymbol, denominationUnit],
+    [activeDenominationUnit, assetSymbol],
   );
 
   const sizeInput = useMemo<PerpsProSizeInputModel>(
@@ -574,6 +634,7 @@ export const usePerpsProSizeInput = ({
     sizeInput,
     sizeSlider,
     effectiveUsdAmount,
+    isAtMaxAmount,
     commitPendingSliderPreview,
   };
 };

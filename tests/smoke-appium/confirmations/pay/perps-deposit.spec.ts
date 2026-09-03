@@ -7,7 +7,11 @@ import {
   type TokenHolding,
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
-import { loginToAppPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../../flows/wallet.flow.js';
+import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
@@ -15,7 +19,6 @@ import TransactionPayConfirmation from '../../../page-objects/Confirmation/Trans
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
 import PayWithModalTokenPicker from '../../../page-objects/Confirmation/PayWithModalTokenPicker.js';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions.js';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet.js';
 
 import ActivitiesView from '../../../page-objects/Transactions/ActivitiesView.js';
@@ -84,6 +87,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps deposit'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PerpsHomeView.tapBackHomeButton();
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
           await WalletView.tapActivityButton();
 
           await ActivitiesView.tapTypeFilterChip();

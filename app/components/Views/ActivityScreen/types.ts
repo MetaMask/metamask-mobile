@@ -89,7 +89,6 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'send',
     'receive',
     'swap',
-    'swapIncomplete',
     'bridge',
     'wrap',
     'unwrap',

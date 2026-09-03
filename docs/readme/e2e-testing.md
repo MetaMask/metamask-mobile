@@ -6,7 +6,7 @@
 >
 > E2E tests are significantly slower, more brittle, and resource-intensive than unit and integration tests. Always prioritize unit and integration tests over E2E ones.
 
-Our end-to-end (E2E) testing strategy uses **Appium + Playwright** smoke tests under `tests/smoke-appium/`. Builds are **main-e2e** release binaries with `HAS_TEST_OVERRIDES=true`. Detox and legacy `wdio/` have been removed (MMQA-2230). See [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+Our end-to-end (E2E) testing strategy uses **Appium + Playwright** smoke tests under `tests/smoke-appium/`. Builds are **main-e2e** release binaries with `HAS_TEST_OVERRIDES=true`. See [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
 
 - [Local environment setup](#local-environment-setup)
   - [Tooling setup](#tooling-setup)
@@ -120,7 +120,7 @@ yarn build:android:main:e2e
 
 ### Run Appium smoke
 
-See **[Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)** and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md). Detox `yarn test:e2e:*` commands have been removed (MMQA-2230).
+See **[Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)** and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
 
 To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
 
@@ -296,7 +296,7 @@ yarn build:android:flask:e2e  # or yarn build:ios:flask:e2e
 
 ## Legacy Appium (wdio)
 
-> **Removed (MMQA-2230).** Use Playwright Appium smoke — [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
+> **Removed.** Use Playwright Appium smoke — [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 

@@ -47,3 +47,59 @@ jobs:
     with:
       semver-version: ${{ needs.extract.outputs.semver }}
       is-ota: ${{ needs.extract.outputs.is_ota == 'true' }}
+
+  # OTA hotfixes are excluded: create-release-pr.yml bumps OTA_VERSION on release/X.Y.Z-ota,
+  # so runway-ota-resolve-context.yml reports ota_bump=true and build-rc-auto.yml skips both
+  # native builds. OTA release candidates go through runway-ota-rc.yml instead.
+  trigger-first-rc-build:
+    name: Trigger first RC build
+    needs: [extract, call-create-release-pr]
+    if: needs.extract.outputs.is_ota != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      # Failing to dispatch must not make a successfully created release PR look broken, so
+      # this reports the problem and still succeeds. Recovery is a manual dispatch of
+      # build-rc-auto.yml on the release branch, or any subsequent push to it.
+      - name: Dispatch build-rc-auto.yml on the release branch (best effort)
+        id: dispatch
+        env:
+          # workflow_dispatch is the documented exception to GITHUB_TOKEN events not starting
+          # workflow runs, so no token exchange is needed here.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -uo pipefail
+
+          echo "Dispatching build-rc-auto.yml on '${BRANCH}'"
+          if ! DISPATCH_LOG="$(gh workflow run build-rc-auto.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" 2>&1)"; then
+            echo "$DISPATCH_LOG"
+            echo "::error::Could not dispatch the first RC build on ${BRANCH}. Dispatch it manually from the Actions tab, or push to the branch."
+            echo "dispatched=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "$DISPATCH_LOG"
+          echo "dispatched=true" >> "$GITHUB_OUTPUT"
+
+      - name: Summarize dispatch
+        if: always()
+        env:
+          BRANCH: ${{ github.ref_name }}
+          DISPATCHED: ${{ steps.dispatch.outputs.dispatched }}
+        run: |
+          set -euo pipefail
+
+          # gh reports the event, not the run it creates, so link the branch-filtered run list.
+          RUNS_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/workflows/build-rc-auto.yml?query=branch%3A${BRANCH//\//%2F}"
+          {
+            echo "### First RC build"
+            echo ""
+            if [[ "$DISPATCHED" == "true" ]]; then
+              echo "Dispatched \`build-rc-auto.yml\` on \`${BRANCH}\` — [view runs](${RUNS_URL})."
+            else
+              echo "Dispatch failed. The release PR is unaffected; start the first RC build by dispatching [\`build-rc-auto.yml\`](${RUNS_URL}) on \`${BRANCH}\`, or by pushing to the branch."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

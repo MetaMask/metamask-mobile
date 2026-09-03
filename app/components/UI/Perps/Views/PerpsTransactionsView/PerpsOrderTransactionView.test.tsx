@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import type { OrdinaryOrderType } from '@metamask/perps-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import PerpsOrderTransactionView from './PerpsOrderTransactionView';
 import {
@@ -23,11 +24,81 @@ const mockTransaction = {
     text: 'Filled',
     statusType: 'filled' as const,
     type: 'limit',
+    orderType: 'limit',
     size: '3000',
     limitPrice: 2000,
     filled: '100%',
   },
 };
+
+const orderTypeCases = [
+  {
+    orderType: 'market',
+    executionType: 'market',
+    detailedOrderType: 'Market',
+    limitPrice: undefined,
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'limit',
+    executionType: 'limit',
+    detailedOrderType: 'Limit',
+    limitPrice: 2000,
+    triggerPrice: undefined,
+  },
+  {
+    orderType: 'stop_market',
+    executionType: 'market',
+    detailedOrderType: 'Stop Market',
+    limitPrice: undefined,
+    triggerPrice: 2100,
+  },
+  {
+    orderType: 'stop_limit',
+    executionType: 'limit',
+    detailedOrderType: 'Stop Limit',
+    limitPrice: 2050,
+    triggerPrice: 2100,
+  },
+  {
+    orderType: 'take_profit_market',
+    executionType: 'market',
+    detailedOrderType: 'Take Profit Market',
+    limitPrice: undefined,
+    triggerPrice: 2200,
+  },
+  {
+    orderType: 'take_profit_limit',
+    executionType: 'limit',
+    detailedOrderType: 'Take Profit Limit',
+    limitPrice: 2150,
+    triggerPrice: 2200,
+  },
+] as const satisfies readonly {
+  orderType: OrdinaryOrderType;
+  executionType: 'market' | 'limit';
+  detailedOrderType: string;
+  limitPrice?: number;
+  triggerPrice?: number;
+}[];
+
+const createOrderTransaction = (
+  orderType: OrdinaryOrderType,
+  executionType: 'market' | 'limit',
+  detailedOrderType: string,
+  limitPrice?: number,
+  triggerPrice?: number,
+) => ({
+  ...mockTransaction,
+  order: {
+    ...mockTransaction.order,
+    type: executionType,
+    orderType,
+    detailedOrderType,
+    limitPrice,
+    triggerPrice,
+  },
+});
 
 const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
@@ -305,6 +376,108 @@ describe('PerpsOrderTransactionView', () => {
     mockUseRoute.mockReturnValue({
       params: { transaction: marketOrderTransaction },
     });
+
+    render(<PerpsOrderTransactionView />);
+
+    expect(mockUsePerpsRecordedOrderFees).toHaveBeenCalledWith(
+      'order-123',
+      'ETH',
+      1640995200000,
+    );
+  });
+
+  it.each(orderTypeCases)(
+    'renders the trigger price row for $orderType orders',
+    ({
+      orderType,
+      executionType,
+      detailedOrderType,
+      limitPrice,
+      triggerPrice,
+    }) => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          transaction: createOrderTransaction(
+            orderType,
+            executionType,
+            detailedOrderType,
+            limitPrice,
+            triggerPrice,
+          ),
+        },
+      });
+
+      const { queryByTestId } = render(<PerpsOrderTransactionView />);
+      const triggerPriceRow = queryByTestId(
+        PerpsTransactionSelectorsIDs.TRIGGER_PRICE_ROW,
+      );
+
+      if (triggerPrice === undefined) {
+        expect(triggerPriceRow).not.toBeOnTheScreen();
+      } else {
+        expect(triggerPriceRow).toBeOnTheScreen();
+      }
+    },
+  );
+
+  it.each(orderTypeCases)(
+    'renders the limit price row for $orderType orders',
+    ({
+      orderType,
+      executionType,
+      detailedOrderType,
+      limitPrice,
+      triggerPrice,
+    }) => {
+      mockUseRoute.mockReturnValue({
+        params: {
+          transaction: createOrderTransaction(
+            orderType,
+            executionType,
+            detailedOrderType,
+            limitPrice,
+            triggerPrice,
+          ),
+        },
+      });
+
+      const { queryByTestId } = render(<PerpsOrderTransactionView />);
+      const limitPriceRow = queryByTestId(
+        PerpsTransactionSelectorsIDs.LIMIT_PRICE_ROW,
+      );
+
+      if (limitPrice === undefined) {
+        expect(limitPriceRow).not.toBeOnTheScreen();
+      } else {
+        expect(limitPriceRow).toBeOnTheScreen();
+      }
+    },
+  );
+
+  it('omits the trigger price row when a trigger order has no trigger price', () => {
+    const transaction = createOrderTransaction(
+      'stop_market',
+      'market',
+      'Stop Market',
+    );
+    mockUseRoute.mockReturnValue({ params: { transaction } });
+
+    const { queryByTestId } = render(<PerpsOrderTransactionView />);
+
+    expect(
+      queryByTestId(PerpsTransactionSelectorsIDs.TRIGGER_PRICE_ROW),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('uses recorded fills for triggered order fees', () => {
+    const transaction = createOrderTransaction(
+      'stop_market',
+      'market',
+      'Stop Market',
+      undefined,
+      2100,
+    );
+    mockUseRoute.mockReturnValue({ params: { transaction } });
 
     render(<PerpsOrderTransactionView />);
 

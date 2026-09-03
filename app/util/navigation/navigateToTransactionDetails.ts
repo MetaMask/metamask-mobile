@@ -17,13 +17,6 @@ interface NavigateToTransactionDetailsOptions {
   initialTypeFilter?: ActivityTypeFilter;
   initialPerpsFilter?: PerpsActivityFilter;
   /**
-   * Whether the redesigned details screen is enabled
-   * (`selectIsTransactionsRedesignEnabled`). Callers read the flag themselves so
-   * this module stays store-free; passing it keeps toast entry points on the same
-   * destination the activity list already uses for the very same row.
-   */
-  isTransactionsRedesignEnabled?: boolean;
-  /**
    * CAIP-2 chain id of `transactionId`. Required by the redesigned screen, which
    * re-resolves the row per chain. Without it the legacy screen is used, since
    * an unfiltered lookup could resolve a hash that collides across chains.
@@ -55,7 +48,6 @@ export function navigateToTransactionDetails(
     transactionId,
     initialTypeFilter,
     initialPerpsFilter,
-    isTransactionsRedesignEnabled,
     chainId,
   }: NavigateToTransactionDetailsOptions = {},
 ): void {
@@ -73,7 +65,7 @@ export function navigateToTransactionDetails(
   if (!transactionId) {
     return;
   }
-  if (isTransactionsRedesignEnabled && chainId) {
+  if (chainId) {
     const params: ActivityDetailsParams = {
       chainId,
       txIdentifier: transactionId,

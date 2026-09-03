@@ -29,7 +29,6 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
-import { selectIsTransactionsRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
 import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
@@ -48,6 +47,7 @@ import {
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { handlePerpsError } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
+import { PERPS_TWAP_UI_CONFIG } from '../constants/perpsConfig';
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: HapticNotificationMoment;
@@ -140,9 +140,38 @@ export interface PerpsToastOptionsConfig {
       ) => PerpsToastOptions;
       editFailed: (error?: string) => PerpsToastOptions;
     };
+    chase: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
+    };
+    twap: {
+      submitted: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes: number,
+      ) => PerpsToastOptions;
+      confirmed: (
+        direction: OrderDirection,
+        amount: string,
+        assetSymbol: string,
+        durationMinutes: number,
+      ) => PerpsToastOptions;
+      creationFailed: (error?: string) => PerpsToastOptions;
+    };
   };
   positionManagement: {
     closePosition: {
+      positionAlreadyClosed: PerpsToastOptions;
       marketClose: {
         full: {
           closeFullPositionInProgress: (
@@ -222,11 +251,12 @@ export interface PerpsToastOptionsConfig {
     added: (symbol: string) => PerpsToastOptions;
     removed: (symbol: string) => PerpsToastOptions;
     addError: PerpsToastOptions;
+    removeError: PerpsToastOptions;
     limitReached: PerpsToastOptions;
   };
 }
 
-const getPerpsToastLabels = (
+export const getPerpsToastLabels = (
   primary: string | React.ReactNode,
   secondary?: string | React.ReactNode,
 ) => {
@@ -252,6 +282,59 @@ const getPerpsToastLabels = (
 
   return labels;
 };
+
+const formatTwapDuration = (durationMinutes: number): string => {
+  const wholeMinutes = Math.max(0, Math.floor(durationMinutes));
+  const minutesPerDay =
+    PERPS_TWAP_UI_CONFIG.HoursPerDay * PERPS_TWAP_UI_CONFIG.MinutesPerHour;
+  const days = Math.floor(wholeMinutes / minutesPerDay);
+  const hours = Math.floor(
+    (wholeMinutes % minutesPerDay) / PERPS_TWAP_UI_CONFIG.MinutesPerHour,
+  );
+  const minutes = wholeMinutes % PERPS_TWAP_UI_CONFIG.MinutesPerHour;
+
+  return [
+    days > 0
+      ? strings(
+          days === 1
+            ? 'perps.order.twap_duration_day'
+            : 'perps.order.twap_duration_days',
+          { count: days },
+        )
+      : undefined,
+    hours > 0
+      ? strings(
+          hours === 1
+            ? 'perps.order.twap_duration_hour'
+            : 'perps.order.twap_duration_hours',
+          { count: hours },
+        )
+      : undefined,
+    minutes > 0
+      ? strings(
+          minutes === 1
+            ? 'perps.order.twap_duration_minute'
+            : 'perps.order.twap_duration_minutes',
+          { count: minutes },
+        )
+      : undefined,
+  ]
+    .filter((part): part is string => Boolean(part))
+    .join(' ');
+};
+
+const getTwapPlacementSubtitle = (
+  direction: OrderDirection,
+  amount: string,
+  assetSymbol: string,
+  durationMinutes: number,
+) =>
+  strings('perps.order.twap_placement_subtitle', {
+    direction: capitalize(direction),
+    amount,
+    assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+    duration: formatTwapDuration(durationMinutes),
+  });
 
 const PERPS_TOASTS_DEFAULT_OPTIONS: Partial<PerpsToastOptions> = {
   hasNoTimeout: false,
@@ -326,8 +409,6 @@ const usePerpsToasts = (): {
           transactionId,
           initialTypeFilter: ActivityTypeFilter.Perps,
           ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
-          isTransactionsRedesignEnabled:
-            selectIsTransactionsRedesignEnabled(state),
           ...(depositMeta?.chainId
             ? { chainId: toEvmCaipChainId(depositMeta.chainId) }
             : {}),
@@ -661,6 +742,98 @@ const usePerpsToasts = (): {
             ),
           }),
         },
+        chase: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_submitted'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.chase_started'),
+              strings('perps.order.order_placement_subtitle', {
+                direction: capitalize(direction),
+                amount,
+                assetSymbol: getPerpsDisplaySymbol(assetSymbol),
+              }),
+            ),
+          }),
+          creationFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
+            ),
+          }),
+        },
+        twap: {
+          submitted: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes: number,
+          ) => ({
+            ...perpsBaseToastOptions.inProgress,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_submitted'),
+              getTwapPlacementSubtitle(
+                direction,
+                amount,
+                assetSymbol,
+                durationMinutes,
+              ),
+            ),
+          }),
+          confirmed: (
+            direction: OrderDirection,
+            amount: string,
+            assetSymbol: string,
+            durationMinutes: number,
+          ) => ({
+            ...perpsBaseToastOptions.success,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.twap_started'),
+              getTwapPlacementSubtitle(
+                direction,
+                amount,
+                assetSymbol,
+                durationMinutes,
+              ),
+            ),
+          }),
+          creationFailed: (error?: string) => ({
+            ...perpsBaseToastOptions.error,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.order.order_failed'),
+              handlePerpsError({
+                error,
+                fallbackMessage: strings(
+                  'perps.order.your_funds_have_been_returned_to_you',
+                ),
+              }),
+            ),
+          }),
+        },
         // Used for both market and limit orders.
         shared: {
           submitting: () => ({
@@ -792,6 +965,13 @@ const usePerpsToasts = (): {
       },
       positionManagement: {
         closePosition: {
+          positionAlreadyClosed: {
+            ...perpsBaseToastOptions.info,
+            labelOptions: getPerpsToastLabels(
+              strings('perps.close_position.already_closed'),
+              strings('perps.close_position.already_closed_subtitle'),
+            ),
+          },
           marketClose: {
             full: {
               closeFullPositionInProgress: (
@@ -1128,6 +1308,12 @@ const usePerpsToasts = (): {
           ...perpsBaseToastOptions.error,
           labelOptions: getPerpsToastLabels(
             strings('perps.watchlist.add_error'),
+          ),
+        },
+        removeError: {
+          ...perpsBaseToastOptions.error,
+          labelOptions: getPerpsToastLabels(
+            strings('perps.watchlist.remove_error'),
           ),
         },
         limitReached: {

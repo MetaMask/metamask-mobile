@@ -1,7 +1,7 @@
 # Predict canonical read model and REST API
 
-- **Status:** Agreed working direction for team review; not yet implemented
-- **Scope:** Public, read-only Predict navigation and Event detail
+- **Status:** Agreed working direction; implemented slices remain executable truth
+- **Scope:** Public, read-only Predict navigation and Event Screens
 - **Venues:** Kalshi first, with a future Polymarket backend mapping
 
 ## Recommendation
@@ -16,18 +16,26 @@ Feed
        ├── Sports Context 0..1
        │    └── Game 0..1
        └── Market 1..*
+            ├── Group 0..1
             └── Outcome exactly 2 (Yes and No sides)
 ```
 
 Feed and detail responses use the same complete `PredictEvent` model. Do not introduce separate summary/detail types until payload size or presentation requirements prove the need.
 
-A canonical Event maps to exactly one Venue Event. A Feed may combine Events discovered through several Venue Series or metadata queries, but the backend must never merge Markets from multiple Venue Events into one canonical Event.
+A canonical Feed Event normally maps to one Venue Event. A Game detail read may
+compose Markets from authoritative sibling Venue Events while retaining the
+requested Game Event as the parent. Mobile receives one canonical Event and
+never performs this join.
 
 ## Ubiquitous language
 
 - **Feed** — a product-owned, ordered, paginated selection of Events for a navigation surface. A Feed can represent a Category, curated collection, or supported filter combination.
-- **Event** — one Venue Event containing one or more related Markets.
+- **Event** — one canonical Event with one parent Venue Event and one or more
+  related Markets. A Game detail read can append validated Markets from
+  authoritative sibling Venue Events without changing that parent identity.
 - **Market** — one binary prediction question within an Event.
+- **Market Group** — optional metadata on each Market that tells the Event
+  Screen how related Markets can be presented together.
 - **Outcome** — the Yes or No side of a Market. Labels may be customized.
 - **Category** — the Event's optional primary MetaMask product classification, such as Sports, Crypto, or Politics.
 - **Series** — an optional Venue-backed grouping of related Events.
@@ -123,6 +131,11 @@ interface PredictSportsContext {
   game?: PredictGame;
 }
 
+interface PredictSettlementSource {
+  name: string;
+  url: PredictHttpsUrl;
+}
+
 type PredictMarketStatus =
   | 'initialized'
   | 'active'
@@ -144,11 +157,31 @@ interface PredictOutcome {
   gameSelection?: 'home' | 'away' | 'draw';
 }
 
+type PredictMarketType = 'spread' | 'total' | (string & {});
+type PredictMarketGroupType = 'marketSelector' | (string & {});
+
+interface PredictMarketOption {
+  type: 'number';
+  value: number;
+}
+
+interface PredictMarketGroup {
+  // Stable within the containing Event. Markets with the same key are one
+  // presentation group. Mobile never derives this value.
+  key: string;
+  groupType: PredictMarketGroupType;
+  marketType?: PredictMarketType;
+  option?: PredictMarketOption;
+  displayOrder?: number;
+}
+
 interface PredictMarket {
   id: PredictEntityId;
   question: string;
+  rules?: string;
   status: PredictMarketStatus;
   outcomes: readonly [PredictOutcome, PredictOutcome];
+  group?: PredictMarketGroup;
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -168,11 +201,13 @@ interface PredictEvent {
   id: PredictEntityId;
   title: string;
   subtitle?: string;
+  rules?: string;
   description?: string;
 
   category?: PredictCategory;
   series?: PredictSeries;
   sports?: PredictSportsContext;
+  settlementSources?: readonly PredictSettlementSource[];
 
   volume?: PredictAmount;
   volume24h?: PredictAmount;
@@ -199,16 +234,49 @@ interface PredictFeed {
 - `volume` is total settlement currency traded for that Event or Market across all users.
 - `volume24h` is settlement currency traded during the trailing 24-hour window at the backend observation time.
 - Event and Market Volume are independent backend projections. Mobile must not sum Market Volume to invent Event Volume.
+- `rules` contains authoritative resolution criteria. Event rules apply to the Event, while Market rules refine one Market. Rules are not generated from descriptive copy.
+- If Event and Market rules are identical, the UI presents the content once. Missing rules are omitted.
+- `settlementSources` contains optional approved sources for outcome verification. Each source has a non-empty name and an absolute HTTPS URL.
 - Amounts and prices are decimal strings. Mobile must not use binary floating-point arithmetic for financial calculations.
 - `imageUrl` and `logoUrl` are optional backend-approved absolute HTTPS URLs. Mobile must not derive media from titles, tickers, or slugs.
 - `primaryColor` is a backend-approved six-digit hexadecimal RGB color such as `#E31837`; it is decorative and must not be the only way UI communicates meaning.
 - Nested Category, Series, Market, and Outcome IDs inherit Venue scope from the containing Event.
 - `recurrence` describes a regular cadence but is not authoritative current-Event selection logic.
 - For a Game Event, `Event.startsAt` is the scheduled Game start; the Game does not duplicate that timestamp.
+- A composed Game detail keeps the requested Game Event's identity, title,
+  Sports/Game metadata, and `startsAt`. It may append only validated Markets
+  from authoritative sibling Venue Events.
+- A composed Event's `closesAt` and `updatedAt` describe the complete returned
+  Market set. Its `volume` and `volume24h` are present only when every returned
+  Market has the corresponding volume; otherwise that aggregate is omitted.
 - `Game.score`, `period`, and `clock` are display-safe strings because their formats vary by Sport. Mobile must not parse them to recover Venue semantics.
 - `Game.observedAt` records when the backend observed the Game snapshot so mobile can identify stale REST data.
 - `Outcome.gameSelection` is authoritative when present. Mobile must not infer a Team or draw association from an Outcome label, Market question, title, ticker, or array order.
 - A `no` Outcome opposite a Team's `yes` Outcome does not automatically represent the other Team; draws and Venue resolution rules can make that inference false.
+- `Market.group` is optional. The backend owns its key, group type, market type,
+  option value, and display order. Mobile does not parse Market questions,
+  titles, labels, slugs, tickers, or strike text to create this metadata.
+- `group.groupType` selects the presentation behavior. The current supported
+  value is `marketSelector`; unknown values remain standard Markets until a
+  supported composition exists.
+- `group.key` identifies one presentation group within the Event. Markets with
+  the same key may share one selector; different keys must remain separate.
+- A `marketSelector` group has a `marketType` and a numeric `option`. For a
+  total, the option is the point threshold. For a spread, it is the canonical
+  signed handicap for the `yes` Outcome's target. The `no` Outcome displays the
+  opposite handicap. The option type is explicit so another representation can
+  be added later without changing `groupType`.
+- `displayOrder` orders alternate Markets inside one group. It does not order
+  groups or Events. When it is absent, response order is authoritative. A
+  single Market renders without a selector. Multiple Markets select the first
+  Market after ordering, without an `isDefault` flag.
+- A spread selector may show the absolute option value without a sign. This is
+  presentation of the backend option only. It does not change the canonical
+  signed value or define a second ordering rule.
+- A missing or unsupported group falls back to the standard Market
+  presentation. Malformed known group fields fail runtime validation.
+- Winner UI uses unique ungrouped `gameSelection` quotes. Markets that carry
+  `group` are not winner Markets.
 
 ## Series and rolling Events
 
@@ -230,7 +298,7 @@ Series: btc-up-down-5m               Series: btc-up-down-5m
 Event:  btc-1200-1205       ->       Event:  btc-1205-1210
 ```
 
-For a rolling card or detail screen:
+For a rolling card or Event Screen:
 
 1. Render the Event returned by the Feed or current-Series endpoint.
 2. Revalidate at or shortly after the Event's `closesAt`.
@@ -330,7 +398,11 @@ GET /v1/venues/{venueId}/events/{eventId}
 
 Response: `PredictEvent`
 
-This route always returns the requested Event. It must never rotate to a newer Event in the same Series. Use it for ordinary cards, deep links, history, Positions, and fixed Event detail.
+This route always returns the requested Event. It must never rotate to a newer
+Event in the same Series. For a football Game Event, the backend may append
+Markets from its related Total and Spread Events. The response still keeps the
+requested Game Event as its identity and parent metadata. Use this route for
+ordinary cards, deep links, history, Positions, and immutable Event Screens.
 
 ### Read the current Event in a rolling Series
 
@@ -354,6 +426,14 @@ The existing Venue-qualified status route remains:
 GET /v1/venues/{venueId}/status
 ```
 
+### Read Market history
+
+```http
+GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}
+```
+
+Supported ranges are `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response is Market-qualified and contains `venueId`, `marketId`, `range`, `observedAt`, and ordered `{ timestamp, yesPrice, noPrice }` points. `yesPrice` is the last traded Yes probability for the period, falling back to the previous trade when a period has no trade. For a binary Market, `noPrice` is the exact complementary representation of the same trade (`1 - yesPrice`), derived by the backend with fixed-point arithmetic. `LIVE` remains an authoritative REST snapshot through `observedAt`; continuous updates and client-generated points are not part of this route.
+
 ### Refresh Game snapshots
 
 No Game-specific endpoint is required initially. Feed and immutable Event reads return the complete embedded Game snapshot. REST clients refresh the existing Feed or Event query according to the product's snapshot policy; a later live-data slice may patch the same canonical Game shape while REST remains the recovery path.
@@ -362,8 +442,8 @@ No Game-specific endpoint is required initially. Feed and immutable Event reads 
 
 The MetaMask Predict backend must:
 
-- map every canonical Event to exactly one Venue Event;
-- never merge Markets from multiple Venue Events into one Event;
+- map every Feed Event to one Venue Event;
+- compose related Markets only when a product-owned detail read requires it;
 - build product-owned Feeds from one or more Venue discovery queries;
 - assign at most one primary MetaMask Category to an Event;
 - select at most one useful Series and classify it as `collection` or `rolling`;
@@ -381,6 +461,9 @@ The MetaMask Predict backend must:
 
 - Discover Events through explicit Series, sport catalog, category, tag, and product metadata relationships.
 - Join Event metadata and authoritative milestone/live-data sources when constructing Sports and Game snapshots.
+- For a football Game detail read, use the `football_game` milestone to discover
+  related Total and Spread Events. Keep the Game Event as the parent and append
+  only validated sibling Markets.
 - Use `series_ticker`, `event_ticker`, and Market ticker fields explicitly; do not parse ticker structure or display text to recover Team or Game identity.
 - Map Kalshi Market statuses directly to the canonical lifecycle.
 - Treat NFL Games-like Series as `collection` and interval contracts such as five-minute up/down as `rolling` when product configuration establishes that behavior.
@@ -407,8 +490,11 @@ Feed: nfl-games
       Sport: American football
       Competition: NFL
       Game: in progress, BUF home 17, KC away 21, Q3 08:42
-    Markets: winner, spread, total
+    Markets: winner
       Winner Outcomes: BUF (home), KC (away)
+Detail for the same Event:
+    Markets: winner, spread, total
+      Spread and Total Markets come from authoritative sibling Venue Events.
 ```
 
 The same Venue Event may later appear in a Props Feed when its own Markets support that treatment. Feed-specific featured-Market presentation is deferred until a concrete UI requires it.
@@ -467,9 +553,8 @@ Until that implementation lands, code and tests remain the executable contract.
 - dynamic Feed-filter discovery;
 - separate Event summary/detail DTOs;
 - Feed-item or Current-Event wrapper resources;
-- cross-Venue-Event composition;
 - multi-Venue aggregated Feeds;
 - Feed-specific featured Market projections;
 - non-binary canonical Markets;
 - continuous live updates and WebSockets;
-- play-by-play, possession, down and distance, per-period scores, player entities and statistics, sports Market-type/line metadata, Games with more than two competitors, independently cached Team resources, charts, history, rules, and account-scoped data.
+- play-by-play, possession, down and distance, per-period scores, player entities and statistics, Games with more than two competitors, independently cached Team resources, and account-scoped data.

@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
 import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
@@ -13,15 +9,16 @@ import { Hex } from 'viem';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenAddress } from '../../utils/transaction-pay';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../hooks/pay/useTransactionPayData';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 export interface PayTokenAmountProps {
   amountHuman: string;
@@ -33,8 +30,6 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const { chainId } = transaction ?? { chainId: '0x0' };
   const { payToken } = useTransactionPayToken();
   const targetTokenAddress = getTokenAddress(transaction);
-  const isMaxAmount = useTransactionPayIsMaxAmount();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const isWithdraw = isTransactionPayWithdraw(transaction);
 
   const fiatRequests = useMemo(
@@ -97,18 +92,18 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   if (disabled) {
     return (
       <View testID="pay-token-amount">
-        <Text color={TextColor.Muted}>0 ETH</Text>
+        <Text color={TextColor.TextMuted}>0 ETH</Text>
       </View>
     );
   }
 
-  if (!formattedAmount || (isMaxAmount && isQuotesLoading)) {
+  if (!formattedAmount) {
     return <PayTokenAmountSkeleton />;
   }
 
   return (
     <View testID="pay-token-amount">
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
         {formattedAmount} {payToken?.symbol}
       </Text>
     </View>

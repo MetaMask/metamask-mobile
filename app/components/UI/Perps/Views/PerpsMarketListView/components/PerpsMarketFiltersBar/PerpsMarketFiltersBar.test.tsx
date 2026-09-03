@@ -200,8 +200,8 @@ describe('PerpsMarketFiltersBar', () => {
       expect(getByTestId('filters-bar-market-count')).toBeTruthy();
     });
 
-    it('does not render market count when watchlist filter is active', () => {
-      const { queryByTestId } = render(
+    it('renders market count and sort when watchlist filter is active', () => {
+      const { getByTestId } = render(
         <PerpsMarketFiltersBar
           {...defaultProps}
           isWatchlistSelected
@@ -209,9 +209,8 @@ describe('PerpsMarketFiltersBar', () => {
         />,
       );
 
-      // The entire sort row (including count) is hidden when watchlist is active
-      expect(queryByTestId('filters-bar-market-count')).toBeNull();
-      expect(queryByTestId('filters-bar-sort')).toBeNull();
+      expect(getByTestId('filters-bar-market-count')).toBeTruthy();
+      expect(getByTestId('filters-bar-sort')).toBeTruthy();
     });
   });
 

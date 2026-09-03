@@ -10,8 +10,7 @@ import { AccountCellIds } from '../../../app/component-library/components-temp/M
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
-  EncapsulatedElementType,
-  type PlaywrightElement,
+  type AppiumElement,
   createLogger,
   getDriver,
   LogLevel,
@@ -36,7 +35,7 @@ class AccountListBottomSheet {
    * `visible=false` while the sheet is open; "Accounts" is reliably displayed.
    * Appium Android: `account-list` testID.
    */
-  get accountList(): EncapsulatedElementType {
+  get accountList(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       // Exact match: contains("Accounts") also hits "Connect accounts" /
       // "Edit accounts" nodes that can exist while displayed=false.
@@ -50,59 +49,59 @@ class AccountListBottomSheet {
     );
   }
 
-  get accountTypeLabel(): EncapsulatedElementType {
+  get accountTypeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_TYPE_LABEL,
     );
   }
 
-  get accountTagLabel(): EncapsulatedElementType {
+  get accountTagLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(CellComponentSelectorsIDs.TAG_LABEL);
   }
 
-  get title(): EncapsulatedElementType {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
     );
   }
 
   /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
-  get backButton(): EncapsulatedElementType {
+  get backButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
-  get addAccountButton(): EncapsulatedElementType {
+  get addAccountButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
   }
 
-  get addWalletButton(): EncapsulatedElementType {
+  get addWalletButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
     );
   }
 
-  get addEthereumAccountButton(): EncapsulatedElementType {
+  get addEthereumAccountButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.ADD_ETHEREUM_ACCOUNT,
     );
   }
 
-  get removeAccountAlertText(): EncapsulatedElementType {
+  get removeAccountAlertText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AccountListBottomSheetSelectorsText.REMOVE_IMPORTED_ACCOUNT,
     );
   }
 
-  get connectAccountsButton(): EncapsulatedElementType {
+  get connectAccountsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectAccountBottomSheetSelectorsIDs.SELECT_MULTI_BUTTON,
     );
   }
 
-  createAccountLink(index: number): EncapsulatedElementType {
+  createAccountLink(index: number): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       index,
@@ -111,7 +110,7 @@ class AccountListBottomSheet {
 
   async getAccountElementByAccountName(
     accountName: string,
-  ): Promise<DetoxElement> {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByIDAndLabel(
       CellComponentSelectorsIDs.BASE_TITLE,
       accountName,
@@ -120,7 +119,7 @@ class AccountListBottomSheet {
 
   getAccountElementByAccountNameV2(
     accountName: string,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByText(accountName);
   }
 
@@ -136,7 +135,7 @@ class AccountListBottomSheet {
   async getAccountElementsByAccountNameV2(
     accountName: string,
     exactMatch: boolean = false,
-  ): Promise<PlaywrightElement[]> {
+  ): Promise<AppiumElement[]> {
     const escapedAccountName = accountName.replace(/'/g, "\\'");
     if (PlatformDetector.isAndroid()) {
       // Anchor on the name text, then step up to the tappable row — immune to
@@ -159,11 +158,11 @@ class AccountListBottomSheet {
     );
   }
 
-  getSelectElement(index: number): EncapsulatedElementType {
+  getSelectElement(index: number): Promise<AppiumElement> {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, index);
   }
 
-  getMultiselectElement(index: number): EncapsulatedElementType {
+  getMultiselectElement(index: number): Promise<AppiumElement> {
     return Matchers.getElementByID(
       CellComponentSelectorsIDs.MULTISELECT,
       index,
@@ -176,9 +175,9 @@ class AccountListBottomSheet {
    * so this method fetches the title/name instead.
    *
    * @param {number} index - The index of the element to retrieve.
-   * @returns {Detox.IndexableNativeElement} The matcher for the element's title/name.
+   * @returns The matcher for the element's title/name.
    */
-  getSelectWithMenuElementName(index: number): EncapsulatedElementType {
+  getSelectWithMenuElementName(index: number): Promise<AppiumElement> {
     return Matchers.getElementByID(CellComponentSelectorsIDs.BASE_TITLE, index);
   }
 
@@ -189,7 +188,7 @@ class AccountListBottomSheet {
     );
   }
 
-  accountNameInList(accountName: string): EncapsulatedElementType {
+  accountNameInList(accountName: string): Promise<AppiumElement> {
     return Matchers.getElementByNativeXPath(this.getCatchAllXPath(accountName));
   }
 
@@ -261,9 +260,9 @@ class AccountListBottomSheet {
   async waitForAccountListVisible(timeout = 15_000): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        let el: PlaywrightElement;
+        let el: AppiumElement;
         try {
-          el = (await this.accountList) as PlaywrightElement;
+          el = (await this.accountList) as AppiumElement;
         } catch {
           throw new Error('Account list sheet element not found');
         }
@@ -434,7 +433,7 @@ class AccountListBottomSheet {
   }
 
   // V2 Multichain Accounts Methods
-  get ellipsisMenuButton(): EncapsulatedElementType {
+  get ellipsisMenuButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(AccountCellIds.MENU);
   }
 
@@ -445,11 +444,8 @@ class AccountListBottomSheet {
    */
   async getEllipsisMenuButtonAtIndex(
     accountIndex: number,
-  ): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      AccountCellIds.MENU,
-      accountIndex,
-    ) as Promise<Detox.IndexableNativeElement>;
+  ): Promise<AppiumElement> {
+    return Matchers.getElementByID(AccountCellIds.MENU, accountIndex);
   }
 
   /**
@@ -508,7 +504,7 @@ class AccountListBottomSheet {
    */
   private async getAccountEllipsisMenuByNameXPath(
     accountName: string,
-  ): Promise<PlaywrightElement | undefined> {
+  ): Promise<AppiumElement | undefined> {
     const escaped = accountName.replace(/'/g, "\\'");
     const menu = AccountCellIds.MENU;
     const xpaths = PlatformDetector.isAndroid()
@@ -562,7 +558,7 @@ class AccountListBottomSheet {
    * so parent-scoped XPath cannot reach the ellipsis.
    */
   private async tapAccountEllipsisAlignedToRowIos(
-    accountCell: PlaywrightElement,
+    accountCell: AppiumElement,
     accountName: string,
   ): Promise<void> {
     const drv = getDriver();
@@ -686,11 +682,11 @@ class AccountListBottomSheet {
    */
   private async getAddAccountButtonLabel(
     srpIndex: number,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       srpIndex,
-    ) as Promise<PlaywrightElement>;
+    ) as Promise<AppiumElement>;
   }
 
   /**
@@ -714,7 +710,7 @@ class AccountListBottomSheet {
    */
   private async getAddAccountButtonTapTarget(
     srpIndex: number,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const createAccountId = AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT;
 
     if (PlatformDetector.isAndroid()) {
@@ -726,7 +722,7 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(
       createAccountId,
       srpIndex,
-    ) as Promise<PlaywrightElement>;
+    ) as Promise<AppiumElement>;
   }
 
   /**
@@ -778,7 +774,7 @@ class AccountListBottomSheet {
       try {
         const el = (await Matchers.getElementByNativeXPath(
           this.getCatchAllXPath(text),
-        )) as PlaywrightElement;
+        )) as AppiumElement;
         return await el.isVisible();
       } catch {
         return false;

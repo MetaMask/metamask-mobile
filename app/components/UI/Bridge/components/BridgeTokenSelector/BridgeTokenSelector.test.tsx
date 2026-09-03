@@ -144,6 +144,7 @@ const mockNavigationDispatch = jest.fn();
 let mockRouteParams: {
   type: 'source' | 'dest';
   enabledChainIds?: CaipChainId[];
+  excludeRwaTokens?: boolean;
 } = { type: 'source' };
 
 jest.mock('@react-navigation/native', () => ({
@@ -1203,6 +1204,181 @@ describe('BridgeTokenSelector', () => {
     });
   });
 
+  describe('RWA filtering', () => {
+    const createRwaPopularToken = (symbol: string, name: string) =>
+      ({
+        ...createMockPopularToken({
+          assetId: `eip155:1/erc20:0x${symbol.toLowerCase()}` as never,
+          symbol,
+          name,
+        }),
+        rwaData: { instrumentType: 'stock' },
+      }) as never;
+
+    it('keeps RWA tokens when excludeRwaTokens is not set', async () => {
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(getByTestId('token-AAPLX')).toBeTruthy();
+    });
+
+    it('hides RWA popular tokens when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createRwaPopularToken('AAPLX', 'Apple Inc'),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-AAPLX')).toBeNull();
+    });
+
+    it('hides Ondo Tokenized popular tokens matched by name', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockPopularTokensState = {
+        popularTokens: [
+          createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
+          createMockPopularToken({
+            assetId: 'eip155:1/erc20:0xondo' as never,
+            symbol: 'TSLAon',
+            name: 'Ondo Tokenized Tesla',
+          }),
+        ],
+        isLoading: false,
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+
+      await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(queryByTestId('token-TSLAon')).toBeNull();
+    });
+
+    it('hides RWA search results when excludeRwaTokens is set', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [
+          createSearchToken('WETH'),
+          createRwaPopularToken('MSFTX', 'Microsoft Corp'),
+        ],
+        currentSearchQuery: 'WET',
+      };
+
+      const { getByTestId, queryByTestId } = renderWithReduxProvider(
+        <BridgeTokenSelector />,
+      );
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'WET');
+
+      await waitFor(() => expect(getByTestId('token-WETH')).toBeTruthy());
+      expect(queryByTestId('token-MSFTX')).toBeNull();
+    });
+
+    it('hides empty state while an all-RWA page still has a cursor to auto-load', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: 'next-cursor',
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId, queryByTestId, UNSAFE_getByType } =
+        renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      const { FlatList } = jest.requireActual('react-native');
+      await act(async () => {
+        UNSAFE_getByType(FlatList).props.onLayout({
+          nativeEvent: { layout: { height: 500 } },
+        });
+      });
+
+      await waitFor(() => {
+        expect(mockSearchTokens).toHaveBeenCalledWith('MSF', 'next-cursor');
+      });
+      expect(queryByTestId('bridge-token-selector-empty-state')).toBeNull();
+    });
+
+    it('shows empty state once an all-RWA search exhausts its cursor', async () => {
+      mockRouteParams = { type: 'source', excludeRwaTokens: true };
+      mockSearchTokensState = {
+        ...mockSearchTokensState,
+        searchResults: [createRwaPopularToken('MSFTX', 'Microsoft Corp')],
+        searchCursor: undefined,
+        currentSearchQuery: 'MSF',
+      };
+
+      const { getByTestId } = renderWithReduxProvider(<BridgeTokenSelector />);
+      fireEvent.changeText(getByTestId('bridge-token-search-input'), 'MSF');
+
+      await waitFor(() =>
+        expect(getByTestId('bridge-token-selector-empty-state')).toBeTruthy(),
+      );
+    });
+
+    it.each([
+      { excludeRwaTokens: undefined, isRwaVisible: true },
+      { excludeRwaTokens: true, isRwaVisible: false },
+    ])(
+      'renders Ondo Tokenized watchlist tokens: $isRwaVisible when excludeRwaTokens is $excludeRwaTokens',
+      async ({ excludeRwaTokens, isRwaVisible }) => {
+        mockRouteParams = { type: 'source', excludeRwaTokens };
+        mockIsWatchlistEnabled = true;
+        mockUseTokenWatchlistQuery.mockReturnValue({
+          data: [
+            {
+              assetId: 'eip155:1/slip44:60',
+              name: 'Ethereum',
+              symbol: 'ETH',
+              decimals: 18,
+              balance: '1.5',
+              balanceFiat: 3000,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+            {
+              assetId: 'eip155:1/erc20:0xondo',
+              name: 'Ondo Tokenized Tesla',
+              symbol: 'TSLAon',
+              decimals: 18,
+              balance: '2',
+              balanceFiat: 500,
+              fiatCurrency: 'usd',
+              isInWallet: true,
+            },
+          ],
+          isLoading: false,
+        });
+
+        const { getByTestId, queryByTestId } = renderWithReduxProvider(
+          <BridgeTokenSelector />,
+        );
+
+        fireEvent.press(getByTestId('bridge-watchlist-filter-watchlist'));
+
+        await waitFor(() => expect(getByTestId('token-ETH')).toBeTruthy());
+        expect(Boolean(queryByTestId('token-TSLAon'))).toBe(isRwaVisible);
+      },
+    );
+  });
+
   describe('chain selection', () => {
     it('resets the mounted list after scrolling and changing networks', async () => {
       const { getByTestId, UNSAFE_getByType } = renderWithReduxProvider(
@@ -1210,6 +1386,13 @@ describe('BridgeTokenSelector', () => {
       );
       const initialMountCount = mockFlashListMount.mock.calls.length;
       const { FlatList } = jest.requireActual('react-native');
+      const flushAnimationFrame = async () => {
+        await act(async () => {
+          await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => resolve());
+          });
+        });
+      };
 
       await act(async () => {
         UNSAFE_getByType(FlatList).props.onScroll({
@@ -1221,19 +1404,21 @@ describe('BridgeTokenSelector', () => {
         });
       });
 
+      // Flush rAF after each chain change so the scroll reset effect does not
+      // race (cleanup can cancel a pending frame when presses are back-to-back).
       await act(async () => {
         fireEvent.press(getByTestId('select-eth-network'));
       });
+      await flushAnimationFrame();
       await act(async () => {
         fireEvent.press(getByTestId('select-all-networks'));
       });
+      await flushAnimationFrame();
 
-      await waitFor(() => {
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(1);
-        expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-          index: 0,
-          animated: false,
-        });
+      expect(mockFlashListScrollToIndex).toHaveBeenCalledTimes(2);
+      expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({
+        index: 0,
+        animated: false,
       });
       expect(mockFlashListMount).toHaveBeenCalledTimes(initialMountCount);
       expect(mockFlashListUnmount).not.toHaveBeenCalled();

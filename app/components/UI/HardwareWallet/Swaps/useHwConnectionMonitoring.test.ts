@@ -15,7 +15,11 @@ import {
 } from './HardwareWalletsSwaps.state';
 import type { HardwareWalletContextValue } from '../../../../core/HardwareWallet/contexts';
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
-import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
+import {
+  getRecoveryActionForErrorCode,
+  isUserCancellation,
+} from '../../../../core/HardwareWallet/errors/helpers';
+import { RecoveryAction } from '../../../../core/HardwareWallet/errors/types';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 
 jest.mock('../../../../core/HardwareWallet', () => ({
@@ -24,6 +28,7 @@ jest.mock('../../../../core/HardwareWallet', () => ({
 
 jest.mock('../../../../core/HardwareWallet/errors/helpers', () => ({
   isUserCancellation: jest.fn(),
+  getRecoveryActionForErrorCode: jest.fn(),
 }));
 
 jest.mock('../../../../core/HardwareWallet/errors/parser', () => ({
@@ -181,6 +186,10 @@ describe('useHwConnectionMonitoring', () => {
       makeParsedError(ErrorCode.Unknown),
     );
     (isUserCancellation as jest.Mock).mockReturnValue(false);
+    // Default: errors are recoverable by reconnecting (no flow dispatch).
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.RETRY,
+    );
   });
 
   afterEach(() => {
@@ -336,6 +345,59 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
       type: HardwareWalletsSwapsEventType.Rejected,
     });
+  });
+
+  it('dispatches TRANSACTION_FAILED for non-recoverable signing errors during signing', () => {
+    // Blind signing disabled on the device: reconnecting cannot fix this,
+    // so the flow state machine must reach a terminal retryable status.
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    renderAndTransitionToWaiting(createErrorState(error));
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.TransactionFailed,
+    });
+  });
+
+  it('ignores non-recoverable signing errors before signing starts', () => {
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    renderAndTransitionToWaiting(createErrorState(error), false);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('does not dispatch TRANSACTION_FAILED twice for the same signing error', () => {
+    const error = new Error('Blind signing is disabled');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceStateBlindSignNotSupported),
+    );
+    (isUserCancellation as jest.Mock).mockReturnValue(false);
+    (getRecoveryActionForErrorCode as jest.Mock).mockReturnValue(
+      RecoveryAction.ACKNOWLEDGE,
+    );
+
+    const { rerender } = renderAndTransitionToWaiting(createErrorState(error));
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
+
+    rerender({ currentStatus: HardwareWalletsSwapsStatus.Waiting });
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('does not dispatch transaction failure for recoverable connection errors', () => {

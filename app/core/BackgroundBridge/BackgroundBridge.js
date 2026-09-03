@@ -693,6 +693,7 @@ export class BackgroundBridge extends EventEmitter {
       createTrustSignalsMiddleware({
         phishingController: Engine.context.PhishingController,
         networkController: Engine.context.NetworkController,
+        preferencesController: Engine.context.PreferencesController,
       }),
     );
 

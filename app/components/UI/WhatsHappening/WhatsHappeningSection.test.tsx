@@ -151,7 +151,7 @@ describe('WhatsHappeningSection', () => {
     expect(screen.getByText(mockItem.title)).toBeOnTheScreen();
   });
 
-  it('renders the AI Generated label as a section subtitle when items are available', () => {
+  it('renders the AI generated label as a section subtitle when items are available', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [mockItem],
       isLoading: false,
@@ -159,7 +159,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    expect(screen.getByText('AI Generated')).toBeOnTheScreen();
+    expect(screen.getByText('AI generated')).toBeOnTheScreen();
     expect(
       screen.getByTestId(WhatsHappeningSelectorsIDs.AI_GENERATED_LABEL),
     ).toBeOnTheScreen();
@@ -199,7 +199,7 @@ describe('WhatsHappeningSection', () => {
     expect(screen.queryByTestId('mock-ai-disclaimer-bottom-sheet')).toBeNull();
   });
 
-  it('does not render the AI Generated label while loading', () => {
+  it('does not render the AI generated label while loading', () => {
     mockUseWhatsHappening.mockReturnValue({
       items: [],
       isLoading: true,
@@ -207,7 +207,7 @@ describe('WhatsHappeningSection', () => {
       refresh: jest.fn(),
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
-    expect(screen.queryByText('AI Generated')).toBeNull();
+    expect(screen.queryByText('AI generated')).toBeNull();
   });
 
   it('renders error state when fetch fails', () => {

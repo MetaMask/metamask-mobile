@@ -638,7 +638,7 @@ describe('Earn Controller Selectors', () => {
         mockHasMinimumRequiredVersion?.mockRestore();
       });
 
-      it('includes canonical TRX native token as a pooled staking earn token', () => {
+      it('includes canonical TRX native token as a TRX staking earn token', () => {
         const tronToken = createTronToken();
 
         mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
@@ -652,7 +652,27 @@ describe('Earn Controller Selectors', () => {
         expect(result.earnTokens).toHaveLength(1);
         expect(result.earnTokens[0].address).toBe(TRX_NATIVE_TOKEN_ADDRESS);
         expect(result.earnTokens[0].experience.type).toBe(
-          EARN_EXPERIENCES.POOLED_STAKING,
+          EARN_EXPERIENCES.TRX_STAKING,
+        );
+      });
+
+      it('classifies staked TRX as a TRX staking output token', () => {
+        const stakedTronToken = createTronToken({
+          symbol: 'sTRX',
+          ticker: 'sTRX',
+          isStaked: true,
+        });
+        mockSelectAccountTokensAcrossChainsUnified.mockReturnValue({
+          [TRON_MAINNET_CHAIN_ID]: [stakedTronToken],
+        });
+
+        const result = earnSelectors.selectEarnTokens(
+          createStateWithTrxStakingEnabled(),
+        );
+
+        expect(result.earnOutputTokens).toHaveLength(1);
+        expect(result.earnOutputTokens[0].experience.type).toBe(
+          EARN_EXPERIENCES.TRX_STAKING,
         );
       });
 
@@ -1047,7 +1067,7 @@ describe('Earn Controller Selectors', () => {
       balance: '0',
     } as const;
 
-    it('returns pooled staking for TRX when metadata is missing and flag is enabled', () => {
+    it('returns TRX staking for TRX when metadata is missing and flag is enabled', () => {
       const state = createBaseState({
         trxStakingEnabled: { enabled: true, minimumVersion: '1.0.0' },
       });
@@ -1057,7 +1077,7 @@ describe('Earn Controller Selectors', () => {
         tronNativeAsset as unknown as TokenI,
       );
 
-      expect(result).toBe(EARN_EXPERIENCES.POOLED_STAKING);
+      expect(result).toBe(EARN_EXPERIENCES.TRX_STAKING);
     });
 
     it('returns undefined for TRX when flag is disabled', () => {
@@ -1071,6 +1091,40 @@ describe('Earn Controller Selectors', () => {
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectEarnAssetCatalogueInputs', () => {
+    it('exposes held Earn assets and discovery markets without reshaping tokens', () => {
+      const earnToken = {
+        ...MOCK_ETH_MAINNET_ASSET,
+        experiences: [],
+      } as unknown as EarnTokenDetails;
+      const earnTokensData = {
+        earnTokens: [earnToken],
+        earnOutputTokens: [],
+        earnTokensByChainIdAndAddress: {},
+        earnOutputTokensByChainIdAndAddress: {},
+        earnTokenPairsByChainIdAndAddress: {},
+        earnOutputTokenPairsByChainIdAndAddress: {},
+        earnableTotalFiatNumber: 0,
+        earnableTotalFiatFormatted: '$0',
+      };
+
+      const result = earnSelectors.selectEarnAssetCatalogueInputs.resultFunc(
+        earnTokensData,
+        [MOCK_LENDING_MARKET_USDC],
+        [],
+        {},
+        true,
+        true,
+        true,
+        false,
+      );
+
+      expect(result.earnTokens[0]).toBe(earnToken);
+      expect(result.lendingMarkets).toEqual([MOCK_LENDING_MARKET_USDC]);
+      expect(result.isStablecoinLendingEnabled).toBe(true);
     });
   });
 });

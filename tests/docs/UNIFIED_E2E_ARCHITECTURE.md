@@ -2,13 +2,14 @@
 
 ## Overview
 
-Page objects and smoke specs target **Appium + Playwright** (`tests/smoke-appium/`). Use the canonical facades from `tests/framework/index.ts`:
+Page objects and smoke specs target **Appium + Playwright** (`tests/smoke-appium/`). Import from `tests/framework/index.ts`:
 
-- `Matchers` — element locators
+- `Matchers` — element locators (`Promise<AppiumElement>`)
 - `Gestures` — taps, typing, swipes, scrolls
 - `Assertions` — waits and expectations
+- `AppiumElement` — matcher/gesture element type
 
-Do **not** import `UnifiedGestures` in page objects or specs. It remains an internal dual-runner implementation detail used by `Gestures` on Appium until Detox removal is complete.
+Do **not** import `AppiumGestures` in page objects or specs. Use `Gestures` from `tests/framework`.
 
 ## Layers
 
@@ -20,7 +21,7 @@ Do **not** import `UnifiedGestures` in page objects or specs. It remains an inte
 ↓
 Matchers / Gestures / Assertions
 ↓
-Appium (Playwright) adapters & strategies
+AppiumGestures / AppiumElement
 ↓
 Device / emulator APIs
 ```
@@ -52,8 +53,8 @@ export default new LoginPage();
 Prefer the same `Matchers` / `Gestures` / `Assertions` call for iOS and Android.
 
 - Different testID / platform locator → `resolve({ testID, iosAppiumTestID, ... })`
-- Different selector strategy → `encapsulated({ appium: () => ... })` (legacy `detox` key may still exist for unmigrated suites; new work should not add Detox branches)
-- Structurally different action flow → `encapsulatedAction({ appium: async () => ... })`
+- Different selector strategy → `Matchers` (`getElementByText`, `getElementByIDAndLabel`, …)
+- Structurally different action flow → `PlatformDetector` + `Gestures` / `Assertions` in the page object
 
-Canonical guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
+Guide: [docs/testing/e2e-testing.md](../../docs/testing/e2e-testing.md).  
 Runbook: [docs/testing/appium-smoke-testing.md](../../docs/testing/appium-smoke-testing.md).

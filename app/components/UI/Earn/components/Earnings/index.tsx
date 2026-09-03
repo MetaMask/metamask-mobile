@@ -90,12 +90,12 @@ const EarningsContent = ({ asset, lendingAction }: EarningsProps) => {
   } = useEarnings({ asset });
 
   const onDisplayAnnualRateTooltip = () => {
-    if (experienceType === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+    if (isStablecoinLending) {
       navigate('EarnModals', {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: outputToken },
       });
-    } else if (experienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+    } else if (isPooledStaking) {
       navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: asset?.chainId },

@@ -1,19 +1,20 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
-  AvatarToken,
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   Box,
   Text,
   TextVariant,
+  AvatarToken,
   FontWeight,
   TextColor,
-  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { Nft as NftType } from '../../../types/token';
 
 interface NftProps {
@@ -44,15 +45,16 @@ export function Nft({ asset, onPress }: NftProps) {
       <Box twClassName="flex-row items-center px-4">
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            badge={
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
               asset.networkBadgeSource ? (
-                <BadgeNetwork
+                <Badge
+                  variant={BadgeVariant.Network}
                   name={asset.name || asset.collectionName || 'NFT'}
-                  src={asset.networkBadgeSource as ImageOrSvgSrc}
-                  testID="nft-network-badge"
+                  imageSource={asset.networkBadgeSource}
+                  size={AvatarSize.Xs}
                 />
-              ) : null
+              ) : undefined
             }
           >
             <AvatarToken

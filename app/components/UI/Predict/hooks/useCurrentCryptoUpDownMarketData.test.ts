@@ -91,6 +91,7 @@ describe('useCurrentCryptoUpDownMarketData', () => {
       eventStartTime: '2026-01-01T00:00:00.000Z',
       variant: 'fiveminute',
       endDate: MARKET.endDate,
+      twapWindowSeconds: undefined,
       enabled: true,
     });
     expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(MARKET, 93000, {
@@ -174,6 +175,29 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     );
 
     expect(result.current.currentPrice).toBe(93025);
+  });
+
+  it('fetches the target price using the market TWAP window', () => {
+    const twapMarket = {
+      ...MARKET,
+      twapWindowSeconds: 60 as const,
+    };
+    mockUseCurrentPredictMarketFromSeries.mockReturnValue({
+      market: twapMarket,
+      marketId: twapMarket.id,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+
+    renderHook(() => useCurrentCryptoUpDownMarketData({ series: SERIES }));
+
+    expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        twapWindowSeconds: 60,
+      }),
+    );
   });
 
   it('keeps downstream price hooks disabled until the series market resolves', () => {

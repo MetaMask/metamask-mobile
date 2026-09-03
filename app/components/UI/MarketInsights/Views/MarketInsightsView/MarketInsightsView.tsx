@@ -89,6 +89,7 @@ import { usePerpsEventTracking } from '../../../Perps/hooks/usePerpsEventTrackin
 import TokenDetailsStickyFooter from '../../../TokenDetails/components/TokenDetailsStickyFooter';
 import type { TokenDetailsRouteParams } from '../../../TokenDetails/constants/constants';
 import { useStickyQuickBuy } from '../../../TokenDetails/hooks/useStickyQuickBuy';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 const feedbackByDigest = new Map<string, 'up' | 'down'>();
 
@@ -910,12 +911,14 @@ const MarketInsightsView: React.FC = () => {
         // Android Compatibility: Wrap the <Modal> in a plain <View> component to prevent rendering issues and freezing.
         <View>
           <Modal visible transparent animationType="none" statusBarTranslucent>
-            <PerpsBottomSheetTooltip
-              isVisible
-              onClose={closeEligibilityModal}
-              contentKey="geo_block"
-              testID="market-insights-geo-block-tooltip"
-            />
+            <ModalSafeAreaProvider>
+              <PerpsBottomSheetTooltip
+                isVisible
+                onClose={closeEligibilityModal}
+                contentKey="geo_block"
+                testID="market-insights-geo-block-tooltip"
+              />
+            </ModalSafeAreaProvider>
           </Modal>
         </View>
       )}

@@ -3,7 +3,7 @@ import {
   clampInfraSubtractionMs,
   startOverheadTracking,
   stopOverheadTracking,
-} from './PlaywrightUtilities';
+} from './AppiumUtilities';
 
 /** Platform-specific threshold values in milliseconds. */
 export interface PlatformThreshold {

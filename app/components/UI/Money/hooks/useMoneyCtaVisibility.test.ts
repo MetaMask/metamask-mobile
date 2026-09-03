@@ -15,6 +15,7 @@ import {
 import { selectMoneyEarnBannerDismissedTokens } from '../../../../reducers/user/selectors';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import { useMoneyDepositTokens } from './useMoneyDepositTokens';
+import type { MoneyDepositAsset } from '../selectors/depositTokens';
 import {
   useMoneyAssetOverviewCtaVisibility,
   useMoneyCtaVisibility,
@@ -122,8 +123,9 @@ describe('useMoneyCtaVisibility', () => {
     jest.clearAllMocks();
     setupSelectors();
     mockUseMoneyDepositTokens.mockReturnValue({
-      tokens: [ctaToken],
-    } as ReturnType<typeof useMoneyDepositTokens>);
+      tokens: [ctaToken as unknown as MoneyDepositAsset],
+      isNoFeeToken: jest.fn(),
+    });
   });
 
   it('returns true for an allowlisted earnable token with different address casing', () => {

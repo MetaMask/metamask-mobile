@@ -2,11 +2,7 @@ import { WalletViewSelectorsIDs } from '../../../app/components/Views/Wallet/Wal
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
-import {
-  EncapsulatedElementType,
-  getDriver,
-  type PlaywrightElement,
-} from '../../framework';
+import { type AppiumElement, getDriver } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../../framework/Constants';
 
@@ -15,7 +11,7 @@ export class WalletHomeScroll {
     return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
   }
 
-  get walletScrollView(): EncapsulatedElementType {
+  get walletScrollView(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
@@ -49,7 +45,7 @@ export class WalletHomeScroll {
   ): Promise<void> {
     const container = (await Promise.resolve(
       this.walletScrollView,
-    )) as PlaywrightElement;
+    )) as AppiumElement;
     const location = await container.unwrap().getLocation();
     const size = await container.unwrap().getSize();
     const centerX = Math.floor(location.x + size.width / 2);
@@ -75,7 +71,7 @@ export class WalletHomeScroll {
   }
 
   async scrollWalletHomeToElement(
-    target: EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
@@ -87,7 +83,7 @@ export class WalletHomeScroll {
       });
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
-      )) as PlaywrightElement;
+      )) as AppiumElement;
       await Gestures.scrollIntoView(target, {
         scrollableElement: scrollView,
         direction: direction === 'down' ? 'up' : 'down',
@@ -119,7 +115,7 @@ export class WalletHomeScroll {
   }
 
   async tapIfAlreadyVisible(
-    target: EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     options: { tapTimeout?: number } = {},
   ): Promise<boolean> {
@@ -141,7 +137,7 @@ export class WalletHomeScroll {
   }
 
   async scrollAndTapSection(
-    target: EncapsulatedElementType,
+    target: Promise<AppiumElement>,
     description: string,
     direction: 'up' | 'down' = 'down',
     options: {

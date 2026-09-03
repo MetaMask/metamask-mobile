@@ -134,7 +134,7 @@ function parseLedgerStatusCode(
     // Special handling for ErrorCode.UserRejected which can mean user rejected OR blind signing
     if (hexCode === USER_REJECTED_STATUS_CODE && originalError) {
       const message = originalError.message?.toLowerCase() || '';
-      if (message.includes('blind sign')) {
+      if (message.includes('blind sign') || message.includes('contract data')) {
         return createHardwareWalletError(
           ErrorCode.DeviceStateBlindSignNotSupported,
           walletType,
@@ -175,19 +175,53 @@ function parseTransportStatusError(
   );
 }
 
+/**
+ * Extract a DMK device status word from an error's `errorCode` field.
+ *
+ * DMK `DeviceExchangeError` subclasses carry the raw APDU status word as a
+ * 4-hex-digit string WITHOUT the `0x` prefix (e.g. `'6a80'`), unlike legacy
+ * `TransportStatusError.statusCode` (a number). Only well-formed 4-hex-digit
+ * strings are treated as status words; command-specific symbolic error codes
+ * (e.g. `'invalidAddress'`) are ignored.
+ */
+function getDmkErrorCode(error: object): string | null {
+  if (!('errorCode' in error)) {
+    return null;
+  }
+  const errorCode = (error as Record<string, unknown>).errorCode;
+  if (typeof errorCode !== 'string') {
+    return null;
+  }
+  return /^[0-9a-fA-F]{4}$/.test(errorCode) ? errorCode : null;
+}
+
 function parseDmkError(
   error: object,
   walletType?: HardwareWalletType | null,
 ): HardwareWalletError | null {
   const dmk = getDmkErrorFromTag(error);
-  if (!dmk) {
-    return null;
+  if (dmk) {
+    return createHardwareWalletError(dmk.code, walletType, undefined, {
+      cause: isErrorLike(error) ? error : undefined,
+      metadata: { errorName: dmk.tag },
+    });
   }
 
-  return createHardwareWalletError(dmk.code, walletType, undefined, {
-    cause: isErrorLike(error) ? error : undefined,
-    metadata: { errorName: dmk.tag },
-  });
+  // Unrecognized DMK tag: a DeviceExchangeError subclass still carries the
+  // device status word in `errorCode`. Classify through the Ledger status
+  // table so sign refusals (e.g. 0x6a80 blind signing disabled) surface as
+  // actionable codes instead of generic Unknown errors.
+  const dmkErrorCode = getDmkErrorCode(error);
+  if (dmkErrorCode !== null) {
+    const statusCode = parseInt(dmkErrorCode, 16);
+    return parseLedgerStatusCode(
+      statusCode,
+      walletType,
+      isErrorLike(error) ? error : undefined,
+    );
+  }
+
+  return null;
 }
 
 /**

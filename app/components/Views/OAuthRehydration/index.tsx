@@ -85,6 +85,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
@@ -170,6 +171,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   useNavigationPerformance({
     destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
     destinationReady: true,
+  });
+
+  // TTC only — do not pass finalLoading as isLoading. That flag is password
+  // submit / delete-in-progress, not an initial data-fetch cycle, and would
+  // emit misleading OnboardingScreenDataFetch success/unmount spans.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    contentReady: true,
+    isEmpty: false,
   });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
@@ -476,14 +486,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         loginError.name?.trim() ||
         String(loginError);
 
-      if (route.params?.onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage: loginErrorMessage },
-          parentContext:
-            passwordLoginAttemptTraceCtxRef.current ??
-            route.params.onboardingTraceCtx,
+          parentContext: passwordLoginAttemptTraceCtxRef.current ?? journeyCtx,
         });
         endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
@@ -553,7 +565,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
       setBiometryChoice,
-      route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
       accountType,
     ],
@@ -576,17 +587,19 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       setLoading(true);
 
-      // Start on submit (not mount) so duration is unlock work, not typing/dwell.
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
       // Nest under Existing Social Login when that phase span is open; else journey.
-      const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-      if (onboardingTraceCtx) {
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         passwordLoginAttemptTraceCtxRef.current = trace({
           name: TraceName.OnboardingPasswordLoginAttempt,
           op: TraceOperation.OnboardingUserJourney,
           parentContext:
             getTraceContext({
               name: TraceName.OnboardingExistingSocialLogin,
-            }) ?? onboardingTraceCtx,
+            }) ?? journeyCtx,
         });
       }
       const passwordLoginAttemptCtx = passwordLoginAttemptTraceCtxRef.current;
@@ -608,24 +621,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             password,
             authPreference: authData,
             onBeforeNavigate: async () => {
-              await upgradeKeychainAuthAfterSuccessfulUnlock();
-              // End the onboarding-journey spans with success BEFORE unlockWallet
-              // navigates to home. Navigation resets the stack and unmounts the
-              // Onboarding screen, whose cleanup ends OnboardingJourneyOverall with
-              // success:false. unlockWallet awaits onBeforeNavigate prior to that
-              // navigation, so ending the spans here guarantees the success value is
-              // recorded first and the later unmount cleanup (and the no-longer-needed
-              // post-return endTrace calls) safely no-op — otherwise a completed social
-              // login would be misrecorded as abandoned.
+              // End unlock/journey spans before the biometric keychain upgrade so
+              // human biometric wait is excluded from Password Login Attempt (and
+              // parent journey) duration. Still must finish before unlockWallet
+              // navigates home: navigation unmounts Onboarding, whose cleanup would
+              // otherwise end OnboardingJourneyOverall with success:false.
               if (passwordLoginAttemptTraceCtxRef.current) {
                 endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
                 passwordLoginAttemptTraceCtxRef.current = null;
               }
               endTrace({ name: TraceName.OnboardingExistingSocialLogin });
               endTrace({ name: TraceName.OnboardingJourneyOverall });
+              await upgradeKeychainAuthAfterSuccessfulUnlock();
             },
             // Nest OnboardingFetchSrps under Password Login Attempt when present.
-            parentContext: passwordLoginAttemptCtx ?? onboardingTraceCtx,
+            parentContext: passwordLoginAttemptCtx ?? journeyCtx,
           });
         },
       );
@@ -675,7 +685,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
     syncMarketingOptInAfterUnlock,
-    route.params?.onboardingTraceCtx,
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {

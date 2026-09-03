@@ -1,6 +1,7 @@
 import {
   parsePredictEvent,
-  parsePredictEventsPage,
+  parsePredictFeed,
+  parsePredictMarketHistory,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
 import { PredictError, PredictErrorCode } from '../../errors';
@@ -56,11 +57,20 @@ export class KalshiRemoteAdapter {
           return mapError(error);
         }
       },
-      fetchEvents: async (params, options) => {
+      fetchFeed: async (feedId, params, options) => {
         try {
-          const value = await client.fetchEvents(this.venueId, params, options);
-          const result = parsePredictEventsPage(value);
-          if (result.items.some((event) => event.venueId !== this.venueId)) {
+          const value = await client.fetchFeed(
+            this.venueId,
+            feedId,
+            params,
+            options,
+          );
+          const result = parsePredictFeed(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.id !== feedId ||
+            result.events.some((event) => event.venueId !== this.venueId)
+          ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;
@@ -73,6 +83,27 @@ export class KalshiRemoteAdapter {
           const value = await client.fetchEvent(this.venueId, eventId, options);
           const result = parsePredictEvent(value);
           if (result.venueId !== this.venueId || result.id !== eventId) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchMarketHistory: async (marketId, range, options) => {
+        try {
+          const value = await client.fetchMarketHistory(
+            this.venueId,
+            marketId,
+            range,
+            options,
+          );
+          const result = parsePredictMarketHistory(value);
+          if (
+            result.venueId !== this.venueId ||
+            result.marketId !== marketId ||
+            result.range !== range
+          ) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

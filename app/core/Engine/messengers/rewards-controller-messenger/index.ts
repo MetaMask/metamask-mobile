@@ -84,6 +84,11 @@ import {
   RewardsDataServiceGetPredictThePitchPositionsAction,
   RewardsDataServiceGetPredictThePitchParticipantOutcomeAction,
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
+  RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -152,7 +157,12 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchLeaderboardPositionAction
   | RewardsDataServiceGetPredictThePitchPositionsAction
   | RewardsDataServiceGetPredictThePitchParticipantOutcomeAction
-  | RewardsDataServiceGetPredictThePitchPrizePoolAction;
+  | RewardsDataServiceGetPredictThePitchPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
+  | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -256,6 +266,11 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPredictThePitchPositions',
       'RewardsDataService:getPredictThePitchParticipantOutcome',
       'RewardsDataService:getPredictThePitchPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
+      'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
+      'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
+      'RewardsDataService:registerMoneyAccountBinding',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

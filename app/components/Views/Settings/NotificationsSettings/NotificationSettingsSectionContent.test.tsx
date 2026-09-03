@@ -15,6 +15,32 @@ import Logger from '../../../../util/Logger';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mock('./AccountsList', () => {
+  const MockView = jest.requireActual('react-native').View;
+
+  return {
+    AccountsList: ({
+      ListHeaderComponent,
+    }: {
+      ListHeaderComponent?: React.ReactElement;
+    }) => (
+      <>
+        {ListHeaderComponent}
+        <MockView testID="notification-settings-wallet-activity-list" />
+      </>
+    ),
+  };
+});
+jest.mock('./AccountsList.hooks', () => ({
+  useWalletActivityAccountSelection: () => ({
+    accountProps: {},
+    notificationAccountListProps: {},
+    hasEnabledAccount: true,
+    hasNotificationAccounts: true,
+    isUpdatingAllAccounts: false,
+    toggleAllAccounts: jest.fn(),
+  }),
+}));
 
 const PUSH_TOGGLE =
   NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE;
@@ -119,6 +145,41 @@ describe('NotificationSettingsSectionContent', () => {
 
     expect(screen.getByTestId(PUSH_TOGGLE)).toHaveProp('disabled', undefined);
     expect(screen.getByTestId(IN_APP_TOGGLE)).toHaveProp('disabled', undefined);
+  });
+
+  it('uses the section ScrollView for static sections', () => {
+    renderContent();
+
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('uses the wallet activity list as the only section scroller', () => {
+    renderContent({
+      type: 'walletActivity',
+      title: 'Wallet activity',
+      description: 'Buy, sells, transfers, and swaps',
+    });
+
+    expect(
+      screen.queryByTestId(
+        NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        NotificationSettingsViewSelectorsIDs.WALLET_ACTIVITY_LIST,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Wallet activity')).toBeOnTheScreen();
   });
 
   it('disables both channel toggles when disabled is true', () => {

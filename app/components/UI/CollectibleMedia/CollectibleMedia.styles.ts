@@ -66,7 +66,7 @@ const styleSheet = (params: {
     mediaPlayer: {
       minHeight: 10,
     },
-    imageFallBackTextContainer: StyleSheet.absoluteFillObject,
+    imageFallBackTextContainer: StyleSheet.absoluteFill,
     imageFallBackShowContainer: {
       bottom: 32,
     },

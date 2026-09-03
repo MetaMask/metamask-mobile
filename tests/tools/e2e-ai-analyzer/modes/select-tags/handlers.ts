@@ -317,7 +317,57 @@ function extractTagsFromSpecFile(
 /** English locale file consumed by UI copy and by E2E text/label selectors (enContent). */
 const EN_LOCALE_FILE = 'locales/languages/en.json';
 
+const E2E_RELEVANT_WORKFLOW_EXACT_PATHS = new Set([
+  '.github/workflows/ci.yml',
+  '.github/workflows/get-requirements.yml',
+  '.github/workflows/build-android-e2e.yml',
+  '.github/workflows/build-ios-e2e.yml',
+  '.github/workflows/update-e2e-fixtures.yml',
+  '.github/workflows/build.yml',
+]);
+
+const E2E_RELEVANT_SCRIPT_PREFIXES = [
+  '.github/scripts/qa-automation/reporting/',
+  '.github/scripts/qa-automation/e2e-sharding/',
+  '.github/actions/smart-e2e-selection/',
+] as const;
+
+function isE2ERelevantWorkflow(file: string): boolean {
+  const normalizedFile = file.replace(/\\/g, '/').replace(/^\.\//, '');
+
+  return (
+    E2E_RELEVANT_WORKFLOW_EXACT_PATHS.has(normalizedFile) ||
+    (normalizedFile.startsWith('.github/workflows/run-e2e-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (normalizedFile.startsWith('.github/workflows/run-appium-') &&
+      normalizedFile.endsWith('.yml')) ||
+    (E2E_RELEVANT_SCRIPT_PREFIXES.some((prefix) =>
+      normalizedFile.startsWith(prefix),
+    ) &&
+      normalizedFile.endsWith('.mjs')) ||
+    normalizedFile ===
+      '.github/scripts/qa-automation/stats/e2e-freeze-timings.mjs' ||
+    normalizedFile.startsWith(
+      '.github/scripts/qa-automation/e2e-ci-orchestration/',
+    )
+  );
+}
+
 const HARD_RULES: HardRule[] = [
+  {
+    name: 'e2e-relevant-workflow-change',
+    description:
+      'E2E-relevant workflow or E2E CI script changed; skip AI and run all E2E tags',
+    check: (changedFiles) => {
+      const matchingFiles = changedFiles.filter(isE2ERelevantWorkflow);
+      if (matchingFiles.length === 0) return null;
+
+      return makeConservativeResult(
+        'e2e-relevant-workflow-change',
+        `E2E-relevant workflow changed: ${matchingFiles.join(', ')}`,
+      );
+    },
+  },
   {
     name: 'controller-version-update',
     description: '@metamask controller package version updated in package.json',

@@ -40,10 +40,11 @@ import {
   formatPerpsFiat,
   formatPnl,
   formatPositionSize,
-  formatPerpsPrice,
+  formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 
 /**
  * PerpsPositionCard Component
@@ -174,23 +175,30 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       }
     }
 
-    const hasTakeProfit = Boolean(
-      takeProfitPrice && parseFloat(takeProfitPrice) > 0,
-    );
-    const hasStopLoss = Boolean(stopLossPrice && parseFloat(stopLossPrice) > 0);
+    const takeProfitSummary = formatPositionTriggerSummary({
+      count: position.takeProfitCount,
+      price: takeProfitPrice,
+      szDecimals,
+    });
+    const stopLossSummary = formatPositionTriggerSummary({
+      count: position.stopLossCount,
+      price: stopLossPrice,
+      szDecimals,
+    });
 
     return {
-      takeProfitPrice,
-      stopLossPrice,
-      hasTakeProfit,
-      hasStopLoss,
-      hasTPSLConfigured: hasTakeProfit || hasStopLoss,
+      takeProfitSummary,
+      stopLossSummary,
+      hasTPSLConfigured: Boolean(takeProfitSummary || stopLossSummary),
     };
   }, [
     position.takeProfitPrice,
     position.stopLossPrice,
+    position.takeProfitCount,
+    position.stopLossCount,
     position.symbol,
     orders,
+    szDecimals,
   ]);
 
   const handleAutoCloseButtonPress = () => {
@@ -221,24 +229,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   );
 
   const autoCloseDescription = (() => {
-    const { takeProfitPrice, stopLossPrice, hasTakeProfit, hasStopLoss } =
-      resolvedTPSL;
+    const { takeProfitSummary, stopLossSummary } = resolvedTPSL;
 
-    if (hasTakeProfit || hasStopLoss) {
+    if (takeProfitSummary || stopLossSummary) {
       const parts: string[] = [];
 
-      if (hasTakeProfit && takeProfitPrice) {
-        const tpPrice = formatPerpsPrice(takeProfitPrice, {
-          szDecimals,
-        });
-        parts.push(`${strings('perps.order.tp')} ${tpPrice}`);
+      if (takeProfitSummary) {
+        parts.push(`${strings('perps.order.tp')} ${takeProfitSummary}`);
       }
 
-      if (hasStopLoss && stopLossPrice) {
-        const slPrice = formatPerpsPrice(stopLossPrice, {
-          szDecimals,
-        });
-        parts.push(`${strings('perps.order.sl')} ${slPrice}`);
+      if (stopLossSummary) {
+        parts.push(`${strings('perps.order.sl')} ${stopLossSummary}`);
       }
 
       return (
@@ -247,6 +248,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           color={TextColor.TextDefault}
           isHidden={privacyMode}
           length={SensitiveTextLength.Short}
+          testID={PerpsPositionCardSelectorsIDs.AUTO_CLOSE_VALUE}
         >
           {parts.join(', ')}
         </SensitiveText>
@@ -279,9 +281,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
       </SensitiveText>
       {liquidationDistance !== null && !privacyMode && (
         <>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={PerpsPositionCardSelectorsIDs.LIQUIDATION_DISTANCE_VALUE}
+          >
             {' '}
-            {Math.round(liquidationDistance)}%
+            {liquidationDistance.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%
           </Text>
           <Icon
             name={isLong ? IconName.TrendDown : IconName.TrendUp}

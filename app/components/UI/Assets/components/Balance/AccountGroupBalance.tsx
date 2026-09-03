@@ -77,12 +77,20 @@ const AccountGroupBalance = ({
     useWalletHomeOnboardingChecklistFundPress(goToBuy);
   const { popularNetworks } = useNetworkEnablement();
 
-  // Stabilize chain IDs by content so selector identity doesn't change every render (avoids max depth / infinite loop).
-  const popularChainIdsKey = (popularNetworks ?? []).join(',');
+  // Collapse to a value (string) first, since primitives compare by value in a deps
+  // array — this is what actually stabilizes identity, unlike the array itself, which
+  // is a new reference every render. Rebuilding the array from that string (rather
+  // than from `popularNetworks`) means this memo's only real dependency is the string,
+  // so selector identity doesn't change every render (avoids max depth / infinite loop).
+  const popularChainIdsKey = useMemo(
+    () => (popularNetworks ?? []).join(','),
+    [popularNetworks],
+  );
   const chainIdsForBalance = useMemo<CaipChainId[]>(
-    () => [...(popularNetworks ?? [])],
-    // popularChainIdsKey stabilizes by content; popularNetworks is a new array ref every render from the hook
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    () =>
+      popularChainIdsKey
+        ? (popularChainIdsKey.split(',') as CaipChainId[])
+        : [],
     [popularChainIdsKey],
   );
 

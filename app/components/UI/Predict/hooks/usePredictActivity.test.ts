@@ -48,7 +48,7 @@ jest.mock('react-redux', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -90,6 +90,22 @@ describe('usePredictActivity', () => {
     });
 
     expect(mockGetActivity).not.toHaveBeenCalled();
+  });
+
+  it('does not fetch activity when enabled is false', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => usePredictActivity({ enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
+    expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isFetching).toBe(false);
   });
 
   it('fetches activity automatically on mount', async () => {

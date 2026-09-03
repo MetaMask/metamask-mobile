@@ -7,6 +7,9 @@ import {
   selectCardPrimaryToken,
   selectCardAvailableTokens,
   selectCardFundingTokens,
+  selectIsCardAuthenticated,
+  selectIsCardholder,
+  selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
 import { useAssetBalances } from './useAssetBalances';
@@ -20,13 +23,25 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
+  const isCardholder = useSelector(selectIsCardholder);
+  const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
+  const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
+  // Money Home mounts this for every visitor, but a user with no card has
+  // nothing to fetch — `MoneyMetaMaskCard` only reads it in 'manage' mode.
+  const hasCard = isCardholder || isCardAuthenticated;
+
+  // A cold start restores 'success' and would otherwise never refetch;
+  // `fetchedThisSession` is not persisted, so it flags data that came off disk.
   useEffect(() => {
-    if (status === 'idle' || status === 'error') {
+    if (
+      hasCard &&
+      (status === 'idle' || status === 'error' || !fetchedThisSession)
+    ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [status]);
+  }, [hasCard, status, fetchedThisSession]);
 
   const refetch = useCallback(
     () => Engine.context.CardController.fetchCardHomeData({ force: true }),

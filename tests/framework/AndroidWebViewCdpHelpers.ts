@@ -2,10 +2,10 @@
 import { execFileSync } from 'child_process';
 import { WebSocket as WsClient } from 'ws';
 import { APP_PACKAGE_IDS } from './Constants.ts';
-import { getDriver } from './PlaywrightUtilities';
-import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { getDriver } from './AppiumUtilities';
+import { createAppiumLogger } from './appiumLogger.ts';
 
-const logger = createPlaywrightLogger('AndroidWebViewCdp');
+const logger = createAppiumLogger('AndroidWebViewCdp');
 
 /** Host port for `adb forward` to MetaMask `@webview_devtools_remote_<pid>`. */
 const WEBVIEW_CDP_FORWARD_PORT = 9223;
@@ -603,7 +603,12 @@ export default class AndroidWebViewCdpHelpers {
         return el.value;
       }
       const text = (el.innerText ?? el.textContent ?? '').trim();
-      return text.length > 0 ? text : (el.value ?? null);
+      // Empty string when the node exists but has no text yet — callers poll via
+      // executeWithRetry. Returning null here forced a UiAutomator fallback that
+      // flakes on stale WebView a11y nodes (BIP-44 result spans, etc.).
+      if (text.length > 0) return text;
+      if ('value' in el && typeof el.value === 'string') return el.value;
+      return '';
     })()`,
     );
     return text == null ? undefined : text;

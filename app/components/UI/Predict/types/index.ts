@@ -477,6 +477,7 @@ export interface GetCryptoTargetPriceParams {
   eventStartTime: string;
   variant: string;
   endDate: string;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
@@ -491,13 +492,15 @@ export interface GetCryptoPriceHistoryParams {
   variant: string;
   /** Optional end date as ISO 8601 string (omit for live/current data) */
   endDate?: string;
+  /** Chainlink TWAP lookback window when requesting TWAP history */
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }
 
 /**
  * A single point from the crypto price history source.
  */
 export interface CryptoPriceHistoryPoint {
-  /** Unix timestamp in seconds */
+  /** Unix timestamp in seconds or milliseconds */
   timestamp: number;
   /** Price value */
   value: number;

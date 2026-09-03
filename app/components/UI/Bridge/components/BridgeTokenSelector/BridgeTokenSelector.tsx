@@ -77,7 +77,6 @@ import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import { useInitialBridgeTokens } from '../../hooks/useInitialBridgeTokens';
 import { selectRWAEnabledFlag } from '../../../../../selectors/featureFlagController/rwa';
 import { isStockRwaBridgeToken } from '../../utils/isStockRwaBridgeToken';
-import { useABTest } from '../../../../../hooks';
 import {
   ARC_NATIVE_ASSET_ID,
   ARC_NATIVE_ASSET_ID_LEGACY,
@@ -90,17 +89,12 @@ import {
   mapWatchlistTokenToBridgeToken,
 } from '../../utils/mapWatchlistTokenToBridgeToken';
 import { mergeBridgeTokensWithBalances } from '../../utils/mergeBridgeTokensWithBalances';
+import { filterOutRwaTokens } from '../../utils/filterOutRwaTokens';
 import { filterWatchlistBridgeTokens } from '../../utils/filterWatchlistBridgeTokens';
 import { prependWatchlistToSearchResults } from '../../utils/prependWatchlistToSearchResults';
 import { trackTokenListItemClicked } from '../../../Assets/watchlist/utils/trackTokenListItemClicked';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import {
-  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  TokenSelectorBalanceLayoutConfig,
-  TokenSelectorBalanceLayoutVariant,
-} from '../TokenSelectorItem.abTestConfig';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -109,6 +103,11 @@ export interface BridgeTokenSelectorRouteParams {
    * of the default allowed chainRanking.
    */
   enabledChainIds?: CaipChainId[];
+  /**
+   * When true, real-world asset tokens are hidden from every list this
+   * picker renders (popular, search, and watchlist results).
+   */
+  excludeRwaTokens?: boolean;
 }
 
 const MIN_SEARCH_LENGTH = 3;
@@ -120,7 +119,6 @@ interface BridgeTokenSelectorRowProps {
   isSelected: boolean;
   isNoFeeAsset: boolean;
   showStockBadge: boolean;
-  balanceLayoutConfig: TokenSelectorBalanceLayoutConfig;
   onTokenPress: (token: BridgeToken) => void;
   onInfoPress: (token: BridgeToken) => void;
 }
@@ -131,7 +129,6 @@ const BridgeTokenSelectorRow = React.memo(
     isSelected,
     isNoFeeAsset,
     showStockBadge,
-    balanceLayoutConfig,
     onTokenPress,
     onInfoPress,
   }: BridgeTokenSelectorRowProps) => {
@@ -155,7 +152,6 @@ const BridgeTokenSelectorRow = React.memo(
         networkImageSource={networkImageSource}
         isNoFeeAsset={isNoFeeAsset}
         showStockBadge={showStockBadge}
-        balanceLayoutConfigOverride={balanceLayoutConfig}
       >
         <ButtonIcon
           iconName={IconName.Info}
@@ -172,6 +168,15 @@ interface BridgeTokenSelectorSearchEmptyStateProps {
   containerStyle: StyleProp<ViewStyle>;
   NoSearchResultsIcon: React.ComponentType<{ width: number; height: number }>;
 }
+
+const useRwaFilteredTokens = (
+  tokens: BridgeToken[],
+  excludeRwaTokens: boolean,
+) =>
+  useMemo(
+    () => (excludeRwaTokens ? filterOutRwaTokens(tokens) : tokens),
+    [tokens, excludeRwaTokens],
+  );
 
 const BridgeTokenSelectorSearchEmptyState = React.memo(
   ({
@@ -240,20 +245,12 @@ export const BridgeTokenSelector: React.FC = () => {
   );
 
   const enabledChainIds = route.params?.enabledChainIds;
+  const excludeRwaTokens = route.params?.excludeRwaTokens ?? false;
   const enabledChainRanking = useSelector((state: RootState) =>
     selectAllowedChainRanking(state, enabledChainIds),
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const isRWAEnabled = useSelector(selectRWAEnabledFlag);
-  const { variant: balanceLayoutConfig } = useABTest(
-    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
-  );
-  const tokenBalanceLayoutConfig =
-    balanceLayoutConfig ??
-    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-      TokenSelectorBalanceLayoutVariant.Control
-    ];
 
   // Use custom hook for token selection
   const { handleTokenPress, selectedToken } = useTokenSelection(
@@ -519,13 +516,13 @@ export const BridgeTokenSelector: React.FC = () => {
   ]);
 
   // Use custom hook for merging balances
-  const popularTokensWithBalance = useTokensWithBalances(
-    popularTokens,
-    balancesByAssetId,
+  const popularTokensWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(popularTokens, balancesByAssetId),
+    excludeRwaTokens,
   );
-  const searchResultsWithBalance = useTokensWithBalances(
-    searchResults,
-    balancesByAssetId,
+  const searchResultsWithBalance = useRwaFilteredTokens(
+    useTokensWithBalances(searchResults, balancesByAssetId),
+    excludeRwaTokens,
   );
 
   const watchlistBridgeTokens = useMemo(() => {
@@ -550,10 +547,13 @@ export const BridgeTokenSelector: React.FC = () => {
           !assetIdsMatch(token.assetId, ARC_NATIVE_ASSET_ID_LEGACY),
       );
 
-    return filterWatchlistBridgeTokens(mappedTokens, {
-      selectedChainId,
-      searchQuery: isValidSearch ? searchString : undefined,
-    });
+    return filterWatchlistBridgeTokens(
+      excludeRwaTokens ? filterOutRwaTokens(mappedTokens) : mappedTokens,
+      {
+        selectedChainId,
+        searchQuery: isValidSearch ? searchString : undefined,
+      },
+    );
   }, [
     isWatchlistListMode,
     isValidSearch,
@@ -562,6 +562,7 @@ export const BridgeTokenSelector: React.FC = () => {
     watchlistData,
     balancesByAssetId,
     currentCurrency,
+    excludeRwaTokens,
   ]);
 
   const watchlistMergedSearchResults = useMemo(() => {
@@ -714,8 +715,11 @@ export const BridgeTokenSelector: React.FC = () => {
       searchCursor &&
       flatListHeight > 0
     ) {
+      // Measure the rows actually rendered, not the raw API page. A page whose
+      // results are all filtered out (e.g. RWAs) would otherwise look full and
+      // never fetch the next one.
       const estimatedContentHeight =
-        searchResults.length * ESTIMATED_ITEM_HEIGHT;
+        searchResultsWithBalance.length * ESTIMATED_ITEM_HEIGHT;
 
       // If estimated content doesn't fill the view, load more
       if (estimatedContentHeight < flatListHeight) {
@@ -725,6 +729,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [
     isValidSearch,
     searchResults.length,
+    searchResultsWithBalance.length,
     isSearchLoading,
     isLoadingMore,
     searchCursor,
@@ -860,7 +865,6 @@ export const BridgeTokenSelector: React.FC = () => {
           onInfoPress={handleInfoButtonPress}
           isNoFeeAsset={getIsNoFeeAsset(item)}
           showStockBadge={isStockRwaBridgeToken(item, isRWAEnabled)}
-          balanceLayoutConfig={tokenBalanceLayoutConfig}
         />
       );
     },
@@ -870,7 +874,6 @@ export const BridgeTokenSelector: React.FC = () => {
       handleInfoButtonPress,
       getIsNoFeeAsset,
       isRWAEnabled,
-      tokenBalanceLayoutConfig,
     ],
   );
 
@@ -926,9 +929,23 @@ export const BridgeTokenSelector: React.FC = () => {
     [],
   );
 
+  // A page whose results are all filtered out (e.g. RWAs) leaves the
+  // filtered results empty while a cursor for the next page still exists.
+  // The auto-load effect will keep fetching in that case, so the empty
+  // state must stay hidden until either results appear or the cursor is
+  // exhausted, otherwise "no tokens found" flashes/sticks mid-fetch.
+  const isAwaitingMoreSearchResults =
+    searchResultsWithBalance.length === 0 && Boolean(searchCursor);
+
   const renderEmptyState = useCallback(() => {
     if (isWatchlistListMode && hasWatchlistItems) {
-      if (isWatchlistLoading || !isValidSearch || isSearchLoading) {
+      if (
+        isWatchlistLoading ||
+        !isValidSearch ||
+        isSearchLoading ||
+        isLoadingMore ||
+        isAwaitingMoreSearchResults
+      ) {
         return null;
       }
 
@@ -940,8 +957,14 @@ export const BridgeTokenSelector: React.FC = () => {
       );
     }
 
-    // Only show empty state when search is active and not loading
-    if (!isValidSearch || isSearchLoading) {
+    // Only show empty state when search is active, not loading, and not
+    // waiting on additional pages to fill in filtered-out results.
+    if (
+      !isValidSearch ||
+      isSearchLoading ||
+      isLoadingMore ||
+      isAwaitingMoreSearchResults
+    ) {
       return null;
     }
 
@@ -957,6 +980,8 @@ export const BridgeTokenSelector: React.FC = () => {
     isWatchlistLoading,
     isValidSearch,
     isSearchLoading,
+    isLoadingMore,
+    isAwaitingMoreSearchResults,
     styles.emptyStateContainer,
     NoSearchResultsIcon,
   ]);

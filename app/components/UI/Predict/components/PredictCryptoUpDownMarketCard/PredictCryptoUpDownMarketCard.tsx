@@ -101,8 +101,8 @@ const REST_POLLING_INTERVAL_MS = 2000;
 const CHART_HISTORY_WINDOW_MIN_BUCKET_MS = 60 * 1000;
 const CHART_HISTORY_WINDOW_BUCKET_DIVISOR = 12;
 const CHART_DISPLAY_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 10 * 60 * 1000,
-  '15m': 30 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
   '1h': 60 * 60 * 1000,
   '4h': 4 * 60 * 60 * 1000,
   daily: 24 * 60 * 60 * 1000,
@@ -112,12 +112,15 @@ const getChartHistoryBucketMs = (displayDurationMs: number) =>
     CHART_HISTORY_WINDOW_MIN_BUCKET_MS,
     Math.floor(displayDurationMs / CHART_HISTORY_WINDOW_BUCKET_DIVISOR),
   );
+// Polymarket starts each payload at eventStartTime and caps it to the variant's
+// duration. Older lookbacks therefore return complete but stale chart data.
 const CHART_REQUEST_DURATION_BY_RECURRENCE_MS: Record<string, number> = {
-  '5m': 2 * 60 * 60 * 1000,
-  '15m': 2 * 60 * 60 * 1000,
-  '1h': 4 * 60 * 60 * 1000,
-  '4h': 12 * 60 * 60 * 1000,
-  daily: 7 * 24 * 60 * 60 * 1000,
+  '5m': 5 * 60 * 1000,
+  '15m': 15 * 60 * 1000,
+  '1h': 60 * 60 * 1000,
+  hourly: 60 * 60 * 1000,
+  '4h': 4 * 60 * 60 * 1000,
+  daily: 24 * 60 * 60 * 1000,
 };
 const PROGRESS_RING_SIZE = 54;
 const PROGRESS_RING_STROKE_WIDTH = 4;
@@ -1084,7 +1087,7 @@ const PredictCryptoUpDownMarketCardSkeleton = ({
       twClassName={
         compact
           ? 'h-full rounded-xl bg-section p-4 justify-between'
-          : 'my-2 rounded-xl bg-section p-4'
+          : 'mb-3 rounded-xl bg-section p-4'
       }
     >
       <Box
@@ -1188,6 +1191,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
     eventStartTime: targetPriceEventStartTime ?? '',
     variant: getVariant(selectedMarket.series.recurrence),
     endDate: selectedMarket.endDate ?? '',
+    twapWindowSeconds: selectedMarket.twapWindowSeconds,
     enabled:
       !isCompact &&
       Boolean(symbol) &&
@@ -1389,7 +1393,7 @@ const PredictCryptoUpDownMarketCard: React.FC<
   }
 
   return (
-    <Box twClassName="my-2 h-[319px] rounded-xl bg-muted overflow-hidden">
+    <Box twClassName="mb-3 h-[319px] rounded-xl bg-muted overflow-hidden">
       <Pressable
         testID={testID ?? PredictCryptoUpDownMarketCardSelectorsIDs.CARD}
         onPress={handleCardPress}

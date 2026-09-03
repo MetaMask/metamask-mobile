@@ -1,15 +1,11 @@
 import React, { ReactNode, useCallback } from 'react';
 import { Pressable } from 'react-native';
 import {
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   Box,
   Text,
   TextVariant,
   FontWeight,
   TextColor,
-  type ImageOrSvgSrc,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { BigNumber } from 'bignumber.js';
@@ -17,6 +13,11 @@ import { KeyringAccountType } from '@metamask/keyring-api';
 
 import I18n from '../../../../../../../locales/i18n';
 import NetworkAssetLogo from '../../../../../../components/UI/NetworkAssetLogo';
+import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
+import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import Badge from '../../../../../../component-library/components/Badges/Badge/Badge';
+import { BadgeVariant } from '../../../../../../component-library/components/Badges/Badge/Badge.types';
+import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
 import { getAssetTestId } from '../../../../../../../tests/selectors/Wallet/WalletView.selectors';
@@ -66,15 +67,16 @@ export function Token({ asset, tagRenderers, onPress }: TokenProps) {
       >
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            badge={
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
               asset.networkBadgeSource ? (
-                <BadgeNetwork
+                <Badge
+                  variant={BadgeVariant.Network}
                   name={asset.name || asset.symbol || 'Token'}
-                  src={asset.networkBadgeSource as ImageOrSvgSrc}
-                  testID="token-network-badge"
+                  imageSource={asset.networkBadgeSource}
+                  size={AvatarSize.Xs}
                 />
-              ) : null
+              ) : undefined
             }
           >
             {asset.isNative ? (

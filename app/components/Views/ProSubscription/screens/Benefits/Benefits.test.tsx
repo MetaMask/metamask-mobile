@@ -1,7 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
-import Benefits from './index';
+import Benefits from './Benefits';
 import { BenefitsTestIds } from './Benefits.testIds';
 import {
   BENEFITS,
@@ -14,16 +14,9 @@ import { strings } from '../../../../../../locales/i18n';
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
-const mockOnClose = jest.fn();
 
 const renderBenefits = (initialPlan?: PlanId) =>
-  render(
-    <Benefits
-      onSuccess={mockOnSuccess}
-      onClose={mockOnClose}
-      initialPlan={initialPlan}
-    />,
-  );
+  render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
 
 // ─── Suite ───────────────────────────────────────────────────────────────────
 
@@ -85,11 +78,6 @@ describe('Benefits', () => {
       const { getByTestId } = renderBenefits();
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toBeOnTheScreen();
     });
-
-    it('renders the close button', () => {
-      const { getByTestId } = renderBenefits();
-      expect(getByTestId(BenefitsTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
-    });
   });
 
   // ── Plan selection ─────────────────────────────────────────────────────────
@@ -137,14 +125,6 @@ describe('Benefits', () => {
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onClose when the close button is pressed', () => {
-      const { getByTestId } = renderBenefits();
-
-      fireEvent.press(getByTestId(BenefitsTestIds.CLOSE_BUTTON));
-
-      expect(mockOnClose).toHaveBeenCalledTimes(1);
-    });
-
     it('calls onSuccess when the CTA is pressed', () => {
       const { getByTestId } = renderBenefits();
 
@@ -198,7 +178,9 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
 
-      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
     });
 
     it('shows bullet points for a benefit that has points (cashback)', () => {
@@ -231,7 +213,7 @@ describe('Benefits', () => {
       });
     });
 
-    it('shows subDescription, learnMore, and notes for the protection benefit', () => {
+    it('shows description paragraphs, link, and notes for the protection benefit', () => {
       const protectionDetail = BENEFIT_DETAILS.find(
         (d) => d.id === 'protection',
       );
@@ -241,15 +223,12 @@ describe('Benefits', () => {
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
 
-      if (!protectionDetail.subDescription)
-        throw new Error('protection.subDescription missing');
-      if (!protectionDetail.learnMore)
-        throw new Error('protection.learnMore missing');
+      if (!protectionDetail.link) throw new Error('protection.link missing');
       if (!protectionDetail.notes) throw new Error('protection.notes missing');
-      expect(
-        getByText(strings(protectionDetail.subDescription)),
-      ).toBeOnTheScreen();
-      expect(getByText(strings(protectionDetail.learnMore))).toBeOnTheScreen();
+      protectionDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
+      expect(getByText(strings(protectionDetail.link.label))).toBeOnTheScreen();
       expect(getByText(strings(protectionDetail.notes))).toBeOnTheScreen();
     });
 
@@ -259,16 +238,13 @@ describe('Benefits', () => {
       );
       if (!protectionDetail)
         throw new Error('protection detail not found in BENEFIT_DETAILS');
-      if (!protectionDetail.learnMore || !protectionDetail.learnMoreUrl)
-        throw new Error('protection.learnMore or learnMoreUrl missing');
+      if (!protectionDetail.link) throw new Error('protection.link missing');
       const { getByTestId, getByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('protection')));
-      fireEvent.press(getByText(strings(protectionDetail.learnMore)));
+      fireEvent.press(getByText(strings(protectionDetail.link.label)));
 
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        protectionDetail.learnMoreUrl,
-      );
+      expect(Linking.openURL).toHaveBeenCalledWith(protectionDetail.link.url);
     });
 
     it('does not show points for benefits that have none (apy)', () => {
@@ -309,7 +285,9 @@ describe('Benefits', () => {
       const { getByTestId, getByText, queryByText } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('apy')));
-      expect(getByText(strings(apyDetail.description))).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(getByText(strings(descriptionKey))).toBeOnTheScreen();
+      });
 
       fireEvent(
         getByTestId(BenefitsTestIds.BENEFIT_DETAILS_CONTAINER),
@@ -317,8 +295,12 @@ describe('Benefits', () => {
       );
 
       fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('support')));
-      expect(getByText(strings(supportDetail.description))).toBeOnTheScreen();
-      expect(queryByText(strings(apyDetail.description))).not.toBeOnTheScreen();
+      expect(
+        getByText(strings(supportDetail.description[0])),
+      ).toBeOnTheScreen();
+      apyDetail.description.forEach((descriptionKey) => {
+        expect(queryByText(strings(descriptionKey))).not.toBeOnTheScreen();
+      });
     });
   });
 
@@ -334,6 +316,47 @@ describe('Benefits', () => {
       expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
         strings('pro_subscription.join_pro'),
       );
+    });
+  });
+
+  // ── Plan-specific content ──────────────────────────────────────────────────
+
+  describe('Plan-specific ATM fees content', () => {
+    it('shows monthly subtitle and description for atm_fees when monthly plan is selected', () => {
+      const { getByTestId, getByText, queryByText } = renderBenefits();
+
+      // Default is annual — verify annual subtitle is shown
+      expect(
+        getByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).toBeOnTheScreen();
+
+      // Switch to monthly plan
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+
+      // Subtitle should now be the monthly variant
+      expect(
+        getByText(
+          strings('pro_subscription.benefits.atm_fees.subtitle_monthly'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).not.toBeOnTheScreen();
+
+      // Open ATM fees detail sheet — description should be monthly variant
+      fireEvent.press(getByTestId(BenefitsTestIds.BENEFIT_ROW('atm_fees')));
+      expect(
+        getByText(
+          strings(
+            'pro_subscription.benefits_description.atm_fees.description_monthly',
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('pro_subscription.benefits_description.atm_fees.description'),
+        ),
+      ).not.toBeOnTheScreen();
     });
   });
 });

@@ -1,36 +1,32 @@
-import { BrowserViewSelectorsIDs } from '../../../../app/components/Views/BrowserTab/BrowserView.testIds';
-import Gestures from '../../../framework/Gestures';
-import Matchers from '../../../framework/Matchers';
-import { PlatformDetector } from '../../../framework/PlatformLocator';
-import { RedirectWebsiteSelectorsXPath } from '../../../selectors/Browser/RedirectWebsite.selectors';
+import ChromeCdpHelpers from '../../../framework/ChromeCdpHelpers';
+import AppiumContextHelpers from '../../../framework/AppiumContextHelpers';
 
 class RedirectWebsite {
   /**
-   * On Android we can't redirect to HTTP websites because this protocol is
-   * prohibited (error is net::ERR_CLEARTEXT_NOT_PERMITTED). On iOS HTTP
-   * website will be open and redirect itself to HTTPS version.
+   * Runs `window.location.href = targetUrl` in the page at `pageUrl`.
+   * The fixture server's serve-handler cleanUrls rewrites `/redirect.html?…`
+   * to `/redirect` and drops the query, so the target cannot come from the
+   * page — the test passes it in.
    *
-   * @param pageUrl - Full page URL (required for Appium WebView context switching).
+   * @param pageUrl - URL used to select the WebView/CDP target (no query).
+   * @param targetUrl - Cross-origin URL to assign to `location.href`.
    */
-  async tapRedirectButton(pageUrl?: string): Promise<void> {
-    const redirectButtonXpath = PlatformDetector.isAndroid()
-      ? RedirectWebsiteSelectorsXPath.REDIRECT_BUTTON_HTTPS
-      : RedirectWebsiteSelectorsXPath.REDIRECT_BUTTON_HTTP;
+  async redirectToTarget(pageUrl: string, targetUrl: string): Promise<void> {
+    const result = await ChromeCdpHelpers.evaluateInWebView<string>(
+      pageUrl,
+      `(() => {
+        window.location.href = ${JSON.stringify(targetUrl)};
+        return 'ok';
+      })()`,
+    );
 
-    if (!pageUrl) {
+    if (result !== 'ok') {
       throw new Error(
-        'pageUrl is required for RedirectWebsite.tapRedirectButton under Appium',
+        `RedirectWebsite.redirectToTarget failed (${result ?? 'null'}) from ${pageUrl} to ${targetUrl}`,
       );
     }
 
-    const redirectButton = await Matchers.getElementByXPath(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
-      redirectButtonXpath,
-      pageUrl,
-    );
-    await Gestures.waitAndTap(redirectButton, {
-      elemDescription: 'Redirect website redirect button',
-    });
+    await AppiumContextHelpers.switchToNativeContext();
   }
 }
 

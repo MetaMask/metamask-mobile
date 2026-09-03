@@ -157,7 +157,7 @@ describe('ConfirmAlertModal', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the Blockaid alert message and title when onlyBlockaidAlert is true', () => {
+  it('renders the Blockaid alert message and the shared title when onlyBlockaidAlert is true', () => {
     (useAlerts as jest.Mock).mockReturnValue({
       showAlertModal: jest.fn(),
       fieldAlerts: [],
@@ -165,13 +165,12 @@ describe('ConfirmAlertModal', () => {
       alertModalVisible: true,
       generalAlerts: [BLOCKAID_ALERT_MOCK],
     });
-
     const { getByText, getByTestId } = render(
       <ConfirmAlertModal {...baseProps} />,
     );
 
     expect(
-      getByText(strings('alert_system.confirm_modal.title_blockaid')),
+      getByText(strings('alert_system.confirm_modal.title')),
     ).toBeOnTheScreen();
     expect(getByText(BLOCKAID_ALERT_MOCK.message)).toBeOnTheScreen();
     expect(

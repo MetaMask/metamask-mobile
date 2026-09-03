@@ -6,4 +6,5 @@ export interface PerpsFlipPositionConfirmSheetProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
   onConfirm?: () => void;
+  enableHaptics?: boolean;
 }

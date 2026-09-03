@@ -46,12 +46,7 @@ import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import EarnBalance from '../../Earn/components/EarnBalance';
 import { TokenDetailsActions } from './TokenDetailsActions';
-import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyEarnBanner from '../../Money/components/MoneyEarnBanner';
-import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
-import { isMusdToken } from '../../Earn/constants/musd';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../Earn/selectors/featureFlags';
-import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
@@ -94,6 +89,7 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import {
   endTrace,
   trace,
@@ -369,15 +365,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
-
-  const isMusdConversionFlowEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
-  const { isEligible: isMusdGeoEligible } = useMusdConversionEligibility();
-  const showMusdConvertSection =
-    isMusdToken(token.address) &&
-    isMusdConversionFlowEnabled &&
-    isMusdGeoEligible;
 
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData);
@@ -683,11 +670,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               <EarnBalance asset={token} />
             </>
           )}
-          {showMusdConvertSection && (
-            <MoneyConvertStablecoins
-              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
-            />
-          )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && (
@@ -747,12 +729,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 animationType="none"
                 statusBarTranslucent
               >
-                <PerpsBottomSheetTooltip
-                  isVisible
-                  onClose={closeEligibilityModal}
-                  contentKey="geo_block"
-                  testID="token-details-geo-block-tooltip"
-                />
+                <ModalSafeAreaProvider>
+                  <PerpsBottomSheetTooltip
+                    isVisible
+                    onClose={closeEligibilityModal}
+                    contentKey="geo_block"
+                    testID="token-details-geo-block-tooltip"
+                  />
+                </ModalSafeAreaProvider>
               </Modal>
             </View>
           )}

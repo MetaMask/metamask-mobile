@@ -10,6 +10,7 @@ import {
   buildGameData,
   extractNeededTeamsFromEvents,
   getLeagueTeamOrder,
+  getPredictSportsLeagueFromTeamApi,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -68,6 +69,19 @@ describe('gameParser', () => {
 
     it('returns away-home for US sports leagues', () => {
       expect(getLeagueTeamOrder('nfl')).toBe('away-home');
+    });
+  });
+
+  describe('getPredictSportsLeagueFromTeamApi', () => {
+    it('maps API league aliases back to Predict league ids', () => {
+      expect(getPredictSportsLeagueFromTeamApi('csgo')).toBe('cs2');
+      expect(getPredictSportsLeagueFromTeamApi('valorant')).toBe('val');
+      expect(getPredictSportsLeagueFromTeamApi('nfl')).toBe('nfl');
+    });
+
+    it('returns undefined for missing or unknown API leagues', () => {
+      expect(getPredictSportsLeagueFromTeamApi()).toBeUndefined();
+      expect(getPredictSportsLeagueFromTeamApi('unknown')).toBeUndefined();
     });
   });
 

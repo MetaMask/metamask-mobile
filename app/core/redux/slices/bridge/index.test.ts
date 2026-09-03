@@ -19,6 +19,8 @@ import reducer, {
   selectAllowedChainRanking,
   setTokenSelectorNetworkFilter,
   selectTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
+  selectOrdersNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
@@ -43,6 +45,13 @@ import reducer, {
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
   selectIsNonEvmSourced,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  setRecurringPriceRange,
+  selectRecurring,
+  selectRecurringPriceRange,
+  selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -58,6 +67,7 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { RecurringScheduleErrorCode } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
@@ -141,6 +151,13 @@ describe('bridge slice', () => {
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'hour',
+          repeatCount: '10',
+          priceRange: undefined,
+        },
+        ordersNetworkFilter: undefined,
       });
     });
   });
@@ -1080,6 +1097,38 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('setOrdersNetworkFilter', () => {
+    it('sets the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setOrdersNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.ordersNetworkFilter).toBe(chainId);
+    });
+
+    it('clears the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBeUndefined();
+    });
+
+    it('updates the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBe('eip155:137');
+    });
+  });
+
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
       const mockState = cloneDeep(mockRootState);
@@ -1190,6 +1239,33 @@ describe('bridge slice', () => {
       };
 
       const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
+    });
+  });
+
+  describe('selectOrdersNetworkFilter', () => {
+    it('returns undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectOrdersNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectOrdersNetworkFilter(
         mockState as unknown as RootState,
       );
 
@@ -1499,6 +1575,205 @@ describe('bridge slice', () => {
     it('returns a falsy value when there is no source token', () => {
       const state = buildState(undefined);
       expect(selectIsNonEvmSourced(state)).toBeFalsy();
+    });
+  });
+
+  describe('recurring', () => {
+    it('sets the every value', () => {
+      const action = setRecurringEveryValue('6');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.everyValue).toBe('6');
+    });
+
+    it('sets the repeat count', () => {
+      const action = setRecurringRepeatCount('20');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.repeatCount).toBe('20');
+    });
+
+    it('sets the price range', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+
+      const newState = reducer(
+        initialState,
+        setRecurringPriceRange(priceRange),
+      );
+
+      expect(newState.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('selects the price range from state', () => {
+      const priceRange = {
+        tokenSide: 'source' as const,
+        currency: 'usd',
+        min: '0.9',
+        max: '1.1',
+      };
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringPriceRange(mockState);
+
+      expect(result).toEqual(priceRange);
+    });
+
+    it('clears the price range when the source token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setSourceToken(mockDestToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
+    it('keeps the price range when the source token identity is unchanged', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('clears the price range when the dest token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          destToken: mockDestToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setDestToken(mockToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
+    it('resets the every value to 1 when the unit changes', () => {
+      const state = reducer(initialState, setRecurringEveryValue('2'));
+
+      const newState = reducer(state, setRecurringEveryUnit('day'));
+
+      expect(newState.recurring).toEqual({
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: undefined,
+      });
+    });
+
+    it('resets recurring fields when bridge state resets', () => {
+      const withValue = reducer(initialState, setRecurringEveryValue('8'));
+
+      const newState = reducer(withValue, resetBridgeState());
+
+      expect(newState.recurring).toEqual(initialState.recurring);
+    });
+
+    it('defaults to the initial recurring state when it is missing', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: undefined,
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual(initialState.recurring);
+    });
+
+    it('selects the recurring object from state', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '3',
+            everyUnit: 'day' as const,
+            repeatCount: '4',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual({
+        everyValue: '3',
+        everyUnit: 'day',
+        repeatCount: '4',
+      });
+    });
+
+    it('selects duration_exceeds_max when every times repeat is over 180 days', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '1',
+            everyUnit: 'day' as const,
+            repeatCount: '181',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringScheduleValidation(mockState);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain(
+        RecurringScheduleErrorCode.DurationExceedsMax,
+      );
     });
   });
 });

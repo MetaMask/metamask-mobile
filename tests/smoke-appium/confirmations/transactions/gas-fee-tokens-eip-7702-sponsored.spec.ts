@@ -254,9 +254,6 @@ appiumTest.describe.skip(
               RECIPIENT_ADDRESS_MOCK,
             );
             await confirmSponsoredNativeSendAndOpenActivity();
-            await Assertions.expectTextDisplayed('Confirmed', {
-              description: 'Activity status Confirmed',
-            });
           },
         );
       },

@@ -62,10 +62,12 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  let isTronStakingAvailable = false;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
     earnToken?.isNative && isTronChainId(earnToken.chainId as Hex);
+  isTronStakingAvailable = Boolean(isTronNative && isTrxStakingEnabled);
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
@@ -75,9 +77,14 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const primaryExperienceType = useSelector((state: RootState) =>
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, earnToken),
   );
+  const isStakingExperience =
+    primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING ||
+    primaryExperienceType === EARN_EXPERIENCES.TRX_STAKING;
 
   const areEarnExperiencesDisabled =
-    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+    !isPooledStakingEnabled &&
+    !isStablecoinLendingEnabled &&
+    !isTronStakingAvailable;
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -92,7 +99,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
             text: 'Stake',
             token: earnToken.symbol,
             network: network?.name,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: EARN_EXPERIENCES.TRX_STAKING,
           })
           .build(),
       );
@@ -142,7 +149,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   });
 
   const onEarnButtonPress = async () => {
-    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (isStakingExperience) {
       return handleStakeRedirect();
     }
 
@@ -161,10 +168,9 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     return <></>;
 
   const renderEarnButtonText = () => {
-    const ctaLabel =
-      primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING
-        ? strings('stake.stake')
-        : strings('stake.earn');
+    const ctaLabel = isStakingExperience
+      ? strings('stake.stake')
+      : strings('stake.earn');
 
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled && tronApyPercent) {

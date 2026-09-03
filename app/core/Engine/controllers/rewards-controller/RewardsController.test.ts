@@ -1570,9 +1570,16 @@ describe('RewardsController', () => {
   });
 
   describe('addPointsEstimateToHistory', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('adds entry to history with basic request/response fields', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1596,13 +1603,10 @@ describe('RewardsController', () => {
       expect(entry.requestAccount).toBe(CAIP_ACCOUNT_1);
       expect(entry.responsePointsEstimate).toBe(100);
       expect(entry.responseBonusBips).toBe(200);
-
-      jest.useRealTimers();
     });
 
     it('flattens swap context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockSwapContext = {
@@ -1651,13 +1655,10 @@ describe('RewardsController', () => {
       expect(entry.requestSwapFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestSwapFeeAssetAmount).toBe('5000000000000000');
       expect(entry.requestSwapFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens single perps context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContext = {
@@ -1686,13 +1687,10 @@ describe('RewardsController', () => {
       expect(entry.requestPerpsType).toBe('CLOSE_POSITION');
       expect(entry.requestPerpsCoin).toBe('BTC');
       expect(entry.requestPerpsUsdFeeValue).toBe('15.75');
-
-      jest.useRealTimers();
     });
 
     it('excludes perps context fields when perpsContext is an array', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const mockPerpsContextArray = [
@@ -1732,13 +1730,10 @@ describe('RewardsController', () => {
       // Basic fields should still be present
       expect(entry.requestActivityType).toBe('PERPS');
       expect(entry.responsePointsEstimate).toBe(300);
-
-      jest.useRealTimers();
     });
 
     it('flattens predict context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1767,13 +1762,10 @@ describe('RewardsController', () => {
       expect(entry.requestPredictFeeAssetId).toBe('eip155:8453/slip44:60');
       expect(entry.requestPredictFeeAssetAmount).toBe('1000000000000000');
       expect(entry.requestPredictFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('flattens shield context fields into history entry', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1802,13 +1794,10 @@ describe('RewardsController', () => {
       expect(entry.requestShieldFeeAssetId).toBe('eip155:1/slip44:60');
       expect(entry.requestShieldFeeAssetAmount).toBe('2000000000000000');
       expect(entry.requestShieldFeeAssetUsdPrice).toBe('2500.00');
-
-      jest.useRealTimers();
     });
 
     it('limits history to 50 entries', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1829,13 +1818,10 @@ describe('RewardsController', () => {
       }
 
       expect(controller.state.pointsEstimateHistory).toHaveLength(50);
-
-      jest.useRealTimers();
     });
 
     it('adds new entries at the beginning (most recent first)', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request1 = {
@@ -1878,13 +1864,10 @@ describe('RewardsController', () => {
       expect(entries[1].timestamp).toBe(now);
       expect(entries[1].requestActivityType).toBe('SWAP');
       expect(entries[1].responsePointsEstimate).toBe(100);
-
-      jest.useRealTimers();
     });
 
     it('preserves oldest entries within limit when trimming', () => {
       const now = 1700000000000;
-      jest.useFakeTimers();
       jest.setSystemTime(now);
 
       const request = {
@@ -1914,8 +1897,6 @@ describe('RewardsController', () => {
       // Oldest kept entry should be the 6th one added (indices 5-54 are kept)
       expect(entries[49].responsePointsEstimate).toBe(6);
       expect(entries[49].timestamp).toBe(now + 5);
-
-      jest.useRealTimers();
     });
   });
 
@@ -7444,6 +7425,7 @@ describe('RewardsController', () => {
         earned: 5555555,
         threshold: 7777777,
         percent: 71.4,
+        lifetimeQualifyingPoints: null,
       },
       tiers: [
         {
@@ -7460,6 +7442,7 @@ describe('RewardsController', () => {
         },
       ],
       localizedText: {
+        equityLifetimePointsDescription: 'Lifetime total: {points}',
         periodTitle: 'Jun 1 - Jun 30',
         memberIdTitle: 'Member ID',
         transactionsTitle: 'Transactions',
@@ -10866,9 +10849,15 @@ describe('RewardsController', () => {
                 referrals: 3,
                 referralsCap: 7,
               },
-              pointsAllocation: { earned: 0, threshold: 1, percent: 0 },
+              pointsAllocation: {
+                earned: 0,
+                threshold: 1,
+                lifetimeQualifyingPoints: null,
+                percent: 0,
+              },
               tiers: [],
               localizedText: {
+                equityLifetimePointsDescription: 'Lifetime total: {points}',
                 periodTitle: 'Jun 1 - Jun 30',
                 memberIdTitle: 'Member ID',
                 transactionsTitle: 'Transactions',
@@ -17750,6 +17739,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17789,6 +17781,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17833,6 +17828,9 @@ describe('RewardsController', () => {
       campaigns: {},
       clientVersionRequirements: null,
       firstPredictOnUs: null,
+      moneyAccountSweepstakesDrawProof: {},
+      moneyAccountSweepstakesPrizePool: {},
+      moneyAccountSweepstakesStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -21373,6 +21371,342 @@ describe('RewardsController', () => {
           subscriptionId: mockSubscriptionId,
         },
       );
+    });
+  });
+
+  describe('optInToCampaigns', () => {
+    let batchMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const campaignA = 'campaign-a';
+    const campaignB = 'campaign-b';
+    const mockStatus = { optedIn: true, participantCount: 42 };
+
+    beforeEach(() => {
+      batchMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns optedIn false for every id when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: { optedIn: false, participantCount: 0 },
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      expect(batchMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        expect.anything(),
+        expect.anything(),
+      );
+    });
+
+    it('opts into each campaign then publishes campaignOptedIn once', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      const result = await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+    });
+
+    it('re-seeds participant status cache so post-batch refetches hit cache', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignA}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+      expect(
+        ctrl.state.campaignParticipantStatus[
+          `${mockSubscriptionId}:${campaignB}`
+        ],
+      ).toEqual(
+        expect.objectContaining({
+          optedIn: true,
+          participantCount: 42,
+        }),
+      );
+    });
+
+    it('does not publish campaignOptedIn when every campaign was already opted in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignParticipantStatus: {
+            [`${mockSubscriptionId}:${campaignA}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+            [`${mockSubscriptionId}:${campaignB}`]: {
+              optedIn: true,
+              participantCount: 1,
+              lastFetched: Date.now(),
+            },
+          },
+        },
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns([campaignA, campaignB], mockSubscriptionId);
+
+      expect(batchMessenger.publish).not.toHaveBeenCalledWith(
+        'RewardsController:campaignOptedIn',
+        expect.anything(),
+      );
+    });
+
+    it('retries a failing campaign then succeeds without aborting the batch', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValueOnce(new Error('network'))
+        .mockRejectedValueOnce(new Error('network'))
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: mockStatus,
+      });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        3,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        4,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+      );
+      jest.useRealTimers();
+    });
+
+    it('continues the batch and does not throw when one campaign fails all retries', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce(mockStatus)
+        .mockRejectedValue(new Error('network'));
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({
+        [campaignA]: mockStatus,
+        [campaignB]: { optedIn: false, participantCount: 0 },
+      });
+      // A once + B three attempts
+      expect(batchMessenger.call).toHaveBeenCalledTimes(4);
+
+      const campaignOptedInCalls = batchMessenger.publish.mock.calls.filter(
+        ([event]) => event === 'RewardsController:campaignOptedIn',
+      );
+      expect(campaignOptedInCalls).toHaveLength(1);
+      expect(campaignOptedInCalls[0][1]).toEqual({
+        campaignId: campaignA,
+        subscriptionId: mockSubscriptionId,
+      });
+      jest.useRealTimers();
+    });
+
+    it('retries when a campaign returns optedIn false then succeeds', async () => {
+      jest.useFakeTimers();
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call
+        .mockResolvedValueOnce({ optedIn: false, participantCount: 0 })
+        .mockResolvedValueOnce(mockStatus);
+
+      const resultPromise = ctrl.optInToCampaigns(
+        [campaignA],
+        mockSubscriptionId,
+      );
+      await jest.runAllTimersAsync();
+      const result = await resultPromise;
+
+      expect(result).toEqual({ [campaignA]: mockStatus });
+      expect(batchMessenger.call).toHaveBeenCalledTimes(2);
+      jest.useRealTimers();
+    });
+  });
+
+  describe('registerMoneyAccountBinding', () => {
+    let bindingMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
+
+    beforeEach(() => {
+      bindingMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        registerMethodActionHandlers: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns bound without calling the data service when rewards is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBe('bound');
+      expect(bindingMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('delegates to the data service and caches the bound result', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockResolvedValue('bound');
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      expect(first).toBe('bound');
+      expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+      );
+    });
+
+    it('caches conflict results so subsequent calls do not re-POST', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockResolvedValue('conflict');
+
+      const first = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+      const second = await ctrl.registerMoneyAccountBinding(
+        mockAddress.toLowerCase(),
+        mockSubscriptionId,
+      );
+
+      expect(first).toBe('conflict');
+      expect(second).toBe('conflict');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
     });
   });
 
