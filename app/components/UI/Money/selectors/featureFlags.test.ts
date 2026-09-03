@@ -1124,12 +1124,25 @@ describe('selectMoneyCardEducationAnimationEnabledFlag', () => {
     expect(result).toBe(false);
   });
 
-  it('defaults to true when remote flag returns undefined and env is unset', () => {
+  it('defaults to false when remote flag returns undefined and env is unset', () => {
     mockedValidate.mockReturnValue(undefined);
     delete process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED;
 
     const state = createState({
-      _unique: 'card-education-default-on',
+      _unique: 'card-education-default-off',
+    });
+
+    const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when env var is set to true and remote is undefined', () => {
+    mockedValidate.mockReturnValue(undefined);
+    process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED = 'true';
+
+    const state = createState({
+      _unique: 'card-education-env-true',
     });
 
     const result = selectMoneyCardEducationAnimationEnabledFlag(state as never);

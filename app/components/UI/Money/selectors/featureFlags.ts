@@ -272,8 +272,11 @@ export const selectMoneyCardTiltAnimationEnabledFlag = createSelector(
 );
 
 /**
- * Kill-switch for the card education screen Rive cards animation.
- * Defaults to ON (true).
+ * Selects whether the card education screen plays the Rive cards entrance.
+ * Defaults to off (opt-in) so the animation stays disabled unless the remote
+ * flag or MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED turns it on; the static
+ * image is used otherwise, when reduce-motion is enabled, or when Rive fails
+ * to load.
  */
 export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -281,7 +284,7 @@ export const selectMoneyCardEducationAnimationEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.earnMoneyCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
     const local =
-      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED !== 'false';
+      process.env.MM_MONEY_CARD_EDUCATION_ANIMATION_ENABLED === 'true';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
 );
