@@ -25,6 +25,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { basename } from 'path';
 
 interface AuditAdvisory {
   pkg: string;
@@ -145,6 +146,21 @@ export function main(): void {
   console.log(`\nWrote ${RESULT_PATH}: ${result.manual.length} advisor${result.manual.length === 1 ? 'y' : 'ies'} pending review.`);
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
+/**
+ * Whether this script was invoked directly (rather than imported by a test).
+ *
+ * Node has no `type` field to go on here, so it type-strips this `.ts` file,
+ * sees `import` syntax and reparses it as an ES module — where `require` and
+ * `module` are both undefined, making a `require.main === module` guard
+ * silently unable to ever fire. `process.argv[1]` is the invoked script under
+ * both loaders, and points at the runner rather than this file under Jest.
+ */
+export function isEntrypoint(argv: string[] = process.argv): boolean {
+  const entry = argv[1];
+  if (!entry) return false;
+  return basename(entry).replace(/\.[cm]?[jt]s$/, '') === 'collect-audit-advisories';
+}
+
+if (isEntrypoint()) {
   main();
 }

@@ -122,7 +122,15 @@ jobs:
         if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
         shell: bash
         run: |
+          set -euo pipefail
           yarn ts-node --transpile-only scripts/collect-audit-advisories.ts audit.ndjson skip-ids.json
+          # The script can exit 0 without writing its result file if its
+          # entrypoint check stops matching (see isEntrypoint there). Say so
+          # explicitly rather than letting the read below die on ENOENT.
+          if [[ ! -s audit-fix-result.json ]]; then
+            echo "::error::collect-audit-advisories.ts wrote no audit-fix-result.json; its main() did not run."
+            exit 1
+          fi
           MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
           echo "manual-count=$MANUAL_COUNT" >> "$GITHUB_OUTPUT"
 

@@ -1,11 +1,12 @@
 /**
- * Unit tests for the pure parsing/dedupe logic in collect-audit-advisories.ts.
- * No filesystem or process.argv access — main() (the only I/O-touching
- * export) is exercised by the workflow itself, not here.
+ * Unit tests for the pure parsing/dedupe/entrypoint logic in
+ * collect-audit-advisories.ts. No filesystem access — main() (the only
+ * I/O-touching export) is exercised by the workflow itself, not here.
  */
 
 import {
   buildResult,
+  isEntrypoint,
   loadSkipIds,
   parseAuditNdjson,
 } from './collect-audit-advisories';
@@ -170,5 +171,39 @@ describe('buildResult', () => {
     const result = buildResult([advisory('lodash', 'GHSA-1')], new Set(['GHSA-1']));
 
     expect(result.manual).toEqual([]);
+  });
+});
+
+describe('isEntrypoint', () => {
+  const argv = (entry?: string) => ['/path/to/node', ...(entry ? [entry] : [])];
+
+  it('detects the script being run directly by the escalation workflow', () => {
+    expect(
+      isEntrypoint(argv('/home/runner/work/repo/scripts/collect-audit-advisories.ts')),
+    ).toBe(true);
+  });
+
+  it('detects the script regardless of the extension it is invoked with', () => {
+    expect(isEntrypoint(argv('/repo/scripts/collect-audit-advisories.js'))).toBe(true);
+    expect(isEntrypoint(argv('/repo/scripts/collect-audit-advisories.mjs'))).toBe(true);
+    expect(isEntrypoint(argv('/repo/scripts/collect-audit-advisories'))).toBe(true);
+  });
+
+  it('is false when a test runner is the entrypoint, so importing never runs main()', () => {
+    expect(isEntrypoint(argv('/repo/node_modules/.bin/jest'))).toBe(false);
+  });
+
+  it('is false for a different script that merely lives alongside it', () => {
+    expect(isEntrypoint(argv('/repo/scripts/collect-audit-advisories-helper.ts'))).toBe(false);
+  });
+
+  it('is false when there is no entrypoint argument at all', () => {
+    expect(isEntrypoint(argv())).toBe(false);
+  });
+
+  it('does not run main() when this module is imported by these tests', () => {
+    // Guards the actual regression: if the entrypoint check ever misfires
+    // under Jest, main() would run on import and try to read argv paths.
+    expect(isEntrypoint()).toBe(false);
   });
 });
