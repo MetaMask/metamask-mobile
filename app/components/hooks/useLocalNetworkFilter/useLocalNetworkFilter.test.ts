@@ -15,6 +15,10 @@ const mockUseNetworkEnablement = useNetworkEnablement as jest.MockedFunction<
   typeof useNetworkEnablement
 >;
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('useLocalNetworkFilter', () => {
   it('defaults to null ("all popular networks")', () => {
     const { result } = renderHook(() => useLocalNetworkFilter());
