@@ -6518,11 +6518,11 @@
         "button_not_now": "Not now",
         "toast": {
           "personalized_alerts_on": {
-            "title": "Personalized alerts is on",
+            "title": "Personalized alerts are on",
             "description": "Manage this anytime in Settings."
           },
           "personalized_alerts_off": {
-            "title": "Personalized alerts is off",
+            "title": "Personalized alerts are off",
             "description": "Turn it on anytime in Settings."
           }
         }
