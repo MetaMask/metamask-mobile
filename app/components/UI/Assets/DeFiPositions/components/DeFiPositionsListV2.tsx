@@ -22,7 +22,10 @@ import {
   selectPrivacyMode,
   selectTokenSortConfig,
 } from '../../../../../selectors/preferencesController';
-import { selectEnabledNetworksByNamespace } from '../../../../../selectors/networkEnablementController';
+import {
+  useLocalNetworkFilter,
+  useEvmChainIdsForLocalFilter,
+} from '../../../../hooks/useLocalNetworkFilter/useLocalNetworkFilter';
 import { useStyles } from '../../../../hooks/useStyles';
 import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { DefiEmptyState } from '../../../DefiEmptyState';
@@ -56,10 +59,10 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
 
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const privacyMode = useSelector(selectPrivacyMode);
-  const enabledNetworksByNamespace = useSelector(
-    selectEnabledNetworksByNamespace,
-  );
   const [refreshing, setRefreshing] = useState(false);
+
+  const [networkFilter, setNetworkFilter] = useLocalNetworkFilter();
+  const evmChainIdsToFilterBy = useEvmChainIdsForLocalFilter(networkFilter);
 
   const { positions, isLoading, isError, hasFetched, refresh } =
     useDeFiPositionsV2({
@@ -71,7 +74,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
   const formattedPositions = useMemo(() => {
     const filtered = filterDeFiPositionsByEnabledNetworks(
       positions,
-      enabledNetworksByNamespace,
+      evmChainIdsToFilterBy,
     );
 
     return [...filtered].sort((a, b) => {
@@ -86,7 +89,7 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
         ? nameB.localeCompare(nameA)
         : nameA.localeCompare(nameB);
     });
-  }, [positions, enabledNetworksByNamespace, tokenSortConfig]);
+  }, [positions, evmChainIdsToFilterBy, tokenSortConfig]);
 
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -197,7 +200,10 @@ const DeFiPositionsListV2: React.FC<DeFiPositionsListV2Props> = ({
       style={isFullView ? styles.wrapper : undefined}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
-      <DeFiPositionsControlBar />
+      <DeFiPositionsControlBar
+        networkFilter={networkFilter}
+        onNetworkFilterChange={setNetworkFilter}
+      />
       <ConditionalScrollView
         isScrollEnabled={isFullView}
         scrollViewProps={isFullView ? scrollViewProps : undefined}

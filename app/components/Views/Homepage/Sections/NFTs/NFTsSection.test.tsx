@@ -40,7 +40,6 @@ jest.mock('../../../../hooks/useNftDetection', () => ({
   useNftDetection: () => ({
     detectNfts: mockDetectNfts,
     abortDetection: mockAbortDetection,
-    chainIdsToDetectNftsFor: [],
   }),
 }));
 
@@ -295,7 +294,11 @@ describe('NFTsSection', () => {
         { state: stateWhileDetecting },
       );
 
-      expect(mockDetectNfts).toHaveBeenCalledWith(true, false);
+      expect(mockDetectNfts).toHaveBeenCalledWith(
+        expect.any(Array),
+        true,
+        false,
+      );
     });
 
     it('does not call detectNfts when section is not visible in viewport', () => {
@@ -327,7 +330,11 @@ describe('NFTsSection', () => {
         { state: stateWithNftPreferences },
       );
 
-      expect(mockDetectNfts).toHaveBeenCalledWith(true, false);
+      expect(mockDetectNfts).toHaveBeenCalledWith(
+        expect.any(Array),
+        true,
+        false,
+      );
     });
 
     it('does not abort detection when section leaves viewport or unmounts', () => {

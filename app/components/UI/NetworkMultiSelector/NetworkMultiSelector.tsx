@@ -1,11 +1,6 @@
 // third party dependencies
 import React, { useCallback, useState, useMemo, memo } from 'react';
-import {
-  KnownCaipNamespace,
-  CaipChainId,
-  parseCaipChainId,
-  Hex,
-} from '@metamask/utils';
+import { CaipChainId } from '@metamask/utils';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -18,30 +13,14 @@ import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSe
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
-import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
-import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import { useAddPopularNetwork } from '../../hooks/useAddPopularNetwork';
 import { useSelector } from 'react-redux';
-import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectEvmChainId,
-} from '../../../selectors/networkController';
 import { getAdditionalNetworksList } from '../../../selectors/configRegistry';
-import {
-  selectNonEvmNetworkConfigurationsByChainId,
-  selectIsEvmNetworkSelected,
-  selectSelectedNonEvmNetworkChainId,
-} from '../../../selectors/multichainNetworkController';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { getDecimalChainId } from '../../../util/networks';
-import { toHex } from '@metamask/controller-utils';
-import Logger from '../../../util/Logger';
 
 // internal dependencies
 import stylesheet from './NetworkMultiSelector.styles';
@@ -53,7 +32,6 @@ import Cell, {
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar/index.ts';
 import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 import AccountGroupBalancePerChain from '../Assets/components/Balance/AccountGroupBalancePerChain';
-import { resolveNetworkDisplayName } from './NetworkMultiSelectorUtils';
 
 interface ModalState {
   showPopularNetworkModal: boolean;
@@ -81,6 +59,8 @@ const NetworkMultiSelector = ({
   openModal,
   dismissModal,
   openRpcModal,
+  onLocalNetworkSelect,
+  localSelectedChainIds,
 }: NetworkMultiSelectorProps) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -88,66 +68,30 @@ const NetworkMultiSelector = ({
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
-  const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
   const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-  const nonEvmNetworkConfigurations = useSelector(
-    selectNonEvmNetworkConfigurationsByChainId,
-  );
-  const { trackEvent, createEventBuilder } = useAnalytics();
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
-  const currentEvmChainId = useSelector(selectEvmChainId);
   const additionalNetworksList = useSelector(getAdditionalNetworksList);
 
-  const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
+  const { networksToUse } = useNetworksToUse({
     networks,
     networkType: NetworkType.Popular,
     areAllNetworksSelected,
   });
 
-  const currentSelectedNetwork = useMemo(() => {
-    if (areAllNetworksSelectedCombined) {
-      return null;
-    }
-    return networksToUse.find((network) => network.isSelected) || null;
-  }, [networksToUse, areAllNetworksSelectedCombined]);
+  // Checkmarks always reflect the caller's local (Redux-free) selection.
+  const displayNetworks = useMemo(
+    () =>
+      networksToUse.map((network) => ({
+        ...network,
+        isSelected: Boolean(
+          localSelectedChainIds?.includes(network.caipChainId),
+        ),
+      })),
+    [networksToUse, localSelectedChainIds],
+  );
 
-  const currentChainId = useMemo(() => {
-    if (currentSelectedNetwork) {
-      try {
-        const parsed = parseCaipChainId(currentSelectedNetwork.caipChainId);
-        if (parsed.namespace === KnownCaipNamespace.Eip155) {
-          return toHex(parsed.reference);
-        }
-        return currentSelectedNetwork.caipChainId;
-      } catch {
-        return currentSelectedNetwork.caipChainId;
-      }
-    }
-    // Check selectedNonEvmChainId first to avoid falling back to EVM when on non-EVM
-    if (selectedNonEvmChainId) {
-      return selectedNonEvmChainId;
-    }
-    if (isEvmSelected && currentEvmChainId) {
-      return currentEvmChainId;
-    }
-    return null;
-  }, [
-    currentSelectedNetwork,
-    isEvmSelected,
-    currentEvmChainId,
-    selectedNonEvmChainId,
-  ]);
-
-  const { selectPopularNetwork, selectAllPopularNetworks } =
-    useNetworkSelection({
-      networks: networksToUse,
-    });
+  const displayAreAllNetworksSelected = localSelectedChainIds == null;
 
   const { addPopularNetwork } = useAddPopularNetwork();
 
@@ -159,15 +103,6 @@ const NetworkMultiSelector = ({
       await addPopularNetwork(networkConfiguration);
     },
     [addPopularNetwork],
-  );
-
-  const selectedChainIds = useMemo(
-    () =>
-      Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
-        (chainId) =>
-          enabledNetworksByNamespace[namespace]?.[chainId as CaipChainId],
-      ) as CaipChainId[],
-    [enabledNetworksByNamespace, namespace],
   );
 
   const showNetworkModal = useCallback(
@@ -238,151 +173,28 @@ const NetworkMultiSelector = ({
     [customNetworkProps, styles.customNetworkContainer],
   );
 
-  const getNetworkName = useCallback(
-    (chainId: string | null): string =>
-      resolveNetworkDisplayName({
-        chainId,
-        evmNetworkConfigurations: networkConfigurations,
-        nonEvmNetworkConfigurations,
-        currentSelectedNetwork: currentSelectedNetwork ?? null,
-      }),
-    [
-      networkConfigurations,
-      nonEvmNetworkConfigurations,
-      currentSelectedNetwork,
-    ],
-  );
-
-  const trackNetworkSwitchedEvent = useCallback(
-    (chainId: string, fromNetworkName: string, toNetworkName: string): void => {
-      if (toNetworkName === strings('network_information.unknown_network')) {
-        return;
-      }
-
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.NETWORK_SWITCHED)
-          .addProperties({
-            chain_id: chainId,
-            from_network: fromNetworkName,
-            to_network: toNetworkName,
-            source: 'Network Filter',
-          })
-          .build(),
-      );
-    },
-    [trackEvent, createEventBuilder],
-  );
-
   const onSelectNetwork = useCallback(
-    async (caipChainId: CaipChainId) => {
-      let parsed: { namespace: string; reference: string };
-      try {
-        parsed = parseCaipChainId(caipChainId);
-      } catch (error) {
-        Logger.error(new Error(`Invalid CAIP chain ID: ${caipChainId}`), error);
-        await selectPopularNetwork(caipChainId, dismissModal);
-        return;
-      }
-
-      const { namespace: caipNamespace, reference } = parsed;
-      const isEvmNetwork = caipNamespace === KnownCaipNamespace.Eip155;
-      const selectedHexChainId = isEvmNetwork ? toHex(reference) : null;
-
-      const isDifferentNetwork = isEvmNetwork
-        ? selectedHexChainId && selectedHexChainId !== currentChainId
-        : caipChainId !== currentChainId;
-
-      const isSwitchingFromAllNetworks = areAllNetworksSelectedCombined;
-      if (isDifferentNetwork || isSwitchingFromAllNetworks) {
-        const fromNetworkName = isSwitchingFromAllNetworks
-          ? strings('networks.all_popular_networks')
-          : getNetworkName(currentChainId);
-        let toNetworkName = strings('network_information.unknown_network');
-        let chainIdForAnalytics: string | undefined;
-
-        if (isEvmNetwork && selectedHexChainId) {
-          const selectedNetworkConfig =
-            networkConfigurations[selectedHexChainId];
-          if (selectedNetworkConfig) {
-            toNetworkName = selectedNetworkConfig.name;
-            chainIdForAnalytics = getDecimalChainId(selectedHexChainId);
-          }
-        } else {
-          const selectedNonEvmConfig = nonEvmNetworkConfigurations[caipChainId];
-          if (selectedNonEvmConfig) {
-            toNetworkName =
-              selectedNonEvmConfig.name ||
-              strings('network_information.unknown_network');
-            chainIdForAnalytics = getDecimalChainId(caipChainId);
-          }
-        }
-
-        if (
-          chainIdForAnalytics &&
-          fromNetworkName !== strings('network_information.unknown_network') &&
-          toNetworkName !== strings('network_information.unknown_network')
-        ) {
-          trackNetworkSwitchedEvent(
-            chainIdForAnalytics,
-            fromNetworkName,
-            toNetworkName,
-          );
-        }
-      }
-
-      await selectPopularNetwork(caipChainId, dismissModal);
+    (caipChainId: CaipChainId) => {
+      onLocalNetworkSelect([caipChainId]);
+      dismissModal?.();
     },
-    [
-      selectPopularNetwork,
-      dismissModal,
-      currentChainId,
-      networkConfigurations,
-      nonEvmNetworkConfigurations,
-      trackNetworkSwitchedEvent,
-      getNetworkName,
-      areAllNetworksSelectedCombined,
-    ],
+    [onLocalNetworkSelect, dismissModal],
   );
 
-  const onSelectAllPopularNetworks = useCallback(async () => {
-    if (!areAllNetworksSelectedCombined && currentChainId) {
-      const fromNetworkName = getNetworkName(currentChainId);
-      const chainIdForAnalytics = currentChainId.startsWith('0x')
-        ? getDecimalChainId(currentChainId as Hex)
-        : getDecimalChainId(currentChainId as CaipChainId);
-      const toNetworkName = strings('networks.all_popular_networks');
-
-      if (
-        chainIdForAnalytics &&
-        fromNetworkName !== strings('network_information.unknown_network')
-      ) {
-        trackNetworkSwitchedEvent(
-          chainIdForAnalytics,
-          fromNetworkName,
-          toNetworkName,
-        );
-      }
-    }
-
-    await selectAllPopularNetworks(dismissModal);
-  }, [
-    dismissModal,
-    selectAllPopularNetworks,
-    areAllNetworksSelectedCombined,
-    currentChainId,
-    getNetworkName,
-    trackNetworkSwitchedEvent,
-  ]);
+  const onSelectAllPopularNetworks = useCallback(() => {
+    onLocalNetworkSelect(null);
+    dismissModal?.();
+  }, [onLocalNetworkSelect, dismissModal]);
 
   const selectAllNetworksComponent = useMemo(
     () => (
       <Cell
         testID={
-          areAllNetworksSelectedCombined
+          displayAreAllNetworksSelected
             ? NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_POPULAR_NETWORKS_SELECTED
             : NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_POPULAR_NETWORKS_NOT_SELECTED
         }
-        isSelected={areAllNetworksSelectedCombined}
+        isSelected={displayAreAllNetworksSelected}
         variant={CellVariant.Select}
         title={strings('networks.all_popular_networks')}
         onPress={onSelectAllPopularNetworks}
@@ -394,7 +206,7 @@ const NetworkMultiSelector = ({
       />
     ),
     [
-      areAllNetworksSelectedCombined,
+      displayAreAllNetworksSelected,
       onSelectAllPopularNetworks,
       styles.selectAllPopularNetworksCell,
     ],
@@ -415,13 +227,12 @@ const NetworkMultiSelector = ({
     >
       <NetworkMultiSelectorList
         openModal={openModal}
-        networks={networksToUse}
-        selectedChainIds={selectedChainIds}
+        networks={displayNetworks}
         onSelectNetwork={onSelectNetwork}
         renderRightAccessory={renderBalancePerChain}
         additionalNetworksComponent={additionalNetworksComponent}
         selectAllNetworksComponent={selectAllNetworksComponent}
-        areAllNetworksSelected={areAllNetworksSelectedCombined}
+        areAllNetworksSelected={displayAreAllNetworksSelected}
         openRpcModal={openRpcModal}
       />
     </ScrollView>

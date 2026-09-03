@@ -54,7 +54,6 @@ jest.mock('../../hooks/useNftDetection', () => ({
   useNftDetection: () => ({
     detectNfts: mockDetectNfts,
     abortDetection: mockAbortDetection,
-    chainIdsToDetectNftsFor: ['0x1'],
   }),
 }));
 
@@ -64,6 +63,15 @@ jest.mock('./useNftRefresh', () => ({
   useNftRefresh: () => ({
     refreshing: false,
     onRefresh: mockOnRefresh,
+  }),
+}));
+
+// Mock useNetworkEnablement - keeps this test focused on NftGrid's own logic
+// instead of the full NetworkEnablementController/selector chain.
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    popularNetworks: ['eip155:1'],
+    popularEvmNetworks: ['0x1'],
   }),
 }));
 
@@ -174,9 +182,15 @@ jest.mock('../CollectiblesEmptyState', () => ({
 // Mock BaseControlBar - renders additionalButtons
 jest.mock('../shared/BaseControlBar', () => {
   const { View } = jest.requireActual('react-native');
-  return ({ additionalButtons }: { additionalButtons?: React.ReactNode }) => (
-    <View testID="base-control-bar">{additionalButtons}</View>
-  );
+  return {
+    __esModule: true,
+    default: ({
+      additionalButtons,
+    }: {
+      additionalButtons?: React.ReactNode;
+    }) => <View testID="base-control-bar">{additionalButtons}</View>,
+    useLocalNetworkFilterControlBarProps: () => ({}),
+  };
 });
 
 // Mock dependencies for real NftGridItem and NftGridFooter
@@ -957,7 +971,7 @@ describe('NftGrid', () => {
       </Provider>,
     );
 
-    expect(mockDetectNfts).toHaveBeenCalledWith(false);
+    expect(mockDetectNfts).toHaveBeenCalledWith(['0x1'], false);
   });
 
   it('calls abortDetection when full view component unmounts', () => {
@@ -993,7 +1007,7 @@ describe('NftGrid', () => {
       </Provider>,
     );
 
-    expect(mockDetectNfts).not.toHaveBeenCalledWith(false);
+    expect(mockDetectNfts).not.toHaveBeenCalledWith(['0x1'], false);
   });
 
   it('does not call abortDetection when non-full view component unmounts', () => {

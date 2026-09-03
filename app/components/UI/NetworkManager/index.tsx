@@ -37,7 +37,10 @@ import NetworkMultiSelector from '../NetworkMultiSelector/NetworkMultiSelector';
 import CustomNetworkSelector from '../CustomNetworkSelector/CustomNetworkSelector';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
-import { createNavigationDetails } from '../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../util/navigation/navUtils';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -54,10 +57,18 @@ import RpcSelectionModal from '../../Views/NetworkSelector/RpcSelectionModal/Rpc
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
-export const createNetworkManagerNavDetails = createNavigationDetails(
-  Routes.MODAL.ROOT_MODAL_FLOW,
-  Routes.SHEET.NETWORK_MANAGER,
-);
+export interface NetworkManagerParams {
+  /** The popular-networks tab reports selection here instead of writing to Redux. */
+  onLocalNetworkSelect: (chainIds: CaipChainId[] | null) => void;
+  /** Current local selection, used to drive checkmarks. */
+  localSelectedChainIds: CaipChainId[] | null;
+}
+
+export const createNetworkManagerNavDetails =
+  createNavigationDetails<NetworkManagerParams>(
+    Routes.MODAL.ROOT_MODAL_FLOW,
+    Routes.SHEET.NETWORK_MANAGER,
+  );
 
 const initialNetworkMenuModal: NetworkMenuModalState = {
   isVisible: false,
@@ -74,6 +85,8 @@ const initialShowConfirmDeleteModal: ShowConfirmDeleteModalState = {
 };
 
 const NetworkManager = () => {
+  const { onLocalNetworkSelect, localSelectedChainIds } =
+    useParams<NetworkManagerParams>();
   const networkMenuSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = useRef<BottomSheetRef>(null);
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
@@ -366,6 +379,8 @@ const NetworkManager = () => {
               openModal={openModal}
               dismissModal={dismissModal}
               openRpcModal={openRpcModal}
+              onLocalNetworkSelect={onLocalNetworkSelect}
+              localSelectedChainIds={localSelectedChainIds}
             />
             <CustomNetworkSelector
               {...customTabProps}

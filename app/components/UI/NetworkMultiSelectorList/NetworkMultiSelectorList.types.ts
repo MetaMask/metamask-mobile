@@ -42,7 +42,6 @@ export interface NetworkMultiSelectorListProps {
   networks?: Network[];
   additionalNetworks?: Network[];
   isLoading?: boolean;
-  selectedChainIds?: CaipChainId[];
   renderRightAccessory?: (
     caipChainId: CaipChainId,
     name: string,

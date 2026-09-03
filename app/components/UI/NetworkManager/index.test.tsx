@@ -76,6 +76,8 @@ jest.mock('@metamask/controller-utils', () => ({
 }));
 
 // Mock external dependencies
+const mockOnLocalNetworkSelect = jest.fn();
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -83,6 +85,12 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: jest.fn(),
+    }),
+    useRoute: () => ({
+      params: {
+        onLocalNetworkSelect: mockOnLocalNetworkSelect,
+        localSelectedChainIds: null,
+      },
     }),
   };
 });

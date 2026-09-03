@@ -23,11 +23,15 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: () => mockSelectPrivacyMode(),
 }));
 
-const mockSelectEnabledNetworks = jest.fn();
-jest.mock('../../../../../selectors/networkEnablementController', () => ({
-  ...jest.requireActual('../../../../../selectors/networkEnablementController'),
-  selectEnabledNetworksByNamespace: () => mockSelectEnabledNetworks(),
-}));
+let mockPopularEvmNetworks: string[] = ['0x1'];
+jest.mock(
+  '../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({
+      popularEvmNetworks: mockPopularEvmNetworks,
+    }),
+  }),
+);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => {
@@ -114,7 +118,7 @@ describe('DeFiPositionsListV2', () => {
       order: 'dsc',
     });
     mockSelectPrivacyMode.mockReturnValue(false);
-    mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+    mockPopularEvmNetworks = ['0x1'];
     mockUseDeFiPositionsV2.mockReturnValue(makeHookResult());
   });
 
@@ -194,7 +198,7 @@ describe('DeFiPositionsListV2', () => {
   });
 
   it('filters out positions on disabled EVM networks', () => {
-    mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+    mockPopularEvmNetworks = ['0x1'];
     mockUseDeFiPositionsV2.mockReturnValue(
       makeHookResult({
         positions: [
@@ -212,7 +216,7 @@ describe('DeFiPositionsListV2', () => {
   });
 
   it('keeps non-EVM positions regardless of the enabled EVM networks', () => {
-    mockSelectEnabledNetworks.mockReturnValue({ eip155: { '0x1': true } });
+    mockPopularEvmNetworks = ['0x1'];
     mockUseDeFiPositionsV2.mockReturnValue(
       makeHookResult({
         positions: [

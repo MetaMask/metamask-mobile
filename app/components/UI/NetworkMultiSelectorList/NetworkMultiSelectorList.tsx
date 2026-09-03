@@ -73,7 +73,6 @@ const NetworkMultiSelectList = ({
   onSelectNetwork,
   networks = [],
   isLoading = false,
-  selectedChainIds,
   renderRightAccessory,
   isSelectionDisabled,
   additionalNetworksComponent,
