@@ -338,7 +338,7 @@ const EarnSectionListView = () => {
         ),
         redirect_target: getEarnOpportunityRedirectTarget(
           item.asset,
-          // Always false since this handler is for non-Money deposit experiences.
+          // isMoneyOnboardingRedirectNeeded is always false here since this handler is for non-Money deposit experiences.
           false,
         ),
       });

@@ -29,7 +29,6 @@ const LOG_PREFIX = '[useEarnOpportunityNavigation]';
 
 export type EarnOpportunityDestination =
   | EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
-  // | EARN_MODULE_REDIRECT_TARGETS.EARN_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT
@@ -71,19 +70,19 @@ export const getEarnOpportunityDestination = (
 
 export const getEarnOpportunityRedirectTarget = (
   earnAsset: EarnAsset,
-  isOnboardingRedirectNeeded: boolean,
+  isMoneyOnboardingRedirectNeeded: boolean,
 ): EarnOpportunityRedirectTarget => {
   const destination = getEarnOpportunityDestination(earnAsset);
 
   return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
-    isOnboardingRedirectNeeded
+    isMoneyOnboardingRedirectNeeded
     ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
     : destination;
 };
 
 export const getEarnExperienceRedirectTarget = (
   experience: EarnExperience,
-  isOnboardingRedirectNeeded: boolean,
+  isMoneyOnboardingRedirectNeeded: boolean,
 ):
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
@@ -92,7 +91,7 @@ export const getEarnExperienceRedirectTarget = (
   | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT => {
   switch (experience.type) {
     case 'MONEY_ACCOUNT_DEPOSIT':
-      return isOnboardingRedirectNeeded
+      return isMoneyOnboardingRedirectNeeded
         ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
         : EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
     case EARN_EXPERIENCES.POOLED_STAKING:

@@ -60,7 +60,6 @@ export enum EARN_MODULE_REDIRECT_TARGETS {
   EARN_SEARCH_LIST = 'earn_search_list',
   STRATEGY_SELECTION_BOTTOM_SHEET = 'strategy_selection_bottom_sheet',
   TOKEN_DETAILS = 'token_details',
-  // EARN_DEPOSIT = 'earn_deposit',
   POOLED_STAKING_DEPOSIT = 'pooled_staking_deposit',
   STABLECOIN_LENDING_DEPOSIT = 'stablecoin_lending_deposit',
   TRX_STAKING_DEPOSIT = 'trx_staking_deposit',
