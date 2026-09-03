@@ -58,6 +58,28 @@ describe('unregisterBrazePush', () => {
     });
   });
 
+  it('maps REQUEST_FAILED with a no-token message to NO_PUSH_TOKEN', async () => {
+    mockUnregisterPush.mockResolvedValue({
+      success: false,
+      isRetriable: false,
+      code: 'REQUEST_FAILED',
+      message: 'Cannot unregister push because no push token is registered.',
+    });
+
+    const result = await unregisterBrazePush();
+
+    expect(result).toEqual({
+      success: false,
+      isRetriable: false,
+      code: 'NO_PUSH_TOKEN',
+      message: 'Cannot unregister push because no push token is registered.',
+    });
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[Braze] Push already unregistered code=NO_PUSH_TOKEN Cannot unregister push because no push token is registered.',
+    );
+    expect(Logger.error).not.toHaveBeenCalled();
+  });
+
   it('returns isRetriable true when Braze reports a retriable failure', async () => {
     mockUnregisterPush.mockResolvedValue({
       success: false,
@@ -175,6 +197,17 @@ describe('assertBrazePushUnregistered', () => {
       isRetriable: false,
       code: 'NO_PUSH_TOKEN',
       message: 'No push token is stored',
+    });
+
+    await expect(assertBrazePushUnregistered()).resolves.toBeUndefined();
+  });
+
+  it('resolves when Braze reports REQUEST_FAILED because no token is registered', async () => {
+    mockUnregisterPush.mockResolvedValue({
+      success: false,
+      isRetriable: false,
+      code: 'REQUEST_FAILED',
+      message: 'Cannot unregister push because no push token is registered.',
     });
 
     await expect(assertBrazePushUnregistered()).resolves.toBeUndefined();
