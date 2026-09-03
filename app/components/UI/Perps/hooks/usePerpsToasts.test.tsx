@@ -948,6 +948,28 @@ describe('usePerpsToasts', () => {
     });
 
     describe('positionManagement.closePosition', () => {
+      it('returns position already closed configuration', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed;
+
+        expect(config).toMatchObject({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Info,
+          iconColor: IconColor.Default,
+          hapticsType: NotificationMoment.Warning,
+        });
+        expect(config.labelOptions).toEqual([
+          { label: 'Position already closed', isBold: true },
+          { label: '\n', isBold: false },
+          {
+            label: 'This position was filled or closed already',
+            isBold: false,
+          },
+        ]);
+      });
+
       it('returns close full position in progress configuration with details', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =

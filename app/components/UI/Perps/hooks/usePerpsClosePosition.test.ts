@@ -8,6 +8,7 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsClosePosition } from './usePerpsClosePosition';
 import { usePerpsTrading } from './usePerpsTrading';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 
 const mockNavigate = jest.fn();
 
@@ -22,6 +23,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('./usePerpsTrading');
+jest.mock('../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
@@ -729,6 +733,9 @@ describe('usePerpsClosePosition', () => {
             mockPerpsToastOptions.positionManagement.closePosition
               .positionAlreadyClosed,
           );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
+          );
           expect(onSuccess).not.toHaveBeenCalled();
           expect(Logger.error).not.toHaveBeenCalled();
         });
@@ -757,6 +764,9 @@ describe('usePerpsClosePosition', () => {
           expect(mockShowToast).toHaveBeenCalledWith(
             mockPerpsToastOptions.positionManagement.closePosition
               .positionAlreadyClosed,
+          );
+          expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+            'positions',
           );
           expect(onSuccess).not.toHaveBeenCalled();
           expect(Logger.error).not.toHaveBeenCalled();

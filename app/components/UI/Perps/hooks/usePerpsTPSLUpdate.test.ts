@@ -5,7 +5,11 @@ import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 jest.mock('./usePerpsTrading');
+jest.mock('../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
 jest.mock('./usePerpsToasts');
 jest.mock('../providers/PerpsStreamManager');
 jest.mock('../../../../../locales/i18n', () => ({
@@ -245,6 +249,7 @@ describe('usePerpsTPSLUpdate', () => {
       mockPerpsToastOptions.positionManagement.closePosition
         .positionAlreadyClosed,
     );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
   });
@@ -273,6 +278,7 @@ describe('usePerpsTPSLUpdate', () => {
       mockPerpsToastOptions.positionManagement.closePosition
         .positionAlreadyClosed,
     );
+    expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith('positions');
     expect(onSuccess).not.toHaveBeenCalled();
     expect(onError).not.toHaveBeenCalled();
   });

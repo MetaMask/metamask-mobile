@@ -1,4 +1,5 @@
 import {
+  useIsFocused,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -215,9 +216,13 @@ const PerpsClosePositionView: React.FC = () => {
   // Keep the route snapshot only for layout until we dismiss a gone position.
   const livePosition = matchingLivePosition ?? position;
   const isPositionGone = !isPositionsLoading && !matchingLivePosition;
+  const isScreenFocused = useIsFocused();
 
   useEffect(() => {
-    if (!isPositionGone || hasReconciledGoneRef.current) {
+    // A tooltip modal can sit on top of this still-mounted sheet. Dismissing
+    // then would pop the tooltip instead of the sheet, so wait for focus and
+    // latch only once the dismissal actually runs.
+    if (!isPositionGone || !isScreenFocused || hasReconciledGoneRef.current) {
       return;
     }
     hasReconciledGoneRef.current = true;
@@ -227,7 +232,13 @@ const PerpsClosePositionView: React.FC = () => {
     );
     PerpsCacheInvalidator.invalidate('positions');
     navigation.goBack();
-  }, [isPositionGone, navigation, showToast, PerpsToastOptions]);
+  }, [
+    isPositionGone,
+    isScreenFocused,
+    navigation,
+    showToast,
+    PerpsToastOptions,
+  ]);
 
   // Determine position direction using live position data
   const isLong = parseFloat(livePosition.size) > 0;

@@ -31,6 +31,7 @@ import {
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
 import PerpsClosePositionView from './PerpsClosePositionView';
+import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
 // Mock navigation
 const mockGoBack = jest.fn();
@@ -40,6 +41,9 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(),
 }));
 jest.mock('../../../../../util/haptics');
+jest.mock('../../services/PerpsCacheInvalidator', () => ({
+  PerpsCacheInvalidator: { invalidate: jest.fn() },
+}));
 
 // Mock React Native Linking specifically for this test to prevent NavigationContainer errors
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -459,7 +463,36 @@ describe('PerpsClosePositionView', () => {
         defaultPerpsToastsMock.PerpsToastOptions.positionManagement
           .closePosition.positionAlreadyClosed,
       );
+      expect(PerpsCacheInvalidator.invalidate).toHaveBeenCalledWith(
+        'positions',
+      );
       expect(handleClosePosition).not.toHaveBeenCalled();
+    });
+
+    it('keeps the sheet open while positions are still loading', async () => {
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      usePerpsLivePositionsMock.mockReturnValue({
+        positions: [],
+        isInitialLoading: true,
+      });
+
+      renderWithProvider(
+        <PerpsClosePositionView />,
+        {
+          state: STATE_MOCK,
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(usePerpsLivePositionsMock).toHaveBeenCalled();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(defaultPerpsToastsMock.showToast).not.toHaveBeenCalled();
     });
 
     it('disables confirm button when closing is in progress', () => {
