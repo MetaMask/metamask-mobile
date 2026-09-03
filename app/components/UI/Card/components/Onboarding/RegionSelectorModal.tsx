@@ -47,7 +47,7 @@ export const clearOnValueChange = () => {
   onValueChangeCallback = null;
 };
 
-interface RegionSelectorModalParams {
+export interface RegionSelectorModalParams {
   regions: Region[];
   renderAreaCode?: boolean;
   selectedRegionKey?: string | null;

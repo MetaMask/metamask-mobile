@@ -14,7 +14,11 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
-import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
+import {
+  clearAllNockMocks,
+  disableNetConnect,
+  teardownNock,
+} from './nockHelpers';
 import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
@@ -146,6 +150,7 @@ export function setupTrendingApiFetchMock(
   responseData: MockTrendingToken[] = mockTrendingTokensData,
   customReply?: (uri: string) => MockTrendingToken[],
   rwaResponseData: MockRwaToken[] = mockRwaTokensData,
+  searchResponseData: MockTrendingToken[] = [],
 ): void {
   clearAllNockMocks();
   disableNetConnect();
@@ -164,7 +169,10 @@ export function setupTrendingApiFetchMock(
   nock(TRENDING_ORIGIN)
     .get(TOKEN_SEARCH_PATH)
     .query(true)
-    .reply(200, { count: 0, data: [] })
+    .reply(200, {
+      count: searchResponseData.length,
+      data: searchResponseData,
+    })
     .persist();
 
   nock(NFT_API_ORIGIN)
@@ -208,5 +216,5 @@ export function setupTrendingApiFetchMock(
 export function clearTrendingApiMocks(): void {
   jest.clearAllMocks();
   clearSitesCache();
-  clearAllNockMocks();
+  teardownNock();
 }

@@ -1,3 +1,4 @@
+import { parseVolume } from '@metamask/perps-controller';
 import { createE2EMockStreamManager } from './perps-controller-mixin';
 
 /**
@@ -14,6 +15,7 @@ const EXPECTED_E2E_STREAM_ROOT_KEYS = [
   'account',
   'candles',
   'fills',
+  'focusedPrice',
   'marketData',
   'oiCaps',
   'orders',
@@ -30,16 +32,32 @@ const CHANNELS_REQUIRING_GET_SNAPSHOT = [
   'prices',
   'marketData',
   'account',
+  'fills',
+  'orders',
+  'positions',
+] as const;
+
+/**
+ * Channels that expose `getLastDeliveredAt()` like production `StreamChannel`.
+ * `usePerpsOrderExecution` calls this after a successful resting limit submit;
+ * missing it throws and surfaces the "Order failed" toast in E2E.
+ */
+const CHANNELS_REQUIRING_GET_LAST_DELIVERED_AT = [
+  'account',
   'orders',
   'positions',
 ] as const;
 
 describe('createE2EMockStreamManager', () => {
-  const mockConsoleLog = jest
-    .spyOn(console, 'log')
-    .mockImplementation(() => undefined);
+  let mockConsoleLog: jest.SpyInstance;
 
-  afterAll(() => {
+  beforeEach(() => {
+    mockConsoleLog = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
     mockConsoleLog.mockRestore();
   });
 
@@ -70,11 +88,45 @@ describe('createE2EMockStreamManager', () => {
     },
   );
 
+  it.each(CHANNELS_REQUIRING_GET_LAST_DELIVERED_AT)(
+    'channel %s exposes getLastDeliveredAt callable without throwing',
+    (channel) => {
+      const manager = createE2EMockStreamManager() as Record<
+        string,
+        { getLastDeliveredAt?: unknown }
+      >;
+
+      const getLastDeliveredAt = manager[channel]?.getLastDeliveredAt;
+
+      expect(typeof getLastDeliveredAt).toBe('function');
+      expect(() => (getLastDeliveredAt as () => number | null)()).not.toThrow();
+    },
+  );
+
   it('exposes marketData.refresh like production MarketDataChannel', () => {
     const manager = createE2EMockStreamManager() as {
       marketData: { refresh?: unknown };
     };
 
     expect(typeof manager.marketData.refresh).toBe('function');
+  });
+
+  it('provides market data with open interest so production E2E builds do not filter every market out', () => {
+    const manager = createE2EMockStreamManager() as {
+      marketData: { getSnapshot: () => { openInterest?: string }[] };
+    };
+
+    const markets = manager.marketData.getSnapshot();
+
+    expect(markets.length).toBeGreaterThan(0);
+    expect(
+      markets.every((market) => {
+        if (!market.openInterest) {
+          return false;
+        }
+
+        return parseVolume(market.openInterest) > 0;
+      }),
+    ).toBe(true);
   });
 });

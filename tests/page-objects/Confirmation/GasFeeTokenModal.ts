@@ -1,9 +1,15 @@
-import { Assertions, Gestures, Matchers } from '../../framework';
+import {
+  Assertions,
+  Gestures,
+  Matchers,
+  type AppiumElement,
+  Utilities,
+} from '../../framework';
 
 import { GasFeeTokenModalSelectorsText } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 
 class GasFeeTokenModal {
-  getTokenItem(symbol: string): DetoxElement {
+  getTokenItem(symbol: string): Promise<AppiumElement> {
     return Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_ITEM}-${symbol}`,
     );
@@ -16,25 +22,25 @@ class GasFeeTokenModal {
   }
 
   async checkAmountToken(symbol: string, amount: string): Promise<void> {
-    const amountElement = await Matchers.getElementByID(
-      `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT}-${symbol}`,
+    const amountText = await Utilities.getElementText(
+      Matchers.getElementByID(
+        `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT}-${symbol}`,
+      ),
     );
-    const amountElementAttributes = await amountElement.getAttributes();
-    const amountElementLabel = this.elementSafe(amountElementAttributes);
-    await Assertions.checkIfTextMatches(amountElementLabel, amount);
+    await Assertions.checkIfTextMatches(amountText, amount);
   }
 
   async checkBalance(symbol: string, balance: string): Promise<void> {
-    const balanceElement = await Matchers.getElementByID(
-      `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_BALANCE}-${symbol}`,
+    const balanceText = await Utilities.getElementText(
+      Matchers.getElementByID(
+        `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_BALANCE}-${symbol}`,
+      ),
     );
-    const balanceElementAttributes = await balanceElement.getAttributes();
-    const balanceElementLabel = this.elementSafe(balanceElementAttributes);
-    await Assertions.checkIfTextMatches(balanceElementLabel, balance);
+    await Assertions.checkIfTextMatches(balanceText, balance);
   }
 
   async checkAmountFiat(symbol: string, amountFiat: string): Promise<void> {
-    const amountFiatElement = await Matchers.getElementByID(
+    const amountFiatElement = Matchers.getElementByID(
       `${GasFeeTokenModalSelectorsText.GAS_FEE_TOKEN_AMOUNT_FIAT}-${symbol}`,
     );
 
@@ -42,19 +48,8 @@ class GasFeeTokenModal {
       description: `Amount fiat for ${symbol} is visible`,
     });
 
-    const amountFiatElementAttributes = await amountFiatElement.getAttributes();
-    const amountFiatElementLabel = this.elementSafe(
-      amountFiatElementAttributes,
-    );
-    await Assertions.checkIfTextMatches(amountFiatElementLabel, amountFiat);
-  }
-
-  private elementSafe(elementAttributes: unknown): string {
-    return (
-      (elementAttributes as { text?: string; label?: string })?.text ??
-      (elementAttributes as { text?: string; label?: string })?.label ??
-      ''
-    );
+    const amountFiatText = await Utilities.getElementText(amountFiatElement);
+    await Assertions.checkIfTextMatches(amountFiatText, amountFiat);
   }
 }
 

@@ -15,19 +15,21 @@ const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
+  const actualReact = jest.requireActual('react');
   return {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
       addListener: jest.fn(() => jest.fn()),
     }),
+    // Defer via useEffect to match real useFocusEffect timing.
     useFocusEffect: jest.fn((callback) => {
-      callback();
+      actualReact.useEffect(callback, []);
     }),
   };
 });
 
-jest.mock('../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
+jest.mock('../../Ramp/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
 }));

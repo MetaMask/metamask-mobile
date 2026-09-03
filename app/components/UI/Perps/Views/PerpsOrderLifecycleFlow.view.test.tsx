@@ -10,7 +10,7 @@
  * Components covered: PerpsClosePositionView, PerpsOrderBookView,
  * PerpsOrderDetailsView, PerpsHeroCardView, PerpsWithdrawView,
  * PerpsSelectProviderView, PerpsOrderTypeBottomSheet,
- * PerpsQuoteDetailsCard, PerpsQuoteExpiredModal, PerpsAdjustMarginView,
+ * PerpsQuoteExpiredModal, PerpsAdjustMarginView,
  * PerpsTransactionsView, PerpsSelectOrderTypeView
  */
 import '../../../../../tests/component-view/mocks';
@@ -33,7 +33,6 @@ import {
   renderPerpsWithdrawView,
   renderPerpsSelectProviderView,
   renderPerpsView,
-  renderPerpsComponent,
   renderPerpsTransactionsView,
   defaultPositionForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
@@ -46,7 +45,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
 } from '../Perps.testIds';
 import PerpsOrderTypeBottomSheet from '../components/PerpsOrderTypeBottomSheet/PerpsOrderTypeBottomSheet';
-import PerpsQuoteDetailsCard from '../components/PerpsQuoteDetailsCard/PerpsQuoteDetailsCard';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal/PerpsQuoteExpiredModal';
 import PerpsAdjustMarginView from './PerpsAdjustMarginView/PerpsAdjustMarginView';
 import PerpsSelectOrderTypeView from './PerpsSelectOrderTypeView/PerpsSelectOrderTypeView';
@@ -74,9 +72,6 @@ describe('Order Lifecycle & Funds Flow', () => {
   let ORDER_TYPE_TITLE: string;
   let ORDER_TYPE_MARKET: string;
   let ORDER_TYPE_LIMIT: string;
-  let QUOTE_NETWORK_FEE: string;
-  let QUOTE_ESTIMATED_TIME: string;
-  let QUOTE_RATE: string;
   let DONE_BUTTON: string;
   let LIQUIDATION_PRICE: string;
 
@@ -84,9 +79,6 @@ describe('Order Lifecycle & Funds Flow', () => {
     ORDER_TYPE_TITLE = strings('perps.order.type.title');
     ORDER_TYPE_MARKET = strings('perps.order.type.market.title');
     ORDER_TYPE_LIMIT = strings('perps.order.type.limit.title');
-    QUOTE_NETWORK_FEE = strings('perps.quote.network_fee');
-    QUOTE_ESTIMATED_TIME = strings('perps.quote.estimated_time');
-    QUOTE_RATE = strings('perps.quote.rate');
     DONE_BUTTON = strings('perps.deposit.done_button');
     LIQUIDATION_PRICE = strings('perps.adjust_margin.liquidation_price');
   });
@@ -203,7 +195,7 @@ describe('Order Lifecycle & Funds Flow', () => {
       screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
     ).not.toBeOnTheScreen();
 
-    // With MYX enabled + aggregated provider → HyperLiquid shows selected
+    // With MYX enabled + aggregated provider → aggregated shows selected
     await act(async () => {
       cleanup();
     });
@@ -218,14 +210,14 @@ describe('Order Lifecycle & Funds Flow', () => {
         },
       },
     });
+    const aggregatedOption = await screen.findByTestId(
+      'perps-select-provider-sheet-option-aggregated-mainnet',
+    );
+    expect(aggregatedOption.props.accessibilityState?.selected).toBe(true);
     expect(
-      await screen.findByTestId(
-        'perps-select-provider-sheet-check-aggregated-mainnet',
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('perps-select-provider-sheet-check-myx-mainnet'),
-    ).not.toBeOnTheScreen();
+      screen.getByTestId('perps-select-provider-sheet-option-myx-mainnet').props
+        .accessibilityState?.selected,
+    ).toBe(false);
 
     // Trader selects MYX provider — switchProvider is called
     await act(async () => {
@@ -306,53 +298,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     renderPerpsView(OrderTypeHiddenWrapper, 'OrderTypeTest');
     expect(screen.queryByText(ORDER_TYPE_TITLE)).not.toBeOnTheScreen();
 
-    // ── PHASE 8: Review quote details ────────────────────────────────────
-    // Trader reviews deposit quote: network fee, MetaMask fee, time, rate
-    await act(async () => {
-      cleanup();
-    });
-    renderPerpsComponent(
-      PerpsQuoteDetailsCard as unknown as React.ComponentType<
-        Record<string, unknown>
-      >,
-      {
-        networkFee: '$1.50',
-        estimatedTime: '~2 min',
-        rate: '1 USDC = 1 USDC',
-        metamaskFee: '$0.00',
-        direction: 'deposit',
-      },
-    );
-    expect(await screen.findByText(QUOTE_NETWORK_FEE)).toBeOnTheScreen();
-    expect(screen.getByText('$1.50')).toBeOnTheScreen();
-    expect(
-      screen.getByText(strings('perps.quote.metamask_fee')),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('$0.00')).toBeOnTheScreen();
-    expect(screen.getByText(QUOTE_ESTIMATED_TIME)).toBeOnTheScreen();
-    expect(screen.getByText('~2 min')).toBeOnTheScreen();
-    expect(screen.getByText(QUOTE_RATE)).toBeOnTheScreen();
-    expect(screen.getByText('1 USDC = 1 USDC')).toBeOnTheScreen();
-
-    // Without estimated time — row is hidden
-    await act(async () => {
-      cleanup();
-    });
-    renderPerpsComponent(
-      PerpsQuoteDetailsCard as unknown as React.ComponentType<
-        Record<string, unknown>
-      >,
-      {
-        networkFee: '$0.50',
-        rate: '1 ETH = $2,000',
-        direction: 'withdrawal',
-      },
-    );
-    expect(await screen.findByText(QUOTE_NETWORK_FEE)).toBeOnTheScreen();
-    expect(screen.queryByText(QUOTE_ESTIMATED_TIME)).not.toBeOnTheScreen();
-    expect(screen.getByText(QUOTE_RATE)).toBeOnTheScreen();
-
-    // ── PHASE 9: Quote expired — press "Get new quote" ─────────────────
+    // ── PHASE 8: Quote expired — press "Get new quote" ─────────────────
     await act(async () => {
       cleanup();
     });
@@ -371,7 +317,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     expect(getNewQuoteButton).toBeOnTheScreen();
     fireEvent.press(getNewQuoteButton);
 
-    // ── PHASE 10: Adjust margin — add mode with keypad interaction ───────
+    // ── PHASE 9: Adjust margin — add mode with keypad interaction ───────
     await act(async () => {
       cleanup();
     });

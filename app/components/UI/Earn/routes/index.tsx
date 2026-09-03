@@ -4,6 +4,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
 import EarnMusdConversionEducationView from '../Views/EarnMusdConversionEducationView';
+import EarnSectionListView from '../Views/EarnSectionListView/EarnSectionListView';
+import EarnStrategySelectionModal from '../modals/EarnStrategySelectionModal';
 import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
@@ -12,9 +14,13 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import type {
+  EarnModalsNavigationParamList,
+  EarnScreensStackParamList,
+} from '../types/navigation';
 
-const Stack = createNativeStackNavigator();
-const ModalStack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<EarnScreensStackParamList>();
+const ModalStack = createNativeStackNavigator<EarnModalsNavigationParamList>();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
@@ -41,6 +47,11 @@ const EarnScreenStack = () => {
         component={EarnMusdConversionEducationView}
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name={Routes.EARN.SEARCH_LIST}
+        component={EarnSectionListView}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
@@ -65,6 +76,11 @@ const EarnModalStack = () => (
     <ModalStack.Screen
       name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
       component={Confirm}
+      options={{ headerShown: false, presentation: 'card' }}
+    />
+    <ModalStack.Screen
+      name={Routes.EARN.MODALS.STRATEGY_SELECTION}
+      component={EarnStrategySelectionModal}
       options={{ headerShown: false }}
     />
   </ModalStack.Navigator>

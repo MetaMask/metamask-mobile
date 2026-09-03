@@ -4,6 +4,9 @@ import PerpsFundingTransactionView from './PerpsFundingTransactionView';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsTransactionSelectorsIDs } from '../../Perps.testIds';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -40,6 +43,10 @@ jest.mock('../../hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: () => () => ({
     address: '0x1234567890123456789012345678901234567890',
@@ -58,6 +65,11 @@ describe('PerpsFundingTransactionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = { transaction: mockTransaction };
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   afterEach(() => {
@@ -181,6 +193,11 @@ describe('PerpsFundingTransactionView with missing transaction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders not found message when transaction is missing', () => {

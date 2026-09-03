@@ -28,6 +28,7 @@ import { selectIsAllNetworks } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine/Engine';
 import Logger from '../../../../util/Logger';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   NetworkType,
@@ -69,7 +70,7 @@ const RpcSelectionModal: FC<RpcSelectionModalProps> = ({
   const { selectNetwork } = useNetworkSelection({
     networks,
   });
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const onRpcSelect = useCallback(
     async (clientId: string, chainId: `0x${string}`) => {

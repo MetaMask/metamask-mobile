@@ -347,6 +347,16 @@ export class E2EControllerOverrides {
     coin: string;
   }): Promise<OrderResult> {
     const result = this.mockService.mockCancelOrder(params.orderId);
+    try {
+      (this.controller as ControllerWithUpdate).update(
+        (state: PerpsControllerState) => {
+          state.lastUpdateTimestamp = Date.now();
+          state.lastError = null;
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: cancelOrder — controller.update() failed:', e);
+    }
     return result;
   }
 
@@ -405,9 +415,9 @@ export class E2EControllerOverrides {
   // Mock orders subscription
   subscribeToOrders(params: { callback: (data: Order[]) => void }): () => void {
     console.log('E2E Mock: Intercepted subscribeToOrders');
-    const mockOrders = this.mockService.getMockOrders();
-    setTimeout(() => params.callback(mockOrders), 0);
-    return () => undefined;
+    this.mockService.registerOrderCallback(params.callback);
+    setTimeout(() => params.callback(this.mockService.getMockOrders()), 0);
+    return () => this.mockService.unregisterOrderCallback(params.callback);
   }
 
   // Mock order fills subscription
@@ -477,10 +487,18 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
         if (controllerRecord[method]) {
           controllerRecord[`_original_${method}`] = controllerRecord[method];
         }
-        // Apply mock override (also adds method if it didn't exist)
-        controllerRecord[method] = (
+        // Own-property override so Engine.context.PerpsController.placeOrder
+        // cannot fall through to TradingService → real HyperLiquidProvider
+        // (which surfaces the "Order failed / funds returned" toast).
+        const mockFn = (
           overridesRecord[method] as (...args: unknown[]) => unknown
         ).bind(overrides);
+        Object.defineProperty(controllerRecord, method, {
+          value: mockFn,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
         console.log(`Mocked ${method} method`);
       } else {
         console.warn(
@@ -518,7 +536,21 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       return () => undefined;
     };
 
-    // Patch only the methods we need for Activity history
+    // Patch trading + history methods so provider path also uses E2E mocks.
+    // PerpsController.placeOrder delegates to TradingService → provider.placeOrder;
+    // if the controller-level override is skipped, this still intercepts.
+    providerRecord.placeOrder = (
+      overrides.placeOrder as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.cancelOrder = (
+      overrides.cancelOrder as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.closePosition = (
+      overrides.closePosition as (...args: unknown[]) => unknown
+    ).bind(overrides);
+    providerRecord.updatePositionTPSL = (
+      overrides.updatePositionTPSL as (...args: unknown[]) => unknown
+    ).bind(overrides);
     providerRecord.getOrders = (
       overrides.getOrders as (...args: unknown[]) => unknown
     ).bind(overrides);
@@ -631,6 +663,24 @@ export function buildE2EMockStreamManagerPlain(): Record<
         return () => undefined;
       },
     },
+    /**
+     * Focused single-symbol price channel (production FocusedPriceStreamChannel).
+     * `usePerpsLiveFocusedPrice` calls `focusedPrice.subscribeToSymbol` on mount
+     * for detail/ticket/order-book screens; omitting it made those screens throw
+     * `TypeError: undefined is not a function` right after tapping a market row,
+     * which surfaced as "market row not found" in Detox/Appium perps flows.
+     */
+    focusedPrice: {
+      getSnapshot: (): PriceUpdate | undefined | null => null,
+      clearCache: (): void => undefined,
+      subscribeToSymbol: (params: {
+        symbol: string;
+        callback: (update: PriceUpdate | undefined) => void;
+      }) => {
+        setTimeout(() => params.callback(mockPrices[params.symbol]), 0);
+        return () => undefined;
+      },
+    },
     marketData: {
       getSnapshot: () => mockService.getMockMarkets(),
       refresh: async (): Promise<void> => {
@@ -660,6 +710,10 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     account: {
       getSnapshot: () => mockService.getMockAccountState(),
+      // Production StreamChannel API — place-order CUF ends read this after
+      // a successful submit. Missing → TypeError → "Order failed" toast even
+      // though mockPlaceOrder already succeeded.
+      getLastDeliveredAt: (): number | null => Date.now(),
       subscribe: (params: {
         callback: (data: AccountState | null) => void;
       }) => {
@@ -672,6 +726,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     orders: {
       getSnapshot: () => mockService.getMockOrders(),
+      getLastDeliveredAt: (): number | null => Date.now(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
         mockService.registerOrderCallback(params.callback);
@@ -682,6 +737,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     positions: {
       getSnapshot: () => mockService.getMockPositions(),
+      getLastDeliveredAt: (): number | null => Date.now(),
       subscribe: (params: { callback: (data: Position[]) => void }) => {
         // Register callback for live updates when positions change
         mockService.registerPositionCallback(params.callback);
@@ -698,6 +754,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     fills: {
+      getSnapshot: () => mockService.getMockOrderFills(),
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
         setTimeout(() => params.callback(mockService.getMockOrderFills()), 0);
         return () => undefined;

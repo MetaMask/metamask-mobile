@@ -1,13 +1,15 @@
 import React, { useCallback } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useTransactionAccountOverride } from '../../hooks/transactions/useTransactionAccountOverride';
-import { hasTransactionType } from '../../utils/transaction';
 import { replaceAccountInNestedTransactions } from '../../utils/transaction-pay';
 import AccountSelector from '../AccountSelector';
 

@@ -16,14 +16,12 @@ import { RootMessenger } from '../types';
  * @returns The TokensControllerMessenger.
  */
 export function getTokensControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokensControllerMessenger {
-  const messenger = new Messenger<
-    'TokensController',
+  rootMessenger: RootMessenger<
     MessengerActions<TokensControllerMessenger>,
-    MessengerEvents<TokensControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TokensControllerMessenger>
+  >,
+): TokensControllerMessenger {
+  const messenger: TokensControllerMessenger = new Messenger({
     namespace: 'TokensController',
     parent: rootMessenger,
   });
@@ -51,8 +49,10 @@ type AllowedInitializationActions =
 
 type AllowedInitializationEvents = never;
 
-export type TokensControllerInitMessenger = ReturnType<
-  typeof getTokensControllerInitMessenger
+export type TokensControllerInitMessenger = Messenger<
+  'TokensControllerInit',
+  AllowedInitializationActions,
+  AllowedInitializationEvents
 >;
 
 /**
@@ -63,13 +63,13 @@ export type TokensControllerInitMessenger = ReturnType<
  * @param rootMessenger - The root messenger.
  * @returns The TokensControllerInitMessenger.
  */
-export function getTokensControllerInitMessenger(rootMessenger: RootMessenger) {
-  const messenger = new Messenger<
-    'TokensControllerInit',
-    AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
+export function getTokensControllerInitMessenger(
+  rootMessenger: RootMessenger<
+    MessengerActions<TokensControllerInitMessenger>,
+    MessengerEvents<TokensControllerInitMessenger>
+  >,
+): TokensControllerInitMessenger {
+  const messenger: TokensControllerInitMessenger = new Messenger({
     namespace: 'TokensControllerInit',
     parent: rootMessenger,
   });

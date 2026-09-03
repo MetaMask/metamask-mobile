@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
+import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -7,7 +8,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import Device from '../../../../../util/device';
 import Cell, {
@@ -28,6 +28,42 @@ import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
 
+interface NetworkListRowProps {
+  network: MultichainNetworkConfiguration;
+  isSelected: boolean;
+  onPress: (chainId: SupportedCaipChainId | Hex) => void;
+}
+
+const keyExtractor = (network: MultichainNetworkConfiguration) =>
+  network.chainId;
+
+function NetworkListRowComponent({
+  network,
+  isSelected,
+  onPress,
+}: NetworkListRowProps) {
+  return (
+    <Box twClassName="items-start">
+      <Cell
+        variant={CellVariant.Select}
+        title={network.name}
+        avatarProps={{
+          variant: AvatarVariant.Network,
+          name: network.name,
+          imageSource: getNetworkImageSource({
+            chainId: network.chainId,
+          }),
+          size: AvatarSize.Sm,
+        }}
+        onPress={() => onPress(network.chainId as Hex)}
+        isSelected={isSelected}
+      />
+    </Box>
+  );
+}
+
+const NetworkListRow = React.memo(NetworkListRowComponent);
+
 export default function NetworkListBottomSheet({
   selectedNetwork,
   setSelectedNetwork,
@@ -42,12 +78,11 @@ export default function NetworkListBottomSheet({
   displayEvmNetworksOnly?: boolean;
 }) {
   const tw = useTailwind();
-  const surfaceClass = useElevatedSurface();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const getAccountByScope = useSelector(selectSelectedInternalAccountByScope);
 
   const filteredNetworkConfigurations = useMemo(() => {
-    const configs = {} as Record<string, MultichainNetworkConfiguration>;
+    const configs: MultichainNetworkConfiguration[] = [];
 
     for (const [chainId, config] of Object.entries(networkConfigurations)) {
       // If displayEvmNetworksOnly is true, filter out non-EVM networks
@@ -68,21 +103,40 @@ export default function NetworkListBottomSheet({
         continue;
       }
 
-      configs[chainId] = config;
+      configs.push(config);
     }
 
     return configs;
   }, [displayEvmNetworksOnly, networkConfigurations, getAccountByScope]);
+
+  const handleSelectNetwork = useCallback(
+    (chainId: SupportedCaipChainId | Hex) => {
+      setSelectedNetwork(chainId);
+      sheetRef.current?.onCloseBottomSheet(() => {
+        setOpenNetworkSelector(false);
+      });
+    },
+    [setSelectedNetwork, setOpenNetworkSelector, sheetRef],
+  );
+
+  const renderItem = useCallback<
+    ListRenderItem<MultichainNetworkConfiguration>
+  >(
+    ({ item }) => (
+      <NetworkListRow
+        network={item}
+        isSelected={selectedNetwork === item.chainId}
+        onPress={handleSelectNetwork}
+      />
+    ),
+    [handleSelectNetwork, selectedNetwork],
+  );
 
   return (
     <BottomSheet
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={() => setOpenNetworkSelector(false)}
-      style={tw.style(
-        surfaceClass,
-        `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
-      )}
       testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <HeaderStandard
@@ -94,32 +148,19 @@ export default function NetworkListBottomSheet({
         }}
       />
 
-      <ScrollView>
-        {Object.values(filteredNetworkConfigurations).map((network) => (
-          <Box twClassName="items-start" key={network.chainId}>
-            <Cell
-              style={tw.style(surfaceClass)}
-              variant={CellVariant.Select}
-              title={network.name}
-              avatarProps={{
-                variant: AvatarVariant.Network,
-                name: network.name,
-                imageSource: getNetworkImageSource({
-                  chainId: network.chainId,
-                }),
-                size: AvatarSize.Sm,
-              }}
-              onPress={() => {
-                setSelectedNetwork(network.chainId as Hex);
-                sheetRef.current?.onCloseBottomSheet(() => {
-                  setOpenNetworkSelector(false);
-                });
-              }}
-              isSelected={selectedNetwork === network.chainId}
-            />
-          </Box>
-        ))}
-      </ScrollView>
+      <Box
+        style={tw.style(
+          'grow shrink flex-row min-h-[200px]',
+          `max-h-[${Math.round(Device.getDeviceHeight() * 0.7)}px]`,
+        )}
+      >
+        <FlashList
+          data={filteredNetworkConfigurations}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          renderScrollComponent={ScrollView}
+        />
+      </Box>
     </BottomSheet>
   );
 }

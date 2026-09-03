@@ -59,13 +59,6 @@ jest.mock('../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
 }));
 
-jest.mock('../../../../selectors/multichain/evm', () => ({
-  selectHideZeroBalanceTokens: () => false,
-  selectAccountTokensAcrossChains: () => [],
-  selectTokensBalances: () => ({}),
-  selectEvmTokensWithZeroBalanceFilter: () => [],
-}));
-
 jest.mock('../../../../core/SDKConnectV2', () => ({
   default: {
     initialize: jest.fn(),
@@ -124,6 +117,11 @@ jest.mock('../../../../util/test/initial-root-state', () => ({
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   selectIconSeedAddressByAccountGroupId: () => () => 'mock-address',
   selectIconSeedAddressesByAccountGroupIds: () => ({
+    'keyring:test-group/group-1': 'mock-address',
+    'keyring:test-group/group-2': 'mock-address',
+    'keyring:test-group/group-3': 'mock-address',
+  }),
+  selectAllAccountGroupIconSeedAddresses: () => ({
     'keyring:test-group/group-1': 'mock-address',
     'keyring:test-group/group-2': 'mock-address',
     'keyring:test-group/group-3': 'mock-address',

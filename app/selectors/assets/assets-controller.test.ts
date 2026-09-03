@@ -1,4 +1,5 @@
 import type { CaipAssetType } from '@metamask/utils';
+import { getDefaultAssetsControllerState } from '@metamask/assets-controller';
 import type { RootState } from '../../reducers';
 import {
   getCustomAssets,
@@ -9,6 +10,8 @@ import {
 type DeepPartial<T> = T extends object
   ? { [P in keyof T]?: DeepPartial<T[P]> }
   : T;
+
+const defaultAssetsControllerState = getDefaultAssetsControllerState();
 
 const buildState = (
   assetsController?: DeepPartial<
@@ -100,19 +103,25 @@ describe('getAssetsInfo', () => {
     );
   });
 
-  it('returns an empty object when assetsInfo is undefined', () => {
+  it('returns default assetsInfo when assetsInfo is undefined', () => {
     const state = buildState({});
 
-    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual({});
+    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual(
+      defaultAssetsControllerState.assetsInfo,
+    );
   });
 
-  it('returns an empty object when AssetsController is undefined', () => {
+  it('returns default assetsInfo when AssetsController is undefined', () => {
     const state = buildState(undefined);
 
-    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual({});
+    expect(getAssetsInfo(state as unknown as RootState)).toStrictEqual(
+      defaultAssetsControllerState.assetsInfo,
+    );
   });
 
-  it('returns an empty object when engine state is absent', () => {
-    expect(getAssetsInfo({} as unknown as RootState)).toStrictEqual({});
+  it('returns default assetsInfo when engine state is absent', () => {
+    expect(getAssetsInfo({} as unknown as RootState)).toStrictEqual(
+      defaultAssetsControllerState.assetsInfo,
+    );
   });
 });

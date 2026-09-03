@@ -3,6 +3,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 export const MAIN_CHAIN_IDS = new Set([
   CHAIN_IDS.MAINNET,
   CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.MONAD,
 ] as string[]);
 
 export const ESTIMATED_ITEM_SIZE = 56;

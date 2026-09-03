@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlatList } from 'react-native-gesture-handler';
 import {
   Box,
@@ -49,7 +50,7 @@ interface FlattenedAddressItem {
 }
 
 const RewardOptInAccountGroupModal: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
   const { accountGroupId, addressData } = route.params as RouteParams;
   const { height: screenHeight } = useWindowDimensions();

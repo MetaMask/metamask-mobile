@@ -9,6 +9,13 @@ const mockDispatch = jest.fn();
 const mockUseFocusEffect = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockFetchSpendingLimitData = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,19 +37,54 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 // Mock useCardHomeData hook (SpendingLimit now reads from it)
+const mockRefetchCardHomeData = jest.fn();
 jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(() => ({
     data: null,
     isLoading: false,
+    isRefreshing: false,
     isError: false,
-    refetch: jest.fn(),
+    refetch: mockRefetchCardHomeData,
     primaryToken: null,
     availableTokens: [],
     fundingTokens: [],
     balanceMap: new Map(),
   })),
 }));
+
+const mockSelectIsCardStateResolved = jest.fn(() => false);
+const mockSelectCardHomeDataStatus = jest.fn(
+  (): 'idle' | 'loading' | 'success' | 'error' => 'idle',
+);
+
+jest.mock('../../../../../selectors/cardController', () => {
+  const actual = jest.requireActual('../../../../../selectors/cardController');
+  return {
+    ...actual,
+    selectIsCardStateResolved: () => mockSelectIsCardStateResolved(),
+    selectCardHomeDataStatus: () => mockSelectCardHomeDataStatus(),
+  };
+});
+
+const defaultCardHomeDataReturn = () => ({
+  data: null,
+  isLoading: false,
+  isRefreshing: false,
+  isError: false,
+  refetch: mockRefetchCardHomeData,
+  primaryToken: null,
+  availableTokens: [] as never[],
+  fundingTokens: [] as never[],
+  balanceMap: new Map(),
+});
 
 // Mock useSpendingLimitData hook
 jest.mock('../../hooks/useSpendingLimitData', () => jest.fn());
@@ -263,7 +305,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import SpendingLimit from './SpendingLimit';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { useCardDelegation } from '../../hooks/useCardDelegation';
@@ -271,6 +313,7 @@ import Logger from '../../../../../util/Logger';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import useSpendingLimit from '../../hooks/useSpendingLimit';
+import { useCardHomeData } from '../../hooks/useCardHomeData';
 
 jest.spyOn(Logger, 'error').mockImplementation(() => undefined);
 
@@ -288,6 +331,10 @@ const mockUseSpendingLimitData = useSpendingLimitData as jest.MockedFunction<
 
 const mockUseSpendingLimit = useSpendingLimit as jest.MockedFunction<
   typeof useSpendingLimit
+>;
+
+const mockUseCardHomeData = useCardHomeData as jest.MockedFunction<
+  typeof useCardHomeData
 >;
 
 const mockRoute: MockRoute = {
@@ -333,6 +380,8 @@ describe('SpendingLimit Component', () => {
     limitType: 'full' as const,
     customLimit: '',
     isLoading: false,
+    isUiInteractionLocked: false,
+    shouldBlockNavigation: jest.fn(() => false),
     setSelectedToken: mockSetSelectedToken,
     handleAccountSelect: mockHandleAccountSelect,
     handleOtherSelect: mockHandleOtherSelect,
@@ -350,7 +399,6 @@ describe('SpendingLimit Component', () => {
     canShowMoneyAccountCta: false,
     selectMoneyAccountAsSource: mockSelectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted: undefined as string | undefined,
-    isMoneyAccountBalanceLoading: false,
     canLinkMoneyAccount: true,
     moneyAccountApyPercent: 4 as number | undefined,
     hasMetalCard: false,
@@ -359,6 +407,10 @@ describe('SpendingLimit Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSubmitDelegation.mockResolvedValue(undefined);
+    mockFetchSpendingLimitData.mockResolvedValue(undefined);
+    mockSelectIsCardStateResolved.mockReturnValue(false);
+    mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockUseCardHomeData.mockReturnValue(defaultCardHomeDataReturn());
 
     // Mock addListener to return an unsubscribe function
     mockAddListener.mockReturnValue(jest.fn());
@@ -756,10 +808,12 @@ describe('SpendingLimit Component', () => {
       );
     });
 
-    it('blocks navigation when isLoading is true', () => {
+    it('blocks navigation when shouldBlockNavigation returns true', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
+        isUiInteractionLocked: true,
+        shouldBlockNavigation: jest.fn(() => true),
       });
 
       render();
@@ -772,7 +826,45 @@ describe('SpendingLimit Component', () => {
       expect(mockEvent.preventDefault).toHaveBeenCalled();
     });
 
-    it('allows navigation when isLoading is false', () => {
+    it('allows navigation when Money Account linkage is processing outside onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
+        shouldBlockNavigation: jest.fn(() => false),
+      });
+
+      render();
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('blocks navigation when Money Account linkage is processing during onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: true,
+        shouldBlockNavigation: jest.fn(() => true),
+      });
+
+      render({ params: { flow: 'onboarding' } });
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('allows navigation when shouldBlockNavigation returns false', () => {
       render();
 
       const mockEvent = { preventDefault: jest.fn() };
@@ -834,6 +926,34 @@ describe('SpendingLimit Component', () => {
 
       expect(screen.getByTestId('button-loading-indicator')).toBeOnTheScreen();
     });
+
+    it('omits the button spinner on Money Account submits to avoid duplicating the toast spinner', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
+      });
+
+      render();
+
+      expect(screen.queryByTestId('button-loading-indicator')).toBeNull();
+    });
+
+    it('disables cancel when Money Account linkage is processing outside onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
+      });
+
+      render();
+
+      const cancelButton = screen.getByText('Cancel');
+
+      expect(cancelButton).toBeDisabled();
+    });
   });
 
   describe('Onboarding Flow', () => {
@@ -843,10 +963,152 @@ describe('SpendingLimit Component', () => {
       },
     };
 
-    it('fetches data on mount when flow is onboarding', () => {
+    const setupAuthenticatedHomeReady = (
+      overrides: {
+        delegationSettings?: object | null;
+        availableTokens?: CardFundingToken[];
+      } = {},
+    ) => {
+      const delegationSettings =
+        overrides.delegationSettings === undefined
+          ? { networks: [] }
+          : overrides.delegationSettings;
+      mockSelectIsCardStateResolved.mockReturnValue(true);
+      mockSelectCardHomeDataStatus.mockReturnValue('success');
+      mockUseCardHomeData.mockReturnValue({
+        data: {
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
+          card: null,
+          account: { verificationStatus: 'VERIFIED' },
+          alerts: [],
+          actions: [],
+          delegationSettings,
+        } as never,
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: mockRefetchCardHomeData,
+        primaryToken: null,
+        availableTokens: (overrides.availableTokens ?? [
+          mockPriorityToken,
+        ]) as never[],
+        fundingTokens: [] as never[],
+        balanceMap: new Map(),
+      });
+    };
+
+    it('fetches fallback data after card home settles without delegation settings', () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
+
       render(onboardingRoute);
 
       expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays error state when fallback settles without delegation settings', async () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
+
+      render(onboardingRoute);
+
+      expect(
+        await screen.findByTestId('spending-limit-error-container'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the form without a fallback fetch when card home has delegation settings but card state is unresolved', () => {
+      setupAuthenticatedHomeReady();
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+
+      render(onboardingRoute);
+
+      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('spending-limit-loading-indicator'),
+      ).not.toBeOnTheScreen();
+      expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+    });
+
+    it('keeps the error state after the load timeout instead of returning to the spinner', () => {
+      jest.useFakeTimers();
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      try {
+        render(onboardingRoute);
+
+        expect(
+          screen.getByTestId('spending-limit-loading-indicator'),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          jest.advanceTimersByTime(30_000);
+        });
+
+        expect(
+          screen.getByTestId('spending-limit-error-container'),
+        ).toBeOnTheScreen();
+
+        act(() => {
+          jest.advanceTimersByTime(30_000);
+        });
+
+        expect(
+          screen.getByTestId('spending-limit-error-container'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('spending-limit-loading-indicator'),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not fetch fallback while card home is still loading', () => {
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      render(onboardingRoute);
+
+      expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+    });
+
+    it('returns to the spinner on retry after timeout while card home is still loading', () => {
+      jest.useFakeTimers();
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
+
+      try {
+        render(onboardingRoute);
+
+        act(() => {
+          jest.advanceTimersByTime(30_000);
+        });
+
+        expect(
+          screen.getByTestId('spending-limit-error-container'),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(screen.getByTestId('spending-limit-retry-button'));
+
+        expect(mockRefetchCardHomeData).toHaveBeenCalledTimes(1);
+        expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
+        expect(
+          screen.getByTestId('spending-limit-loading-indicator'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId('spending-limit-error-container'),
+        ).not.toBeOnTheScreen();
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('does not fetch data on mount when flow is manage', () => {
@@ -855,14 +1117,9 @@ describe('SpendingLimit Component', () => {
       expect(mockFetchSpendingLimitData).not.toHaveBeenCalled();
     });
 
-    it('displays loading state while fetching data in onboarding flow', () => {
-      mockUseSpendingLimitData.mockReturnValue({
-        availableTokens: [],
-        delegationSettings: null,
-        isLoading: true,
-        error: null,
-        fetchData: mockFetchSpendingLimitData,
-      });
+    it('displays loading state while card home is loading in onboarding flow', () => {
+      mockSelectIsCardStateResolved.mockReturnValue(false);
+      mockSelectCardHomeDataStatus.mockReturnValue('loading');
 
       render(onboardingRoute);
 
@@ -872,7 +1129,11 @@ describe('SpendingLimit Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays error state with retry and skip buttons when fetch fails', () => {
+    it('displays error state with retry and skip buttons when fallback fetch fails', () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [],
         delegationSettings: null,
@@ -888,9 +1149,16 @@ describe('SpendingLimit Component', () => {
       ).toBeOnTheScreen();
       expect(screen.getByText('Try again')).toBeOnTheScreen();
       expect(screen.getByText('Skip for now')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('spending-limit-error-container'),
+      ).toBeOnTheScreen();
     });
 
-    it('calls fetchData when retry button is pressed on error state', () => {
+    it('calls refetch and fetchData when retry button is pressed on error state', () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [],
         delegationSettings: null,
@@ -904,11 +1172,15 @@ describe('SpendingLimit Component', () => {
       const retryButton = screen.getByText('Try again');
       fireEvent.press(retryButton);
 
-      // fetchData is called once on mount, and once when retry is pressed
-      expect(mockFetchSpendingLimitData).toHaveBeenCalledTimes(2);
+      expect(mockRefetchCardHomeData).toHaveBeenCalled();
+      expect(mockFetchSpendingLimitData).toHaveBeenCalled();
     });
 
     it('calls skip when skip button is pressed on error state', () => {
+      setupAuthenticatedHomeReady({
+        delegationSettings: null,
+        availableTokens: [],
+      });
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [],
         delegationSettings: null,
@@ -926,12 +1198,14 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders Cancel button in onboarding flow', () => {
+      setupAuthenticatedHomeReady();
       render(onboardingRoute);
 
       expect(screen.getByText('Cancel')).toBeOnTheScreen();
     });
 
     it('calls skip when cancel is pressed in onboarding flow', () => {
+      setupAuthenticatedHomeReady();
       render(onboardingRoute);
 
       const cancelButton = screen.getByText('Cancel');
@@ -941,6 +1215,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders confirm button in onboarding flow', () => {
+      setupAuthenticatedHomeReady();
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [mockPriorityToken, mockMUSDToken],
         delegationSettings: null,
@@ -955,6 +1230,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders token row with selected token in onboarding flow', () => {
+      setupAuthenticatedHomeReady();
       mockUseSpendingLimitData.mockReturnValue({
         availableTokens: [mockMUSDToken],
         delegationSettings: null,
@@ -975,6 +1251,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('calls submit when confirm is pressed in onboarding flow', async () => {
+      setupAuthenticatedHomeReady();
       const onboardingWithToken: MockRoute = {
         params: {
           flow: 'onboarding' as const,
@@ -993,6 +1270,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders onboarding route with token', () => {
+      setupAuthenticatedHomeReady();
       const onboardingWithToken: MockRoute = {
         params: {
           flow: 'onboarding' as const,
@@ -1006,6 +1284,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders cancel button during loading state in onboarding', () => {
+      setupAuthenticatedHomeReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
@@ -1037,11 +1316,37 @@ describe('SpendingLimit Component', () => {
       delegationContract: '0xMonadDelegation',
     };
 
+    const setupOnboardingReady = () => {
+      mockSelectIsCardStateResolved.mockReturnValue(true);
+      mockSelectCardHomeDataStatus.mockReturnValue('success');
+      mockUseCardHomeData.mockReturnValue({
+        data: {
+          primaryFundingAsset: null,
+          fundingAssets: [],
+          availableFundingAssets: [],
+          card: null,
+          account: { verificationStatus: 'VERIFIED' },
+          alerts: [],
+          actions: [],
+          delegationSettings: { networks: [] },
+        } as never,
+        isLoading: false,
+        isRefreshing: false,
+        isError: false,
+        refetch: mockRefetchCardHomeData,
+        primaryToken: null,
+        availableTokens: [mockPriorityToken] as never[],
+        fundingTokens: [] as never[],
+        balanceMap: new Map(),
+      });
+    };
+
     const mountWithMoneyAccount = (
       overrides: Partial<
         ReturnType<typeof getDefaultUseSpendingLimitMock>
       > = {},
     ) => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: true,
@@ -1072,12 +1377,11 @@ describe('SpendingLimit Component', () => {
       expect(mockHandleAccountSelect).toHaveBeenCalledTimes(1);
     });
 
-    it('renders the token row as pressable (non-locked) with the mUSD display label and fiat balance on onboarding-like flows', () => {
+    it('hides the token row entirely when Money Account is the source on onboarding-like flows', () => {
       mountWithMoneyAccount();
 
-      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
-      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
       expect(screen.queryByText('USDC on Linea')).not.toBeOnTheScreen();
     });
 
@@ -1090,6 +1394,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders the spend-and-earn promo card with title, full description and CTA label when canShowMoneyAccountCta is true', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1111,6 +1416,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('drops the explicit APY clause when moneyAccountApyPercent is undefined', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1131,6 +1437,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('renders the same promo copy when the user has a Metal card', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1149,6 +1456,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('invokes selectMoneyAccountAsSource when the switch-back CTA is pressed', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1162,7 +1470,8 @@ describe('SpendingLimit Component', () => {
       expect(mockSelectMoneyAccountAsSource).toHaveBeenCalledTimes(1);
     });
 
-    it('does NOT render the switch-back CTA when canShowMoneyAccountCta is false (e.g. balance is zero)', () => {
+    it('does NOT render the switch-back CTA when canShowMoneyAccountCta is false', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1177,6 +1486,7 @@ describe('SpendingLimit Component', () => {
     });
 
     it('does NOT render the money-account CTA when canLinkMoneyAccount is false (sponsorship/7702 gating propagates through canShowMoneyAccountCta)', () => {
+      setupOnboardingReady();
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1191,13 +1501,7 @@ describe('SpendingLimit Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('falls back to the mUSD symbol alone when the fiat balance is not yet formatted', () => {
-      mountWithMoneyAccount({ moneyAccountTotalFiatFormatted: undefined });
-
-      expect(screen.getByText('mUSD')).toBeOnTheScreen();
-    });
-
-    it('locks both Account and Token rows on the manage flow when Money Account is the source', () => {
+    it('locks the Account row and hides the Token row on the manage flow when Money Account is the source', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: true,
@@ -1211,15 +1515,14 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByTestId('account-row-locked')).toBeOnTheScreen();
       expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
       expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
-      expect(screen.getByTestId('token-row-locked')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
-      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
       expect(
         screen.queryByTestId('use-money-account-cta'),
       ).not.toBeOnTheScreen();
     });
 
-    it('renders the Money Account CTA in the enable flow when canShowMoneyAccountCta is true (NotEnabled token + funded)', () => {
+    it('renders the Money Account CTA in the enable flow when canShowMoneyAccountCta is true (NotEnabled token)', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: false,
@@ -1250,72 +1553,7 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByTestId('account-row')).toBeOnTheScreen();
     });
 
-    it('shows the onboarding loading state while the Money Account balance is still resolving', () => {
-      mockUseSpendingLimitData.mockReturnValue({
-        availableTokens: [mockPriorityToken, mockMUSDToken],
-        delegationSettings: null,
-        isLoading: false,
-        error: null,
-        fetchData: mockFetchSpendingLimitData,
-      });
-      mockUseSpendingLimit.mockReturnValue({
-        ...getDefaultUseSpendingLimitMock(),
-        isMoneyAccountBalanceLoading: true,
-      });
-
-      render({ params: { flow: 'onboarding' } });
-
-      expect(
-        screen.getByTestId('spending-limit-loading-indicator'),
-      ).toBeOnTheScreen();
-      expect(screen.queryByTestId('account-row')).not.toBeOnTheScreen();
-    });
-
-    it('does not block the manage flow UI on the Money Account balance when the user cannot link a Money Account', () => {
-      mockUseSpendingLimit.mockReturnValue({
-        ...getDefaultUseSpendingLimitMock(),
-        isMoneyAccountBalanceLoading: true,
-        canLinkMoneyAccount: false,
-      });
-
-      render({ params: { flow: 'manage' } });
-
-      expect(
-        screen.queryByTestId('spending-limit-loading-indicator'),
-      ).not.toBeOnTheScreen();
-      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
-    });
-
-    it('does NOT block the manage flow UI on the Money Account balance even when linking is possible', () => {
-      mockUseSpendingLimit.mockReturnValue({
-        ...getDefaultUseSpendingLimitMock(),
-        isMoneyAccountBalanceLoading: true,
-        canLinkMoneyAccount: true,
-      });
-
-      render({ params: { flow: 'manage' } });
-
-      expect(
-        screen.queryByTestId('spending-limit-loading-indicator'),
-      ).not.toBeOnTheScreen();
-      expect(screen.getByTestId('account-row')).toBeOnTheScreen();
-    });
-
-    it('shows the loading state on the enable_card flow while the Money Account balance is still resolving', () => {
-      mockUseSpendingLimit.mockReturnValue({
-        ...getDefaultUseSpendingLimitMock(),
-        isMoneyAccountBalanceLoading: true,
-        canLinkMoneyAccount: true,
-      });
-
-      render({ params: { flow: 'enable_card' } });
-
-      expect(
-        screen.getByTestId('spending-limit-loading-indicator'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders pressable Money Account rows (NOT locked) on the enable_card flow when Money Account is the source', () => {
+    it('renders a pressable (NOT locked) Money Account row and hides the Token row on the enable_card flow when Money Account is the source', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isMoneyAccountSource: true,
@@ -1329,9 +1567,8 @@ describe('SpendingLimit Component', () => {
       expect(screen.getByTestId('account-row')).toBeOnTheScreen();
       expect(screen.queryByTestId('account-row-locked')).not.toBeOnTheScreen();
       expect(screen.getByTestId('account-row-money-account')).toBeOnTheScreen();
-      expect(screen.getByTestId('token-row')).toBeOnTheScreen();
+      expect(screen.queryByTestId('token-row')).not.toBeOnTheScreen();
       expect(screen.queryByTestId('token-row-locked')).not.toBeOnTheScreen();
-      expect(screen.getByText('mUSD ($12.34)')).toBeOnTheScreen();
     });
   });
 });

@@ -101,7 +101,7 @@ describe('useIsGaslessSupported', () => {
       );
     });
 
-    it('returns isSupported false when smart transactions are enabled but sender is a hardware wallet', async () => {
+    it('returns isSupported true when smart transactions are enabled but sender is a hardware wallet', async () => {
       const stateWithSmartTransactionEnabled = merge(
         {},
         transferConfirmationState,
@@ -120,7 +120,7 @@ describe('useIsGaslessSupported', () => {
 
       await waitFor(() =>
         expect(result.current).toEqual({
-          isSupported: false,
+          isSupported: true,
           isSmartTransaction: true,
           pending: false,
         }),

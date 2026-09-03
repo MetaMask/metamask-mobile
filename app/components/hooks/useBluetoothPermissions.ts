@@ -19,9 +19,7 @@ const useBluetoothPermissions = () => {
   const deviceOSVersion = Number(getSystemVersion()) || 0;
 
   const checkIosPermission = async () => {
-    const bluetoothPermissionStatus = await request(
-      PERMISSIONS.IOS.BLUETOOTH_PERIPHERAL,
-    );
+    const bluetoothPermissionStatus = await request(PERMISSIONS.IOS.BLUETOOTH);
     const bluetoothAllowed = bluetoothPermissionStatus === RESULTS.GRANTED;
 
     if (bluetoothAllowed) {

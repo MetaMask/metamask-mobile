@@ -3,28 +3,26 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import { MultichainNetworkControllerMessenger } from '@metamask/multichain-network-controller';
 
 /**
  * Get the MultichainNetworkControllerMessenger for the MultichainNetworkController.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The MultichainNetworkControllerMessenger.
  */
 export function getMultichainNetworkControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): MultichainNetworkControllerMessenger {
-  const messenger = new Messenger<
-    'MultichainNetworkController',
+  rootMessenger: RootMessenger<
     MessengerActions<MultichainNetworkControllerMessenger>,
-    MessengerEvents<MultichainNetworkControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<MultichainNetworkControllerMessenger>
+  >,
+): MultichainNetworkControllerMessenger {
+  const messenger: MultichainNetworkControllerMessenger = new Messenger({
     namespace: 'MultichainNetworkController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'NetworkController:setActiveNetwork',
       'NetworkController:getState',

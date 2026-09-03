@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   Box,
   ButtonIcon,
@@ -10,7 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -19,50 +20,194 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
+  selectHasAcceptedVipRefereeInvite,
+  selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
+import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
   RewardsDashboardModalType,
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
+import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
+import { useReferralDetails } from '../hooks/useReferralDetails';
+import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
+import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
+import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
+import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 import { Pressable, ScrollView } from 'react-native';
 import { useOndoOutcomeToast } from '../hooks/useOndoOutcomeToast';
 import { usePerpsTradingCampaignEndedOutcomeToast } from '../hooks/usePerpsTradingCampaignEndedOutcomeToast';
+import { useGetPredictThePitchOutcomeToast } from '../hooks/useGetPredictThePitchOutcomeToast';
+import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccountSweepstakesOutcomeToast';
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
+import { handleDeeplink } from '../../../../core/DeeplinkManager';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
+const MUSD_MONEY_URL = 'metamask://money';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
+  const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
     selectHasAcceptedVipInvite(subscriptionId),
+  );
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const hasAcceptedVipRefereeInvite = useSelector(
+    selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
+  const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
+  const {
+    hasLoaded: campaignsHasLoaded,
+    hasError: campaignsHasError,
+    isLoading: isCampaignsLoading,
+  } = useRewardCampaigns();
+  const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
+  const {
+    optedInAny: moneyAccountOptedInAny,
+    isLoading: isMoneyAccountParticipationLoading,
+  } = useMoneyAccountSweepstakesParticipation(isMoneyCampaignDeeplink);
+
   useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
+  useGetPredictThePitchOutcomeToast();
+  useMoneyAccountSweepstakesOutcomeToast();
+
+  // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
+  // The version guard and candidate-subscription fetch live one level up in
+  // RewardsHome (MainNavigator) so they also cover the onboarding entry path for
+  // non-enrolled users; only dashboard-specific hooks remain here.
+  useGeoRewardsMetadata({});
+  useReferralDetails();
+
+  // Handle deeplink-driven navigation into a rewards sub-page. The dashboard is
+  // what mounts on a rewards deeplink (the Rewards tab); the sub-pages are
+  // registered as a group at the root MainNavigator level, so a direct
+  // navigate(<screen>) resolves them. We read the pending deeplink from Redux —
+  // rather than navigation params — because the Rewards tab is UnmountOnBlur, so
+  // params would be lost while on another tab. Once handled, the pending deeplink
+  // is cleared so it doesn't re-fire on subsequent mounts.
+  useEffect(() => {
+    if (!pendingDeeplink) {
+      return;
+    }
+
+    let handled = true;
+    if (pendingDeeplink.page === 'campaigns') {
+      navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
+    } else if (pendingDeeplink.campaign === 'ondo') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'season1') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'perps-comp') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'money') {
+      // Only an active series can route to the tour, so that is the one case
+      // where the decision has to wait on opt-in status.
+      const waitingForParticipation =
+        moneyAccountSeries.seriesStatus === 'active' &&
+        isMoneyAccountParticipationLoading;
+      // Failed and in-flight fetches also flip campaignsHasLoaded, so an empty
+      // series is only trustworthy once a successful fetch has settled.
+      const waitingForCampaigns =
+        !campaignsHasLoaded ||
+        (moneyAccountSeries.campaigns.length === 0 &&
+          (campaignsHasError || isCampaignsLoading));
+
+      if (waitingForCampaigns || waitingForParticipation) {
+        handled = false;
+      } else {
+        const entry = resolveMoneyAccountSweepstakesEntryRoute({
+          series: moneyAccountSeries,
+          optedInAny: moneyAccountOptedInAny,
+        });
+
+        if (entry.kind === 'tour') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_CAMPAIGN_TOUR_STEP,
+            {
+              campaignId: entry.campaignId,
+            },
+          );
+        } else if (entry.kind === 'details') {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+            { campaignId: entry.campaignId },
+          );
+        }
+        // entry.kind === 'dashboard': stay on dashboard (upcoming / empty)
+      }
+    } else if (pendingDeeplink.page === 'musd') {
+      handleDeeplink({ uri: MUSD_MONEY_URL });
+    } else if (pendingDeeplink.page === 'benefits') {
+      // Benefits full view is registered at the root MainNavigator level.
+      navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
+    } else {
+      // Unrecognized page/campaign: do not clear the pending deeplink so the
+      // intent is preserved and can be retried, rather than silently dropped.
+      handled = false;
+    }
+
+    if (handled) {
+      dispatch(setPendingDeeplink(null));
+    }
+  }, [
+    navigation,
+    dispatch,
+    pendingDeeplink,
+    campaignsHasLoaded,
+    campaignsHasError,
+    isCampaignsLoading,
+    moneyAccountSeries,
+    moneyAccountOptedInAny,
+    isMoneyAccountParticipationLoading,
+  ]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -100,6 +245,9 @@ const RewardsDashboard: React.FC = () => {
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
+
+  // Quietly finish incomplete Money Account Sweepstakes series opt-ins
+  useResumePendingMasSeriesOptIn();
 
   const totalOptedInAccountsSelectedGroup = useMemo(
     () => optInBySelectedAccountGroup?.optedInAccounts?.length,
@@ -261,12 +409,22 @@ const RewardsDashboard: React.FC = () => {
   }, [isVipEnabled, subscriptionId]);
 
   const handleVipPress = useCallback(() => {
-    navigation.navigate(
+    navigateToRewardsRoute(
+      navigation,
       hasAcceptedVipInvite
         ? Routes.REWARDS_VIP_VIEW
         : Routes.REWARDS_VIP_SPLASH_VIEW,
     );
   }, [hasAcceptedVipInvite, navigation]);
+
+  const handleVipRefereePress = useCallback(() => {
+    navigateToRewardsRoute(
+      navigation,
+      hasAcceptedVipRefereeInvite
+        ? Routes.REWARDS_VIP_REFEREE_VIEW
+        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipRefereeInvite, navigation]);
 
   useEffect(() => {
     trackEvent(
@@ -286,7 +444,17 @@ const RewardsDashboard: React.FC = () => {
         <HeaderRoot
           endAccessory={
             <Box twClassName="flex-row gap-2">
-              {isVipEnabled && (
+              {isVipProgramEnabled && isVipReferee && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleVipRefereePress}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+                >
+                  <VipIcon width={24} height={24} name="VipIcon" />
+                </Pressable>
+              )}
+              {isVipProgramEnabled && isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"
                   onPress={handleVipPress}
@@ -299,7 +467,10 @@ const RewardsDashboard: React.FC = () => {
               <ButtonIcon
                 iconName={IconName.UserCircleAdd}
                 onPress={() =>
-                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW)
+                  navigateToRewardsRoute(
+                    navigation,
+                    Routes.REFERRAL_REWARDS_VIEW,
+                  )
                 }
                 size={ButtonIconSize.Md}
                 testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
@@ -308,7 +479,10 @@ const RewardsDashboard: React.FC = () => {
                 disabled={!subscriptionId}
                 iconName={IconName.Setting}
                 onPress={() =>
-                  navigation.navigate(Routes.REWARDS_SETTINGS_VIEW)
+                  navigateToRewardsRoute(
+                    navigation,
+                    Routes.REWARDS_SETTINGS_VIEW,
+                  )
                 }
                 size={ButtonIconSize.Md}
                 testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}

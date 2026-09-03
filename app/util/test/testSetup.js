@@ -54,10 +54,25 @@ jest.mock('expo-modules-core', () => ({
   NativeModulesProxy: {},
   requireNativeModule: jest.fn(() => ({})),
   requireOptionalNativeModule: jest.fn(() => null),
+  // Native view managers resolve to a host component name so that children
+  // (and their testIDs) still render in tests.
+  requireNativeViewManager: jest.fn((name) => name),
   Platform: { OS: 'ios' },
   CodedError: class CodedError extends Error {},
   UnavailabilityError: class UnavailabilityError extends Error {},
   LegacyEventEmitter: jest.fn(),
+}));
+
+// Mock expo-screen-capture: it reaches for a native module at import time, so
+// importing it unmocked throws in Jest.
+jest.mock('expo-screen-capture', () => ({
+  preventScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  allowScreenCaptureAsync: jest.fn().mockResolvedValue(undefined),
+  addScreenshotListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeScreenshotListener: jest.fn(),
+  isAvailableAsync: jest.fn().mockResolvedValue(true),
+  usePreventScreenCapture: jest.fn(),
+  useScreenshotListener: jest.fn(),
 }));
 
 // Mock Expo's fetch implementation
@@ -67,13 +82,64 @@ jest.mock('expo/fetch', () => {
   };
 });
 
+let mockQuickCryptoUuidCounter = 0;
+let mockQuickCryptoRandomCounter = 0;
+const fillDeterministicBytes = (array) => {
+  mockQuickCryptoRandomCounter += 1;
+  for (let i = 0; i < array.length; i++) {
+    array[i] = ((i + mockQuickCryptoRandomCounter) % 255) + 1;
+  }
+  return array;
+};
+const createMockUuid = () => {
+  mockQuickCryptoUuidCounter += 1;
+  return `mock-uuid-${String(mockQuickCryptoUuidCounter).padStart(9, '0')}`;
+};
+
 jest.mock('react-native-quick-crypto', () => ({
-  getRandomValues: jest.fn((array) => {
-    for (let i = 0; i < array.length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-    return array;
-  }),
+  __esModule: true,
+  default: {
+    randomBytes: jest.fn((size) =>
+      Buffer.from(Array.from({ length: size }, (_, i) => (i % 255) + 1)),
+    ),
+    randomUUID: jest.fn(() => createMockUuid()),
+    getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
+    subtle: {
+      importKey: jest.fn(
+        (format, keyData, algorithm, extractable, keyUsages) => {
+          return Promise.resolve({
+            format,
+            keyData,
+            algorithm,
+            extractable,
+            keyUsages,
+          });
+        },
+      ),
+      deriveBits: jest.fn((algorithm, baseKey, length) => {
+        const derivedBits = new Uint8Array(length);
+        return Promise.resolve(fillDeterministicBytes(derivedBits));
+      }),
+      exportKey: jest.fn((format, key) => {
+        return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
+      }),
+      encrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+      decrypt: jest.fn((algorithm, key, data) => {
+        return Promise.resolve(
+          new Uint8Array([
+            123, 34, 116, 101, 115, 116, 34, 58, 34, 100, 97, 116, 97, 34, 125,
+          ]),
+        );
+      }),
+    },
+  },
+  getRandomValues: jest.fn((array) => fillDeterministicBytes(array)),
   subtle: {
     importKey: jest.fn((format, keyData, algorithm, extractable, keyUsages) => {
       return Promise.resolve({
@@ -86,10 +152,7 @@ jest.mock('react-native-quick-crypto', () => ({
     }),
     deriveBits: jest.fn((algorithm, baseKey, length) => {
       const derivedBits = new Uint8Array(length);
-      for (let i = 0; i < length; i++) {
-        derivedBits[i] = Math.floor(Math.random() * 256);
-      }
-      return Promise.resolve(derivedBits);
+      return Promise.resolve(fillDeterministicBytes(derivedBits));
     }),
     exportKey: jest.fn((format, key) => {
       return Promise.resolve(new Uint8Array([1, 2, 3, 4]));
@@ -109,9 +172,7 @@ jest.mock('react-native-quick-crypto', () => ({
       );
     }),
   },
-  randomUUID: jest.fn(
-    () => 'mock-uuid-' + Math.random().toString(36).slice(2, 11),
-  ),
+  randomUUID: jest.fn(() => createMockUuid()),
 }));
 
 // Create a persistent mock function that survives Jest teardown
@@ -276,7 +337,6 @@ jest.mock('../../core/NotificationManager', () => ({
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
   setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
 }));
@@ -391,18 +451,10 @@ jest.mock('react-native-keychain', () => ({
 
   // Storage Type enum
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
     RSA: 'KeystoreRSAECB',
-  },
-
-  // Security Rules enum
-  SECURITY_RULES: {
-    NONE: 'none',
-    AUTOMATIC_UPGRADE: 'automaticUpgradeToMoreSecuredStorage',
   },
 
   // Generic password functions
@@ -438,6 +490,7 @@ jest.mock('react-native-keychain', () => ({
   getSecurityLevel: jest
     .fn()
     .mockResolvedValue('MOCK_SECURITY_LEVEL_SECURE_SOFTWARE'),
+  isPasscodeAuthAvailable: jest.fn().mockResolvedValue(true),
 
   // Shared web credentials (iOS only)
   requestSharedWebCredentials: jest.fn().mockResolvedValue({
@@ -468,60 +521,15 @@ jest.mock(
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 /**
- * Inline Jest mock for `react-native-worklets` when the package is not installed
- * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
- * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized". The mock also installs `globalThis._getAnimationTimestamp`
+ * and a timestamp-correct `requestAnimationFrame` that animation tests rely on.
  * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
  */
-jest.mock(
-  'react-native-worklets',
-  () => {
-    const RuntimeKind = { ReactNative: 0 };
-    const NOOP = () => {};
-    const identity = (value) => value;
-
-    const runOnJS =
-      (fun) =>
-      (...args) =>
-        queueMicrotask(() => (args.length ? fun(...args) : fun()));
-
-    return {
-      __esModule: true,
-      RuntimeKind,
-      isShareableRef: () => true,
-      makeShareable: identity,
-      makeShareableCloneOnUIRecursive: identity,
-      makeShareableCloneRecursive: identity,
-      shareableMappingCache: new Map(),
-      getStaticFeatureFlag: () => false,
-      setDynamicFeatureFlag: NOOP,
-      isSynchronizable: () => false,
-      getRuntimeKind: () => RuntimeKind.ReactNative,
-      createWorkletRuntime: () => NOOP,
-      runOnRuntime: identity,
-      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
-      scheduleOnRuntime: (callback) => callback(),
-      createSerializable: identity,
-      isSerializableRef: identity,
-      serializableMappingCache: new Map(),
-      createSynchronizable: identity,
-      callMicrotasks: NOOP,
-      executeOnUIRuntimeSync: identity,
-      runOnJS,
-      runOnUI:
-        (worklet) =>
-        (...args) => {
-          worklet(...args);
-        },
-      runOnUIAsync: async (worklet, ...args) => worklet(...args),
-      runOnUISync: (callback) => callback(),
-      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
-      scheduleOnUI: (worklet, ...args) => worklet(...args),
-      isWorkletFunction: () => false,
-      WorkletsModule: {},
-    };
-  },
-  { virtual: true },
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
 );
 
 jest.mock('react-native-mmkv', () => {
@@ -724,6 +732,8 @@ jest.mock('@braze/react-native-sdk', () => ({
     requestImmediateDataFlush: jest.fn(),
     setCustomUserAttribute: jest.fn(),
     setLanguage: jest.fn(),
+    enableSDK: jest.fn(),
+    wipeData: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     requestBannersRefresh: jest.fn(),
     getBanner: jest.fn().mockResolvedValue(null),
@@ -808,14 +818,38 @@ try {
   // Reanimated internals may change — fall through silently
 }
 
-// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
-// still imported by legacy source code (e.g. ReusableModal). Patch the module
-// so tests that render those components don't crash.
-if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
-  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
-}
-
 global.__DEV__ = false;
+
+// Mock react-native-screens so @react-navigation/native-stack renders plain
+// views in Jest. The real Screen components attach Animated listeners that
+// throw "Cannot read properties of undefined (reading 'remove')" during unmount
+// under fake timers. Rendering them as Views keeps native-stack navigators
+// (used by renderScreen and migrated test files) working in jsdom.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-screens');
+
+  const asView = (displayName) => {
+    const Component = React.forwardRef((props, ref) =>
+      React.createElement(View, { ...props, ref }),
+    );
+    Component.displayName = displayName;
+    return Component;
+  };
+
+  return {
+    ...actual,
+    enableScreens: jest.fn(),
+    enableFreeze: jest.fn(),
+    screensEnabled: jest.fn(() => false),
+    Screen: asView('Screen'),
+    ScreenContainer: asView('ScreenContainer'),
+    ScreenStack: asView('ScreenStack'),
+    ScreenStackHeaderConfig: asView('ScreenStackHeaderConfig'),
+    ScreenStackHeaderSubview: asView('ScreenStackHeaderSubview'),
+  };
+});
 
 // Custom snapshot serializer to handle Reanimated shared value proxies.
 expect.addSnapshotSerializer({
@@ -1116,6 +1150,13 @@ jest.mock('@sentry/react-native', () => ({
   startSpan: jest.fn(),
   startSpanManual: jest.fn(),
   startTransaction: jest.fn(),
+  reactNativeTracingIntegration: jest.fn(() => ({
+    name: 'ReactNativeTracing',
+  })),
+  reactNavigationIntegration: jest.fn(() => ({
+    name: 'ReactNavigation',
+    registerNavigationContainer: jest.fn(),
+  })),
 
   // User feedback
   lastEventId: jest.fn(),
@@ -1124,6 +1165,7 @@ jest.mock('@sentry/react-native', () => ({
   getGlobalScope: jest.fn(() => ({
     setTag: jest.fn(),
   })),
+  getClient: jest.fn(),
 }));
 
 jest.mock('@react-native-firebase/messaging', () => {
@@ -1162,16 +1204,6 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
 
   return module;
-});
-
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
 });
 
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.

@@ -6,6 +6,18 @@ import { MockEventsObject } from '../../../framework';
  */
 export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
   POST: [
+    // Direct (non-proxy) LlamaRPC calls leak into fixture cleanup when a
+    // network is configured with eth.llamarpc.com and CUSTOM_RPC_PROVIDER_MOCKS
+    // is not wired for the spec. Match other catch-all RPC stubs below.
+    {
+      urlEndpoint: 'https://eth.llamarpc.com',
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: 1,
+        result: '0x0',
+      },
+    },
     {
       urlEndpoint: 'https://carrot.megaeth.com/rpc',
       responseCode: 200,
@@ -34,7 +46,7 @@ export const DEFAULT_RPC_ENDPOINT_MOCKS: MockEventsObject = {
       },
     },
     {
-      urlEndpoint: 'https://mainnet.era.zksync.io/',
+      urlEndpoint: 'https://rpc.linea.build',
       responseCode: 200,
       response: {
         jsonrpc: '2.0',

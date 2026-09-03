@@ -9,22 +9,26 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import { Hex, KnownCaipNamespace } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import { NetworkController } from '@metamask/network-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
+import { ConnectivityController } from '@metamask/connectivity-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
+import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
 import { store } from '../../store';
+import Logger from '../../util/Logger';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask.MetaMask'),
 }));
 
 jest.mock('redux-persist-filesystem-storage');
@@ -58,6 +62,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -95,6 +100,18 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
     cacheTimestamp: 0,
   }),
 }));
+
+// `__esModule: true` lets the override test mutate
+// `isRemoteFeatureFlagOverrideActivated` live; interop would otherwise snapshot
+// the export. Other exports are preserved via `requireActual`.
+jest.mock('./controllers/remote-feature-flag-controller', () => ({
+  __esModule: true,
+  ...jest.requireActual('./controllers/remote-feature-flag-controller'),
+  isRemoteFeatureFlagOverrideActivated: false,
+}));
+const mockRemoteFeatureFlagControllerModule = jest.requireMock(
+  './controllers/remote-feature-flag-controller',
+) as { isRemoteFeatureFlagOverrideActivated: boolean };
 
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
@@ -154,14 +171,140 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
+    expect(engine.context).toHaveProperty('DeFiPositionsControllerV2');
     expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
     expect(engine.context).toHaveProperty('GatorPermissionsController');
     expect(engine.context).toHaveProperty('RampsController');
     expect(engine.context).toHaveProperty('RampsService');
     expect(engine.context).toHaveProperty('ConnectivityController');
+    expect(engine.context).toHaveProperty('SubscriptionController');
+    expect(engine.context).toHaveProperty('SubscriptionService');
+    expect(engine.context).toHaveProperty('ShieldController');
+    expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
     expect(engine.context).toHaveProperty('MoneyAccountController');
+  });
+
+  it('exposes v8 subscription methods after the controller upgrade', () => {
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCard,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.submitSubscriptionCryptoApproval,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.cacheLastSelectedPaymentMethod,
+    ).toEqual(expect.any(Function));
+    expect(
+      engine.context.SubscriptionController.startSubscriptionWithCrypto,
+    ).toEqual(expect.any(Function));
+    expect(engine.context.SubscriptionController.stopAllPolling).toEqual(
+      expect.any(Function),
+    );
+    expect(
+      'startShieldSubscriptionWithCard' in
+        engine.context.SubscriptionController,
+    ).toBe(false);
+  });
+
+  it('hydrates representative v7 subscription state without a migration', () => {
+    const v7SubscriptionControllerState = {
+      subscriptions: [
+        {
+          id: 'sub-shield',
+          products: [
+            {
+              name: 'shield',
+              currency: 'usd',
+              unitAmount: 800,
+              unitDecimals: 2,
+            },
+          ],
+          currentPeriodStart: '2026-01-01T00:00:00.000Z',
+          currentPeriodEnd: '2026-02-01T00:00:00.000Z',
+          status: 'active',
+          interval: 'month',
+          paymentMethod: {
+            type: 'card',
+            card: {
+              brand: 'visa',
+              displayBrand: 'visa',
+              last4: '4242',
+            },
+          },
+          cancelType: 'allowed_at_period_end',
+          isEligibleForSupport: true,
+        },
+      ],
+      trialedProducts: ['shield'],
+      lastSelectedPaymentMethod: {
+        shield: {
+          type: 'crypto',
+          plan: 'month',
+          paymentTokenSymbol: 'USDC',
+        },
+      },
+      pricing: {
+        products: [
+          {
+            name: 'shield',
+            prices: [
+              {
+                interval: 'month',
+                unitAmount: 800,
+                unitDecimals: 2,
+                currency: 'usd',
+                trialPeriodDays: 14,
+                minBillingCycles: 12,
+                minBillingCyclesForBalance: 1,
+              },
+            ],
+          },
+        ],
+        paymentMethods: [
+          { type: 'card' },
+          {
+            type: 'crypto',
+            chains: [
+              {
+                chainId: '0x1',
+                paymentAddress: '0x2222222222222222222222222222222222222222',
+                tokens: [
+                  {
+                    symbol: 'USDC',
+                    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+                    decimals: 6,
+                    conversionRate: { usd: '1.0' },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    } as SubscriptionControllerState;
+
+    const engine = Engine.init(TEST_ANALYTICS_ID, {
+      SubscriptionController: v7SubscriptionControllerState,
+    });
+
+    expect(engine.context.SubscriptionController.state.subscriptions).toEqual(
+      v7SubscriptionControllerState.subscriptions,
+    );
+    expect(engine.context.SubscriptionController.state.trialedProducts).toEqual(
+      ['shield'],
+    );
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.shield,
+    ).toEqual(v7SubscriptionControllerState.lastSelectedPaymentMethod?.shield);
+    expect(
+      engine.context.SubscriptionController.state.lastSelectedPaymentMethod
+        ?.money_account_plus,
+    ).toBeUndefined();
   });
 
   it('hydrates address poisoning known recipients from persisted address book state', () => {
@@ -322,166 +465,254 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring gets or creates a snap keyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => [mockSnapKeyring]);
+  describe('RemoteFeatureFlagController startup fetch', () => {
+    const authStateWithCanonicalId = (
+      canonicalProfileId?: string,
+    ): AuthenticationControllerState =>
+      ({
+        isSignedIn: Boolean(canonicalProfileId),
+        srpSessionData: canonicalProfileId
+          ? {
+              'srp-1': { profile: { canonicalProfileId } },
+            }
+          : {},
+      }) as AuthenticationControllerState;
 
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
-
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('getSnapKeyring creates a new snap keyring if none exists', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-
-    jest
-      .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
-
-    jest
-      .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
-
-    const getSnapKeyringSpy = jest
-      .spyOn(engine, 'getSnapKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
-
-    const result = await engine.getSnapKeyring();
-    expect(getSnapKeyringSpy).toHaveBeenCalled();
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
+    const spyForcedFlagRefresh = (engine: ReturnType<typeof Engine.init>) => {
+      const updateSpy = jest
+        .spyOn(
+          engine.context.RemoteFeatureFlagController,
+          'updateRemoteFeatureFlags',
+        )
+        .mockResolvedValue(undefined);
+      updateSpy.mockClear();
+      return updateSpy;
     };
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
 
-    Engine.init(TEST_ANALYTICS_ID, state);
-
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
-  });
-
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already disabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
+    const publishAuthState = (
+      engine: ReturnType<typeof Engine.init>,
+      state: ReturnType<typeof authStateWithCanonicalId>,
+    ) => {
+      // @ts-expect-error accessing messenger for testing
+      engine.context.AuthenticationController.messenger.publish(
+        'AuthenticationController:stateChange',
+        state,
+        [],
+      );
     };
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
 
-    Engine.init(TEST_ANALYTICS_ID, state);
+    afterEach(() => {
+      // `jest.mock` return values survive `restoreAllMocks()`, so reset the
+      // ones these tests override back to their file-level defaults.
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: matches the file-level default shape.
+        .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    });
 
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
-  });
+    it('logs and skips the fetch when basic functionality is disabled', () => {
+      // The selector is read twice per init (the RFFC instance-options builder
+      // seeds `disabled`, then the Engine startup gate re-reads it), so use a
+      // persistent return rather than `mockReturnValueOnce`.
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
 
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is enabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: false,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: true,
-            },
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(logSpy).toHaveBeenCalledWith('Feature flag controller disabled.');
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
+
+    it('logs and skips the fetch when the override is active', () => {
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = true;
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Remote feature flags override activated.',
+      );
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
+
+    it('logs success after the startup fetch resolves', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockResolvedValue({
+            remoteFeatureFlags: {},
             cacheTimestamp: 1,
-          };
+          }),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
         },
       });
 
-    Engine.init(analyticsId, state);
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags updated',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (enableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
+      expect(logSpy).toHaveBeenCalledWith('Feature flags updated');
+    });
+
+    it('logs failure when the startup fetch rejects', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      const fetchError = new Error('Network error');
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockRejectedValue(fetchError),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        },
       });
-    }
-    expect(enableRpcFailoverSpy).toHaveBeenCalled();
+
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags update failed: ',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Feature flags update failed: ',
+        fetchError,
+      );
+    });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('force-refreshes flags when a canonical profile id first becomes available', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {});
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('does not refresh flags when the canonical profile id is unchanged', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id'));
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('force-refreshes flags when the canonical profile id changes', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id-1'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId('canonical-id-2'));
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
+
+    it('force-refreshes flags when the canonical profile id is cleared', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        AuthenticationController: authStateWithCanonicalId('canonical-id'),
+      });
+      const updateSpy = spyForcedFlagRefresh(engine);
+
+      publishAuthState(engine, authStateWithCanonicalId());
+
+      expect(updateSpy).toHaveBeenCalledWith(true);
+    });
   });
 
-  it('disables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is disabled later', async () => {
-    (Date.now as jest.Mock).mockReturnValue(1000000);
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const analyticsId = '24d24a09-b210-4971-9601-4603c60b23c3';
-    const disableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'disableRpcFailover',
-    );
-    ClientConfigApiServiceMock
-      // @ts-expect-error We aren't supplying a complete ClientConfigApiService;
-      // all we need to override is `fetchRemoteFeatureFlags`
-      .mockReturnValue({
-        async fetchRemoteFeatureFlags() {
-          return {
-            remoteFeatureFlags: {
-              walletFrameworkRpcFailoverEnabled: false,
-            },
-            cacheTimestamp: 1,
-          };
-        },
-      });
+  describe('ConnectivityController startup seeding', () => {
+    it('seeds the initial connectivity status via init() on startup', () => {
+      const initSpy = jest
+        .spyOn(ConnectivityController.prototype, 'init')
+        .mockResolvedValue(undefined);
 
-    Engine.init(analyticsId, state);
+      Engine.init(TEST_ANALYTICS_ID, {});
 
-    // We can't await RemoteFeatureFlagController:stateChange because can't
-    // guarantee it hasn't been called already, so this is the next best option
-    while (disableRpcFailoverSpy.mock.calls.length === 0) {
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 100);
-      });
-    }
-    expect(disableRpcFailoverSpy).toHaveBeenCalled();
+      expect(initSpy).toHaveBeenCalled();
+    });
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
@@ -984,268 +1215,6 @@ describe('Engine', () => {
     );
   });
 
-  describe('lookupEnabledNetworks', () => {
-    it('should lookup all enabled networks successfully', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId1);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith(mockNetworkClientId2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should only lookup enabled networks and skip disabled ones', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      // Should only call for enabled networks (0x1 and 0x89), not for disabled (0x38)
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x1');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledWith('0x89');
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalledWith('0x38');
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle empty enabled networks list', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {},
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: undefined as unknown as Record<
-            string,
-            Record<string, boolean>
-          >,
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle undefined Eip155 namespace in enabledNetworkMap', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'findNetworkClientIdByChainId',
-      );
-
-      const lookupNetworkSpy = jest.spyOn(
-        engine.context.NetworkController,
-        'lookupNetwork',
-      );
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {},
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).not.toHaveBeenCalled();
-      expect(lookupNetworkSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle network lookup failures gracefully', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockRejectedValueOnce(new Error('Network lookup failed'))
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle findNetworkClientIdByChainId returning undefined', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(undefined as unknown as string)
-        .mockReturnValueOnce('network-client-2');
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0x38': false,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(2);
-      expect(lookupNetworkSpy).toHaveBeenCalledWith('network-client-2');
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle mixed success and failure scenarios', async () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId1 = 'network-client-1';
-      const mockNetworkClientId2 = 'network-client-2';
-      const mockNetworkClientId3 = 'network-client-3';
-
-      const findNetworkClientIdByChainIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValueOnce(mockNetworkClientId1)
-        .mockReturnValueOnce(mockNetworkClientId2)
-        .mockReturnValueOnce(mockNetworkClientId3);
-
-      const lookupNetworkSpy = jest
-        .spyOn(engine.context.NetworkController, 'lookupNetwork')
-        .mockResolvedValueOnce(undefined)
-        .mockRejectedValueOnce(new Error('Network 2 failed'))
-        .mockImplementation(() => Promise.resolve());
-
-      jest
-        .spyOn(engine.context.NetworkEnablementController, 'state', 'get')
-        .mockReturnValue({
-          enabledNetworkMap: {
-            [KnownCaipNamespace.Eip155]: {
-              '0x1': true,
-              '0x89': true,
-              '0xa': true,
-            },
-          },
-          nativeAssetIdentifiers: {},
-        });
-
-      await engine.lookupEnabledNetworks();
-
-      expect(findNetworkClientIdByChainIdSpy).toHaveBeenCalledTimes(3);
-      expect(lookupNetworkSpy).toHaveBeenCalledTimes(3);
-    });
-  });
-
   describe('BridgeStatusController:destinationTransactionCompleted', () => {
     const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
     const NON_EVM_CAIP_ASSET =
@@ -1271,13 +1240,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
@@ -1287,7 +1249,6 @@ describe('Engine', () => {
       expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
       expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
       expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
 
     it('does not refresh anything for non-EVM destination chains', () => {
@@ -1302,13 +1263,6 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         NON_EVM_CAIP_ASSET,
@@ -1317,10 +1271,9 @@ describe('Engine', () => {
       expect(detectTokensSpy).not.toHaveBeenCalled();
       expect(updateBalancesSpy).not.toHaveBeenCalled();
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).not.toHaveBeenCalled();
     });
 
-    it('still updates incoming transactions when findNetworkClientIdByChainId throws', () => {
+    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
 
       jest
@@ -1337,20 +1290,12 @@ describe('Engine', () => {
       const refreshSpy = jest
         .spyOn(engine.context.AccountTrackerController, 'refresh')
         .mockImplementation(() => Promise.resolve());
-      const updateIncomingSpy = jest
-        .spyOn(
-          engine.context.TransactionController,
-          'updateIncomingTransactions',
-        )
-        .mockImplementation(() => Promise.resolve());
-
       getBridgeStatusMessenger(engine).publish(
         'BridgeStatusController:destinationTransactionCompleted',
         EVM_CAIP_ASSET,
       );
 
       expect(refreshSpy).not.toHaveBeenCalled();
-      expect(updateIncomingSpy).toHaveBeenCalled();
     });
   });
 
@@ -1367,8 +1312,9 @@ describe('Engine', () => {
             'state' in controller &&
             Boolean(controller.state) &&
             (!isEmpty(controller.state) ||
+              controllerName === 'AiDigestController' ||
               controllerName === 'ComplianceController' ||
-              controllerName === 'MoneyAccountUpgradeController'),
+              controllerName === 'DelegationController'),
         )
         .map(([controllerName]) => controllerName);
 
@@ -1385,6 +1331,57 @@ describe('Engine', () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls SubscriptionController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('stops subscription polling before clearing subscription state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const stopAllPollingSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'stopAllPolling')
+        .mockImplementation(() => undefined);
+      const clearStateSpy = jest
+        .spyOn(engine.context.SubscriptionController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(stopAllPollingSpy).toHaveBeenCalled();
+      expect(clearStateSpy).toHaveBeenCalled();
+      expect(stopAllPollingSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearStateSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('calls ShieldController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ShieldController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls ClaimsController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ClaimsController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();

@@ -73,15 +73,19 @@ describe('DepositKeyboard', () => {
     expect(onPercentagePressMock).toHaveBeenCalled();
   });
 
-  it('renders alert and no percentage or done button', () => {
-    const { getByText, queryByTestId, queryByText } = render({
-      alertMessage: 'Test Alert',
+  it('disables the done button when isDoneDisabled is set', () => {
+    const onDonePressMock = jest.fn();
+
+    const { getByTestId } = render({
+      hasInput: true,
+      isDoneDisabled: true,
+      onDonePress: onDonePressMock,
       value: '1',
     });
 
-    expect(getByText('Test Alert')).toBeDefined();
-    expect(queryByTestId('deposit-keyboard-done-button')).toBeNull();
-    expect(queryByText('50%')).toBeNull();
+    fireEvent.press(getByTestId('deposit-keyboard-done-button'));
+
+    expect(onDonePressMock).not.toHaveBeenCalled();
   });
 
   it('renders doneLabel if specified', async () => {

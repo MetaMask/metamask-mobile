@@ -163,7 +163,7 @@ describe('useEarnToasts', () => {
   });
 
   describe('spinner for inProgress toast', () => {
-    it('includes startAccessory with TokenIconWithSpinner for inProgress toast', () => {
+    it('includes startAccessory for inProgress toast', () => {
       const { result } = renderHook(() => useEarnToasts(), { wrapper });
 
       const inProgressToast =

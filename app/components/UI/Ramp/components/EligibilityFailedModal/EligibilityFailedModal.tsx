@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   BottomSheet,
   BottomSheetHeader,
@@ -19,7 +20,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { ELIGIBILITY_FAILED_MODAL_TEST_IDS } from './EligibilityFailedModal.testIds';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
+import { useSupportConsent } from '../../../../hooks/useSupportConsent';
 
 const SUPPORT_URL = METAMASK_SUPPORT_URL;
 
@@ -31,15 +32,19 @@ export const createEligibilityFailedModalNavigationDetails =
 
 function EligibilityFailedModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
+  const { openSupportWithConsent } = useSupportConsent();
 
   const navigateToContactSupport = useCallback(() => {
-    Linking.openURL(SUPPORT_URL).catch((error: unknown) => {
-      console.error('Failed to open support URL:', error);
-    });
-  }, []);
+    openSupportWithConsent(
+      (url) =>
+        Linking.openURL(url).catch((error: unknown) => {
+          console.error('Failed to open support URL:', error);
+        }),
+      SUPPORT_URL,
+    );
+  }, [openSupportWithConsent]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -51,7 +56,6 @@ function EligibilityFailedModal() {
       goBack={navigation.goBack}
       isInteractable={false}
       testID={ELIGIBILITY_FAILED_MODAL_TEST_IDS.MODAL}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

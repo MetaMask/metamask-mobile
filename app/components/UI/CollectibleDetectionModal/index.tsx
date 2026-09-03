@@ -1,19 +1,11 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Banner from '../../../component-library/components/Banners/Banner/Banner';
 import { BannerVariant } from '../../../component-library/components/Banners/Banner';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -27,20 +19,15 @@ const styles = StyleSheet.create({
 });
 
 const CollectibleDetectionModal = () => {
-  const { colors } = useTheme();
-  const { toastRef } = useContext(ToastContext);
   const { identify } = useAnalytics();
   const { detectNfts } = useNftDetection();
 
   const showToastAndEnableNFtDetection = useCallback(() => {
-    // show toast
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      labelOptions: [{ label: strings('toast.nft_detection_enabled') }],
-      iconName: IconName.CheckBold,
-      iconColor: IconColor.Default,
-      backgroundColor: colors.primary.inverse,
+    toast({
+      title: strings('toast.nft_detection_enabled'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
     // set nft autodetection
     const { PreferencesController } = Engine.context;
@@ -52,7 +39,7 @@ const CollectibleDetectionModal = () => {
     };
     identify(traits);
     detectNfts();
-  }, [colors.primary.inverse, toastRef, identify, detectNfts]);
+  }, [identify, detectNfts]);
 
   return (
     <View style={styles.alertBar}>

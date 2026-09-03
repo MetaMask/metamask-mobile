@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { renderHook, act } from '@testing-library/react-hooks';
 import {
   TRIGGER_TYPES,
@@ -25,6 +26,11 @@ import { NotificationsViewSelectorsIDs } from '../../../Views/Notifications/Noti
 import { NotificationMenuViewSelectorsIDs } from '../../../Views/Notifications/NotificationMenuView.testIds';
 // eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
+import SharedDeeplinkManager from '../../../../core/DeeplinkManager/DeeplinkManager';
+
+jest.mock('../../../../core/DeeplinkManager/DeeplinkManager', () => ({
+  parse: jest.fn(),
+}));
 
 const mockNavigation = createNavigationProps({});
 const mockTrackEvent = jest.fn();
@@ -199,15 +205,29 @@ describe('useNotificationOnClick', () => {
   };
 
   it.each(mockNotificationsWithMetaData)(
-    'invokes click callback and attempts navigation for notification - $type',
+    'marks as read and tracks analytics for notification - $type',
+    async ({ notification }) => {
+      const mocks = arrangeMocks();
+      const hook = renderHook(() =>
+        useNotificationOnClick({ navigation: mocks.mockNavigation }),
+      );
+
+      await act(() => hook.result.current.onNotificationPress(notification));
+
+      expect(mocks.mockMarkNotificationAsRead).toHaveBeenCalled();
+      expect(mocks.mockTrackEvent).toHaveBeenCalled();
+    },
+  );
+
+  it.each(mockNotificationsWithMetaData)(
+    'navigates to detail modal when no CTA link is provided - $type',
     async ({ notification, hasModal }) => {
       const mocks = arrangeMocks();
       const hook = renderHook(() =>
         useNotificationOnClick({ navigation: mocks.mockNavigation }),
       );
-      await act(() => hook.result.current.onNotificationClick(notification));
-      expect(mocks.mockMarkNotificationAsRead).toHaveBeenCalled();
-      expect(mocks.mockTrackEvent).toHaveBeenCalled();
+
+      await act(() => hook.result.current.onNotificationPress(notification));
 
       if (hasModal) {
         expect(mocks.mockNavigation.navigate).toHaveBeenCalled();
@@ -216,4 +236,40 @@ describe('useNotificationOnClick', () => {
       }
     },
   );
+
+  it('opens deeplink via SharedDeeplinkManager when CTA link contains metamask universal link host', async () => {
+    const mockParse = jest.mocked(SharedDeeplinkManager.parse);
+    const mocks = arrangeMocks();
+    const hook = renderHook(() =>
+      useNotificationOnClick({ navigation: mocks.mockNavigation }),
+    );
+    const notification = mockNotificationsWithMetaData[0].notification;
+    const ctaLink = 'https://link.metamask.io/some-path';
+
+    await act(() =>
+      hook.result.current.onNotificationPress(notification, ctaLink),
+    );
+
+    expect(mockParse).toHaveBeenCalledWith(ctaLink, expect.any(Object));
+    expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens external URL via Linking when CTA link is not a metamask universal link', async () => {
+    const mockOpenURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const mocks = arrangeMocks();
+    const hook = renderHook(() =>
+      useNotificationOnClick({ navigation: mocks.mockNavigation }),
+    );
+    const notification = mockNotificationsWithMetaData[0].notification;
+    const ctaLink = 'https://example.com/some-path';
+
+    await act(() =>
+      hook.result.current.onNotificationPress(notification, ctaLink),
+    );
+
+    expect(mockOpenURL).toHaveBeenCalledWith(ctaLink);
+    expect(mocks.mockNavigation.navigate).not.toHaveBeenCalled();
+  });
 });

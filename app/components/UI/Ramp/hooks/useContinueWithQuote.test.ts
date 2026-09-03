@@ -81,6 +81,14 @@ jest.mock('../../../../util/navigation/navUtils', () => ({
       name,
       screen ? { screen, params } : params,
     ],
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 const mockUseRampsController = jest.requireMock('./useRampsController')
@@ -94,6 +102,8 @@ const mockFiatOrdersModule = jest.requireMock(
 ) as {
   selectHasAgreedTransakNativePolicy: jest.Mock;
 };
+const mockUseRampAccountAddress = jest.requireMock('./useRampAccountAddress')
+  .default as jest.Mock;
 const mockDeviceIsAndroid = jest.requireMock('../../../../util/device')
   .isAndroid as jest.Mock;
 const mockLinkingOpenURL = jest.requireMock(
@@ -209,7 +219,7 @@ async function invoke(
     typeof renderHook<ReturnType<typeof useContinueWithQuote>, unknown>
   >['result'],
   quote: unknown,
-  ctx: { amount: number; assetId: string } = CTX,
+  ctx: { amount: number; assetId: string; headlessSessionId?: string } = CTX,
 ): Promise<Error | undefined> {
   let caught: Error | undefined;
   await act(async () => {
@@ -228,6 +238,13 @@ async function invoke(
 describe('useContinueWithQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
+    (Date.now as unknown as jest.Mock).mockReturnValue(123);
+    mockUseRampAccountAddress.mockReturnValue(
+      '0x1234567890123456789012345678901234567890',
+    );
+    mockDeviceIsAndroid.mockReturnValue(false);
+    mockLinkingOpenURL.mockResolvedValue(undefined);
     mockFiatOrdersModule.selectHasAgreedTransakNativePolicy.mockReturnValue(
       false,
     );
@@ -315,6 +332,69 @@ describe('useContinueWithQuote', () => {
       expect(caught).toBeUndefined();
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.RAMP.ENTER_EMAIL,
+        expect.objectContaining({
+          amount: '100',
+          currency: 'USD',
+          assetId: 'eip155:1/slip44:60',
+        }),
+      );
+    });
+
+    it('throws before fetching the quote when no payment method resolves (headless)', async () => {
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedProvider: NATIVE_PROVIDER,
+          selectedPaymentMethod: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(true);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      // The missing-payment-method guard is scoped to the headless flow, so
+      // it only fires when `ctx.headlessSessionId` is set.
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE, {
+        ...CTX,
+        headlessSessionId: 'session-1',
+      });
+
+      expect(caught).toBeInstanceOf(Error);
+      expect(mockCheckExistingToken).not.toHaveBeenCalled();
+      expect(mockGetBuyQuote).not.toHaveBeenCalled();
+      expect(mockReportRampsError).toHaveBeenCalledWith(
+        expect.any(Error),
+        { message: 'Missing payment method for native provider flow' },
+        'deposit.buildQuote.unexpectedError',
+      );
+    });
+
+    it('does not throw at the missing-payment-method guard for the non-headless (UB2) path', async () => {
+      // UB2 (BuildQuote -> continueWithQuote -> continueNative) never sets
+      // `ctx.headlessSessionId`, so even with no resolvable payment method the
+      // guard must stay dormant and the flow proceeds unchanged.
+      mockUseRampsController.mockReturnValue(
+        buildController({
+          selectedProvider: NATIVE_PROVIDER,
+          selectedPaymentMethod: null,
+        }),
+      );
+      mockCheckExistingToken.mockResolvedValue(false);
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, NATIVE_PROVIDER_QUOTE);
+
+      // It got past the guard (checkExistingToken ran) and did not report the
+      // headless-only missing-payment-method error.
+      expect(caught).toBeUndefined();
+      expect(mockCheckExistingToken).toHaveBeenCalled();
+      expect(mockReportRampsError).not.toHaveBeenCalledWith(
+        expect.any(Error),
+        { message: 'Missing payment method for native provider flow' },
+        'deposit.buildQuote.unexpectedError',
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.RAMP.VERIFY_IDENTITY,
         expect.objectContaining({
           amount: '100',
           currency: 'USD',
@@ -446,6 +526,44 @@ describe('useContinueWithQuote', () => {
         index: 0,
         routes: [{ name: Routes.RAMP.BUILD_QUOTE, params: {} }],
       });
+    });
+
+    it('registers a precreated order with chainId on the Android external-browser path', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/checkout',
+        orderId: 'ord-android-1',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
+
+      expect(caught).toBeUndefined();
+      expect(mockAddPrecreatedOrder).toHaveBeenCalledWith({
+        orderId: 'ord-android-1',
+        providerCode: 'moonpay',
+        walletAddress: '0x1234567890123456789012345678901234567890',
+        chainId: '1',
+      });
+    });
+
+    it('does not register a precreated order when chainId is missing', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockUseRampsController.mockReturnValue(
+        buildController({ selectedToken: null }),
+      );
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://widget.example.com/checkout',
+        orderId: 'ord-no-chain',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, WIDGET_PROVIDER_QUOTE);
+
+      expect(caught).toBeUndefined();
+      expect(mockAddPrecreatedOrder).not.toHaveBeenCalled();
     });
 
     it('resets to order details after InAppBrowser success', async () => {

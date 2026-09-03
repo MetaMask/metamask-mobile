@@ -11,96 +11,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      optionsList: {},
-      optionRow: {},
-      optionRowSelected: {},
-      optionContent: {},
-      optionNameRow: {},
-      optionName: {},
-      testnetTag: {},
-      testnetDot: {},
-      checkIcon: {},
-    },
-  }),
-}));
-
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const { Text: RNText } = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const MockText = ({ children, ...props }: any) => (
-    <RNText {...props}>{children}</RNText>
-  );
-  MockText.displayName = 'Text';
-  return {
-    __esModule: true,
-    default: MockText,
-    TextVariant: {
-      HeadingMD: 'HeadingMD',
-      BodyMDMedium: 'BodyMDMedium',
-      BodyXS: 'BodyXS',
-      BodySM: 'BodySM',
-    },
-    TextColor: { Alternative: 'Alternative', Warning: 'Warning' },
-  };
-});
-
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    default: (props: any) => <View testID="icon" {...props} />,
-    IconName: { Check: 'Check' },
-    IconSize: { Md: 'Md' },
-    IconColor: { Primary: 'Primary' },
-  };
-});
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const mockReact = jest.requireActual('react') as any;
-    const MockBottomSheet = mockReact.forwardRef(
-      ({ children, onClose, testID }: any, _ref: any) => (
-        <View testID={testID} onTouchEnd={onClose}>
-          {children}
-        </View>
-      ),
-    );
-    MockBottomSheet.displayName = 'BottomSheet';
-    return { __esModule: true, default: MockBottomSheet };
-  },
-);
-/* eslint-enable @typescript-eslint/no-explicit-any */
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return {
-      __esModule: true,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: ({ children, onClose }: any) => (
-        <View>
-          {children}
-          <View testID="header-close" onTouchEnd={onClose} />
-        </View>
-      ),
-    };
-  },
-);
-
 const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
 
 const defaultProps = {
-  isVisible: true,
   onClose: jest.fn(),
   onOptionSelect: jest.fn(),
   testID: 'provider-sheet',
@@ -114,20 +27,20 @@ beforeEach(() => {
 });
 
 describe('PerpsProviderSelectorSheet', () => {
-  it('returns null when not visible', () => {
-    const { toJSON } = render(
-      <PerpsProviderSelectorSheet {...defaultProps} isVisible={false} />,
-    );
-
-    expect(toJSON()).toBeNull();
-  });
-
-  it('renders when visible', () => {
+  it('renders the sheet', () => {
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getByTestId('provider-sheet')).toBeTruthy();
+    expect(getByTestId('provider-sheet')).toBeOnTheScreen();
+  });
+
+  it('renders the title string in the header', () => {
+    const { getByText } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} />,
+    );
+
+    expect(getByText('perps.provider_selector.title')).toBeOnTheScreen();
   });
 
   it('renders only options matching availableProviders', () => {
@@ -135,12 +48,18 @@ describe('PerpsProviderSelectorSheet', () => {
       availableProviders: ['hyperliquid'],
     });
 
-    const { getAllByText, queryByText } = render(
+    const { getByTestId, queryByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getAllByText('HyperLiquid').length).toBeGreaterThan(0);
-    expect(queryByText('MYX')).toBeNull();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(queryByTestId('provider-sheet-option-myx-mainnet')).toBeNull();
+    expect(queryByTestId('provider-sheet-option-myx-testnet')).toBeNull();
   });
 
   it('renders all matching options when all providers available', () => {
@@ -148,12 +67,18 @@ describe('PerpsProviderSelectorSheet', () => {
       availableProviders: ['hyperliquid', 'myx'],
     });
 
-    const { getAllByText } = render(
+    const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    expect(getAllByText('HyperLiquid').length).toBeGreaterThan(0);
-    expect(getAllByText('MYX').length).toBeGreaterThan(0);
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(getByTestId('provider-sheet-option-myx-mainnet')).toBeOnTheScreen();
+    expect(getByTestId('provider-sheet-option-myx-testnet')).toBeOnTheScreen();
   });
 
   it('calls onOptionSelect when an option is pressed', async () => {
@@ -178,7 +103,7 @@ describe('PerpsProviderSelectorSheet', () => {
     );
   });
 
-  it('shows check icon for selected option', () => {
+  it('marks the selected option as selected', () => {
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet
         {...defaultProps}
@@ -187,16 +112,32 @@ describe('PerpsProviderSelectorSheet', () => {
     );
 
     expect(
-      getByTestId('provider-sheet-check-hyperliquid-mainnet'),
-    ).toBeTruthy();
+      getByTestId('provider-sheet-option-hyperliquid-mainnet').props
+        .accessibilityState?.selected,
+    ).toBe(true);
   });
 
-  it('shows testnet tag for testnet options', () => {
-    const { getAllByText } = render(
+  it('renders Mainnet and Testnet tags', () => {
+    const { getByTestId } = render(
       <PerpsProviderSelectorSheet {...defaultProps} />,
     );
 
-    // Testnet network label is rendered for testnet options
-    expect(getAllByText('Testnet').length).toBeGreaterThan(0);
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet-tag'),
+    ).toHaveTextContent('Mainnet');
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet-tag'),
+    ).toHaveTextContent('Testnet');
+  });
+
+  it('closes the sheet when header close is pressed', () => {
+    const onClose = jest.fn();
+    const { getByTestId } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} onClose={onClose} />,
+    );
+
+    fireEvent.press(getByTestId('provider-sheet-close-button'));
+
+    expect(onClose).toHaveBeenCalled();
   });
 });

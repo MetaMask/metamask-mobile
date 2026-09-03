@@ -1,12 +1,13 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Icon,
   IconName as DesignSystemIconName,
   IconSize,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -17,11 +18,6 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import { TokenDetails } from '../TokenDetails';
 import TokenDetailsListItem from '../TokenDetailsListItem';
 import { formatAddress } from '../../../../../util/address';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
-import { useTheme } from '../../../../../util/theme';
 
 interface TokenDetailsListProps {
   tokenDetails: TokenDetails;
@@ -33,23 +29,17 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
   onCopyAddress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { toastRef } = useContext(ToastContext);
-  const { colors } = useTheme();
   const tw = useTailwind();
 
   const copyAccountToClipboard = async () => {
     await ClipboardManager.setString(tokenDetails.contractAddress);
     onCopyAddress?.();
 
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: IconName.CheckBold,
-      iconColor: colors.accent03.dark,
-      backgroundColor: colors.accent03.normal,
-      labelOptions: [
-        { label: strings('account_details.account_copied_to_clipboard') },
-      ],
+    toast({
+      title: strings('account_details.account_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
+      showCloseButton: false,
     });
   };
 
@@ -68,7 +58,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
               style={tw`flex-row items-center gap-1`}
               onPress={copyAccountToClipboard}
             >
-              <Text variant={TextVariant.BodySM}>
+              <Text variant={TextVariant.BodyMD}>
                 {formatAddress(tokenDetails.contractAddress, 'short')}
               </Text>
               <Icon name={DesignSystemIconName.Copy} size={IconSize.Sm} />

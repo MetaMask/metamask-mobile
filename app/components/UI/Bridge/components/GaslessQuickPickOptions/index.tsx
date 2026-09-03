@@ -1,19 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
-import { UnifiedSwapBridgeEventName } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  UnifiedSwapBridgeEventName,
+} from '@metamask/bridge-controller';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
-import { useABTest } from '../../../../../hooks';
 import Engine from '../../../../../core/Engine';
-import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
-import {
-  NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS,
-  NUMPAD_QUICK_ACTIONS_AB_KEY,
-  NUMPAD_QUICK_ACTIONS_VARIANTS,
-  NumpadQuickActionsVariant,
-} from './abTestConfig';
+
+const QUICK_PICK_ACTIONS = [25, 50, 75, 'MAX'] as const;
+const QUICK_PICK_ACTIONS_WITHOUT_MAX = [25, 50, 75, 90] as const;
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
@@ -30,14 +28,6 @@ export const GaslessQuickPickOptions = ({
   tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
-  const { variantName, isActive } = useABTest(
-    NUMPAD_QUICK_ACTIONS_AB_KEY,
-    NUMPAD_QUICK_ACTIONS_VARIANTS,
-  );
-  const selectedVariant =
-    variantName === NumpadQuickActionsVariant.Treatment
-      ? NumpadQuickActionsVariant.Treatment
-      : NumpadQuickActionsVariant.Control;
   const trackInputAmountChange = useCallback(
     ({ inputValue, preset }: { inputValue: string; preset?: string }) => {
       Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
@@ -45,21 +35,12 @@ export const GaslessQuickPickOptions = ({
         {
           input: 'token_amount_source',
           input_value: inputValue,
+          feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
           ...(preset && { input_amount_preset: preset }),
-          // This Bridge-specific event bypasses the shared analytics wrappers,
-          // so its A/B context still needs to be attached manually here.
-          ...(isActive && {
-            active_ab_tests: [
-              createActiveABTestAssignment(
-                NUMPAD_QUICK_ACTIONS_AB_KEY,
-                variantName,
-              ),
-            ],
-          }),
         },
       );
     },
-    [isActive, variantName],
+    [],
   );
 
   const onQuickOptionPress = useCallback(
@@ -94,8 +75,8 @@ export const GaslessQuickPickOptions = ({
 
   const quickPickOptions = useMemo(() => {
     const quickActions = shouldRenderMaxOption
-      ? NUMPAD_QUICK_ACTIONS_VARIANTS[selectedVariant]
-      : NUMPAD_QUICK_ACTIONS_NO_MAX_VARIANTS[selectedVariant];
+      ? QUICK_PICK_ACTIONS
+      : QUICK_PICK_ACTIONS_WITHOUT_MAX;
     return quickActions.map((action) => {
       if (action === 'MAX') {
         return {
@@ -109,12 +90,7 @@ export const GaslessQuickPickOptions = ({
         onPress: onQuickOptionPress(action),
       };
     }) satisfies QuickPickButtonOption[];
-  }, [
-    handleTrackedMaxPress,
-    onQuickOptionPress,
-    shouldRenderMaxOption,
-    selectedVariant,
-  ]);
+  }, [handleTrackedMaxPress, onQuickOptionPress, shouldRenderMaxOption]);
 
   return <QuickPickButtons options={quickPickOptions} show />;
 };

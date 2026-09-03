@@ -1,0 +1,249 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { WebView, WebViewNavigation } from '@metamask/react-native-webview';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+  Text,
+  TextVariant,
+  HeaderStandard,
+} from '@metamask/design-system-react-native';
+import { useParams } from '../../../../../util/navigation/navUtils';
+import { strings } from '../../../../../../locales/i18n';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Logger from '../../../../../util/Logger';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+
+export interface ImmersveKYCModalParams {
+  url: string;
+  redirectUrl: string;
+}
+
+type WebViewStatus = 'loading' | 'loaded' | 'error';
+
+// Simple callback registry so the opener (ImmersveKYCProcessing) learns when the
+// webview closes. Needed because this modal is a transparentModal that keeps the
+// presenting screen mounted without blurring it, so useFocusEffect never re-fires
+// on close — mirrors RegionSelectorModal's setOnValueChange pattern.
+let onCloseCallback: (() => void) | null = null;
+
+export const setImmersveKycOnClose = (callback: () => void) => {
+  onCloseCallback = callback;
+};
+
+export const clearImmersveKycOnClose = () => {
+  onCloseCallback = null;
+};
+
+/**
+ * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
+ * — the URL Immersve sends the user to on exit — after which the modal closes
+ * and the progress screen re-polls spending-prerequisites.
+ */
+const ImmersveKYCModal: React.FC = () => {
+  const { url, redirectUrl } = useParams<ImmersveKYCModalParams>();
+  const navigation = useNavigation();
+  const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const [status, setStatus] = useState<WebViewStatus>('loading');
+  const [retryKey, setRetryKey] = useState(0);
+  const hasClosed = useRef(false);
+  const hasTrackedLoadError = useRef(false);
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            screen: CardScreens.IMMERSVE_KYC_WEBVIEW,
+          }),
+        )
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
+
+  // Any close (header back, or the Immersve page's X → redirect) re-polls the
+  // opener so it can route forward (completed) or prompt to reopen (bailed).
+  const closeModal = useCallback(
+    (reason: 'redirect' | 'dismiss') => {
+      // WebView can fire multiple navigation updates for the same redirect URL.
+      if (hasClosed.current) {
+        return;
+      }
+      hasClosed.current = true;
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action:
+                reason === 'redirect'
+                  ? CardActions.KYC_WEBVIEW_COMPLETED
+                  : CardActions.KYC_WEBVIEW_CLOSE,
+            }),
+          )
+          .build(),
+      );
+      onCloseCallback?.();
+      navigation.goBack();
+    },
+    [navigation, trackEvent, createEventBuilder],
+  );
+
+  const handleRetry = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(CardProviderIds.Immersve, {
+            action: CardActions.KYC_WEBVIEW_RETRY,
+          }),
+        )
+        .build(),
+    );
+    hasTrackedLoadError.current = false;
+    setStatus('loading');
+    setRetryKey((k) => k + 1);
+  }, [trackEvent, createEventBuilder]);
+
+  const handleLoadStart = useCallback(() => setStatus('loading'), []);
+  const handleLoadEnd = useCallback(
+    () => setStatus((s) => (s === 'error' ? s : 'loaded')),
+    [],
+  );
+  const handleError = useCallback(
+    (event?: {
+      nativeEvent?: { statusCode?: number; description?: string };
+    }) => {
+      setStatus('error');
+      // onError + onHttpError often both fire for one failure.
+      if (hasTrackedLoadError.current) {
+        return;
+      }
+      hasTrackedLoadError.current = true;
+
+      let urlHost: string | undefined;
+      let redirectHost: string | undefined;
+      try {
+        urlHost = url ? new URL(url).host : undefined;
+      } catch {
+        urlHost = undefined;
+      }
+      try {
+        redirectHost = redirectUrl ? new URL(redirectUrl).host : undefined;
+      } catch {
+        redirectHost = undefined;
+      }
+
+      Logger.error(new Error('Immersve KYC webview load failed'), {
+        tags: { feature: 'card', provider: 'immersve' },
+        context: {
+          name: 'ImmersveKYCModal',
+          data: {
+            method: 'handleError',
+            urlHost,
+            redirectHost,
+            retryKey,
+            httpStatus: event?.nativeEvent?.statusCode,
+          },
+        },
+      });
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: CardActions.KYC_WEBVIEW_LOAD_ERROR,
+            }),
+          )
+          .build(),
+      );
+    },
+    [trackEvent, createEventBuilder, url, redirectUrl, retryKey],
+  );
+
+  const handleNavigationStateChange = useCallback(
+    (navState: WebViewNavigation) => {
+      if (redirectUrl && navState.url.startsWith(redirectUrl)) {
+        closeModal('redirect');
+      }
+    },
+    [redirectUrl, closeModal],
+  );
+
+  return (
+    <View
+      style={[
+        tw.style('flex-1 bg-default'),
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+      testID="immersve-kyc-container"
+    >
+      <HeaderStandard
+        onBack={() => closeModal('dismiss')}
+        backButtonProps={{ testID: 'immersve-kyc-back-button' }}
+        twClassName="bg-background-default"
+      />
+      {status === 'error' ? (
+        <View
+          style={tw.style('flex-1 justify-center items-center p-6 gap-4')}
+          testID="immersve-kyc-error-container"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="text-error-default text-center"
+            testID="immersve-kyc-error-text"
+          >
+            {strings('card.card_onboarding.immersve_kyc_modal.load_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Md}
+            onPress={handleRetry}
+            testID="immersve-kyc-retry-button"
+          >
+            {strings('card.card_onboarding.immersve_kyc_modal.try_again')}
+          </Button>
+        </View>
+      ) : (
+        <View style={tw.style('flex-1')}>
+          <WebView
+            key={retryKey}
+            source={{ uri: url }}
+            onLoadStart={handleLoadStart}
+            onLoadEnd={handleLoadEnd}
+            onError={handleError}
+            onHttpError={handleError}
+            onNavigationStateChange={handleNavigationStateChange}
+            originWhitelist={['*']}
+            allowsInlineMediaPlayback
+            javaScriptEnabled
+            domStorageEnabled
+            mediaPlaybackRequiresUserAction={false}
+            mediaPlaybackRequiresUserGesture={false}
+            style={tw.style('flex-1')}
+            testID="immersve-kyc-webview"
+          />
+          {status === 'loading' && (
+            <View
+              style={tw.style(
+                'absolute inset-0 justify-center items-center bg-default',
+              )}
+              testID="immersve-kyc-loading"
+            >
+              <ActivityIndicator size="large" />
+            </View>
+          )}
+        </View>
+      )}
+    </View>
+  );
+};
+
+export default ImmersveKYCModal;

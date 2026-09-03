@@ -10,7 +10,6 @@ import {
   IconName,
   IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,13 +28,11 @@ interface MoneyCondensedInfoCardsProps {
 const CondensedCard = ({
   image,
   title,
-  subtitle,
   onPress,
   testID,
 }: {
   image: Pick<ImageProps, 'source' | 'style' | 'testID'>;
   title: string;
-  subtitle: string;
   onPress?: () => void;
   testID: string;
 }) => (
@@ -63,16 +60,9 @@ const CondensedCard = ({
           />
         )}
       </Box>
-      <Box twClassName="flex-1 gap-1">
+      <Box twClassName="flex-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {title}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Regular}
-          color={TextColor.TextAlternative}
-        >
-          {subtitle}
         </Text>
       </Box>
     </Box>
@@ -95,7 +85,6 @@ const MoneyCondensedInfoCards = ({
         testID: MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_IMAGE,
       }}
       title={strings('money.condensed_cards.how_it_works_title')}
-      subtitle={strings('money.condensed_cards.how_it_works_subtitle')}
       onPress={onHowItWorksPress}
       testID={MoneyCondensedInfoCardsTestIds.HOW_IT_WORKS_CARD}
     />
@@ -106,7 +95,6 @@ const MoneyCondensedInfoCards = ({
         testID: MoneyCondensedInfoCardsTestIds.MUSD_IMAGE,
       }}
       title={strings('money.condensed_cards.musd_title')}
-      subtitle={strings('money.condensed_cards.musd_subtitle')}
       onPress={onMusdPress}
       testID={MoneyCondensedInfoCardsTestIds.MUSD_CARD}
     />
@@ -117,7 +105,6 @@ const MoneyCondensedInfoCards = ({
         testID: MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_IMAGE,
       }}
       title={strings('money.condensed_cards.what_you_get_title')}
-      subtitle={strings('money.condensed_cards.what_you_get_subtitle')}
       onPress={onWhatYouGetPress}
       testID={MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD}
     />

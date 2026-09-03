@@ -339,6 +339,9 @@ describe('hyperLiquidAdapter', () => {
         reduceOnly: true,
         isPositionTpsl: false,
         triggerPrice: '25.50',
+        // perps-controller v11 normalizes the venue's placement type onto
+        // Order.triggerOrderType alongside the existing trigger fields.
+        triggerOrderType: 'stop_market',
       });
     });
 

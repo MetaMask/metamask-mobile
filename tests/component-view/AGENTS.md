@@ -112,3 +112,4 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 ## Before working
 
 - **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.
+- **Dedup** — Before adding scenarios, check sibling `ComponentName.view.test.tsx` **and** `ComponentName.test.tsx`. Prefer CV for screen behavior; see [unit-vs-component-view-overlap.md](../../docs/testing/unit-vs-component-view-overlap.md).

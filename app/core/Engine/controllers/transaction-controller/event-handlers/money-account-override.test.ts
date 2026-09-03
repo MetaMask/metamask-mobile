@@ -7,6 +7,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Engine from '../../../../Engine';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
+import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 import { handleUnapprovedTransactionAddedForMoneyAccount } from './money-account-override';
 
 jest.mock('../../../../Engine', () => ({
@@ -19,6 +20,23 @@ jest.mock('../../../../Engine', () => ({
       },
       AccountsController: {
         getSelectedAccount: jest.fn(),
+      },
+      NetworkController: {
+        findNetworkClientIdByChainId: jest.fn(
+          (chainId: string) => `client-${chainId}`,
+        ),
+        state: {
+          networkConfigurationsByChainId: {
+            '0x1': {},
+            '0x89': {},
+          },
+        },
+      },
+      AccountTrackerController: {
+        refresh: jest.fn(),
+      },
+      TokenBalancesController: {
+        updateBalances: jest.fn(),
       },
     },
   },
@@ -45,6 +63,10 @@ jest.mock(
     replaceAccountInNestedTransactions: jest.fn(),
   }),
 );
+
+jest.mock('../../../../Assets/accountGroupAssetLoader', () => ({
+  loadAssetsForAddresses: jest.fn(),
+}));
 
 const TRANSACTION_ID_MOCK = 'tx-1';
 const EVM_ADDRESS_MOCK = '0xabc0000000000000000000000000000000000001';
@@ -78,6 +100,7 @@ const getSelectedAccountMock = jest.mocked(
 const replaceAccountInNestedTransactionsMock = jest.mocked(
   replaceAccountInNestedTransactions,
 );
+const loadAssetsForAddressesMock = jest.mocked(loadAssetsForAddresses);
 
 const PRIMARY_MONEY_ACCOUNT_ADDRESS =
   '0xabc1111111111111111111111111111111111111';
@@ -86,12 +109,16 @@ describe('money-account-override', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Engine.context.TransactionPayController.state = { transactionData: {} };
+    Engine.context.NetworkController.state = {
+      networkConfigurationsByChainId: { '0x1': {}, '0x89': {} },
+    } as never;
     getSelectedAccountMock.mockReturnValue(evmAccountMock);
+    loadAssetsForAddressesMock.mockResolvedValue(undefined);
     mockPrimaryMoneyAccount = undefined;
   });
 
   describe('handleUnapprovedTransactionAddedForMoneyAccount', () => {
-    it('sets accountOverride for a moneyAccountDeposit transaction', () => {
+    it('sets accountOverride and isQuoteRequired for a moneyAccountDeposit transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
 
       expect(setTransactionConfigMock).toHaveBeenCalledWith(
@@ -100,18 +127,28 @@ describe('money-account-override', () => {
       );
 
       const callback = setTransactionConfigMock.mock.calls[0][1];
-      const config: { accountOverride?: string } = {};
+      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+        {};
       callback(config as never);
 
       expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.isQuoteRequired).toBe(true);
     });
 
-    it('sets accountOverride for a moneyAccountWithdraw transaction', () => {
+    it('sets accountOverride but not isQuoteRequired for a moneyAccountWithdraw transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(
         buildTransactionMeta({ type: TransactionType.moneyAccountWithdraw }),
       );
 
       expect(setTransactionConfigMock).toHaveBeenCalled();
+
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+        {};
+      callback(config as never);
+
+      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.isQuoteRequired).toBeUndefined();
     });
 
     it('sets accountOverride for a batch transaction containing a money-account nested tx', () => {
@@ -241,6 +278,53 @@ describe('money-account-override', () => {
       expect(replaceAccountInNestedTransactionsMock).not.toHaveBeenCalled();
     });
 
+    describe('balance refresh on override', () => {
+      it('loads assets for the override account', () => {
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ chainId: '0x1' as never }),
+        );
+
+        // Must target the override account explicitly: the balance controllers
+        // narrow to the *selected* account on their own, which is why calling
+        // them directly here never fetched anything.
+        expect(loadAssetsForAddressesMock).toHaveBeenCalledWith([
+          EVM_ADDRESS_MOCK,
+        ]);
+      });
+
+      it('does not load assets when transaction is skipped', () => {
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ type: TransactionType.simpleSend }),
+        );
+
+        expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
+      });
+
+      it('does not load assets when an override is already set', () => {
+        Engine.context.TransactionPayController.state = {
+          transactionData: {
+            [TRANSACTION_ID_MOCK]: { accountOverride: '0xExistingOverride' },
+          },
+        } as never;
+
+        handleUnapprovedTransactionAddedForMoneyAccount(
+          buildTransactionMeta({ chainId: '0x1' as never }),
+        );
+
+        expect(loadAssetsForAddressesMock).not.toHaveBeenCalled();
+      });
+
+      it('does not throw when the asset load rejects', () => {
+        loadAssetsForAddressesMock.mockRejectedValueOnce(new Error('fail'));
+
+        expect(() =>
+          handleUnapprovedTransactionAddedForMoneyAccount(
+            buildTransactionMeta({ chainId: '0x1' as never }),
+          ),
+        ).not.toThrow();
+      });
+    });
+
     describe('card-link approve matcher (MMM_CARD origin)', () => {
       it('sets accountOverride when origin is MMM_CARD and from matches the primary money account', () => {
         mockPrimaryMoneyAccount = { address: PRIMARY_MONEY_ACCOUNT_ADDRESS };
@@ -259,9 +343,11 @@ describe('money-account-override', () => {
         );
 
         const callback = setTransactionConfigMock.mock.calls[0][1];
-        const config: { accountOverride?: string } = {};
+        const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+          {};
         callback(config as never);
         expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+        expect(config.isQuoteRequired).toBe(true);
       });
 
       it('does NOT call replaceAccountInNestedTransactions for the card-link approve (single tx, no nested)', () => {

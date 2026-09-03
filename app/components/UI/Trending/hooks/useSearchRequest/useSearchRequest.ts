@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { CaipChainId } from '@metamask/utils';
 import {
   searchTokens,
@@ -6,7 +6,7 @@ import {
   TokenSecurityData,
 } from '@metamask/assets-controllers';
 import { useStableArray } from '../../../Perps/hooks/useStableArray';
-import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import { useTrendingChainIds } from '../useTrendingChainIds/useTrendingChainIds';
 
 interface SearchResult {
   assetId: CaipChainId;
@@ -44,12 +44,7 @@ export const useSearchRequest = (options: {
   } = options;
 
   // Use provided chainIds or default to trending networks
-  const chainIds = useMemo((): CaipChainId[] => {
-    if (providedChainIds.length > 0) {
-      return providedChainIds;
-    }
-    return TRENDING_NETWORKS_LIST.map((network) => network.caipChainId);
-  }, [providedChainIds]);
+  const chainIds = useTrendingChainIds(providedChainIds);
 
   // Debounce the query when enabled to avoid firing API calls on every keystroke
   const [debouncedQuery, setDebouncedQuery] = useState(query);

@@ -135,6 +135,21 @@ describe('AccountCell', () => {
     expect(getByText(expected)).toBeTruthy();
   });
 
+  it.each([
+    { currency: 'usd', expected: '$0.00' },
+    { currency: 'eur', expected: '€0.00' },
+  ])(
+    'displays an explicit zero for an empty account',
+    ({ currency, expected }) => {
+      mockBalance.value = 0;
+      mockBalance.currency = currency;
+
+      const { getByText } = renderAccountCell();
+
+      expect(getByText(expected)).toBeTruthy();
+    },
+  );
+
   it('renders menu button by default', () => {
     const { getByTestId } = renderAccountCell();
     expect(getByTestId(AccountCellIds.MENU)).toBeTruthy();
@@ -285,6 +300,7 @@ describe('AccountCell', () => {
 
     // Verify all expected test IDs are present
     expect(getByTestId(AccountCellIds.CONTAINER)).toBeTruthy();
+    expect(getByTestId(AccountCellIds.SELECT)).toBeTruthy();
     expect(getByTestId(AccountCellIds.AVATAR)).toBeTruthy();
     expect(getByTestId(AccountCellIds.ADDRESS)).toBeTruthy();
     expect(getByTestId(AccountCellIds.BALANCE)).toBeTruthy();

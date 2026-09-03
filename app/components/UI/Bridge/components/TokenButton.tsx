@@ -3,6 +3,7 @@ import {
   StyleSheet,
   ImageSourcePropType,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -16,6 +17,8 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import TokenIcon from '../../../Base/TokenIcon';
+import type { CaipAssetType } from '@metamask/utils';
+import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
 
 interface TokenProps {
   symbol?: string;
@@ -24,6 +27,7 @@ interface TokenProps {
   networkName?: string;
   testID?: string;
   onPress?: () => void;
+  securityBadgeAssetId?: CaipAssetType;
 }
 
 interface StylesParams {
@@ -41,20 +45,25 @@ const createStyles = (params: StylesParams) => {
     },
     pillContainer: {
       flexDirection: 'row' as const,
-      alignItems: 'flex-end' as const,
+      alignItems: 'center' as const,
       justifyContent: 'flex-end' as const,
-      gap: 8,
+      gap: 12,
       backgroundColor: theme.colors.background.muted,
-      borderRadius: 100,
+      borderRadius: 60,
       paddingLeft: 8,
       paddingVertical: 8,
-      paddingRight: 11,
+      paddingRight: 12,
       ...shadows.size.xs,
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: theme.typography.sHeadingLG.fontSize,
+      fontSize: theme.typography.sHeadingMD.fontSize,
       fontWeight: 500,
+    },
+    tokenSymbolRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 };
@@ -66,8 +75,10 @@ export const TokenButton: React.FC<TokenProps> = ({
   networkName,
   testID,
   onPress,
+  securityBadgeAssetId,
 }) => {
   const { styles } = useStyles(createStyles, {});
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -87,9 +98,14 @@ export const TokenButton: React.FC<TokenProps> = ({
         <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
       </BadgeWrapper>
 
-      <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
-        {symbol}
-      </Text>
+      <View style={styles.tokenSymbolRow}>
+        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingMD}>
+          {symbol}
+        </Text>
+        {securityBadgeAssetId ? (
+          <SwapsTokenSecurityBadge caipAssetId={securityBadgeAssetId} />
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
 };

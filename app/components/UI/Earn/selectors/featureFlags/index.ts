@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import {
   validatedVersionGatedFeatureFlag,
+  parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../../util/remoteFeatureFlag';
 import {
@@ -245,23 +246,6 @@ export const selectIsMusdConversionRewardsUiEnabledFlag = createSelector(
 );
 
 /**
- * Parses a comma-separated string of country codes into an array.
- * Returns empty array if input is undefined/empty.
- *
- * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
- * @returns Array of country codes
- */
-export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
-  if (!envValue || envValue.trim() === '') {
-    return [];
-  }
-  return envValue
-    .split(',')
-    .map((code) => code.trim().toUpperCase())
-    .filter((code) => code.length > 0);
-};
-
-/**
  * Selects the geo-blocked countries for mUSD conversion from remote config or local fallback.
  * Returns an array of ISO 3166-1 alpha-2 country codes (e.g., ['GB', 'US']).
  *
@@ -332,8 +316,9 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
  * Used as the fallback when the remote flag is unavailable.
  */
 export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
-  CHAIN_IDS.MAINNET, // Ethereum mainnet
-  CHAIN_IDS.LINEA_MAINNET, // Linea mainnet
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.MONAD,
 ];
 
 /**
@@ -360,20 +345,54 @@ export const selectMusdTokenRegistrationChainIds = createSelector(
   },
 );
 
+export const MUSD_BALANCE_CHAIN_IDS_FALLBACK = [
+  CHAIN_IDS.MAINNET,
+  CHAIN_IDS.LINEA_MAINNET,
+  CHAIN_IDS.MONAD,
+];
+
 /**
- * Selector for Merkl campaign claiming feature flag
- * Controls visibility of Merkl rewards claiming functionality in the UI
- *
- * @returns boolean - true if Merkl campaign claiming should be shown, false otherwise
+ * Selects the chain IDs on which mUSD token balance is tracked in useMusdBalance
  */
-export const selectMerklCampaignClaimingEnabledFlag = createSelector(
+export const selectMusdBalanceChainIds = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remoteFlag = remoteFeatureFlags?.earnMusdBalanceChainIds as
+      | { chainIds?: string[] }
+      | undefined;
+
+    if (Array.isArray(remoteFlag?.chainIds)) {
+      return remoteFlag.chainIds;
+    }
+
+    return MUSD_BALANCE_CHAIN_IDS_FALLBACK;
+  },
+);
+
+/**
+ * Selects whether the Earn section is rendered on Wallet Home.
+ */
+export const selectEarnHomeSectionEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    const localFlag = process.env.MM_EARN_MERKL_CAMPAIGN_CLAIMING === 'true';
+    const localFlag = process.env.MM_EARN_HOME_SECTION_ENABLED === 'true';
     const remoteFlag =
-      remoteFeatureFlags?.earnMerklCampaignClaiming as unknown as VersionGatedFeatureFlag;
+      remoteFeatureFlags?.earnHomeSectionEnabled as unknown as VersionGatedFeatureFlag;
 
-    // Fallback to local flag if remote flag is not available
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Earn section is rendered on Explore page.
+ */
+export const selectExploreEarnSectionEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_EXPLORE_EARN_SECTION_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.earnExploreSectionEnabled as unknown as VersionGatedFeatureFlag;
+
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );

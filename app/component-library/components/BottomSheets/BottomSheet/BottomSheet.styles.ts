@@ -12,7 +12,7 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     base: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       justifyContent: 'flex-end',
     },
   });

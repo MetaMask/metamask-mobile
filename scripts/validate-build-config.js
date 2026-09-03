@@ -19,6 +19,9 @@ const BUILDS_PATH = path.join(__dirname, '../builds.yml');
 const ENV_KEYS_ALLOWED_EMPTY = new Set([
   'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
   'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+  // Optional override for the Bridge API base URL (see app/constants/bridge.ts).
+  // Empty by default: the URL is derived from METAMASK_ENVIRONMENT.
+  'BRIDGE_USE_CUSTOM_BASE_URL',
 ]);
 
 function validate() {

@@ -1,10 +1,44 @@
-/* eslint-disable import-x/prefer-default-export */
+import type { WithSpringConfig } from 'react-native-reanimated';
 
-// External dependencies.
-import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
+export const visibilityDuration = 2750;
 
-export const TEST_ACCOUNT_ADDRESS =
-  '0x10e08af911f2e489480fb2855b24771745d0198b50f5c55891369844a8c57092';
-export const TEST_NETWORK_IMAGE_URL =
-  'https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880';
-export const TEST_AVATAR_TYPE = AvatarAccountType.JazzIcon;
+/**
+ * Spring tuned to approximate iOS system banner motion.
+ *
+ * UIKit reference: `animate(withDuration: 0.5, usingSpringWithDamping: 0.7,
+ * initialSpringVelocity: 1)`
+ *
+ * SwiftUI reference: `.snappy` / `.smooth` with minimal bounce.
+ */
+export const TOAST_SPRING_CONFIG: WithSpringConfig = {
+  dampingRatio: 0.85,
+  duration: 500,
+};
+
+/**
+ * Fraction of toast height that must be dragged upward to dismiss.
+ */
+export const TOAST_DISMISS_DISTANCE_THRESHOLD = 0.35;
+
+/**
+ * Minimum upward drag distance (px) required to dismiss,
+ * used as a floor when toast height is small.
+ */
+export const TOAST_DISMISS_MINIMUM_PX = 24;
+
+/**
+ * Upward velocity (px/s) required to dismiss via a quick swipe.
+ */
+export const TOAST_DISMISS_VELOCITY_THRESHOLD = 800;
+
+/**
+ * Minimum upward translation before the pan gesture activates,
+ * so taps and button presses still work.
+ */
+export const TOAST_SWIPE_ACTIVE_OFFSET_Y = -8;
+
+/**
+ * Horizontal movement that fails the pan gesture before it activates,
+ * so horizontal scrolls elsewhere are not captured.
+ */
+export const TOAST_SWIPE_FAIL_OFFSET_X = 20;

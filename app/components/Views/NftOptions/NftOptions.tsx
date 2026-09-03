@@ -1,4 +1,5 @@
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import React, { useRef } from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,10 +15,6 @@ import {
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import styleSheet from './NftOptions.styles';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import Engine from '../../../core/Engine';
 import { removeFavoriteCollectible } from '../../../actions/collectibles';
@@ -25,6 +22,11 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { Collectible } from '../../../components/UI/CollectibleMedia/CollectibleMedia.types';
 import Routes from '../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 interface NftOptionsRouteParams {
   collectible: Collectible;
@@ -36,7 +38,7 @@ const NftOptions = () => {
   const { collectible } = route.params;
   const { styles } = useStyles(styleSheet, {});
   const safeAreaInsets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const modalRef = useRef<ReusableModalRef>(null);
   const chainId = useSelector(selectChainId);
   const selectedAddress = useSelector(
@@ -119,7 +121,7 @@ const NftOptions = () => {
               onPress={gotToOpensea}
             >
               <Icon name={IconName.Export} style={styles.iconOs} />
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('nft_details.options.view_on_os')}
               </Text>
             </TouchableOpacity>
@@ -128,7 +130,7 @@ const NftOptions = () => {
         <View>
           <TouchableOpacity style={styles.optionButton} onPress={removeNft}>
             <Icon name={IconName.Trash} style={styles.iconTrash} />
-            <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
               {strings('nft_details.options.remove_nft')}
             </Text>
           </TouchableOpacity>

@@ -65,6 +65,24 @@ const unwrapVersionGatedFeatureFlag = (
   return undefined;
 };
 
+/**
+ * Parses a comma-separated string of country codes into an array.
+ * Used by feature flag selectors to read geo-block lists from env vars.
+ * Returns empty array if input is undefined/empty.
+ *
+ * @param envValue - Comma-separated country codes (e.g., "GB,US,FR")
+ * @returns Array of uppercased country codes with whitespace stripped
+ */
+export const parseBlockedCountriesEnv = (envValue?: string): string[] => {
+  if (!envValue || envValue.trim() === '') {
+    return [];
+  }
+  return envValue
+    .split(',')
+    .map((code) => code.trim().toUpperCase())
+    .filter((code) => code.length > 0);
+};
+
 export const validatedVersionGatedFeatureFlag = (remoteFlag: unknown) => {
   // If remote flag is overridden, return undefined to trigger caller fallback
   if (isRemoteFeatureFlagOverrideActivated) {

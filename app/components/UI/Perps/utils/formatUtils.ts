@@ -7,6 +7,8 @@ import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import {
   type FiatRangeConfig,
   formatPerpsFiat,
+  formatHyperLiquidPrice,
+  PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
 
 // Decimal formatters moved to controller for cross-platform sharing
@@ -22,6 +24,71 @@ export {
   formatFundingRate,
 } from '@metamask/perps-controller';
 export { formatPerpsFiat }; // re-export via local import (needed by formatPositiveFiat below)
+
+/**
+ * Formats a perps market price for display using Hyperliquid price precision
+ * when market size decimals are known. Falls back to the shared fiat formatter
+ * for generic fiat display sites.
+ */
+export const formatPerpsPrice = (
+  price: number | string,
+  options?: {
+    szDecimals?: number | null;
+    includeCurrencySymbol?: boolean;
+  },
+): string => {
+  const includeCurrencySymbol = options?.includeCurrencySymbol ?? true;
+  const numericPrice =
+    typeof price === 'number' ? price : Number.parseFloat(String(price));
+
+  if (Number.isNaN(numericPrice) || !Number.isFinite(numericPrice)) {
+    return '$---';
+  }
+
+  const fallback = () =>
+    formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
+
+  if (options?.szDecimals === undefined || options.szDecimals === null) {
+    return fallback();
+  }
+
+  try {
+    const formattedPrice = formatHyperLiquidPrice({
+      price,
+      szDecimals: options.szDecimals,
+    });
+    return includeCurrencySymbol ? `$${formattedPrice}` : formattedPrice;
+  } catch {
+    return fallback();
+  }
+};
+
+/**
+ * Formats one side of a position's take profit / stop loss summary.
+ *
+ * A position can carry several reduce-only trigger orders on the same side, and the controller's
+ * summary price then describes none of them — it reports the tally in `takeProfitCount` /
+ * `stopLossCount` for clients to render instead. A single order keeps showing its trigger price,
+ * whether or not it closes the whole position. Returns `null` when the side has neither, so each
+ * card can apply its own empty state.
+ */
+export const formatPositionTriggerSummary = (params: {
+  count?: number;
+  price?: string | null;
+  szDecimals?: number | null;
+}): string | null => {
+  const { count = 0, price, szDecimals } = params;
+
+  if (count > 1) {
+    return strings('perps.position.card.tpsl_count_multiple', { count });
+  }
+
+  if (price && parseFloat(price) > 0) {
+    return formatPerpsPrice(price, { szDecimals });
+  }
+
+  return null;
+};
 
 /**
  * Truncates a number to 2 decimal places without rounding up.
@@ -280,6 +347,19 @@ export const formatVolume = (
 };
 
 /**
+ * Formats coin (base-asset) volume with the same magnitude suffixes as
+ * {@link formatVolume}, without a fiat `$` prefix.
+ * Candle volume from Hyperliquid is denominated in coins, not USD.
+ *
+ * @example formatCoinVolume(0.33) => "0.33"
+ * @example formatCoinVolume(123456) => "123K"
+ */
+export const formatCoinVolume = (
+  volume: string | number,
+  decimals?: number,
+): string => formatVolume(volume, decimals).replace('$', '');
+
+/**
  * Formats leverage value with 'x' suffix
  * @param leverage - Raw leverage multiplier value
  * @returns Format: "X.Xx" (1 decimal place with 'x' suffix)
@@ -412,6 +492,48 @@ export const formatOrderCardDate = (timestamp: number): string => {
     hour12: true,
   }).format(date);
   return `${dateStr} at ${timeStr}`;
+};
+
+const PRO_ORDER_CARD_MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+const padTwoDigits = (value: number): string => String(value).padStart(2, '0');
+
+/**
+ * Formats an open-order placement timestamp for Pro order cards.
+ * Matches Figma: "06 Apr 26 • 19:13:54"
+ *
+ * Built only from Date getters — Hermes `formatToParts` often omits
+ * hour/minute/second and renders as "06 Apr 26 • ::".
+ *
+ * @param timestamp - Unix timestamp in milliseconds
+ */
+export const formatProOrderCardTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  const day = padTwoDigits(date.getDate());
+  const month = PRO_ORDER_CARD_MONTHS[date.getMonth()];
+  const year = String(date.getFullYear()).slice(-2);
+  const hours = padTwoDigits(date.getHours());
+  const minutes = padTwoDigits(date.getMinutes());
+  const seconds = padTwoDigits(date.getSeconds());
+
+  return `${day} ${month} ${year} • ${hours}:${minutes}:${seconds}`;
 };
 
 /**

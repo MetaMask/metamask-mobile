@@ -2,14 +2,12 @@ import React from 'react';
 import { Text } from 'react-native';
 import { RootState } from '../../reducers';
 import {
-  selectedAccountNativeTokenCachedBalanceByChainId,
-  selectAccountTokensAcrossChains,
-  selectNativeEvmAsset,
-  selectStakedEvmAsset,
-  selectEvmTokens,
-  selectEvmTokensWithZeroBalanceFilter,
-  makeSelectAssetByAddressAndChainId,
+  selectedAccountNativeTokenCachedBalanceByChainIdForAddress,
+  selectAccountTokensAcrossChainsForAddress,
+  selectNativeTokensAcrossChainsForAddress,
 } from './evm';
+import { selectAllTokens } from '../tokensController';
+import { TokenI } from '../../components/UI/Tokens/types';
 import { SolScope } from '@metamask/keyring-api';
 import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import {
@@ -148,10 +146,14 @@ describe('Multichain Selectors', () => {
     },
   } as unknown as RootState;
 
-  describe('selectedAccountNativeTokenCachedBalanceByChainId', () => {
-    it('should return native token balances for all chains', () => {
-      const result =
-        selectedAccountNativeTokenCachedBalanceByChainId(mockState);
+  const MOCK_SELECTED_ADDRESS = '0xAddress1';
+
+  describe('selectedAccountNativeTokenCachedBalanceByChainIdForAddress', () => {
+    it('returns native token balances for every chain', () => {
+      const result = selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+        mockState,
+        MOCK_SELECTED_ADDRESS,
+      );
       expect(result).toEqual({
         '0x1': {
           balance: '0x1',
@@ -168,32 +170,21 @@ describe('Multichain Selectors', () => {
       });
     });
 
-    it('should return empty object when no account is selected', () => {
-      const stateWithoutAccount = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: undefined,
-                accounts: {},
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result =
-        selectedAccountNativeTokenCachedBalanceByChainId(stateWithoutAccount);
+    it('returns an empty object when no address is provided', () => {
+      const result = selectedAccountNativeTokenCachedBalanceByChainIdForAddress(
+        mockState,
+        undefined,
+      );
       expect(result).toEqual({});
     });
   });
 
-  describe('selectAccountTokensAcrossChains', () => {
-    it('should return tokens across all chains for selected account', () => {
-      const result = selectAccountTokensAcrossChains(mockState);
+  describe('selectAccountTokensAcrossChainsForAddress', () => {
+    it('returns tokens across all chains for the given account', () => {
+      const result = selectAccountTokensAcrossChainsForAddress(
+        mockState,
+        MOCK_SELECTED_ADDRESS,
+      );
       expect(result).toHaveProperty('0x1');
 
       const chain1Tokens = result['0x1'] || [];
@@ -218,8 +209,11 @@ describe('Multichain Selectors', () => {
       expect(tk1Token?.isNative).toBe(false);
     });
 
-    it('should handle multiple chains correctly', () => {
-      const result = selectAccountTokensAcrossChains(mockState);
+    it('includes tokens from every configured chain', () => {
+      const result = selectAccountTokensAcrossChainsForAddress(
+        mockState,
+        MOCK_SELECTED_ADDRESS,
+      );
       expect(result).toHaveProperty('0x89');
       const polygonTokens = result['0x89'];
       expect(polygonTokens.length).toBeGreaterThan(0);
@@ -227,906 +221,170 @@ describe('Multichain Selectors', () => {
     });
   });
 
-  describe('selectNativeEvmAsset', () => {
-    const testState: RootState = {
-      engine: {
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          AccountTrackerController: {
-            accountsByChainId: {},
-          },
-          NetworkController: {
-            ...mockState.engine.backgroundState.NetworkController,
-            selectedNetworkClientId: '0x1',
-          },
-          AccountsController: {
-            internalAccounts: {
-              selectedAccount: '',
-              accounts: {},
-            },
-          },
-        },
-      },
-      settings: {
-        showFiatOnTestnets: true,
-      },
-    } as unknown as RootState;
-    it('should return undefined if accountBalanceByChainId is not provided', () => {
-      const result = selectNativeEvmAsset(testState);
-      expect(result).toBeUndefined();
-    });
+  describe('selectAccountTokensAcrossChainsForAddress memoization', () => {
+    const POLYGON_NATIVE_TOKEN_ADDRESS =
+      '0x0000000000000000000000000000000000001010';
 
-    it('should return the correct native EVM asset structure', () => {
-      const result = selectNativeEvmAsset(mockState);
-
-      expect(result).toEqual({
-        decimals: 18,
-        name: 'Ethereum',
-        symbol: 'ETH',
-        isETH: true,
-        balance: '< 0.00001',
-        balanceFiat: '$0',
-        logo: '../images/eth-logo-new.png',
-        address: zeroAddress(),
-      });
-    });
-
-    it('should return asset name as ticker if not ETH', () => {
-      const testStateOverride = {
-        ...testState,
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkController: {
-              ...mockState.engine.backgroundState.NetworkController,
-              selectedNetworkClientId: '0x89',
-            },
-          },
-        },
-      } as unknown as RootState;
-      const result = selectNativeEvmAsset(testStateOverride);
-
-      expect(result).toEqual({
-        decimals: 18,
-        name: 'POL',
-        symbol: 'POL',
-        isETH: true,
-        balance: '< 0.00001',
-        balanceFiat: '$0',
-        logo: '../images/eth-logo-new.png',
-        address: zeroAddress(),
-      });
-    });
-  });
-
-  describe('selectStakedEvmAsset', () => {
-    it('should return undefined if accountBalanceByChainId is not provided', () => {
-      const testState: RootState = {
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {},
-            },
-            AccountsController: {
-              internalAccounts: {
-                selectedAccount: '',
-                accounts: {},
-              },
-            },
-          },
-        },
-        settings: {
-          showFiatOnTestnets: true,
-        },
-      } as unknown as RootState;
-
-      const result = selectStakedEvmAsset(testState);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined if stakedBalance is missing', () => {
-      const testState: RootState = {
-        ...mockState,
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  balance: '0x1', // 1 ETH
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectStakedEvmAsset(testState);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined if stakedBalance is zero', () => {
-      const testState: RootState = {
-        ...mockState,
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  balance: '0x1',
-                  stakedBalance: '0x2',
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectStakedEvmAsset(testState);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined if nativeAsset is missing', () => {
-      const testState: RootState = {
-        ...mockState,
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  balance: '0x1',
-                  stakedBalance: '0x2',
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectStakedEvmAsset(testState);
-      expect(result).toBeUndefined();
-    });
-
-    it('should return the correct staked EVM asset structure', () => {
-      const result = selectStakedEvmAsset(mockState);
-
-      expect(result).toEqual({
-        decimals: 18,
-        name: 'Staked Ethereum',
-        symbol: 'ETH',
-        isETH: true,
-        isStaked: true,
-        balance: '< 0.00001',
-        balanceFiat: '$0',
-        logo: '../images/eth-logo-new.png',
-        address: zeroAddress(),
-      });
-    });
-  });
-
-  describe('selectEvmTokensWithZeroBalanceFilter', () => {
-    it('should return the same memoized reference, when called with the same state', () => {
-      const result1 = selectEvmTokensWithZeroBalanceFilter(mockState);
-      const result2 = selectEvmTokensWithZeroBalanceFilter(mockState);
-      expect(result1 === result2).toBe(true);
-    });
-
-    it('should return all tokens when hideZeroBalanceTokens is false', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: false },
-      } as unknown as RootState;
-
-      const result = selectEvmTokensWithZeroBalanceFilter(testState);
-
-      expect(result).toBeDefined();
-      expect(result.length).toBeGreaterThan(0); // Ensure all tokens are returned
-    });
-
-    it('should filter out zero balance tokens when hideZeroBalanceTokens is true', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0xAddress1': {
-                    balance: '0x0',
-                    stakedBalance: '0x0',
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0xAddress1': {
-                  '0x1': {
-                    '0xToken1': '0x0', // Simulating zero balance token
-                  },
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokensWithZeroBalanceFilter(testState);
-
-      expect(result).toBeDefined();
-      expect(result.length).toBe(0); // Should remove all tokens with zero balance
-    });
-
-    it('should keep native tokens when on current network, even if zero balance', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0xAddress1': {
-                    balance: '0x0',
-                    stakedBalance: '0x0', // simulating a staked balance
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0xAddress1': {
-                  '0x1': {
-                    '0xToken1': '0x0',
-                  },
-                },
-              },
-            },
-            PreferencesController: {
-              tokenNetworkFilter: {
-                '0x1': true, // user is on "current network" filter, since NetworkController has multiple networks, and we are only filtering to one chain here
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokensWithZeroBalanceFilter(testState);
-      expect(result).toBeDefined();
-      expect(result.every((token) => token.isNative === true)).toBeTruthy();
-      expect(result.every((token) => token.balance === '0')).toBeTruthy();
-      expect(
-        result.some((token) => token.name === 'Staked Ethereum'),
-      ).toBeTruthy();
-      expect(result.length).toBe(3); // Native tokens should remain and Staked Ethereum
-    });
-  });
-
-  describe('selectEvmTokens', () => {
-    it('should return the same memoized reference, when called with the same state', () => {
-      const result1 = selectEvmTokens(mockState);
-      const result2 = selectEvmTokens(mockState);
-      expect(result1 === result2).toBe(true);
-    });
-
-    it('should return all tokens when hideZeroBalanceTokens is false', () => {
-      const result = selectEvmTokens(mockState);
-      expect(result).toBeDefined();
-      expect(result.length).toBeGreaterThan(0);
-    });
-
-    it('should filter out zero balance tokens when hideZeroBalanceTokens is true', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0xAddress1': {
-                    balance: '0x0',
-                    stakedBalance: '0x0',
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0xAddress1': {
-                  '0x1': {
-                    '0xToken1': '0x0',
-                  },
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-      expect(result).toBeDefined();
-      expect(result.length).toBe(0); // All tokens have zero balance, so none should be returned
-    });
-
-    it('when filtering to a single network, should filter out all zero balance tokens when hideZeroBalanceTokens is true', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: {
-                  '0x1': true, // user is filtering to only Ethereum Mainnet
-                },
-              },
-            },
-            NetworkController: {
-              networkConfigurationsByChainId: {
-                '0x1': {
-                  chainId: '0x1',
-                  name: 'Ethereum Mainnet',
-                  nativeCurrency: 'ETH',
-                  rpcEndpoints: [{ networkClientId: '0x1' }],
-                },
-              },
-            },
-            AccountTrackerController: {
-              accountsByChainId: {
-                '0x1': {
-                  '0xAddress1': {
-                    balance: '0x0',
-                    stakedBalance: '0x2', // simulating a staked balance
-                  },
-                },
-              },
-            },
-            TokenBalancesController: {
-              tokenBalances: {
-                '0xAddress1': {
-                  '0x1': {
-                    '0xToken1': '0x0',
-                  },
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-      expect(result).toBeDefined();
-      // After refactor: filtering by enabled networks no longer has special "current network only" mode
-      // that would keep native/staked tokens with zero balance. Now it simply filters by enabled networks.
-      // The old behavior of keeping native/staked tokens depended on selectIsTokenNetworkFilterEqualCurrentNetwork
-      // which uses the deprecated tokenNetworkFilter system.
-      expect(result.length).toBe(1); // Only staked token with non-zero balance should be returned
-      expect(result[0].isStaked).toBe(true);
-    });
-
-    it('should return tokens only for enabled networks', () => {
-      const testState = {
-        ...mockState,
-        settings: { ...mockState.settings, hideZeroBalanceTokens: true },
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: {
-                  '0x89': true, // user only wants to see tokens on Polygon
-                },
-              },
-            },
-            NetworkController: {
-              networkConfigurationsByChainId: {
-                '0x1': {
-                  chainId: '0x1',
-                  name: 'Ethereum Mainnet',
-                  nativeCurrency: 'ETH',
-                  rpcEndpoints: [{ networkClientId: '0x1' }],
-                },
-                '0x89': {
-                  chainId: '0x89',
-                  name: 'Polygon',
-                  nativeCurrency: 'POL',
-                  rpcEndpoints: [{ networkClientId: '0x89' }],
-                },
-              },
-              selectedNetworkClientId: '0x89',
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-      expect(result).toBeDefined();
-      expect(result.every((token) => token.chainId === '0x89')).toBeTruthy();
-    });
-
-    it('should return only tokens from popular EVM networks when selected', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            TokensController: {
-              allTokens: {
-                // chain not in popular networks
-                '0x99': {
-                  '0xAddress1': [
-                    {
-                      address: '0xUnpopularToken',
-                      symbol: 'TKN9',
-                      decimals: 18,
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-      expect(result).toBeDefined();
-      expect(result.some((token) => token.chainId === '0x99')).toBeFalsy();
-      expect(
-        result.every(
-          (token) => token.chainId === '0x89' || token.chainId === '0x1',
-        ),
-      ).toBeTruthy();
-    });
-
-    it('should categorize native and non-native tokens correctly', () => {
-      const result = selectEvmTokens(mockState);
-
-      const nativeTokens = result.filter((token) => token.isNative);
-      const nonNativeTokens = result.filter((token) => !token.isNative);
-
-      expect(nativeTokens.length).toBeGreaterThan(0);
-      expect(nonNativeTokens.length).toBeGreaterThan(0);
-    });
-
-    it('should filter out testnet tokens if the all networks filter is selected', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            TokensController: {
-              allTokens: {
-                // sepolia
-                '0xaa36a7': {
-                  '0xAddress1': [
-                    {
-                      address: '0xTestnetToken',
-                      symbol: 'TEST1',
-                      decimals: 18,
-                    },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-      expect(result).toBeDefined();
-      expect(
-        result.find((token) => token.chainId === '0xaa36a7'),
-      ).toBeUndefined();
-    });
-
-    it('should render native and staked assets in state when no erc20 tokens are present', () => {
-      const nativeAndStakedTestState = {
-        ...mockState,
-        engine: {
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            TokensController: {
-              allTokens: {},
-            },
-            AccountTrackerController: {
-              accountsByChainId: {
-                [CHAIN_IDS.MAINNET]: {
-                  '0xAddress1': {
-                    balance: '0x1',
-                    stakedBalance: '0x2',
-                  },
-                },
-              },
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(nativeAndStakedTestState);
-      expect(result).toBeDefined();
-      expect(result.length).toBe(3);
-
-      // Check for Staked Ethereum
-      const stakedEth = result.find(
-        (token) => token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
-      );
-      expect(stakedEth).toBeDefined();
-      expect(stakedEth?.chainId).toBe(CHAIN_IDS.MAINNET);
-      expect(stakedEth?.name).toBe('Staked Ethereum');
-
-      // Check for Native Ethereum
-      const nativeEth = result.find(
-        (token) => !token.isStaked && token.chainId === CHAIN_IDS.MAINNET,
-      );
-      expect(nativeEth).toBeDefined();
-      expect(nativeEth?.chainId).toBe(CHAIN_IDS.MAINNET);
-      expect(nativeEth?.name).toBe('Ethereum');
-
-      // Check for Native Polygon
-      const nativePol = result.find(
-        (token) => !token.isStaked && token.chainId === CHAIN_IDS.POLYGON,
-      );
-      expect(nativePol).toBeDefined();
-      expect(nativePol?.chainId).toBe(CHAIN_IDS.POLYGON);
-      expect(nativePol?.name).toBe('POL');
-    });
-  });
-
-  describe('Network Manager filtering', () => {
-    // Common test configurations
-    const createTestStateWithEnabledNetworks = (
-      enabledNetworks: Record<string, boolean>,
-    ) =>
+    // Produces a new root state object with a slice the selector never reads,
+    // standing in for the unrelated dispatches that happen constantly at runtime.
+    const withUnrelatedSliceChange = (nonce: number) =>
       ({
         ...mockState,
         engine: {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: enabledNetworks,
-              },
-            },
-            // Ensure only enabled networks have tokens
-            TokensController: {
-              ...mockState.engine.backgroundState.TokensController,
-              allTokens: Object.fromEntries(
-                Object.entries(
-                  mockState.engine.backgroundState.TokensController.allTokens,
-                ).filter(
-                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
-                ),
-              ),
-            },
-            // Ensure only enabled networks have account balances
-            AccountTrackerController: {
-              ...mockState.engine.backgroundState.AccountTrackerController,
-              accountsByChainId: Object.fromEntries(
-                Object.entries(
-                  mockState.engine.backgroundState.AccountTrackerController
-                    .accountsByChainId,
-                ).filter(
-                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
-                ),
-              ),
-            },
-            // Ensure only enabled networks have network configurations
-            NetworkController: {
-              ...mockState.engine.backgroundState.NetworkController,
-              networkConfigurationsByChainId: Object.fromEntries(
-                Object.entries(
-                  mockState.engine.backgroundState.NetworkController
-                    .networkConfigurationsByChainId,
-                ).filter(
-                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
-                ),
-              ),
-            },
+            GasFeeController: { gasFeeEstimates: { nonce } },
           },
         },
       }) as unknown as RootState;
 
-    it('should filter tokens by enabled networks', () => {
-      const testState = createTestStateWithEnabledNetworks({
-        '0x1': true, // Only Ethereum enabled
-        '0x89': false, // Polygon disabled
-      });
-
-      const result = selectEvmTokens(testState);
-
-      expect(result.every((token) => token.chainId === '0x1')).toBe(true);
-    });
-
-    it('should fall back to default behavior when enabledNetworksByNamespace is undefined', () => {
-      const testState = {
+    const withExtraMainnetToken = () =>
+      ({
         ...mockState,
         engine: {
           ...mockState.engine,
           backgroundState: {
             ...mockState.engine.backgroundState,
-            NetworkEnablementController: undefined,
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-
-      // Should return all tokens as fallback behavior (same as when feature flag is disabled)
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-    });
-
-    it('should fall back to default behavior when NetworkEnablementController is missing', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {},
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-
-      // Should return all tokens as fallback behavior
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-    });
-
-    it('should fall back to default behavior when enabledNetworkMap is undefined', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: undefined,
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-
-      // Should return all tokens as fallback behavior
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-    });
-
-    it('should fall back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                // Missing eip155 key
-                bitcoin: {
-                  'bip122:000000000019d6689c085ae165831e93': true,
+            TokensController: {
+              allTokens: {
+                '0x1': {
+                  '0xAddress1': [
+                    ...mockState.engine.backgroundState.TokensController
+                      .allTokens['0x1']['0xAddress1'],
+                    {
+                      address: '0xToken2',
+                      symbol: 'TK2',
+                      decimals: 18,
+                      balance: '2000000000000000000',
+                    },
+                  ],
                 },
               },
             },
           },
         },
-      } as unknown as RootState;
+      }) as unknown as RootState;
 
-      const result = selectEvmTokens(testState);
+    const selectTokensForMockAccount = (state: RootState) =>
+      selectAccountTokensAcrossChainsForAddress(state, MOCK_SELECTED_ADDRESS);
 
-      // Should return all tokens as fallback behavior
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+    beforeEach(() => {
+      selectAllTokens.clearCache();
+      selectedAccountNativeTokenCachedBalanceByChainIdForAddress.clearCache();
+      selectNativeTokensAcrossChainsForAddress.clearCache();
+      selectAccountTokensAcrossChainsForAddress.clearCache();
     });
 
-    it('should fall back to default behavior when EIP-155 entry is null', () => {
-      const testState = {
-        ...mockState,
-        engine: {
-          ...mockState.engine,
-          backgroundState: {
-            ...mockState.engine.backgroundState,
-            NetworkEnablementController: {
-              enabledNetworkMap: {
-                eip155: null,
-              },
-            },
-          },
+    it('aggregates native, staked and ERC20 tokens per chain', () => {
+      const result = selectTokensForMockAccount(mockState);
+      const summarize = (tokens: TokenI[]) =>
+        tokens.map((token) => ({
+          address: token.address,
+          name: token.name,
+          symbol: token.symbol,
+          balance: token.balance,
+          balanceFiat: token.balanceFiat,
+          isNative: token.isNative,
+          isStaked: token.isStaked,
+        }));
+
+      expect(Object.keys(result)).toStrictEqual(['0x1', '0x89']);
+      expect(summarize(result['0x1'] as TokenI[])).toStrictEqual([
+        {
+          address: zeroAddress(),
+          name: 'Ethereum',
+          symbol: 'Ethereum',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: false,
         },
-      } as unknown as RootState;
-
-      const result = selectEvmTokens(testState);
-
-      // Should return all tokens as fallback behavior
-      expect(result.length).toBeGreaterThan(0);
-      expect(result.some((token) => token.chainId === '0x1')).toBe(true);
-      expect(result.some((token) => token.chainId === '0x89')).toBe(true);
-    });
-  });
-
-  describe('makeSelectAssetByAddressAndChainId', () => {
-    const mockAccountId = '0xAddress1';
-    const mockAllTokens = {
-      [CHAIN_IDS.MAINNET]: {
-        [mockAccountId]: [
-          {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            symbol: 'USDC',
-            decimals: 6,
-            name: 'USDC',
-          },
-          {
-            address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-            symbol: 'DAI',
-            decimals: 18,
-            name: 'Dai Stablecoin',
-          },
-        ],
-      },
-      [CHAIN_IDS.POLYGON]: {
-        [mockAccountId]: [
-          {
-            address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-            symbol: 'CAKE',
-            decimals: 18,
-            image:
-              'https://static.cx.metamask.io/api/v1/tokenIcons/59144/0x0d1e753a25ebda689453309112904807625befbe.png',
-            aggregators: ['CoinGecko', 'Lifi', 'Rubic'],
-          },
-        ],
-      },
-    };
-
-    const testState: RootState = {
-      ...mockState,
-      engine: {
-        ...mockState.engine,
-        backgroundState: {
-          ...mockState.engine.backgroundState,
-          MultichainNetworkController: {
-            ...mockState.engine.backgroundState.MultichainNetworkController,
-            isEvmSelected: true,
-          },
-          TokensController: {
-            allTokens: mockAllTokens,
-          },
+        {
+          address: zeroAddress(),
+          name: 'Staked Ethereum',
+          symbol: 'Ethereum',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: true,
         },
-      },
-    } as unknown as RootState;
-
-    it('should return undefined when EVM network is not selected', () => {
-      const stateWithNonEvmNetwork = {
-        ...testState,
-        engine: {
-          ...testState.engine,
-          backgroundState: {
-            ...testState.engine.backgroundState,
-            MultichainNetworkController: {
-              ...testState.engine.backgroundState.MultichainNetworkController,
-              isEvmSelected: false,
-            },
-          },
+        {
+          address: '0xToken1',
+          name: undefined,
+          symbol: 'TK1',
+          balance: '1000000000000000000',
+          balanceFiat: '',
+          isNative: false,
+          isStaked: false,
         },
-      } as unknown as RootState;
-
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(stateWithNonEvmNetwork, {
-        address: '0x123',
-        chainId: '0x1',
-      });
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined for non-existent token', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0x999',
-        chainId: '0x1',
-      });
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return undefined for non-existent chain', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0x123',
-        chainId: '0x999',
-      });
-
-      expect(result).toBeUndefined();
-    });
-
-    it('should return the correct token for valid address and chainId', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        chainId: '0x1',
-      });
-
-      expect(result).toHaveProperty(
-        'address',
-        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-      );
-      expect(result).toHaveProperty('chainId', '0x1');
-      expect(result).toHaveProperty('symbol', 'USDC');
-    });
-
-    it('should handle different chain IDs correctly', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0x0D1E753a25eBda689453309112904807625bEFBe',
-        chainId: CHAIN_IDS.POLYGON,
-      });
-
-      expect(result).toHaveProperty(
-        'address',
-        '0x0D1E753a25eBda689453309112904807625bEFBe',
-      );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.POLYGON);
-      expect(result).toHaveProperty('symbol', 'CAKE');
-      expect(result).toHaveProperty('aggregators', [
-        'CoinGecko',
-        'Lifi',
-        'Rubic',
+      ]);
+      expect(summarize(result['0x89'] as TokenI[])).toStrictEqual([
+        {
+          address: POLYGON_NATIVE_TOKEN_ADDRESS,
+          name: 'POL',
+          symbol: 'POL',
+          balance: '< 0.00001',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: false,
+        },
+        {
+          address: POLYGON_NATIVE_TOKEN_ADDRESS,
+          name: 'Staked Ethereum',
+          symbol: 'POL',
+          balance: '0',
+          balanceFiat: '$0',
+          isNative: true,
+          isStaked: true,
+        },
       ]);
     });
 
-    it('should handle non-native tokens correctly', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-        chainId: CHAIN_IDS.MAINNET,
-      });
+    it('returns the same reference when an unrelated slice changes', () => {
+      const first = selectTokensForMockAccount(mockState);
+      const second = selectTokensForMockAccount(withUnrelatedSliceChange(1));
 
-      expect(result).toHaveProperty(
-        'address',
-        '0x6B175474E89094C44Da98b954EedeAC495271d0F',
-      );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
-      expect(result).toHaveProperty('symbol', 'DAI');
-      expect(result).toHaveProperty('name', 'Dai Stablecoin');
+      expect(second).toBe(first);
     });
 
-    it('should handle case-insensitive address matching', () => {
-      const selector = makeSelectAssetByAddressAndChainId();
-      const result = selector(testState, {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // Different case
-        chainId: CHAIN_IDS.MAINNET,
-      });
+    it('does not re-run the token aggregation when an unrelated slice changes', () => {
+      selectTokensForMockAccount(mockState);
+      const recomputationsBefore =
+        selectAccountTokensAcrossChainsForAddress.recomputations();
 
-      expect(result).toHaveProperty(
-        'address',
-        '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      selectTokensForMockAccount(withUnrelatedSliceChange(1));
+      selectTokensForMockAccount(withUnrelatedSliceChange(2));
+
+      expect(selectAccountTokensAcrossChainsForAddress.recomputations()).toBe(
+        recomputationsBefore,
       );
-      expect(result).toHaveProperty('chainId', CHAIN_IDS.MAINNET);
-      expect(result).toHaveProperty('symbol', 'USDC');
-      expect(result).toHaveProperty('name', 'USDC');
+    });
+
+    it('re-runs the token aggregation when the token slice changes', () => {
+      selectTokensForMockAccount(mockState);
+      const recomputationsBefore =
+        selectAccountTokensAcrossChainsForAddress.recomputations();
+
+      selectTokensForMockAccount(withExtraMainnetToken());
+
+      expect(selectAccountTokensAcrossChainsForAddress.recomputations()).toBe(
+        recomputationsBefore + 1,
+      );
+    });
+
+    it('includes the added token once the token slice changes', () => {
+      selectTokensForMockAccount(mockState);
+
+      const after = selectTokensForMockAccount(withExtraMainnetToken());
+
+      expect(after['0x1'].some((token) => token.symbol === 'TK2')).toBe(true);
+    });
+
+    it('returns an empty map when no address is provided', () => {
+      expect(
+        selectAccountTokensAcrossChainsForAddress(mockState, undefined),
+      ).toStrictEqual({});
     });
   });
 });
@@ -1245,10 +503,10 @@ describe('re-renders', () => {
   beforeEach(() => {
     mockRenderCall.mockReset();
     // Clear memoized selectors for each test
-    selectAccountTokensAcrossChains.memoizedResultFunc.clearCache();
+    selectAccountTokensAcrossChainsForAddress.clearCache();
     const MockComponent = () => {
-      const selectedAccountTokensChains = useSelector(
-        selectAccountTokensAcrossChains,
+      const selectedAccountTokensChains = useSelector((state: RootState) =>
+        selectAccountTokensAcrossChainsForAddress(state, mockAccountId),
       );
       mockRenderCall();
       return (
@@ -1304,10 +562,13 @@ describe('re-renders', () => {
     expect(getByText(newToken.name)).toBeDefined();
   });
 
-  it('should return exactly same data if state does not change', async () => {
+  it('returns identical data when state does not change', async () => {
     expect(mockRenderCall).toHaveBeenCalledTimes(1);
     mockRenderCall.mockReset();
-    const result1 = selectAccountTokensAcrossChains(mockState);
+    const result1 = selectAccountTokensAcrossChainsForAddress(
+      mockState,
+      mockAccountId,
+    );
 
     Engine.state.TokensController.allTokens = mockAllTokens;
 
@@ -1320,7 +581,10 @@ describe('re-renders', () => {
       });
     });
 
-    const result2 = selectAccountTokensAcrossChains(mockState);
+    const result2 = selectAccountTokensAcrossChainsForAddress(
+      mockState,
+      mockAccountId,
+    );
 
     expect(result1 === result2).toBe(true);
     // same data should not trigger re-render

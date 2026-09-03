@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
-import type { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import type { QuoteResponse } from '@metamask/bridge-controller';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 
 import {
@@ -11,9 +11,10 @@ import {
   DummyQuotesWithApproval,
 } from '../../../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../constants/bridge';
 import { useSubmitBatchSellTx } from '.';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 
 let mockSubmitBatchSell: jest.Mock<
   Promise<TransactionMeta>,
@@ -49,6 +50,23 @@ jest.mock('../../../../../core/Engine', () => {
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   ...jest.requireActual('../../../../../selectors/smartTransactionsController'),
   selectShouldUseSmartTransaction: jest.fn(() => true),
+}));
+
+const { selectShouldUseSmartTransaction: mockSelectShouldUseSmartTransaction } =
+  jest.requireMock('../../../../../selectors/smartTransactionsController');
+
+const mockSourceTokens = [
+  {
+    address: '0x1111111111111111111111111111111111111111',
+    chainId: '0x1',
+    decimals: 18,
+    symbol: 'ETH',
+  },
+];
+
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectBatchSellSourceTokens: jest.fn(() => mockSourceTokens),
 }));
 
 jest.mock('../../../../../selectors/bridge', () => ({
@@ -136,6 +154,7 @@ describe('useSubmitBatchSellTx', () => {
       isStxEnabled: true,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination: 'Malicious',
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(txResult).toEqual(mockBatchSellResult);
   });
@@ -152,5 +171,16 @@ describe('useSubmitBatchSellTx', () => {
         quoteResponses: [],
       }),
     ).rejects.toThrow('Batch Sell wallet address is not set');
+  });
+
+  it('passes the normalized source chain ID to selectShouldUseSmartTransaction', () => {
+    renderHook(() => useSubmitBatchSellTx(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(mockSelectShouldUseSmartTransaction).toHaveBeenCalledWith(
+      expect.anything(),
+      '0x1',
+    );
   });
 });

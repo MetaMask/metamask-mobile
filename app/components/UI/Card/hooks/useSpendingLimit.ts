@@ -11,6 +11,8 @@ import {
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
@@ -46,6 +48,7 @@ import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
 import useMoneyAccountCardLinkage from './useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../Money/hooks/useMoneyAccountBalance';
+import useMoneyVaultApy from '../../Money/hooks/useMoneyVaultApy';
 import { useCardHomeData } from './useCardHomeData';
 import {
   ToastContext,
@@ -55,7 +58,8 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { CardActions, CardScreens } from '../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 
 export type LimitType = 'full' | 'restricted';
 
@@ -74,6 +78,7 @@ export interface UseSpendingLimitReturn {
   limitType: LimitType;
   customLimit: string;
   isLoading: boolean;
+  isUiInteractionLocked: boolean;
 
   // Handlers
   setSelectedToken: (token: CardFundingToken | null) => void;
@@ -100,10 +105,12 @@ export interface UseSpendingLimitReturn {
   canShowMoneyAccountCta: boolean;
   selectMoneyAccountAsSource: () => void;
   moneyAccountTotalFiatFormatted: string | undefined;
-  isMoneyAccountBalanceLoading: boolean;
   canLinkMoneyAccount: boolean;
   moneyAccountApyPercent: number | undefined;
   hasMetalCard: boolean;
+
+  /** False for intentional exits so beforeRemove cannot swallow navigation. */
+  shouldBlockNavigation: () => boolean;
 }
 
 const deriveLimitStateFromToken = (
@@ -141,10 +148,11 @@ const useSpendingLimit = ({
   delegationSettings,
   routeParams,
 }: UseSpendingLimitParams): UseSpendingLimitReturn => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const { sdk } = useCardSDK();
 
   const initialLimitState = initialToken
@@ -164,6 +172,8 @@ const useSpendingLimit = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [isMoneyAccountSource, setIsMoneyAccountSource] = useState(false);
+  // True when selectedToken came from auto-init (not an explicit user choice).
+  const [isAutoSelectedDefault, setIsAutoSelectedDefault] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
   const isEnableCardFlow = flow === 'enable_card';
@@ -179,18 +189,17 @@ const useSpendingLimit = ({
     confirmLinkInBackground: confirmMoneyAccountLinkInBackground,
     canLink: canLinkMoneyAccount,
   } = useMoneyAccountCardLinkage();
-  const {
-    tokenTotal: moneyAccountTokenTotal,
-    totalFiatFormatted: moneyAccountTotalFiatFormatted,
-    isAggregatedBalanceLoading: isMoneyAccountBalanceLoading,
-    apyPercent: moneyAccountApyPercent,
-  } = useMoneyAccountBalance();
-  const isMoneyAccountFunded = Boolean(moneyAccountTokenTotal?.gt(0));
+  const { totalFiatFormatted: moneyAccountTotalFiatFormatted } =
+    useMoneyAccountBalance();
+  const { apyPercent: moneyAccountApyPercent } = useMoneyVaultApy();
 
   const { data: cardHomeData } = useCardHomeData();
   const hasMetalCard = cardHomeData?.card?.type === CardType.METAL;
 
   const hasUserExitedMoneyAccountSourceRef = useRef(false);
+  const isExitingRef = useRef(false);
+  const isLoadingRef = useRef(false);
+  const isMoneyAccountSourceRef = useRef(false);
 
   // Track account changes to reset token selection when user switches account
   const selectedAccount = useSelector(selectSelectedInternalAccount);
@@ -205,6 +214,7 @@ const useSpendingLimit = ({
       accountIdRef.current = selectedAccount.id;
       setHasInitialized(false);
       setSelectedToken(null);
+      setIsAutoSelectedDefault(false);
       if (isMoneyAccountSource) {
         setIsMoneyAccountSource(false);
         hasUserExitedMoneyAccountSourceRef.current = true;
@@ -221,6 +231,11 @@ const useSpendingLimit = ({
   } = useCardDelegation(selectedToken);
 
   const isLoading = isDelegationLoading || isProcessing;
+  const isUiInteractionLocked =
+    isLoading && (!isMoneyAccountSource || isOnboardingFlow);
+
+  isLoadingRef.current = isLoading;
+  isMoneyAccountSourceRef.current = isMoneyAccountSource;
 
   // Wallet-only token balances for the currently selected MetaMask account.
   // Using this (instead of useAssetBalances) ensures sorting reflects the active
@@ -316,23 +331,26 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen,
-          flow,
-          musd_linea_balance: musdOnLinea?.tokenFiatAmount ?? 0,
-          top_card_chain_asset: topCardToken
-            ? toNetworkAsset(topCardToken)
-            : null,
-          top_wallet_chain_asset: topWalletToken
-            ? toNetworkAsset(topWalletToken)
-            : null,
-          top_wallet_asset_balance: topWalletToken?.tokenFiatAmount ?? 0,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            screen,
+            flow,
+            musd_linea_balance: musdOnLinea?.tokenFiatAmount ?? 0,
+            top_card_chain_asset: topCardToken
+              ? toNetworkAsset(topCardToken)
+              : null,
+            top_wallet_chain_asset: topWalletToken
+              ? toNetworkAsset(topWalletToken)
+              : null,
+            top_wallet_asset_balance: topWalletToken?.tokenFiatAmount ?? 0,
+          }),
+        )
         .build(),
     );
   }, [
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     flow,
     allTokens,
     walletTokens,
@@ -344,6 +362,7 @@ const useSpendingLimit = ({
 
     if (initialToken) {
       applySelectedToken(initialToken);
+      setIsAutoSelectedDefault(false);
       setHasInitialized(true);
       return;
     }
@@ -355,6 +374,7 @@ const useSpendingLimit = ({
     ) {
       setIsMoneyAccountSource(true);
       applySelectedToken(priorityToken);
+      setIsAutoSelectedDefault(true);
       setHasInitialized(true);
       return;
     }
@@ -362,21 +382,19 @@ const useSpendingLimit = ({
     if (
       isMoneyAccountPreselectAllowed &&
       canLinkMoneyAccount &&
-      !hasUserExitedMoneyAccountSourceRef.current
+      !hasUserExitedMoneyAccountSourceRef.current &&
+      moneyAccountCardToken
     ) {
-      if (isMoneyAccountBalanceLoading) {
-        return;
-      }
-      if (isMoneyAccountFunded && moneyAccountCardToken) {
-        setIsMoneyAccountSource(true);
-        applySelectedToken(moneyAccountCardToken);
-        setHasInitialized(true);
-        return;
-      }
+      setIsMoneyAccountSource(true);
+      applySelectedToken(moneyAccountCardToken);
+      setIsAutoSelectedDefault(true);
+      setHasInitialized(true);
+      return;
     }
 
     if (!selectedToken && priorityToken) {
       applySelectedToken(priorityToken);
+      setIsAutoSelectedDefault(true);
       setHasInitialized(true);
       return;
     }
@@ -416,17 +434,10 @@ const useSpendingLimit = ({
           return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
         })
         .sort((a, b) => b.fiat - a.fiat);
-      const topEntry = sorted[0];
-      const defaultToken =
-        topEntry.fiat > 0
-          ? topEntry.token
-          : (tokensToSearch.find(
-              (t) =>
-                t.symbol?.toUpperCase() === 'MUSD' &&
-                t.caipChainId === LINEA_CAIP_CHAIN_ID,
-            ) ?? topEntry.token);
+      const defaultToken = sorted[0]?.token;
       if (defaultToken) {
         applySelectedToken(defaultToken);
+        setIsAutoSelectedDefault(true);
         setHasInitialized(true);
       }
     }
@@ -443,9 +454,27 @@ const useSpendingLimit = ({
     isManageFlow,
     isMoneyAccountPreselectAllowed,
     canLinkMoneyAccount,
-    isMoneyAccountBalanceLoading,
-    isMoneyAccountFunded,
     moneyAccountCardToken,
+  ]);
+
+  // Upgrade auto-picked default to Money Account when canLink resolves late.
+  useEffect(() => {
+    if (!isMoneyAccountPreselectAllowed) return;
+    if (!isAutoSelectedDefault) return;
+    if (isMoneyAccountSource) return;
+    if (hasUserExitedMoneyAccountSourceRef.current) return;
+    if (!canLinkMoneyAccount || !moneyAccountCardToken) return;
+
+    setIsMoneyAccountSource(true);
+    applySelectedToken(moneyAccountCardToken);
+    setIsAutoSelectedDefault(true);
+  }, [
+    isMoneyAccountPreselectAllowed,
+    isAutoSelectedDefault,
+    isMoneyAccountSource,
+    canLinkMoneyAccount,
+    moneyAccountCardToken,
+    applySelectedToken,
   ]);
 
   // Handle returned values from modal sheets
@@ -461,6 +490,7 @@ const useSpendingLimit = ({
 
       if (params?.returnedSelectedToken) {
         applySelectedToken(params.returnedSelectedToken);
+        setIsAutoSelectedDefault(false);
         setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
@@ -499,8 +529,9 @@ const useSpendingLimit = ({
 
   // Handlers
   const handleAccountSelect = useCallback(() => {
-    navigation.navigate(
-      ...createAccountSelectorNavDetails({
+    navigateWithDetails(
+      navigation,
+      createAccountSelectorNavDetails({
         disableAddAccountButton: true,
         onSelectAccount: () => {
           if (!isMoneyAccountSource) return;
@@ -518,7 +549,11 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.OTHER_TOKEN_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.OTHER_TOKEN_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -527,8 +562,9 @@ const useSpendingLimit = ({
 
     const excludedTokens = selectedToken ? [selectedToken] : [];
 
-    navigation.navigate(
-      ...createAssetSelectionModalNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createAssetSelectionModalNavigationDetails({
         selectionOnly: true,
         excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -541,6 +577,7 @@ const useSpendingLimit = ({
     selectedToken,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     routeParams,
   ]);
 
@@ -549,12 +586,12 @@ const useSpendingLimit = ({
     hasUserExitedMoneyAccountSourceRef.current = false;
     setIsMoneyAccountSource(true);
     applySelectedToken(moneyAccountCardToken);
+    setIsAutoSelectedDefault(false);
   }, [moneyAccountCardToken, applySelectedToken]);
 
   const canShowMoneyAccountCta =
     (isOnboardingLikeFlow || isEnablingNotEnabledToken) &&
     !isMoneyAccountSource &&
-    isMoneyAccountFunded &&
     canLinkMoneyAccount;
 
   const isMoneyAccountLocked = Boolean(
@@ -562,8 +599,9 @@ const useSpendingLimit = ({
   );
 
   const handleLimitSelect = useCallback(() => {
-    navigation.navigate(
-      ...createSpendingLimitOptionsNavigationDetails({
+    navigateWithDetails(
+      navigation,
+      createSpendingLimitOptionsNavigationDetails({
         currentLimitType: limitType,
         currentCustomLimit: customLimit,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
@@ -585,7 +623,6 @@ const useSpendingLimit = ({
       ],
       iconName: IconName.Confirmation,
       iconColor: theme.colors.success.default,
-      backgroundColor: theme.colors.success.muted,
       hasNoTimeout: false,
     });
   }, [toastRef, theme]);
@@ -601,7 +638,6 @@ const useSpendingLimit = ({
         ],
         iconName: IconName.Danger,
         iconColor: theme.colors.error.default,
-        backgroundColor: theme.colors.error.muted,
         hasNoTimeout: false,
       });
     },
@@ -610,14 +646,30 @@ const useSpendingLimit = ({
 
   // Navigation helpers
   const navigateToCardHome = useCallback(() => {
-    navigation.dispatch(StackActions.replace(Routes.CARD.HOME));
-  }, [navigation]);
+    isExitingRef.current = true;
+    navigation.dispatch(
+      StackActions.replace(Routes.CARD.HOME, {
+        fromCardOnboarding: isOnboardingFlow,
+      }),
+    );
+  }, [navigation, isOnboardingFlow]);
+
+  const shouldBlockNavigation = useCallback(() => {
+    if (isExitingRef.current) return false;
+    const loading = isLoadingRef.current;
+    const moneySource = isMoneyAccountSourceRef.current;
+    return loading && (!moneySource || isOnboardingFlow);
+  }, [isOnboardingFlow]);
 
   // Actions
   const submit = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CONFIRM_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -629,20 +681,21 @@ const useSpendingLimit = ({
         });
         if (success) {
           try {
-            await Engine.context.CardController.fetchCardHomeData();
+            await Engine.context.CardController.fetchCardHomeData({
+              force: true,
+            });
           } catch (error) {
             Logger.error(
               error as Error,
               'Failed to refresh card home data after Money Account link',
             );
           }
-          setTimeout(() => {
-            if (isOnboardingFlow) {
-              navigateToCardHome();
-            } else {
-              navigation.goBack();
-            }
-          }, 0);
+          if (isOnboardingFlow) {
+            navigateToCardHome();
+          } else if (navigation.isFocused()) {
+            isExitingRef.current = true;
+            navigation.goBack();
+          }
         }
       } finally {
         setIsProcessing(false);
@@ -685,7 +738,7 @@ const useSpendingLimit = ({
 
       // Wait for backend to process, then refresh card home data
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      await Engine.context.CardController.fetchCardHomeData();
+      await Engine.context.CardController.fetchCardHomeData({ force: true });
 
       if (!isOnboardingFlow) {
         showSuccessToast();
@@ -693,13 +746,12 @@ const useSpendingLimit = ({
 
       setIsProcessing(false);
 
-      setTimeout(() => {
-        if (isOnboardingFlow) {
-          navigateToCardHome();
-        } else {
-          navigation.goBack();
-        }
-      }, 0);
+      if (isOnboardingFlow) {
+        navigateToCardHome();
+      } else {
+        isExitingRef.current = true;
+        navigation.goBack();
+      }
     } catch (error) {
       setIsProcessing(false);
 
@@ -724,6 +776,7 @@ const useSpendingLimit = ({
     navigation,
     trackEvent,
     createEventBuilder,
+    activeProviderId,
     isMoneyAccountSource,
     confirmMoneyAccountLinkInBackground,
   ]);
@@ -733,27 +786,40 @@ const useSpendingLimit = ({
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({ action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+          }),
+        )
         .build(),
     );
 
+    isExitingRef.current = true;
     navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder, isLoading]);
+  }, [navigation, trackEvent, createEventBuilder, activeProviderId, isLoading]);
 
   const skip = useCallback(() => {
     if (isLoading) return;
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
-          skipped: true,
-        })
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.ENABLE_TOKEN_CANCEL_BUTTON,
+            skipped: true,
+          }),
+        )
         .build(),
     );
 
     navigateToCardHome();
-  }, [trackEvent, createEventBuilder, isLoading, navigateToCardHome]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    activeProviderId,
+    isLoading,
+    navigateToCardHome,
+  ]);
 
   return {
     // State
@@ -761,6 +827,7 @@ const useSpendingLimit = ({
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
 
     // Handlers
     setSelectedToken,
@@ -787,10 +854,10 @@ const useSpendingLimit = ({
     canShowMoneyAccountCta,
     selectMoneyAccountAsSource,
     moneyAccountTotalFiatFormatted,
-    isMoneyAccountBalanceLoading,
     canLinkMoneyAccount,
     moneyAccountApyPercent,
     hasMetalCard,
+    shouldBlockNavigation,
   };
 };
 

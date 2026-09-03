@@ -13,16 +13,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
+import { selectLockTime } from '../../../../../../selectors/settings';
 
 const AutoLock = () => {
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const lockTime = useSelector((state: any) => state.settings.lockTime);
+  const lockTime = useSelector(selectLockTime);
 
-  const selectLockTime = (time: string): void => {
+  const handleSelectLockTime = (time: string): void => {
     dispatch(setLockTime(parseInt(time, 10)));
   };
 
@@ -42,7 +41,7 @@ const AutoLock = () => {
       <View style={styles.picker}>
         <SelectComponent
           selectedValue={lockTime.toString()}
-          onValueChange={selectLockTime}
+          onValueChange={handleSelectLockTime}
           label={strings('app_settings.auto_lock')}
           options={AUTO_LOCK_OPTIONS}
         />

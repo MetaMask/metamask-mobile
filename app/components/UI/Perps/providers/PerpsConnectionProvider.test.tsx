@@ -147,6 +147,16 @@ describe('PerpsConnectionProvider', () => {
     expect(getByText('Child Component')).toBeDefined();
   });
 
+  it('does not poll connection state when disabled', () => {
+    render(
+      <PerpsConnectionProvider isEnabled={false} suppressErrorView>
+        <Text>Child Component</Text>
+      </PerpsConnectionProvider>,
+    );
+
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   it('renders children immediately even while connecting', () => {
     // Children should render even when isInitialized is false and isConnecting is true
     // Individual sections handle their own loading states with per-row skeletons

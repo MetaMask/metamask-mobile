@@ -5,7 +5,9 @@ const styleSheet = () =>
   StyleSheet.create({
     snapSettingsContainer: {
       flex: 1,
-      marginHorizontal: 16,
+    },
+    scrollContent: {
+      paddingHorizontal: 16,
     },
     itemPaddedContainer: {
       paddingVertical: 16,

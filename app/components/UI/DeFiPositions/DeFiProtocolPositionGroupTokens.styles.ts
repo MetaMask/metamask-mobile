@@ -12,11 +12,19 @@ const styleSheet = () =>
       alignItems: 'center',
       paddingVertical: 12,
     },
-    assetSymbolText: {
+    assetInfo: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
       marginLeft: 20,
+      marginRight: 8,
+      gap: 8,
+      minWidth: 0,
+    },
+    assetSymbolText: {
+      flexShrink: 1,
     },
     balance: {
-      flex: 1,
       alignItems: 'flex-end',
     },
   });

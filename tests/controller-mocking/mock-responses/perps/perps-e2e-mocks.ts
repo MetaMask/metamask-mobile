@@ -206,17 +206,21 @@ export class PerpsE2EMockService {
       this.mockOrders.push(solOrder);
     }
 
-    // Seed a completed deposit so Activity > Deposits is populated
-    this.mockUserHistory.push({
-      id: `seed_deposit_${Date.now()}`,
-      timestamp: Date.now() - 5 * 60 * 1000,
-      type: 'deposit',
-      amount: '100.00',
-      asset: 'USDC',
-      txHash: '0xseeddeposit',
-      status: 'completed',
-      details: { source: 'e2e-mock' },
-    });
+    // Seed a completed deposit so Activity > Deposits is populated.
+    // Skipped for 'no-positions' so deposit-flow tests that create their own
+    // real deposit tx render a single entry instead of a duplicate.
+    if (profile !== 'no-positions') {
+      this.mockUserHistory.push({
+        id: `seed_deposit_${Date.now()}`,
+        timestamp: Date.now() - 5 * 60 * 1000,
+        type: 'deposit',
+        amount: '100.00',
+        asset: 'USDC',
+        txHash: '0xseeddeposit',
+        status: 'completed',
+        details: { source: 'e2e-mock' },
+      });
+    }
   }
 
   // Mock successful order placement
@@ -576,6 +580,7 @@ export class PerpsE2EMockService {
         change24h: '+$1,125.00',
         change24hPercent: '+2.5%',
         volume: '$1.2B',
+        openInterest: '$500M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },
@@ -587,6 +592,7 @@ export class PerpsE2EMockService {
         change24h: '+$45.00',
         change24hPercent: '+1.8%',
         volume: '$850M',
+        openInterest: '$250M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },
@@ -598,6 +604,7 @@ export class PerpsE2EMockService {
         change24h: '-$2.30',
         change24hPercent: '-2.3%',
         volume: '$425M',
+        openInterest: '$120M',
         nextFundingTime: Date.now() + 8 * 60 * 60 * 1000, // 8 hours from now
         fundingIntervalHours: 8,
       },
@@ -1100,6 +1107,7 @@ export class PerpsE2EMockService {
         funding: 0.01,
         openInterest: 50000000,
         volume24h: 1000000,
+        isTradable: true,
       },
       ETH: {
         symbol: 'ETH',
@@ -1113,6 +1121,7 @@ export class PerpsE2EMockService {
         funding: 0.005,
         openInterest: 25000000,
         volume24h: 500000,
+        isTradable: true,
       },
       SOL: {
         symbol: 'SOL',
@@ -1126,6 +1135,7 @@ export class PerpsE2EMockService {
         funding: 0.003,
         openInterest: 12000000,
         volume24h: 300000,
+        isTradable: true,
       },
     };
   }

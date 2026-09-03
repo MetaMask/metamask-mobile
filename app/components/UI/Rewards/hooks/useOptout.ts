@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { resetRewardsState } from '../../../../reducers/rewards';
@@ -22,7 +23,7 @@ interface UseOptoutResult {
 export const useOptout = (): UseOptoutResult => {
   const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const {
     resetAllSessionTracking: resetAllSessionTrackingForRewardsDashboardModals,

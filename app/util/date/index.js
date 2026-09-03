@@ -1,5 +1,6 @@
-import { strings } from '../../../locales/i18n';
+import I18n, { strings } from '../../../locales/i18n';
 import { MINUTE, HOUR, DAY } from '../../constants/time';
+import { getIntlDateTimeFormatter } from '../intl';
 
 export function toLocaleDateTime(timestamp) {
   const dateObj = new Date(timestamp);
@@ -26,6 +27,24 @@ export function toDateFormat(timestamp) {
   return `${month} ${day} ${strings(
     'date.connector',
   )} ${hours}:${minutes} ${ampm}`;
+}
+
+export function formatTimestampToDateTime(timestamp, locale = I18n.locale) {
+  if (!timestamp) {
+    return undefined;
+  }
+
+  const date = new Date(timestamp);
+  const month = getIntlDateTimeFormatter(locale, {
+    month: 'short',
+  }).format(date);
+  const time = getIntlDateTimeFormatter(locale, {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+  }).format(date);
+
+  return `${month} ${date.getDate()}, ${date.getFullYear()} at ${time}`;
 }
 
 export function toLocaleDate(timestamp) {

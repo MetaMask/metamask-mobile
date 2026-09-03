@@ -53,10 +53,15 @@ describe('RampSDKProvider', () => {
   });
 
   it('provides default ramp type as BUY', () => {
-    let contextValue: ReturnType<typeof useRampSDK> | undefined;
     const TestComponent = () => {
-      contextValue = useRampSDK();
-      return <Text>Test Component</Text>;
+      const { rampType, isBuy, isSell } = useRampSDK();
+      return (
+        <>
+          <Text>{`Ramp Type: ${rampType}`}</Text>
+          <Text>{`isBuy: ${String(isBuy)}`}</Text>
+          <Text>{`isSell: ${String(isSell)}`}</Text>
+        </>
+      );
     };
 
     renderWithProvider(
@@ -68,16 +73,21 @@ describe('RampSDKProvider', () => {
       },
     );
 
-    expect(contextValue?.rampType).toBe(RampType.BUY);
-    expect(contextValue?.isBuy).toBe(true);
-    expect(contextValue?.isSell).toBe(false);
+    expect(screen.getByText('Ramp Type: buy')).toBeOnTheScreen();
+    expect(screen.getByText('isBuy: true')).toBeOnTheScreen();
+    expect(screen.getByText('isSell: false')).toBeOnTheScreen();
   });
 
   it('accepts custom ramp type', () => {
-    let contextValue: ReturnType<typeof useRampSDK> | undefined;
     const TestComponent = () => {
-      contextValue = useRampSDK();
-      return <Text>Test Component</Text>;
+      const { rampType, isBuy, isSell } = useRampSDK();
+      return (
+        <>
+          <Text>{`Ramp Type: ${rampType}`}</Text>
+          <Text>{`isBuy: ${String(isBuy)}`}</Text>
+          <Text>{`isSell: ${String(isSell)}`}</Text>
+        </>
+      );
     };
 
     renderWithProvider(
@@ -89,9 +99,9 @@ describe('RampSDKProvider', () => {
       },
     );
 
-    expect(contextValue?.rampType).toBe(RampType.SELL);
-    expect(contextValue?.isBuy).toBe(false);
-    expect(contextValue?.isSell).toBe(true);
+    expect(screen.getByText('Ramp Type: sell')).toBeOnTheScreen();
+    expect(screen.getByText('isBuy: false')).toBeOnTheScreen();
+    expect(screen.getByText('isSell: true')).toBeOnTheScreen();
   });
 
   it('syncs SDK locale on mount', () => {

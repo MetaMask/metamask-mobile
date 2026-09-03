@@ -26,6 +26,9 @@ const styleSheet = () =>
       justifyContent: 'center',
       alignItems: 'flex-end',
     },
+    infoIcon: {
+      alignSelf: 'center',
+    },
   });
 
 export default styleSheet;

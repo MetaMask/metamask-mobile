@@ -1,8 +1,10 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -10,29 +12,28 @@ import {
   ButtonSize,
   ButtonVariant,
   FontWeight,
+  SensitiveText,
+  SensitiveTextLength,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import {
+  moneyFormatFiat,
+  moneySafeTokenFiatCurrency,
+} from '../../utils/moneyFormatFiat';
 import {
   calculateProjectedEarnings,
   PROJECTION_YEARS,
 } from '../../utils/projections';
 import { tokenFiatValue } from '../../../Earn/hooks/useMusdConversionTokens';
 import { Hex } from '@metamask/utils';
-import { AssetType } from '../../../../Views/confirmations/types/token';
 import { isPositiveNumber } from '../../utils/number';
+import type { MoneyDepositAsset } from '../../selectors/depositTokens';
+import { PotentialEarningsTokenRowTestIds } from './PotentialEarningsTokenRow.testIds';
 
 const styles = StyleSheet.create({
   rowPressable: { flex: 1 },
@@ -41,18 +42,24 @@ const styles = StyleSheet.create({
 const PotentialEarningsTokenRow = ({
   token,
   hasSubsidizedFee,
-  apyPercent,
-  onPress,
+  apyDecimal,
+  onCardPress,
+  onButtonPress,
   testID,
+  privacyMode = false,
 }: {
-  token: AssetType;
+  token: MoneyDepositAsset;
   hasSubsidizedFee: boolean;
-  /** APY as a percentage (e.g. 4 for 4%). */
-  apyPercent: number;
-  onPress: () => void;
+  /** APY as a decimal (e.g. 0.04 for 4%). */
+  apyDecimal: number;
+  onCardPress: () => void;
+  onButtonPress: () => void;
   testID?: string;
+  /** Whether the balance/projected values should be masked. */
+  privacyMode?: boolean;
 }) => {
-  const currentCurrency = useSelector(selectCurrentCurrency);
+  const fiatCurrency = moneySafeTokenFiatCurrency(token);
+
   const networkBadgeSource = useMemo(
     () => (token.chainId ? NetworkBadgeSource(token.chainId as Hex) : null),
     [token.chainId],
@@ -61,17 +68,17 @@ const PotentialEarningsTokenRow = ({
   const fiatBalance = tokenFiatValue(token);
   const projectedFiatNumber = calculateProjectedEarnings(
     fiatBalance,
-    apyPercent,
+    apyDecimal,
     PROJECTION_YEARS,
   );
   const projectedFiatFormatted = moneyFormatFiat(
     new BigNumber(projectedFiatNumber),
-    currentCurrency,
+    fiatCurrency,
   );
 
   const balanceFiatFormatted = moneyFormatFiat(
     new BigNumber(fiatBalance),
-    currentCurrency,
+    fiatCurrency,
   );
 
   return (
@@ -80,24 +87,37 @@ const PotentialEarningsTokenRow = ({
       alignItems={BoxAlignItems.Center}
       twClassName="px-4 py-3 gap-4"
     >
-      <Pressable onPress={onPress} style={styles.rowPressable} testID={testID}>
+      <Pressable
+        onPress={onCardPress}
+        style={styles.rowPressable}
+        testID={testID}
+      >
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           twClassName="gap-4"
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              networkBadgeSource ? (
+                <BadgeNetwork
+                  src={
+                    networkBadgeSource as React.ComponentProps<
+                      typeof BadgeNetwork
+                    >['src']
+                  }
                 />
-              )
+              ) : null
             }
           >
-            <AssetLogo asset={token} />
+            <AssetLogo
+              asset={{
+                ...token,
+                logo: token.image,
+                isETH: token.isNative && token.symbol === 'ETH',
+              }}
+            />
           </BadgeWrapper>
 
           <Box twClassName="flex-1">
@@ -107,14 +127,14 @@ const PotentialEarningsTokenRow = ({
               twClassName="gap-1"
             >
               <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-                {token.symbol}
+                {token.name || token.symbol}
               </Text>
               {hasSubsidizedFee && (
-                <Box twClassName="rounded bg-muted px-1.5">
+                <Box twClassName="rounded bg-primary-muted px-1.5">
                   <Text
                     variant={TextVariant.BodyXs}
                     fontWeight={FontWeight.Medium}
-                    color={TextColor.TextAlternative}
+                    color={TextColor.PrimaryDefault}
                   >
                     {strings('money.potential_earnings.no_fee')}
                   </Text>
@@ -126,17 +146,26 @@ const PotentialEarningsTokenRow = ({
               alignItems={BoxAlignItems.Center}
               twClassName="gap-1"
             >
-              <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              <SensitiveText
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
+                testID={PotentialEarningsTokenRowTestIds.BALANCE}
+              >
                 {balanceFiatFormatted}
-              </Text>
+              </SensitiveText>
               {isPositiveNumber(projectedFiatNumber) && (
-                <Text
+                <SensitiveText
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.SuccessDefault}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Short}
+                  testID={PotentialEarningsTokenRowTestIds.PROJECTED}
                 >
                   {`+${projectedFiatFormatted}`}
-                </Text>
+                </SensitiveText>
               )}
             </Box>
           </Box>
@@ -146,7 +175,7 @@ const PotentialEarningsTokenRow = ({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
-        onPress={onPress}
+        onPress={onButtonPress}
       >
         {strings('money.potential_earnings.add')}
       </Button>

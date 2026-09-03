@@ -2,6 +2,7 @@
 import React, { Fragment, useCallback, useMemo } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 // External dependencies.
 import { IconName } from '@metamask/design-system-react-native';
@@ -35,7 +36,7 @@ interface ActionConfig {
 const MultichainAddWalletActions = ({
   onBack,
 }: MultichainAddWalletActionsProps) => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const createActionHandler = useCallback(

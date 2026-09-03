@@ -164,7 +164,7 @@ const createMarket = (
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);

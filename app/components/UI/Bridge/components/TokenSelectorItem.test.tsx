@@ -1,10 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Text as RNText } from 'react-native';
+import { Text as RNText, View } from 'react-native';
 import { TokenSelectorItem, getSecurityTag } from './TokenSelectorItem';
 import { SecurityDataType } from '../types';
 import { ethers } from 'ethers';
-import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
 import {
   TOKEN_BALANCE_LOADING,
@@ -12,13 +11,16 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => []),
-}));
+jest.mock('../../shared/StockBadge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
 
-jest.mock('../../../../hooks', () => ({
-  useABTest: jest.fn(),
-}));
+  return {
+    __esModule: true,
+    default: ({ token }: { token: { symbol: string } }) =>
+      createElement(Text, { testID: `stock-badge-${token.symbol}` }, 'Stock'),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -46,6 +48,8 @@ jest.mock('../../../../component-library/hooks', () => {
       tokenSymbol: {},
       verifiedIcon: {},
       childrenWrapper: {},
+      pressTargetContent: { flex: 1 },
+      itemWrapperWithChildren: { alignItems: 'center' },
     },
   }));
 
@@ -184,18 +188,9 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
 
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
-  const mockUseABTest = jest.mocked(useABTest);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseABTest.mockReturnValue({
-      variant: {
-        showTokenBalanceFirst: false,
-        removeTickerFromTokenBalance: false,
-      },
-      variantName: 'control',
-      isActive: false,
-    });
   });
 
   describe('rendering', () => {
@@ -229,7 +224,7 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('$500')).toBeTruthy();
-      expect(getByText('50 USDC')).toBeTruthy();
+      expect(getByText('50')).toBeTruthy();
     });
 
     it('hides balance when shouldShowBalance is false', () => {
@@ -366,6 +361,50 @@ describe('TokenSelectorItem', () => {
       expect(UNSAFE_root).toBeTruthy();
     });
 
+    it('routes presses on children through the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      fireEvent.press(getByTestId('token-row-child'));
+
+      expect(mockOnPress).toHaveBeenCalledWith(token);
+    });
+
+    it('uses checkbox accessibility on the row press target when shouldIncludeChildrenInPressTarget is true', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          isSelected
+          shouldIncludeChildrenInPressTarget
+          pressTargetAccessibilityLabel="Select TEST"
+        >
+          <View testID="token-row-child" />
+        </TokenSelectorItem>,
+      );
+
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityRole',
+        'checkbox',
+      );
+      expect(getByTestId(`asset-${token.chainId}-${token.symbol}`)).toHaveProp(
+        'accessibilityState',
+        expect.objectContaining({ checked: true }),
+      );
+    });
+
     it('renders network badge when networkImageSource is provided', () => {
       const token = createMockTokenWithBalance();
 
@@ -429,8 +468,8 @@ describe('TokenSelectorItem', () => {
 
   describe('balance formatting', () => {
     it.each([
-      ['zero balance', '0', '0 TOKEN'],
-      ['small balance', '0.000001', '< 0.00001 TOKEN'],
+      ['zero balance', '0', '0'],
+      ['small balance', '0.000001', '< 0.00001'],
     ])('formats %s correctly', (_, balance, expected) => {
       const token = createMockTokenWithBalance({ balance, symbol: 'TOKEN' });
 
@@ -567,7 +606,7 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} />,
       );
 
-      const tokenBalanceElement = getByText('50 TOKEN');
+      const tokenBalanceElement = getByText('50');
 
       expect(tokenBalanceElement.props.numberOfLines).toBe(1);
     });
@@ -678,37 +717,8 @@ describe('TokenSelectorItem', () => {
     });
   });
 
-  describe('A/B variants', () => {
-    it('keeps fiat above token balance in the control layout', () => {
-      const token = createMockTokenWithBalance({
-        balance: '50.0',
-        balanceFiat: '$500',
-        symbol: 'USDC',
-      });
-
-      const controlRender = render(
-        <TokenSelectorItem token={token} onPress={mockOnPress} />,
-      );
-      expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
-
-      const controlTextOrder = controlRender
-        .UNSAFE_getAllByType(RNText)
-        .map((textNode) => String(textNode.props.children));
-      expect(controlTextOrder.indexOf('$500')).toBeLessThan(
-        controlTextOrder.indexOf('50 USDC'),
-      );
-    });
-
-    it('shows token balance first without the ticker in the treatment layout', () => {
-      mockUseABTest.mockReturnValue({
-        variant: {
-          showTokenBalanceFirst: true,
-          removeTickerFromTokenBalance: true,
-        },
-        variantName: 'treatment',
-        isActive: true,
-      });
-
+  describe('balance layout', () => {
+    it('keeps token balance above fiat without the ticker', () => {
       const token = createMockTokenWithBalance({
         balance: '50.0',
         balanceFiat: '$500',

@@ -19,6 +19,7 @@ const defaultParams: CryptoTargetPriceQueryParams = {
   eventStartTime: '2025-01-01T00:00:00Z',
   variant: 'up',
   endDate: '2025-01-02',
+  twapWindowSeconds: 60,
 };
 
 const invokeQueryFn = async (
@@ -50,6 +51,7 @@ describe('cryptoTargetPrice queries', () => {
           '2025-01-01T00:00:00Z',
           'fiveminute',
           '2025-01-01T00:05:00Z',
+          60,
         ),
       ).toEqual([
         'predict',
@@ -59,6 +61,7 @@ describe('cryptoTargetPrice queries', () => {
         '2025-01-01T00:00:00Z',
         'fiveminute',
         '2025-01-01T00:05:00Z',
+        60,
       ]);
     });
   });
@@ -75,6 +78,7 @@ describe('cryptoTargetPrice queries', () => {
         '2025-01-01T00:00:00Z',
         'up',
         '2025-01-02',
+        60,
       ]);
     });
 
@@ -102,6 +106,7 @@ describe('cryptoTargetPrice queries', () => {
         eventStartTime: '2025-01-01T00:00:00Z',
         variant: 'up',
         endDate: '2025-01-02',
+        twapWindowSeconds: 60,
       });
     });
 

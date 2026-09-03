@@ -63,6 +63,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 // Mock metrics util
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardActions: {
     VERIFY_IDENTITY_BUTTON: 'VERIFY_IDENTITY_BUTTON',
   },
@@ -565,7 +566,17 @@ describe('VerifyIdentity Component', () => {
       await waitFor(() => {
         expect(Logger.error).toHaveBeenCalledWith(
           expect.any(Error),
-          'Veriff verification failed with error=CAMERA_UNAVAILABLE',
+          expect.objectContaining({
+            tags: { feature: 'card', provider: 'baanx' },
+            context: expect.objectContaining({
+              name: 'VerifyIdentity',
+              data: expect.objectContaining({
+                method: 'veriffSdk',
+                status: 'error',
+                errorCode: 'CAMERA_UNAVAILABLE',
+              }),
+            }),
+          }),
         );
         expect(mockDispatch).not.toHaveBeenCalled();
       });

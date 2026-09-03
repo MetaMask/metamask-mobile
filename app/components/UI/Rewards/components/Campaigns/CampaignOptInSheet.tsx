@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   BottomSheet,
   Box,
@@ -25,11 +25,22 @@ import ContentfulRichText, {
 } from '../ContentfulRichText/ContentfulRichText';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
   onClose?: () => void;
+  /** Optional sheet title. Defaults to the standard campaign opt-in i18n title. */
+  title?: string;
+  /** Optional typography treatment for campaign-specific legal disclosure. */
+  legalTextVariant?: TextVariant;
+  /** Optional classes for campaign-specific legal disclosure alignment/color. */
+  legalBodyClassName?: string;
+  /**
+   * Optional custom opt-in handler. When provided, called instead of
+   * `optInToCampaign(campaign.id)`. Treats `true` or `void` as success and
+   * `false` / thrown errors as failure (error banner, sheet stays open).
+   */
+  onOptIn?: () => Promise<boolean | void>;
 }
 
 /**
@@ -40,34 +51,69 @@ interface CampaignOptInSheetProps {
 const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   campaign,
   onClose,
+  title,
+  legalTextVariant = TextVariant.BodyMd,
+  legalBodyClassName = 'text-center text-default',
+  onOptIn,
 }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
-  const surfaceClass = useElevatedSurface();
+  const [isCustomOptingIn, setIsCustomOptingIn] = useState(false);
+  const [customOptInError, setCustomOptInError] = useState<string | undefined>(
+    undefined,
+  );
+
+  const isLoading = onOptIn ? isCustomOptingIn : isOptingIn;
+  const displayedOptInError = onOptIn ? customOptInError : optInError;
 
   const handleOptIn = useCallback(async () => {
     try {
-      const result = await optInToCampaign(campaign.id);
-      if (result?.optedIn) {
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED,
-          )
-            .addProperties({ campaign_id: campaign.id })
-            .build(),
-        );
-        showToast(
-          RewardsToastOptions.success(
-            strings('rewards.campaign.opt_in_success_toast'),
-          ),
-        );
-        onClose?.();
+      if (onOptIn) {
+        setIsCustomOptingIn(true);
+        setCustomOptInError(undefined);
+        try {
+          const result = await onOptIn();
+          if (result === false) {
+            setCustomOptInError(
+              strings('rewards.campaign_details.opt_in_error'),
+            );
+            return;
+          }
+        } catch (error) {
+          setCustomOptInError(
+            error instanceof Error
+              ? error.message
+              : strings('rewards.campaign_details.opt_in_error'),
+          );
+          return;
+        } finally {
+          setIsCustomOptingIn(false);
+        }
+      } else {
+        const result = await optInToCampaign(campaign.id);
+        if (!result?.optedIn) {
+          return;
+        }
       }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REWARDS_CAMPAIGN_OPT_IN_COMPLETED)
+          .addProperties({ campaign_id: campaign.id })
+          .build(),
+      );
+      showToast(
+        RewardsToastOptions.success(
+          strings('rewards.campaign.opt_in_success_toast'),
+        ),
+      );
+      onClose?.();
     } catch {
-      // Error is handled by the hook; sheet stays open so user can retry
+      // Default path: error is handled by useOptInToCampaign; sheet stays open.
+      setIsCustomOptingIn(false);
     }
   }, [
+    onOptIn,
     optInToCampaign,
     campaign.id,
     trackEvent,
@@ -78,7 +124,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   ]);
 
   return (
-    <BottomSheet onClose={onClose} twClassName={surfaceClass}>
+    <BottomSheet onClose={onClose}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box
@@ -97,7 +143,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
               fontWeight={FontWeight.Bold}
               testID="campaign-opt-in-sheet-title"
             >
-              {strings('rewards.campaign.opt_in_sheet_title')}
+              {title ?? strings('rewards.campaign.opt_in_sheet_title')}
             </Text>
           </Box>
           <ButtonIcon
@@ -113,18 +159,18 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           <Box twClassName="mb-6">
             <ContentfulRichText
               document={campaign.termsAndConditions}
-              textVariant={TextVariant.BodyMd}
-              bodyClassName="text-center text-default"
+              textVariant={legalTextVariant}
+              bodyClassName={legalBodyClassName}
               testID="campaign-opt-in-sheet-description"
             />
           </Box>
         )}
 
-        {optInError && (
+        {displayedOptInError && (
           <Box twClassName="mb-4">
             <RewardsErrorBanner
               title={strings('rewards.campaign_details.opt_in_error')}
-              description={optInError}
+              description={displayedOptInError}
               testID="campaign-opt-in-error-banner"
             />
           </Box>
@@ -135,8 +181,8 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleOptIn}
-          isLoading={isOptingIn}
-          isDisabled={isOptingIn}
+          isLoading={isLoading}
+          isDisabled={isLoading}
           twClassName="w-full"
           testID="campaign-opt-in-cta"
         >

@@ -89,6 +89,7 @@ export const useCurrentCryptoUpDownMarketData = ({
       eventStartTime: eventStartTime ?? '',
       variant,
       endDate: market.endDate ?? '',
+      twapWindowSeconds: market.twapWindowSeconds,
       enabled:
         shouldFetchMarketData &&
         Boolean(symbol) &&
@@ -101,12 +102,26 @@ export const useCurrentCryptoUpDownMarketData = ({
   const chartData = useCryptoUpDownChartData(market, priceToBeat, {
     enabled: shouldFetchMarketData,
   });
-  const currentPrice = useMemo(
-    () =>
+  const currentPrice = useMemo(() => {
+    if (
+      market.twapWindowSeconds &&
+      (chartData.connectionError ||
+        (chartData.loading && chartData.data.length === 0))
+    ) {
+      return undefined;
+    }
+
+    return (
       chartData.data.at(-1)?.value ??
-      (chartData.value > 0 ? chartData.value : undefined),
-    [chartData.data, chartData.value],
-  );
+      (chartData.value > 0 ? chartData.value : undefined)
+    );
+  }, [
+    chartData.connectionError,
+    chartData.data,
+    chartData.loading,
+    chartData.value,
+    market.twapWindowSeconds,
+  ]);
   const durationMs = getSeriesDurationMs(market.series.recurrence);
   const timeRemainingMs = getSeriesMarketTimeRemainingMs(market.endDate, nowMs);
 

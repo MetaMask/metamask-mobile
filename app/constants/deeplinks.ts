@@ -35,6 +35,7 @@ export enum ACTIONS {
   HOME = 'home',
   ASSET = 'asset',
   SWAP = 'swap',
+  BATCH_SELL = 'batch-sell',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
   CREATE_ACCOUNT = 'create-account',
@@ -44,6 +45,7 @@ export enum ACTIONS {
   REWARDS = 'rewards',
   SHIELD = 'shield',
   PREDICT = 'predict',
+  PRIVACY = 'privacy',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
@@ -53,6 +55,7 @@ export enum ACTIONS {
   NFT = 'nft',
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
+  MONEY = 'money',
 }
 
 export const PREFIXES = {
@@ -73,6 +76,7 @@ export const PREFIXES = {
   [ACTIONS.HOME]: '',
   [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
+  [ACTIONS.BATCH_SELL]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
   [ACTIONS.PERPS]: '',
   [ACTIONS.PERPS_MARKETS]: '',
@@ -92,5 +96,6 @@ export const PREFIXES = {
   [ACTIONS.NFT]: '',
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
+  [ACTIONS.MONEY]: '',
   METAMASK: 'metamask://',
 };

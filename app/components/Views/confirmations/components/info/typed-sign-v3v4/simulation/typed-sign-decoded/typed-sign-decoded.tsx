@@ -8,13 +8,13 @@ import {
 import { Hex } from '@metamask/utils';
 
 import { TokenStandard } from '../../../../../../../UI/SimulationDetails/types';
-import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../../../hooks/signatures/useSignatureRequest';
 import InfoRow from '../../../../UI/info-row';
 import NativeValueDisplay from '../components/native-value-display';
 import SimulationValueDisplay from '../components/value-display';
 import StaticSimulation from '../static';
+import { Text } from '@metamask/design-system-react-native';
 
 const styles = {
   unavailableContainer: {

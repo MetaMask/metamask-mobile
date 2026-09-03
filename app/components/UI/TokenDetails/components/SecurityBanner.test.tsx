@@ -21,7 +21,7 @@ describe('SecurityBanner', () => {
     label: 'Malicious',
     textColor: 'text-error-default' as const,
     subtitle: 'This token is malicious',
-    iconAlertSeverity: IconAlertSeverity.Error,
+    iconAlertSeverity: IconAlertSeverity.Danger,
     icon: undefined,
     iconColor: undefined,
   });

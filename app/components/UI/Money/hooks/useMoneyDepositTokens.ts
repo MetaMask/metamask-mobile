@@ -1,157 +1,92 @@
 import { useSelector } from 'react-redux';
 import { useCallback, useMemo } from 'react';
-import { useAccountTokens } from '../../../Views/confirmations/hooks/send/useAccountTokens';
-import { useTransactionPayBlockedTokens } from '../../../Views/confirmations/hooks/pay/useTransactionPayBlockedTokens';
-import { isTokenBlocked } from '../../../Views/confirmations/utils/transaction-pay';
-import { isTokenInWildcardList } from '../../Earn/utils/wildcardTokenList';
+import { selectRelayFixedSpread } from '../../../../selectors/featureFlagController/confirmations';
+import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
 import {
-  selectMoneyDepositTokensBlocklist,
-  selectMoneyNoFeeTokens,
-  selectMoneyTokensSortMode,
-  selectMoneyDepositMinBalance,
-  MoneyTokensSortMode,
-} from '../selectors/featureFlags';
-import {
-  AssetType,
-  TokenStandard,
-} from '../../../Views/confirmations/types/token';
-import { TokenI } from '../../Tokens/types';
-import { safeFormatChainIdToHex } from '../../Card/util/safeFormatChainIdToHex';
+  type MoneyDepositAsset,
+  selectMoneyDepositEligibleAssets,
+} from '../selectors/depositTokens';
+import { isMoneyDepositFeeSubsidized } from '../utils/isMoneyDepositFeeSubsidized';
 
 /**
- * The source of truth for tokens that are eligible for deposit into the Money account.
+ * Converts a token's `fiat.balance` (assumed to be in the user's preferred
+ * currency) to USD. Fails loud: drops `fiat` rather than showing a value in
+ * the wrong currency when the USD rate can't be resolved.
+ */
+const toUsdToken = (
+  token: MoneyDepositAsset,
+  currencyRates: ReturnType<typeof selectCurrencyRates>,
+  networkConfigurationsByChainId: ReturnType<
+    typeof selectNetworkConfigurations
+  >,
+): MoneyDepositAsset => {
+  if (token.fiat?.balance === undefined) {
+    return token;
+  }
+
+  const usdBalance = calcUsdAmountFromFiat({
+    tokenFiatValue: token.fiat.balance,
+    chainId: token.chainId,
+    networkConfigurationsByChainId,
+    evmMultiChainCurrencyRates: currencyRates,
+  });
+
+  return {
+    ...token,
+    fiat:
+      usdBalance === undefined
+        ? undefined
+        : { ...token.fiat, balance: usdBalance, currency: 'usd' },
+  };
+};
+
+/**
+ * Returns Money-account deposit assets, with their optional USD balances and
+ * no-fee-route predicate.
  *
- * Filtering pipeline:
- * 1. useAccountTokens({ includeNoBalance: false }) — zero-balance tokens excluded
- * 2. MM Pay default blocklist — inherit MM Pay team's remote-config default blocklist
- * 3. Money-scoped blocklist — Money team's per-token/chain blocklist
- * 4. Minimum fiat balance — dust tokens below `earnMoneyDepositMinAssetBalance` excluded
+ * `selectMoneyDepositEligibleAssets` is the eligibility source of truth. It
+ * selects assets from the chosen account group, excludes zero-balance,
+ * non-EVM, MM Pay-blocked, and below-minimum-fiat-balance assets, then sorts
+ * the remaining assets by fiat balance descending.
  *
- * Sorting is controlled remotely via `earnMoneyTokensSortMode`:
- * - `fiatBalanceDesc` (default): all tokens sorted by fiat balance descending
- * - `noFeePriority`: no-fee tokens (from `earnMoneyDepositNoFeeTokens` remote flag) rendered first,
- * each bucket sorted by fiat balance descending
+ * `isNoFeeToken` returns true when an asset has a subsidized route targeting
+ * Monad mUSD, or when the asset is Monad mUSD itself.
  *
- * An explicit `sortModeOverride` param takes precedence over the remote flag value.
+ * @param options.overrideToUsd - When true, converts each returned token's
+ * `fiat.balance` to USD. Defaults to false.
  */
 export const useMoneyDepositTokens = ({
-  sortModeOverride,
-}: {
-  sortModeOverride?: MoneyTokensSortMode;
-} = {}) => {
-  const mmPayBlockedTokens = useTransactionPayBlockedTokens();
-  const moneyBlocklist = useSelector(selectMoneyDepositTokensBlocklist);
-  const noFeeTokens = useSelector(selectMoneyNoFeeTokens);
-  const remoteSortMode = useSelector(selectMoneyTokensSortMode);
-  const minBalance = useSelector(selectMoneyDepositMinBalance);
-
-  const sortMode: MoneyTokensSortMode = sortModeOverride ?? remoteSortMode;
-
-  const allTokens = useAccountTokens({ includeNoBalance: false });
-
-  const isEvmToken = useCallback(
-    (token: AssetType) => Boolean(token.accountType?.includes('eip155')),
-    [],
-  );
-
-  const isMMPayBlocked = useCallback(
-    (token: AssetType) => isTokenBlocked(token, mmPayBlockedTokens),
-    [mmPayBlockedTokens],
-  );
-
-  const isMoneyBlocklisted = useCallback(
-    (token: AssetType) => {
-      if (!token.chainId) return true;
-
-      return isTokenInWildcardList(
-        token.symbol,
-        moneyBlocklist,
-        safeFormatChainIdToHex(token.chainId),
-      );
-    },
-    [moneyBlocklist],
-  );
-
-  const meetsMinBalance = useCallback(
-    (token: AssetType) => {
-      const fiatBalance = token?.fiat?.balance;
-      if (fiatBalance === undefined || fiatBalance === null) return false;
-      const balance = Number(fiatBalance);
-      return Number.isFinite(balance) && balance >= minBalance;
-    },
-    [minBalance],
-  );
-
-  /**
-   * Filters an arbitrary list of AssetType tokens through the MM Pay blocklist,
-   * Money-scoped blocklist, and minimum fiat balance threshold.
-   * Tokens passing all filters are eligible.
-   */
-  const filterAllowedTokens = useCallback(
-    (tokens: AssetType[]): AssetType[] =>
-      tokens.filter(
-        (token) =>
-          // Must run before isMMPayBlocked since MM Pay only supports EVM tokens.
-          isEvmToken(token) &&
-          !isMMPayBlocked(token) &&
-          !isMoneyBlocklisted(token) &&
-          meetsMinBalance(token),
-      ),
-    [isEvmToken, isMMPayBlocked, isMoneyBlocklisted, meetsMinBalance],
-  );
-
-  const byFiatDesc = useCallback(
-    (a: AssetType, b: AssetType) =>
-      (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0),
-    [],
+  overrideToUsd = false,
+}: { overrideToUsd?: boolean } = {}) => {
+  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const eligibleAssets = useSelector(selectMoneyDepositEligibleAssets);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const networkConfigurationsByChainId = useSelector(
+    selectNetworkConfigurations,
   );
 
   const isNoFeeToken = useCallback(
-    (token: AssetType) => {
-      if (!token.chainId) return false;
-
-      return isTokenInWildcardList(
-        token.symbol,
-        noFeeTokens,
-        safeFormatChainIdToHex(token.chainId),
-      );
-    },
-    [noFeeTokens],
+    (token: { address: string; chainId?: string }) =>
+      isMoneyDepositFeeSubsidized(relayFixedSpread, token),
+    [relayFixedSpread],
   );
 
   const tokens = useMemo(() => {
-    const eligible = filterAllowedTokens(allTokens);
-
-    if (sortMode === 'noFeePriority') {
-      const noFee = eligible.filter(isNoFeeToken).sort(byFiatDesc);
-      const withFee = eligible.filter((t) => !isNoFeeToken(t)).sort(byFiatDesc);
-      return [...noFee, ...withFee];
+    if (!overrideToUsd) {
+      return eligibleAssets;
     }
 
-    return [...eligible].sort(byFiatDesc);
-  }, [allTokens, filterAllowedTokens, sortMode, isNoFeeToken, byFiatDesc]);
+    return eligibleAssets.map((token) =>
+      toUsdToken(token, currencyRates, networkConfigurationsByChainId),
+    );
+  }, [
+    eligibleAssets,
+    overrideToUsd,
+    currencyRates,
+    networkConfigurationsByChainId,
+  ]);
 
-  const isEligibleToken = useCallback(
-    (token?: AssetType | TokenI): boolean => {
-      if (!token) return false;
-      if (!token.chainId) return false;
-
-      const tokenChainIdHex = safeFormatChainIdToHex(token.chainId);
-
-      return tokens.some(
-        (eligible) =>
-          token.address.toLowerCase() === eligible.address.toLowerCase() &&
-          eligible.chainId &&
-          safeFormatChainIdToHex(eligible.chainId) === tokenChainIdHex,
-      );
-    },
-    [tokens],
-  );
-
-  return {
-    tokens,
-    isEligibleToken,
-    isNoFeeToken,
-    filterAllowedTokens,
-  };
+  return { tokens, isNoFeeToken };
 };

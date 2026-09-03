@@ -1,27 +1,28 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ShareAddressIds } from '../../../app/components/Views/MultichainAccounts/sheets/ShareAddress/ShareAddress.testIds';
+import { type AppiumElement } from '../../framework';
 
 class ShareAddress {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_CONTAINER);
   }
 
-  get qrCode(): DetoxElement {
+  get qrCode(): Promise<AppiumElement> {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_QR_CODE);
   }
 
-  get accountAddress(): DetoxElement {
+  get accountAddress(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_ACCOUNT_ADDRESS,
     );
   }
 
-  get copyButton(): DetoxElement {
+  get copyButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ShareAddressIds.SHARE_ADDRESS_COPY_BUTTON);
   }
 
-  get viewOnExplorerButton(): DetoxElement {
+  get viewOnExplorerButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ShareAddressIds.SHARE_ADDRESS_VIEW_ON_EXPLORER_BUTTON,
     );

@@ -1,8 +1,8 @@
 {
   "asyncState": {
     "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:PUSH_PRE_PROMPT_SHOWN": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
-    "@MetaMask:WhatsNewAppVersionSeen": "7.24.3",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
     "@MetaMask:solanaFeatureModalShownV2": "true"
@@ -17,19 +17,39 @@
       "data": null,
       "isVisible": false
     },
+    "attribution": {
+      "attribution": null
+    },
     "banners": {
-      "dismissedBanners": []
+      "dismissedBanners": [],
+      "lastDismissedBrazeBanner": null
     },
     "bookmarks": [],
     "bridge": {
+      "balanceRefreshKey": 0,
+      "batchSellSlippages": {},
+      "batchSellSourceTokenAmounts": {},
+      "batchSellSourceTokens": [],
+      "hardwareWalletsSwaps": {
+        "currentStep": 0,
+        "disconnectedStep": null,
+        "status": "idle",
+        "steps": [],
+        "totalSteps": 0
+      },
       "isDestTokenManuallySet": false,
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
       "isMaxSourceAmount": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
+      "isSlippageUserOverride": false,
       "isSubmittingTx": false,
-      "slippage": "0.5"
+      "recurring": {
+        "everyUnit": "hour",
+        "everyValue": "1",
+        "repeatCount": "10"
+      }
     },
     "browser": {
       "activeTab": 1692550481062,
@@ -46,14 +66,17 @@
       "whitelist": []
     },
     "card": {
+      "cardArrivalAnimationSeen": false,
+      "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
-      "hasViewedCardButton": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
         "contactVerificationId": null,
+        "immersveFundingSourceId": null,
         "onboardingId": null
-      }
+      },
+      "pendingMoneyAccountCardLink": null
     },
     "collectibles": {
       "favorites": {},
@@ -127,26 +150,26 @@
         },
         "CardController": {
           "activeProviderId": "baanx",
-          "cardHomeData": {
-            "account": null,
-            "actions": [
-              {
-                "enabled": true,
-                "type": "add_funds"
-              }
-            ],
-            "alerts": [],
-            "availableFundingAssets": [],
-            "card": null,
-            "delegationSettings": null,
-            "fundingAssets": [],
-            "primaryFundingAsset": null
-          },
+          "cardHomeData": null,
+          "cardHomeDataAddress": null,
+          "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardHomeDataError": null,
           "cardholderAccounts": [],
           "isAuthenticated": false,
+          "lastUnauthenticatedReason": null,
+          "moneyAccountCardLinkInProgress": false,
           "providerData": {},
+          "providerUserId": null,
           "selectedCountry": null
+        },
+        "ClaimsController": {
+          "claims": [],
+          "claimsConfigurations": {
+            "supportedNetworks": ["0x1", "0xe708"],
+            "validSubmissionWindowDays": 21
+          },
+          "drafts": []
         },
         "ClientController": {
           "isUiOpen": false
@@ -154,6 +177,14 @@
         "ComplianceController": {
           "lastCheckedAt": null,
           "walletComplianceStatusMap": {}
+        },
+        "ConfigRegistryController": {
+          "configs": {
+            "networks": {}
+          },
+          "etag": null,
+          "lastFetched": null,
+          "version": null
         },
         "CronJobController": {
           "events": {},
@@ -177,10 +208,13 @@
           "nonRPCGasFeeApisDisabled": false
         },
         "GeolocationController": {
+          "country": "US",
           "error": null,
           "lastFetchedAt": 1775751316942,
           "location": "UNKNOWN",
-          "status": "idle"
+          "region": "CA",
+          "status": "idle",
+          "timezone": null
         },
         "KeyringController": {
           "keyrings": [
@@ -195,7 +229,9 @@
         "MoneyAccountController": {
           "moneyAccounts": {}
         },
-        "MoneyAccountUpgradeController": {},
+        "MoneyAccountUpgradeController": {
+          "upgradedAccounts": {}
+        },
         "MultichainAssetsController": {
           "accountsAssets": {},
           "assetsMetadata": {}
@@ -254,6 +290,18 @@
               "name": "Solana Devnet",
               "nativeCurrency": "solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1/slip44:501"
             },
+            "stellar:pubnet": {
+              "chainId": "stellar:pubnet",
+              "isEvm": false,
+              "name": "Stellar",
+              "nativeCurrency": "stellar:pubnet/slip44:148"
+            },
+            "stellar:testnet": {
+              "chainId": "stellar:testnet",
+              "isEvm": false,
+              "name": "Stellar Testnet",
+              "nativeCurrency": "stellar:testnet/slip44:148"
+            },
             "tron:2494104990": {
               "chainId": "tron:2494104990",
               "isEvm": false,
@@ -276,11 +324,16 @@
           "networksWithTransactionActivity": {},
           "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
         },
+        "NetworkConnectionBannerController": {
+          "networkConnectionBannerNetwork": null,
+          "networkConnectionBannerStatus": "available"
+        },
         "NetworkController": {
           "networkConfigurationsByChainId": {
             "0x1": {
-              "blockExplorerUrls": [],
+              "blockExplorerUrls": ["https://etherscan.io"],
               "chainId": "0x1",
+              "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
               "name": "Ethereum Main Network",
               "nativeCurrency": "ETH",
@@ -293,9 +346,26 @@
                 }
               ]
             },
+            "0x8f": {
+              "blockExplorerUrls": ["https://monadscan.com"],
+              "chainId": "0x8f",
+              "defaultBlockExplorerUrlIndex": 0,
+              "defaultRpcEndpointIndex": 0,
+              "name": "Monad",
+              "nativeCurrency": "MON",
+              "rpcEndpoints": [
+                {
+                  "failoverUrls": [],
+                  "networkClientId": "monad-mainnet",
+                  "type": "infura",
+                  "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
+                }
+              ]
+            },
             "0xaa36a7": {
-              "blockExplorerUrls": [],
+              "blockExplorerUrls": ["https://sepolia.etherscan.io"],
               "chainId": "0xaa36a7",
+              "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
               "name": "Sepolia",
               "nativeCurrency": "SepoliaETH",
@@ -309,8 +379,9 @@
               ]
             },
             "0xe705": {
-              "blockExplorerUrls": [],
+              "blockExplorerUrls": ["https://sepolia.lineascan.build"],
               "chainId": "0xe705",
+              "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
               "name": "Linea Sepolia",
               "nativeCurrency": "LineaETH",
@@ -324,8 +395,9 @@
               ]
             },
             "0xe708": {
-              "blockExplorerUrls": [],
+              "blockExplorerUrls": ["https://lineascan.build"],
               "chainId": "0xe708",
+              "defaultBlockExplorerUrlIndex": 0,
               "defaultRpcEndpointIndex": 0,
               "name": "Linea Main Network",
               "nativeCurrency": "LineaETH",
@@ -402,19 +474,42 @@
           "lastCompletedWithdrawalTxHashes": [],
           "lastDepositResult": null,
           "lastDepositTransactionId": null,
-          "lastError": null,
+          "lastError": "CLIENT_NOT_INITIALIZED",
           "lastUpdateTimestamp": 0,
           "lastWithdrawResult": null,
           "marketFilterPreferences": {
             "direction": "desc",
             "optionId": "volume"
           },
+          "mode": "lite",
+          "orderBookPreferences": {
+            "currency": "usd",
+            "metric": "total"
+          },
           "perpsBalances": {},
+          "proLayoutPreferences": {
+            "chartExpanded": false,
+            "orderBookExpanded": false,
+            "orderBookPosition": "left",
+            "orderFormPosition": "right",
+            "ordersSideFilter": "all",
+            "ordersSortDirection": "desc",
+            "ordersSortField": "time",
+            "positionsSideFilter": "all",
+            "positionsSortDirection": "desc",
+            "positionsSortField": "positionValue"
+          },
+          "recentlyViewedMarkets": {
+            "mainnet": [],
+            "testnet": []
+          },
+          "selectedOrderType": "market",
           "selectedPaymentToken": null,
           "tradeConfigurations": {
             "mainnet": {},
             "testnet": {}
           },
+          "visibleCandleCount": 30,
           "watchlistMarkets": {
             "mainnet": [],
             "testnet": []
@@ -450,6 +545,7 @@
           "whitelist": []
         },
         "PreferencesController": {
+          "advancedGasFee": {},
           "dismissSmartAccountSuggestionEnabled": false,
           "displayNftMedia": true,
           "featureFlags": {},
@@ -497,6 +593,16 @@
           "useSafeChainsListValidation": false,
           "useTokenDetection": true,
           "useTransactionSimulations": true
+        },
+        "QrSyncController": {
+          "connectionStatus": "disconnected",
+          "error": null,
+          "otp": null,
+          "pendingSecretImports": null,
+          "phase": "idle",
+          "provisioningMetadata": null,
+          "provisioningStatus": null,
+          "syncFlow": null
         },
         "RampsController": {
           "countries": {
@@ -551,6 +657,28 @@
           "userRegion": null
         },
         "RemoteFeatureFlagController": {
+          "featureFlagThresholdGroups": {
+            "assetsASSETS3205AbtestAmbientPriceColor": "treatment",
+            "assetsASSETS3380AbtestExploreQuickBuy": "control",
+            "backendWebSocketConnection": "feature is ON",
+            "cardCARD338AbtestAttentionBadge": "control",
+            "confirmationsCONF1775AbtestMoneyAccountDepositPrefill": "control",
+            "coreMCU747AbtestPredictPositionsEmptyState": "treatment",
+            "homeTMCU1103AbtestActionButtonsGrid": "control",
+            "homeTMCU610AbtestWalletHomePostOnboardingSteps": "postOnboardingSteps",
+            "homeTMCU725AbtestHomepagePerpsPillsEmptyState": "treatment",
+            "homeTMCU926AbtestDiscoveryPills": "control",
+            "socialAiTSA531AbtestWhatsHappeningExplore": "control",
+            "socialAiTSA612AbtestQuickBuy": "control",
+            "socialAiTSA901AbtestTopTradersBuyAction": "treatment",
+            "stxMigrationBatchStatus": "sentinel on",
+            "stxMigrationCancel": "sentinel on",
+            "stxMigrationGetFees": "sentinel on",
+            "stxMigrationSubmitTransactions": "sentinel on",
+            "swapsSWAPS4825AbtestChainValueOrder": "control",
+            "tokenDetailsV2AbTest": "Control is OFF",
+            "trendingTokens": "feature is ON"
+          },
           "localOverrides": {},
           "remoteFeatureFlags": {
             "bitcoinAccounts": {
@@ -575,11 +703,19 @@
             }
           }
         },
+        "ShieldController": {
+          "coverageResults": {},
+          "orderedTransactionHistory": []
+        },
         "SnapController": {},
         "SocialController": {
           "followingAddresses": [],
           "followingProfileIds": [],
           "leaderboardEntries": []
+        },
+        "SubscriptionController": {
+          "subscriptions": [],
+          "trialedProducts": []
         },
         "TokenBalancesController": {
           "tokenBalances": {}
@@ -601,6 +737,7 @@
       }
     },
     "experimentalSettings": {
+      "mmPayDebugEnabled": false,
       "securityAlertsEnabled": true
     },
     "fiatOrders": {
@@ -645,13 +782,13 @@
         }
       ],
       "orders": [],
-      "rampRoutingDecision": null,
       "selectedCryptoCurrencyDeposit": null,
       "selectedPaymentMethodAgg": null,
       "selectedPaymentMethodDeposit": null,
       "selectedRegionAgg": null,
       "selectedRegionDeposit": null
     },
+    "headlessOrderContexts": {},
     "infuraAvailability": {
       "isBlocked": false
     },
@@ -670,12 +807,13 @@
       "shouldNetworkSwitchPopToWallet": true,
       "signMessageModalVisible": true
     },
+    "moneyBalance": {
+      "lastKnownBalance": null,
+      "redeemable": null
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
-    },
-    "networkConnectionBanner": {
-      "visible": false
     },
     "networkOnboarded": {
       "networkOnboardedState": {},
@@ -700,7 +838,14 @@
       "events": [],
       "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
-      "pendingSocialLoginMarketingConsentBackfill": null
+      "pendingSocialLoginMarketingConsentBackfill": null,
+      "pushNotificationOsPromptRequested": false,
+      "walletHomeOnboardingSkipInitialBalanceWait": false,
+      "walletHomeOnboardingSteps": {
+        "stepIndex": 0,
+        "suppressedReason": null
+      },
+      "walletHomeOnboardingStepsEligible": false
     },
     "originThrottling": {
       "origins": {}
@@ -751,40 +896,53 @@
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "dismissedCampaignOutcomeToasts": {},
+      "firstPredictionOnUsInteraction": {
+        "marketId": null,
+        "offerViewed": false,
+        "orderStatus": null,
+        "outcome": null,
+        "predictAccountAddress": null,
+        "skipped": false,
+        "transactionHash": null
+      },
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
+      "isVipReferee": false,
+      "moneyAccountSweepstakesDrawProofs": {},
+      "moneyAccountSweepstakesPrizePools": {},
+      "moneyAccountSweepstakesStats": {},
       "nextTier": null,
       "nextTierPointsNeeded": null,
       "onboardingActiveStep": "INTRO",
       "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
-      "ondoCampaignDeposits": null,
-      "ondoCampaignDepositsError": false,
-      "ondoCampaignDepositsLoading": false,
-      "ondoCampaignLeaderboard": null,
-      "ondoCampaignLeaderboardError": false,
-      "ondoCampaignLeaderboardLoading": false,
+      "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
-      "ondoCampaignLeaderboardSelectedTier": null,
+      "ondoCampaignLeaderboards": {},
       "ondoCampaignPortfolio": {},
       "optinAllowedForGeo": null,
       "optinAllowedForGeoError": false,
       "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
-      "perpsTradingCampaignLeaderboard": null,
-      "perpsTradingCampaignLeaderboardError": false,
-      "perpsTradingCampaignLeaderboardLoading": false,
+      "pendingMasSeriesOptIn": {
+        "needsRetry": false,
+        "subscriptionId": null
+      },
       "perpsTradingCampaignLeaderboardPositions": {},
-      "perpsTradingCampaignVolume": null,
-      "perpsTradingCampaignVolumeError": false,
-      "perpsTradingCampaignVolumeLoading": false,
+      "perpsTradingCampaignLeaderboards": {},
+      "perpsTradingCampaignVolumes": {},
       "pointsEvents": null,
+      "predictThePitchLeaderboardPositions": {},
+      "predictThePitchLeaderboards": {},
+      "predictThePitchPositions": {},
+      "predictThePitchPrizePools": {},
       "refereeCount": 0,
       "referralCode": null,
       "referralDetailsError": false,
       "referralDetailsLoading": false,
       "referredByCode": null,
+      "referredByVipCode": null,
       "seasonActivityTypes": [],
       "seasonEndDate": null,
       "seasonId": null,
@@ -794,12 +952,22 @@
       "seasonStatusLoading": false,
       "seasonTiers": [],
       "seasonWaysToEarn": [],
+      "subscribedCampaignReminders": {},
       "unlockedRewardError": false,
       "unlockedRewardLoading": false,
       "unlockedRewards": null,
       "versionGuardError": false,
       "versionGuardLoading": false,
-      "versionGuardMinimumMobileVersion": null
+      "versionGuardMinimumMobileVersion": null,
+      "vipDashboard": {},
+      "vipDashboardError": false,
+      "vipDashboardLoading": false,
+      "vipRefereeDashboard": {},
+      "vipRefereeDashboardError": false,
+      "vipRefereeDashboardLoading": false,
+      "vipRefereeSplashAccepted": {},
+      "vipSplashAccepted": {},
+      "vipTransactions": {}
     },
     "rpcEvents": {
       "signingEvent": {
@@ -825,6 +993,7 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
@@ -834,7 +1003,8 @@
         "preferredCandlePeriod": "15m"
       },
       "primaryCurrency": "ETH",
-      "searchEngine": "Google"
+      "searchEngine": "Google",
+      "showAccountOnLeaderboard": true
     },
     "swaps": {
       "0x1": {
@@ -843,8 +1013,10 @@
       "hasOnboarded": false,
       "isLive": true
     },
+    "terminalOrderAnalytics": {},
     "user": {
       "ambiguousAddressEntries": {},
+      "appInstallEventFired": true,
       "appServicesReady": false,
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
@@ -855,12 +1027,18 @@
       "isConnectionRemoved": false,
       "loadingMsg": "",
       "loadingSet": false,
+      "moneyEarnBannerDismissedTokens": {},
+      "moneyOnboardingSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,
+      "onboardingStepperProgress": {},
       "passwordSet": true,
+      "pendingAppInstall": null,
       "protectWalletModalVisible": false,
       "seedphraseBackedUp": true,
+      "tokenIndicators": [],
+      "tokenOverviewChartInterval": "15m",
       "tokenOverviewChartType": 2,
       "userLoggedIn": true
     }

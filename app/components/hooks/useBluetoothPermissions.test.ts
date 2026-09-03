@@ -15,7 +15,7 @@ import { AppState } from 'react-native';
 jest.mock('react-native-permissions', () => ({
   PERMISSIONS: {
     IOS: {
-      BLUETOOTH_PERIPHERAL: 'iosBluetooth',
+      BLUETOOTH: 'iosBluetooth',
     },
     ANDROID: {
       ACCESS_FINE_LOCATION: 'androidLocation',

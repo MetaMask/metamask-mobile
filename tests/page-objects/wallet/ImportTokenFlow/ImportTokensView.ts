@@ -5,52 +5,52 @@ import {
   ImportTokenViewSelectorsText,
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
 import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
-import { logger } from '../../../framework';
+import { logger, type AppiumElement } from '../../../framework';
 
 class ImportTokensView {
-  get searchTokenResult(): DetoxElement {
+  get searchTokenResult(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
     );
   }
 
-  get nextButton(): DetoxElement {
+  get nextButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
   }
 
-  get networkInput(): DetoxElement {
+  get networkInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON,
     );
   }
 
-  get symbolInput(): DetoxElement {
+  get symbolInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SYMBOL_INPUT);
   }
 
-  get tokenSymbolText(): DetoxElement {
+  get tokenSymbolText(): Promise<AppiumElement> {
     return Matchers.getElementByText(ImportTokenViewSelectorsText.TOKEN_SYMBOL);
   }
 
-  get addressInput(): DetoxElement {
+  get addressInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.ADDRESS_INPUT);
   }
 
-  get decimalInput(): DetoxElement {
+  get decimalInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.DECIMAL_INPUT);
   }
 
-  get customTokenTab(): DetoxElement {
+  get customTokenTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ImportTokenViewSelectorsText.CUSTOM_TOKEN_TAB,
     );
   }
 
-  get searchTokenBar(): DetoxElement {
+  get searchTokenBar(): Promise<AppiumElement> {
     return Matchers.getElementByID(ImportTokenViewSelectorsIDs.SEARCH_BAR);
   }
 
-  get networkList(): DetoxElement {
+  get networkList(): Promise<AppiumElement> {
     return Matchers.getElementByID(CellComponentSelectorsIDs.SELECT, 0);
   }
 

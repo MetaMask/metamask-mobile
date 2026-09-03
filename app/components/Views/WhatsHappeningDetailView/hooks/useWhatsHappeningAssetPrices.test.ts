@@ -12,6 +12,12 @@ jest.mock('../../../UI/Perps/hooks/stream', () => ({
     mockUsePerpsLivePrices(options),
 }));
 
+const mockUseIsFocused = jest.fn(() => true);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useIsFocused: () => mockUseIsFocused(),
+}));
+
 // ── Test data ──────────────────────────────────────────────────────────────────
 
 const tslaAsset: RelatedAsset = {
@@ -43,6 +49,7 @@ describe('useWhatsHappeningAssetPrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUsePerpsLivePrices.mockReturnValue({});
+    mockUseIsFocused.mockReturnValue(true);
   });
 
   describe('perps live price subscription', () => {
@@ -127,6 +134,144 @@ describe('useWhatsHappeningAssetPrices', () => {
     expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
       symbols: [],
       throttleMs: 3000,
+    });
+  });
+
+  describe('focus gating', () => {
+    it('subscribes with the real symbols while focused', () => {
+      mockUseIsFocused.mockReturnValue(true);
+
+      renderHook(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: ['xyz:TSLA'],
+        throttleMs: 3000,
+      });
+    });
+
+    it('passes an empty symbol list to pause the subscription while unfocused', () => {
+      mockUseIsFocused.mockReturnValue(false);
+
+      renderHook(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
+    });
+
+    it('keeps the last known prices, keyed by the full symbol set, while unfocused', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        'xyz:TSLA': { price: '172.50', percentChange24h: '3.45' },
+      });
+      mockUseIsFocused.mockReturnValue(false);
+
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
+
+      expect(result.current.perpsPriceBySymbol['xyz:TSLA']).toEqual({
+        price: 172.5,
+        percentChange24h: 3.45,
+      });
+    });
+
+    it('re-subscribes with the real symbols once focus is regained', () => {
+      mockUseIsFocused.mockReturnValue(false);
+
+      const { rerender } = renderHook(() =>
+        useWhatsHappeningAssetPrices([tslaAsset]),
+      );
+      expect(mockUsePerpsLivePrices).toHaveBeenLastCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
+
+      mockUseIsFocused.mockReturnValue(true);
+      rerender(() => useWhatsHappeningAssetPrices([tslaAsset]));
+
+      expect(mockUsePerpsLivePrices).toHaveBeenLastCalledWith({
+        symbols: ['xyz:TSLA'],
+        throttleMs: 3000,
+      });
+    });
+  });
+
+  describe('last-known prices across partial ticks', () => {
+    const ethAsset: RelatedAsset = {
+      sourceAssetId: 'eth',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      hlPerpsMarket: ['ETH'],
+    };
+
+    it('keeps the previous finite price when a later tick omits the symbol', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '95000', percentChange24h: '2.5' },
+        ETH: { price: '3000', percentChange24h: '1.1' },
+      });
+
+      const { result, rerender } = renderHook(() =>
+        useWhatsHappeningAssetPrices([btcPerpsAsset, ethAsset]),
+      );
+
+      expect(result.current.perpsPriceBySymbol.BTC).toEqual({
+        price: 95000,
+        percentChange24h: 2.5,
+      });
+
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: { price: '3100', percentChange24h: '1.4' },
+      });
+      rerender(() => useWhatsHappeningAssetPrices([btcPerpsAsset, ethAsset]));
+
+      expect(result.current.perpsPriceBySymbol.BTC).toEqual({
+        price: 95000,
+        percentChange24h: 2.5,
+      });
+      expect(result.current.perpsPriceBySymbol.ETH).toEqual({
+        price: 3100,
+        percentChange24h: 1.4,
+      });
+    });
+
+    it('leaves price undefined until the first finite quote for a symbol', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: { price: '3000', percentChange24h: '1.1' },
+      });
+
+      const { result } = renderHook(() =>
+        useWhatsHappeningAssetPrices([btcPerpsAsset, ethAsset]),
+      );
+
+      expect(result.current.perpsPriceBySymbol.BTC).toEqual({
+        price: undefined,
+        percentChange24h: undefined,
+      });
+      expect(result.current.perpsPriceBySymbol.ETH.price).toBe(3000);
+    });
+
+    it('drops last-known prices for symbols no longer in the asset list', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '95000', percentChange24h: '2.5' },
+        ETH: { price: '3000', percentChange24h: '1.1' },
+      });
+
+      const { result, rerender } = renderHook(
+        ({ assets }: { assets: RelatedAsset[] }) =>
+          useWhatsHappeningAssetPrices(assets),
+        { initialProps: { assets: [btcPerpsAsset, ethAsset] } },
+      );
+
+      expect(result.current.perpsPriceBySymbol.BTC?.price).toBe(95000);
+
+      mockUsePerpsLivePrices.mockReturnValue({
+        ETH: { price: '3000', percentChange24h: '1.1' },
+      });
+      rerender({ assets: [ethAsset] });
+
+      expect(result.current.perpsPriceBySymbol.BTC).toBeUndefined();
+      expect(result.current.perpsPriceBySymbol.ETH.price).toBe(3000);
     });
   });
 });

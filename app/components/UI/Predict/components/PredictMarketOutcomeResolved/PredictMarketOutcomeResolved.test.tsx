@@ -9,6 +9,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'predict.volume_abbreviated': 'Vol.',
       'predict.outcome_draw': 'Draw',
+      'predict.outcome_loser': 'Loser',
     };
     return translations[key] || key;
   },
@@ -286,6 +287,32 @@ describe('PredictMarketOutcomeResolved', () => {
     );
 
     expect(getByText('Draw')).toBeOnTheScreen();
+  });
+
+  it('displays a one-token extended market as winner when price is resolved high', () => {
+    const outcome = createMockOutcome({
+      groupItemTitle: 'Team A wins',
+      tokens: [{ id: 'token-team-a', title: 'Team A', price: 1 }],
+    });
+
+    const { getByText } = render(
+      <PredictMarketOutcomeResolved outcome={outcome} />,
+    );
+
+    expect(getByText('Team A')).toBeOnTheScreen();
+  });
+
+  it('displays one-token extended market losers without crashing', () => {
+    const outcome = createMockOutcome({
+      groupItemTitle: 'Team B wins',
+      tokens: [{ id: 'token-team-b', title: 'Team B', price: 0 }],
+    });
+
+    const { getByText } = render(
+      <PredictMarketOutcomeResolved outcome={outcome} />,
+    );
+
+    expect(getByText('Loser')).toBeOnTheScreen();
   });
 
   it('calls formatVolume with outcome volume', () => {

@@ -22,6 +22,7 @@ const createMockState = ({
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
+    basicFunctionalityEnabled: true,
   },
   engine: {
     backgroundState: {
@@ -82,8 +83,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
-
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: {
@@ -95,11 +94,19 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
+      agenticCli: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
       socialAI: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
       marketing: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      priceAlerts: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
@@ -120,6 +127,9 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
 
 const socialAISectionTitle = strings(
   'app_settings.notifications_opts.social_ai_title',
+);
+const priceAlertsSectionTitle = strings(
+  'app_settings.notifications_opts.price_alerts_title',
 );
 
 describe('NotificationsSettings', () => {
@@ -155,5 +165,25 @@ describe('NotificationsSettings', () => {
     const { queryByText } = renderNotificationsSettings(state);
 
     expect(queryByText(socialAISectionTitle)).toBeNull();
+  });
+
+  it('renders price alerts section when notifications are enabled', () => {
+    const state = createMockState({
+      notificationsEnabled: true,
+    });
+
+    const { getByText } = renderNotificationsSettings(state);
+
+    expect(getByText(priceAlertsSectionTitle)).toBeOnTheScreen();
+  });
+
+  it('hides price alerts section when notifications are disabled', () => {
+    const state = createMockState({
+      notificationsEnabled: false,
+    });
+
+    const { queryByText } = renderNotificationsSettings(state);
+
+    expect(queryByText(priceAlertsSectionTitle)).toBeNull();
   });
 });

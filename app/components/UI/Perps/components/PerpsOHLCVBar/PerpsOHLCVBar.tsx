@@ -1,17 +1,16 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   formatPerpsFiat,
-  formatVolume,
+  formatCoinVolume,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { createStyles } from './PerpsOHLCVBar.styles';
 import type { PerpsOHLCVBarProps } from './PerpsOHLCVBar.types';
 import { strings } from '../../../../../../locales/i18n';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import { PerpsOHLCVBarSelectorsIDs } from '../../Perps.testIds';
 
 /**
  * PerpsOHLCVBar Component
@@ -71,8 +70,8 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       stripTrailingZeros: true,
     });
 
-    // Format volume with K/M/B/T suffixes (if provided)
-    const formattedVolume = volume ? formatVolume(volume) : null;
+    // Candle volume is base-asset size (coins), not USD.
+    const formattedVolume = volume ? formatCoinVolume(volume) : null;
 
     return {
       open: formattedOpen,
@@ -90,10 +89,15 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
         <View style={styles.column}>
           <Text
             style={styles.valueText}
-            color={TextColor.Default}
+            color={TextColor.TextDefault}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
+            testID={
+              testID
+                ? `${testID}-open-value`
+                : PerpsOHLCVBarSelectorsIDs.OPEN_VALUE
+            }
           >
             {formattedValues.open}
           </Text>
@@ -101,7 +105,7 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
         <View style={styles.column}>
           <Text
             style={styles.valueText}
-            color={TextColor.Default}
+            color={TextColor.TextDefault}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
@@ -112,7 +116,7 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
         <View style={styles.column}>
           <Text
             style={styles.valueText}
-            color={TextColor.Default}
+            color={TextColor.TextDefault}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
@@ -123,7 +127,7 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
         <View style={styles.column}>
           <Text
             style={styles.valueText}
-            color={TextColor.Default}
+            color={TextColor.TextDefault}
             numberOfLines={1}
             adjustsFontSizeToFit
             minimumFontScale={0.7}
@@ -135,10 +139,15 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
           <View style={styles.column}>
             <Text
               style={styles.valueText}
-              color={TextColor.Default}
+              color={TextColor.TextDefault}
               numberOfLines={1}
               adjustsFontSizeToFit
               minimumFontScale={0.7}
+              testID={
+                testID
+                  ? `${testID}-volume-value`
+                  : PerpsOHLCVBarSelectorsIDs.VOLUME_VALUE
+              }
             >
               {formattedValues.volume}
             </Text>
@@ -149,28 +158,28 @@ const PerpsOHLCVBar: React.FC<PerpsOHLCVBarProps> = ({
       {/* Labels Row */}
       <View style={styles.labelsRow}>
         <View style={styles.column}>
-          <Text style={styles.labelText} color={TextColor.Alternative}>
+          <Text style={styles.labelText} color={TextColor.TextAlternative}>
             {strings('perps.chart.ohlc.open')}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.labelText} color={TextColor.Alternative}>
+          <Text style={styles.labelText} color={TextColor.TextAlternative}>
             {strings('perps.chart.ohlc.close')}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.labelText} color={TextColor.Alternative}>
+          <Text style={styles.labelText} color={TextColor.TextAlternative}>
             {strings('perps.chart.ohlc.high')}
           </Text>
         </View>
         <View style={styles.column}>
-          <Text style={styles.labelText} color={TextColor.Alternative}>
+          <Text style={styles.labelText} color={TextColor.TextAlternative}>
             {strings('perps.chart.ohlc.low')}
           </Text>
         </View>
         {formattedValues.volume && (
           <View style={styles.column}>
-            <Text style={styles.labelText} color={TextColor.Alternative}>
+            <Text style={styles.labelText} color={TextColor.TextAlternative}>
               {strings('perps.chart.ohlc.volume')}
             </Text>
           </View>

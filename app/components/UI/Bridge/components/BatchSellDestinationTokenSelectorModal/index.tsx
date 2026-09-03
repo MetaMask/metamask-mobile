@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -36,7 +37,6 @@ import { RootState } from '../../../../../reducers';
 import { BridgeToken } from '../../types';
 import { formatTokenBalance } from '../../utils';
 import { BatchSellDestinationTokenSelectorModalSelectorsIDs } from './BatchSellDestinationTokenSelectorModal.testIds';
-import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -69,7 +69,7 @@ function getStablecoinBalanceDisplayValue(
 }
 
 export function BatchSellDestinationTokenSelectorModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -87,8 +87,6 @@ export function BatchSellDestinationTokenSelectorModal() {
     chainIds:
       destinationChainIds ?? (sourceChainId ? [sourceChainId] : undefined),
   });
-  const surfaceClass = useElevatedSurface();
-
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
@@ -106,7 +104,6 @@ export function BatchSellDestinationTokenSelectorModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       testID={BatchSellDestinationTokenSelectorModalSelectorsIDs.SHEET}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

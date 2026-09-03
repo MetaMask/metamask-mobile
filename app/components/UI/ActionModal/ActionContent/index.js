@@ -5,7 +5,7 @@ import StyledButton from '../../StyledButton';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
 
-const createStyles = (colors) =>
+const createStyles = (theme) =>
   StyleSheet.create({
     viewWrapper: {
       flexDirection: 'column',
@@ -15,14 +15,16 @@ const createStyles = (colors) =>
     },
     viewContainer: {
       width: '100%',
-      backgroundColor: colors.background.default,
+      backgroundColor: theme.colors.background.elevated1,
       borderRadius: 10,
+      borderWidth: 1,
+      borderColor: theme.colors.border.alternative,
     },
     actionHorizontalContainer: {
       flexDirection: 'row',
       padding: 16,
       borderTopWidth: 1,
-      borderTopColor: colors.border.muted,
+      borderTopColor: theme.colors.border.muted,
     },
     actionVerticalContainer: {
       flexDirection: 'column',
@@ -66,8 +68,8 @@ export default function ActionContent({
   childrenContainerStyle = null,
   verticalButtons,
 }) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const theme = useTheme();
+  const styles = createStyles(theme);
 
   return (
     <View style={[styles.viewWrapper, viewWrapperStyle]}>

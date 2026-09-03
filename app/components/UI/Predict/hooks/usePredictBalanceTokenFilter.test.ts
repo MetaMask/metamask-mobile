@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { hasTransactionType } from '../../../Views/confirmations/utils/transaction';
+import { hasTransactionType } from '@metamask/transaction-controller';
 import { usePredictBalanceTokenFilter } from './usePredictBalanceTokenFilter';
 
 let mockTransactionMeta: { type?: string } | null = null;
@@ -12,7 +12,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../Views/confirmations/utils/transaction', () => ({
+jest.mock('@metamask/transaction-controller', () => ({
+  ...jest.requireActual('@metamask/transaction-controller'),
   hasTransactionType: jest.fn(),
 }));
 

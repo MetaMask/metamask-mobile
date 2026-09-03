@@ -11,7 +11,9 @@ import {
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
 } from '../../../UI/Earn/constants/musd';
-import { MERKL_CLAIM_CHAIN_ID } from '../../../UI/Earn/components/MerklRewards/constants';
+
+// Linea mainnet — the chain historical mUSD bonus claims were made on
+const MERKL_CLAIM_CHAIN_ID = '0xe708' as const;
 
 jest.mock('./transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn().mockReturnValue({

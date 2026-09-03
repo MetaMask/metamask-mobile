@@ -75,12 +75,12 @@ export const selectAccountSections = createSelector(
 
     return Object.values(accountTreeState.accountTree.wallets).map(
       (wallet: AccountWalletObject) => {
-        const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
-          (group) => group.accounts,
+        const walletAccountIds = new Set(
+          Object.values(wallet.groups).flatMap((group) => group.accounts),
         );
         // To preserve the order of the accounts in the accounts controller
         const accountIds = internalAccounts
-          .filter((account) => allAccountsIdInWallet.includes(account.id))
+          .filter((account) => walletAccountIds.has(account.id))
           .map((account) => account.id);
 
         return {
@@ -379,18 +379,15 @@ export const selectAccountGroupWithInternalAccounts = createSelector(
   (
     accountGroups: readonly AccountGroupObject[],
     internalAccounts: readonly InternalAccount[],
-  ): readonly AccountGroupWithInternalAccounts[] =>
-    accountGroups.map((accountGroup) => ({
+  ): readonly AccountGroupWithInternalAccounts[] => {
+    const byId = new Map(internalAccounts.map((a) => [a.id, a]));
+    return accountGroups.map((accountGroup) => ({
       ...accountGroup,
       accounts: accountGroup.accounts
-        .map((accountId: string) => {
-          const internalAccount = internalAccounts.find(
-            (account) => account.id === accountId,
-          );
-          return internalAccount;
-        })
+        .map((accountId: string) => byId.get(accountId))
         .filter((account): account is InternalAccount => account !== undefined),
-    })),
+    }));
+  },
 );
 
 /**

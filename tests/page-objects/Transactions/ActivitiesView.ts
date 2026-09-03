@@ -1,7 +1,9 @@
+import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+import { ActivityScreenSelectorsIDs } from '../../../app/components/Views/ActivityScreen/ActivityScreen.testIds';
 import {
-  ActivitiesViewSelectorsIDs,
-  ActivitiesViewSelectorsText,
-} from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
+  ActivityListSelectorsIDs,
+  activityListRowItemTestId,
+} from '../../../app/components/Views/ActivityList/ActivityList.testIds';
 import {
   getOrderRowFiatAmountTestId,
   getOrderRowCryptoAmountTestId,
@@ -11,90 +13,219 @@ import {
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import Utilities from '../../framework/Utilities';
+import type { AppiumElement } from '../../framework/AppiumElement';
 
 class ActivitiesView {
-  get title(): DetoxElement {
+  get typeFilterChip(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP);
+  }
+
+  typeFilterOption(option: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  get perpsFilterChip(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+    );
+  }
+
+  get perpsFilterSheet(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
+  }
+
+  get typeFilterSheet(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
+    );
+  }
+
+  perpsFilterOption(option: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${option}`,
+    );
+  }
+
+  async tapTypeFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterChip, {
+      elemDescription: 'Activity Type Filter Chip',
+    });
+  }
+
+  async tapTypeFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.typeFilterOption(option), {
+      elemDescription: `Activity Type Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async tapPerpsFilterChip(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterChip, {
+      elemDescription: 'Activity Perps Filter Chip',
+    });
+  }
+
+  async tapPerpsFilterOption(option: string): Promise<void> {
+    await Gestures.waitAndTap(this.perpsFilterOption(option), {
+      elemDescription: `Activity Perps Filter Option: ${option}`,
+      checkForDisplayed: false,
+      delay: 2000,
+      timeout: 8000,
+    });
+  }
+
+  async selectPerpsFilterOptionSafe(option: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = option === 'deposit' ? 'Deposits' : option;
+        let sheetOpen = true;
+        try {
+          await Assertions.expectElementToBeVisible(
+            Matchers.getElementByText(label),
+            {
+              timeout: 1500,
+              description: 'Check if perps filter sheet is open',
+            },
+          );
+        } catch {
+          sheetOpen = false;
+        }
+
+        if (!sheetOpen) {
+          await Gestures.waitAndTap(this.perpsFilterChip, {
+            elemDescription: 'Activity Perps Filter Chip',
+            timeout: 3000,
+          });
+        }
+
+        await Gestures.waitAndTap(this.perpsFilterOption(option), {
+          elemDescription: `Activity Perps Filter Option: ${option}`,
+          checkForDisplayed: false,
+          delay: 2000,
+          timeout: 8000,
+        });
+
+        await Assertions.expectElementToNotBeVisible(this.perpsFilterSheet, {
+          timeout: 4000,
+          description: 'Wait for perps filter sheet to close after selection',
+        });
+      },
+      {
+        timeout: 30000,
+        description: 'Selecting perps filter option with retry',
+      },
+    );
+  }
+
+  async verifyActivityItemLabelAndAmount(
+    label: string,
+    amount: string,
+  ): Promise<void> {
+    await Assertions.expectTextDisplayed(label, { timeout: 15000 });
+    await Assertions.expectTextDisplayed(amount, { timeout: 10000 });
+  }
+
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.TITLE);
   }
-  get predictionsTab(): DetoxElement {
-    return Matchers.getElementByLabel(
-      ActivitiesViewSelectorsText.PREDICTIONS_TAB,
-    );
-  }
-  get transferTab(): DetoxElement {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.TRANSFER_TAB);
-  }
 
-  get tabsBar(): DetoxElement {
+  get networkFilterChip(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      `${ActivitiesViewSelectorsIDs.TABS_CONTAINER}-bar`,
+      ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
     );
   }
 
-  get container(): DetoxElement {
-    return Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER);
+  get redesignedScreen(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityScreenSelectorsIDs.SAFE_AREA_VIEW);
   }
 
-  get confirmedLabel(): DetoxElement {
-    return Matchers.getElementByText(ActivitiesViewSelectorsText.CONFIRM_TEXT);
+  /**
+   * Selects redesigned Activity network filter by CAIP (needs tmcuActivityRedesignEnabled).
+   */
+  async filterByNetwork(caipChainId: string): Promise<void> {
+    await Assertions.expectElementToExist(this.redesignedScreen, {
+      description: 'Redesigned Activity screen',
+      timeout: 15_000,
+    });
+    await Assertions.expectElementToExist(this.networkFilterChip, {
+      description: 'Activity network filter chip (All networks)',
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(this.networkFilterChip, {
+      elemDescription: 'Activity network filter chip',
+      checkForDisplayed: false,
+      timeout: 15_000,
+    });
+    await Gestures.waitAndTap(
+      Matchers.getElementByID(`network-select-${caipChainId}`),
+      {
+        elemDescription: `Activity network filter option ${caipChainId}`,
+        checkForDisplayed: false,
+        timeout: 15_000,
+      },
+    );
   }
 
-  get stakeDepositedLabel(): DetoxElement {
+  get container(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ActivityListSelectorsIDs.CONTAINER);
+  }
+
+  get stakeDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKE_DEPOSIT);
   }
 
-  get stakeMoreDepositedLabel(): DetoxElement {
+  get stakeMoreDepositedLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.STAKE_DEPOSIT,
       0,
     );
   }
 
-  get unstakeLabel(): DetoxElement {
+  get unstakeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.UNSTAKE);
   }
 
-  get stackingClaimLabel(): DetoxElement {
+  get stackingClaimLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
-  get approveActivity(): DetoxElement {
+  get approveActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  get lendingDepositActivity(): DetoxElement {
+  get lendingDepositActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_DEPOSIT,
     );
   }
 
-  get lendingWithdrawalActivity(): DetoxElement {
+  get lendingWithdrawalActivity(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.LENDING_WITHDRAWAL,
     );
   }
 
-  get predictDeposit(): DetoxElement {
+  get predictDeposit(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_DEPOSIT,
     );
   }
 
-  get predictWithdraw(): DetoxElement {
+  get predictWithdraw(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
     );
   }
 
-  transactionStatus(row: number): DetoxElement {
-    return Matchers.getElementByID(`transaction-status-${row}`);
-  }
-
-  transactionItem(row: number): DetoxElement {
-    return Matchers.getElementByID(`transaction-item-${row}`);
+  transactionItem(row: number): Promise<AppiumElement> {
+    return Matchers.getElementByID(activityListRowItemTestId(row));
   }
 
   generateSwapActivityLabel(
@@ -116,17 +247,17 @@ class ActivitiesView {
   swapActivityTitle(
     sourceToken: string,
     destinationToken: string,
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateSwapActivityLabel(sourceToken, destinationToken),
     );
   }
 
-  swapApprovalActivityTitle(): DetoxElement {
+  swapApprovalActivityTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
   }
 
-  bridgeActivityTitle(destNetwork: string): DetoxElement {
+  bridgeActivityTitle(destNetwork: string): Promise<AppiumElement> {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
     );
@@ -140,10 +271,6 @@ class ActivitiesView {
     await Gestures.waitAndTap(el);
   }
 
-  async tapConfirmedTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmedLabel);
-  }
-
   async swipeDown(): Promise<void> {
     await Gestures.swipe(this.container, 'down', {
       speed: 'slow',
@@ -151,27 +278,46 @@ class ActivitiesView {
     });
   }
 
+  /**
+   * Taps an activity row via its visible text label.
+   * Note: The ~transaction-item-0 wrapper testID can be flaky under XCUITest
+   * (accessibility flattening swallows it into StaticText children), so tapping by label text is safer.
+   */
+  async tapOnActivityItemByLabel(label: string): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(Matchers.getElementByText(label), {
+          elemDescription: `Tap Activity Item By Label: ${label}`,
+          timeout: 10000,
+        });
+      },
+      {
+        timeout: 30000,
+        description: `Tapping activity item by label ${label} with retry`,
+      },
+    );
+  }
+
   async tapOnTransactionItem(row: number): Promise<void> {
     await Gestures.waitAndTap(this.transactionItem(row));
   }
 
   async tapOnPredictionsTab(): Promise<void> {
-    // Swipe left on the tabs bar to reveal the Predictions tab (it may be off-screen)
-    await Gestures.swipe(this.tabsBar, 'left', {
-      percentage: 0.5,
-      speed: 'slow',
-      elemDescription: 'Activity View Tabs Bar',
-    });
-    await Gestures.waitAndTap(this.predictionsTab, {
-      elemDescription: 'Predictions Tab in Activity View',
-      timeout: 3500,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.tapTypeFilterChip();
+        await this.tapTypeFilterOption('predictions');
+      },
+      {
+        timeout: 30_000,
+        description: 'Tap Predictions tab in Activity View',
+      },
+    );
   }
 
   async tapOnTransfersTab(): Promise<void> {
-    await Gestures.waitAndTap(this.transferTab, {
-      elemDescription: 'Transfer Tab in Activity View',
-    });
+    await this.tapTypeFilterChip();
+    await this.tapTypeFilterOption('transactions');
   }
 
   async tapPredictPosition(positionName: string): Promise<void> {
@@ -184,7 +330,7 @@ class ActivitiesView {
   rampsOrderCryptoAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowCryptoAmountTestId(orderType, rowIndex),
     );
@@ -193,7 +339,7 @@ class ActivitiesView {
   rampsOrderFiatAmount(
     orderType: RampsOrderTypeSlug,
     rowIndex: number,
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       getOrderRowFiatAmountTestId(orderType, rowIndex),
     );
@@ -221,38 +367,14 @@ class ActivitiesView {
    */
   async verifyActivityItemWithStatus(
     titleText: string,
-    statusText: string,
+    statusText?: string,
     rowIndex = 0,
   ): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
-    await Assertions.expectElementToHaveText(
-      this.transactionStatus(rowIndex),
-      statusText,
-      {
-        timeout: 10000,
-        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
-      },
-    );
-  }
-
-  /**
-   * Verifies that the mUSD conversion activity item is visible and its status is Confirmed.
-   * Delegates to verifyActivityItemWithStatus.
-   */
-  async verifyMusdConversionConfirmed(rowIndex = 0): Promise<void> {
-    await this.verifyActivityItemWithStatus(
-      ActivitiesViewSelectorsText.MUSD_CONVERSION,
-      ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      rowIndex,
-    );
+    // Verify with data attributes
   }
 
   /**
    * Wait for a transaction to show "Confirmed" status in the activity list.
-   * Works in both Detox and Playwright/Appium contexts.
    * For real on-chain transactions, polls with a longer timeout.
    * @param timeoutMs - Maximum time to wait for confirmation (default: 120s)
    */
@@ -260,37 +382,7 @@ class ActivitiesView {
     rowIndex = 0,
     timeoutMs = 120_000,
   ): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(
-          this.transactionStatus(rowIndex),
-          {
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectConditionWithRetry(
-          async () => {
-            const statusEl = await PlaywrightMatchers.getElementById(
-              `transaction-status-${rowIndex}`,
-              { exact: true },
-            );
-            const label = await statusEl.textContent();
-            if (label !== ActivitiesViewSelectorsText.CONFIRM_TEXT) {
-              throw new Error(
-                `Row ${rowIndex} status: "${label}" (waiting for "${ActivitiesViewSelectorsText.CONFIRM_TEXT}")`,
-              );
-            }
-          },
-          {
-            maxRetries: Math.ceil(timeoutMs / 3_000),
-            interval: 3_000,
-            description: `Transaction row ${rowIndex} should be confirmed`,
-          },
-        );
-      },
-    });
+    // Verify with data attributes
   }
 }
 

@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { BottomSheetRef } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Hex } from '@metamask/utils';
@@ -26,7 +27,7 @@ export interface AddAssetParams {
 }
 
 const AddAsset = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { assetType, collectibleContract } = useParams<AddAssetParams>();
 
   const tw = useTailwind();

@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -16,7 +17,7 @@ import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testI
 
 const BackupAndSyncSettings = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
 

@@ -12,7 +12,12 @@ import {
   type CandleData,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { getAssetIconUrl, getAssetIconUrls } from './marketUtils';
+import {
+  getAssetIconUrl,
+  getAssetIconUrls,
+  getSuggestedWatchlistMarkets,
+  SUGGESTED_WATCHLIST_LIMIT,
+} from './marketUtils';
 
 jest.mock('@metamask/perps-controller', () => {
   const actual = jest.requireActual('@metamask/perps-controller');
@@ -985,6 +990,92 @@ describe('marketUtils', () => {
 
         expect(result).toBe('TsLa');
       });
+    });
+  });
+
+  describe('getSuggestedWatchlistMarkets', () => {
+    const makeMarket = (symbol: string): Partial<PerpsMarketData> => ({
+      symbol,
+    });
+    // 8 markets sorted by volume desc (index = rank)
+    const pool = ['BTC', 'ETH', 'SOL', 'BNB', 'ARB', 'AVAX', 'DOT', 'LINK'].map(
+      makeMarket,
+    ) as PerpsMarketData[];
+
+    it('returns limit suggestions when watchlist is empty', () => {
+      const result = getSuggestedWatchlistMarkets(pool, []);
+      expect(result.map((m) => m.symbol)).toEqual([
+        'BTC',
+        'ETH',
+        'SOL',
+        'BNB',
+        'ARB',
+      ]);
+    });
+
+    it('returns limit-1 suggestions when 1 item is watchlisted', () => {
+      const result = getSuggestedWatchlistMarkets(pool, ['BTC']);
+      expect(result).toHaveLength(4);
+      expect(result.map((m) => m.symbol)).toEqual(['ETH', 'SOL', 'BNB', 'ARB']);
+    });
+
+    it('returns limit-2 suggestions when 2 items are watchlisted', () => {
+      const result = getSuggestedWatchlistMarkets(pool, ['BTC', 'ETH']);
+      expect(result).toHaveLength(3);
+      expect(result.map((m) => m.symbol)).toEqual(['SOL', 'BNB', 'ARB']);
+    });
+
+    it('returns limit-3 suggestions when 3 items are watchlisted', () => {
+      const result = getSuggestedWatchlistMarkets(pool, ['BTC', 'ETH', 'SOL']);
+      expect(result).toHaveLength(2);
+      expect(result.map((m) => m.symbol)).toEqual(['BNB', 'ARB']);
+    });
+
+    it('returns 1 suggestion when 4 items are watchlisted (floor)', () => {
+      const result = getSuggestedWatchlistMarkets(pool, [
+        'BTC',
+        'ETH',
+        'SOL',
+        'BNB',
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result.map((m) => m.symbol)).toEqual(['ARB']);
+    });
+
+    it('returns 1 suggestion when more than limit items are watchlisted (floor)', () => {
+      const result = getSuggestedWatchlistMarkets(pool, [
+        'BTC',
+        'ETH',
+        'SOL',
+        'BNB',
+        'ARB',
+        'AVAX',
+      ]);
+      expect(result).toHaveLength(1);
+      expect(result.map((m) => m.symbol)).toEqual(['DOT']);
+    });
+
+    it('respects a custom limit', () => {
+      const result = getSuggestedWatchlistMarkets(pool, [], 3);
+      expect(result.map((m) => m.symbol)).toEqual(['BTC', 'ETH', 'SOL']);
+    });
+
+    it('reduces by watchlist count even when watchlisted items are outside the top pool', () => {
+      // LINK is rank 8 — well outside the default pool of 5
+      const result = getSuggestedWatchlistMarkets(pool, ['LINK']);
+      // max(1, 5-1) = 4 suggestions, top-4 non-watchlisted = BTC ETH SOL BNB
+      expect(result).toHaveLength(4);
+      expect(result.map((m) => m.symbol)).toEqual(['BTC', 'ETH', 'SOL', 'BNB']);
+    });
+
+    it('returns empty array when every market is watchlisted', () => {
+      const symbols = pool.map((m) => m.symbol);
+      const result = getSuggestedWatchlistMarkets(pool, symbols);
+      expect(result).toEqual([]);
+    });
+
+    it('exports SUGGESTED_WATCHLIST_LIMIT as 5', () => {
+      expect(SUGGESTED_WATCHLIST_LIMIT).toBe(5);
     });
   });
 

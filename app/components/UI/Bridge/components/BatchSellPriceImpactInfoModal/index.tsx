@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -24,7 +25,7 @@ function formatPriceImpact(priceImpact: string) {
 }
 
 export function BatchSellPriceImpactInfoModal() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { priceImpact } = useParams<BatchSellPriceImpactInfoModalParams>();
   const formattedPriceImpact = formatPriceImpact(priceImpact);
 

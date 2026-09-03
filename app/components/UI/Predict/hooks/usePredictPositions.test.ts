@@ -14,7 +14,10 @@ jest.mock('./usePredictNetworkManagement', () => ({
   }),
 }));
 
-const mockGetEvmAccountFromSelectedAccountGroup = jest.fn(() => ({
+const mockGetEvmAccountFromSelectedAccountGroup = jest.fn<
+  { address: string; type: string } | null,
+  []
+>(() => ({
   address: MOCK_ADDRESS,
   type: 'eip155:eoa',
 }));
@@ -88,7 +91,7 @@ const createPosition = (
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -125,6 +128,21 @@ describe('usePredictPositions', () => {
 
     expect(result.current.data).toEqual([]);
     expect(result.current.error).toBeNull();
+  });
+
+  it('does not fetch positions when no EVM account is selected', () => {
+    const { Wrapper } = createWrapper();
+    mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue(null);
+
+    renderHook(() => usePredictPositions(), {
+      wrapper: Wrapper,
+    });
+
+    expect(mockGetPositions).not.toHaveBeenCalled();
+    expect(mockUsePredictLivePositions).toHaveBeenCalledWith([], {
+      enabled: false,
+      cacheAddress: '',
+    });
   });
 
   it('fetches against the new address after the selected account changes', async () => {

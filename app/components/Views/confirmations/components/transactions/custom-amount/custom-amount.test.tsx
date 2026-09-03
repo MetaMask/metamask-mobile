@@ -2,23 +2,19 @@ import React from 'react';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../../hooks/pay/useTransactionPayData';
+import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
+jest.mock('../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators');
 
-const mockUseTransactionPayIsMaxAmount = jest.mocked(
-  useTransactionPayIsMaxAmount,
+const mockFormatAmountWithLocaleSeparators = jest.mocked(
+  formatAmountWithLocaleSeparators,
 );
-const mockUseIsTransactionPayLoading = jest.mocked(useIsTransactionPayLoading);
 
 describe('CustomAmount', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
+    mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
   });
 
   it('renders amount', () => {
@@ -27,6 +23,19 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
+  });
+
+  it('renders the amount formatted with thousand separators', () => {
+    mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
+
+    const { getByText } = renderWithProvider(
+      <CustomAmount amountFiat="1000000" />,
+    );
+
+    expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
+      '1000000',
+    );
+    expect(getByText('1,000,000')).toBeOnTheScreen();
   });
 
   it('renders fiat symbol for specified currency', () => {
@@ -54,36 +63,44 @@ describe('CustomAmount', () => {
     expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
   });
 
-  it('renders skeleton when max amount and quotes are loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
+  it('renders the amount even on Max — the input shows the full amount being paid, which is known synchronously and does not wait on quotes', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="123.45" />,
+    );
 
+    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+  });
+
+  it('renders blinking cursor when showCursor is true', () => {
     const { getByTestId } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
+      <CustomAmount amountFiat="100" showCursor />,
     );
 
-    expect(getByTestId('custom-amount-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
   });
 
-  it('renders amount when max amount but quotes are not loading', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(true);
-    mockUseIsTransactionPayLoading.mockReturnValue(false);
-
-    const { getByText } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
+  it('does not render cursor when showCursor is false', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" showCursor={false} />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
 
-  it('renders amount when quotes are loading but not max amount', () => {
-    mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
-    mockUseIsTransactionPayLoading.mockReturnValue(true);
-
-    const { getByText } = renderWithProvider(
-      <CustomAmount amountFiat="123.45" />,
+  it('does not render cursor when disabled', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" disabled showCursor />,
     );
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
+  });
+
+  it('does not render cursor when loading', () => {
+    const { queryByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="100" isLoading showCursor />,
+    );
+
+    expect(queryByTestId('custom-amount-cursor')).toBeNull();
   });
 });

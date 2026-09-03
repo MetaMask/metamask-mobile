@@ -30,7 +30,6 @@ describe('NotificationIcon', () => {
     ({ hasBadge, assertion }) => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <NotificationIcon
-          isRead={false}
           image={{ url: walletNotification.imageUrl.name }}
           badgeIcon={hasBadge ? walletNotification.badgeIcon : undefined}
         />,

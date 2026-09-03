@@ -11,37 +11,30 @@ import type { TabRefreshHandle } from '../../Views/Wallet/types';
 import {
   InteractionManager,
   ScrollView,
-  View,
   type RefreshControlProps,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-} from '../../../selectors/networkController';
+import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { TokenList } from './TokenList/TokenList';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
-import { refreshTokens, goToAddEvmToken } from './util';
+import { goToAddEvmToken } from './util';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { TokenListControlBar } from './TokenListControlBar/TokenListControlBar';
-import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal/ScamWarningModal';
 import TokenListSkeleton from './TokenList/TokenListSkeleton/TokenListSkeleton';
 import { selectSortedAssetsBySelectedAccountGroup } from '../../../selectors/assets/assets-list';
-import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
-import { SolScope } from '@metamask/keyring-api';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useRemoveToken } from './hooks/useRemoveToken';
+import { useRefreshTokens } from './hooks/useRefreshTokens';
 import { TokensEmptyState } from '../TokensEmptyState';
-import MusdConversionAssetListCta from '../Earn/components/Musd/MusdConversionAssetListCta';
-import { selectIsMusdConversionFlowEnabledFlag } from '../Earn/selectors/featureFlags';
 import { isMusdToken } from '../Earn/constants/musd';
 import RemoveTokenBottomSheet from './TokenList/RemoveTokenBottomSheet';
-import { useMusdConversionEligibility } from '../Earn/hooks/useMusdConversionEligibility';
 import { strings } from '../../../../locales/i18n';
 import { selectMoneyHubEnabledFlag } from '../Money/selectors/featureFlags';
 
@@ -96,33 +89,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     },
     ref,
   ) => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
+    const { bottom: bottomInset } = useSafeAreaInsets();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const tw = useTailwind();
 
-    // evm
-    const evmNetworkConfigurationsByChainId = useSelector(
-      selectEvmNetworkConfigurationsByChainId,
-    );
     const currentChainId = useSelector(selectChainId);
 
     const [refreshing, setRefreshing] = useState(false);
-    const selectedAccountId = useSelector(selectSelectedInternalAccountId);
+    const { refresh: refreshTokensForGroup } = useRefreshTokens();
 
-    const selectedSolanaAccount =
-      useSelector(selectSelectedInternalAccountByScope)(SolScope.Mainnet) ||
-      null;
-    const isSolanaSelected = selectedSolanaAccount !== null;
-
-    const isMusdConversionFlowEnabled = useSelector(
-      selectIsMusdConversionFlowEnabledFlag,
+    const shouldExcludeMusdFromMainList = useSelector(
+      selectMoneyHubEnabledFlag,
     );
-    const isMoneyHubEnabled = useSelector(selectMoneyHubEnabledFlag);
-    const { isEligible: isGeoEligible } = useMusdConversionEligibility();
-    const isCashSectionEnabled =
-      isMusdConversionFlowEnabled && isMoneyHubEnabled && isGeoEligible;
-
-    const shouldExcludeMusdFromMainList = isCashSectionEnabled;
 
     const [hasInitialLoad, setHasInitialLoad] = useState(false);
     const hasTrackedScreenViewRef = useRef(false);
@@ -132,7 +111,8 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       selectSortedAssetsBySelectedAccountGroup,
     );
 
-    // When showOnlyMusd: only mUSD. When Cash section is enabled: exclude mUSD (shown in Cash section). Otherwise include all.
+    // When showOnlyMusd: only mUSD. Otherwise, exclude mUSD while it is surfaced
+    // in the Money hub.
     const tokenKeysForList = useMemo(
       () =>
         showOnlyMusd
@@ -207,19 +187,11 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         });
 
         // Then await the actual refresh
-        await refreshTokens({
-          isSolanaSelected,
-          evmNetworkConfigurationsByChainId,
-          selectedAccountId,
-        });
+        await refreshTokensForGroup();
       } finally {
         setRefreshing(false);
       }
-    }, [
-      isSolanaSelected,
-      evmNetworkConfigurationsByChainId,
-      selectedAccountId,
-    ]);
+    }, [refreshTokensForGroup]);
 
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
@@ -264,26 +236,19 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
 
       if (tokenKeysForList.length > 0) {
         return (
-          <>
-            {!showOnlyMusd && isMusdConversionFlowEnabled && isGeoEligible && (
-              <View style={isFullView ? tw`px-4` : undefined}>
-                <MusdConversionAssetListCta />
-              </View>
-            )}
-            <TokenList
-              tokenKeys={tokenKeysForList}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              showRemoveMenu={showRemoveMenu}
-              setShowScamWarningModal={handleScamWarningModal}
-              maxItems={maxItems}
-              isFullView={isFullView}
-              listHeaderComponent={listHeaderComponent}
-              listFooterComponent={listFooterComponent}
-              refreshControl={refreshControl}
-              hideSecondaryPriceRow={hideSecondaryPriceRow}
-            />
-          </>
+          <TokenList
+            tokenKeys={tokenKeysForList}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            showRemoveMenu={showRemoveMenu}
+            setShowScamWarningModal={handleScamWarningModal}
+            maxItems={maxItems}
+            isFullView={isFullView}
+            listHeaderComponent={listHeaderComponent}
+            listFooterComponent={listFooterComponent}
+            refreshControl={refreshControl}
+            hideSecondaryPriceRow={hideSecondaryPriceRow}
+          />
         );
       }
 
@@ -308,6 +273,9 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         return (
           <ScrollView
             style={tw`flex-1`}
+            contentContainerStyle={
+              isFullView ? { paddingBottom: bottomInset } : undefined
+            }
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
@@ -326,18 +294,17 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
       tokenKeysForList,
       showOnlyMusd,
       hasMusdBalanceOnAnyChainProp,
-      isMusdConversionFlowEnabled,
       tw,
       refreshing,
       onRefresh,
       showRemoveMenu,
       handleScamWarningModal,
       maxItems,
-      isGeoEligible,
       listHeaderComponent,
       listFooterComponent,
       refreshControl,
       hideSecondaryPriceRow,
+      bottomInset,
     ]);
 
     return (
@@ -350,7 +317,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
             goToAddToken={goToAddToken}
             showAddToken={!showOnlyMusd}
             hideSort={showOnlyMusd}
-            style={isFullView ? tw`px-4 pb-4` : undefined}
+            style={isFullView ? tw`px-4 pb-3` : undefined}
           />
         )}
         {tokenContent}

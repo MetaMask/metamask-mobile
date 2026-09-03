@@ -1,12 +1,13 @@
 import React from 'react';
 import { Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useAssetFromTheme } from '../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   TabEmptyState,
   type TabEmptyStateProps,
-} from '../../../component-library/components-temp/TabEmptyState';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../Views/TrendingView/TrendingView';
@@ -18,7 +19,7 @@ export interface DefiEmptyStateProps extends TabEmptyStateProps {}
 
 export const DefiEmptyState: React.FC<DefiEmptyStateProps> = (props) => {
   const defiImage = useAssetFromTheme(emptyStateDefiLight, emptyStateDefiDark);
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handleExploreDefi = () => {

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useEffect } from 'react';
 
 import Routes from '../../../../../constants/navigation/Routes';
@@ -11,7 +12,7 @@ export const ConfirmRoot = () => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionMetadata = useTransactionMetadataRequest();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   useEffect(() => {
     if (!approvalRequest) {

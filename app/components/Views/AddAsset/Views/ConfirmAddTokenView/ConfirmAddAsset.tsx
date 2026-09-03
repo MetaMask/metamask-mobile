@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigation } from '@react-navigation/native';
-import getHeaderCompactStandardNavbarOptions from '../../../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   ButtonSize,
   ButtonVariants,
@@ -16,11 +16,40 @@ import BottomSheetFooter, {
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ImportTokenViewSelectorsIDs } from '../../ImportAssetView.testIds';
-import { FlashList } from '@shopify/flash-list';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import {
+  Box,
+  HeaderStandard,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { ImportAsset } from '../../utils/utils';
 import AddAssetTokenRow from '../../components/AddAssetTokenRow/AddAssetTokenRow';
 import Logger from '../../../../../util/Logger';
+import { useAddNetworkIfMissingMutation } from '../../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
+
+interface ConfirmAddAssetRowProps {
+  asset: ImportAsset;
+  networkName: string;
+}
+
+const getAssetRowKey = (asset: ImportAsset) =>
+  `${asset.chainId}-${asset.address.toLowerCase()}`;
+
+function ConfirmAddAssetRowComponent({
+  asset,
+  networkName,
+}: ConfirmAddAssetRowProps) {
+  const tw = useTailwind();
+
+  return (
+    <ListItem gap={20} style={tw.style('p-0')}>
+      <AddAssetTokenRow asset={asset} networkName={networkName} />
+    </ListItem>
+  );
+}
+
+const ConfirmAddAssetRow = React.memo(ConfirmAddAssetRowComponent);
 
 const ConfirmAddAsset = () => {
   const { selectedAsset, networkName, addTokenList } = useParams<{
@@ -30,34 +59,18 @@ const ConfirmAddAsset = () => {
   }>();
 
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [isImporting, setIsImporting] = useState(false);
+  const { mutateAsync: addNetworkIfMissing } = useAddNetworkIfMissingMutation();
 
   /**
-   * Go to wallet page
+   * Return to the View all tokens screen after a successful import.
    */
-  const goToWalletPage = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
+  const goToTokensFullView = useCallback(() => {
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+      pop: true,
     });
   }, [navigation]);
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getHeaderCompactStandardNavbarOptions({
-        title: strings(`add_asset.title`),
-        onBack: () => navigation.goBack(),
-        includesTopInset: true,
-      }),
-    );
-  }, [navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
 
   const handleImport = useCallback(async () => {
     if (isImporting) {
@@ -66,14 +79,36 @@ const ConfirmAddAsset = () => {
 
     setIsImporting(true);
 
+    const addAllMissingNetworks = async () => {
+      const uniqueChainIds = [
+        ...new Set(selectedAsset.map((asset) => asset.chainId)),
+      ];
+
+      for (const chainId of uniqueChainIds) {
+        await addNetworkIfMissing(chainId);
+      }
+    };
+
     try {
+      await addAllMissingNetworks();
       await addTokenList();
-      goToWalletPage();
+      goToTokensFullView();
     } catch (error) {
       Logger.error(error as Error, 'ConfirmAddAsset: failed to import tokens');
       setIsImporting(false);
     }
-  }, [addTokenList, goToWalletPage, isImporting]);
+  }, [
+    addNetworkIfMissing,
+    addTokenList,
+    goToTokensFullView,
+    isImporting,
+    selectedAsset,
+  ]);
+
+  const renderItem = useCallback<ListRenderItem<ImportAsset>>(
+    ({ item }) => <ConfirmAddAssetRow asset={item} networkName={networkName} />,
+    [networkName],
+  );
 
   return (
     <SafeAreaView
@@ -81,6 +116,12 @@ const ConfirmAddAsset = () => {
       style={tw.style('flex-1 bg-default')}
       testID={ImportTokenViewSelectorsIDs.ADD_CONFIRM_CUSTOM_ASSET}
     >
+      <HeaderStandard
+        title={strings('add_asset.title')}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+
       <Box twClassName="flex-1 pt-2">
         <Text variant={TextVariant.BodyMd} style={tw.style('text-center px-4')}>
           {selectedAsset.length > 1
@@ -92,12 +133,8 @@ const ConfirmAddAsset = () => {
           data={selectedAsset}
           style={tw.style('flex-1 bg-default')}
           contentContainerStyle={tw.style('pt-6 px-6 pb-4')}
-          renderItem={({ item: asset, index }) => (
-            <ListItem key={index} gap={20} style={tw.style('p-0')}>
-              <AddAssetTokenRow asset={asset} networkName={networkName} />
-            </ListItem>
-          )}
-          keyExtractor={(_, index) => `token-search-row-${index}`}
+          renderItem={renderItem}
+          keyExtractor={getAssetRowKey}
         />
       </Box>
 
@@ -111,6 +148,7 @@ const ConfirmAddAsset = () => {
             isDisabled: isImporting,
           },
           {
+            // Called here
             onPress: handleImport,
             label: strings('swaps.Import'),
             variant: ButtonVariants.Primary,
@@ -125,4 +163,5 @@ const ConfirmAddAsset = () => {
     </SafeAreaView>
   );
 };
+
 export default ConfirmAddAsset;

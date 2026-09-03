@@ -1,8 +1,9 @@
-import { waitFor } from 'detox';
-import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
+import Utilities, { BASE_DEFAULTS, stripJsonKeys } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
-import Matchers from './Matchers.ts';
+import type { AppiumElement } from './AppiumElement.ts';
 import { Json } from '@metamask/utils';
+import { PlatformDetector } from './PlatformLocator.ts';
+import AppiumAssertions from './AppiumAssertions.ts';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -12,102 +13,78 @@ export default class Assertions {
    * Assert element is visible with auto-retry
    */
   static async expectElementToBeVisible(
-    detoxElement:
-      | DetoxElement
-      | WebElement
-      | DetoxMatcher
-      | IndexableNativeElement,
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = 'element should be visible',
-    } = options;
+    const resolved = typeof elem === 'function' ? elem() : elem;
+    return AppiumAssertions.expectElementToBeVisible(resolved, options);
+  }
 
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = await detoxElement;
-        const isWebElement = Utilities.isWebElement(el);
-        if (isWebElement) {
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toExist();
-        } else if (device.getPlatform() === 'ios') {
-          await waitFor(el).toExist().withTimeout(100);
-        } else {
-          await waitFor(el).toBeVisible().withTimeout(100);
-        }
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
+  /**
+   * Assert element exists in the hierarchy (may not report as displayed).
+   * Use for BottomSheet / confirmation children under Appium where
+   * isDisplayed=false while the UI is on screen.
+   */
+  static async expectElementToExist(
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const resolved = typeof elem === 'function' ? elem() : elem;
+    return AppiumAssertions.expectElementToExist(resolved, options);
+  }
+
+  /**
+   * Assert element is absent from the hierarchy with auto-retry.
+   * Use instead of expectElementToNotBeVisible when the element could be
+   * mounted but scrolled off screen.
+   */
+  static async expectElementToNotExist(
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const resolved = typeof elem === 'function' ? elem() : elem;
+    return AppiumAssertions.expectElementToNotExist(resolved, options);
   }
 
   /**
    * Assert element is not visible with auto-retry
    */
   static async expectElementToNotBeVisible(
-    detoxElement:
-      | DetoxElement
-      | WebElement
-      | DetoxMatcher
-      | IndexableNativeElement,
+    elem:
+      | AppiumElement
+      | Promise<AppiumElement>
+      | (() => AppiumElement | Promise<AppiumElement>),
     options: AssertionOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = 'element should not visible',
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = await detoxElement;
-        const isWebElement = Utilities.isWebElement(el);
-        if (isWebElement) {
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).not.toExist();
-        } else {
-          await waitFor(el).not.toBeVisible().withTimeout(100);
-        }
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
+    const resolved = typeof elem === 'function' ? elem() : elem;
+    return AppiumAssertions.expectElementToNotBeVisible(resolved, options);
   }
 
   /**
    * Assert element has specific text with auto-retry
    */
   static async expectElementToHaveText(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = `element has text "${text}"`,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).toHaveText(text).withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
+    return AppiumAssertions.expectElementText(elem, text, options);
   }
 
   /**
    * Assert element contains specific text with auto-retry
    */
   static async expectElementToContainText(
-    webElement: WebElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
@@ -116,18 +93,13 @@ export default class Assertions {
       description = `element contains text "${text}"`,
     } = options;
 
+    const el = await elem;
     return Utilities.executeWithRetry(
       async () => {
-        const el = await webElement;
-        const actualText = await el.getText();
-        const normalizedText = actualText
-          .replace(/\s+/g, ' ')
-          .trim()
-          .toLowerCase();
-        const expectedText = text.toLowerCase();
-        if (!normalizedText.includes(expectedText)) {
+        const actual = ((await el.textContent()) ?? '').trim();
+        if (!actual.includes(text)) {
           throw new Error(
-            `Expected text containing "${text}" but got "${actualText}"`,
+            `Expected text containing "${text}" but got "${actual}"`,
           );
         }
       },
@@ -142,50 +114,22 @@ export default class Assertions {
    * Assert element does not have specific text with auto-retry
    */
   static async expectElementToNotHaveText(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = `element does not have text "${text}"`,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).not.toHaveText(text).withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
+    return AppiumAssertions.expectElementNotToHaveText(elem, text, options);
   }
 
   /**
    * Assert element has specific label with auto-retry
    */
   static async expectElementToHaveLabel(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     label: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      description = `element has label "${label}"`,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).toHaveLabel(label).withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Assert ${description}`,
-      },
-    );
+    return AppiumAssertions.expectElementToHaveLabel(elem, label, options);
   }
 
   /**
@@ -195,27 +139,7 @@ export default class Assertions {
     text: string,
     options: AssertionOptions & { allowDuplicates?: boolean } = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout, allowDuplicates = false } =
-      options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const textElement = allowDuplicates
-          ? (await Matchers.getElementByText(text)).atIndex(0)
-          : await Matchers.getElementByText(text);
-        if (device.getPlatform() === 'ios') {
-          await waitFor(textElement).toExist().withTimeout(100);
-        } else {
-          await waitFor(textElement).toBeVisible().withTimeout(100);
-        }
-      },
-      {
-        timeout,
-        description: `Assert text "${text}" is displayed${
-          allowDuplicates ? ' (allowing duplicates)' : ''
-        }`,
-      },
-    );
+    return AppiumAssertions.expectTextDisplayed(text, options);
   }
 
   /**
@@ -225,20 +149,33 @@ export default class Assertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout } = options;
-    return Utilities.executeWithRetry(
-      async () => {
-        const textElement = await Matchers.getElementByText(text);
-        if (device.getPlatform() === 'ios') {
-          await waitFor(textElement).not.toExist().withTimeout(100);
-        } else {
-          await waitFor(textElement).not.toBeVisible().withTimeout(100);
-        }
-      },
-      {
-        timeout,
-        description: `expectTextNotDisplayed("${text}")`,
-      },
+    return AppiumAssertions.expectTextNotDisplayed(text, options);
+  }
+
+  /**
+   * Returns whether a Switch/toggle is currently on.
+   */
+  static async isToggleOn(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
+    const el = await elem;
+    // Each Appium driver only supports the attribute native to its Switch:
+    // iOS XCUITest exposes `value` (`"1"` / `"0"`); Android UiAutomator2 exposes
+    // `checked` (`"true"` / `"false"`). Querying the other one throws
+    // `attribute is unknown`, so read only the platform-appropriate attribute.
+    const attributeName = PlatformDetector.isIOS() ? 'value' : 'checked';
+    const attributeValue = await el.getAttribute(attributeName);
+
+    if (attributeValue === '1' || attributeValue === 'true') {
+      return true;
+    }
+    if (attributeValue === '0' || attributeValue === 'false') {
+      return false;
+    }
+    throw new Error(
+      `Unable to determine toggle state from attribute ${attributeName}=${String(
+        attributeValue,
+      )}`,
     );
   }
 
@@ -246,7 +183,7 @@ export default class Assertions {
    * Assert element is enabled with auto-retry
    */
   static async expectToggleToBeOn(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -256,14 +193,8 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            detoxElement,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(true);
-        } catch (error) {
-          // Log attributes for debugging
+        const isOn = await this.isToggleOn(elem);
+        if (!isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
@@ -284,7 +215,7 @@ export default class Assertions {
    * Assert element is disabled with auto-retry
    */
   static async expectToggleToBeOff(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
     const {
@@ -294,13 +225,8 @@ export default class Assertions {
 
     return Utilities.executeWithRetry(
       async () => {
-        try {
-          const el = (await Utilities.waitForReadyState(
-            detoxElement,
-          )) as Detox.IndexableNativeElement;
-          // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-          await (expect(el) as any).toHaveToggleValue(false);
-        } catch (error) {
+        const isOn = await this.isToggleOn(elem);
+        if (isOn) {
           throw new Error(
             [
               '🔄 Toggle state mismatch detected',
@@ -326,7 +252,7 @@ export default class Assertions {
         throw new Error('Both actual and expected text must be provided');
       }
 
-      return expect(actualText).toBe(expectedText);
+      expect(actualText).toBe(expectedText);
     } catch (error) {
       if (actualText !== expectedText) {
         throw new Error(
@@ -541,23 +467,20 @@ export default class Assertions {
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfVisible(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToBeVisible(detoxElement, { timeout });
+    return this.expectElementToBeVisible(elem, { timeout });
   }
 
   /**
    * Legacy method: Check if a web element exists
    * @deprecated Use expectElementToBeVisible() instead for better error handling and retry mechanisms
    */
-  static async webViewElementExists(detoxElement: DetoxElement): Promise<void> {
-    // For web elements, just use the basic expect assertion
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    // Use Detox's expect which has toExist method
-    // Use Detox's expect syntax for element existence
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-    await (expect(el) as any).toExist();
+  static async webViewElementExists(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
+    return this.expectElementToExist(elem);
   }
 
   /**
@@ -565,10 +488,10 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() instead for better error handling and retry mechanisms
    */
   static async checkIfNotVisible(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToNotBeVisible(detoxElement as DetoxElement, {
+    return this.expectElementToNotBeVisible(elem, {
       timeout,
     });
   }
@@ -578,11 +501,11 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveText() instead for better error handling and retry mechanisms
    */
   static async checkIfElementToHaveText(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToHaveText(detoxElement as DetoxElement, text, {
+    return this.expectElementToHaveText(elem, text, {
       timeout,
     });
   }
@@ -592,11 +515,11 @@ export default class Assertions {
    * @deprecated Use expectElementToHaveLabel() instead for better error handling and retry mechanisms
    */
   static async checkIfElementHasLabel(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     label: string,
     timeout = 15000,
   ): Promise<void> {
-    return this.expectElementToHaveLabel(detoxElement, label, { timeout });
+    return this.expectElementToHaveLabel(elem, label, { timeout });
   }
 
   /**
@@ -618,16 +541,7 @@ export default class Assertions {
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        const textElement = await Matchers.getElementByText(text);
-        await waitFor(textElement).not.toBeVisible().withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Text "${text}" is not displayed`,
-      },
-    );
+    return this.expectTextNotDisplayed(text, { timeout });
   }
 
   /**
@@ -635,20 +549,11 @@ export default class Assertions {
    * @deprecated Use expectElementToNotHaveText() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementNotToHaveText(
-    detoxElement: DetoxElement,
+    elem: AppiumElement | Promise<AppiumElement>,
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).not.toHaveText(text).withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Element does not have text "${text}"`,
-      },
-    );
+    return this.expectElementToNotHaveText(elem, text, { timeout });
   }
 
   /**
@@ -656,62 +561,53 @@ export default class Assertions {
    * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfElementDoesNotHaveLabel(
-    detoxElement: DetoxElement,
-    label: string,
+    elem: AppiumElement | Promise<AppiumElement>,
+    _label: string,
     timeout = 15000,
   ): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await detoxElement) as Detox.IndexableNativeElement;
-        await waitFor(el).not.toHaveLabel(label).withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Element does not have label "${label}"`,
-      },
-    );
+    return this.expectElementToNotBeVisible(elem, { timeout });
   }
 
   /**
    * Legacy method: Check if toggle is in "on" state
    * @deprecated Use expectToggleToBeOn() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOn(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    // Use Detox's expect syntax for toggle values
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-    await (expect(el) as any).toHaveToggleValue(true);
+  static async checkIfToggleIsOn(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
+    return this.expectToggleToBeOn(elem);
   }
 
   /**
    * Legacy method: Check if toggle is in "off" state
    * @deprecated Use expectToggleToBeOff() instead for better error handling and retry mechanisms
    */
-  static async checkIfToggleIsOff(detoxElement: DetoxElement): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    // Use Detox's expect syntax for toggle values
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-    await (expect(el) as any).toHaveToggleValue(false);
+  static async checkIfToggleIsOff(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<void> {
+    return this.expectToggleToBeOff(elem);
   }
 
   /**
    * Legacy method: Check if element is enabled
    * @deprecated Use Utilities.waitForElementToBeEnabled() instead for better retry handling
    */
-  static async checkIfEnabled(detoxElement: DetoxElement): Promise<boolean> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    return 'enabled' in attributes ? !!attributes.enabled : false;
+  static async checkIfEnabled(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
+    const el = await elem;
+    return el.isEnabled();
   }
 
   /**
    * Legacy method: Check if element is disabled
-   * @deprecated Use Utilities.waitForElementToBeEnabled() with negated logic instead
+   * @deprecated Use Utilities.waitForElementToBeDisabled() instead for better retry handling
    */
-  static async checkIfDisabled(detoxElement: DetoxElement): Promise<boolean> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const attributes = await el.getAttributes();
-    return 'enabled' in attributes ? !attributes.enabled : true;
+  static async checkIfDisabled(
+    elem: AppiumElement | Promise<AppiumElement>,
+  ): Promise<boolean> {
+    const el = await elem;
+    return !(await el.isEnabled());
   }
 
   /**
@@ -722,16 +618,7 @@ export default class Assertions {
     text: string,
     timeout = 15000,
   ): Promise<void> {
-    return Utilities.executeWithRetry(
-      async () => {
-        const labelMatcher = element(by.label(new RegExp(text)));
-        await waitFor(labelMatcher).toExist().withTimeout(100);
-      },
-      {
-        timeout,
-        description: `Label contains text "${text}"`,
-      },
-    );
+    return this.expectTextDisplayed(text, { timeout });
   }
 
   static async checkIfJsonEqual(actual: Json, expected: Json): Promise<void> {
@@ -744,5 +631,47 @@ export default class Assertions {
         )}\nActual: ${JSON.stringify(actual, null, 2)}`,
       );
     }
+  }
+
+  /**
+   * Parse a JSON string and assert equality (objects, arrays, and primitives).
+   */
+  static async checkParsedJsonEqual(
+    actualText: string,
+    expectedJson: Json,
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(actualJson, expectedJson);
+  }
+
+  /**
+   * Parse a JSON string, strip excluded keys, and assert equality.
+   */
+  static async checkParsedJsonEqualExcluding(
+    actualText: string,
+    expectedJson: Json,
+    excludedKeys: string[],
+    description = 'result',
+  ): Promise<void> {
+    let actualJson: Json;
+    try {
+      actualJson = JSON.parse(actualText) as Json;
+    } catch {
+      throw new Error(
+        `Failed to parse JSON from ${description}: ${actualText}`,
+      );
+    }
+    await this.checkIfJsonEqual(
+      stripJsonKeys(actualJson, excludedKeys),
+      stripJsonKeys(expectedJson, excludedKeys),
+    );
   }
 }

@@ -22,11 +22,14 @@ const createMockAdapter = (overrides = {}) => ({
   getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
   ensureDeviceReady: jest.fn().mockResolvedValue(true),
   isConnected: jest.fn().mockReturnValue(true),
+  backgroundReconnect: jest.fn().mockResolvedValue(false),
   getTransportDisabledErrorCode: jest.fn().mockReturnValue(null),
   markFlowComplete: jest.fn(),
   ensurePermissions: jest.fn().mockResolvedValue(true),
   reset: jest.fn(),
   isFlowComplete: jest.fn().mockReturnValue(false),
+  onTransportStateChange: jest.fn(() => jest.fn()),
+  destroy: jest.fn(),
   ...overrides,
 });
 
@@ -532,6 +535,103 @@ describe('useDeviceConnectionFlow', () => {
       });
     });
 
+    it('sets Ready on already-connected fast path (not Connected)', async () => {
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Ledger,
+        isConnected: jest.fn().mockReturnValue(true),
+        getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
+        ensureDeviceReady: jest.fn().mockResolvedValue(true),
+      });
+      const options = createDefaultOptions({
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await act(async () => {
+        await expect(
+          result.current.ensureDeviceReady('device-123'),
+        ).resolves.toBe(true);
+      });
+
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Ready,
+        deviceId: 'device-123',
+      });
+      expect(mockAdapter.markFlowComplete).toHaveBeenCalled();
+      // Must not fall through to the scanning/connecting blocking UI.
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: ConnectionStatus.Scanning }),
+      );
+      expect(options.updateConnectionState).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: ConnectionStatus.Connecting }),
+      );
+    });
+
+    it('sets Ready after background reconnect succeeds', async () => {
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Ledger,
+        isConnected: jest.fn().mockReturnValue(false),
+        getConnectedDeviceId: jest.fn().mockReturnValue(null),
+        backgroundReconnect: jest.fn().mockResolvedValue(true),
+        ensureDeviceReady: jest.fn().mockResolvedValue(true),
+      });
+      const options = createDefaultOptions({
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      await act(async () => {
+        await expect(
+          result.current.ensureDeviceReady('device-123'),
+        ).resolves.toBe(true);
+      });
+
+      expect(mockAdapter.backgroundReconnect).toHaveBeenCalledWith(
+        'device-123',
+      );
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Ready,
+        deviceId: 'device-123',
+      });
+      expect(mockAdapter.markFlowComplete).toHaveBeenCalled();
+    });
+
+    it('falls through to guided flow when already connected but not ready', async () => {
+      const mockAdapter = createMockAdapter({
+        walletType: HardwareWalletType.Ledger,
+        isConnected: jest.fn().mockReturnValue(true),
+        getConnectedDeviceId: jest.fn().mockReturnValue('device-123'),
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
+      const options = createDefaultOptions({
+        createAdapterWithCallbacks: jest.fn().mockReturnValue(mockAdapter),
+        checkTransportEnabledOrShowError: jest.fn().mockResolvedValue(false),
+      });
+
+      const { result } = renderHook(() => useDeviceConnectionFlow(options));
+
+      const { readyPromise } = await capturePendingReadiness(
+        () => result.current.ensureDeviceReady('device-123'),
+        { flushMicrotaskInAct: false },
+      );
+
+      await flushPromises();
+
+      // Not-ready must not be treated as a terminal handleError — fall through
+      // so the bottom sheet can guide the user (open app / unlock).
+      expect(options.handleError).not.toHaveBeenCalled();
+      expect(options.updateConnectionState).toHaveBeenCalledWith({
+        status: ConnectionStatus.Connecting,
+      });
+
+      await act(async () => {
+        result.current.closeFlow();
+        await readyPromise;
+      });
+    });
+
     it('resolves pending for QR device when ready', async () => {
       const mockAdapter = createMockAdapter({
         walletType: HardwareWalletType.Qr,
@@ -620,7 +720,11 @@ describe('useDeviceConnectionFlow', () => {
     });
 
     it('connects and runs readiness check', async () => {
-      const mockAdapter = createMockAdapter();
+      // Report "not ready" so the pending promise stays unresolved; otherwise
+      // connect() treats the already-resolved flow as cancelled and bails early.
+      const mockAdapter = createMockAdapter({
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
+      });
       const refs = createMockRefs();
       refs.adapterRef.current = mockAdapter;
       const options = createDefaultOptions({ refs });

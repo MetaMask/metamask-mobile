@@ -1,16 +1,25 @@
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { RootState } from '../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionStatus,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '@metamask/money-account-utils';
 import {
   selectTransactions,
+  selectHasUnapprovedTransactions,
   selectLastUsedPaymentMethod,
   selectLastWithdrawTokenByType,
   selectLocalTransactions,
   selectNonReplacedTransactions,
+  selectReplacedLocalTransactions,
   selectRelatedChainIdsByTransactionId,
   selectRequiredTransactionIds,
   selectRequiredTransactionHashes,
   selectRequiredTransactions,
+  selectGasPaymentTransactionIds,
+  selectGasPaymentTransactionHashes,
+  selectExcludedActivityTransactionHashes,
   selectSwapsTransactions,
   selectTransactionBatchMetadataById,
   selectTransactionMetadataById,
@@ -55,6 +64,68 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactions(state)).toStrictEqual(transactions);
+    });
+
+    it('returns an empty array if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(selectTransactions(state)).toStrictEqual([]);
+    });
+  });
+
+  describe('selectHasUnapprovedTransactions', () => {
+    it('returns true when an unapproved transaction exists', () => {
+      const transactions = [
+        { id: '1', status: TransactionStatus.confirmed },
+        { id: '2', status: TransactionStatus.unapproved },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(true);
+    });
+
+    it('returns false when no transaction is unapproved', () => {
+      const transactions = [
+        { id: '1', status: TransactionStatus.confirmed },
+        { id: '2', status: TransactionStatus.submitted },
+      ];
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions,
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(false);
+    });
+
+    it('returns false when there are no transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectHasUnapprovedTransactions(state)).toBe(false);
     });
   });
 
@@ -112,6 +183,16 @@ describe('TransactionController Selectors', () => {
           },
         },
       } as unknown as RootState;
+      expect(selectSwapsTransactions(state)).toStrictEqual({});
+    });
+
+    it('returns an empty object if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
       expect(selectSwapsTransactions(state)).toStrictEqual({});
     });
   });
@@ -194,6 +275,93 @@ describe('TransactionController Selectors', () => {
     });
   });
 
+  describe('selectGasPaymentTransactionIds', () => {
+    it('returns ids for gas_payment transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'send',
+                  type: TransactionType.simpleSend,
+                },
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectGasPaymentTransactionIds(state)).toStrictEqual(
+        new Set(['fee']),
+      );
+    });
+  });
+
+  describe('selectGasPaymentTransactionHashes', () => {
+    it('returns lower-cased hashes for gas_payment transactions', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                  hash: '0xABC',
+                },
+                {
+                  id: 'fee-pending',
+                  type: TransactionType.gasPayment,
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectGasPaymentTransactionHashes(state)).toStrictEqual(
+        new Set(['0xabc']),
+      );
+    });
+  });
+
+  describe('selectExcludedActivityTransactionHashes', () => {
+    it('unions required child hashes and gas_payment hashes when redesign is on', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: 'parent',
+                  requiredTransactionIds: ['child'],
+                },
+                {
+                  id: 'child',
+                  hash: '0xCHILD',
+                },
+                {
+                  id: 'fee',
+                  type: TransactionType.gasPayment,
+                  hash: '0xFEE',
+                },
+              ],
+            },
+          },
+        },
+      } as unknown as RootState;
+
+      expect(selectExcludedActivityTransactionHashes(state)).toStrictEqual(
+        new Set(['0xchild', '0xfee']),
+      );
+    });
+  });
+
   describe('selectRelatedChainIdsByTransactionId', () => {
     const buildState = (transactions: unknown[]) =>
       ({
@@ -271,6 +439,10 @@ describe('TransactionController Selectors', () => {
 
   describe('selectLocalTransactions', () => {
     const evmAddress = '0x0000000000000000000000000000000000000001';
+    const moneyAddress = '0x0000000000000000000000000000000000000002';
+    const otherEvmAddress = '0x0000000000000000000000000000000000000003';
+    const encodeTransfer = (recipient: string) =>
+      `0xa9059cbb${recipient.slice(2).padStart(64, '0')}${'1'.padStart(64, '0')}`;
 
     const buildLocalTxState = ({
       groupEvmAccount = { address: evmAddress },
@@ -313,10 +485,241 @@ describe('TransactionController Selectors', () => {
       ]);
     });
 
+    it('includes a Money deposit parent linked to the EOA through its required funding transaction', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'funding-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'money-deposit',
+            chainId: '0x8f',
+            requiredTransactionIds: ['funding-child'],
+            nestedTransactions: [{ type: TransactionType.moneyAccountDeposit }],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-deposit' }),
+      ]);
+    });
+
+    it('includes a Money withdrawal whose nested transfer targets the EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(evmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'money-withdraw' }),
+      ]);
+    });
+
+    it('excludes a Money withdrawal targeting a different EOA', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'other-money-withdraw',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('ignores non-mUSD nested transfer recipients in a Money withdrawal', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'money-withdraw-with-refund',
+            chainId: '0x8f',
+            nestedTransactions: [
+              { type: TransactionType.moneyAccountWithdraw },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: '0x00000000000000000000000000000000000000aa',
+                data: encodeTransfer(evmAddress),
+              },
+              {
+                type: TransactionType.tokenMethodTransfer,
+                to: MUSD_TOKEN_ADDRESS_BY_CHAIN['0x8f'],
+                data: encodeTransfer(otherEvmAddress),
+              },
+            ],
+            time: 100,
+            type: TransactionType.batch,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('does not associate a non-Money parent through its required child sender', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'non-money-child',
+            chainId: '0x1',
+            time: 200,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'non-money-parent',
+            chainId: '0x1',
+            requiredTransactionIds: ['non-money-child'],
+            time: 100,
+            type: TransactionType.contractInteraction,
+            txParams: { from: moneyAddress },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('filters gas_payment fee legs when activity redesign is on', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'send',
+            chainId: '0x1',
+            time: 200,
+            type: TransactionType.simpleSend,
+            selectedGasFeeToken: '0xtoken',
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'fee',
+            chainId: '0x1',
+            time: 201,
+            type: TransactionType.gasPayment,
+            hash: '0xfee',
+            txParams: { from: evmAddress, nonce: '0x2' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'send' }),
+      ]);
+    });
+
     it('returns no transactions when the selected group has no EVM account', () => {
       expect(
         selectLocalTransactions(buildLocalTxState({ groupEvmAccount: null })),
       ).toStrictEqual([]);
+    });
+
+    it('hides prior failed attempts when a live attempt exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-attempt',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'retry-success',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.confirmed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'retry-success' }),
+      ]);
+    });
+
+    it('hides prior failed attempts when a pending retry exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-attempt',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'retry-pending',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.submitted,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'retry-pending' }),
+      ]);
+    });
+
+    it('keeps all failed attempts visible when no live attempt exists at the same nonce', () => {
+      const state = buildLocalTxState({
+        transactions: [
+          {
+            id: 'failed-1',
+            chainId: '0x1',
+            time: 100,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+          {
+            id: 'failed-2',
+            chainId: '0x1',
+            time: 200,
+            status: TransactionStatus.failed,
+            txParams: { from: evmAddress, nonce: '0x1' },
+          },
+        ],
+      });
+
+      expect(selectLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'failed-2' }),
+        expect.objectContaining({ id: 'failed-1' }),
+      ]);
     });
 
     it('excludes incoming transactions populated by the TransactionController incoming-transactions feature', () => {
@@ -343,6 +746,101 @@ describe('TransactionController Selectors', () => {
       expect(selectLocalTransactions(state)).toStrictEqual([
         expect.objectContaining({ id: 'outgoing' }),
       ]);
+    });
+  });
+
+  describe('selectReplacedLocalTransactions', () => {
+    const evmAddress = '0x0000000000000000000000000000000000000001';
+
+    const buildState = (
+      transactions: unknown[],
+      groupEvmAccount = { address: evmAddress },
+    ) =>
+      ({
+        engine: {
+          backgroundState: {
+            TransactionController: { transactions },
+          },
+        },
+        groupEvmAccount,
+        pendingSmartTransactionsForGroup: [],
+      }) as unknown as RootState;
+
+    it('returns only replaced transactions (replacedBy + replacedById + hash) for the active account', () => {
+      const state = buildState([
+        {
+          id: 'replaced',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+        {
+          id: 'live',
+          hash: '0xnew',
+          chainId: '0x1',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([
+        expect.objectContaining({ id: 'replaced' }),
+      ]);
+    });
+
+    it('excludes replaced transactions from other accounts', () => {
+      const state = buildState([
+        {
+          id: 'other-account',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: {
+            from: '0x00000000000000000000000000000000000000ff',
+            nonce: '0x1',
+          },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('excludes required (child) transactions even when replaced', () => {
+      const state = buildState([
+        {
+          id: 'child',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedBy: '0xnew',
+          replacedById: 'replacement',
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+        {
+          id: 'parent',
+          chainId: '0x1',
+          requiredTransactionIds: ['child'],
+          txParams: { from: evmAddress, nonce: '0x2' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
+    });
+
+    it('excludes a replacement that has not yet acquired a hash', () => {
+      const state = buildState([
+        {
+          id: 'partially-replaced',
+          hash: '0xold',
+          chainId: '0x1',
+          replacedById: 'replacement',
+          // no replacedBy yet (replacement unconfirmed / hashless)
+          txParams: { from: evmAddress, nonce: '0x1' },
+        },
+      ]);
+
+      expect(selectReplacedLocalTransactions(state)).toStrictEqual([]);
     });
   });
 
@@ -405,6 +903,18 @@ describe('TransactionController Selectors', () => {
       } as unknown as RootState;
 
       expect(selectTransactionBatchMetadataById(state, 'batch-id')).toBe(batch);
+    });
+
+    it('returns undefined if TransactionController state is not initialized', () => {
+      const state = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      expect(
+        selectTransactionBatchMetadataById(state, 'batch-id'),
+      ).toBeUndefined();
     });
   });
 

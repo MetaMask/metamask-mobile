@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   StyleProp,
   StyleSheet,
@@ -24,7 +24,6 @@ import {
   TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from '../../../component-library/components/Form/TextField/TextField.constants';
 import { TextVariant } from '../../../component-library/components/Texts/Text';
-import Device from '../../../util/device';
 
 const TextField = React.forwardRef<
   TextInput,
@@ -53,10 +52,30 @@ const TextField = React.forwardRef<
     ref,
   ) => {
     const tw = useTailwind();
+    const inputRef = useRef<TextInput | null>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [inputSelection, setInputSelection] = useState<
       { start: number; end: number } | undefined
     >(undefined);
+
+    const assignRef = useCallback(
+      (node: TextInput | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          ref.current = node;
+        }
+      },
+      [ref],
+    );
+
+    const placeCaretAtEnd = useCallback(() => {
+      const end = value?.length ?? 0;
+      const selection = { start: end, end };
+      setInputSelection(selection);
+      inputRef.current?.setNativeProps({ selection });
+    }, [value]);
 
     const onBlurHandler = useCallback(
       (e: BlurEvent) => {
@@ -64,11 +83,10 @@ const TextField = React.forwardRef<
           setIsFocused(false);
           onBlur?.(e);
         }
-        if (Device.isAndroid()) {
-          setInputSelection({ start: 0, end: 0 });
-        }
+        const end = value?.length ?? 0;
+        setInputSelection({ start: end, end });
       },
-      [isDisabled, setIsFocused, onBlur],
+      [isDisabled, onBlur, value],
     );
 
     const onFocusHandler = useCallback(
@@ -76,24 +94,16 @@ const TextField = React.forwardRef<
         if (!isDisabled) {
           setIsFocused(true);
           onFocus?.(e);
-
-          if (Device.isAndroid()) {
-            setInputSelection({
-              start: value?.length ?? 0,
-              end: value?.length ?? 0,
-            });
-          }
+          placeCaretAtEnd();
         }
       },
-      [isDisabled, setIsFocused, onFocus, value],
+      [isDisabled, onFocus, placeCaretAtEnd],
     );
 
     const handleSelectionChange = (
       event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
     ) => {
-      if (Device.isAndroid()) {
-        setInputSelection(event.nativeEvent.selection);
-      }
+      setInputSelection(event.nativeEvent.selection);
     };
 
     let borderStyleClass = 'border-muted';
@@ -129,7 +139,7 @@ const TextField = React.forwardRef<
                 onFocus={onFocusHandler}
                 testID={testID}
                 {...props}
-                ref={ref}
+                ref={assignRef}
                 isStateStylesDisabled
                 inputStyle={inputStyle}
                 selection={inputSelection}

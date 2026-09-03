@@ -325,6 +325,63 @@ describe('eth_sendTransaction', () => {
     expect(spy).toBeCalledTimes(1);
   });
 
+  it('throws if transaction params contain an extraneous top-level key', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const maliciousParams = { from: mockAddress, evil: { a: { b: 'nested' } } };
+
+    await expect(
+      async () =>
+        await eth_sendTransaction({
+          hostname: 'example.metamask.io',
+          req: constructSendTransactionRequest([maliciousParams]),
+          res: constructPendingJsonRpcResponse(),
+          sendTransaction: getMockAddTransaction({ returnValue: 'fake-hash' }),
+          validateAccountAndChainId: jest.fn(),
+          analytics,
+        }),
+    ).rejects.toThrow();
+  });
+
+  it('throws if transaction params exceed the max serialized size', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const oversizedData = '0x' + 'aa'.repeat(105 * 1024);
+    const oversizedParams = { from: mockAddress, data: oversizedData };
+
+    await expect(
+      async () =>
+        await eth_sendTransaction({
+          hostname: 'example.metamask.io',
+          req: constructSendTransactionRequest([oversizedParams]),
+          res: constructPendingJsonRpcResponse(),
+          sendTransaction: getMockAddTransaction({ returnValue: 'fake-hash' }),
+          validateAccountAndChainId: jest.fn(),
+          analytics,
+        }),
+    ).rejects.toThrow('Request too large');
+  });
+
+  it('does not call sendTransaction when validateTransactionParams throws', async () => {
+    const mockAddress = '0x0000000000000000000000000000000000000001';
+    const maliciousParams = { from: mockAddress, evil: 'injected' };
+    const mockSendTransaction = getMockAddTransaction({
+      returnValue: 'fake-hash',
+    });
+
+    await expect(
+      async () =>
+        await eth_sendTransaction({
+          hostname: 'example.metamask.io',
+          req: constructSendTransactionRequest([maliciousParams]),
+          res: constructPendingJsonRpcResponse(),
+          sendTransaction: mockSendTransaction,
+          validateAccountAndChainId: jest.fn(),
+          analytics,
+        }),
+    ).rejects.toThrow();
+
+    expect(mockSendTransaction).not.toHaveBeenCalled();
+  });
+
   it('dispatches updateConfirmationMetric with analytics payload', async () => {
     const mockAddress = '0x0000000000000000000000000000000000000001';
     const mockTransactionParameters = { from: mockAddress };

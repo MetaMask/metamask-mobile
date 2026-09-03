@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingTradeSwapPair } from './useWalletHomeOnboardingTradeSwapPair';
 
@@ -15,7 +15,10 @@ export function useWalletHomeOnboardingChecklistTradePress(
 ): () => void {
   const swapPair = useWalletHomeOnboardingTradeSwapPair();
   const swapPairRef = useRef(swapPair);
-  swapPairRef.current = swapPair;
+
+  useEffect(() => {
+    swapPairRef.current = swapPair;
+  }, [swapPair]);
 
   return useCallback(() => {
     const pair = swapPairRef.current;

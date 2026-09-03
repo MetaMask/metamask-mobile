@@ -23,7 +23,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: { balance?: string }) => {
     const translations: Record<string, string> = {
       'confirm.pay_with_bottom_sheet.perps': 'Perps',
-      'confirm.pay_with_bottom_sheet.perps_account': 'Perps account',
+      'confirm.pay_with_bottom_sheet.perps_balance': 'Perps balance',
       'confirm.pay_with_bottom_sheet.add': 'Add',
       'confirm.pay_with_bottom_sheet.available_balance': `${
         params?.balance ?? ''
@@ -137,7 +137,7 @@ describe('usePayWithPerpsSection', () => {
     expect(result.current?.rows[0]).toEqual(
       expect.objectContaining({
         id: 'perps-balance',
-        title: 'Perps account',
+        title: 'Perps balance',
         subtitle: '$500.00 available',
         isSelected: true,
         testID: 'pay-with-perps-section-balance-row',

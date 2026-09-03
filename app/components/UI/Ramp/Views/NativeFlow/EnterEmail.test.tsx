@@ -36,6 +36,14 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
     currency: 'USD',
     assetId: 'eip155:1/erc20:0x123',
   }),
+  navigateWithDetails: (
+    navigation: { navigate: (...args: unknown[]) => void },
+    details: unknown[],
+  ) => navigation.navigate(...details),
+  resetWithRoutes: (
+    navigation: { reset: (state: unknown) => void },
+    state: unknown,
+  ) => navigation.reset(state),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -52,23 +60,20 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../Deposit/utils', () => ({
-  ...jest.requireActual('../../Deposit/utils'),
+jest.mock('../../utils/depositUtils', () => ({
+  ...jest.requireActual('../../utils/depositUtils'),
   validateEmail: (email: string) => /\S+@\S+\.\S+/.test(email),
   generateThemeParameters: jest.fn(() => ({})),
 }));
 
-jest.mock(
-  '../../Deposit/components/DepositProgressBar/DepositProgressBar',
-  () => {
-    const { createElement } = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: () => createElement(View, { testID: 'deposit-progress-bar' }),
-    };
-  },
-);
+jest.mock('../../components/DepositProgressBar/DepositProgressBar', () => {
+  const { createElement } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () => createElement(View, { testID: 'deposit-progress-bar' }),
+  };
+});
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

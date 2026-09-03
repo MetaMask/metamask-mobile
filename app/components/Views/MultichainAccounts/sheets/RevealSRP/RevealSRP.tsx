@@ -29,6 +29,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-lock.svg';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
@@ -48,7 +49,7 @@ export const RevealSRP = () => {
   const { account } = route.params;
   const insets = useSafeAreaInsets();
   const tw = useTailwind();
-  const { navigate, goBack } = useNavigation();
+  const { navigate, goBack } = useNavigation<AppNavigationProp>();
 
   const keyringId = useKeyringId(account);
 

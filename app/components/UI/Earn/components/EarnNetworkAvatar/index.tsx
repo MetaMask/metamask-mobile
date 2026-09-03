@@ -3,8 +3,8 @@ import { TokenI } from '../../../Tokens/types';
 import styleSheet from './EarnNetworkAvatar.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
+import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
 interface EarnNetworkAvatarProps {
   token: TokenI;
@@ -27,11 +27,9 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
   }
 
   return (
-    <AvatarToken
-      name={token.symbol}
-      imageSource={{ uri: token.image }}
-      size={AvatarSize.Md}
-      style={styles.networkAvatar}
+    <AssetLogo
+      asset={token}
+      size={AvatarTokenSize.Md}
       testID={`earn-token-avatar-${token.symbol}`}
     />
   );

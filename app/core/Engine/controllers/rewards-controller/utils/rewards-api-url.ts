@@ -17,18 +17,15 @@ export const canChangeRewardsEnvUrl = (
 
 /**
  * Returns the rewards API base URL for the given MetaMask environment.
- * When BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY (and not E2E), uses process.env.REWARDS_API_URL (set by builds.yml).
- * Otherwise (legacy .js.env / E2E), uses AppConstants.REWARDS_API_URL per env.
+ * When process.env.REWARDS_API_URL is set (set by builds.yml), uses it directly.
+ * Otherwise (e.g. Jest, environments without builds.yml), uses AppConstants.REWARDS_API_URL per env.
  */
 export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
   metaMaskEnv: string | undefined,
 ): [string, boolean] => {
   const canChange = canChangeRewardsEnvUrl(metaMaskEnv);
 
-  if (
-    process.env.REWARDS_API_URL &&
-    process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY === 'true'
-  ) {
+  if (process.env.REWARDS_API_URL) {
     return [process.env.REWARDS_API_URL, canChange];
   }
 

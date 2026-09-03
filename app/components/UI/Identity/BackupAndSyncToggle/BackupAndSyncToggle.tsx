@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 
 import { View, Switch, Linking, InteractionManager } from 'react-native';
-// import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import {
   FontWeight,
@@ -10,7 +10,6 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
-// import { strings } from '../../../../../locales/i18n';
 import styles from './BackupAndSyncToggle.styles';
 import AppConstants from '../../../../core/AppConstants';
 import { useBackupAndSync } from '../../../../util/identity/hooks/useBackupAndSync';
@@ -20,7 +19,6 @@ import {
   selectIsBackupAndSyncEnabled,
   selectIsBackupAndSyncUpdateLoading,
 } from '../../../../selectors/identity';
-// import Routes from '../../../../constants/navigation/Routes';
 import SwitchLoadingModal from '../../Notification/SwitchLoadingModal';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -44,7 +42,7 @@ const BackupAndSyncToggle = ({
   trackBackupAndSyncToggleEventOverride,
 }: Readonly<Props>) => {
   const theme = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { colors } = theme;

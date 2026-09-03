@@ -131,8 +131,11 @@ export const useTokenAmount = ({
     networkClientId,
   );
 
-  const { pending: merklClaimPending, claimAmount: merklClaimAmount } =
-    useMerklClaimAmount(transaction, nativeConversionRate, usdConversionRate);
+  const { claimAmount: merklClaimAmount } = useMerklClaimAmount(
+    transaction,
+    nativeConversionRate,
+    usdConversionRate,
+  );
 
   const transactionData = useMemo(
     () => parseStandardTokenTransactionData(tokenData?.data),
@@ -221,8 +224,6 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.musdClaim: {
-      if (merklClaimPending) break;
-
       if (merklClaimAmount) {
         const { claimAmountDecimal, fiatValue } = merklClaimAmount;
 

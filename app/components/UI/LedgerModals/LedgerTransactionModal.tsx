@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import Engine from '../../../core/Engine';
 import { normalizeReplacementGasFeeParams } from '../../../util/confirmation/gas';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
@@ -39,7 +40,7 @@ export interface LedgerTransactionModalParams {
 }
 
 const LedgerTransactionModal = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { TransactionController, ApprovalController } = Engine.context as any;

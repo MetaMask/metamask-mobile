@@ -15,7 +15,6 @@ import { usePushPermissionNotificationSetup } from '../../../../util/notificatio
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { usePushPrePromptAnalytics } from '../../../../util/notifications/hooks/usePushPrePromptAnalytics';
 import { isPushPermissionPromptable } from '../../../../util/notifications/services/NotificationService';
-import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import ExistingUserSheet from './ExistingUserSheet';
 import NewUserSheet from './NewUserSheet';
 
@@ -33,7 +32,6 @@ interface PushNotificationOnboardingProps {
 const styles = StyleSheet.create({
   toastAccessory: {
     alignSelf: 'flex-start',
-    marginRight: 12,
     paddingTop: 4,
   },
 });
@@ -96,7 +94,7 @@ const PushNotificationOnboarding = ({
       title: string;
       description: string;
     }) => {
-      const iconColor = isEnabled ? IconColor.Success : IconColor.Alternative;
+      const iconColor = isEnabled ? IconColor.Success : IconColor.Default;
 
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
@@ -112,13 +110,12 @@ const PushNotificationOnboarding = ({
         startAccessory: (
           <View style={styles.toastAccessory}>
             <Icon
-              name={isEnabled ? IconName.CheckBold : IconName.Info}
+              name={isEnabled ? IconName.Confirmation : IconName.Info}
               size={IconSize.Lg}
               color={iconColor}
             />
           </View>
         ),
-        customBottomOffset: TAB_BAR_HEIGHT,
         hasNoTimeout: false,
       });
     },

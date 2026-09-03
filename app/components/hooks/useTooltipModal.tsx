@@ -1,9 +1,10 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../core/NavigationService/types';
 import Routes from '../../constants/navigation/Routes';
 import { ReactNode, useCallback, useMemo } from 'react';
 
 const useTooltipModal = () => {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<AppNavigationProp>();
 
   const openTooltipModal = useCallback(
     (

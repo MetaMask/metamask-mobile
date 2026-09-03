@@ -5,6 +5,7 @@ import { RootState } from '../../../reducers';
 import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
@@ -21,7 +22,7 @@ const usePromptSeedlessRelogin = () => {
   );
 
   const { signOut } = useSignOut();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );

@@ -4,21 +4,22 @@ import {
 } from '../../../app/components/UI/NetworkModal/NetworkAddedBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 class NetworkAddedBottomSheet {
-  get switchNetwork(): DetoxElement {
+  get switchNetwork(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       NetworkAddedBottomSheetSelectorsText.SWITCH_NETWORK,
     );
   }
 
-  get switchNetworkButton(): DetoxElement {
+  get switchNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkAddedBottomSheetSelectorsIDs.SWITCH_NETWORK_BUTTON,
     );
   }
 
-  get closeNetworkButton(): DetoxElement {
+  get closeNetworkButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       NetworkAddedBottomSheetSelectorsIDs.CLOSE_NETWORK_BUTTON,
     );

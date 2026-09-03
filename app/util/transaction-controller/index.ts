@@ -12,8 +12,6 @@ import {
 import { NetworkClientId } from '@metamask/network-controller';
 
 import Engine from '../../core/Engine';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { store } from '../../store';
 import {
   getTempoEvmTransactionOptions,
   getTempoTransactionBatchArgs,
@@ -198,33 +196,6 @@ export function speedUpTransaction(
 ) {
   const { TransactionController } = Engine.context;
   return TransactionController.speedUpTransaction(...args);
-}
-
-export function startIncomingTransactionPolling() {
-  const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
-    store.getState(),
-  );
-
-  if (isBasicFunctionalityToggleEnabled) {
-    const { TransactionController } = Engine.context;
-    return TransactionController.startIncomingTransactionPolling();
-  }
-}
-
-export function stopIncomingTransactionPolling() {
-  const { TransactionController } = Engine.context;
-  return TransactionController.stopIncomingTransactionPolling();
-}
-
-export function updateIncomingTransactions() {
-  const isBasicFunctionalityToggleEnabled = selectBasicFunctionalityEnabled(
-    store.getState(),
-  );
-
-  if (isBasicFunctionalityToggleEnabled) {
-    const { TransactionController } = Engine.context;
-    return TransactionController.updateIncomingTransactions();
-  }
 }
 
 export function updateSecurityAlertResponse(

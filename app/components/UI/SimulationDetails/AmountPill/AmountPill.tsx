@@ -4,13 +4,13 @@ import { BigNumber } from 'bignumber.js';
 import { View, ViewProps } from 'react-native';
 
 import I18n, { strings } from '../../../../../locales/i18n';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import { hexToDecimal } from '../../../../util/conversions';
 import TextWithTooltip from '../../../Views/confirmations/components/UI/text-with-tooltip';
 import { useStyles } from '../../../hooks/useStyles';
 import { AssetIdentifier, AssetType } from '../types';
 import { formatAmount, formatAmountMaxPrecision } from '../formatAmount';
 import styleSheet from './AmountPill.styles';
+import { TextVariant } from '@metamask/design-system-react-native';
 
 interface AmountPillProperties extends ViewProps {
   asset: AssetIdentifier;
@@ -83,7 +83,7 @@ const AmountPill: React.FC<AmountPillProperties> = ({
       <TextWithTooltip
         label={strings('confirm.label.value')}
         ellipsizeMode="tail"
-        textVariant={TextVariant.BodyMD}
+        textVariant={TextVariant.BodyMd}
         text={amountParts.join(' ')}
         tooltip={tooltipParts.join(' ')}
         textStyle={styles.label}

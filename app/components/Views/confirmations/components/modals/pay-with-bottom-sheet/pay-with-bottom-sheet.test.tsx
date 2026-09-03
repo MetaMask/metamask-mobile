@@ -29,27 +29,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn() }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
-  const { View: RNView, Text: RNText } = jest.requireActual('react-native');
-  return {
-    ...actual,
-    BottomSheet: ReactActual.forwardRef(
-      (
-        { children, testID }: { children: React.ReactNode; testID?: string },
-        _ref: unknown,
-      ) => <RNView testID={testID}>{children}</RNView>,
-    ),
-    BottomSheetHeader: ({ children }: { children: React.ReactNode }) => (
-      <RNView testID="bottom-sheet-header">{children}</RNView>
-    ),
-    Text: ({ children, ...props }: { children: React.ReactNode }) => (
-      <RNText {...props}>{children}</RNText>
-    ),
-  };
-});
-
 jest.mock('../../UI/pay-with-section', () => {
   const { View: RNView, Text: RNText } = jest.requireActual('react-native');
   return {

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -51,7 +52,7 @@ interface StakeButtonContentProps {
 // TODO: Rename to EarnCta to better describe this component's purpose.
 const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const chainId = useSelector(selectEvmChainId);
   const { isStakingSupportedChain } = useStakingChain();
@@ -61,10 +62,12 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     selectStablecoinLendingEnabledFlag,
   );
 
+  let isTronStakingAvailable = false;
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTronNative =
     earnToken?.isNative && isTronChainId(earnToken.chainId as Hex);
+  isTronStakingAvailable = Boolean(isTronNative && isTrxStakingEnabled);
   const { apyPercent: tronApyPercent } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
   const network = useSelector((state: RootState) =>
@@ -74,9 +77,14 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   const primaryExperienceType = useSelector((state: RootState) =>
     earnSelectors.selectPrimaryEarnExperienceTypeForAsset(state, earnToken),
   );
+  const isStakingExperience =
+    primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING ||
+    primaryExperienceType === EARN_EXPERIENCES.TRX_STAKING;
 
   const areEarnExperiencesDisabled =
-    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
+    !isPooledStakingEnabled &&
+    !isStablecoinLendingEnabled &&
+    !isTronStakingAvailable;
 
   const handleStakeRedirect = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
@@ -88,10 +96,10 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
             chain_id: getDecimalChainId(earnToken.chainId as Hex),
             location: EVENT_LOCATIONS.HOME_SCREEN,
             action_type: 'deposit',
-            text: 'Earn',
+            text: 'Stake',
             token: earnToken.symbol,
             network: network?.name,
-            experience: EARN_EXPERIENCES.POOLED_STAKING,
+            experience: EARN_EXPERIENCES.TRX_STAKING,
           })
           .build(),
       );
@@ -118,7 +126,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
           chain_id: getDecimalChainId(chainId),
           location: EVENT_LOCATIONS.HOME_SCREEN,
           action_type: 'deposit',
-          text: 'Earn',
+          text: 'Stake',
           token: earnToken.symbol,
           network: network?.name,
           url: AppConstants.STAKE.URL,
@@ -141,7 +149,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
   });
 
   const onEarnButtonPress = async () => {
-    if (primaryExperienceType === EARN_EXPERIENCES.POOLED_STAKING) {
+    if (isStakingExperience) {
       return handleStakeRedirect();
     }
 
@@ -160,9 +168,13 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
     return <></>;
 
   const renderEarnButtonText = () => {
+    const ctaLabel = isStakingExperience
+      ? strings('stake.stake')
+      : strings('stake.earn');
+
     ///: BEGIN:ONLY_INCLUDE_IF(tron)
     if (isTronNative && isTrxStakingEnabled && tronApyPercent) {
-      return `${strings('stake.earn')} ${tronApyPercent}`;
+      return `${ctaLabel} ${tronApyPercent}`;
     }
     ///: END:ONLY_INCLUDE_IF
 
@@ -171,7 +183,7 @@ const StakeButtonContent = ({ earnToken }: StakeButtonContentProps) => {
       Number.isFinite(aprNumber) && aprNumber > 0
         ? ` ${aprNumber.toFixed(1)}%`
         : '';
-    return `${strings('stake.earn')}${aprText}`;
+    return `${ctaLabel}${aprText}`;
   };
 
   return (

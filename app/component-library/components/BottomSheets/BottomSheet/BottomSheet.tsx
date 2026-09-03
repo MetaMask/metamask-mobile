@@ -2,6 +2,7 @@
 
 // Third party dependencies.
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import React, {
   forwardRef,
   useCallback,
@@ -49,7 +50,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       shouldNavigateBack = true,
       isFullscreen = false,
       keyboardAvoidingViewEnabled = true,
-      panGestureHandlerProps,
       ...props
     },
     ref,
@@ -64,7 +64,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       screenBottomPadding,
     });
     const { y: frameY } = useSafeAreaFrame();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
 
     const onOpenCB = useCallback(() => {
       // Reset when the sheet is opened again.
@@ -173,7 +173,6 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           isFullscreen={isFullscreen}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
-          panGestureHandlerProps={panGestureHandlerProps}
         >
           {children}
         </BottomSheetDialog>

@@ -5,7 +5,9 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  resetBridgeDestToken,
   setSlippage,
+  setSlippageUserOverride,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -17,11 +19,15 @@ import reducer, {
   selectAllowedChainRanking,
   setTokenSelectorNetworkFilter,
   selectTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
+  selectOrdersNetworkFilter,
   setVisiblePillChainIds,
   selectVisiblePillChainIds,
   setSelectedQuoteRequestId,
   selectSelectedQuoteRequestId,
   selectIsRwaSwap,
+  selectIsStockMarketClosed,
+  selectIsInOffHoursTrading,
   setBatchSellSourceTokens,
   selectBatchSellSourceTokens,
   setBatchSellSourceTokenAmount,
@@ -33,10 +39,21 @@ import reducer, {
   selectBatchSellDestStablecoinsByChain,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
+  selectBridgeQuotes,
   selectBatchSellQuotes,
+  selectBatchSellTrades,
+  selectControllerFields,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  setRecurringPriceRange,
+  selectRecurring,
+  selectRecurringPriceRange,
+  selectRecurringScheduleValidation,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -52,6 +69,7 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { RecurringScheduleErrorCode } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
@@ -118,7 +136,8 @@ describe('bridge slice', () => {
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
-        slippage: '0.5',
+        slippage: undefined,
+        isSlippageUserOverride: false,
         isSubmittingTx: false,
         isSelectingRecipient: false,
         isSelectingToken: false,
@@ -127,12 +146,20 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
         hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'hour',
+          repeatCount: '10',
+          priceRange: undefined,
+        },
+        ordersNetworkFilter: undefined,
       });
     });
   });
@@ -223,6 +250,12 @@ describe('bridge slice', () => {
 
       expect(state.slippage).toBe(slippage);
     });
+
+    it('records an explicit Auto override', () => {
+      const state = reducer(initialState, setSlippageUserOverride(undefined));
+
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
   });
 
   describe('setDestAmount', () => {
@@ -270,6 +303,16 @@ describe('bridge slice', () => {
 
       expect(state.isDestTokenManuallySet).toBe(true);
     });
+
+    it('clears slippage when the token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setDestToken(mockDestToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
   });
 
   describe('setSourceToken', () => {
@@ -279,6 +322,49 @@ describe('bridge slice', () => {
       expect(state.sourceToken?.address).toBe(
         '0x0000000000000000000000000000000000000000',
       );
+    });
+
+    it('clears slippage when the source token changes', () => {
+      const state = reducer(
+        { ...initialState, slippage: '2', isSlippageUserOverride: true },
+        setSourceToken(mockToken),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
+    });
+
+    it('keeps slippage when the source token identity is unchanged', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.slippage).toBe('2');
+      expect(state.isSlippageUserOverride).toBe(true);
+    });
+
+    it('clears slippage when the token address is unchanged on another network', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          slippage: '2',
+          isSlippageUserOverride: true,
+        },
+        setSourceToken({
+          ...mockToken,
+          chainId: '0x89',
+        }),
+      );
+
+      expect(state.slippage).toBeUndefined();
+      expect(state.isSlippageUserOverride).toBe(false);
     });
   });
 
@@ -495,6 +581,8 @@ describe('bridge slice', () => {
         destAmount: '100',
         sourceToken: mockToken,
         destToken: mockDestToken,
+        slippage: '3.5',
+        isSlippageUserOverride: true,
         bridgeViewMode: BridgeViewMode.Bridge,
       };
 
@@ -513,6 +601,41 @@ describe('bridge slice', () => {
       const newState = reducer(stateWithVisiblePills, resetBridgeState());
 
       expect(newState.visiblePillChainIds).toBeUndefined();
+    });
+  });
+
+  describe('resetBridgeDestToken', () => {
+    const stateWithDestSelection = {
+      ...initialState,
+      sourceToken: mockToken,
+      sourceAmount: '1.5',
+      destToken: mockDestToken,
+      selectedDestChainId: '0x89' as Hex,
+      isDestTokenManuallySet: true,
+      slippage: '3.5',
+      isSlippageUserOverride: true,
+    };
+
+    it('clears the destination token, its chain and the manual selection flag', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destToken).toBeUndefined();
+      expect(newState.selectedDestChainId).toBeUndefined();
+      expect(newState.isDestTokenManuallySet).toBe(false);
+    });
+
+    it('clears slippage since it belonged to the cleared token pair', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.slippage).toBeUndefined();
+      expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('leaves the source selection and amount untouched', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.sourceToken).toEqual(mockToken);
+      expect(newState.sourceAmount).toBe('1.5');
     });
   });
 
@@ -810,6 +933,48 @@ describe('bridge slice', () => {
         ),
       ).toBe(true);
     });
+
+    it('restricts chainRanking to enabledChainIds when provided, ignoring ALLOWED_BRIDGE_CHAIN_IDS', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chainRanking =
+        [
+          { chainId: 'eip155:1', name: 'Ethereum' },
+          { chainId: 'eip155:137', name: 'Polygon' },
+          // Not in ALLOWED_BRIDGE_CHAIN_IDS, but included in enabledChainIds below.
+          { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+        ];
+
+      const result = selectAllowedChainRanking(
+        mockState as unknown as RootState,
+        ['eip155:1' as CaipChainId, 'eip155:99999' as CaipChainId],
+      );
+
+      expect(result).toEqual([
+        { chainId: 'eip155:1', name: 'Ethereum' },
+        { chainId: 'eip155:99999', name: 'Unsupported Future Chain' },
+      ]);
+    });
+
+    it('returns an empty array when enabledChainIds is an empty array', () => {
+      const result = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        [],
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('falls back to the ALLOWED_BRIDGE_CHAIN_IDS filter when enabledChainIds is undefined', () => {
+      const withoutOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+      );
+      const withUndefinedOverride = selectAllowedChainRanking(
+        mockRootState as unknown as RootState,
+        undefined,
+      );
+
+      expect(withUndefinedOverride).toEqual(withoutOverride);
+    });
   });
 
   describe('selectBatchSellDestStablecoins', () => {
@@ -934,6 +1099,38 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('setOrdersNetworkFilter', () => {
+    it('sets the network filter to a chain ID', () => {
+      const chainId = 'eip155:1';
+      const action = setOrdersNetworkFilter(chainId as CaipChainId);
+      const state = reducer(initialState, action);
+
+      expect(state.ordersNetworkFilter).toBe(chainId);
+    });
+
+    it('clears the network filter when set to undefined', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter(undefined);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBeUndefined();
+    });
+
+    it('updates the network filter from one chain to another', () => {
+      const stateWithFilter = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:1' as CaipChainId,
+      };
+      const action = setOrdersNetworkFilter('eip155:137' as CaipChainId);
+      const state = reducer(stateWithFilter, action);
+
+      expect(state.ordersNetworkFilter).toBe('eip155:137');
+    });
+  });
+
   describe('selectBatchSellQuotes', () => {
     it('uses the BridgeController quote request count', () => {
       const mockState = cloneDeep(mockRootState);
@@ -945,6 +1142,82 @@ describe('bridge slice', () => {
       const result = selectBatchSellQuotes(mockState as unknown as RootState);
 
       expect(result.recommendedQuotes).toHaveLength(2);
+    });
+  });
+
+  describe('bridge controller quote selectors', () => {
+    beforeEach(() => {
+      selectControllerFields.resetRecomputations();
+      selectBridgeQuotes.resetRecomputations();
+      selectBatchSellQuotes.resetRecomputations();
+      selectBatchSellTrades.resetRecomputations();
+    });
+
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
+    it('does not recompute when unrelated bridge UI state changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+
+      selectBridgeQuotes(mockState);
+      selectBatchSellQuotes(mockState);
+      selectBatchSellTrades(mockState);
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+      const bridgeQuotesRecomputations = selectBridgeQuotes.recomputations();
+      const batchSellQuotesRecomputations =
+        selectBatchSellQuotes.recomputations();
+      const batchSellTradesRecomputations =
+        selectBatchSellTrades.recomputations();
+
+      const unrelatedState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceAmount: '1',
+        },
+      } as RootState;
+
+      selectBridgeQuotes(unrelatedState);
+      selectBatchSellQuotes(unrelatedState);
+      selectBatchSellTrades(unrelatedState);
+
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations,
+      );
+      expect(selectBridgeQuotes.recomputations()).toBe(
+        bridgeQuotesRecomputations,
+      );
+      expect(selectBatchSellQuotes.recomputations()).toBe(
+        batchSellQuotesRecomputations,
+      );
+      expect(selectBatchSellTrades.recomputations()).toBe(
+        batchSellTradesRecomputations,
+      );
     });
   });
 
@@ -968,6 +1241,33 @@ describe('bridge slice', () => {
       };
 
       const result = selectTokenSelectorNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBe('eip155:10');
+    });
+  });
+
+  describe('selectOrdersNetworkFilter', () => {
+    it('returns undefined when no filter is set', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState };
+
+      const result = selectOrdersNetworkFilter(
+        mockState as unknown as RootState,
+      );
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the set chain ID', () => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        ordersNetworkFilter: 'eip155:10',
+      };
+
+      const result = selectOrdersNetworkFilter(
         mockState as unknown as RootState,
       );
 
@@ -1106,7 +1406,7 @@ describe('bridge slice', () => {
       expect(selectHardwareWalletsSwaps(mockState)).toEqual({
         ...initialHardwareWalletsSwapsState,
         status: HardwareWalletsSwapsStatus.Waiting,
-        currentStep: 1,
+        currentStep: 0,
         totalSteps: 1,
         steps: expect.any(Array),
       });
@@ -1210,6 +1510,195 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectIsStockMarketClosed', () => {
+    // Market: open 09:00–17:00 UTC on 2024-01-01
+    const MARKET_OPEN_MS = new Date('2024-01-01T09:00:00Z').getTime();
+    const MARKET_CLOSE_MS = new Date('2024-01-01T17:00:00Z').getTime();
+    // Off-hours: open 17:30–20:00 UTC on 2024-01-01
+    const OFF_OPEN_MS = new Date('2024-01-01T17:30:00Z').getTime();
+    const OFF_CLOSE_MS = new Date('2024-01-01T20:00:00Z').getTime();
+
+    const stockToken = (withOffhours = false): BridgeToken => ({
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        ...(withOffhours && {
+          offhours: {
+            nextOpen: new Date(OFF_OPEN_MS).toISOString(),
+            nextClose: new Date(OFF_CLOSE_MS).toISOString(),
+          },
+        }),
+      } as BridgeToken['rwaData'],
+    });
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1' as Hex,
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled = true,
+    ) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState, sourceToken, destToken };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    it('returns false when neither token is a stock RWA', () => {
+      const state = buildState(nonRwaToken, nonRwaToken);
+      expect(selectIsStockMarketClosed(state, MARKET_OPEN_MS + 3600_000)).toBe(
+        false,
+      );
+    });
+
+    it('returns false when RWA flag is disabled', () => {
+      const state = buildState(stockToken(), nonRwaToken, false);
+      // 15:00 — inside market hours, but flag off → treated as non-RWA → not closed
+      expect(selectIsStockMarketClosed(state, MARKET_OPEN_MS + 3600_000)).toBe(
+        false,
+      );
+    });
+
+    it('returns false when stock token is in regular market hours', () => {
+      const state = buildState(stockToken(), nonRwaToken);
+      const insideMarket = MARKET_OPEN_MS + 3600_000; // 10:00
+      expect(selectIsStockMarketClosed(state, insideMarket)).toBe(false);
+    });
+
+    it('returns true when stock token is outside both regular and off-hours windows', () => {
+      const state = buildState(stockToken(), nonRwaToken);
+      const afterClose = MARKET_CLOSE_MS + 3600_000; // 18:00 — after regular, no off-hours
+      expect(selectIsStockMarketClosed(state, afterClose)).toBe(true);
+    });
+
+    it('returns false when stock token is in off-hours window', () => {
+      const state = buildState(stockToken(true), nonRwaToken);
+      const insideOffHours = OFF_OPEN_MS + 1800_000; // 17:30+30min = 18:00
+      expect(selectIsStockMarketClosed(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns true even when dest has off-hours but source is fully closed', () => {
+      // Source has no offhours and market is closed; dest has offhours and is open
+      const closedStock = stockToken(false);
+      const offHoursStock = stockToken(true);
+      const state = buildState(closedStock, offHoursStock);
+      const insideOffHours = OFF_OPEN_MS + 1800_000;
+      // Source is closed (no offhours) → at least one leg closed → returns true
+      expect(selectIsStockMarketClosed(state, insideOffHours)).toBe(true);
+    });
+  });
+
+  describe('selectIsInOffHoursTrading', () => {
+    const MARKET_OPEN_MS = new Date('2024-01-02T09:00:00Z').getTime();
+    const MARKET_CLOSE_MS = new Date('2024-01-02T17:00:00Z').getTime();
+    const OFF_OPEN_MS = new Date('2024-01-01T17:30:00Z').getTime();
+    const OFF_CLOSE_MS = new Date('2024-01-01T20:00:00Z').getTime();
+
+    const stockTokenWithOffhours = (): BridgeToken => ({
+      address: '0xstock',
+      symbol: 'STOCK',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        offhours: {
+          nextOpen: new Date(OFF_OPEN_MS).toISOString(),
+          nextClose: new Date(OFF_CLOSE_MS).toISOString(),
+        },
+      } as BridgeToken['rwaData'],
+    });
+
+    const fullyClosedStock = (): BridgeToken => ({
+      address: '0xclosed',
+      symbol: 'CLOSED',
+      decimals: 18,
+      chainId: '0x1' as Hex,
+      rwaData: {
+        instrumentType: 'stock',
+        market: {
+          nextOpen: new Date(MARKET_OPEN_MS).toISOString(),
+          nextClose: new Date(MARKET_CLOSE_MS).toISOString(),
+        },
+        // no offhours
+      } as BridgeToken['rwaData'],
+    });
+
+    const nonRwaToken: BridgeToken = {
+      address: '0xusdc',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1' as Hex,
+    };
+
+    const buildState = (
+      sourceToken: BridgeToken | undefined,
+      destToken: BridgeToken | undefined,
+      rwaEnabled = true,
+    ) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = { ...initialState, sourceToken, destToken };
+      (
+        mockState as any
+      ).engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags[
+        FEATURE_FLAG_NAME
+      ] = rwaEnabled;
+      return mockState as unknown as RootState;
+    };
+
+    const insideOffHours = OFF_OPEN_MS + 1800_000; // 18:00
+
+    it('returns false when no token is a stock RWA', () => {
+      const state = buildState(nonRwaToken, nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns false when any stock leg is fully closed (off-hours and closed are mutually exclusive)', () => {
+      const state = buildState(fullyClosedStock(), stockTokenWithOffhours());
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+
+    it('returns true when source token is in off-hours and no leg is fully closed', () => {
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(true);
+    });
+
+    it('returns true when dest token is in off-hours and no leg is fully closed', () => {
+      const state = buildState(nonRwaToken, stockTokenWithOffhours());
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(true);
+    });
+
+    it('returns false outside off-hours window', () => {
+      const outsideOffHours = OFF_CLOSE_MS + 3600_000; // after off-hours end, before next market open
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken);
+      expect(selectIsInOffHoursTrading(state, outsideOffHours)).toBe(false);
+    });
+
+    it('returns false when RWA flag is disabled', () => {
+      const state = buildState(stockTokenWithOffhours(), nonRwaToken, false);
+      expect(selectIsInOffHoursTrading(state, insideOffHours)).toBe(false);
+    });
+  });
+
   describe('selectIsBridgeEnabledSource - ALLOWED_BRIDGE_CHAIN_IDS filtering', () => {
     it('returns false for a chain in chainRanking but not in ALLOWED_BRIDGE_CHAIN_IDS', () => {
       const mockState = cloneDeep(mockRootState);
@@ -1227,6 +1716,255 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
+    });
+  });
+
+  describe('recurring', () => {
+    it('sets the every value', () => {
+      const action = setRecurringEveryValue('6');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.everyValue).toBe('6');
+    });
+
+    it('sets the repeat count', () => {
+      const action = setRecurringRepeatCount('20');
+
+      const newState = reducer(initialState, action);
+
+      expect(newState.recurring.repeatCount).toBe('20');
+    });
+
+    it('sets the price range', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+
+      const newState = reducer(
+        initialState,
+        setRecurringPriceRange(priceRange),
+      );
+
+      expect(newState.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('selects the price range from state', () => {
+      const priceRange = {
+        tokenSide: 'source' as const,
+        currency: 'usd',
+        min: '0.9',
+        max: '1.1',
+      };
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringPriceRange(mockState);
+
+      expect(result).toEqual(priceRange);
+    });
+
+    it('clears the price range when the source token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setSourceToken(mockDestToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
+    it('keeps the price range when the source token identity is unchanged', () => {
+      const priceRange = {
+        tokenSide: 'dest' as const,
+        currency: 'usd',
+        min: '1800',
+        max: '2200',
+      };
+      const state = reducer(
+        {
+          ...initialState,
+          sourceToken: mockToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange,
+          },
+        },
+        setSourceToken({ ...mockToken }),
+      );
+
+      expect(state.recurring.priceRange).toEqual(priceRange);
+    });
+
+    it('clears the price range when the dest token identity changes', () => {
+      const state = reducer(
+        {
+          ...initialState,
+          destToken: mockDestToken,
+          recurring: {
+            ...initialState.recurring,
+            priceRange: {
+              tokenSide: 'dest',
+              currency: 'usd',
+              min: '1800',
+              max: '2200',
+            },
+          },
+        },
+        setDestToken(mockToken),
+      );
+
+      expect(state.recurring.priceRange).toBeUndefined();
+    });
+
+    it('resets the every value to 1 when the unit changes', () => {
+      const state = reducer(initialState, setRecurringEveryValue('2'));
+
+      const newState = reducer(state, setRecurringEveryUnit('day'));
+
+      expect(newState.recurring).toEqual({
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: undefined,
+      });
+    });
+
+    it('resets recurring fields when bridge state resets', () => {
+      const withValue = reducer(initialState, setRecurringEveryValue('8'));
+
+      const newState = reducer(withValue, resetBridgeState());
+
+      expect(newState.recurring).toEqual(initialState.recurring);
+    });
+
+    it('defaults to the initial recurring state when it is missing', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: undefined,
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual(initialState.recurring);
+    });
+
+    it('selects the recurring object from state', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '3',
+            everyUnit: 'day' as const,
+            repeatCount: '4',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurring(mockState);
+
+      expect(result).toEqual({
+        everyValue: '3',
+        everyUnit: 'day',
+        repeatCount: '4',
+      });
+    });
+
+    it('selects duration_exceeds_max when every times repeat is over 180 days', () => {
+      const mockState = {
+        ...mockRootState,
+        bridge: {
+          ...initialState,
+          recurring: {
+            everyValue: '1',
+            everyUnit: 'day' as const,
+            repeatCount: '181',
+          },
+        },
+      } as unknown as RootState;
+
+      const result = selectRecurringScheduleValidation(mockState);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain(
+        RecurringScheduleErrorCode.DurationExceedsMax,
+      );
     });
   });
 });

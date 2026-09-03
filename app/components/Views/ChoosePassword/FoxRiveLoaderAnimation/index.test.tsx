@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { createRef } from 'react';
 import { render } from '@testing-library/react-native';
 import { brandColor } from '@metamask/design-tokens';
 import { mockTheme } from '../../../../util/theme';
+
+// Methods handed out by the mocked useRive hook — the component drives the
+// animation through riveRef/riveViewRef, not through the RiveView element.
+const mockUseRiveMethods = {
+  pause: jest.fn(),
+  triggerInput: jest.fn(),
+};
+
+// Extend the global @rive-app/react-native mock with a useRive whose methods
+// are reachable from the test (the global mock keeps them private).
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual(
+    '../../../../__mocks__/rive-app-react-native',
+  );
+  return {
+    ...actual,
+    useRive: () => ({
+      riveRef: { current: mockUseRiveMethods },
+      riveViewRef: mockUseRiveMethods,
+      setHybridRef: { f: jest.fn() },
+    }),
+  };
+});
 
 // Mock useTheme hook
 const mockUseTheme = jest.fn().mockReturnValue(mockTheme);
@@ -18,18 +41,6 @@ jest.mock('../../../../util/theme', () => {
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
   ActivityIndicator: 'ActivityIndicator',
-}));
-
-// Mock Rive component
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: 'RiveView',
-  Fit: {
-    FitWidth: 'FitWidth',
-  },
-  Alignment: {
-    Center: 'Center',
-  },
 }));
 
 jest.mock('../../../../animations/fox_loading.riv', () => 'mock-rive-file');
@@ -56,7 +67,9 @@ jest.mock('../../../../util/device', () => ({
   default: mockDevice,
 }));
 
-import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
+import FoxRiveLoaderAnimation, {
+  type FoxRiveLoaderAnimationRef,
+} from './FoxRiveLoaderAnimation';
 
 describe('FoxRiveLoaderAnimation', () => {
   beforeEach(() => {
@@ -83,7 +96,17 @@ describe('FoxRiveLoaderAnimation', () => {
     expect(getByTestId('fox-rive-loader-animation')).toBeOnTheScreen();
   });
 
-  it('cleans up timers on unmount', () => {
+  it('forwards stop to the underlying Rive ref as pause', () => {
+    const ref = createRef<FoxRiveLoaderAnimationRef>();
+    render(<FoxRiveLoaderAnimation ref={ref} />);
+
+    ref.current?.stop();
+
+    // The nitro runtime has no stop(); the component pauses instead
+    expect(mockUseRiveMethods.pause).toHaveBeenCalledTimes(1);
+  });
+
+  it('cleans up on unmount without errors', () => {
     // Arrange
     const { unmount } = render(<FoxRiveLoaderAnimation />);
 
@@ -95,15 +118,12 @@ describe('FoxRiveLoaderAnimation', () => {
     expect(true).toBe(true); // Test passes if no errors thrown
   });
 
-  it('starts Rive animation with correct state machine', () => {
-    // Arrange & Act
-    const { toJSON } = render(<FoxRiveLoaderAnimation />);
+  it('fires the Loader2 trigger once the view is ready', () => {
+    render(<FoxRiveLoaderAnimation />);
 
-    // Advance timer to trigger Rive animation setup
-    jest.advanceTimersByTime(100);
-
-    // Assert - Component continues to render properly
-    expect(toJSON()).not.toBeNull();
+    // triggerInput takes only the trigger name; the state machine is the
+    // stateMachineName view prop in the nitro runtime
+    expect(mockUseRiveMethods.triggerInput).toHaveBeenCalledWith('Loader2');
   });
 
   it('uses dark mode when theme is dark', () => {

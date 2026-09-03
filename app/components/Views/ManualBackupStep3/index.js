@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import { Alert, BackHandler, Keyboard } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { Box } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
@@ -15,7 +14,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { OnboardingSuccessComponent } from '../OnboardingSuccess';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 
 const hardwareBackPress = () => ({});
@@ -97,7 +96,7 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
       ).build(),
       this.props.saveOnboardingEvent,
@@ -126,7 +125,7 @@ class ManualBackupStep3 extends PureComponent {
 
   render() {
     return (
-      <Box twClassName="flex-1 bg-default mt-4">
+      <>
         <OnboardingSuccessComponent
           onDone={this.done}
           successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
@@ -135,7 +134,7 @@ class ManualBackupStep3 extends PureComponent {
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}
         {this.renderHint()}
-      </Box>
+      </>
     );
   }
 }

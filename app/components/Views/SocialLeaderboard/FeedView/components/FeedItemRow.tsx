@@ -1,0 +1,251 @@
+import {
+  AvatarTokenSize,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import React, { useCallback } from 'react';
+import { Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
+import PerpBadges from '../../components/PerpBadges';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import type { FeedItem } from '../types';
+import FeedSubHeaderText from './FeedSubHeaderText';
+import { formatFeedTimestamp } from '../../utils/formatters';
+import { getTradeActionI18nKey } from '../../utils/tradeAction';
+import {
+  getFeedItemTestId,
+  getFeedNewPositionTestId,
+  getFeedTradeButtonTestId,
+  getFeedTradeCardTestId,
+  getFeedTraderTestId,
+} from '../FeedView.testIds';
+
+const AVATAR_SIZE = 24;
+
+// The lifecycle stage reads differently per asset class: a trader opens a perp
+// position but buys a token. One canonical action, two vocabularies.
+const NEW_POSITION_LABEL_KEYS = {
+  spot: 'social_leaderboard.feed.new_position.spot',
+  perps: 'social_leaderboard.feed.new_position.perps',
+} as const;
+
+const styles = StyleSheet.create({
+  // Keep the tappable trader identity flexible so the Trade button retains its
+  // width and the username still truncates.
+  traderIdentity: {
+    flex: 1,
+    minWidth: 0,
+  },
+});
+
+export interface FeedItemRowProps {
+  item: FeedItem;
+  onTradePress: (item: FeedItem) => void;
+  onPositionPress: (item: FeedItem) => void;
+  onTraderPress: (item: FeedItem) => void;
+  /**
+   * Wall-clock instant used to format the relative timestamp. Parent should
+   * bump this after pull-to-refresh so memoized rows recompute even when the
+   * feed payload is unchanged. Defaults to `Date.now()`.
+   */
+  now?: number;
+}
+
+/**
+ * A single trader-activity feed row: trader identity + action + time on top,
+ * with an indented detail card (token, perp badges, sub-header, value, P&L)
+ * and a Trade CTA. Tapping the trader identity opens their profile.
+ */
+const FeedItemRow: React.FC<FeedItemRowProps> = ({
+  item,
+  onTradePress,
+  onPositionPress,
+  onTraderPress,
+  now,
+}) => {
+  const handleTradePress = useCallback(() => {
+    onTradePress(item);
+  }, [item, onTradePress]);
+
+  const handlePositionPress = useCallback(() => {
+    onPositionPress(item);
+  }, [item, onPositionPress]);
+
+  const handleTraderPress = useCallback(() => {
+    onTraderPress(item);
+  }, [item, onTraderPress]);
+
+  const isPerp = item.type === 'perps';
+  const assetClass = isPerp ? 'perps' : 'spot';
+  const action = item.action;
+  const actionLabel = strings(getTradeActionI18nKey('feed', isPerp, action));
+  const timeLabel = formatFeedTimestamp(item.timestamp, now);
+  const symbol = item.type === 'spot' ? item.tokenSymbol : item.marketSymbol;
+
+  // For rows whose value/P&L hasn't arrived yet, surface an intentional state
+  // label ("Holding" for spot, "Open" for perps) instead of a blank right
+  // column. A reduce still leaves the position open, so it qualifies; only a
+  // full close does not, and its row stays blank.
+  const newPositionLabelKey =
+    (item.isClosed ?? action === 'closed')
+      ? null
+      : NEW_POSITION_LABEL_KEYS[assetClass];
+
+  return (
+    <Box twClassName="px-4 py-3 gap-4" testID={getFeedItemTestId(item.id)}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        gap={3}
+      >
+        <TouchableOpacity
+          onPress={handleTraderPress}
+          accessibilityRole="button"
+          testID={getFeedTraderTestId(item.id)}
+          style={styles.traderIdentity}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            twClassName="flex-1 min-w-0"
+          >
+            <TraderAvatar
+              imageUrl={item.avatarUri}
+              address={item.traderAddress}
+              size={AVATAR_SIZE}
+              recyclingKey={item.id}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              twClassName="flex-1 min-w-0"
+            >
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {item.username}
+              </Text>
+              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+                {` ${actionLabel}`}
+              </Text>
+              {` \u00b7 ${timeLabel}`}
+            </Text>
+          </Box>
+        </TouchableOpacity>
+
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Sm}
+          onPress={handleTradePress}
+          testID={getFeedTradeButtonTestId(item.id)}
+        >
+          {strings('social_leaderboard.feed.trade')}
+        </Button>
+      </Box>
+
+      <Pressable
+        onPress={handlePositionPress}
+        accessibilityRole="button"
+        accessibilityLabel={symbol}
+        testID={getFeedTradeCardTestId(item.id)}
+        style={({ pressed }) => (pressed ? { opacity: 0.6 } : undefined)}
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          gap={3}
+          twClassName="bg-muted rounded-2xl p-3"
+        >
+          <PositionTokenAvatar
+            position={item.tokenAvatar}
+            size={AvatarTokenSize.Md}
+            showChainBadge
+          />
+
+          <Box twClassName="flex-1 min-w-0">
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {symbol}
+              </Text>
+              {item.type === 'perps' ? (
+                <PerpBadges
+                  direction={item.direction}
+                  leverage={item.leverage}
+                  testID={`feed-item-perp-badges-${item.id}`}
+                />
+              ) : null}
+            </Box>
+            <FeedSubHeaderText subHeader={item.subHeader} />
+          </Box>
+
+          {item.hasValueData || item.hasPnlData ? (
+            <Box alignItems={BoxAlignItems.End}>
+              {item.hasValueData ? (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  numberOfLines={1}
+                >
+                  {item.valueLabel}
+                </Text>
+              ) : null}
+              {item.hasPnlData ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  twClassName={
+                    item.isPnlPositive
+                      ? 'text-success-default'
+                      : 'text-error-default'
+                  }
+                  numberOfLines={1}
+                >
+                  {item.pnlLabel}
+                </Text>
+              ) : null}
+            </Box>
+          ) : newPositionLabelKey ? (
+            <Box alignItems={BoxAlignItems.End}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+                numberOfLines={1}
+                testID={getFeedNewPositionTestId(item.id)}
+              >
+                {strings(newPositionLabelKey)}
+              </Text>
+            </Box>
+          ) : null}
+        </Box>
+      </Pressable>
+    </Box>
+  );
+};
+
+export default React.memo(FeedItemRow);

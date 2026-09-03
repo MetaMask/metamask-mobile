@@ -8,8 +8,6 @@ import { isSmartContractAddress } from '../../../../../../util/transactions';
 import { strings } from '../../../../../../../locales/i18n';
 import AddressElement from '../AddressElement';
 import { useTheme } from '../../../../../../util/theme';
-import Text from '../../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { regex } from '../../../../../../util/regex';
 import { selectInternalEvmAccounts } from '../../../../../../selectors/accountsController';
 import styleSheet from './AddressList.styles';
@@ -22,10 +20,15 @@ import {
   AddressBookEntryWithRelaxedChainId,
   InternalAddressBookEntry,
 } from './AddressList.types';
+import {
+  Text,
+  TextVariant,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 const LabelElement = (styles: ReturnType<typeof styleSheet>, label: string) => (
   <View key={label} style={styles.labelElementWrapper}>
-    <Text variant={TextVariant.BodyMD} style={styles.contactLabel}>
+    <Text variant={TextVariant.BodyMd} style={styles.contactLabel}>
       {label.toUpperCase()}
     </Text>
   </View>
@@ -184,7 +187,8 @@ const AddressList = ({
     return (
       <View style={styles.yourContactcWrapper}>
         <Text
-          variant={TextVariant.BodyLGMedium}
+          variant={TextVariant.BodyLg}
+          fontWeight={FontWeight.Medium}
           style={styles.labelElementText}
         >
           {strings('onboarding_wizard.step2.title')}
@@ -274,7 +278,8 @@ const AddressList = ({
 
               {sendFlowContacts.length ? (
                 <Text
-                  variant={TextVariant.BodyLGMedium}
+                  variant={TextVariant.BodyLg}
+                  fontWeight={FontWeight.Medium}
                   style={styles.labelElementText}
                 >
                   {strings('app_settings.contacts_title')}

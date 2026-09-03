@@ -1,4 +1,5 @@
 import '../../_mocks_/initialState';
+import { FeatureId } from '@metamask/bridge-controller';
 import { createBridgeTestState } from '../../testUtils';
 import { useUnifiedSwapBridgeContext } from '.';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -13,6 +14,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => ({
   selectSourceToken: jest.fn(),
   selectDestToken: jest.fn(),
   selectSourceAmount: jest.fn(),
+  selectIsSlippageUserOverride: jest.fn(),
 }));
 
 jest.mock('../../../../../selectors/currencyRateController', () => ({
@@ -49,6 +51,10 @@ describe('useUnifiedSwapBridgeContext', () => {
     '../../../../../core/redux/slices/bridge',
   ).selectSourceAmount;
 
+  const mockSelectIsSlippageUserOverride = jest.requireMock(
+    '../../../../../core/redux/slices/bridge',
+  ).selectIsSlippageUserOverride;
+
   const mockSelectCurrencyRates = jest.requireMock(
     '../../../../../selectors/currencyRateController',
   ).selectCurrencyRates;
@@ -69,6 +75,7 @@ describe('useUnifiedSwapBridgeContext', () => {
     jest.clearAllMocks();
     // Set default mock values
     mockSelectSourceAmount.mockReturnValue(undefined);
+    mockSelectIsSlippageUserOverride.mockReturnValue(false);
     mockSelectCurrencyRates.mockReturnValue({});
     mockSelectTokenMarketData.mockReturnValue({});
     mockSelectNetworkConfigurations.mockReturnValue({});
@@ -95,7 +102,31 @@ describe('useUnifiedSwapBridgeContext', () => {
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      custom_slippage: false,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
+  });
+
+  it('includes the explicit slippage override state in the context', () => {
+    mockSelectIsSlippageUserOverride.mockReturnValue(true);
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.custom_slippage).toBe(true);
+  });
+
+  it('defaults custom_slippage to false when the selector has no value', () => {
+    mockSelectIsSlippageUserOverride.mockReturnValueOnce(undefined);
+
+    const { result } = renderHookWithProvider(
+      () => useUnifiedSwapBridgeContext(),
+      { state: initialRootState },
+    );
+
+    expect(result.current.custom_slippage).toBe(false);
   });
 
   it('collects security_warnings from destination token features', () => {
@@ -199,6 +230,8 @@ describe('useUnifiedSwapBridgeContext', () => {
       security_warnings: [],
       warnings: [],
       usd_amount_source: 0,
+      custom_slippage: false,
+      feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
     });
   });
 

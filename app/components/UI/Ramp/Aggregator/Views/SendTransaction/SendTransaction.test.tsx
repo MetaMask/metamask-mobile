@@ -273,7 +273,6 @@ function render(Component: React.ComponentType, orders = mockedOrders) {
   );
 }
 
-const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
@@ -287,9 +286,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
       goBack: mockGoBack,
       reset: mockReset,
       getParent: () => ({
@@ -329,7 +325,6 @@ describe('SendTransaction View', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockGoBack.mockClear();
-    mockSetOptions.mockClear();
     mockReset.mockClear();
     mockPop.mockClear();
     mockDispatch.mockClear();
@@ -343,7 +338,7 @@ describe('SendTransaction View', () => {
     };
   });
 
-  it('does not crash when order data has no cryptoCurrency', async () => {
+  it('shows header with back navigation when order data has no cryptoCurrency', async () => {
     const orderWithoutCrypto = {
       ...mockOrder,
       id: 'test-id-no-crypto',
@@ -355,12 +350,24 @@ describe('SendTransaction View', () => {
 
     mockUseParamsValues = { orderId: 'test-id-no-crypto' };
     render(SendTransaction, [orderWithoutCrypto]);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
     expect(screen.queryByText('Next')).not.toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('shows header with back navigation when order is missing', async () => {
+    mockUseParamsValues = { orderId: 'invalid-order-id' };
     render(SendTransaction);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(screen.getByText('Sell crypto')).toBeOnTheScreen();
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('navigates back when header back button is pressed', async () => {
+    render(SendTransaction);
+    fireEvent.press(screen.getByTestId('send-transaction-back-button'));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders correctly', async () => {

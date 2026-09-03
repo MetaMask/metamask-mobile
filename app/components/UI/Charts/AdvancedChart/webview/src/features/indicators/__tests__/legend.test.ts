@@ -1,0 +1,1459 @@
+/**
+ * @jest-environment jsdom
+ */
+import {
+  __resetLegendForTests,
+  attachLegendResizeListener,
+  refreshStudyLegendFromExport,
+  scheduleLegendRefresh,
+  setupLegendOverlay,
+  subscribeStudyDataLoaded,
+  updateLegendOverlayLayout,
+} from '../legend';
+import {
+  __resetStateForTests,
+  doesLegendOwnLayoutSettle,
+  registerStudy,
+  setChartReady,
+  setLegendOwnsLayoutSettle,
+  setTheme,
+  setVolumeStudyId,
+  setWidget,
+} from '../../../core/state';
+import type {
+  ChartTheme,
+  IndicatorColors,
+  LegendIndicatorCfg,
+  StudyId,
+  TVActiveChart,
+  TVChartingLibraryWidget,
+  TVExportData,
+} from '../../../core/types';
+
+jest.mock('../../../core/bridge', () => ({
+  postToRN: jest.fn(),
+}));
+
+jest.mock('../../../widget/tvDomHelpers', () => ({
+  eachChartDocument: jest.fn((fn: (doc: Document) => void) => {
+    fn(globalThis.document);
+  }),
+}));
+
+const { postToRN } = jest.requireMock<{
+  postToRN: jest.Mock;
+}>('../../../core/bridge');
+
+const OVERLAY_ID = 'study-legend-overlay';
+
+const installContainer = (): HTMLElement => {
+  document.body.innerHTML = '<div id="tv_chart_container"></div>';
+  return document.getElementById('tv_chart_container') as HTMLElement;
+};
+
+const makeTheme = (overrides?: Partial<ChartTheme>): ChartTheme => ({
+  backgroundColor: 'rgb(0,0,0)',
+  borderColor: 'rgb(1,1,1)',
+  textColor: 'rgb(200,200,200)',
+  textDefaultColor: 'rgb(150,150,150)',
+  sectionBackgroundColor: 'rgb(20,20,20)',
+  crosshairBackgroundColor: 'rgb(30,30,30)',
+  crosshairTextColor: 'rgb(255,255,255)',
+  legendTextColor: 'rgb(100,100,100)',
+  textAlternativeColor: 'rgb(120,120,120)',
+  successColor: 'rgb(38,166,154)',
+  lineColor: 'rgb(50,50,50)',
+  errorColor: 'rgb(255,0,0)',
+  primaryColor: 'rgb(0,100,255)',
+  currentPriceColor: 'rgb(200,200,0)',
+  ...overrides,
+});
+
+const makeExportData = (
+  schema: TVExportData['schema'],
+  data: TVExportData['data'],
+  displayedData?: TVExportData['displayedData'],
+): TVExportData => ({ schema, data, displayedData });
+
+const makeChart = (
+  exportDataResult?: TVExportData | Error,
+  paneHeights: number[] = [300],
+  studyPaneMap: Record<string, number> = {},
+): { chart: TVActiveChart; exportData: jest.Mock } => {
+  const exportData =
+    exportDataResult instanceof Error
+      ? jest.fn().mockRejectedValue(exportDataResult)
+      : jest.fn().mockResolvedValue(exportDataResult ?? makeExportData([], []));
+  const getStudyById = jest.fn().mockImplementation((id: string) => {
+    const paneIdx = studyPaneMap[id];
+    if (paneIdx !== undefined) {
+      return {
+        paneIndex: () => paneIdx,
+        onDataLoaded: () => ({ subscribe: jest.fn() }),
+      };
+    }
+    return null;
+  });
+  const chart = {
+    exportData,
+    getStudyById,
+    getAllPanesHeight: jest.fn().mockReturnValue(paneHeights),
+  } as unknown as TVActiveChart;
+  return { chart, exportData };
+};
+
+const setupReadyWidget = (chart: TVActiveChart): void => {
+  setWidget({
+    activeChart: () => chart,
+  } as unknown as TVChartingLibraryWidget);
+  setChartReady(true);
+};
+
+const defaultTestConfig: Record<string, LegendIndicatorCfg> = {
+  MACD: {
+    subPaneLegend: true,
+    plots: [
+      { tvTitle: 'MACD', label: 'MACD(12,26)', color: null },
+      { tvTitle: 'Signal', label: 'Signal', color: null },
+      { tvTitle: 'Histogram', label: 'Hist', color: null },
+    ],
+    useIndex: true,
+  },
+  RSI: {
+    subPaneLegend: true,
+    plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
+    useIndex: true,
+  },
+  BOL: {
+    combineInOnePill: true,
+    title: 'BB(20,2)',
+    plots: [
+      { tvTitle: 'Upper', label: 'U:', color: null },
+      { tvTitle: 'Median', label: 'M:', color: null },
+      { tvTitle: 'Lower', label: 'L:', color: null },
+    ],
+    useIndex: true,
+  },
+  Volume: {
+    plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
+    useIndex: true,
+  },
+  MA5: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
+  },
+  MA10: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: null }],
+  },
+  MA20: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: null }],
+  },
+  MA50: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: null }],
+  },
+  MA200: {
+    isMA: true,
+    useIndex: true,
+    plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: null }],
+  },
+};
+
+const buildTestConfig = (
+  colors?: IndicatorColors,
+): Record<string, LegendIndicatorCfg> => {
+  if (!colors) return defaultTestConfig;
+  const macd = colors.MACD ?? {};
+  const rsi = colors.RSI ?? {};
+  return {
+    ...defaultTestConfig,
+    MACD: {
+      ...defaultTestConfig.MACD,
+      plots: [
+        {
+          tvTitle: 'MACD',
+          label: 'MACD(12,26)',
+          color: (macd as Record<string, string>).macd ?? null,
+        },
+        {
+          tvTitle: 'Signal',
+          label: 'Signal',
+          color: (macd as Record<string, string>).signal ?? null,
+        },
+        {
+          tvTitle: 'Histogram',
+          label: 'Hist',
+          color: (macd as Record<string, string>).histogramPositive ?? null,
+        },
+      ],
+    },
+    RSI: {
+      ...defaultTestConfig.RSI,
+      plots: [
+        {
+          tvTitle: 'Plot',
+          label: 'RSI(14)',
+          color: (rsi as Record<string, string>).plot ?? null,
+        },
+      ],
+    },
+  };
+};
+
+const enableOverlayWithStudies = (
+  chart: TVActiveChart,
+  colors?: IndicatorColors,
+): void => {
+  installContainer();
+  setupLegendOverlay({ enabled: true, config: buildTestConfig(colors) });
+  setupReadyWidget(chart);
+};
+
+describe('legend', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((cb: FrameRequestCallback) => {
+        cb(0);
+        return 0;
+      });
+    __resetStateForTests();
+    __resetLegendForTests();
+    document.body.innerHTML = '';
+    postToRN.mockClear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
+  describe('setupLegendOverlay', () => {
+    it('is a no-op when config is undefined', () => {
+      installContainer();
+      setupLegendOverlay(undefined);
+      expect(document.getElementById(OVERLAY_ID)).toBeNull();
+    });
+
+    it('is a no-op when enabled is false', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: false });
+      expect(document.getElementById(OVERLAY_ID)).toBeNull();
+    });
+
+    it('creates the overlay element inside tv_chart_container', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+      const overlay = document.getElementById(OVERLAY_ID);
+      expect(overlay).not.toBeNull();
+      expect(overlay?.parentElement).toBe(container);
+    });
+
+    it('sets container position to relative', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+      expect(container.style.position).toBe('relative');
+    });
+
+    it('replaces an existing overlay if called twice', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay({ enabled: true });
+      expect(document.querySelectorAll(`#${OVERLAY_ID}`).length).toBe(1);
+    });
+
+    it('does nothing when tv_chart_container is missing', () => {
+      document.body.innerHTML = '';
+      setupLegendOverlay({ enabled: true });
+      expect(document.getElementById(OVERLAY_ID)).toBeNull();
+    });
+
+    it('injects a style element to hide TV legend buttons', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      const style = document.getElementById('mm-hide-legend-buttons');
+      expect(style).not.toBeNull();
+      expect(style?.textContent).toContain('display:none!important');
+    });
+
+    it('does not duplicate the CSS style on second setup call', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      setupLegendOverlay({ enabled: true });
+      expect(document.querySelectorAll('#mm-hide-legend-buttons').length).toBe(
+        1,
+      );
+    });
+  });
+
+  describe('attachLegendResizeListener', () => {
+    const mockActiveChart = () =>
+      ({
+        getAllPanesHeight: jest.fn().mockReturnValue([300]),
+      }) as unknown as TVActiveChart;
+
+    it('subscribes to panes_height_changed and triggers layout update', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+      let handler: (() => void) | undefined;
+      const widget = {
+        subscribe: jest.fn((_event: string, cb: () => void) => {
+          handler = cb;
+        }),
+        activeChart: mockActiveChart,
+      };
+      attachLegendResizeListener(widget);
+      expect(widget.subscribe).toHaveBeenCalledWith(
+        'panes_height_changed',
+        expect.any(Function),
+      );
+      handler?.();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // 400 - 8 - 48 (fallback, no widget set) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
+    });
+
+    it('does not throw when subscribe throws', () => {
+      const widget = {
+        subscribe: jest.fn(() => {
+          throw new Error('not ready');
+        }),
+        activeChart: mockActiveChart,
+      };
+      expect(() => attachLegendResizeListener(widget)).not.toThrow();
+    });
+
+    it('does not update layout when overlay element is missing', () => {
+      let handler: (() => void) | undefined;
+      const widget = {
+        subscribe: jest.fn((_event: string, cb: () => void) => {
+          handler = cb;
+        }),
+        activeChart: mockActiveChart,
+      };
+      attachLegendResizeListener(widget);
+      expect(() => handler?.()).not.toThrow();
+    });
+  });
+
+  describe('refreshStudyLegendFromExport', () => {
+    it('is a no-op when overlay is disabled', () => {
+      expect(() => refreshStudyLegendFromExport()).not.toThrow();
+    });
+
+    it('is a no-op when widget is null', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      expect(() => refreshStudyLegendFromExport()).not.toThrow();
+    });
+
+    it('is a no-op when chart is not ready', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      const { chart } = makeChart();
+      setWidget({
+        activeChart: () => chart,
+      } as unknown as TVChartingLibraryWidget);
+      refreshStudyLegendFromExport();
+      expect(chart.exportData).not.toHaveBeenCalled();
+    });
+
+    it('clears overlay HTML when no studies are registered', () => {
+      const { chart } = makeChart();
+      enableOverlayWithStudies(chart);
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      overlay.innerHTML = '<span class="legend-pill">stale</span>';
+      refreshStudyLegendFromExport();
+      expect(overlay.innerHTML).toBe('');
+    });
+
+    it('calls exportData with registered active study IDs', () => {
+      const { chart, exportData } = makeChart();
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      expect(exportData).toHaveBeenCalledWith({
+        includeSeries: false,
+        includedStudies: ['sid-macd'],
+      });
+    });
+
+    it('includes MA studies in the export request', () => {
+      const { chart, exportData } = makeChart();
+      enableOverlayWithStudies(chart);
+      registerStudy('ma', 'MA5', 'sid-ma5' as StudyId);
+      refreshStudyLegendFromExport();
+      expect(exportData).toHaveBeenCalledWith({
+        includeSeries: false,
+        includedStudies: ['sid-ma5'],
+      });
+    });
+
+    it('includes volume study in the export request', () => {
+      const { chart, exportData } = makeChart();
+      enableOverlayWithStudies(chart);
+      setVolumeStudyId('sid-vol' as StudyId);
+      refreshStudyLegendFromExport();
+      expect(exportData).toHaveBeenCalledWith({
+        includeSeries: false,
+        includedStudies: ['sid-vol'],
+      });
+    });
+
+    it('renders MACD legend pills from export data', async () => {
+      const colors: IndicatorColors = {
+        MACD: {
+          macd: 'rgb(255, 0, 0)',
+          signal: 'rgb(0, 255, 0)',
+          histogramPositive: 'rgb(0, 0, 255)',
+        },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'MACD' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'Signal' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'Histogram' },
+        ],
+        [[1000, 12.5, 11.3, 1.2]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart, colors);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(3);
+      expect(overlay.innerHTML).toContain('MACD(12,26)');
+      expect(overlay.innerHTML).toContain('Signal');
+      expect(overlay.innerHTML).toContain('Hist');
+    });
+
+    it('renders RSI legend pill from export data', async () => {
+      const colors: IndicatorColors = {
+        RSI: { plot: 'rgb(170, 187, 0)' },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 65.42]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart, colors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(1);
+      expect(overlay.innerHTML).toContain('RSI(14)');
+      expect(overlay.innerHTML).toContain('65.42');
+    });
+
+    it('renders Bollinger Bands in a single combined pill', async () => {
+      const colors: IndicatorColors = {
+        BOL: {
+          upper: 'rgb(170, 0, 0)',
+          basis: 'rgb(0, 170, 0)',
+          lower: 'rgb(0, 0, 170)',
+        },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Upper' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Median' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Lower' },
+        ],
+        [[1000, 105.5, 100.0, 94.5]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart, colors);
+      registerStudy('active', 'BOL', 'sid-bol' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(1);
+      expect(overlay.innerHTML).toContain('BB(20,2)');
+      expect(overlay.innerHTML).toContain('U:');
+      expect(overlay.innerHTML).toContain('M:');
+      expect(overlay.innerHTML).toContain('L:');
+    });
+
+    it('renders MA pill from export data', async () => {
+      const colors: IndicatorColors = {
+        MA: { MA10: 'rgb(17, 34, 51)' },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-ma10', plotTitle: 'Plot' },
+        ],
+        [[1000, 42.56]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart, colors);
+      registerStudy('ma', 'MA10', 'sid-ma10' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(1);
+      expect(overlay.innerHTML).toContain('MA(10)');
+      expect(overlay.innerHTML).toContain('42.56');
+    });
+
+    it('skips MA pill when value is empty', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-ma5', plotTitle: 'Plot' },
+        ],
+        [[1000, NaN]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('ma', 'MA5', 'sid-ma5' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+
+    it('renders Volume pill from export data', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-vol', plotTitle: 'Vol' },
+        ],
+        [[1000, 5000000]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      setVolumeStudyId('sid-vol' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('Vol');
+      expect(overlay.innerHTML).toContain('5.00M');
+    });
+
+    it('uses theme legendTextColor for alt color', async () => {
+      setTheme(makeTheme({ legendTextColor: 'rgb(77,88,99)' }));
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('rgb(77,88,99)');
+    });
+
+    it('falls back to textAlternativeColor when legendTextColor is absent', async () => {
+      setTheme(
+        makeTheme({
+          legendTextColor: undefined as unknown as string,
+          textAlternativeColor: 'rgb(11,22,33)',
+        }),
+      );
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('rgb(11,22,33)');
+    });
+
+    it('falls back to default alt color when theme is null', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('rgb(133,136,152)');
+    });
+
+    it('uses successColor fallback for plot color when indicatorColors not set', async () => {
+      setTheme(makeTheme({ successColor: 'rgb(0,255,0)' }));
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('rgb(0,255,0)');
+    });
+
+    it('retries when exportData rejects', async () => {
+      const { chart, exportData } = makeChart(new Error('fail'));
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      await Promise.resolve();
+      exportData.mockResolvedValueOnce(
+        makeExportData(
+          [
+            { type: 'time' },
+            { type: 'number', sourceId: 'sid-macd', plotTitle: 'MACD' },
+          ],
+          [[1000, 12.5]],
+        ),
+      );
+      jest.advanceTimersByTime(100);
+      expect(exportData).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when exportData returns invalid data', async () => {
+      const invalidData = makeExportData([], []);
+      const { chart, exportData } = makeChart(invalidData);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      jest.advanceTimersByTime(100);
+      expect(exportData).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries when data has empty values and retries remain', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, NaN]],
+      );
+      const { chart, exportData } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      jest.advanceTimersByTime(100);
+      expect(exportData).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops retrying after MAX_RETRIES and sends LEGEND_RENDERED', async () => {
+      const { chart } = makeChart(new Error('fail'));
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+
+      for (let i = 0; i <= 11; i++) {
+        refreshStudyLegendFromExport();
+        await Promise.resolve();
+        await Promise.resolve();
+        jest.advanceTimersByTime(100);
+      }
+
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+    });
+
+    it('sends LEGEND_RENDERED after render timeout when retries keep failing', async () => {
+      const { chart } = makeChart(new Error('fail'));
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      jest.advanceTimersByTime(3000);
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+    });
+
+    it('posts LEGEND_RENDERED after successful render', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+    });
+
+    it('prefers displayedData over raw values when available', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.123456]],
+        [['', '$50.12']],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('$50.12');
+    });
+
+    it('skips schema fields with no sourceId', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', plotTitle: 'Orphan' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 99.0, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('RSI(14)');
+    });
+
+    it('skips entries for unknown study names', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-unknown', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy(
+        'active',
+        'UnknownStudy' as 'MACD',
+        'sid-unknown' as StudyId,
+      );
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+
+    it('skips plots with n/a values', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+        [['', 'n/a']],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+
+    it('skips BOL pill when all values are empty', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Upper' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Median' },
+          { type: 'number', sourceId: 'sid-bol', plotTitle: 'Lower' },
+        ],
+        [[1000, NaN, NaN, NaN]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'BOL', 'sid-bol' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+
+    it('handles missing overlay element gracefully during render', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      document.getElementById(OVERLAY_ID)?.remove();
+      expect(() => refreshStudyLegendFromExport()).not.toThrow();
+    });
+  });
+
+  describe('formatLegendValue via rendered pills', () => {
+    const renderSingleValue = async (value: number): Promise<string> => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, value]],
+      );
+      const { chart } = makeChart(data);
+      __resetLegendForTests();
+      __resetStateForTests();
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      return overlay.innerHTML;
+    };
+
+    it('formats billions', async () => {
+      const html = await renderSingleValue(2500000000);
+      expect(html).toContain('2.50B');
+    });
+
+    it('formats millions', async () => {
+      const html = await renderSingleValue(5000000);
+      expect(html).toContain('5.00M');
+    });
+
+    it('formats tens of thousands with K suffix', async () => {
+      const html = await renderSingleValue(15000);
+      expect(html).toContain('15.0K');
+    });
+
+    it('formats thousands with 2 decimal places', async () => {
+      const html = await renderSingleValue(1500.123);
+      expect(html).toContain('1500.12');
+    });
+
+    it('formats values >= 1 with 2 decimal places', async () => {
+      const html = await renderSingleValue(42.567);
+      expect(html).toContain('42.57');
+    });
+
+    it('formats small values >= 0.01 with 4 decimal places', async () => {
+      const html = await renderSingleValue(0.05123);
+      expect(html).toContain('0.0512');
+    });
+
+    it('formats very small values with toPrecision(4)', async () => {
+      const html = await renderSingleValue(0.001234);
+      expect(html).toContain('0.001234');
+    });
+
+    it('formats negative values', async () => {
+      const html = await renderSingleValue(-1500000);
+      expect(html).toContain('-1.50M');
+    });
+
+    it('produces empty string for Infinity', async () => {
+      const html = await renderSingleValue(Infinity);
+      expect(html).not.toContain('Infinity');
+      expect(document.querySelectorAll('.legend-pill').length).toBe(0);
+    });
+  });
+
+  describe('updateLegendOverlayLayout', () => {
+    it('is a no-op when overlay element does not exist', () => {
+      expect(() => updateLegendOverlayLayout()).not.toThrow();
+    });
+
+    it('uses fallback scale width when no widget and container has width', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // 400 - 8 - 48 (fallback) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
+    });
+
+    it('is a no-op when container element is missing', () => {
+      const div = document.createElement('div');
+      div.id = OVERLAY_ID;
+      document.body.appendChild(div);
+      expect(() => updateLegendOverlayLayout()).not.toThrow();
+    });
+  });
+
+  describe('scheduleLegendRefresh', () => {
+    it('triggers refreshStudyLegendFromExport via double rAF', () => {
+      const { chart, exportData } = makeChart();
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      scheduleLegendRefresh();
+      expect(exportData).toHaveBeenCalled();
+    });
+  });
+
+  describe('subscribeStudyDataLoaded', () => {
+    it('subscribes to onDataLoaded and schedules legend refresh', () => {
+      let dataLoadedCb: (() => void) | undefined;
+      const study = {
+        onDataLoaded: () => ({
+          subscribe: (_scope: unknown, cb: () => void) => {
+            dataLoadedCb = cb;
+          },
+        }),
+      };
+      const chart = {
+        getStudyById: jest.fn().mockReturnValue(study),
+        exportData: jest.fn().mockResolvedValue(makeExportData([], [])),
+      } as unknown as TVActiveChart;
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      subscribeStudyDataLoaded(chart, 'sid-rsi' as StudyId);
+      expect(chart.getStudyById).toHaveBeenCalledWith('sid-rsi');
+      dataLoadedCb?.();
+      expect(chart.exportData).toHaveBeenCalled();
+    });
+
+    it('falls back to direct refresh when getStudyById throws', () => {
+      const { chart, exportData } = makeChart();
+      (chart.getStudyById as jest.Mock).mockImplementation(() => {
+        throw new Error('not found');
+      });
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      subscribeStudyDataLoaded(chart, 'sid-rsi' as StudyId);
+      expect(exportData).toHaveBeenCalled();
+    });
+
+    it('falls back to direct refresh when study has no onDataLoaded', () => {
+      const { chart, exportData } = makeChart();
+      (chart.getStudyById as jest.Mock).mockReturnValue({});
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      subscribeStudyDataLoaded(chart, 'sid-rsi' as StudyId);
+      expect(exportData).toHaveBeenCalled();
+    });
+
+    it('falls back to direct refresh when study is null', () => {
+      const { chart, exportData } = makeChart();
+      (chart.getStudyById as jest.Mock).mockReturnValue(null);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      subscribeStudyDataLoaded(chart, 'sid-rsi' as StudyId);
+      expect(exportData).toHaveBeenCalled();
+    });
+  });
+
+  describe('multiple indicators rendered together', () => {
+    it('renders pills in legend study order', async () => {
+      const colors: IndicatorColors = {
+        RSI: { plot: 'rgb(170, 0, 0)' },
+        MACD: {
+          macd: 'rgb(0, 170, 0)',
+          signal: 'rgb(0, 0, 170)',
+          histogramPositive: 'rgb(170, 170, 170)',
+        },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'MACD' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'Signal' },
+          { type: 'number', sourceId: 'sid-macd', plotTitle: 'Histogram' },
+        ],
+        [[1000, 65.0, 12.5, 11.3, 1.2]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart, colors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.querySelectorAll('.legend-pill').length).toBe(4);
+      const html = overlay.innerHTML;
+      expect(html.indexOf('RSI(14)')).toBeLessThan(html.indexOf('MACD(12,26)'));
+    });
+  });
+
+  describe('notifyLegendRendered — legendOwnsLayoutSettle integration', () => {
+    it('posts CHART_LAYOUT_SETTLED and clears the flag when legendOwnsLayoutSettle is true', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      setLegendOwnsLayoutSettle(true);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+      expect(postToRN).toHaveBeenCalledWith('CHART_LAYOUT_SETTLED', {});
+      expect(doesLegendOwnLayoutSettle()).toBe(false);
+    });
+
+    it('does not post CHART_LAYOUT_SETTLED when legendOwnsLayoutSettle is false', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 50.0]],
+      );
+      const { chart } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      expect(postToRN).toHaveBeenCalledWith('LEGEND_RENDERED', {});
+      expect(postToRN).not.toHaveBeenCalledWith(
+        'CHART_LAYOUT_SETTLED',
+        expect.anything(),
+      );
+    });
+
+    it('posts CHART_LAYOUT_SETTLED via timeout fallback when legendOwnsLayoutSettle is true', () => {
+      const { chart } = makeChart(new Error('fail'));
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+      setLegendOwnsLayoutSettle(true);
+
+      refreshStudyLegendFromExport();
+      jest.advanceTimersByTime(3000);
+
+      expect(postToRN).toHaveBeenCalledWith('CHART_LAYOUT_SETTLED', {});
+      expect(doesLegendOwnLayoutSettle()).toBe(false);
+    });
+  });
+
+  describe('handleExportData edge cases', () => {
+    it('retries when data has valid schema but empty data array last row', async () => {
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [],
+      );
+      (data as { data: unknown[] }).data = [undefined as unknown as number[]];
+      const { chart, exportData } = makeChart(data);
+      enableOverlayWithStudies(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      jest.advanceTimersByTime(100);
+      expect(exportData).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('updateLegendOverlayLayout with price scale API', () => {
+    it('computes pixel max-width from price scale width', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+
+      const priceScale = { width: () => 50 };
+      const chart = {
+        exportData: jest.fn().mockResolvedValue({ schema: [], data: [] }),
+        getStudyById: jest.fn().mockReturnValue(null),
+        getAllPanesHeight: jest.fn().mockReturnValue([400]),
+        getPanes: () => [
+          { getRightPriceScales: () => [priceScale], getHeight: () => 400 },
+        ],
+      } as unknown as TVActiveChart;
+      setWidget({
+        activeChart: () => chart,
+      } as unknown as TVChartingLibraryWidget);
+      setChartReady(true);
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // 400 (container) - 8 (left pad) - 50 (scale) - 4 (gap) = 338
+      expect(overlay?.style.maxWidth).toBe('338px');
+    });
+
+    it('uses fallback scale width when no widget is set', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      // 400 - 8 - 48 (fallback) - 4 = 340
+      expect(overlay?.style.maxWidth).toBe('340px');
+    });
+
+    it('does not set maxWidth when container clientWidth is 0', () => {
+      const container = installContainer();
+      setupLegendOverlay({ enabled: true });
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 0,
+        configurable: true,
+      });
+
+      updateLegendOverlayLayout();
+      const overlay = document.getElementById(OVERLAY_ID);
+      expect(overlay?.style.maxWidth).toBe('');
+    });
+
+    it('applies maxWidth to sub-pane overlays too', async () => {
+      const container = installContainer();
+      const rsiData = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 55.5]],
+      );
+      setupLegendOverlay({
+        enabled: true,
+        config: {
+          RSI: {
+            subPaneLegend: true,
+            plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: null }],
+            useIndex: true,
+          },
+        },
+      });
+
+      Object.defineProperty(container, 'clientWidth', {
+        value: 400,
+        configurable: true,
+      });
+
+      const priceScale = { width: () => 50 };
+      const { chart } = makeChart(rsiData, [300, 100], { 'sid-rsi': 1 });
+      (chart as unknown as Record<string, unknown>).getPanes = () => [
+        { getRightPriceScales: () => [priceScale], getHeight: () => 300 },
+        { getRightPriceScales: () => [priceScale], getHeight: () => 100 },
+      ];
+      setWidget({
+        activeChart: () => chart,
+      } as unknown as TVChartingLibraryWidget);
+      setChartReady(true);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      updateLegendOverlayLayout();
+      const subOverlay = container.querySelector(
+        '[id^="study-legend-overlay-pane-"]',
+      );
+      expect(subOverlay).not.toBeNull();
+      expect((subOverlay as HTMLElement).style.maxWidth).toBe('338px');
+    });
+  });
+
+  describe('per-pane sub-pane legends', () => {
+    const subPaneColors: IndicatorColors = {
+      RSI: { plot: 'rgb(170,0,0)' },
+      MACD: {
+        macd: 'rgb(0,170,0)',
+        signal: 'rgb(0,0,170)',
+        histogramPositive: 'rgb(170,170,170)',
+      },
+    };
+
+    const rsiMacdData = makeExportData(
+      [
+        { type: 'time' },
+        { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        { type: 'number', sourceId: 'sid-macd', plotTitle: 'MACD' },
+        { type: 'number', sourceId: 'sid-macd', plotTitle: 'Signal' },
+        { type: 'number', sourceId: 'sid-macd', plotTitle: 'Histogram' },
+      ],
+      [[1000, 65.0, 12.5, 11.3, 1.2]],
+    );
+
+    const setupWithConfig = (
+      chart: TVActiveChart,
+      colors?: IndicatorColors,
+    ) => {
+      installContainer();
+      setupLegendOverlay({
+        enabled: true,
+        config: {
+          MACD: {
+            subPaneLegend: true,
+            plots: [
+              {
+                tvTitle: 'MACD',
+                label: 'MACD(12,26)',
+                color: colors?.MACD?.macd ?? null,
+              },
+              {
+                tvTitle: 'Signal',
+                label: 'Signal',
+                color: colors?.MACD?.signal ?? null,
+              },
+              {
+                tvTitle: 'Histogram',
+                label: 'Hist',
+                color: colors?.MACD?.histogramPositive ?? null,
+              },
+            ],
+            useIndex: true,
+          },
+          RSI: {
+            subPaneLegend: true,
+            plots: [
+              {
+                tvTitle: 'Plot',
+                label: 'RSI(14)',
+                color: colors?.RSI?.plot ?? null,
+              },
+            ],
+            useIndex: true,
+          },
+          MA5: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: null }],
+          },
+        },
+      });
+      setupReadyWidget(chart);
+    };
+
+    it('routes sub-pane pills to a dedicated overlay when paneIndex() returns > 0', async () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+        'sid-macd': 2,
+      });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(mainOverlay.querySelectorAll('.legend-pill').length).toBe(0);
+
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
+      expect(rsiOverlay).not.toBeNull();
+      expect(rsiOverlay?.innerHTML).toContain('RSI(14)');
+
+      const macdOverlay = document.getElementById(`${OVERLAY_ID}-pane-MACD`);
+      expect(macdOverlay).not.toBeNull();
+      expect(macdOverlay?.innerHTML).toContain('MACD(12,26)');
+    });
+
+    it('falls back to main overlay when paneIndex() returns 0 (main pane)', async () => {
+      const { chart } = makeChart(rsiMacdData, [300], { 'sid-rsi': 0 });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(mainOverlay.innerHTML).toContain('RSI(14)');
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).toBeNull();
+    });
+
+    it('removes stale sub-pane overlays when their indicators are gone', async () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+        'sid-macd': 2,
+      });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).not.toBeNull();
+
+      __resetStateForTests();
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      const rsiOnlyData = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 65.0]],
+      );
+      const { chart: rsiChart } = makeChart(rsiOnlyData, [300, 100], {
+        'sid-rsi': 1,
+      });
+      setupReadyWidget(rsiChart);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).not.toBeNull();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).toBeNull();
+    });
+
+    it('uses RN-supplied config over fallback presets', async () => {
+      const customConfig = {
+        RSI: {
+          subPaneLegend: true,
+          plots: [
+            {
+              tvTitle: 'Plot',
+              label: 'CustomRSI(21)',
+              color: 'rgb(255,0,255)',
+            },
+          ],
+          useIndex: true,
+        },
+      };
+      const data = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 72.5]],
+      );
+      const { chart } = makeChart(data);
+      installContainer();
+      setupLegendOverlay({ enabled: true, config: customConfig });
+      setupReadyWidget(chart);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      const overlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(overlay.innerHTML).toContain('CustomRSI(21)');
+      expect(overlay.innerHTML).not.toContain('RSI(14)');
+    });
+
+    it('sub-pane overlay positions use absolute top from cumulative pane heights', async () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100, 100], {
+        'sid-rsi': 1,
+      });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
+      expect(rsiOverlay).not.toBeNull();
+      expect(rsiOverlay?.style.top).toBe('304px');
+    });
+
+    it('keeps main-pane indicators in main overlay when sub-pane indicators exist', async () => {
+      const mixedData = makeExportData(
+        [
+          { type: 'time' },
+          { type: 'number', sourceId: 'sid-ma5', plotTitle: 'Plot' },
+          { type: 'number', sourceId: 'sid-rsi', plotTitle: 'Plot' },
+        ],
+        [[1000, 42.0, 65.0]],
+      );
+      const { chart } = makeChart(mixedData, [300, 100], { 'sid-rsi': 1 });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('ma', 'MA5', 'sid-ma5' as StudyId);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+
+      const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(mainOverlay.innerHTML).toContain('MA(5)');
+      expect(mainOverlay.innerHTML).not.toContain('RSI(14)');
+
+      const rsiOverlay = document.getElementById(`${OVERLAY_ID}-pane-RSI`);
+      expect(rsiOverlay?.innerHTML).toContain('RSI(14)');
+    });
+
+    it('__resetLegendForTests clears sub-pane overlays', () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-rsi': 1 });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'RSI', 'sid-rsi' as StudyId);
+
+      refreshStudyLegendFromExport();
+
+      __resetLegendForTests();
+
+      expect(document.getElementById(`${OVERLAY_ID}-pane-RSI`)).toBeNull();
+    });
+
+    it('clears sub-pane overlays when all studies are removed', async () => {
+      const { chart } = makeChart(rsiMacdData, [300, 100], { 'sid-macd': 1 });
+      setupWithConfig(chart, subPaneColors);
+      registerStudy('active', 'MACD', 'sid-macd' as StudyId);
+
+      refreshStudyLegendFromExport();
+      await Promise.resolve();
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).not.toBeNull();
+
+      __resetStateForTests();
+      setupReadyWidget(chart);
+
+      refreshStudyLegendFromExport();
+
+      expect(document.getElementById(`${OVERLAY_ID}-pane-MACD`)).toBeNull();
+      const mainOverlay = document.getElementById(OVERLAY_ID) as HTMLElement;
+      expect(mainOverlay.innerHTML).toBe('');
+    });
+  });
+
+  describe('__resetLegendForTests', () => {
+    it('resets state so overlay can be re-enabled', () => {
+      installContainer();
+      setupLegendOverlay({ enabled: true });
+      expect(document.getElementById(OVERLAY_ID)).not.toBeNull();
+      __resetLegendForTests();
+      refreshStudyLegendFromExport();
+    });
+  });
+});

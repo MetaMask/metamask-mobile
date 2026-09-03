@@ -6,7 +6,6 @@ import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import Text from '../../../../../component-library/components/Texts/Text';
 import AnimatedQRCode from '../../../../UI/QRHardware/AnimatedQRCode';
 import AnimatedQRScannerModal from '../../../../UI/QRHardware/AnimatedQRScanner';
 import Alert, { AlertType } from '../../../../Base/Alert';
@@ -19,6 +18,7 @@ import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import styleSheet from './qr-info.styles';
 import { QrScanRequestType } from '@metamask/eth-qr-keyring';
+import { Text } from '@metamask/design-system-react-native';
 
 const QRInfo = () => {
   const {

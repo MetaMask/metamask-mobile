@@ -1,6 +1,7 @@
 import { NavigationProp } from '@react-navigation/native';
 import {
   PERPS_EVENT_VALUE,
+  type MarketTypeFilter,
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
@@ -18,7 +19,7 @@ interface NavigateToPerpsMarketListOptions {
 /** Navigate to the perps market list, optionally pre-filtering by market type and pre-sorting by a sort option. */
 export const navigateToPerpsMarketList = (
   navigation: NavigationProp<PerpsNavigationParamList>,
-  filter: string = 'all',
+  filter: MarketTypeFilter = 'all',
   sortOptionId?: SortOptionId,
   {
     source = PERPS_EVENT_VALUE.SOURCE.EXPLORE,

@@ -18,6 +18,17 @@ jest.mock('../../../../util/notifications/hooks/useNotifications', () => ({
   useEnableNotifications: jest.fn(),
 }));
 
+const mockShouldShowWalletHomeOnboardingSteps = jest.fn();
+
+jest.mock('react-redux', () => ({
+  useSelector: (selector: unknown) => (selector as () => boolean)(),
+}));
+
+jest.mock('../../../../selectors/onboarding', () => ({
+  selectShouldShowWalletHomeOnboardingSteps: () =>
+    mockShouldShowWalletHomeOnboardingSteps(),
+}));
+
 const mockUsePushPrePromptVariant = jest.mocked(usePushPrePromptVariant);
 const mockUseEnableNotifications = jest.mocked(useEnableNotifications);
 
@@ -36,6 +47,7 @@ const mockVariant = (variant: PushPrePromptVariant) => {
 describe('PushNotificationPermissionFallback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
     mockUseEnableNotifications.mockReturnValue({
       enableNotifications: mockEnableNotifications,
       isEnablingNotifications: false,
@@ -83,5 +95,27 @@ describe('PushNotificationPermissionFallback', () => {
     mockVariant(null);
     render(<PushNotificationPermissionFallback />);
     expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('holds off the OS request while the wallet home onboarding checklist is active', () => {
+    mockVariant('push_permission');
+    mockShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
+
+    render(<PushNotificationPermissionFallback />);
+
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('requests once the checklist is no longer active', () => {
+    mockVariant('push_permission');
+    mockShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
+
+    const { rerender } = render(<PushNotificationPermissionFallback />);
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
+
+    mockShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
+    rerender(<PushNotificationPermissionFallback />);
+
+    expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
   });
 });

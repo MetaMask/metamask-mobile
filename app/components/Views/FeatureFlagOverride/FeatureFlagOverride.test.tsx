@@ -24,6 +24,7 @@ import { ToastContext } from '../../../component-library/components/Toast';
 
 // Mock navigation
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 
@@ -65,12 +66,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  __esModule: true,
-  useAnalytics: jest.fn(() => ({
-    addTraitsToUser: jest.fn(),
-  })),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock Engine
 const mockSetFlagOverride = jest.fn();
@@ -105,6 +101,7 @@ interface MockReduxState {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: Record<string, unknown>;
+        rawRemoteFeatureFlags: Record<string, unknown>;
         localOverrides: Record<string, unknown>;
       };
     };
@@ -119,7 +116,8 @@ const createMockStore = (
     engine: {
       backgroundState: {
         RemoteFeatureFlagController: {
-          remoteFeatureFlags: rawFlags,
+          remoteFeatureFlags: { ...rawFlags, ...overrides },
+          rawRemoteFeatureFlags: rawFlags,
           localOverrides: overrides,
         },
       },

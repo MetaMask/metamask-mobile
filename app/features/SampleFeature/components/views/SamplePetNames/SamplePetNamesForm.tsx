@@ -2,9 +2,7 @@ import React from 'react';
 import { View, Alert } from 'react-native';
 import Label from '../../../../../component-library/components/Form/Label';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './SamplePetNamesForm.styles';
 import { strings } from '../../../../../../locales/i18n';
@@ -149,13 +147,14 @@ export function SamplePetNamesForm({
       </View>
 
       <Button
-        variant={ButtonVariants.Primary}
+        variant={ButtonVariant.Primary}
         style={styles.button}
         onPress={submit}
-        disabled={!isValid}
+        isDisabled={!isValid}
         testID="add-pet-name-button"
-        label={strings('sample_feature.pet_name.add_pet_name_button')}
-      />
+      >
+        {strings('sample_feature.pet_name.add_pet_name_button')}
+      </Button>
     </View>
   );
 }

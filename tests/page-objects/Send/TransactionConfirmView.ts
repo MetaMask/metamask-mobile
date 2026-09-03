@@ -10,11 +10,10 @@ import {
   EditGasViewSelectorsText,
   EditGasViewSelectorsIDs,
 } from '../../../app/components/Views/confirmations/legacy/components/EditGasView.testIds';
-// import {
-//   TransactionConfirmViewSelectorsIDs,
-//   TransactionConfirmViewSelectorsText,
-// } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
+// import { //   TransactionConfirmViewSelectorsIDs, //   TransactionConfirmViewSelectorsText, // } from '../../../app/components/Views/confirmations/legacy/components/Confirm/TransactionConfirmView.testIds';
 import RowComponents from '../Browser/Confirmations/RowComponents';
+import { type AppiumElement } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 // Temporary placeholders to prevent TypeScript errors
 const TransactionConfirmViewSelectorsIDs = {
@@ -29,8 +28,8 @@ const TransactionConfirmViewSelectorsText = {
 };
 
 class TransactionConfirmationView {
-  get confirmButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
+  get confirmButton(): Promise<AppiumElement> {
+    return PlatformDetector.isIOS()
       ? Matchers.getElementByID(
           TransactionConfirmViewSelectorsIDs.CONFIRM_TRANSACTION_BUTTON_ID,
         )
@@ -39,68 +38,68 @@ class TransactionConfirmationView {
         );
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       TransactionConfirmViewSelectorsText.CANCEL_BUTTON,
     );
   }
 
-  get maxGasFee(): DetoxElement {
+  get maxGasFee(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.MAX_PRIORITY_FEE_INPUT_TEST_ID,
     );
   }
 
-  get editPriorityFeeSheetContainer(): DetoxElement {
+  get editPriorityFeeSheetContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.EDIT_PRIORITY_SCREEN_TEST_ID,
     );
   }
 
-  get transactionAmount(): DetoxElement {
+  get transactionAmount(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.CONFIRM_TXN_AMOUNT,
     );
   }
 
-  get estimatedGasLink(): DetoxElement {
+  get estimatedGasLink(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EditGasViewSelectorsIDs.ESTIMATED_FEE_TEST_ID,
     );
   }
 
-  get transactionViewContainer(): DetoxElement {
+  get transactionViewContainer(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       TransactionConfirmViewSelectorsIDs.TRANSACTION_VIEW_CONTAINER_ID,
     );
   }
-  get LowPriorityText(): DetoxElement {
+  get LowPriorityText(): Promise<AppiumElement> {
     return Matchers.getElementByText(EditGasViewSelectorsText.LOW);
   }
-  get MarketPriorityText(): DetoxElement {
+  get MarketPriorityText(): Promise<AppiumElement> {
     return Matchers.getElementByText(EditGasViewSelectorsText.MARKET);
   }
-  get AggressivePriorityText(): DetoxElement {
+  get AggressivePriorityText(): Promise<AppiumElement> {
     return Matchers.getElementByText(EditGasViewSelectorsText.AGGRESSIVE);
   }
-  get EditPrioritySaveButtonText(): DetoxElement {
+  get EditPrioritySaveButtonText(): Promise<AppiumElement> {
     return Matchers.getElementByText(EditGasViewSelectorsText.SAVE_BUTTON);
   }
-  get EditPriorityAdvancedOptionsText(): DetoxElement {
+  get EditPriorityAdvancedOptionsText(): Promise<AppiumElement> {
     return Matchers.getElementByText(EditGasViewSelectorsText.ADVANCE_OPTIONS);
   }
 
-  get editPriorityLegacyModal(): DetoxElement {
+  get editPriorityLegacyModal(): Promise<AppiumElement> {
     return Matchers.getElementByID(EditGasViewSelectorsIDs.LEGACY_CONTAINER);
   }
 
-  get securityAlertBanner(): DetoxElement {
+  get securityAlertBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER,
     );
   }
 
-  get securityAlertResponseFailedBanner(): DetoxElement {
+  get securityAlertResponseFailedBanner(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_RESPONSE_FAILED_BANNER,
     );

@@ -1,19 +1,20 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectPerpsTradingCampaignVolume,
-  selectPerpsTradingCampaignVolumeLoading,
-  selectPerpsTradingCampaignVolumeError,
+  selectPerpsTradingCampaignVolumeByCampaignId,
+  selectPerpsTradingCampaignVolumeLoadingByCampaignId,
+  selectPerpsTradingCampaignVolumeErrorByCampaignId,
 } from '../../../../reducers/rewards/selectors';
 import {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
 } from '../../../../reducers/rewards';
+import type { PerpsTradingCampaignVolumeDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseGetPerpsTradingCampaignVolumeResult {
-  volume: ReturnType<typeof selectPerpsTradingCampaignVolume>;
+  volume: PerpsTradingCampaignVolumeDto | null;
   isLoading: boolean;
   hasError: boolean;
   refetch: () => Promise<void>;
@@ -23,29 +24,47 @@ export const useGetPerpsTradingCampaignVolume = (
   campaignId: string | undefined,
 ): UseGetPerpsTradingCampaignVolumeResult => {
   const dispatch = useDispatch();
-  const volume = useSelector(selectPerpsTradingCampaignVolume);
-  const isLoading = useSelector(selectPerpsTradingCampaignVolumeLoading);
-  const hasError = useSelector(selectPerpsTradingCampaignVolumeError);
+
+  const selectVolume = useMemo(
+    () => selectPerpsTradingCampaignVolumeByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectLoading = useMemo(
+    () => selectPerpsTradingCampaignVolumeLoadingByCampaignId(campaignId),
+    [campaignId],
+  );
+  const selectError = useMemo(
+    () => selectPerpsTradingCampaignVolumeErrorByCampaignId(campaignId),
+    [campaignId],
+  );
+
+  const volume = useSelector(selectVolume);
+  const isLoading = useSelector(selectLoading);
+  const hasError = useSelector(selectError);
 
   const fetchVolume = useCallback(async (): Promise<void> => {
     if (!campaignId) {
-      dispatch(setPerpsTradingCampaignVolumeLoading(false));
-      dispatch(setPerpsTradingCampaignVolumeError(false));
       return;
     }
 
     try {
-      dispatch(setPerpsTradingCampaignVolumeLoading(true));
-      dispatch(setPerpsTradingCampaignVolumeError(false));
+      dispatch(
+        setPerpsTradingCampaignVolumeLoading({ campaignId, loading: true }),
+      );
+      dispatch(
+        setPerpsTradingCampaignVolumeError({ campaignId, error: false }),
+      );
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getPerpsTradingCampaignVolume',
         campaignId,
       );
-      dispatch(setPerpsTradingCampaignVolume(result));
+      dispatch(setPerpsTradingCampaignVolume({ campaignId, volume: result }));
     } catch {
-      dispatch(setPerpsTradingCampaignVolumeError(true));
+      dispatch(setPerpsTradingCampaignVolumeError({ campaignId, error: true }));
     } finally {
-      dispatch(setPerpsTradingCampaignVolumeLoading(false));
+      dispatch(
+        setPerpsTradingCampaignVolumeLoading({ campaignId, loading: false }),
+      );
     }
   }, [dispatch, campaignId]);
 

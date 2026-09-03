@@ -165,7 +165,6 @@ export interface UserState {
   backUpSeedphraseVisible: boolean;
   passwordSet: boolean;
   importTime?: number;
-  musdConversionEducationSeen?: boolean;
   [key: string]: unknown;
 }
 
@@ -175,7 +174,6 @@ export interface FiatOrdersState {
   selectedRegionAgg?: unknown;
   selectedPaymentMethodAgg?: string;
   detectedGeolocation?: string;
-  rampRoutingDecision?: string;
   networks?: unknown[];
   [key: string]: unknown;
 }

@@ -780,10 +780,10 @@ Examples:
   node scripts/coverage-analysis.js
 
   # Analyze a specific file
-  node scripts/coverage-analysis.js app/components/UI/Perps/components/FoxIcon/FoxIcon.tsx
+  node scripts/coverage-analysis.js app/components/UI/Perps/components/PerpsTokenLogo/PerpsTokenLogo.tsx
 
   # Analyze multiple specific files
-  node scripts/coverage-analysis.js --files FoxIcon.tsx PerpsController.ts
+  node scripts/coverage-analysis.js --files PerpsTokenLogo.tsx PerpsController.ts
 
   # Using relative paths
   node scripts/coverage-analysis.js app/components/UI/Perps/hooks/usePerpsOrderFees.ts

@@ -1,5 +1,6 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
+import { COMPONENT_NAMES } from '../../Money/constants/moneyEventLocations';
 
 // --- Ambient Price Color A/B Test ---
 
@@ -36,38 +37,41 @@ export const AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappi
     ],
   };
 
-// --- Sticky Footer Swap Label A/B Test ---
+// --- Earn Money Deposit Footer CTA Visibility A/B Test ---
 
-export const STICKY_FOOTER_SWAP_LABEL_AB_KEY = 'stickyButtonsAbTest';
+export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY =
+  'earnMUSD1278AbtestTokenDetailsFooterMoneyDepositButton';
 
-export enum StickyFooterSwapLabelVariant {
+export enum EarnMoneyDepositFooterCtaVisibilityVariant {
   Control = 'control',
   Treatment = 'treatment',
 }
 
-export const STICKY_FOOTER_SWAP_LABEL_VARIANTS: Record<
-  StickyFooterSwapLabelVariant,
-  { swapLabelKey: 'asset_overview.swap' | 'asset_overview.convert' }
+export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS: Record<
+  EarnMoneyDepositFooterCtaVisibilityVariant,
+  { showMoneyDepositFooterCta: boolean }
 > = {
-  [StickyFooterSwapLabelVariant.Control]: {
-    swapLabelKey: 'asset_overview.swap',
+  [EarnMoneyDepositFooterCtaVisibilityVariant.Control]: {
+    showMoneyDepositFooterCta: false,
   },
-  [StickyFooterSwapLabelVariant.Treatment]: {
-    swapLabelKey: 'asset_overview.convert',
+  [EarnMoneyDepositFooterCtaVisibilityVariant.Treatment]: {
+    showMoneyDepositFooterCta: true,
   },
 };
 
-export const STICKY_FOOTER_SWAP_LABEL_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+export const EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
-    flagKey: STICKY_FOOTER_SWAP_LABEL_AB_KEY,
-    validVariants: Object.values(StickyFooterSwapLabelVariant),
+    flagKey: EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
+    validVariants: Object.values(EarnMoneyDepositFooterCtaVisibilityVariant),
     eventNames: [
       EVENT_NAME.TOKEN_DETAILS_OPENED,
       EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED,
-      // Funnel 1 entry point – fires through useAnalytics().trackEvent (shared wrapper, auto-enriched)
-      EVENT_NAME.SWAP_PAGE_VIEWED,
-      // Funnel 2 – fire through analytics.trackEvent (shared wrapper, auto-enriched)
-      EVENT_NAME.ONRAMP_PURCHASE_SUBMITTED,
-      EVENT_NAME.ONRAMP_PURCHASE_COMPLETED,
+      EVENT_NAME.MONEY_BUTTON_CLICKED,
     ],
+    eventPropertyRequirements: {
+      // Prevent attaching active_ab_test property to unrelated Money Button Clicked events.
+      [EVENT_NAME.MONEY_BUTTON_CLICKED]: {
+        component_name: COMPONENT_NAMES.MONEY_ASSET_OVERVIEW_FOOTER_CTA,
+      },
+    },
   };

@@ -19,6 +19,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     keyValuePrimaryTextWrapper: {
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
     },
     keyValuePrimaryTextWrapperCentered: {
       flexDirection: 'row',
@@ -32,6 +34,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     stakingEarningsContent: {
       paddingBottom: 24,
+    },
+    earningsHistory: {
+      marginTop: 16,
     },
   });
 };

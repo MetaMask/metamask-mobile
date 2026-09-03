@@ -8,6 +8,9 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import PredictMarket from './';
+import PredictMarketSingle from '../PredictMarketSingle';
+import PredictMarketMultiple from '../PredictMarketMultiple';
+import PredictMarketSportCard from '../PredictMarketSportCard';
 import PredictCryptoUpDownMarketCard from '../PredictCryptoUpDownMarketCard';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -259,6 +262,14 @@ function setupPredictMarketTest(
 }
 
 describe('PredictMarket', () => {
+  it('does not re-render the market card when props are unchanged', () => {
+    const { rerender } = setupPredictMarketTest(mockSingleMarket);
+
+    rerender(<PredictMarket market={mockSingleMarket} />);
+
+    expect(PredictMarketSingle).toHaveBeenCalledTimes(1);
+  });
+
   it('renders PredictMarketSingle for markets with one outcome', () => {
     const { getByTestId } = setupPredictMarketTest(mockSingleMarket);
 
@@ -342,5 +353,64 @@ describe('PredictMarket', () => {
 
     expect(getByTestId('predict-market-multiple')).toBeOnTheScreen();
     expect(queryByTestId('predict-market-sport-card')).toBeNull();
+  });
+
+  it('passes sponsored buy handler props to the selected child card', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+
+    setupPredictMarketTest(mockSingleMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSingle).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+  });
+
+  it('passes sponsored buy handler props to multi-outcome and sport cards', () => {
+    const onBuyButtonPress = jest.fn(() => true);
+
+    setupPredictMarketTest(mockMultipleMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+    expect(PredictMarketMultiple).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockNflMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictMarketSportCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
+
+    setupPredictMarketTest(mockCryptoUpDownMarket, {
+      cardPressDisabled: true,
+      onBuyButtonPress,
+    });
+
+    expect(PredictCryptoUpDownMarketCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cardPressDisabled: true,
+        onBuyButtonPress,
+      }),
+      undefined,
+    );
   });
 });

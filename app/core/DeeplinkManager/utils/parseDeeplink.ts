@@ -4,13 +4,25 @@ import Logger from '../../../util/Logger';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { DeeplinkManager } from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
-import handleDappUrl from '../handlers/legacy/handleDappUrl';
-import handleUniversalLink from '../handlers/legacy/handleUniversalLink';
-import connectWithWC from '../handlers/legacy/connectWithWC';
+import {
+  handleDappUrl,
+  createDappDeeplinkIntent,
+  getDappUrl,
+} from '../handlers/intent/handleDappUrl';
+import handleUniversalLink from '../handlers/handleUniversalLink';
+import connectWithWC from '../handlers/connectWithWC';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../AppConstants';
-import handleEthereumUrl from '../handlers/legacy/handleEthereumUrl';
+import handleEthereumUrl from '../handlers/handleEthereumUrl';
+import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+import {
+  cancelDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  type DeeplinkTraceToken,
+} from '../../Performance/DeeplinkPerformance';
+
+export type DeeplinkParseMode = 'execute' | 'resolve';
 
 async function parseDeeplink({
   deeplinkManager: instance,
@@ -18,13 +30,17 @@ async function parseDeeplink({
   origin,
   browserCallBack,
   onHandled,
+  mode = 'execute',
+  processedTraceToken = null,
 }: {
   deeplinkManager: DeeplinkManager;
   url: string;
   origin: string;
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
-}) {
+  mode?: DeeplinkParseMode;
+  processedTraceToken?: DeeplinkTraceToken | null;
+}): Promise<boolean | DeeplinkIntent | null> {
   try {
     const validatedUrl = new URL(url);
     DevLogger.log('DeepLinkManager:parse validatedUrl', validatedUrl);
@@ -54,20 +70,60 @@ async function parseDeeplink({
           `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/`,
         );
         const { urlObj: mappedUrlObj } = extractURLParams(mappedUrl);
-        handleUniversalLink({
+        const result = handleUniversalLink({
           instance,
           handled,
           urlObj: mappedUrlObj,
           browserCallBack,
           url: mappedUrl,
           source: origin,
+          mode,
         });
+
+        if (mode === 'resolve') {
+          return (await result) ?? null;
+        }
+
+        Promise.resolve(result)
+          .then((flowResult) => {
+            if (flowResult === false) {
+              cancelDeeplinkProcessedTrace({
+                reason: 'rejected',
+                traceToken: processedTraceToken,
+              });
+            } else {
+              endDeeplinkProcessedTrace({
+                seam: 'handler_finished',
+                traceToken: processedTraceToken,
+              });
+            }
+          })
+          .catch((error) => {
+            Logger.error(
+              error as Error,
+              'DeepLinkManager: error in detached universal link flow',
+            );
+            cancelDeeplinkProcessedTrace({
+              reason: 'error',
+              traceToken: processedTraceToken,
+            });
+          });
         break;
       }
       case PROTOCOLS.WC:
+        if (mode === 'resolve') {
+          return null;
+        }
         connectWithWC({ handled, wcURL, origin, params });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       case PROTOCOLS.ETHEREUM:
+        if (mode === 'resolve') {
+          return null;
+        }
         handled();
         handleEthereumUrl({
           url,
@@ -75,13 +131,29 @@ async function parseDeeplink({
         }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
         });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       // Specific to the browser screen
       // For ex. navigate to a specific dapp
       case PROTOCOLS.DAPP:
+        if (mode === 'resolve') {
+          handled();
+          return createDappDeeplinkIntent({ url: getDappUrl(urlObj) });
+        }
         handleDappUrl({ handled, urlObj, browserCallBack });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       default:
+        cancelDeeplinkProcessedTrace({
+          reason: 'rejected',
+          traceToken: processedTraceToken,
+        });
         return false;
     }
 
@@ -97,13 +169,18 @@ async function parseDeeplink({
           strings('qr_scanner.unrecognized_address_qr_code_title'),
           strings('qr_scanner.unrecognized_address_qr_code_desc'),
         );
-
-        // Return true to indicate we handled this
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         return true;
       }
       Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
-
+    cancelDeeplinkProcessedTrace({
+      reason: 'error',
+      traceToken: processedTraceToken,
+    });
     return false;
   }
 }

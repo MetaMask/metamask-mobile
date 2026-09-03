@@ -12,7 +12,10 @@ import { addHexPrefix, safeBNToHex } from '../number';
 import { safeToChecksumAddress } from '../address';
 import { strings } from '../../../locales/i18n';
 import { ToastVariants } from '../../component-library/components/Toast';
-import type { ToastOptions } from '../../component-library/components/Toast/Toast.types';
+import {
+  ButtonIconVariant,
+  type ToastOptions,
+} from '../../component-library/components/Toast/Toast.types';
 import {
   IconColor,
   IconName,
@@ -87,8 +90,15 @@ export function resolveTransactionUpdateErrorMessage(
   return raw;
 }
 
+const TRANSACTION_UPDATE_ERROR_TOAST_BASE = {
+  variant: ToastVariants.Icon,
+  iconName: IconName.CircleX,
+  iconColor: IconColor.Error,
+  backgroundColor: BoxBackgroundColor.Transparent,
+} as const;
+
 /**
- * Shared toast configuration for speed-up / cancel failures (legacy Transactions list and unified view).
+ * Toast configuration for speed-up / cancel failures (legacy Transactions list and unified view).
  *
  * @param error - Thrown value from speed-up or cancel flow
  * @returns Options for the app toast `showToast` API (same shape for `ToastContext` and `ToastService`).
@@ -96,16 +106,44 @@ export function resolveTransactionUpdateErrorMessage(
 export function getTransactionUpdateErrorToastOptions(
   error: unknown,
 ): ToastOptions {
-  const message = resolveTransactionUpdateErrorMessage(error);
+  const description = resolveTransactionUpdateErrorMessage(error);
   const title =
     strings('transaction_update_toast.title') || 'Transaction update failed';
   return {
-    variant: ToastVariants.Icon,
-    iconName: IconName.CircleX,
-    iconColor: IconColor.Error,
-    backgroundColor: BoxBackgroundColor.Transparent,
+    ...TRANSACTION_UPDATE_ERROR_TOAST_BASE,
     labelOptions: [{ label: title, isBold: true }],
-    descriptionOptions: message ? { description: message } : undefined,
+    descriptionOptions: description ? { description } : undefined,
     hasNoTimeout: false,
+  };
+}
+
+/**
+ * Toast configuration for amount-update failures on the Money Account confirmation screen.
+ * Persists until explicitly dismissed by the user.
+ *
+ * @param error - Thrown value from the amount-update flow
+ * @param onClose - Callback invoked when the user presses the dismiss button.
+ * @returns Options for the app toast `showToast` API.
+ */
+export function getAmountUpdateErrorToastOptions(
+  error: unknown,
+  onClose: () => void,
+): ToastOptions {
+  const description = resolveTransactionUpdateErrorMessage(error);
+  return {
+    ...TRANSACTION_UPDATE_ERROR_TOAST_BASE,
+    labelOptions: [
+      {
+        label: strings('transaction_update_toast.amount_update_title'),
+        isBold: true,
+      },
+    ],
+    descriptionOptions: description ? { description } : undefined,
+    hasNoTimeout: true,
+    closeButtonOptions: {
+      variant: ButtonIconVariant.Icon,
+      iconName: IconName.Close,
+      onPress: onClose,
+    },
   };
 }

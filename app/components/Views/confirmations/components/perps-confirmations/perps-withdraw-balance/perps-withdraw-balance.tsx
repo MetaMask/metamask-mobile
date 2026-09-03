@@ -1,15 +1,17 @@
 import React, { useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems } from '../../../../../UI/Box/box.types';
 import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
 import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
 import styleSheet from './perps-withdraw-balance.styles';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
 
 export function PerpsWithdrawBalance() {
   const { styles } = useStyles(styleSheet, {});
@@ -26,8 +28,9 @@ export function PerpsWithdrawBalance() {
   return (
     <Box alignItems={AlignItems.center} style={styles.container}>
       <Text
-        variant={TextVariant.BodyMDMedium}
-        color={TextColor.Alternative}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
       >{`${strings('confirm.available_balance')}${balanceFormatted}`}</Text>
     </Box>
   );

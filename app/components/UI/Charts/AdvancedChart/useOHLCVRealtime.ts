@@ -89,6 +89,20 @@ function extractChainId(assetId: string): string {
   return slashIdx > 0 ? assetId.slice(0, slashIdx) : assetId;
 }
 
+/** Field-by-field equality check to avoid re-rendering on identical bars. */
+function areBarsEqual(a: WSOHLCVBar | null, b: WSOHLCVBar | null): boolean {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return (
+    a.timestamp === b.timestamp &&
+    a.open === b.open &&
+    a.high === b.high &&
+    a.low === b.low &&
+    a.close === b.close &&
+    a.volume === b.volume
+  );
+}
+
 /**
  * Subscribes to real-time OHLCV candle updates via OHLCVService (WebSocket).
  * Uses a 500ms debounce before subscribing to avoid thrashing during rapid
@@ -108,6 +122,10 @@ export function useOHLCVRealtime({
   enabled,
 }: UseOHLCVRealtimeOptions): UseOHLCVRealtimeResult {
   const [latestBar, setLatestBar] = useState<WSOHLCVBar | null>(null);
+  // Skips the state update (and re-render) when the bar hasn't changed.
+  const updateLatestBar = useCallback((bar: WSOHLCVBar) => {
+    setLatestBar((prev) => (areBarsEqual(prev, bar) ? prev : bar));
+  }, []);
   const subscribedRef = useRef(false);
   const cancelledRef = useRef(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -152,7 +170,7 @@ export function useOHLCVRealtime({
         );
         if (bar) {
           lastMessageTimeRef.current = Date.now();
-          setLatestBar(bar);
+          updateLatestBar(bar);
         }
       } catch {
         // no-op
@@ -166,7 +184,7 @@ export function useOHLCVRealtime({
       if (payload.channel === channelRef.current) {
         lastMessageTimeRef.current = Date.now();
         chainDownRef.current = false;
-        setLatestBar(payload.bar);
+        updateLatestBar(payload.bar);
       }
     };
 
@@ -285,7 +303,15 @@ export function useOHLCVRealtime({
         });
       subscribedRef.current = false;
     };
-  }, [assetId, interval, currency, timePeriod, enabled, buildChannel]);
+  }, [
+    assetId,
+    interval,
+    currency,
+    timePeriod,
+    enabled,
+    buildChannel,
+    updateLatestBar,
+  ]);
 
   return { latestBar };
 }

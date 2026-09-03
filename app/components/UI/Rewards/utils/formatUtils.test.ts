@@ -27,6 +27,7 @@ import {
   formatCompactValue,
   formatCompactUsd,
   formatOrdinalRank,
+  resolveBenefitEndDate,
 } from './formatUtils';
 import { IconName } from '@metamask/design-system-react-native';
 import { getTimeDifferenceFromNow } from '../../../../util/date';
@@ -396,6 +397,41 @@ describe('formatUtils', () => {
 
       // Then: should return days and hours format without trailing space
       expect(result).toBe('2d 3h');
+    });
+  });
+
+  describe('resolveBenefitEndDate', () => {
+    const validTo = '2026-12-31T23:59:59Z';
+    const actionDate = '2026-09-01T00:00:00Z';
+
+    it('prefers validTo when both dates are valid', () => {
+      const result = resolveBenefitEndDate(validTo, actionDate);
+
+      expect(result).toBe(validTo);
+    });
+
+    it('falls back to actionDate when validTo is null', () => {
+      const result = resolveBenefitEndDate(null, actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('falls back to actionDate when validTo is empty', () => {
+      const result = resolveBenefitEndDate('  ', actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('falls back to actionDate when validTo is malformed', () => {
+      const result = resolveBenefitEndDate('not-a-date', actionDate);
+
+      expect(result).toBe(actionDate);
+    });
+
+    it('returns null when neither date is valid', () => {
+      const result = resolveBenefitEndDate('not-a-date', null);
+
+      expect(result).toBeNull();
     });
   });
 
@@ -1625,6 +1661,11 @@ describe('formatUtils', () => {
   });
 
   describe('formatCompactUsd', () => {
+    it('formats billions with a dollar sign and B suffix', () => {
+      expect(formatCompactUsd(1_500_000_000)).toBe('$1.5B');
+      expect(formatCompactUsd(1_000_000_000)).toBe('$1B');
+    });
+
     it('formats millions with decimal', () => {
       expect(formatCompactUsd(1_500_000)).toBe('$1.5M');
     });
@@ -1647,6 +1688,12 @@ describe('formatUtils', () => {
 
     it('formats small values without suffix', () => {
       expect(formatCompactUsd(500)).toBe('$500');
+    });
+
+    it('limits fraction digits for small values', () => {
+      expect(formatCompactUsd(233.208062, { maximumFractionDigits: 2 })).toBe(
+        '$233.21',
+      );
     });
 
     it('formats zero', () => {
@@ -1675,9 +1722,9 @@ describe('formatUtils', () => {
   });
 
   describe('formatCompactValue', () => {
-    it('formats thousands with a lowercase k suffix by default', () => {
-      expect(formatCompactValue(750_000)).toBe('750k');
-      expect(formatCompactValue(2_500)).toBe('2.5k');
+    it('formats thousands with an uppercase K suffix by default', () => {
+      expect(formatCompactValue(750_000)).toBe('750K');
+      expect(formatCompactValue(2_500)).toBe('2.5K');
     });
 
     it('formats millions with an uppercase M suffix by default', () => {
@@ -1685,21 +1732,34 @@ describe('formatUtils', () => {
       expect(formatCompactValue(6_000_000)).toBe('6M');
     });
 
+    it('formats billions with an uppercase B suffix by default', () => {
+      expect(formatCompactValue(1_500_000_000)).toBe('1.5B');
+      expect(formatCompactValue(1_000_000_000)).toBe('1B');
+      expect(formatCompactValue(2_350_000_000)).toBe('2.35B');
+    });
+
     it('formats small values without suffix', () => {
       expect(formatCompactValue(500)).toBe('500');
       expect(formatCompactValue(0)).toBe('0');
     });
 
+    it('limits fraction digits for small values', () => {
+      expect(formatCompactValue(233.208062)).toBe('233.21');
+      expect(formatCompactValue(233.208062, { maximumFractionDigits: 0 })).toBe(
+        '233',
+      );
+    });
+
     it('respects custom maximum fraction digits and suffixes', () => {
       expect(formatCompactValue(123_456, { maximumFractionDigits: 0 })).toBe(
-        '123k',
+        '123K',
       );
       expect(
         formatCompactValue(123_456, {
           maximumFractionDigits: 0,
-          thousandSuffix: 'K',
+          thousandSuffix: 'k',
         }),
-      ).toBe('123K');
+      ).toBe('123k');
     });
   });
 });

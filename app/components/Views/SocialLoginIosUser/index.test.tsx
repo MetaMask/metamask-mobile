@@ -50,7 +50,6 @@ const mockRoute = {
   params: {
     accountName: 'test@example.com',
     oauthLoginSuccess: true,
-    onboardingTraceCtx: { traceId: 'test-trace' },
     provider: 'google',
   },
 };
@@ -119,7 +118,6 @@ describe('SocialLoginIosUser', () => {
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: { traceId: 'test-trace' },
           accountName: 'test@example.com',
           provider: 'google',
         },
@@ -205,7 +203,6 @@ describe('SocialLoginIosUser', () => {
         {
           [PREVIOUS_SCREEN]: ONBOARDING,
           oauthLoginSuccess: true,
-          onboardingTraceCtx: { traceId: 'test-trace' },
           provider: 'google',
         },
       );

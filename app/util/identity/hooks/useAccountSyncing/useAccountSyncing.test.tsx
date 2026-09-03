@@ -10,7 +10,6 @@ const mockSyncWithUserStorage = jest.fn<Promise<unknown>, []>();
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
-    getSnapKeyring: jest.fn().mockResolvedValue(true),
     context: {
       AccountTreeController: {
         syncWithUserStorage: jest.fn(() => mockSyncWithUserStorage()),

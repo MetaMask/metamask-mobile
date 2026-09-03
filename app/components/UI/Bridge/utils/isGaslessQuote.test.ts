@@ -1,4 +1,3 @@
-import { Quote } from '@metamask/bridge-controller';
 import { isGaslessQuote } from './isGaslessQuote';
 
 describe('isGaslessQuote', () => {
@@ -19,7 +18,7 @@ describe('isGaslessQuote', () => {
       const quote = {
         gasIncluded: false,
         gasIncluded7702: false,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);
@@ -30,7 +29,7 @@ describe('isGaslessQuote', () => {
 
     it('returns false when quote object is empty', () => {
       // Arrange
-      const quote = {} as Quote;
+      const quote = {};
 
       // Act
       const result = isGaslessQuote(quote);
@@ -46,7 +45,7 @@ describe('isGaslessQuote', () => {
       const quote = {
         gasIncluded: true,
         gasIncluded7702: false,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);
@@ -59,7 +58,7 @@ describe('isGaslessQuote', () => {
       // Arrange
       const quote = {
         gasIncluded: true,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);
@@ -75,7 +74,7 @@ describe('isGaslessQuote', () => {
       const quote = {
         gasIncluded: false,
         gasIncluded7702: true,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);
@@ -88,7 +87,7 @@ describe('isGaslessQuote', () => {
       // Arrange
       const quote = {
         gasIncluded7702: true,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);
@@ -104,7 +103,7 @@ describe('isGaslessQuote', () => {
       const quote = {
         gasIncluded: true,
         gasIncluded7702: true,
-      } as Quote;
+      };
 
       // Act
       const result = isGaslessQuote(quote);

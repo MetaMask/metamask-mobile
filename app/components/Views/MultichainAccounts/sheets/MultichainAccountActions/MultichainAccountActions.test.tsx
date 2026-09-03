@@ -161,6 +161,7 @@ describe('MultichainAccountActions', () => {
       {
         groupId: mockAccountGroup.id,
         title: `Addresses / ${mockAccountGroup.metadata.name}`,
+        source: 'account_actions',
         onLoad: expect.any(Function),
       },
     );
@@ -189,6 +190,21 @@ describe('MultichainAccountActions', () => {
     onLoadCallback();
 
     // Verify endTrace was called with correct parameters
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.ShowAccountAddressList,
+    });
+  });
+
+  it('calls endTrace if navigating to address list throws', () => {
+    const navigationError = new Error('navigation failed');
+    mockNavigate.mockImplementationOnce(() => {
+      throw navigationError;
+    });
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
+
+    expect(() => fireEvent.press(addressesButton)).toThrow(navigationError);
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: TraceName.ShowAccountAddressList,
     });

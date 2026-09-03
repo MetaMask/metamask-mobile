@@ -3,6 +3,7 @@ import {
   NestedTransactionMetadata,
   SimulationTokenBalanceChange,
   SimulationErrorCode,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
@@ -12,6 +13,7 @@ import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { APPROVAL_TYPES } from '../../constants/approvals';
 import { AlertKeys } from '../../constants/alerts';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { memoizedGetTokenStandardAndDetails } from '../../utils/token';
@@ -218,11 +220,17 @@ export const useBatchedUnusedApprovalsAlert = () => {
     return findUnusedApprovals(approvals, tokenOutflows);
   }, [approvals, tokenOutflows]);
 
+  const isMMPayTransaction = hasTransactionType(
+    transactionMetadata,
+    MM_PAY_TRANSACTION_TYPES,
+  );
+
   const shouldShowAlert =
     unusedApprovals.length > 0 &&
     Boolean(simulationData) &&
     isSimulationSupported &&
-    !skipAlertOriginAllowed;
+    !skipAlertOriginAllowed &&
+    !isMMPayTransaction;
 
   return useMemo(() => {
     if (!shouldShowAlert) {

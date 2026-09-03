@@ -1,0 +1,2040 @@
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type {
+  ChaseOrder,
+  Order,
+  PerpsMarketData,
+  Position,
+  TwapOrder,
+} from '@metamask/perps-controller';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import React from 'react';
+import { strings } from '../../../../../../../locales/i18n';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import {
+  usePerpsLiveOrders,
+  usePerpsLivePositions,
+} from '../../../hooks/stream';
+import {
+  usePerpsProPositionsPanelActions,
+  type UsePerpsProPositionsPanelActionsReturn,
+} from '../../../hooks/usePerpsProPositionsPanelActions';
+import { usePerpsMarkets } from '../../../hooks/usePerpsMarkets';
+import { usePerpsChaseOrders } from '../../../hooks/usePerpsChaseOrders';
+import { usePerpsTwapOrders } from '../../../hooks/usePerpsTwapOrders';
+import { usePerpsTerminateTwap } from '../../../hooks/usePerpsTerminateTwap';
+import {
+  getPerpsProChaseSideFilterOptionSelector,
+  getPerpsProOrderRowSelector,
+  getPerpsProPositionRowSelector,
+  getPerpsProTwapRowSelector,
+  getPerpsProTwapTerminateSelector,
+  getPerpsProTwapSideFilterOptionSelector,
+  PerpsProMarketViewSelectorsIDs,
+} from '../../../Perps.testIds';
+import { playSelection } from '../../../../../../util/haptics';
+import PerpsProPositionsPanel from './PerpsProPositionsPanel';
+
+jest.mock('../../../../../../util/haptics');
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: () => '99.0.0',
+}));
+
+jest.mock('../../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
+
+jest.mock('../../../hooks/stream', () => ({
+  usePerpsLiveOrders: jest.fn(),
+  usePerpsLivePositions: jest.fn(),
+}));
+
+jest.mock('../../../hooks/usePerpsProPositionsPanelActions', () => ({
+  usePerpsProPositionsPanelActions: jest.fn(),
+}));
+
+jest.mock('../../../hooks/usePerpsProPositionsPreferences', () => {
+  // Use the existing React import via requireActual without shadowing the
+  // top-level React binding used by the test file JSX.
+  const { useState } = jest.requireActual('react') as typeof import('react');
+  const { DEFAULT_PRO_LAYOUT_PREFERENCES } = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    usePerpsProPositionsPreferences: () => {
+      const [sideFilter, setSideFilter] = useState(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSideFilter,
+      );
+      const [sortConfig, setSortConfig] = useState({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.positionsSortDirection,
+      });
+      return { sideFilter, sortConfig, setSideFilter, setSortConfig };
+    },
+  };
+});
+
+jest.mock('../../../hooks/usePerpsProOrdersPreferences', () => {
+  const { useState } = jest.requireActual('react') as typeof import('react');
+  const { DEFAULT_PRO_LAYOUT_PREFERENCES } = jest.requireActual(
+    '@metamask/perps-controller',
+  ) as typeof import('@metamask/perps-controller');
+
+  return {
+    usePerpsProOrdersPreferences: () => {
+      const [sideFilter, setSideFilter] = useState(
+        DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSideFilter,
+      );
+      const [sortConfig, setSortConfig] = useState({
+        field: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortField,
+        direction: DEFAULT_PRO_LAYOUT_PREFERENCES.ordersSortDirection,
+      });
+      return { sideFilter, sortConfig, setSideFilter, setSortConfig };
+    },
+  };
+});
+
+jest.mock('../../../hooks/usePerpsMarkets', () => ({
+  usePerpsMarkets: jest.fn(),
+}));
+
+jest.mock('../../../hooks/usePerpsChaseOrders', () => ({
+  isExpectedChaseOrderRequestError: () => false,
+  usePerpsChaseOrders: jest.fn(),
+}));
+
+jest.mock('../../../hooks/usePerpsTwapOrders', () => ({
+  usePerpsTwapOrders: jest.fn(),
+}));
+
+jest.mock('../../../hooks/usePerpsTerminateTwap', () => ({
+  usePerpsTerminateTwap: jest.fn(),
+}));
+
+const mockTrack = jest.fn();
+jest.mock('../../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
+const mockUsePerpsLiveOrders = jest.mocked(usePerpsLiveOrders);
+const mockUsePerpsLivePositions = jest.mocked(usePerpsLivePositions);
+const mockUsePerpsProPositionsPanelActions = jest.mocked(
+  usePerpsProPositionsPanelActions,
+);
+const mockUsePerpsMarkets = jest.mocked(usePerpsMarkets);
+const mockUsePerpsChaseOrders = jest.mocked(usePerpsChaseOrders);
+const mockUsePerpsTwapOrders = jest.mocked(usePerpsTwapOrders);
+const mockUsePerpsTerminateTwap = jest.mocked(usePerpsTerminateTwap);
+const mockReconcileCanceledChaseOrder = jest.fn().mockResolvedValue([]);
+const mockRefreshTwapOrders = jest.fn().mockResolvedValue(undefined);
+const mockTerminateTwap = jest.fn();
+
+const makePosition = (overrides: Partial<Position> = {}): Position => ({
+  symbol: 'BTC',
+  size: '1',
+  entryPrice: '50000',
+  positionValue: '51000',
+  unrealizedPnl: '1000',
+  marginUsed: '10000',
+  leverage: { type: 'cross', value: 5 },
+  liquidationPrice: '40000',
+  maxLeverage: 50,
+  returnOnEquity: '0.10',
+  cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+  takeProfitCount: 0,
+  stopLossCount: 0,
+  ...overrides,
+});
+
+const makeOrder = (overrides: Partial<Order> = {}): Order => ({
+  orderId: 'order-1',
+  symbol: 'BTC',
+  side: 'buy',
+  size: '1',
+  originalSize: '1',
+  filledSize: '0',
+  remainingSize: '1',
+  price: '50000',
+  orderType: 'limit',
+  status: 'open',
+  timestamp: 1_711_756_800_000, // 2024-03-30T00:00:00.000Z — fixed for determinism
+  reduceOnly: false,
+  isTrigger: false,
+  detailedOrderType: 'Limit',
+  ...overrides,
+});
+
+const chaseOrder: ChaseOrder = {
+  handle: 'chase-3061e839-7bac-4b3b-b3c6-7f60b1135229',
+  symbol: 'SOL',
+  side: 'buy',
+  originalSize: '1.01',
+  remainingSize: '1.01',
+  arrivalPrice: '99.25',
+  restingPrice: '99.267',
+  restingOrderId: '59106897534',
+  distanceChasedBps: 2,
+  repricings: 2,
+  startedAt: 1_788_302_458_039,
+  status: 'active',
+};
+
+const makeTwapOrder = (overrides: Partial<TwapOrder> = {}): TwapOrder => ({
+  orderId: 'twap-1',
+  symbol: 'SOL',
+  side: 'buy',
+  size: '10',
+  executedSize: '4',
+  remainingSize: '6',
+  executedNotional: '400',
+  averagePrice: '100',
+  fillProgressBps: 4000,
+  timeProgressBps: 5000,
+  elapsedTimeMilliseconds: 60_000,
+  durationMinutes: 30,
+  randomize: false,
+  reduceOnly: false,
+  status: 'active',
+  startedAt: 1_000,
+  lastUpdated: 2_000,
+  fills: [],
+  providerId: 'hyperliquid',
+  ...overrides,
+});
+
+const buildTwapEnabledState = (chaseEnabled = false) => ({
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsMobileTwap: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+          perpsMobileChase: {
+            enabled: chaseEnabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+});
+
+const renderPanel = (
+  symbol = 'SOL',
+  onSelectMarket?: (
+    market: Partial<PerpsMarketData>,
+    sourceSection: 'positions' | 'orders',
+  ) => void,
+) =>
+  renderWithProvider(
+    <PerpsProPositionsPanel symbol={symbol} onSelectMarket={onSelectMarket} />,
+    {
+      state: { engine: { backgroundState } },
+    },
+  );
+
+const expectTabLabel = (label: string) => {
+  expect(screen.getAllByText(label).length).toBeGreaterThan(0);
+};
+
+const openSideFilterSheet = () => {
+  fireEvent.press(
+    screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+    ),
+  );
+};
+
+const applySideFilter = (
+  side: 'all' | 'long' | 'short',
+  sheetTestID = PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET,
+) => {
+  fireEvent.press(
+    screen.getByTestId(
+      sheetTestID === PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET
+        ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
+        : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+    ),
+  );
+  fireEvent.press(screen.getByTestId(`${sheetTestID}-option-${side}`));
+};
+
+const applySortByFundingRate = () => {
+  fireEvent.press(
+    screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+  );
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-option-fundingRate`,
+    ),
+  );
+  fireEvent.press(
+    screen.getByTestId(
+      `${PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET}-apply`,
+    ),
+  );
+};
+
+describe('PerpsProPositionsPanel', () => {
+  const handleClosePosition = jest.fn();
+  const handleReversePosition = jest.fn();
+  const handleSharePosition = jest.fn();
+  const handleCancelOrder = jest.fn();
+  const handleCloseAllPress = jest.fn();
+  const handleCancelAllPress = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    mockUsePerpsTerminateTwap.mockReturnValue({
+      isTerminationInFlight: false,
+      terminateTwap: mockTerminateTwap,
+    });
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets: () => null,
+    });
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+  });
+
+  it('disables only the Chase polling consumer while the Pro panel is blurred', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    };
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused />,
+      { state },
+    );
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+      enableDiscovery: false,
+    });
+
+    view.rerender(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused={false} />,
+    );
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: false,
+      enableDiscovery: false,
+    });
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps retained Chase polling focused when rollout is disabled', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+
+    renderPanel('SOL');
+
+    expect(mockUsePerpsChaseOrders).toHaveBeenLastCalledWith({
+      isEnabled: true,
+      enableDiscovery: false,
+    });
+  });
+
+  it('keeps TWAP selected when Chase is hidden', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the TWAP key selected when a retained Chase tab disappears', () => {
+    // Arrange
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Act
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps a retained TWAP selected through account-switch loading', () => {
+    // Arrange: placement rollout is off, but discovery found an active TWAP.
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Act: changing accounts temporarily clears the old identity's rows.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: the selected tab remains mounted while the new identity loads.
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+
+    // Act: the next account's active schedule arrives.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ orderId: 'next-account-twap' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+  });
+
+  it('stops TWAP polling when the market screen is blurred', () => {
+    // Arrange
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused />,
+      { state: buildTwapEnabledState(false) },
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enableLiveUpdates: true }),
+    );
+
+    // Act
+    view.rerender(
+      <PerpsProPositionsPanel symbol="SOL" isScreenFocused={false} />,
+    );
+
+    // Assert
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enableLiveUpdates: false }),
+    );
+  });
+
+  it('keeps rollback discovery active until the TWAP tab starts live updates', () => {
+    // Arrange
+    const view = renderPanel('SOL');
+
+    // Assert: rollout is off and no schedule has surfaced yet, but discovery
+    // remains active while the hidden tab is unselected.
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enableDiscovery: true,
+        enableLiveUpdates: false,
+      }),
+    );
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
+
+    // Act: an error exposes the retained-access tab without a remount.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: false,
+      error: 'venue down',
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Assert
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enableDiscovery: false,
+        enableLiveUpdates: true,
+      }),
+    );
+  });
+
+  it('maps side-filter selectors to Positions, Orders, Chase, and TWAP tabs', () => {
+    // Arrange
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(true),
+    });
+
+    // Assert: Orders intentionally shares the Positions filter contract.
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+
+    // Act / Assert: Chase retains its existing dedicated selectors.
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+
+    // Act / Assert: TWAP exposes a complete dedicated selector family.
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON,
+      ),
+    );
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET_CLOSE,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getPerpsProTwapSideFilterOptionSelector('long')),
+    ).toBeOnTheScreen();
+  });
+
+  it('confirms termination with the latest streamed TWAP order', async () => {
+    // Arrange
+    const initialOrder = makeTwapOrder();
+    const updatedOrder = makeTwapOrder({
+      executedSize: '5',
+      remainingSize: '5',
+      fills: [
+        {
+          fillId: 'fill-1',
+          orderId: 'twap-1',
+          side: 'buy',
+          price: '100',
+          size: '1',
+          fee: '0.1',
+          feeToken: 'USDC',
+          timestamp: 3_000,
+          transactionHash: '0xabc',
+        },
+      ],
+    });
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [initialOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+
+    // Act
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [updatedOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CONFIRM),
+    );
+
+    // Assert
+    expect(mockTerminateTwap).toHaveBeenCalledWith(updatedOrder);
+  });
+
+  it('closes TWAP termination when the selected schedule completes', async () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+
+    // Act
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ status: 'completed' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+  });
+
+  it('closes TWAP termination after stream completion during a read error', async () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+
+    // Act: a failed REST read preserves rows, while the authoritative stream
+    // moves this schedule out of the active partition.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ status: 'completed' })],
+      isLoading: false,
+      error: 'venue down',
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: clearing the selection also resumes live REST reconciliation.
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(mockUsePerpsTwapOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ pauseLiveRestReconciliation: false }),
+    );
+  });
+
+  it('retains every accepted termination until that schedule completes', () => {
+    // Arrange
+    const firstOrder = makeTwapOrder();
+    const secondOrder = makeTwapOrder({ orderId: 'twap-2' });
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [firstOrder, secondOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    const hookOptions = mockUsePerpsTerminateTwap.mock.calls[0][0];
+    if (!hookOptions?.onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+    const { onSuccess } = hookOptions;
+
+    // Act: both accepted cancellations remain in the active snapshot.
+    act(() => {
+      onSuccess(firstOrder);
+      onSuccess(secondOrder);
+    });
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    ).toBeDisabled();
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-2'),
+      ),
+    ).toBeDisabled();
+
+    // Act: only the first schedule receives terminal confirmation.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ status: 'completed' }), secondOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: the second stale active row remains protected.
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-2'),
+      ),
+    ).toBeDisabled();
+  });
+
+  it('retains an accepted termination lock through reconnect loading', () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    const onSuccess = mockUsePerpsTerminateTwap.mock.calls[0][0]?.onSuccess;
+    if (!onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+    act(() => onSuccess(activeOrder));
+
+    // Act: same-identity reconnect briefly publishes an empty loading state,
+    // then the last active row returns before terminal confirmation.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    ).toBeDisabled();
+  });
+
+  it('closes the terminate sheet after an accepted cancellation', async () => {
+    // Arrange
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsProTwapTerminateSelector('hyperliquid', 'twap-1'),
+      ),
+    );
+    await screen.findByTestId(
+      PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+    );
+    const onSuccess = mockUsePerpsTerminateTwap.mock.calls[0][0]?.onSuccess;
+    if (!onSuccess) {
+      throw new Error('Expected TWAP termination success handler');
+    }
+
+    // Act
+    act(() => onSuccess(activeOrder));
+
+    // Assert: selection is cleared by the BottomSheet close callback.
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET,
+        ),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(mockRefreshTwapOrders).toHaveBeenCalled();
+  });
+
+  it('routes a TWAP row to the matching provider when market symbols collide', () => {
+    // Arrange
+    const onSelectMarket = jest.fn();
+    const hyperliquidMarket = {
+      symbol: 'SOL',
+      providerId: 'hyperliquid' as const,
+      maxLeverage: '20x',
+    };
+    const myxMarket = {
+      symbol: 'SOL',
+      providerId: 'myx' as const,
+      maxLeverage: '50x',
+    };
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [hyperliquidMarket, myxMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ providerId: 'myx' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    renderWithProvider(
+      <PerpsProPositionsPanel symbol="SOL" onSelectMarket={onSelectMarket} />,
+      { state: buildTwapEnabledState(false) },
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(getPerpsProTwapRowSelector('myx', 'twap-1')),
+    );
+
+    // Assert
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      myxMarket,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+  });
+
+  it('derives side-filter empty copy from the selected TWAP history view', () => {
+    // Arrange: Active contains a short; History contains only a long.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [
+        makeTwapOrder({ orderId: 'active-short', side: 'sell' }),
+        makeTwapOrder({ orderId: 'history-long', status: 'completed' }),
+      ],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    renderWithProvider(<PerpsProPositionsPanel symbol="SOL" />, {
+      state: buildTwapEnabledState(false),
+    });
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+    applySideFilter(
+      'short',
+      PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET,
+    );
+
+    // Act
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_HISTORY),
+    );
+
+    // Assert
+    expect(screen.getByText('No short TWAP history.')).toBeOnTheScreen();
+    expect(screen.queryByText('No short TWAPs.')).not.toBeOnTheScreen();
+  });
+
+  it('counts Chase rows after ticker and side filters', () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [
+        chaseOrder,
+        { ...chaseOrder, handle: 'chase-btc', symbol: 'BTC' },
+        { ...chaseOrder, handle: 'chase-sol-short', side: 'sell' },
+      ],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    renderPanel('SOL');
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 3 }),
+      ),
+    ).not.toHaveLength(0);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_CHASE,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 2 }),
+      ),
+    ).not.toHaveLength(0);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(getPerpsProChaseSideFilterOptionSelector('long')),
+    );
+
+    expect(
+      screen.getAllByText(
+        strings('perps.order.chase.tab_with_count', { count: 1 }),
+      ),
+    ).not.toHaveLength(0);
+  });
+
+  it('reports loading while the market context reconnects', () => {
+    const onResolvedStateChange = jest.fn();
+    renderWithProvider(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady={false}
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'loading', {
+      positions: 0,
+      orders: 0,
+    });
+  });
+
+  it('reports resolved data when a ready context follows fresh deliveries', () => {
+    const onResolvedStateChange = jest.fn();
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+      deliveryRevision: 4,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [],
+      isInitialLoading: false,
+      deliveryRevision: 7,
+    });
+    const view = renderWithProvider(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady
+        marketContextKey="context-1"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    view.rerender(
+      <PerpsProPositionsPanel
+        symbol="SOL"
+        isMarketContextReady
+        marketContextKey="context-2"
+        onResolvedStateChange={onResolvedStateChange}
+      />,
+    );
+
+    expect(onResolvedStateChange).toHaveBeenLastCalledWith('SOL', 'empty', {
+      positions: 4,
+      orders: 7,
+    });
+  });
+
+  it('shows the global empty state when there are no positions', () => {
+    renderPanel();
+
+    expect(
+      screen.getByText('Your open positions will appear here.'),
+    ).toBeOnTheScreen();
+    expectTabLabel('Positions');
+  });
+
+  it('shows open position count and list when positions exist', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition(), makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel();
+
+    expectTabLabel('Positions (2)');
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('ETH')).toBeOnTheScreen();
+  });
+
+  it('uses filtered count and filtered empty copy for ticker-only with no match', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'BTC' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expectTabLabel('Positions (1)');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Positions');
+    expect(screen.queryAllByText('Positions (1)')).toHaveLength(0);
+    expect(screen.getByText('No open SOL positions.')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Your open positions will appear here.'),
+    ).toBeNull();
+  });
+
+  it('filters the positions list to the current ticker when enabled', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC' }),
+        makePosition({ symbol: 'SOL', unrealizedPnl: '50' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Positions (1)');
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('derives summary P&L from the same visiblePositions used by the cards', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', unrealizedPnl: '1000' }),
+        makePosition({ symbol: 'SOL', unrealizedPnl: '50' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    // Aggregate of all live-enriched positions (not an account-stream total).
+    expect(screen.getByText('+$1,050.00 (+10.0%)')).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    // Aggregate of the filtered subset only (card may show the same amount).
+    expect(screen.getAllByText('+$50.00 (+10.0%)').length).toBeGreaterThan(0);
+    expect(screen.queryByText('+$1,050.00 (+10.0%)')).toBeNull();
+  });
+
+  it('filters orders to the current ticker when ticker-only is enabled', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'BTC' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expectTabLabel('Orders (1)');
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDERS_LIST),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('shows the ticker-only checkbox on the orders tab and filters from there', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expectTabLabel('Orders (2)');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Orders (1)');
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).toBeNull();
+  });
+
+  it('plays selection when the ticker-only checkbox changes', () => {
+    renderPanel('SOL');
+    const tickerOnlyCheckbox = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY,
+    );
+
+    fireEvent.press(tickerOnlyCheckbox);
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(playSelection).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps haptics silent when the ticker-only value does not change', () => {
+    renderPanel('SOL');
+    const tickerOnlyCheckbox = screen.getByTestId(
+      PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY,
+    );
+
+    fireEvent(tickerOnlyCheckbox, 'onChange', false);
+
+    expect(playSelection).not.toHaveBeenCalled();
+  });
+
+  it('uses filtered count and filtered empty copy for ticker-only orders with no match', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'btc-1', symbol: 'BTC' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expectTabLabel('Orders (1)');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Orders');
+    expect(screen.queryAllByText('Orders (1)')).toHaveLength(0);
+    expect(screen.getByText('No open SOL orders.')).toBeOnTheScreen();
+    expect(screen.queryByText('Your open orders will appear here.')).toBeNull();
+  });
+
+  it('matches the ticker-only filter on the full market symbol for HIP-3 orders', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'dex-1', symbol: 'dex1:SOL' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('dex1:SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Orders (1)');
+    expect(
+      screen.getByTestId(getPerpsProOrderRowSelector('dex1:SOL', 0)),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getPerpsProOrderRowSelector('SOL', 0)),
+    ).toBeNull();
+  });
+
+  it('filters orders by side from the orders tab filter bar', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    applySideFilter('long');
+
+    expectTabLabel('Orders (1)');
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+  });
+
+  it('shows side-filter empty copy when no orders match', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    applySideFilter('long');
+
+    expect(screen.getByText('No long orders.')).toBeOnTheScreen();
+  });
+
+  it('keeps positions and orders side filters independent', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'long', symbol: 'BTC', side: 'buy' }),
+        makeOrder({ orderId: 'short', symbol: 'SOL', side: 'sell' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expectTabLabel('Orders (2)');
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+
+    applySideFilter('short');
+
+    expectTabLabel('Orders (1)');
+    expect(screen.getByText('SOL')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).toBeNull();
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_POSITIONS,
+      ),
+    );
+
+    expect(screen.getByText('Long')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+  });
+
+  it('sorts orders by order value from the Orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({
+          orderId: 'small',
+          symbol: 'BTC',
+          originalSize: '1',
+          price: '100',
+        }),
+        makeOrder({
+          orderId: 'large',
+          symbol: 'SOL',
+          originalSize: '5',
+          price: '100',
+        }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}-option-orderValue`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsProMarketViewSelectorsIDs.ORDERS_SORT_SHEET}-apply`,
+      ),
+    );
+
+    const orderRows = screen
+      .getAllByTestId(/perps-pro-market-order-row-/)
+      .map((node) => node.props.testID);
+
+    expect(orderRows).toEqual([
+      getPerpsProOrderRowSelector('SOL', 0),
+      getPerpsProOrderRowSelector('BTC', 1),
+    ]);
+  });
+
+  it('wires close-all and position action handlers when data is present', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_CLOSE_ALL),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_CLOSE),
+    );
+
+    expect(handleCloseAllPress).toHaveBeenCalled();
+    expect(handleClosePosition).toHaveBeenCalled();
+  });
+
+  it('wires order cancel handler on the orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    expect(handleCancelOrder).toHaveBeenCalled();
+  });
+
+  it('reconciles only the Chase session owning an accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: '59106897534', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+    );
+
+    await waitFor(() =>
+      expect(mockReconcileCanceledChaseOrder).toHaveBeenCalledWith(chaseOrder),
+    );
+  });
+
+  it('does not reconcile Chase for another accepted child cancellation', async () => {
+    mockUsePerpsChaseOrders.mockReturnValue({
+      chaseOrders: [chaseOrder],
+      reconcileCanceledChaseOrder: mockReconcileCanceledChaseOrder,
+    } as unknown as ReturnType<typeof usePerpsChaseOrders>);
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'unrelated-order', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    handleCancelOrder.mockImplementationOnce(
+      async (order, onOrderCanceled) => await onOrderCanceled?.(order),
+    );
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDER_CANCEL),
+      );
+      await Promise.resolve();
+    });
+
+    expect(mockReconcileCanceledChaseOrder).not.toHaveBeenCalled();
+  });
+
+  it('disables all order cancel buttons while any cancel is in flight', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: 'btc-1',
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets: () => null,
+    });
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    const cancelButtons = screen.getAllByTestId(
+      PerpsProMarketViewSelectorsIDs.ORDER_CANCEL,
+    );
+
+    expect(cancelButtons).toHaveLength(2);
+    cancelButtons.forEach((button) => {
+      expect(button.props.accessibilityState?.disabled).toBe(true);
+    });
+  });
+
+  it('switches to the full market data of a tapped position row', () => {
+    const onSelectMarket = jest.fn();
+    const ethMarket = { symbol: 'ETH', maxLeverage: '25x' };
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [ethMarket],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      ethMarket,
+      PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+    );
+  });
+
+  it('falls back to a symbol-only market when the row asset is not in the market list', () => {
+    const onSelectMarket = jest.fn();
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(screen.getByTestId(getPerpsProPositionRowSelector('ETH')));
+
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS,
+    );
+  });
+
+  it('switches to the market of a tapped order row', () => {
+    const onSelectMarket = jest.fn();
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'eth-1', symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL', onSelectMarket);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(screen.getByTestId(getPerpsProOrderRowSelector('ETH', 0)));
+
+    expect(onSelectMarket).toHaveBeenCalledWith(
+      { symbol: 'ETH' },
+      PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS,
+    );
+  });
+
+  it('leaves rows non-interactive when no market switch handler is provided', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'ETH' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(screen.queryByLabelText('Switch to the ETH market')).toBeNull();
+  });
+
+  it('matches the ticker-only filter on the full market symbol for HIP-3 markets', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'dex1:SOL' }),
+        makePosition({ symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('dex1:SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expectTabLabel('Positions (1)');
+    expect(
+      screen.getByTestId('perps-pro-market-position-row-dex1:SOL'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('perps-pro-market-position-row-SOL'),
+    ).toBeNull();
+  });
+
+  it('subscribes to market data for funding-rate sort', () => {
+    renderPanel();
+
+    expect(mockUsePerpsMarkets).toHaveBeenCalled();
+    expect(mockUsePerpsMarkets.mock.calls[0]?.[0]?.skipInitialFetch).not.toBe(
+      true,
+    );
+  });
+
+  it('sorts positions by market funding rate when configured', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC' }),
+        makePosition({ symbol: 'ETH' }),
+        makePosition({ symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: [
+        { symbol: 'BTC', fundingRate: 0.015 },
+        { symbol: 'ETH', fundingRate: -0.005 },
+        { symbol: 'SOL', fundingRate: 0.0025 },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    } as unknown as ReturnType<typeof usePerpsMarkets>);
+
+    renderPanel('SOL');
+
+    applySortByFundingRate();
+
+    const positionRows = screen
+      .getAllByTestId(/perps-pro-market-position-row-/)
+      .map((node) => node.props.testID);
+
+    expect(positionRows).toEqual([
+      'perps-pro-market-position-row-BTC',
+      'perps-pro-market-position-row-SOL',
+      'perps-pro-market-position-row-ETH',
+    ]);
+  });
+
+  it('opens the sort sheet from the positions settings button', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_BUTTON),
+    );
+
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_SORT_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('sorts positions by position value high to low by default', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', positionValue: '1000' }),
+        makePosition({ symbol: 'SOL', positionValue: '5000' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    const positionTexts = screen
+      .getAllByTestId(/perps-pro-market-position-row-/)
+      .map((node) => node.props.testID);
+
+    expect(positionTexts[0]).toContain('SOL');
+    expect(positionTexts[1]).toContain('BTC');
+  });
+
+  it('opens the side filter sheet from the all sides button', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    expect(screen.getByText('All sides')).toBeOnTheScreen();
+
+    openSideFilterSheet();
+
+    expect(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_SHEET,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters positions to long only when side filter is applied', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC', size: '1' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    applySideFilter('long');
+
+    expect(screen.getByText('Long')).toBeOnTheScreen();
+    expect(screen.getByText('BTC')).toBeOnTheScreen();
+    expect(screen.queryByText('SOL')).toBeNull();
+  });
+
+  it('shows side-filter empty copy when ticker-only and side filter hide all matches', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [
+        makePosition({ symbol: 'BTC' }),
+        makePosition({ symbol: 'SOL', size: '-1' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLivePositions>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+    applySideFilter('long');
+
+    expect(screen.getByText('No long positions.')).toBeOnTheScreen();
+    expect(screen.queryByText('No open SOL positions.')).toBeNull();
+  });
+
+  it('wires the bulk cancel handler on the orders tab', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [makeOrder({ orderId: 'sol-1', symbol: 'SOL' })],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.ORDERS_CANCEL_ALL),
+    );
+
+    expect(handleCancelAllPress).toHaveBeenCalled();
+  });
+
+  it('labels the bulk cancel for the whole book when no order filter is applied', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+
+    expect(
+      screen.getByText(strings('perps.pro_positions_panel.cancel_all')),
+    ).toBeOnTheScreen();
+  });
+
+  it('narrows the summary count when ticker-only is enabled', () => {
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    expect(
+      screen.getByText(
+        strings('perps.pro_positions_panel.open_orders', { count: 1 }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.pro_positions_panel.open_orders', { count: 2 }),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('passes the ticker-filtered orders to the action sheets', () => {
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    const lastCall =
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
+    expect(lastCall[2]).toEqual([
+      expect.objectContaining({ orderId: 'sol-1', symbol: 'SOL' }),
+    ]);
+  });
+
+  it('flags the orders as filtered for the action sheets', () => {
+    const renderActionSheets: UsePerpsProPositionsPanelActionsReturn['renderActionSheets'] =
+      jest.fn(() => null);
+    const renderActionSheetsMock = renderActionSheets as jest.MockedFunction<
+      typeof renderActionSheets
+    >;
+    mockUsePerpsProPositionsPanelActions.mockReturnValue({
+      handleClosePosition,
+      handleReversePosition,
+      handleSharePosition,
+      handleEditPositionTpSl: jest.fn(),
+      handleEditPositionMargin: jest.fn(),
+      handleCancelOrder,
+      handleEditOrderPrice: jest.fn(),
+      handleEditOrderSize: jest.fn(),
+      handleCloseAllPress,
+      handleCancelAllPress,
+      cancelingOrderId: null,
+      editingOrderId: null,
+      isOrderCancelable: () => true,
+      isOrderEditable: () => true,
+      isOrderSizeEditable: () => true,
+      isPositionMarginEditable: () => true,
+      renderActionSheets,
+    });
+    mockUsePerpsLiveOrders.mockReturnValue({
+      orders: [
+        makeOrder({ orderId: 'btc-1', symbol: 'BTC' }),
+        makeOrder({ orderId: 'sol-1', symbol: 'SOL' }),
+      ],
+      isInitialLoading: false,
+    } as ReturnType<typeof usePerpsLiveOrders>);
+
+    renderPanel('SOL');
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_ORDERS,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITIONS_TICKER_ONLY),
+    );
+
+    const lastCall =
+      renderActionSheetsMock.mock.calls[
+        renderActionSheetsMock.mock.calls.length - 1
+      ];
+    expect(lastCall[3]).toBe(true);
+  });
+});

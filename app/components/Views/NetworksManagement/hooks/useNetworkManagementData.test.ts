@@ -7,6 +7,7 @@ import {
 } from '@metamask/network-controller';
 import { useNetworkManagementData } from './useNetworkManagementData';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
+import { selectAdditionalNetworksBlacklistFeatureFlag } from '../../../../selectors/featureFlagController/networkBlacklist';
 import { SECTION_KEYS } from '../NetworksManagementView.constants';
 
 jest.mock('react-redux', () => ({
@@ -22,6 +23,7 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 jest.mock('../../../../util/networks/customNetworks', () => ({
+  ...jest.requireActual('../../../../util/networks/customNetworks'),
   PopularList: [
     {
       chainId: '0xa86a',
@@ -68,12 +70,17 @@ describe('useNetworkManagementData', () => {
 
   const setupMockSelectors = ({
     networkConfigurations = {},
+    blacklistedChainIds = [],
   }: {
     networkConfigurations?: Record<Hex, NetworkConfiguration>;
+    blacklistedChainIds?: string[];
   } = {}) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectEvmNetworkConfigurationsByChainId) {
         return networkConfigurations;
+      }
+      if (selector === selectAdditionalNetworksBlacklistFeatureFlag) {
+        return blacklistedChainIds;
       }
       return undefined;
     });
@@ -325,5 +332,72 @@ describe('useNetworkManagementData', () => {
 
     // All sections should be filtered out since no data matches
     expect(result.current.sections).toHaveLength(0);
+  });
+
+  it('excludes blacklisted networks from available networks', () => {
+    setupMockSelectors({
+      networkConfigurations: {},
+      blacklistedChainIds: ['0xa86a'], // Avalanche
+    });
+
+    const { result } = renderHook(() =>
+      useNetworkManagementData({ searchQuery: '' }),
+    );
+
+    const available = result.current.sections.find(
+      (s) => s.key === SECTION_KEYS.AVAILABLE_NETWORKS,
+    );
+
+    expect(available?.data).toHaveLength(1);
+    expect(available?.data[0].name).toBe('Arbitrum');
+    expect(available?.data[0].chainId).toBe('0xa4b1');
+  });
+
+  it('does not show available networks section when all remaining popular networks are blacklisted', () => {
+    setupMockSelectors({
+      networkConfigurations: {},
+      blacklistedChainIds: ['0xa86a', '0xa4b1'],
+    });
+
+    const { result } = renderHook(() =>
+      useNetworkManagementData({ searchQuery: '' }),
+    );
+
+    const available = result.current.sections.find(
+      (s) => s.key === SECTION_KEYS.AVAILABLE_NETWORKS,
+    );
+
+    expect(available).toBeUndefined();
+  });
+
+  it('still shows already-added blacklisted networks in enabled sections', () => {
+    const networkConfigurations: Record<Hex, NetworkConfiguration> = {
+      '0xa86a': createMockNetworkConfig({
+        chainId: '0xa86a',
+        name: 'Avalanche',
+      }),
+    };
+
+    setupMockSelectors({
+      networkConfigurations,
+      blacklistedChainIds: ['0xa86a'],
+    });
+
+    const { result } = renderHook(() =>
+      useNetworkManagementData({ searchQuery: '' }),
+    );
+
+    const addedMainnets = result.current.sections.find(
+      (s) => s.key === SECTION_KEYS.ADDED_MAINNETS,
+    );
+    const available = result.current.sections.find(
+      (s) => s.key === SECTION_KEYS.AVAILABLE_NETWORKS,
+    );
+
+    expect(addedMainnets?.data).toHaveLength(1);
+    expect(addedMainnets?.data[0].name).toBe('Avalanche');
+    // Arbitrum remains available; Avalanche is added so not in available
+    expect(available?.data).toHaveLength(1);
+    expect(available?.data[0].name).toBe('Arbitrum');
   });
 });

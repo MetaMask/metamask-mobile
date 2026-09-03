@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -24,7 +25,7 @@ import { PREDICT_NEW_BUTTON_TEST_IDS } from './PredictNewButton.testIds';
 interface PredictNewButtonProps {}
 
 const PredictNewButton: React.FC<PredictNewButtonProps> = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
 
   const handlePress = () => {

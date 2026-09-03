@@ -1,9 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import KeyValueRowComponent, {
-  KeyValueRowFieldIconSides,
-  TooltipSizes,
-} from './index';
+import KeyValueRowComponent, { KeyValueRowFieldIconSides } from './index';
 import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
 import Title from '../../../components/Base/Title';
 import { IconColor, IconName, IconSize } from '../../components/Icons/Icon';
@@ -38,57 +35,56 @@ export const KeyValueRow = {
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
           }}
-          value={{ label: { text: 'Sample Value Text' } }}
+          value={{ label: { text: 'Sample value text' } }}
         />
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
               variant: TextVariant.BodySM,
               color: TextColor.Alternative,
             },
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
               variant: TextVariant.BodySMBold,
               color: TextColor.Success,
             },
             tooltip: {
-              title: 'Sample Title',
+              title: 'Sample title',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
-              size: TooltipSizes.Sm,
             },
           }}
         />
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
           }}
         />
         <KeyValueRowComponent
           field={{
             label: {
-              text: 'Sample Key Text',
+              text: 'Sample key text',
             },
             icon: {
-              name: IconName.Wifi,
+              name: IconName.Info,
               color: IconColor.Primary,
               size: IconSize.Sm,
               side: KeyValueRowFieldIconSides.BOTH,
@@ -96,10 +92,10 @@ export const KeyValueRow = {
           }}
           value={{
             label: {
-              text: 'Sample Value Text',
+              text: 'Sample value text',
             },
             icon: {
-              name: IconName.Wifi,
+              name: IconName.Info,
               color: IconColor.Primary,
               size: IconSize.Sm,
               side: KeyValueRowFieldIconSides.BOTH,
@@ -109,10 +105,10 @@ export const KeyValueRow = {
         {/* Using Custom ReactNode */}
         <KeyValueRowComponent
           field={{
-            label: { text: 'Sample Key' },
-            icon: { name: IconName.UserCircleAdd, color: IconColor.Primary },
+            label: { text: 'Sample key' },
+            icon: { name: IconName.UserCheck, color: IconColor.Primary },
             tooltip: {
-              title: 'Sample Tooltip',
+              title: 'Sample tooltip',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
             },

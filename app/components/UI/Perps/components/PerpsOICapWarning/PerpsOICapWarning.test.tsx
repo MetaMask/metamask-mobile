@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import PerpsOICapWarning from './PerpsOICapWarning';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { strings } from '../../../../../../locales/i18n';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '@metamask/design-system-react-native';
 
 jest.mock('../../hooks/usePerpsOICap');
 
@@ -49,10 +49,10 @@ describe('PerpsOICapWarning', () => {
         <PerpsOICapWarning symbol="BTC" variant="inline" />,
       );
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(
         getByText(strings('perps.order.validation.oi_cap_reached')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('should use custom testID when provided', () => {
@@ -69,7 +69,7 @@ describe('PerpsOICapWarning', () => {
         />,
       );
 
-      expect(getByTestId('custom-test-id')).toBeTruthy();
+      expect(getByTestId('custom-test-id')).toBeOnTheScreen();
     });
   });
 
@@ -86,17 +86,19 @@ describe('PerpsOICapWarning', () => {
         <PerpsOICapWarning symbol="BTC" />,
       );
 
-      UNSAFE_getByProps({ variant: TextVariant.BodySM });
-      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMD })).toBeNull();
+      UNSAFE_getByProps({ variant: TextVariant.BodySm });
+      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMd })).toBeNull();
     });
 
     it('should render banner variant when specified', () => {
-      const { UNSAFE_getByProps, UNSAFE_queryByProps } = render(
+      const { getByTestId, getByText } = render(
         <PerpsOICapWarning symbol="BTC" variant="banner" />,
       );
 
-      UNSAFE_getByProps({ variant: TextVariant.BodyMD });
-      expect(UNSAFE_queryByProps({ variant: TextVariant.BodySM })).toBeNull();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
+      expect(
+        getByText(strings('perps.order.validation.oi_cap_reached')),
+      ).toBeOnTheScreen();
     });
 
     it('should render inline variant when specified', () => {
@@ -104,8 +106,8 @@ describe('PerpsOICapWarning', () => {
         <PerpsOICapWarning symbol="BTC" variant="inline" />,
       );
 
-      UNSAFE_getByProps({ variant: TextVariant.BodySM });
-      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMD })).toBeNull();
+      UNSAFE_getByProps({ variant: TextVariant.BodySm });
+      expect(UNSAFE_queryByProps({ variant: TextVariant.BodyMd })).toBeNull();
     });
   });
 
@@ -118,7 +120,7 @@ describe('PerpsOICapWarning', () => {
 
       const { getByTestId } = render(<PerpsOICapWarning symbol="BTC" />);
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(usePerpsOICap).toHaveBeenCalledWith('BTC');
     });
 
@@ -130,7 +132,7 @@ describe('PerpsOICapWarning', () => {
 
       const { getByTestId } = render(<PerpsOICapWarning symbol="xyz:TSLA" />);
 
-      expect(getByTestId('perps-oi-cap-warning')).toBeTruthy();
+      expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
       expect(usePerpsOICap).toHaveBeenCalledWith('xyz:TSLA');
     });
   });

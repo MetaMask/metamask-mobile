@@ -30,6 +30,9 @@ import { dropdown } from './dropdown';
 import { radioGroup } from './radioGroup';
 import { dateTimePicker } from './date-time-picker';
 import { collapsibleSection } from './collapsible-section';
+import { checkbox } from './checkbox';
+import { divider } from './divider';
+import { italic } from './italic';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -63,5 +66,8 @@ export const COMPONENT_MAPPING = {
   Dropdown: dropdown,
   RadioGroup: radioGroup,
   DateTimePicker: dateTimePicker,
+  Checkbox: checkbox,
   CollapsibleSection: collapsibleSection,
+  Divider: divider,
+  Italic: italic,
 };

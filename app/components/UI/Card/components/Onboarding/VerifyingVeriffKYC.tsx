@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useUserRegistrationStatus from '../../hooks/useUserRegistrationStatus';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardScreens } from '../../util/metrics';
+import { CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import OnboardingStep from './OnboardingStep';
 import AnimatedSpinner from '../../../AnimatedSpinner';
@@ -21,7 +23,7 @@ const POLLING_TIMEOUT_MS = 30000;
  * - PENDING: After 30 seconds of polling, navigate to KYC_PENDING
  */
 const VerifyingVeriffKYC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -31,9 +33,11 @@ const VerifyingVeriffKYC = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.VERIFYING_VERIFF_KYC,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.VERIFYING_VERIFF_KYC,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);

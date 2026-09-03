@@ -3,14 +3,13 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -64,13 +63,13 @@ const PerpsNotificationBottomSheet: React.FC<
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text variant={TextVariant.HeadingMD} style={styles.title}>
+          <Text variant={TextVariant.HeadingMd} style={styles.title}>
             {strings('perps.tooltips.notifications.title')}
           </Text>
         </View>
         <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
           style={styles.description}
         >
           {strings('perps.tooltips.notifications.description')}

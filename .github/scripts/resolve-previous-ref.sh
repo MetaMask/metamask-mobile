@@ -31,7 +31,9 @@ fetch_matching_refs() {
 
     local count
     count=$(jq length "$resp")
-    if [ "$count" -lt 100 ]; then
+    # Break when fewer than a full page (last page) OR more than per_page
+    # (API returned all results at once, ignoring per_page — e.g. git/matching-refs).
+    if [ "$count" -ne 100 ]; then
       break
     fi
     page=$((page + 1))

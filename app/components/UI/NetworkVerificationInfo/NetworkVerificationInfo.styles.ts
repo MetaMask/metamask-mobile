@@ -12,7 +12,6 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     root: {
-      backgroundColor: colors.background.default,
       paddingHorizontal: 16,
     },
     accountCardWrapper: {

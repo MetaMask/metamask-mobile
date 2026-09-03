@@ -1,11 +1,13 @@
-import { device } from 'detox';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 const SENDER_ADDRESS_MOCK = '0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3';
 const RECIPIENT_ADDRESS_MOCK = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
 const SENTINEL_URL = 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io';
-const LOCALHOST_SENTINEL_URL =
-  device.getPlatform() === 'android'
+
+/** Resolved at use-time so Appium can import this module without Detox `device`. */
+const getLocalhostSentinelUrl = (): string =>
+  PlatformDetector.isAndroid()
     ? 'https://tx-sentinel-127.0.0.1.api.cx.metamask.io'
     : 'https://tx-sentinel-localhost.api.cx.metamask.io';
 
@@ -34,7 +36,9 @@ export const SEND_ETH_SIMULATION_MOCK = {
     'params.0.transactions',
     'params.0.suggestFees',
   ],
-  urlEndpoint: LOCALHOST_SENTINEL_URL,
+  get urlEndpoint() {
+    return getLocalhostSentinelUrl();
+  },
   response: {
     jsonrpc: '2.0',
     result: {

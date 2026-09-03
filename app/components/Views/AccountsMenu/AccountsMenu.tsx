@@ -3,6 +3,7 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   HeaderStandard,
   Icon,
@@ -13,10 +14,10 @@ import {
   TextVariant,
   Text,
   Box,
+  ActionListItem,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
@@ -24,35 +25,34 @@ import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
+import { useQRScanner } from '../../hooks/useQRScanner';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
-import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
-import AppConstants from '../../../core/AppConstants';
-import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import {
   getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import { getBetaSupportUrl } from './AccountsMenu.utils';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
+  const { openQRScanner } = useQRScanner();
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -60,7 +60,6 @@ const AccountsMenu = () => {
     getMetamaskNotificationsUnreadCount,
   );
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -68,44 +67,32 @@ const AccountsMenu = () => {
         .addProperties({
           button_text: 'Buy',
           location: 'AccountsMenu',
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
-          ramp_routing: rampsButtonClickData.ramp_routing ?? null,
           is_authenticated: rampsButtonClickData.is_authenticated ?? null,
           preferred_provider: rampsButtonClickData.preferred_provider ?? null,
           order_count: rampsButtonClickData.order_count,
         })
         .build(),
     );
-    goToBuy();
+    goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACCOUNTS_MENU });
   }, [
     goToBuy,
     createEventBuilder,
     trackEvent,
     rampGeodetectedRegion,
     rampsButtonClickData,
-    isV2UnifiedEnabled,
   ]);
 
   const onPressNotifications = useCallback(() => {
+    navigation.navigate(Routes.NOTIFICATIONS.VIEW);
     if (isNotificationEnabled && isNotificationsFeatureEnabled()) {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
       trackEvent(
         createEventBuilder(EVENT_NAME.NOTIFICATIONS_MENU_OPENED)
           .addProperties({
             unread_count: unreadNotificationCount,
             read_count: readNotificationCount,
-          })
-          .build(),
-      );
-    } else {
-      navigation.navigate(Routes.NOTIFICATIONS.VIEW);
-      trackEvent(
-        createEventBuilder(EVENT_NAME.NOTIFICATIONS_ACTIVATED)
-          .addProperties({
-            action_type: 'started',
-            is_profile_syncing_enabled: isBackupAndSyncEnabled,
           })
           .build(),
       );
@@ -117,7 +104,6 @@ const AccountsMenu = () => {
     createEventBuilder,
     unreadNotificationCount,
     readNotificationCount,
-    isBackupAndSyncEnabled,
   ]);
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -176,17 +162,27 @@ const AccountsMenu = () => {
   }, [goToBrowserUrl, trackEvent, createEventBuilder]);
 
   const onPressSupport = useCallback(() => {
-    let supportUrl;
+    const betaSupportUrl = getBetaSupportUrl();
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    supportUrl = 'https://intercom.help/internal-beta-testing/en/';
-    ///: END:ONLY_INCLUDE_IF
+    if (betaSupportUrl) {
+      trackEvent(
+        createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+      goToBrowserUrl(betaSupportUrl, strings('app_settings.contact_support'));
+      return;
+    }
 
-    supportUrl = supportUrl || METAMASK_SUPPORT_URL;
-
-    goToBrowserUrl(supportUrl, strings('app_settings.contact_support'));
-    trackEvent(createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build());
-  }, [goToBrowserUrl, trackEvent, createEventBuilder]);
+    // Defer tracking to when support actually opens (consent confirm/reject),
+    // not the mere press that only shows the consent sheet.
+    openSupportWithConsent(
+      (url) => goToBrowserUrl(url, strings('app_settings.contact_support')),
+      METAMASK_SUPPORT_URL,
+      () =>
+        trackEvent(
+          createEventBuilder(EVENT_NAME.NAVIGATION_TAPS_GET_HELP).build(),
+        ),
+    );
+  }, [goToBrowserUrl, trackEvent, createEventBuilder, openSupportWithConsent]);
 
   const onPressLock = useCallback(async () => {
     await Authentication.lockApp({ reset: false, locked: false });
@@ -254,61 +250,6 @@ const AccountsMenu = () => {
     return title;
   }, []);
 
-  const onScanSuccess = useCallback(
-    (data: { private_key?: string; seed?: string }, content: string) => {
-      if (data.private_key) {
-        const privateKey = data.private_key;
-        Alert.alert(
-          strings('wallet.private_key_detected'),
-          strings('wallet.do_you_want_to_import_this_account'),
-          [
-            {
-              text: strings('wallet.cancel'),
-              onPress: () => false,
-              style: 'cancel',
-            },
-            {
-              text: strings('wallet.yes'),
-              onPress: async () => {
-                try {
-                  await Authentication.importAccountFromPrivateKey(privateKey);
-                  navigation.navigate('ImportPrivateKeyView', {
-                    screen: 'ImportPrivateKeySuccess',
-                  });
-                } catch {
-                  Alert.alert(
-                    strings('import_private_key.error_title'),
-                    strings('import_private_key.error_message'),
-                  );
-                }
-              },
-            },
-          ],
-          { cancelable: false },
-        );
-      } else if (data.seed) {
-        Alert.alert(
-          strings('wallet.error'),
-          strings('wallet.logout_to_import_seed'),
-        );
-      } else {
-        setTimeout(() => {
-          DeeplinkManager.parse(content, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          });
-        }, 500);
-      }
-    },
-    [navigation],
-  );
-
-  const openQRScanner = useCallback(() => {
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      onScanSuccess,
-    });
-    trackEvent(createEventBuilder(EVENT_NAME.QR_SCANNER_OPENED).build());
-  }, [navigation, onScanSuccess, trackEvent, createEventBuilder]);
-
   const isNotificationsEnabled = useMemo(
     () => isNotificationsFeatureEnabled() && isNotificationEnabled,
     [isNotificationEnabled],
@@ -371,16 +312,14 @@ const AccountsMenu = () => {
       >
         {/* Quick Actions Section */}
         <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
-          {rampUnifiedV1Enabled && (
-            <Box style={tw.style('mb-2 flex-1')}>
-              <MainActionButton
-                iconName={LocalIconName.AttachMoney}
-                label={strings('accounts_menu.buy')}
-                onPress={onPressDeposit}
-                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
-              />
-            </Box>
-          )}
+          <Box style={tw.style('mb-2 flex-1')}>
+            <MainActionButton
+              iconName={LocalIconName.AttachMoney}
+              label={strings('accounts_menu.buy')}
+              onPress={onPressDeposit}
+              testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+            />
+          </Box>
           <Box style={tw.style('mb-2 flex-1')}>
             <MainActionButton
               iconName={LocalIconName.QrCode}
@@ -488,9 +427,7 @@ const AccountsMenu = () => {
 
         {/* Support Row */}
         <ActionListItem
-          startAccessory={
-            <Icon name={IconName.MessageQuestion} size={IconSize.Lg} />
-          }
+          startAccessory={<Icon name={IconName.Sms} size={IconSize.Lg} />}
           label={strings('app_settings.contact_support')}
           onPress={onPressSupport}
           testID={AccountsMenuSelectorsIDs.SUPPORT}

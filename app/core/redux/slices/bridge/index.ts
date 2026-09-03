@@ -1,5 +1,5 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../reducers';
+import type { RootState } from '../../../../reducers';
 import {
   Hex,
   CaipChainId,
@@ -12,7 +12,7 @@ import {
   selectChainId,
   selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
-import { uniqBy } from 'lodash';
+import { cloneDeep, uniqBy } from 'lodash';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
@@ -28,6 +28,7 @@ import {
   formatAddressToAssetId,
   formatChainIdToHex,
   type QuoteStreamCompleteData,
+  assetIdsMatch,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -39,7 +40,6 @@ import {
   hardwareWalletsSwapsReducer,
   initialHardwareWalletsSwapsState,
 } from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
-import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
 import {
@@ -50,12 +50,29 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { hasMinimumRequiredVersion } from '../../../../util/remoteFeatureFlag';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
-import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
+import {
+  isSameBridgeToken,
+  normalizeTokenAddress,
+} from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
 import { selectRWAEnabledFlag } from '../../../../selectors/featureFlagController/rwa';
+import {
+  isTokenInOffHoursAt,
+  isTokenTradableAt,
+} from '../../../../components/UI/Bridge/hooks/useRWAToken';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import { selectAnalyticsEnabled } from '../../../../selectors/analyticsController';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import {
+  DEFAULT_RECURRING_EVERY_VALUE,
+  initialRecurringState,
+  validateRecurringSchedule,
+  type RecurringIntervalUnit,
+  type RecurringPriceRange,
+  type RecurringState,
+} from '../../../../components/UI/Bridge/utils/recurringSchedule';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -69,6 +86,7 @@ export interface BridgeState {
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string | undefined;
+  isSlippageUserOverride?: boolean;
   isSubmittingTx: boolean;
   bridgeViewMode: BridgeViewMode | undefined;
   isMaxSourceAmount?: boolean;
@@ -101,13 +119,22 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  balanceRefreshKey: number;
   hardwareWalletsSwaps: HardwareWalletsSwapsState;
+
+  // Batch Sell
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
     Record<CaipAssetType, string | undefined>
   >;
   batchSellDestToken: BridgeToken | undefined;
   batchSellSlippages: Partial<Record<CaipAssetType, string | undefined>>;
+
+  // Recurring
+  recurring: RecurringState;
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: CaipChainId | undefined;
 }
 
 export const initialState: BridgeState = {
@@ -118,7 +145,8 @@ export const initialState: BridgeState = {
   destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
-  slippage: '0.5',
+  slippage: undefined,
+  isSlippageUserOverride: false,
   isSubmittingTx: false,
   bridgeViewMode: undefined,
   isMaxSourceAmount: false,
@@ -131,6 +159,7 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  balanceRefreshKey: 0,
   hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
 
   // Batch Sell
@@ -138,6 +167,12 @@ export const initialState: BridgeState = {
   batchSellSourceTokenAmounts: {},
   batchSellDestToken: undefined,
   batchSellSlippages: {},
+
+  // Recurring
+  recurring: initialRecurringState,
+
+  // Orders (Limit + Recurring, Open + History)
+  ordersNetworkFilter: undefined,
 };
 
 const name = 'bridge';
@@ -154,6 +189,16 @@ const normalizeBridgeToken = <T extends BridgeToken | undefined>(
     ? token
     : ({ ...token, address: normalizedAddress } as T);
 };
+
+const clearSlippageState = (state: BridgeState) => {
+  state.slippage = undefined;
+  state.isSlippageUserOverride = false;
+};
+
+const didTokenChange = (
+  previous: BridgeToken | undefined,
+  next: BridgeToken | undefined,
+) => Boolean(previous || next) && !isSameBridgeToken(previous, next);
 
 export const setSourceTokenExchangeRate = createAsyncThunk(
   'bridge/setSourceTokenExchangeRate',
@@ -187,6 +232,25 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
+    setRecurringEveryValue: (state, action: PayloadAction<string>) => {
+      state.recurring.everyValue = action.payload;
+    },
+    setRecurringRepeatCount: (state, action: PayloadAction<string>) => {
+      state.recurring.repeatCount = action.payload;
+    },
+    setRecurringEveryUnit: (
+      state,
+      action: PayloadAction<RecurringIntervalUnit>,
+    ) => {
+      state.recurring.everyUnit = action.payload;
+      state.recurring.everyValue = DEFAULT_RECURRING_EVERY_VALUE;
+    },
+    setRecurringPriceRange: (
+      state,
+      action: PayloadAction<RecurringPriceRange | undefined>,
+    ) => {
+      state.recurring.priceRange = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -202,13 +266,37 @@ const slice = createSlice({
     resetBridgeState: () => ({
       ...initialState,
     }),
+    resetBridgeTokenInputs: (state) => {
+      state.sourceAmount = undefined;
+      state.destAmount = undefined;
+      state.isMaxSourceAmount = false;
+      state.selectedQuoteRequestId = undefined;
+    },
+    resetBridgeDestToken: (state) => {
+      state.destToken = undefined;
+      state.selectedDestChainId = undefined;
+      state.isDestTokenManuallySet = false;
+      clearSlippageState(state);
+    },
+    incrementBridgeBalanceRefreshKey: (state) => {
+      state.balanceRefreshKey += 1;
+    },
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
-      state.sourceToken = normalizeBridgeToken(action.payload);
+      const sourceToken = normalizeBridgeToken(action.payload);
+      if (didTokenChange(state.sourceToken, sourceToken)) {
+        clearSlippageState(state);
+        state.recurring.priceRange = undefined;
+      }
+      state.sourceToken = sourceToken;
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       const destToken = normalizeBridgeToken(action.payload);
-      state.destToken = destToken;
+      if (didTokenChange(state.destToken, destToken)) {
+        clearSlippageState(state);
+        state.recurring.priceRange = undefined;
+      }
       // Update selectedDestChainId to match the destination token's chain ID
+      state.destToken = destToken;
       state.selectedDestChainId = destToken.chainId;
     },
     /**
@@ -223,6 +311,13 @@ const slice = createSlice({
     },
     setSlippage: (state, action: PayloadAction<string | undefined>) => {
       state.slippage = action.payload;
+    },
+    setSlippageUserOverride: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.slippage = action.payload;
+      state.isSlippageUserOverride = true;
     },
     setIsSubmittingTx: (state, action: PayloadAction<boolean>) => {
       state.isSubmittingTx = action.payload;
@@ -253,6 +348,12 @@ const slice = createSlice({
       action: PayloadAction<CaipChainId | undefined>,
     ) => {
       state.tokenSelectorNetworkFilter = action.payload;
+    },
+    setOrdersNetworkFilter: (
+      state,
+      action: PayloadAction<CaipChainId | undefined>,
+    ) => {
+      state.ordersNetworkFilter = action.payload;
     },
     setVisiblePillChainIds: (
       state,
@@ -342,7 +443,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.sourceToken.chainId &&
         action.meta.arg.tokenAddress === state.sourceToken.address
       ) {
-        state.sourceToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.sourceToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
     builder.addCase(setDestTokenExchangeRate.fulfilled, (state, action) => {
@@ -352,7 +455,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.destToken.chainId &&
         action.meta.arg.tokenAddress === state.destToken.address
       ) {
-        state.destToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.destToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
   },
@@ -374,6 +479,36 @@ export const selectSourceAmount = createSelector(
 export const selectDestAmount = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAmount,
+);
+
+export const selectRecurring = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurring ?? initialRecurringState,
+);
+
+export const selectRecurringEveryValue = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyValue,
+);
+
+export const selectRecurringEveryUnit = createSelector(
+  selectRecurring,
+  (recurring) => recurring.everyUnit,
+);
+
+export const selectRecurringRepeatCount = createSelector(
+  selectRecurring,
+  (recurring) => recurring.repeatCount,
+);
+
+export const selectRecurringPriceRange = createSelector(
+  selectRecurring,
+  (recurring) => recurring.priceRange,
+);
+
+export const selectRecurringScheduleValidation = createSelector(
+  selectRecurring,
+  validateRecurringSchedule,
 );
 
 export const selectIsMaxSourceAmount = createSelector(
@@ -436,10 +571,11 @@ function getBridgeTokenMetadata(
   }
 
   const metadataAssetIds = Object.keys(BridgeTokenMetadata) as CaipAssetType[];
-  const metadataAssetId = metadataAssetIds.find(
-    (bridgeTokenMetadataAssetId) =>
-      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId) ===
+  const metadataAssetId = metadataAssetIds.find((bridgeTokenMetadataAssetId) =>
+    assetIdsMatch(
+      formatBatchSellStablecoinAssetId(bridgeTokenMetadataAssetId),
       formattedAssetId,
+    ),
   );
   const tokenMetadata = metadataAssetId
     ? BridgeTokenMetadata[metadataAssetId]
@@ -534,13 +670,29 @@ const isAllowedBridgeChainId = (caipChainId: string): boolean => {
  * Selector that returns chainRanking from feature flags filtered by
  * ALLOWED_BRIDGE_CHAIN_IDS. This ensures chains added to the remote flag
  * in the future won't be surfaced by older app versions that lack support.
+ *
+ * When `enabledChainIds` is provided, it fully replaces the
+ * ALLOWED_BRIDGE_CHAIN_IDS filter: only chains present in `enabledChainIds`
+ * are returned. Callers that pass this argument must pass a stable
+ * (e.g. module-level) array reference to avoid busting memoization.
  */
 export const selectAllowedChainRanking = createSelector(
   selectBridgeFeatureFlags,
-  (bridgeFeatureFlags) =>
-    (bridgeFeatureFlags.chainRanking ?? []).filter((chain) =>
+  (_state: RootState, enabledChainIds?: CaipChainId[]) => enabledChainIds,
+  (bridgeFeatureFlags, enabledChainIds) => {
+    const chainRanking = bridgeFeatureFlags.chainRanking ?? [];
+
+    if (enabledChainIds) {
+      const enabledChainIdsSet = new Set(enabledChainIds);
+      return chainRanking.filter((chain) =>
+        enabledChainIdsSet.has(chain.chainId),
+      );
+    }
+
+    return chainRanking.filter((chain) =>
       isAllowedBridgeChainId(chain.chainId),
-    ),
+    );
+  },
 );
 
 /**
@@ -551,7 +703,12 @@ export const selectAllowedChainRanking = createSelector(
  * const isBridgeEnabledSource = getIsBridgeEnabledSource(chainId);
  */
 export const selectIsBridgeEnabledSourceFactory = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state`: selectIsBridgeEnabledSourceFactory is itself
+  // used as an input selector to selectIsBridgeEnabledSource, which is
+  // invoked with a `chainId` second argument. Reselect forwards outer
+  // arguments to input selectors, so without this wrapper that chainId
+  // would leak into selectAllowedChainRanking's `enabledChainIds` param.
+  (state: RootState) => selectAllowedChainRanking(state),
   (allowedChains) => (chainId: Hex | CaipChainId) => {
     const caipChainId = formatChainIdToCaip(chainId);
     return allowedChains.some((chain) => chain.chainId === caipChainId);
@@ -584,7 +741,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
  * TODO The MultichainNetworkConfiguration.chainId type is wrong. It can be both Hex or CaipChainId.
  */
 export const selectEnabledSourceChains = createSelector(
-  selectAllowedChainRanking,
+  // Called with only `state` for the same reason as
+  // selectIsBridgeEnabledSourceFactory above: guards against any outer
+  // selector args leaking into selectAllowedChainRanking's `enabledChainIds`.
+  (state: RootState) => selectAllowedChainRanking(state),
   selectNetworkConfigurations,
   (allowedChainRanking, networkConfigurations) => {
     const allowedCaipIds = new Set(allowedChainRanking.map((c) => c.chainId));
@@ -634,6 +794,11 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectIsSlippageUserOverride = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.isSlippageUserOverride,
+);
+
 export const selectDestAddress = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.destAddress,
@@ -642,6 +807,11 @@ export const selectDestAddress = createSelector(
 export const selectSelectedQuoteRequestId = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.selectedQuoteRequestId,
+);
+
+export const selectBridgeBalanceRefreshKey = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.balanceRefreshKey,
 );
 
 export const selectBatchSellSourceTokens = createSelector(
@@ -672,39 +842,67 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
-const selectControllerFields = (state: RootState) => ({
-  ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-    {},
-  ...{
-    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
-    historicalPrices: {},
-  },
-  ...{
-    marketData: getTokenRatesControllerMarketData(state),
-  },
-  ...{
-    currencyRates: getCurrencyRateControllerCurrencyRates(state),
-    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
-  },
-  participateInMetaMetrics: analytics.isEnabled(),
-  remoteFeatureFlags: {
-    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
-  },
-});
+const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
+const EMPTY_HISTORICAL_PRICES = {};
+
+const selectGasFeeEstimatesByChainIdForBridge = (state: RootState) =>
+  state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+  EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID;
+
+const selectBridgeConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => remoteFeatureFlags.bridgeConfig,
+);
+
+export const selectControllerFields = createSelector(
+  selectBridgeControllerState,
+  selectGasFeeEstimatesByChainIdForBridge,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  selectBridgeConfig,
+  selectAnalyticsEnabled,
+  (
+    bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    bridgeConfig,
+    isAnalyticsEnabled,
+  ) => ({
+    ...bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    historicalPrices: EMPTY_HISTORICAL_PRICES,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    participateInMetaMetrics: Boolean(isAnalyticsEnabled),
+    remoteFeatureFlags: {
+      bridgeConfig,
+    },
+  }),
+);
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
   selectSelectedQuoteRequestId,
-  (
-    requiredControllerFields,
-    selectedQuoteRequestId,
-  ): ReturnType<typeof selectBridgeQuotesBase> => {
+  (readOnlyRequiredControllerFields, selectedQuoteRequestId) => {
+    // This is a workaround to enable adding metadata to intent
+    // quotes during QuoteResponse migration.
+    const clonedQuotes = cloneDeep(readOnlyRequiredControllerFields.quotes);
+    const requiredControllerFields = {
+      ...readOnlyRequiredControllerFields,
+      quotes: clonedQuotes,
+    };
     // First get all quotes
     const allQuotesResult = selectBridgeQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
 
     // If no selectedQuoteRequestId, return the default result
@@ -722,6 +920,7 @@ export const selectBridgeQuotes = createSelector(
       return selectBridgeQuotesBase(requiredControllerFields, {
         sortOrder: SortOrder.COST_ASC,
         selectedQuote,
+        migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
       });
     }
 
@@ -736,6 +935,8 @@ export const selectBatchSellQuotes = createSelector(
     selectBatchSellQuotesBase(requiredControllerFields, {
       sortOrder: SortOrder.COST_ASC,
       requestCount: requiredControllerFields.quoteRequest.length,
+      selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     }),
 );
 
@@ -748,6 +949,11 @@ export const selectBatchSellTrades = createSelector(
 export const selectIsSolanaSourced = createSelector(
   selectSourceToken,
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
+);
+
+export const selectIsNonEvmSourced = createSelector(
+  selectSourceToken,
+  (sourceToken) => sourceToken?.chainId && isNonEvmChainId(sourceToken.chainId),
 );
 
 export const selectIsSolanaToNonSolana = createSelector(
@@ -846,6 +1052,59 @@ export const selectIsRwaSwap = createSelector(
       isStockRwaBridgeToken(destToken, isRwaEnabled)),
 );
 
+/**
+ * True when at least one stock-RWA leg is fully closed — i.e. neither in regular market
+ * hours nor in an off-hours window — at the given timestamp.
+ *
+ * Accepts an optional `nowMs` parameter so callers can inject the current time
+ * (useful for testing without mocking `Date`). Defaults to `Date.now()`.
+ *
+ * NOTE: Because this selector calls `nowMs` at evaluation time it is NOT memoised
+ * via `createSelector` — market status changes continuously and must be re-checked
+ * on each render cycle that cares about it.
+ */
+export const selectIsStockMarketClosed = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const isFullyClosed = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    !isTokenTradableAt(token, isRwaEnabled, nowMs);
+
+  return isFullyClosed(sourceToken) || isFullyClosed(destToken);
+};
+
+/**
+ * True when the current swap is tradable only via an off-hours window — meaning at least
+ * one leg is a stock RWA token that is in off-hours but NOT in regular market hours, AND
+ * no leg is fully closed.
+ *
+ * Off-hours and market-closed are mutually exclusive: if any leg is fully closed this
+ * returns `false`.
+ *
+ * Accepts an optional `nowMs` parameter (same rationale as `selectIsStockMarketClosed`).
+ */
+export const selectIsInOffHoursTrading = (
+  state: RootState,
+  nowMs: number = Date.now(),
+): boolean => {
+  if (selectIsStockMarketClosed(state, nowMs)) return false;
+
+  const sourceToken = selectSourceToken(state);
+  const destToken = selectDestToken(state);
+  const isRwaEnabled = selectRWAEnabledFlag(state);
+
+  const inOffHours = (token: ReturnType<typeof selectSourceToken>) =>
+    isStockRwaBridgeToken(token, isRwaEnabled) &&
+    isTokenInOffHoursAt(token, isRwaEnabled, nowMs);
+
+  return inOffHours(sourceToken) || inOffHours(destToken);
+};
+
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
@@ -869,6 +1128,11 @@ export const selectIsSelectingToken = createSelector(
 export const selectTokenSelectorNetworkFilter = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.tokenSelectorNetworkFilter,
+);
+
+export const selectOrdersNetworkFilter = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.ordersNetworkFilter,
 );
 
 export const selectVisiblePillChainIds = createSelector(
@@ -954,13 +1218,21 @@ export const {
   setSourceAmount,
   setSourceAmountAsMax,
   setDestAmount,
+  setRecurringEveryValue,
+  setRecurringRepeatCount,
+  setRecurringEveryUnit,
+  setRecurringPriceRange,
   resetBridgeState,
+  resetBridgeTokenInputs,
+  resetBridgeDestToken,
+  incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setSlippageUserOverride,
   setDestAddress,
   setIsSubmittingTx,
   setBridgeViewMode,
@@ -970,6 +1242,7 @@ export const {
   setIsGasIncluded7702Supported,
   setAbTestContext,
   setTokenSelectorNetworkFilter,
+  setOrdersNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
   updateHardwareWalletsSwaps,

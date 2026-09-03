@@ -6,6 +6,8 @@ import type { Logger } from '../../../logger.ts';
 import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { resolveAndroidAdbUdidForDevice } from './android/resolveAndroidAdbUdid';
+import { androidDevicePoolSerials } from './android/androidDevicePool.ts';
+import { getIosSimulatorUdid } from '../../appium/EmulatorHelpers';
 
 const execFileAsync = promisify(execFile);
 
@@ -60,16 +62,24 @@ export async function reinstallFromBuildPathForProject(
         'Android: set `use.device.name` (AVD) or `use.device.udid` to reinstall from `use.app.buildPath` in global setup.',
       );
     }
-    const adbSerial = await resolveAndroidAdbUdidForDevice(emulatorDevice);
-    logger.info(
-      `Reinstalling Android app from build path (adb uninstall + install) on ${adbSerial}…`,
+    const poolSerials = androidDevicePoolSerials();
+    const adbSerials =
+      poolSerials.length > 0
+        ? poolSerials
+        : [await resolveAndroidAdbUdidForDevice(emulatorDevice)];
+    await Promise.all(
+      adbSerials.map(async (adbSerial) => {
+        logger.info(
+          `Reinstalling Android app from build path (adb uninstall + install) on ${adbSerial}…`,
+        );
+        await reinstallLocalAndroidBuildArtifact({
+          buildPath,
+          packageName,
+          adbSerial,
+          logger,
+        });
+      }),
     );
-    await reinstallLocalAndroidBuildArtifact({
-      buildPath,
-      packageName,
-      adbSerial,
-      logger,
-    });
   } else if (project.use.platform === Platform.IOS) {
     const bundleId = project.use.app?.appId;
     const simDevice = project.use.device?.name;
@@ -83,13 +93,18 @@ export async function reinstallFromBuildPathForProject(
         'iOS: set `use.device.name` to the target simulator to reinstall from `use.app.buildPath` in global setup.',
       );
     }
+    // Prefer CI/prepare UDID so simctl targets the sim that received the .app.
+    const configuredUdid =
+      (project.use.device as EmulatorConfig | undefined)?.udid?.trim() ||
+      process.env.IOS_SIMULATOR_UDID?.trim();
+    const simUdid = configuredUdid || (await getIosSimulatorUdid(simDevice));
     logger.info(
       'Reinstalling iOS app from build path (simctl uninstall + install)…',
     );
     await reinstallLocalIOSBuildArtifact({
       buildPath,
       bundleId,
-      simDevice,
+      simDevice: simUdid,
       logger,
     });
   }
@@ -172,7 +187,7 @@ export async function reinstallLocalIOSBuildArtifact({
     );
   }
 
-  logger.info(`simctl install: ${absApp}`);
+  logger.info(`simctl install: ${absApp} → simulator ${simDevice}`);
   const { stdout, stderr } = await execFileAsync(
     'xcrun',
     ['simctl', 'install', simDevice, absApp],
@@ -181,5 +196,20 @@ export async function reinstallLocalIOSBuildArtifact({
   const out = (stdout + stderr).trim();
   if (out) {
     logger.info(out);
+  }
+
+  try {
+    await execFileAsync(
+      'xcrun',
+      ['simctl', 'get_app_container', simDevice, bundleId],
+      { timeout: 120_000, maxBuffer: 2 * 1024 * 1024 },
+    );
+    logger.info(`Verified ${bundleId} is installed on simulator ${simDevice}.`);
+  } catch (error) {
+    throw new Error(
+      `App "${bundleId}" is not installed on simulator ${simDevice} after simctl install: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
   }
 }

@@ -4,7 +4,10 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PredictGameChartContent from './PredictGameChartContent';
 import { GameChartSeries } from './PredictGameChart.types';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-import { CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT } from './PredictGameChart.constants';
+import {
+  CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT,
+  CHART_INSET_RIGHT_MIN,
+} from './PredictGameChart.constants';
 
 jest.mock('react-native-svg-charts', () => {
   const { View, Text } = jest.requireActual('react-native');
@@ -543,6 +546,56 @@ describe('PredictGameChartContent (Chart UI)', () => {
 
       const charts = getAllByTestId('line-chart');
       expect(charts.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('Dynamic right inset', () => {
+    const getPrimaryRightInset = (data: GameChartSeries[]): number => {
+      const { getAllByTestId } = renderWithProvider(
+        <PredictGameChartContent data={data} />,
+      );
+      return getAllByTestId('line-chart')[0].props.contentInset.right;
+    };
+
+    const pair = (
+      aLabel: string,
+      aValue: number,
+      bLabel: string,
+      bValue: number,
+    ): GameChartSeries[] => [
+      {
+        label: aLabel,
+        color: TEST_HEX_COLORS.TEAM_SEA,
+        data: [{ timestamp: 1, value: aValue }],
+      },
+      {
+        label: bLabel,
+        color: TEST_HEX_COLORS.TEAM_DEN,
+        data: [{ timestamp: 1, value: bValue }],
+      },
+    ];
+
+    it('uses the minimum right inset for short labels and 2-digit values', () => {
+      // mockDualSeriesData has 3-letter labels peaking at 70% -> no extra gutter
+      expect(getPrimaryRightInset(mockDualSeriesData)).toBe(
+        CHART_INSET_RIGHT_MIN,
+      );
+    });
+
+    it('reserves more room for long team labels so the name is not clipped', () => {
+      const shortLabels = getPrimaryRightInset(pair('GER', 60, 'KOR', 40));
+      const longLabels = getPrimaryRightInset(
+        pair('UDVARDY', 60, 'SNIGUR', 40),
+      );
+
+      expect(longLabels).toBeGreaterThan(shortLabels);
+    });
+
+    it('reserves more room when a value reaches 100%', () => {
+      const twoDigit = getPrimaryRightInset(pair('A', 60, 'B', 40));
+      const hundred = getPrimaryRightInset(pair('A', 100, 'B', 0));
+
+      expect(hundred).toBeGreaterThan(twoDigit);
     });
   });
 });

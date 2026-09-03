@@ -1,8 +1,5 @@
-import {
-  StackActions,
-  type NavigationProp,
-  useNavigation,
-} from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback } from 'react';
 import {
   Box,
@@ -22,7 +19,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import PredictionsEmptyDarkIcon from '../../../../../images/predictions-dark.svg';
 import PredictionsEmptyLightIcon from '../../../../../images/predictions-light.svg';
 import { PredictPositionsEmptySelectorsIDs } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
 
 interface PredictPositionsEmptyProps {
   testID?: string;
@@ -31,8 +27,7 @@ interface PredictPositionsEmptyProps {
 const PredictPositionsEmpty = ({
   testID = PredictPositionsEmptySelectorsIDs.CONTAINER,
 }: PredictPositionsEmptyProps) => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const designSystemTheme = useDesignSystemTheme();
   const EmptyIcon =

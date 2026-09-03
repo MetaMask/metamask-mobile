@@ -143,6 +143,7 @@ function getEvmState(
     },
     settings: {
       showFiatOnTestnets,
+      basicFunctionalityEnabled: true,
     },
   };
   return state as unknown as RootState;
@@ -752,7 +753,7 @@ describe('MultichainNonEvm Selectors', () => {
         const tronMainnetAssetId =
           `${tronMainnetChainId}/slip44:195` as CaipAssetType;
         const tronResourceAssetId =
-          `${tronMainnetChainId}/token:resource-energy` as CaipAssetType;
+          `${tronMainnetChainId}/slip44:energy` as CaipAssetType;
         const tronTestnetAssetId =
           `${tronTestnetChainId}/slip44:195` as CaipAssetType;
 

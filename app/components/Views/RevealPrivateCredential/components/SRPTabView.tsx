@@ -17,6 +17,7 @@ import SeedPhraseDisplay from './SeedPhraseDisplay';
 import SeedPhraseConcealer from './SeedPhraseConcealer';
 import { SRPTabViewProps } from '../types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import SecureContentView from '../../../UI/SecureContentView';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
@@ -55,12 +56,14 @@ const SRPTabView = ({
         >
           <Box marginTop={4} twClassName="flex-1 w-full h-full min-h-[232px]">
             {showSeedPhrase ? (
-              <SeedPhraseDisplay
-                words={words}
-                clipboardEnabled={clipboardEnabled && hasCredential}
-                onCopyToClipboard={onCopyToClipboard}
-                showSeedPhrase={showSeedPhrase}
-              />
+              <SecureContentView style={tw.style('w-full h-full')}>
+                <SeedPhraseDisplay
+                  words={words}
+                  clipboardEnabled={clipboardEnabled && hasCredential}
+                  onCopyToClipboard={onCopyToClipboard}
+                  showSeedPhrase={showSeedPhrase}
+                />
+              </SecureContentView>
             ) : (
               <SeedPhraseConcealer onReveal={onRevealSeedPhrase} />
             )}
@@ -80,21 +83,23 @@ const SRPTabView = ({
             }
           >
             {hasCredential ? (
-              <Box
-                twClassName="rounded-2xl overflow-hidden p-3"
-                style={{ backgroundColor: colors.text.default }}
-              >
-                <QRCode
-                  value={clipboardPrivateCredential}
-                  size={qrSize}
-                  color={colors.background.default}
-                  backgroundColor={colors.text.default}
-                  logo={logo}
-                  logoSize={Math.round(qrSize * 0.2)}
-                  logoBackgroundColor={colors.text.default}
-                  logoMargin={4}
-                />
-              </Box>
+              <SecureContentView>
+                <Box
+                  twClassName="rounded-2xl overflow-hidden p-3"
+                  style={{ backgroundColor: colors.text.default }}
+                >
+                  <QRCode
+                    value={clipboardPrivateCredential}
+                    size={qrSize}
+                    color={colors.background.default}
+                    backgroundColor={colors.text.default}
+                    logo={logo}
+                    logoSize={Math.round(qrSize * 0.2)}
+                    logoBackgroundColor={colors.text.default}
+                    logoMargin={4}
+                  />
+                </Box>
+              </SecureContentView>
             ) : null}
           </Box>
         </CustomTabView>

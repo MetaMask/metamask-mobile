@@ -12,6 +12,10 @@ jest.mock('@metamask/storage-service');
 jest.mock('redux-persist-filesystem-storage');
 jest.mock('../../../util/device');
 jest.mock('../../../util/Logger');
+jest.mock('../../../util/storage/diskSpaceError', () => ({
+  reportStorageWriteError: jest.fn(),
+}));
+import { reportStorageWriteError } from '../../../util/storage/diskSpaceError';
 
 const mockFilesystemStorage = jest.mocked(FilesystemStorage);
 const mockDevice = jest.mocked(Device);
@@ -304,12 +308,11 @@ describe('mobileStorageAdapter', () => {
         adapter.setItem('TestController', 'testKey', 'value'),
       ).rejects.toThrow('Write failed');
 
-      expect(mockLogger.error).toHaveBeenCalledWith(
-        storageError,
-        expect.objectContaining({
-          message: 'StorageService: Failed to set item: TestController:testKey',
-        }),
-      );
+      expect(reportStorageWriteError).toHaveBeenCalledWith(storageError, {
+        message: 'StorageService: Failed to set item: TestController:testKey',
+        key: 'TestController:testKey',
+        source: 'storage_service',
+      });
     });
   });
 

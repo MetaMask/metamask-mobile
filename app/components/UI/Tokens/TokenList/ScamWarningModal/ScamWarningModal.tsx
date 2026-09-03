@@ -5,15 +5,16 @@ import Box from '../../../Ramp/Aggregator/components/Box';
 import { StyleSheet, View } from 'react-native';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Text,
 } from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Colors } from '../../../../../util/theme/models';
 import type { Hex } from '@metamask/utils';
@@ -56,7 +57,7 @@ export const ScamWarningModal = ({
   showScamWarningModal,
   setShowScamWarningModal,
 }: ScamWarningModalProps) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

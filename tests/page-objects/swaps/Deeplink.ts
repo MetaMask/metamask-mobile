@@ -1,12 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
 
 class DeeplinkModal {
-  get continueButton(): DetoxElement {
+  get continueButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Continue');
   }
 
-  get proceedWithCaution(): DetoxElement {
+  get proceedWithCaution(): Promise<AppiumElement> {
     return Matchers.getElementByText('Proceed with caution');
   }
 

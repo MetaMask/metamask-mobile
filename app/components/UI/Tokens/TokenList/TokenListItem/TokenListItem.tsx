@@ -1,21 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
@@ -24,7 +17,6 @@ import { FlashListAssetKey } from '../TokenList';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
-import Tag from '../../../../../component-library/components/Tags/Tag';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
@@ -34,15 +26,9 @@ import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 import StockBadge from '../../../shared/StockBadge';
-import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
-import { toHex } from '@metamask/controller-utils';
-import Logger from '../../../../../util/Logger';
-import { useNetworkName } from '../../../../Views/confirmations/hooks/useNetworkName';
-import { MUSD_EVENTS_CONSTANTS } from '../../../Earn/constants/events';
-import { MUSD_CONVERSION_APY, isMusdToken } from '../../../Earn/constants/musd';
+import { isMusdToken } from '../../../Earn/constants/musd';
 import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
@@ -78,6 +64,9 @@ import {
   SECONDARY_BALANCE_TEST_ID,
 } from '../../../AssetElement/index.constants';
 import {
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -85,6 +74,7 @@ import {
   FontWeight,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -92,8 +82,25 @@ import {
 import TokenListSecurityBadge from '../../components/TokenListSecurityBadge/TokenListSecurityBadge';
 import { tokenListSecurityBadgeKeys } from '../../queries/tokenSecurityBadgeKeys';
 import { getCaipAssetIdForToken } from '../../util/getCaipAssetIdForToken';
+import { AssetInactiveBadge } from '../../../AssetActivation/AssetInactiveBadge';
+import { getIsAssetRequireActivate } from '../../../../../selectors/stellar/stellar-assets';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
+
+export interface TokenListItemCtaPressContext {
+  tokenPositionInList: number;
+  tokensInList: number;
+}
+
+export interface TokenListItemCta {
+  label: string;
+  color: TextColor;
+  shouldShow: (asset?: TokenI) => boolean;
+  onPress: (
+    asset?: TokenI,
+    context?: TokenListItemCtaPressContext,
+  ) => Promise<void>;
+}
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -144,7 +151,9 @@ interface TokenListItemProps {
   privacyMode: boolean;
   showPercentageChange?: boolean;
   isFullView?: boolean;
-  shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
+  tokenListItemCta?: TokenListItemCta;
+  tokenPositionInList?: number;
+  tokensInList?: number;
   /**
    * When true, mUSD rows render only the native balance on the secondary row
    * (no token price / 24h change). Used by the Money Hub.
@@ -160,11 +169,12 @@ export const TokenListItem = React.memo(
     privacyMode,
     showPercentageChange = true,
     isFullView = false,
-    shouldShowTokenListItemCta,
+    tokenListItemCta,
+    tokenPositionInList,
+    tokensInList,
     hideSecondaryPriceRow = false,
   }: TokenListItemProps) => {
-    const { trackEvent, createEventBuilder } = useAnalytics();
-    const navigation = useNavigation();
+    const navigation = useNavigation<AppNavigationProp>();
     const queryClient = useQueryClient();
     const { colors } = useTheme();
     const styles = createStyles(colors);
@@ -182,6 +192,10 @@ export const TokenListItem = React.memo(
         chainId: assetKey.chainId as string,
         isStaked: assetKey.isStaked,
       }),
+    );
+
+    const isAssetInactive = useSelector((state: RootState) =>
+      getIsAssetRequireActivate(state, { assetId: asset?.address ?? '' }),
     );
 
     const { isStockToken } = useRWAToken();
@@ -216,7 +230,7 @@ export const TokenListItem = React.memo(
       queryFn: () => getCaipAssetIdForToken(asset),
       enabled: shouldResolveCaipForSecurityBadge && Boolean(asset?.chainId),
       staleTime: Infinity,
-      cacheTime: Infinity,
+      gcTime: Infinity,
     });
 
     const chainId = asset?.chainId as Hex;
@@ -239,8 +253,6 @@ export const TokenListItem = React.memo(
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
-    const networkName = useNetworkName(chainId);
-
     const isStablecoinLendingEnabled = useSelector(
       selectStablecoinLendingEnabledFlag,
     );
@@ -249,12 +261,9 @@ export const TokenListItem = React.memo(
 
     const earnToken = getEarnToken(asset as TokenI);
 
-    const { initiateCustomConversion, hasSeenConversionEducationScreen } =
-      useMusdConversion();
-
-    const shouldShowConvertToMusdCta = useMemo(
-      () => shouldShowTokenListItemCta(asset),
-      [asset, shouldShowTokenListItemCta],
+    const shouldShowTokenListItemCta = useMemo(
+      () => Boolean(tokenListItemCta?.shouldShow(asset)),
+      [asset, tokenListItemCta],
     );
 
     const isMusdAsset = !!asset && isMusdToken(asset.address);
@@ -322,71 +331,14 @@ export const TokenListItem = React.memo(
       ///: END:ONLY_INCLUDE_IF
     ]);
 
-    const handleConvertToMUSD = useCallback(async () => {
-      const submitCtaPressedEvent = () => {
-        const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
-
-        const getRedirectLocation = () => {
-          if (!hasSeenConversionEducationScreen) {
-            return EVENT_LOCATIONS.CONVERSION_EDUCATION_SCREEN;
-          }
-
-          return EVENT_LOCATIONS.CUSTOM_AMOUNT_SCREEN;
-        };
-
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.MUSD_CONVERSION_CTA_CLICKED)
-            .addProperties({
-              location: EVENT_LOCATIONS.TOKEN_LIST_ITEM,
-              redirects_to: getRedirectLocation(),
-              cta_type: MUSD_CTA_TYPES.SECONDARY,
-              cta_text: strings(
-                'earn.musd_conversion.get_a_percentage_musd_bonus',
-                {
-                  percentage: MUSD_CONVERSION_APY,
-                },
-              ),
-              network_chain_id: chainId,
-              network_name: networkName,
-              asset_symbol: asset?.symbol,
-            })
-            .build(),
-        );
-      };
-
-      try {
-        submitCtaPressedEvent();
-
-        if (!asset?.address || !asset?.chainId) {
-          throw new Error('Asset address or chain ID is not set');
-        }
-
-        const assetChainId = toHex(asset.chainId);
-
-        await initiateCustomConversion({
-          preferredPaymentToken: {
-            address: toHex(asset.address),
-            chainId: assetChainId,
-          },
-          navigationStack: Routes.EARN.ROOT,
-        });
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          '[mUSD Conversion] Failed to initiate conversion',
-        );
-      }
-    }, [
-      asset?.address,
-      asset?.chainId,
-      asset?.symbol,
-      chainId,
-      createEventBuilder,
-      hasSeenConversionEducationScreen,
-      initiateCustomConversion,
-      networkName,
-      trackEvent,
-    ]);
+    const handleTokenListItemCtaPress = useCallback(async () => {
+      await tokenListItemCta?.onPress(
+        asset,
+        tokenPositionInList !== undefined && tokensInList !== undefined
+          ? { tokenPositionInList, tokensInList }
+          : undefined,
+      );
+    }, [asset, tokenListItemCta, tokenPositionInList, tokensInList]);
 
     // Secondary balance shows percentage change (if available and not on testnet)
     const hasPercentageChange =
@@ -431,13 +383,11 @@ export const TokenListItem = React.memo(
     });
 
     const secondaryBalanceDisplay = useMemo(() => {
-      if (shouldShowConvertToMusdCta) {
+      if (shouldShowTokenListItemCta && tokenListItemCta) {
         return {
-          text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
-          color: TextColor.PrimaryDefault,
-          onPress: handleConvertToMUSD,
+          text: tokenListItemCta.label,
+          color: tokenListItemCta.color,
+          onPress: handleTokenListItemCtaPress,
         };
       }
 
@@ -473,12 +423,13 @@ export const TokenListItem = React.memo(
 
       return { text, color, onPress: undefined };
     }, [
-      shouldShowConvertToMusdCta,
+      shouldShowTokenListItemCta,
+      tokenListItemCta,
       isStablecoinLendingEnabled,
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      handleConvertToMUSD,
+      handleTokenListItemCtaPress,
       handleLendingRedirect,
     ]);
 
@@ -492,8 +443,7 @@ export const TokenListItem = React.memo(
     );
 
     const renderEarnCta = useCallback(() => {
-      // For convertible stablecoins, we display the CTA in the AssetElement's secondary balance
-      if (!asset || shouldShowConvertToMusdCta) {
+      if (!asset || shouldShowTokenListItemCta) {
         return null;
       }
 
@@ -503,7 +453,7 @@ export const TokenListItem = React.memo(
         // TODO: Rename to EarnCta
         return <StakeButton asset={asset} />;
       }
-    }, [asset, isStakeable, shouldShowConvertToMusdCta]);
+    }, [asset, isStakeable, shouldShowTokenListItemCta]);
 
     if (!asset || !chainId) {
       return null;
@@ -568,6 +518,23 @@ export const TokenListItem = React.memo(
       );
     }
 
+    const assetLogoWithNetworkBadge = (
+      <BadgeWrapper
+        style={styles.badge}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          networkBadgeSource && (
+            <BadgeNetwork
+              src={networkBadgeSource}
+              twClassName="h-5 w-5 rounded-1"
+            />
+          )
+        }
+      >
+        <AssetLogo asset={asset} />
+      </BadgeWrapper>
+    );
+
     // Money Hub compact mUSD layout: name vertically centered, fiat over
     // native on the right, no price/24h-change row.
     if (hideSecondaryPriceRow && isMusdAsset) {
@@ -577,20 +544,7 @@ export const TokenListItem = React.memo(
           style={styles.itemWrapper}
           testID={getAssetTestId(asset.symbol)}
         >
-          <BadgeWrapper
-            style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              networkBadgeSource && (
-                <Badge
-                  variant={BadgeVariant.Network}
-                  imageSource={networkBadgeSource}
-                />
-              )
-            }
-          >
-            <AssetLogo asset={asset} />
-          </BadgeWrapper>
+          {assetLogoWithNetworkBadge}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -647,20 +601,7 @@ export const TokenListItem = React.memo(
         testID={getAssetTestId(asset.symbol)}
       >
         {/* Column: 1 - Token logo */}
-        <BadgeWrapper
-          style={styles.badge}
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            networkBadgeSource && (
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource}
-              />
-            )
-          }
-        >
-          <AssetLogo asset={asset} />
-        </BadgeWrapper>
+        {assetLogoWithNetworkBadge}
 
         {/* Column 2*/}
         <Box twClassName="flex-1 ml-5">
@@ -687,7 +628,7 @@ export const TokenListItem = React.memo(
                   {asset.name || asset.symbol}
                 </Text>
                 {label && (
-                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
+                  <Tag testID={ACCOUNT_TYPE_LABEL_TEST_ID}>{label}</Tag>
                 )}
                 {shouldResolveCaipForSecurityBadge &&
                   caipAssetIdForSecurity && (
@@ -695,6 +636,7 @@ export const TokenListItem = React.memo(
                       caipAssetId={caipAssetIdForSecurity}
                     />
                   )}
+                {isAssetInactive ? <AssetInactiveBadge /> : null}
               </View>
 
               {renderEarnCta()}

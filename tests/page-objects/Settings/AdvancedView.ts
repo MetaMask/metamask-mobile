@@ -4,32 +4,33 @@ import {
 } from '../../../app/components/Views/Settings/AdvancedSettings/AdvancedView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import { type AppiumElement, type ScrollContainer } from '../../framework';
 
 class AdvancedSettingsView {
-  get scrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(
+  get scrollViewIdentifier(): ScrollContainer {
+    return Matchers.scrollContainer(
       AdvancedViewSelectorsIDs.ADVANCED_SETTINGS_SCROLLVIEW,
     );
   }
 
-  get showFiatOnTestnetsToggle(): DetoxElement {
+  get showFiatOnTestnetsToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AdvancedViewSelectorsIDs.SHOW_FIAT_ON_TESTNETS,
     );
   }
 
-  get smartTransactionsToggle(): DetoxElement {
+  get smartTransactionsToggle(): Promise<AppiumElement> {
     return Matchers.getElementByID(AdvancedViewSelectorsIDs.STX_OPT_IN_SWITCH);
   }
 
-  get resetAccountButton(): DetoxElement {
+  get resetAccountButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       AdvancedViewSelectorsText.RESET_ACCOUNT,
       1,
     );
   }
 
-  get resetConfirmButton(): DetoxElement {
+  get resetConfirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AdvancedViewSelectorsIDs.RESET_ACCOUNT_CONFIRM_BUTTON,
     );

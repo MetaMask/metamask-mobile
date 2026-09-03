@@ -7,6 +7,8 @@ import { TokenBalancesControllerInitMessenger } from '../messengers/token-balanc
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectCompletedOnboarding } from '../../../selectors/onboarding';
+import { selectIsControllerDeprecated } from '../../../selectors/featureFlagController/assetsUnifyState';
+import { store } from '../../../store';
 
 /**
  * Initialize the token balances controller.
@@ -34,6 +36,8 @@ export const tokenBalancesControllerInit: MessengerClientInitFunction<
       selectAssetsAccountApiBalancesEnabled(getState()) as `0x${string}`[],
     platform: 'mobile',
     isOnboarded: () => selectCompletedOnboarding(getState()),
+    isDeprecated: () =>
+      selectIsControllerDeprecated('TokenBalancesController')(store.getState()),
   });
 
   return {

@@ -1,6 +1,17 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { ActivityIndicator } from 'react-native';
-import Rive, { Fit, Alignment, RiveRef } from 'rive-react-native';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRive,
+  useRiveFile,
+} from '@rive-app/react-native';
 import { useTheme } from '../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -12,13 +23,33 @@ import onboardingRiveFile from '../../../../animations/fox_loading.riv';
 import { getScreenDimensions } from '../../../../util/onboarding';
 import { hasTestOverrides } from '../../../../util/test/utils';
 
+export interface FoxRiveLoaderAnimationRef {
+  stop: () => void;
+}
+
 interface FoxRiveLoaderAnimationProps {}
 
-const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
-  const riveRef = useRef<RiveRef>(null);
+const FoxRiveLoaderAnimation = forwardRef<
+  FoxRiveLoaderAnimationRef,
+  FoxRiveLoaderAnimationProps
+>((_props, ref) => {
+  const { riveFile } = useRiveFile(onboardingRiveFile);
+  const { riveRef, riveViewRef, setHybridRef } = useRive();
   const { colors } = useTheme();
   const tw = useTailwind();
   const { screenWidth, animationHeight } = getScreenDimensions();
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      // The Nitro runtime has no stop(); pause halts playback the same way
+      // for this fire-and-forget loader.
+      stop: () => {
+        riveRef.current?.pause();
+      },
+    }),
+    [riveRef],
+  );
 
   const animationWrapperStyle = useMemo(
     () => ({ width: screenWidth, height: animationHeight }),
@@ -40,14 +71,9 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
   );
 
   useEffect(() => {
-    if (hasTestOverrides) return;
-    const timeoutId = setTimeout(() => {
-      if (riveRef.current) {
-        riveRef.current.fireState('FoxRaiseUp', 'Loader2');
-      }
-    }, 100);
-    return () => clearTimeout(timeoutId);
-  }, [riveRef]);
+    if (hasTestOverrides || !riveViewRef) return;
+    riveViewRef.triggerInput('Loader2');
+  }, [riveViewRef]);
 
   return (
     <Box
@@ -62,14 +88,17 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
         twClassName="bg-background-default"
         style={animationWrapperStyle}
       >
-        <Rive
-          ref={riveRef}
-          source={onboardingRiveFile}
-          style={riveAnimationStyle}
-          autoplay
-          fit={Fit.Contain}
-          alignment={Alignment.Center}
-        />
+        {riveFile && (
+          <RiveView
+            hybridRef={setHybridRef}
+            file={riveFile}
+            stateMachineName="FoxRaiseUp"
+            style={riveAnimationStyle}
+            autoPlay
+            fit={Fit.Contain}
+            alignment={Alignment.Center}
+          />
+        )}
       </Box>
       <Box
         justifyContent={BoxJustifyContent.End}
@@ -80,6 +109,8 @@ const FoxRiveLoaderAnimation: React.FC<FoxRiveLoaderAnimationProps> = () => {
       </Box>
     </Box>
   );
-};
+});
+
+FoxRiveLoaderAnimation.displayName = 'FoxRiveLoaderAnimation';
 
 export default FoxRiveLoaderAnimation;

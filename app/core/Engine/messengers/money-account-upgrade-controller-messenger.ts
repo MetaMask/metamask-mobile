@@ -23,14 +23,12 @@ import type { RootMessenger } from '../types';
  * @returns The restricted controller messenger.
  */
 export function getMoneyAccountUpgradeControllerMessenger(
-  rootMessenger: RootMessenger,
-): MoneyAccountUpgradeControllerMessenger {
-  const messenger = new Messenger<
-    'MoneyAccountUpgradeController',
+  rootMessenger: RootMessenger<
     MessengerActions<MoneyAccountUpgradeControllerMessenger>,
-    MessengerEvents<MoneyAccountUpgradeControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<MoneyAccountUpgradeControllerMessenger>
+  >,
+): MoneyAccountUpgradeControllerMessenger {
+  const messenger: MoneyAccountUpgradeControllerMessenger = new Messenger({
     namespace: 'MoneyAccountUpgradeController',
     parent: rootMessenger,
   });
@@ -41,6 +39,7 @@ export function getMoneyAccountUpgradeControllerMessenger(
       'ChompApiService:associateAddress',
       'ChompApiService:createIntents',
       'ChompApiService:createUpgrade',
+      'ChompApiService:getAssociatedAddresses',
       'ChompApiService:getIntentsByAddress',
       'ChompApiService:getServiceDetails',
       'ChompApiService:verifyDelegation',
@@ -67,8 +66,10 @@ type InitEvents =
       RemoteFeatureFlagControllerState
     >;
 
-export type MoneyAccountUpgradeControllerInitMessenger = ReturnType<
-  typeof getMoneyAccountUpgradeControllerInitMessenger
+export type MoneyAccountUpgradeControllerInitMessenger = Messenger<
+  'MoneyAccountUpgradeControllerInitialization',
+  InitActions,
+  InitEvents
 >;
 
 /**
@@ -79,14 +80,12 @@ export type MoneyAccountUpgradeControllerInitMessenger = ReturnType<
  * @returns The restricted init messenger.
  */
 export function getMoneyAccountUpgradeControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'MoneyAccountUpgradeControllerInitialization',
-    InitActions,
-    InitEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<MoneyAccountUpgradeControllerInitMessenger>,
+    MessengerEvents<MoneyAccountUpgradeControllerInitMessenger>
+  >,
+): MoneyAccountUpgradeControllerInitMessenger {
+  const messenger: MoneyAccountUpgradeControllerInitMessenger = new Messenger({
     namespace: 'MoneyAccountUpgradeControllerInitialization',
     parent: rootMessenger,
   });

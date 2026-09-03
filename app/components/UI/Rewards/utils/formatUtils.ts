@@ -150,6 +150,21 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
 };
 
 /**
+ * Resolves the date used for a benefit countdown, preferring a valid `validTo`
+ * value and falling back to a valid `actionDate` value.
+ */
+export const resolveBenefitEndDate = (
+  validTo: string | null | undefined,
+  actionDate: string | null | undefined,
+): string | null =>
+  [validTo, actionDate].find(
+    (date): date is string =>
+      typeof date === 'string' &&
+      date.trim().length > 0 &&
+      !Number.isNaN(Date.parse(date)),
+  ) ?? null;
+
+/**
  * Formats remaining time until `endDate` (UTC, calendar months).
  * - Under 1 hour: minutes only (e.g. `45min`).
  * - Otherwise exactly two units: `y`+`mo`, `mo`+`d`, `d`+`h`, or `h`+`min`.
@@ -345,6 +360,7 @@ export const formatUsd = (
 
 interface FormatCompactValueOptions {
   maximumFractionDigits?: number;
+  billionSuffix?: string;
   millionSuffix?: string;
   thousandSuffix?: string;
 }
@@ -353,8 +369,10 @@ interface FormatCompactValueOptions {
  * Formats a number in compact notation without a currency symbol.
  * Implemented manually because Hermes does not support `notation: 'compact'`.
  *
- * @example formatCompactValue(750000)  // '750k'
+ * @example formatCompactValue(750000)  // '750K'
  * @example formatCompactValue(5750000) // '5.75M'
+ * @example formatCompactValue(1500000000) // '1.5B'
+ * @example formatCompactValue(233.208062) // '233.21'
  */
 export const formatCompactValue = (
   value: number,
@@ -363,24 +381,29 @@ export const formatCompactValue = (
   const abs = Math.abs(value);
   const sign = value < 0 ? '-' : '';
   const maximumFractionDigits = options?.maximumFractionDigits ?? 2;
+  const billionSuffix = options?.billionSuffix ?? 'B';
   const millionSuffix = options?.millionSuffix ?? 'M';
-  const thousandSuffix = options?.thousandSuffix ?? 'k';
+  const thousandSuffix = options?.thousandSuffix ?? 'K';
   const formatValue = (compact: number) =>
     `${Number(compact.toFixed(maximumFractionDigits))}`;
 
+  if (abs >= 1_000_000_000) {
+    return `${sign}${formatValue(abs / 1_000_000_000)}${billionSuffix}`;
+  }
   if (abs >= 1_000_000) {
     return `${sign}${formatValue(abs / 1_000_000)}${millionSuffix}`;
   }
   if (abs >= 1_000) {
     return `${sign}${formatValue(abs / 1_000)}${thousandSuffix}`;
   }
-  return `${sign}${abs}`;
+  return `${sign}${formatValue(abs)}`;
 };
 
 /**
  * Formats a USD amount in compact notation (e.g. $1.5M, $350K).
  * Implemented manually because Hermes does not support `notation: 'compact'`.
  *
+ * @example formatCompactUsd(1500000000) // '$1.5B'
  * @example formatCompactUsd(1500000) // '$1.5M'
  * @example formatCompactUsd(6000000) // '$6M'
  * @example formatCompactUsd(25000)   // '$25K'
@@ -395,7 +418,6 @@ export const formatCompactUsd = (
   const maximumFractionDigits = options?.maximumFractionDigits ?? 1;
   const compactValue = formatCompactValue(abs, {
     maximumFractionDigits,
-    thousandSuffix: 'K',
   });
 
   return `${sign}$${compactValue}`;

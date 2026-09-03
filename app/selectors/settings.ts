@@ -4,6 +4,8 @@ import { AvatarAccountType } from '../component-library/components/Avatars/Avata
 
 const selectSettings = (state: RootState) => state.settings;
 
+export const selectLockTime = (state: RootState) => state.settings.lockTime;
+
 export const selectShowFiatInTestnets = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
@@ -19,6 +21,12 @@ export const selectBasicFunctionalityEnabled = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
     settingsState.basicFunctionalityEnabled as boolean,
+);
+
+export const selectIsBasicFunctionalityConsolidatedEnabled = createSelector(
+  selectSettings,
+  (settingsState: Record<string, unknown>) =>
+    Boolean(settingsState.isBasicFunctionalityConsolidatedEnabled),
 );
 
 export const selectHideZeroBalanceTokens = createSelector(

@@ -1,6 +1,8 @@
 import {
+  FeatureId,
   formatChainIdToCaip,
   formatChainIdToHex,
+  isNativeAddress,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
 import { Transaction } from '@metamask/keyring-api';
@@ -14,13 +16,15 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
 import {
-  renderFromWei,
   addCurrencySymbol,
   balanceToFiatNumber,
-  weiToFiatNumber,
-  weiToFiat,
   formatAmountWithThreshold,
 } from '../../../../util/number';
+import {
+  renderFromWei,
+  weiToFiatNumber,
+  weiToFiat,
+} from '../../../../util/number/bigint';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
@@ -28,14 +32,24 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
+export const isBridgeTxHistoryItemBridge = (
+  bridgeTxHistoryItem: BridgeHistoryItem,
+) =>
+  bridgeTxHistoryItem.quote.srcChainId !==
+  bridgeTxHistoryItem.quote.destChainId;
+
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
+  is7702Batch: boolean = false,
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
+  if (bridgeTxHistoryItem.featureId === FeatureId.BATCH_SELL && is7702Batch) {
+    return strings('bridge.batch_sell_transaction_label');
+  }
+
   // Swap
-  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
-  if (isSwap) {
+  if (!isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)) {
     return strings('swaps.transaction_label.swap', {
       sourceToken: quote.srcAsset.symbol,
       destinationToken: quote.destAsset.symbol,
@@ -217,7 +231,11 @@ export const decodeSwapsTx = (args: {
             sourceAmountFiatNumber,
             currentCurrency,
           ),
-          summaryFee: weiToFiat(totalGas, conversionRate, currentCurrency),
+          summaryFee: weiToFiat(
+            totalGas,
+            conversionRate,
+            currentCurrency as Parameters<typeof weiToFiat>[2],
+          ),
           summaryTotalAmount: summaryTotalAmountNativeTokenFiat,
           summarySecondaryTotalAmount: summaryTotalAmountNativeToken,
         };
@@ -234,7 +252,68 @@ export const decodeSwapsTx = (args: {
     ...summary,
   };
 
-  return [transactionElement, transactionDetails];
+  return [
+    {
+      ...transactionElement,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem),
+    },
+    transactionDetails,
+  ];
+};
+
+export const decodeBatchSellTx = (args: {
+  tx: TransactionMeta;
+  currentCurrency: string;
+  conversionRate: number; // gas token to current currency rate
+  bridgeTxHistoryData: {
+    bridgeTxHistoryItem: BridgeHistoryItem;
+    batchTotalDestAmount: number;
+    is7702Batch: boolean;
+  };
+  txChainId: Hex;
+  ticker: string; // the gas token symbol
+  contractExchangeRates: Record<string, { price: number }>; // token to gas token rate
+  primaryCurrency: string; // Settings > General > Primary Currency
+}) => {
+  const {
+    currentCurrency,
+    contractExchangeRates,
+    conversionRate,
+    bridgeTxHistoryData,
+  } = args;
+
+  const { bridgeTxHistoryItem, batchTotalDestAmount, is7702Batch } =
+    bridgeTxHistoryData;
+
+  const { destAsset } = bridgeTxHistoryItem.quote;
+  const destAmount = parseFloat(
+    ethers.utils.formatUnits(batchTotalDestAmount, destAsset.decimals),
+  );
+
+  const destExchangeRate = isNativeAddress(destAsset.address)
+    ? 1
+    : contractExchangeRates?.[toFormattedAddress(destAsset.address)]?.price;
+
+  const destAmountFiatNumber = balanceToFiatNumber(
+    destAmount,
+    conversionRate,
+    destExchangeRate,
+  );
+
+  const destFiatValue = addCurrencySymbol(
+    destAmountFiatNumber,
+    currentCurrency,
+  );
+
+  return [
+    {
+      value: `${destAmount} ${destAsset.symbol}`,
+      fiatValue: destFiatValue,
+      transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
+      actionKey: getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch),
+    },
+    {},
+  ];
 };
 
 export const handleUnifiedSwapsTxHistoryItemClick = ({
@@ -255,8 +334,8 @@ export const handleUnifiedSwapsTxHistoryItemClick = ({
 
   // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
   if (bridgeTxHistoryItem) {
-    const { quote, attempts } = bridgeTxHistoryItem;
-    const isBridge = quote.srcAsset.chainId !== quote.destAsset.chainId;
+    const { attempts } = bridgeTxHistoryItem;
+    const isBridge = isBridgeTxHistoryItemBridge(bridgeTxHistoryItem);
 
     if (isBridge && attempts && attempts.counter >= MAX_ATTEMPTS) {
       Engine.context.BridgeStatusController.restartPollingForFailedAttempts({

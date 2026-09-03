@@ -12,6 +12,7 @@ import { EARN_EXPERIENCES } from '../constants/experiences';
 import { EVENT_LOCATIONS } from '../constants/events/earnEvents';
 import type { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 
 interface UseStablecoinLendingRedirectParams {
@@ -31,7 +32,7 @@ export const useStablecoinLendingRedirect = ({
     selectNetworkConfigurationByChainId(state, asset?.chainId as Hex),
   );
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const navigateToStakeScreen = useCallback(
     (token: TokenI) => {

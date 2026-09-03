@@ -5,6 +5,7 @@ import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
+  const { colors } = theme;
 
   return StyleSheet.create({
     backIcon: {
@@ -13,7 +14,9 @@ const styleSheet = (params: { theme: Theme }) => {
       position: 'absolute',
     },
     container: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.elevated2,
+      borderWidth: 1,
+      borderColor: colors.border.alternative,
       paddingHorizontal: 8,
       paddingVertical: 8,
     },

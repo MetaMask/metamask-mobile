@@ -1,13 +1,14 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { ErrorBoundarySelectorsText } from '../../selectors/ErrorBoundary/ErrorBoundaryView.selectors';
+import { type AppiumElement } from '../../framework';
 
 class ErrorBoundaryView {
-  get title(): DetoxElement {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ErrorBoundarySelectorsText.TITLE);
   }
 
-  get srpLinkText(): DetoxElement {
+  get srpLinkText(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ErrorBoundarySelectorsText.SAVE_YOUR_SRP_TEXT,
     );

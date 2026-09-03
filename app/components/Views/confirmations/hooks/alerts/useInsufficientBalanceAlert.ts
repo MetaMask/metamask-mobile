@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useRampNavigation } from '../../../../UI/Ramp/hooks/useRampNavigation';
+import { RAMPS_BUY_CUF_SURFACE } from '../../../../UI/Ramp/constants/rampsBuyCufTags';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, Severity } from '../../types/alerts';
@@ -9,11 +10,11 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useConfirmActions } from '../useConfirmActions';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionType,
   hasTransactionType,
-  shouldApplyGasFeeSponsorship,
-} from '../../utils/transaction';
+} from '@metamask/transaction-controller';
+import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
@@ -113,7 +114,7 @@ export const useInsufficientBalanceAlert = ({
             nativeCurrency,
           }),
           callback: () => {
-            goToBuy();
+            goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.CONFIRMATION });
             onReject(undefined, true);
           },
         },

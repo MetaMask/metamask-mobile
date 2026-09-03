@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import { ImageBackground, Pressable, useColorScheme } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   Box,
@@ -25,7 +27,9 @@ import {
 } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
+import { useMoneyAccountSweepstakesParticipation } from '../../hooks/useMoneyAccountSweepstakesParticipation';
 import { useCampaignReminderActions } from '../../hooks/useCampaignReminderActions';
+import { navigateToRewardsRoute } from '../../utils';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
@@ -43,6 +47,8 @@ interface CampaignTileProps {
  * - ONDO_HOLDING: navigates to Ondo campaign details
  * - SEASON_1: navigates to season one campaign details
  * - PERPS_TRADING: navigates to Perps Trading campaign details
+ * - PREDICT_THE_PITCH: navigates to Predict The Pitch campaign details
+ * - MONEY_ACCOUNT_SWEEPSTAKES: navigates to Money Account Sweepstakes details
  * - Unsupported types: non-interactive unless onPress is provided
  * - With onPress: executes custom handler regardless of type
  */
@@ -50,7 +56,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const { colors } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const {
     status: campaignStatus,
@@ -58,21 +64,39 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     dateLabel,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
+  const isMoneyAccountSweepstakes =
+    campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES;
+
   const { status: participantStatus, isLoading: isParticipantStatusLoading } =
     useGetCampaignParticipantStatus(
       campaignStatus === 'active' &&
         (campaign.type === CampaignType.ONDO_HOLDING ||
-          campaign.type === CampaignType.PERPS_TRADING)
+          campaign.type === CampaignType.PERPS_TRADING ||
+          campaign.type === CampaignType.PREDICT_THE_PITCH)
         ? campaign.id
         : undefined,
     );
+
+  const {
+    optedInAny: sweepstakesOptedInAny,
+    isLoading: isSweepstakesParticipationLoading,
+  } = useMoneyAccountSweepstakesParticipation(isMoneyAccountSweepstakes);
+
+  const isOptedIn = isMoneyAccountSweepstakes
+    ? sweepstakesOptedInAny
+    : participantStatus?.optedIn === true;
+  const isOptInLoading = isMoneyAccountSweepstakes
+    ? isSweepstakesParticipationLoading
+    : isParticipantStatusLoading;
 
   const isInteractive =
     campaignStatus !== 'upcoming' &&
     (onPress != null || isCampaignTypeSupported(campaign.type));
 
   const reminderFeatureEnabled =
-    campaignStatus === 'upcoming' && isCampaignTypeSupported(campaign.type);
+    campaignStatus === 'upcoming' &&
+    !isMoneyAccountSweepstakes &&
+    isCampaignTypeSupported(campaign.type);
 
   const { showRemindMeCta, handleRemindMePress } = useCampaignReminderActions(
     campaign,
@@ -80,19 +104,20 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   );
 
   const shouldShowDateLabel =
-    campaignStatus !== 'upcoming' || campaign.showUpcomingDate;
+    !isMoneyAccountSweepstakes &&
+    (campaignStatus !== 'upcoming' || campaign.showUpcomingDate);
 
-  const backgroundImageUrl =
-    colorScheme === 'dark'
+  const backgroundImageSource = {
+    uri: isMoneyAccountSweepstakes
       ? campaign.image?.darkModeUrl
-      : campaign.image?.lightModeUrl;
+      : colorScheme === 'dark'
+        ? campaign.image?.darkModeUrl
+        : campaign.image?.lightModeUrl,
+  };
 
   const hasTour = (campaign.details?.howItWorks?.tour?.length ?? 0) > 0;
   const shouldShowTour =
-    hasTour &&
-    !isParticipantStatusLoading &&
-    participantStatus?.optedIn !== true &&
-    campaignStatus === 'active';
+    hasTour && !isOptInLoading && !isOptedIn && campaignStatus === 'active';
 
   const handlePress = () => {
     if (!isInteractive) return;
@@ -101,50 +126,145 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
       onPress();
     } else if (campaign.type === CampaignType.ONDO_HOLDING) {
       if (shouldShowTour) {
-        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
-          campaignId: campaign.id,
-        });
+        navigateToRewardsRoute(
+          navigation,
+          Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
       }
     } else if (campaign.type === CampaignType.SEASON_1) {
-      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
-        campaignId: campaign.id,
-      });
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+        {
+          campaignId: campaign.id,
+        },
+      );
     } else if (campaign.type === CampaignType.PERPS_TRADING) {
       if (shouldShowTour) {
-        navigation.navigate(Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
           campaignId: campaign.id,
         });
       } else {
-        navigation.navigate(
+        navigateToRewardsRoute(
+          navigation,
           Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
           {
             campaignId: campaign.id,
           },
         );
       }
+    } else if (campaign.type === CampaignType.PREDICT_THE_PITCH) {
+      if (shouldShowTour) {
+        navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGN_TOUR_STEP, {
+          campaignId: campaign.id,
+        });
+      } else {
+        navigateToRewardsRoute(
+          navigation,
+          Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+          {
+            campaignId: campaign.id,
+          },
+        );
+      }
+    } else if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_DETAILS_VIEW,
+        {
+          campaignId: campaign.id,
+        },
+      );
     }
   };
 
   return (
-    <Box twClassName="h-50 rounded-xl overflow-hidden bg-muted">
+    <Box twClassName="h-50 overflow-hidden rounded-xl bg-muted">
       <Pressable
         onPress={handlePress}
         disabled={!isInteractive}
+        accessibilityRole={isInteractive ? 'button' : undefined}
+        accessibilityLabel={campaign.name}
+        accessibilityHint={
+          isInteractive
+            ? strings('rewards.campaign.view_details_accessibility', {
+                campaignName: campaign.name,
+              })
+            : undefined
+        }
         style={({ pressed }) =>
           tw.style('absolute inset-0', pressed && isInteractive && 'opacity-70')
         }
         testID={`campaign-tile-${campaign.id}`}
       >
         <ImageBackground
-          source={{ uri: backgroundImageUrl }}
+          source={backgroundImageSource}
           resizeMode="cover"
           style={tw.style('flex-1')}
           testID="campaign-tile-background"
         >
+          <LinearGradient
+            colors={['transparent', 'rgba(0, 0, 0, 0.78)']}
+            locations={[0.25, 1]}
+            pointerEvents="none"
+            style={tw.style('absolute inset-0')}
+          />
+          {showRemindMeCta && (
+            <Pressable
+              onPress={() => {
+                handleRemindMePress().catch(() => undefined);
+              }}
+              testID={`campaign-tile-remind-me-${campaign.id}`}
+              accessibilityRole="button"
+              accessibilityLabel={strings('rewards.campaign.notify_me')}
+              hitSlop={12}
+              style={({ pressed }) => [
+                tw.style(
+                  'absolute right-3 top-3 z-10 min-h-10 flex-row items-center gap-2 overflow-hidden rounded-full px-4',
+                ),
+                {
+                  backgroundColor: pressed
+                    ? 'rgba(10, 10, 14, 0.72)'
+                    : 'rgba(10, 10, 14, 0.52)',
+                  borderColor: 'rgba(255, 255, 255, 0.24)',
+                  borderWidth: 1,
+                  shadowColor: colors.shadow.default,
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.22,
+                  shadowRadius: 8,
+                },
+              ]}
+            >
+              <LinearGradient
+                colors={[
+                  'rgba(255, 255, 255, 0.14)',
+                  'rgba(255, 255, 255, 0.02)',
+                ]}
+                pointerEvents="none"
+                style={tw.style('absolute inset-0')}
+              />
+              <NotificationIcon
+                name="notification"
+                width={20}
+                height={20}
+                color={colors.overlay.inverse}
+              />
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.OverlayInverse}
+                fontWeight={FontWeight.Medium}
+              >
+                {strings('rewards.campaign.notify_me')}
+              </Text>
+            </Pressable>
+          )}
           <Box
             flexDirection={BoxFlexDirection.Column}
             justifyContent={BoxJustifyContent.End}
@@ -199,42 +319,21 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
               )}
             </Box>
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName="gap-2"
+            <Text
+              variant={TextVariant.HeadingLg}
+              color={TextColor.OverlayInverse}
+              twClassName={
+                isMoneyAccountSweepstakes ? 'w-3/5 font-bold' : 'font-bold'
+              }
+              testID="campaign-tile-name"
             >
-              <Box twClassName="min-w-0 flex-1 shrink">
-                <Text
-                  variant={TextVariant.HeadingLg}
-                  color={TextColor.OverlayInverse}
-                  twClassName="font-bold"
-                  testID="campaign-tile-name"
-                >
-                  {campaign.name}
-                </Text>
-              </Box>
-              {showRemindMeCta && (
-                <Pressable
-                  onPress={() => {
-                    handleRemindMePress().catch(() => undefined);
-                  }}
-                  testID={`campaign-tile-remind-me-${campaign.id}`}
-                  accessibilityRole="button"
-                  accessibilityLabel={strings('rewards.campaign.notify_me')}
-                  hitSlop={12}
-                  style={({ pressed }) => tw.style(pressed && 'opacity-70')}
-                >
-                  <NotificationIcon
-                    name="notification"
-                    width={24}
-                    height={24}
-                    color={colors.overlay.inverse}
-                  />
-                </Pressable>
-              )}
-            </Box>
+              {campaign.name}
+            </Text>
           </Box>
+          <Box
+            pointerEvents="none"
+            twClassName="absolute inset-0 rounded-xl border border-border-muted"
+          />
         </ImageBackground>
       </Pressable>
     </Box>

@@ -39,6 +39,7 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 interface ResultProps {
   result: AutocompleteSearchResult;
   onPress: () => void;
+  onPressIn?: () => void;
   onSwapPress: (result: TokenSearchResult) => void;
   navigation?: AppNavigationProp;
 }
@@ -72,7 +73,7 @@ const PredictionsIcon: React.FC<{
 });
 
 export const Result: React.FC<ResultProps> = memo(
-  ({ result, onPress, onSwapPress }) => {
+  ({ result, onPress, onPressIn, onSwapPress }) => {
     const theme = useTheme();
     const styles = stylesheet({ theme });
 
@@ -183,7 +184,11 @@ export const Result: React.FC<ResultProps> = memo(
     };
 
     return (
-      <TouchableOpacity style={styles.item} onPress={onPress}>
+      <TouchableOpacity
+        style={styles.item}
+        onPress={onPress}
+        onPressIn={onPressIn}
+      >
         <View style={styles.itemWrapper}>
           {renderIcon()}
           <View style={styles.textContent}>

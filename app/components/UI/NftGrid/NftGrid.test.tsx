@@ -132,6 +132,11 @@ jest.mock('./NftGridSkeleton', () => {
   return () => <View testID="nft-grid-skeleton" />;
 });
 
+jest.mock('./NftSkeletonCell', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="nft-skeleton-cell" />;
+});
+
 // Mock Skeleton to avoid animation/design-system dependencies
 jest.mock('../../../component-library/components-temp/Skeleton', () => ({
   Skeleton: ({ testID }: { testID?: string }) => {
@@ -1193,6 +1198,127 @@ describe('NftGrid', () => {
       const nftItem = getByTestId('collectible-Test NFT-456');
       fireEvent(nftItem, 'longPress');
       expect(getByTestId('nft-grid-item-bottom-sheet')).toBeOnTheScreen();
+    });
+  });
+
+  describe('skeleton sentinels during detection', () => {
+    it('shows skeleton cells after existing NFTs while fetching', () => {
+      const mockCollectibles = { '0x1': [mockNft] };
+      setupSelectorMocks({
+        collectibles: mockCollectibles,
+        isNftFetching: true,
+      });
+      const store = mockStore(initialState);
+
+      const { getAllByTestId, getByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Real NFT still rendered
+      expect(getByTestId('collectible-Test NFT-456')).toBeOnTheScreen();
+      // 1 NFT → rowRemainder = (3-1)%3 = 2, skeletonCount = 2+6 = 8
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(8);
+    });
+
+    it('does not show skeleton cells when not fetching', () => {
+      const mockCollectibles = { '0x1': [mockNft] };
+      setupSelectorMocks({
+        collectibles: mockCollectibles,
+        isNftFetching: false,
+      });
+      const store = mockStore(initialState);
+
+      const { queryAllByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
+    });
+
+    it('appends row-completing + 6 extra skeletons for partial rows', () => {
+      // 5 NFTs: rowRemainder = (3-2)%3 = 1, skeletonCount = 1+6 = 7
+      const mockCollectibles = {
+        '0x1': Array.from({ length: 5 }, (_, i) => ({
+          ...mockNft,
+          tokenId: `${i}`,
+          name: `NFT ${i}`,
+        })),
+      };
+      setupSelectorMocks({
+        collectibles: mockCollectibles,
+        isNftFetching: true,
+      });
+      const store = mockStore(initialState);
+
+      const { getAllByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(7);
+    });
+
+    it('appends exactly 6 skeletons when NFT count is a multiple of 3', () => {
+      // 3 NFTs: rowRemainder = 0, skeletonCount = 0+6 = 6
+      const mockCollectibles = {
+        '0x1': Array.from({ length: 3 }, (_, i) => ({
+          ...mockNft,
+          tokenId: `${i}`,
+          name: `NFT ${i}`,
+        })),
+      };
+      setupSelectorMocks({
+        collectibles: mockCollectibles,
+        isNftFetching: true,
+      });
+      const store = mockStore(initialState);
+
+      const { getAllByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getAllByTestId('nft-skeleton-cell')).toHaveLength(6);
+    });
+
+    it('shows full skeleton grid (NftGridSkeleton) when 0 NFTs and fetching', () => {
+      setupSelectorMocks({ collectibles: {}, isNftFetching: true });
+      const store = mockStore(initialState);
+
+      const { getByTestId, queryAllByTestId } = render(
+        <Provider store={store}>
+          <NftGrid />
+        </Provider>,
+      );
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      expect(getByTestId('nft-grid-skeleton')).toBeOnTheScreen();
+      expect(queryAllByTestId('nft-skeleton-cell')).toHaveLength(0);
     });
   });
 

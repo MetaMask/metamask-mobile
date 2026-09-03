@@ -1,6 +1,7 @@
 import {
   TransactionMeta,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
@@ -11,7 +12,27 @@ import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
 import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
-import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
+import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
+
+/**
+ * Eagerly refresh native and token balances for the override account so that
+ * balance checks in the confirmation UI have up-to-date data. Without this, an
+ * account that was never selected would have empty/stale balance state on every
+ * chain, causing false "insufficient funds" alerts.
+ *
+ * Delegates to the shared loader: calling the balance controllers directly here
+ * did not work, because `AccountTrackerController.refresh` and
+ * `TokenBalancesController.updateBalances` both narrow to the *selected* account
+ * unless explicitly told otherwise, so the override account was never fetched.
+ *
+ * @param address - The override account's address.
+ */
+function refreshOverrideAccountBalances(address: string): void {
+  loadAssetsForAddresses([address]).catch(() => {
+    // Non-critical: the confirmation UI still renders, and the balance is
+    // refreshed again by the ordinary polling paths.
+  });
+}
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
   TransactionType.moneyAccountDeposit,
@@ -89,5 +110,11 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {
     config.accountOverride = selectedAccount.address as Hex;
+
+    if (!isMoneyAccountWithdraw(transaction)) {
+      config.isQuoteRequired = true;
+    }
   });
+
+  refreshOverrideAccountBalances(selectedAccount.address);
 }

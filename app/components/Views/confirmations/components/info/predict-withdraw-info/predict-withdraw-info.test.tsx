@@ -2,9 +2,11 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { PredictWithdrawInfo } from './predict-withdraw-info';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 import { CustomAmountInfo } from '../custom-amount-info';
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
+jest.mock('../../../hooks/pay/useDefaultPaySelectedSection');
 jest.mock('../../../hooks/ui/useNavbar');
 jest.mock('../../../hooks/tokens/useAddToken');
 jest.mock('../custom-amount-info', () => ({
@@ -29,12 +31,18 @@ describe('PredictWithdrawInfo', () => {
     });
   });
 
-  it('does not pass hasMax to CustomAmountInfo', () => {
+  it('passes hasMax to CustomAmountInfo', () => {
     render(<PredictWithdrawInfo />);
 
     expect(CustomAmountInfoMock).toHaveBeenCalledWith(
-      expect.not.objectContaining({ hasMax: true }),
+      expect.objectContaining({ hasMax: true }),
       undefined,
     );
+  });
+
+  it('calls useDefaultPaySelectedSection', () => {
+    render(<PredictWithdrawInfo />);
+
+    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
   });
 });

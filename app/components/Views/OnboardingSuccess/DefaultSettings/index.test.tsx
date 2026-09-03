@@ -71,4 +71,10 @@ describe('DefaultSettings', () => {
       Routes.ONBOARDING.SECURITY_SETTINGS,
     );
   });
+
+  it('navigates back when the header back button is pressed', () => {
+    const { getAllByTestId } = render(<DefaultSettings />);
+    fireEvent.press(getAllByTestId('button-icon')[0]);
+    expect(mockNavigation.goBack).toHaveBeenCalled();
+  });
 });

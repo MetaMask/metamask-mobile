@@ -24,7 +24,6 @@ import { compareSanitizedUrl } from '../../../../../util/sanitizeUrl';
 import onlyKeepHost from '../../../../../util/onlyKeepHost';
 import { isPublicEndpointUrl } from '../../../../../core/Engine/controllers/network-controller/utils';
 import { RPC } from '../../../../../constants/network';
-import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -388,9 +387,6 @@ export const useNetworkOperations = (): UseNetworkOperationsReturn => {
             mainnetConfig?.defaultRpcEndpointIndex
           ] ?? {};
         await MultichainNetworkController.setActiveNetwork(networkClientId);
-        setTimeout(async () => {
-          await updateIncomingTransactions();
-        }, 1000);
       }
 
       const { NetworkController } = Engine.context;

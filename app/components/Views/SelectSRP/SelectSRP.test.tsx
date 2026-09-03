@@ -77,6 +77,10 @@ const render = () =>
   });
 
 describe('SelectSRP', () => {
+  beforeEach(() => {
+    mockedNavigate.mockClear();
+  });
+
   it('navigates to full-screen reveal SRP', () => {
     const { getByText } = render();
     fireEvent.press(
@@ -89,5 +93,22 @@ describe('SelectSRP', () => {
         keyringId: mockKeyring1.metadata.id,
       },
     );
+  });
+
+  it('uses onKeyringSelect override when provided', () => {
+    const onKeyringSelect = jest.fn();
+    const { getByText } = renderWithProvider(
+      <SelectSRP onKeyringSelect={onKeyringSelect} />,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(
+      getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
+    );
+
+    expect(onKeyringSelect).toHaveBeenCalledWith(mockKeyring1.metadata.id);
+    expect(mockedNavigate).not.toHaveBeenCalled();
   });
 });

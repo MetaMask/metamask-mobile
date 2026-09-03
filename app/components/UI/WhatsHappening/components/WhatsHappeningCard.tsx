@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, memo } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -10,19 +10,20 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Tag,
 } from '@metamask/design-system-react-native';
 import type { WhatsHappeningItem } from '../types';
-import {
-  getImpactLabel,
-  getImpactBackgroundClass,
-  getImpactTextColor,
-} from '../util/impact';
+import { getImpactLabel, getImpactTagSeverity } from '../util/impact';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTracking';
 import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
-import type { WhatsHappeningSourceValue } from '../constants';
+import {
+  WHATS_HAPPENING_CARD_MIN_HEIGHT,
+  WHATS_HAPPENING_CARD_WIDTH,
+  type WhatsHappeningSourceValue,
+} from '../constants';
 import WhatsHappeningAssetSlider from './WhatsHappeningAssetSlider';
 
 interface WhatsHappeningCardProps {
@@ -63,74 +64,70 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
 
   return (
     <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
-      <TouchableOpacity
+      <Pressable
         onPress={handlePress}
-        activeOpacity={0.7}
-        style={tw.style(
-          'w-[280px] rounded-2xl bg-background-muted overflow-hidden p-4',
-        )}
+        style={({ pressed }) =>
+          tw.style(
+            `w-[${WHATS_HAPPENING_CARD_WIDTH}px] min-h-[${WHATS_HAPPENING_CARD_MIN_HEIGHT}px] rounded-2xl overflow-hidden pt-4 pl-4 pb-4`,
+            pressed ? 'bg-muted-pressed' : 'bg-muted',
+          )
+        }
       >
-        <Box gap={3} twClassName="mb-2">
-          {(item.impact || formattedDate) && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="w-full"
-            >
-              {item.impact ? (
-                <Box
-                  twClassName={`rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
-                >
+        <Box gap={3} twClassName="justify-start">
+          <Box gap={3} twClassName="pr-4">
+            {(item.impact || formattedDate) && (
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Between}
+                twClassName="w-full"
+              >
+                {item.impact ? (
+                  <Tag severity={getImpactTagSeverity(item.impact)}>
+                    {getImpactLabel(item.impact)}
+                  </Tag>
+                ) : (
+                  <Box />
+                )}
+                {formattedDate ? (
                   <Text
                     variant={TextVariant.BodyXs}
-                    color={getImpactTextColor(item.impact)}
-                    fontWeight={FontWeight.Medium}
+                    color={TextColor.TextAlternative}
                   >
-                    {getImpactLabel(item.impact)}
+                    {formattedDate}
                   </Text>
-                </Box>
-              ) : (
-                <Box />
-              )}
-              {formattedDate ? (
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                >
-                  {formattedDate}
-                </Text>
-              ) : null}
-            </Box>
-          )}
+                ) : null}
+              </Box>
+            )}
 
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={2}
-          >
-            {item.title}
-          </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextDefault}
+              numberOfLines={2}
+            >
+              {item.title}
+            </Text>
 
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            numberOfLines={3}
-          >
-            {item.description}
-          </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              numberOfLines={3}
+            >
+              {item.description}
+            </Text>
+          </Box>
+
+          {item.relatedAssets.length > 0 ? (
+            <WhatsHappeningAssetSlider
+              assets={item.relatedAssets}
+              item={item}
+              cardIndex={cardIndex}
+              source={source}
+            />
+          ) : null}
         </Box>
-
-        {item.relatedAssets.length > 0 ? (
-          <WhatsHappeningAssetSlider
-            assets={item.relatedAssets}
-            item={item}
-            cardIndex={cardIndex}
-            source={source}
-          />
-        ) : null}
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

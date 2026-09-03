@@ -3,7 +3,11 @@ import {
   Scope,
   UserFeedback,
   captureUserFeedback,
+  getClient,
   getGlobalScope,
+  init as sentryInit,
+  reactNavigationIntegration,
+  setTag as sentrySetTag,
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
@@ -15,6 +19,9 @@ import {
   rewriteReport,
   rewriteBreadcrumb,
   setEASUpdateContext,
+  isSentryEnabled,
+  getNavIntegration,
+  setupSentry,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
@@ -29,6 +36,7 @@ import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
 const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
 jest.mock('../../store', () => ({
@@ -57,6 +65,12 @@ jest.mock('../device', () => ({
 
 jest.mock('./tags', () => ({
   getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
+}));
+
+jest.mock('../trace', () => ({
+  hasMetricsConsent: jest.fn().mockResolvedValue(true),
+  // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
+  TraceName: { UIStartup: 'UIStartup' },
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -188,6 +202,40 @@ describe('deriveSentryEnvironment', () => {
   });
 });
 
+describe('isSentryEnabled', () => {
+  beforeEach(() => {
+    mockedGetClient.mockReset();
+  });
+
+  it('returns false when no Sentry client exists', () => {
+    mockedGetClient.mockReturnValue(undefined);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the Sentry client is explicitly disabled', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({ enabled: false }),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(false);
+  });
+
+  it('returns true when the Sentry client uses the default enabled option', () => {
+    mockedGetClient.mockReturnValue({
+      getOptions: () => ({}),
+    } as ReturnType<typeof getClient>);
+
+    const result = isSentryEnabled();
+
+    expect(result).toBe(true);
+  });
+});
+
 describe('excludeEvents', () => {
   const mockStore = jest.mocked(store);
   const mockDevice = jest.mocked(Device);
@@ -247,6 +295,42 @@ describe('excludeEvents', () => {
 
     expect(result).toBeTruthy();
     expect(result.start_timestamp).toBe(1234567890);
+  });
+
+  it('drops event when trace.timed_out flag is true', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
+          data: {
+            'trace.timed_out': true,
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBeNull();
+  });
+
+  it('keeps event when trace.timed_out flag is absent', () => {
+    const event = {
+      transaction: 'Onboarding - Overall Journey',
+      contexts: {
+        trace: {
+          span_id: 'abc123',
+          trace_id: 'def456',
+          data: {
+            'some.other.attr': 'value',
+          },
+        },
+      },
+    };
+
+    const result = excludeEvents(event);
+    expect(result).toBe(event);
   });
 
   it('returns main-exp for experimental environment and main build type', async () => {
@@ -901,6 +985,74 @@ describe('rewriteReport', () => {
     mockStore.getState.mockReturnValue({} as unknown as RootState);
   });
 
+  it('groups disk-full persist errors during rewriteReport', () => {
+    const report = {
+      exception: {
+        values: [
+          {
+            value:
+              "File '/var/mobile/.../persistStore/persist-root' could not be written; out of space",
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Device storage full: failed to persist persist:root',
+    );
+    expect(result.tags?.error_category).toBe('disk_full');
+    expect(result.tags?.persist_key).toBe('persist:root');
+  });
+
+  it('does not apply disk-full grouping to unrelated Sentry reports', () => {
+    const originalMessage =
+      'Network request failed while fetching token prices';
+    const report = {
+      exception: {
+        values: [
+          {
+            type: 'Error',
+            value: originalMessage,
+          },
+        ],
+      },
+      tags: { feature: 'token-prices' },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toBeUndefined();
+    expect(result.exception?.values?.[0]?.value).toBe(originalMessage);
+    expect(result.tags?.error_category).toBeUndefined();
+    expect(result.tags?.persist_key).toBeUndefined();
+    expect(result.tags?.feature).toBe('token-prices');
+  });
+
+  it('groups multiple absolute paths for the same persist key identically', () => {
+    const messages = [
+      "File '/var/mobile/Containers/Data/Application/AAA111/Documents/persistStore/persist-root' could not be written; volume is out of space",
+      "File '/data/user/0/io.metamask/files/persistStore/persist-root' could not be written; No space left on device",
+    ];
+
+    const results = messages.map((value) =>
+      rewriteReport({
+        exception: { values: [{ value }] },
+        contexts: {},
+      }),
+    );
+
+    expect(results[0].fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(results[1].fingerprint).toEqual(results[0].fingerprint);
+    expect(results[0].exception?.values?.[0]?.value).toBe(
+      results[1].exception?.values?.[0]?.value,
+    );
+  });
+
   it('should remove SES from stack trace', () => {
     const report = {
       exception: {
@@ -1137,6 +1289,10 @@ describe('setEASUpdateContext', () => {
     };
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('sets Sentry tags for OTA update metadata', () => {
     setEASUpdateContext();
 
@@ -1199,5 +1355,144 @@ describe('setEASUpdateContext', () => {
       error,
     );
     expect(scopeMock.setTag).not.toHaveBeenCalled();
+  });
+});
+
+describe('getNavIntegration', () => {
+  it('returns an object that exposes registerNavigationContainer', () => {
+    const integration = getNavIntegration();
+    expect(integration).toBeDefined();
+    expect(typeof integration.registerNavigationContainer).toBe('function');
+  });
+
+  it('returns the same instance on repeated calls (memoised)', () => {
+    expect(getNavIntegration()).toBe(getNavIntegration());
+  });
+
+  it('is created lazily with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
+    // getNavIntegration() is lazy: nothing runs at import time. isolateModules
+    // gives us a fresh module registry; calling getNavIntegration() inside it
+    // triggers creation and records the factory call on the shared jest.fn() mock.
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const utils = require('./utils') as typeof import('./utils');
+      utils.getNavIntegration();
+    });
+    expect(mockedFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ enableTimeToInitialDisplay: true }),
+    );
+  });
+
+  it('returns the no-op stub when hasTestOverrides is true', () => {
+    // Covers lines 644-646 (_noOpNavIntegration object + its arrow function body)
+    // and lines 651-653 (the hasTestOverrides early-return branch).
+    // Uses isolateModules + doMock so the flag is set before utils.ts is evaluated.
+
+    // Track the factory BEFORE the isolated block. reactNavigationIntegration is a
+    // single jest.fn() created in testSetup.js and shared across all module registries,
+    // so clearing it here and asserting after the block is valid — exactly the same
+    // pattern used by the laziness test above.
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+
+    jest.isolateModules(() => {
+      jest.doMock('../test/utils', () => ({
+        hasTestOverrides: true,
+        isE2EOrExpEnvironment: false,
+      }));
+      const { getNavIntegration: fresh } =
+        require('./utils') as typeof import('./utils'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const stub = fresh();
+      // The stub exposes registerNavigationContainer but it is a no-op
+      expect(typeof stub.registerNavigationContainer).toBe('function');
+      // Actually invoke the arrow function to cover its body
+      expect(stub.registerNavigationContainer({} as never)).toBeUndefined();
+    });
+
+    // Critical guard: the real Sentry factory must NOT have been invoked when
+    // hasTestOverrides is true. Removing the early-return from getNavIntegration()
+    // would cause reactNavigationIntegration() to be called, making this fail.
+    // Without this assertion the test passes whether the early-return exists or not
+    // because jest.fn() also returns a function that returns undefined.
+    expect(mockedFactory).not.toHaveBeenCalled();
+  });
+});
+
+describe('setupSentry', () => {
+  const mockedInit = jest.mocked(sentryInit);
+  const mockedSetTag = jest.mocked(sentrySetTag);
+
+  const originalDsn = process.env.MM_SENTRY_DSN;
+
+  beforeEach(() => {
+    mockedInit.mockClear();
+    mockedSetTag.mockClear();
+    process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
+  });
+
+  afterEach(() => {
+    process.env.MM_SENTRY_DSN = originalDsn;
+  });
+
+  it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
+    await setupSentry();
+
+    expect(mockedInit).toHaveBeenCalledTimes(1);
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      integrations: { name: string }[];
+    };
+    const integrationNames = initOptions.integrations.map((i) => i.name);
+
+    // ReactNavigation (navIntegration) is the explicit addition in this PR.
+    expect(integrationNames).toContain('ReactNavigation');
+
+    // ReactNativeTracing is NOT added explicitly — getDefaultIntegrations() pushes it
+    // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
+    // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
+    expect(integrationNames).not.toContain('ReactNativeTracing');
+  });
+
+  it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
+    await setupSentry();
+
+    // Must NOT be set globally — the tag is scoped to transactions only
+    // so it never appears on error events.
+    expect(mockedSetTag).not.toHaveBeenCalledWith('perf_fix', 'nav-tracing-v1');
+
+    // Verify beforeSendTransaction stamps the tag on kept events
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        tags?: Record<string, string>;
+      }) => { tags?: Record<string, string> } | null;
+    };
+    const mockEvent = { transaction: 'SomeRoute', tags: {} };
+    const result = initOptions.beforeSendTransaction(mockEvent);
+    expect(result).not.toBeNull();
+    expect((result as { tags?: Record<string, string> }).tags?.perf_fix).toBe(
+      'nav-tracing-v1',
+    );
+  });
+
+  it('returns null from beforeSendTransaction when excludeEvents filters the event', async () => {
+    // Covers the `if (filtered)` false branch (lines 709-714): when excludeEvents
+    // returns null the perf_fix block is skipped and null is forwarded to the SDK.
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        transaction?: string;
+        tags?: Record<string, string>;
+      }) => null | { tags?: Record<string, string> };
+    };
+
+    // 'Route Change' is always dropped by excludeEvents — exercises the null path
+    const result = initOptions.beforeSendTransaction({
+      transaction: 'Route Change',
+      tags: {},
+    });
+    expect(result).toBeNull();
   });
 });

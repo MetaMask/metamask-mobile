@@ -255,6 +255,7 @@ describe('ReviewOrder', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.REVIEW_ORDER,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -271,6 +272,7 @@ describe('ReviewOrder', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.REVIEW_ORDER_PAY,
       });
     });

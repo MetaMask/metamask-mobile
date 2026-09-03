@@ -5,19 +5,18 @@ import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import Button from '../../../component-library/components/Buttons/Button/Button';
 import Icon, {
   IconSize,
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
-import {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
+import {
+  Text,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 export const PROCEED_BUTTON_TEST_ID = 'proceed-button';
 export const REJECT_BUTTON_TEST_ID = 'reject-button';
@@ -75,21 +74,23 @@ const ChangeInSimulationModal = () => {
         <Text>{strings('change_in_simulation_modal.description')}</Text>
         <View style={styles.buttonsWrapper}>
           <Button
-            label={strings('change_in_simulation_modal.reject')}
             onPress={handleReject}
             size={ButtonSize.Lg}
             testID={REJECT_BUTTON_TEST_ID}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+          >
+            {strings('change_in_simulation_modal.reject')}
+          </Button>
           <Button
-            label={strings('change_in_simulation_modal.proceed')}
             onPress={handleProceed}
             size={ButtonSize.Lg}
             testID={PROCEED_BUTTON_TEST_ID}
-            variant={ButtonVariants.Secondary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+          >
+            {strings('change_in_simulation_modal.proceed')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

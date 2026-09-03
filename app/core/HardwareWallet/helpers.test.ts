@@ -4,11 +4,7 @@ import {
   getConnectionTipsForWalletType,
   getDeviceIdForAddress,
 } from './helpers';
-import {
-  ErrorCode,
-  HardwareWalletError,
-  HardwareWalletType,
-} from '@metamask/hw-wallet-sdk';
+import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 
 jest.mock('../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
@@ -28,9 +24,11 @@ jest.mock('../../util/address', () => ({
 }));
 
 jest.mock('../../constants/keyringTypes', () => ({
+  __esModule: true,
   default: {
     ledger: 'Ledger Hardware',
     qr: 'QR Hardware Wallet Device',
+    oneKey: 'OneKey Hardware',
   },
 }));
 
@@ -95,20 +93,38 @@ describe('HardwareWallet helpers', () => {
       // Reset mock and set up fresh implementation
       mockIsHardwareAccount.mockReset();
       // First call with ledger keyring types returns false
-      // Second call with qr keyring types returns true
+      // Second call with qr/oneKey keyring types returns true
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
+    });
+
+    it('returns QR for OneKey hardware account', () => {
+      mockIsHardwareAccount.mockReset();
+      mockIsHardwareAccount
+        .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
+        .mockReturnValueOnce(true); // isHardwareAccount(address, [qr, oneKey])
+
+      const result = getHardwareWalletTypeForAddress(testAddress);
+      expect(result).toBe(HardwareWalletType.Qr);
+      expect(mockIsHardwareAccount).toHaveBeenNthCalledWith(2, testAddress, [
+        'QR Hardware Wallet Device',
+        'OneKey Hardware',
+      ]);
     });
 
     it('returns undefined for non-hardware account', () => {
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount
         .mockReturnValueOnce(false) // isHardwareAccount(address, [ledger])
-        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr])
+        .mockReturnValueOnce(false); // isHardwareAccount(address, [qr, oneKey])
 
       const result = getHardwareWalletTypeForAddress(testAddress);
       expect(result).toBeUndefined();
@@ -167,7 +183,7 @@ describe('HardwareWallet helpers', () => {
       expect(mockGetDeviceId).toHaveBeenCalledTimes(1);
     });
 
-    it('rejects with a HardwareWalletError when Ledger device id lookup times out', async () => {
+    it('falls back to undefined when Ledger device id lookup times out', async () => {
       jest.useFakeTimers();
       mockIsHardwareAccount.mockReset();
       mockIsHardwareAccount
@@ -178,16 +194,9 @@ describe('HardwareWallet helpers', () => {
         new Promise(() => {}),
       );
 
-      const resultPromise = getDeviceIdForAddress(testAddress).catch(
-        (error) => error,
-      );
+      const resultPromise = getDeviceIdForAddress(testAddress);
       await jest.advanceTimersByTimeAsync(6000);
-      const error = await resultPromise;
-
-      expect(error).toEqual(expect.any(HardwareWalletError));
-      expect(error).toMatchObject({
-        code: ErrorCode.DeviceUnresponsive,
-      });
+      await expect(resultPromise).resolves.toBeUndefined();
       jest.useRealTimers();
     });
 

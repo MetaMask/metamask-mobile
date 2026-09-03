@@ -282,6 +282,40 @@ describe('getPaymentOverrideData', () => {
     });
   });
 
+  describe('non-atomic withdraw path', () => {
+    function buildNonAtomicRequest(
+      overrides?: Partial<GetPaymentOverrideDataRequest>,
+    ): GetPaymentOverrideDataRequest {
+      return buildRequest({
+        transactionData: {
+          ...VALID_TX_DATA,
+          atomic: false,
+        } as GetPaymentOverrideDataRequest['transactionData'],
+        ...overrides,
+      });
+    }
+
+    it('returns raw withdraw and transfer calls without delegation wrap', async () => {
+      const result = await getPaymentOverrideData(
+        buildNonAtomicRequest(),
+        mockMessenger,
+      );
+
+      expect(result).toStrictEqual({
+        calls: [
+          { to: '0xTeller', data: '0xwithdraw', value: '0x0' },
+          { to: '0xMusd', data: '0xtransfer', value: '0x0' },
+        ],
+      });
+    });
+
+    it('does not call getDelegationTransaction on non-atomic path', async () => {
+      await getPaymentOverrideData(buildNonAtomicRequest(), mockMessenger);
+
+      expect(getDelegationTransactionMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe('isPostQuote deposit path', () => {
     function buildPostQuoteRequest(
       overrides?: Partial<GetPaymentOverrideDataRequest>,
@@ -344,6 +378,45 @@ describe('getPaymentOverrideData', () => {
       );
 
       expect(result).toStrictEqual({ calls: [] });
+    });
+
+    describe('non-atomic deposit path', () => {
+      function buildNonAtomicPostQuoteRequest(
+        overrides?: Partial<GetPaymentOverrideDataRequest>,
+      ): GetPaymentOverrideDataRequest {
+        return buildRequest({
+          transactionData: {
+            ...VALID_TX_DATA,
+            isPostQuote: true,
+            atomic: false,
+          } as GetPaymentOverrideDataRequest['transactionData'],
+          ...overrides,
+        });
+      }
+
+      it('returns raw approve and deposit calls with recipient but without delegation wrap', async () => {
+        const result = await getPaymentOverrideData(
+          buildNonAtomicPostQuoteRequest(),
+          mockMessenger,
+        );
+
+        expect(result).toStrictEqual({
+          recipient: MONEY_ACCOUNT_ADDRESS,
+          calls: [
+            { to: '0xMusd', data: '0xapprove', value: '0x0' },
+            { to: '0xTeller', data: '0xdeposit', value: '0x0' },
+          ],
+        });
+      });
+
+      it('does not call getDelegationTransaction on non-atomic path', async () => {
+        await getPaymentOverrideData(
+          buildNonAtomicPostQuoteRequest(),
+          mockMessenger,
+        );
+
+        expect(getDelegationTransactionMock).not.toHaveBeenCalled();
+      });
     });
   });
 });

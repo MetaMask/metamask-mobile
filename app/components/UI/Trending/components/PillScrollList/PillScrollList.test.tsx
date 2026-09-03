@@ -80,6 +80,24 @@ describe('PillScrollList', () => {
     expect(getByTestId('pills-list-row-2')).toBeTruthy();
   });
 
+  it('uses a default wrapper without horizontal bleed', () => {
+    const { getByTestId } = render(
+      <PillScrollList
+        data={[{ id: 'a' }]}
+        isLoading={false}
+        renderItem={(item: { id: string }) => (
+          <Text testID={`pill-${item.id}`}>{item.id}</Text>
+        )}
+        keyExtractor={(item: { id: string }) => item.id}
+        Skeleton={Skeleton}
+        listTestId="pills-list"
+      />,
+    );
+
+    expect(getByTestId('pill-scroll-list-wrapper')).toBeTruthy();
+    expect(getByTestId('pills-list')).toBeTruthy();
+  });
+
   it('respects maxPills when slicing data before splitting', () => {
     const { getByTestId, queryByTestId } = render(
       <PillScrollList

@@ -34,6 +34,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     RAMP: {
       BUY: 'RampBuy',
       TOKEN_SELECTION: 'RampTokenSelection',
+      TOKEN_SELECTION_ROOT: 'RampTokenSelectionRoot',
       HEADLESS_HOST: 'RampHeadlessHost',
       HEADLESS_ENTRY: 'RampHeadlessEntry',
     },
@@ -86,6 +87,7 @@ const baseControllerValue: ReturnType<typeof useRampsController> = {
   setUserRegion: jest.fn(),
   selectedProvider: null,
   setSelectedProvider: jest.fn(),
+  setSelectedProviderForAsset: jest.fn(),
   providers: mockProviders,
   providersLoading: false,
   providersError: null,
@@ -374,6 +376,7 @@ describe('useHeadlessBuy', () => {
       const setters = {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
+        setSelectedProviderForAsset: jest.fn(),
         setSelectedPaymentMethod: jest.fn(),
       };
       (useRampsController as jest.Mock).mockReturnValue({
@@ -449,7 +452,7 @@ describe('useHeadlessBuy', () => {
         throw new Error('startHeadlessBuy did not return a session');
       }
       expect(mockNavigate).toHaveBeenCalledWith('RampHeadlessEntry', {
-        screen: 'RampTokenSelection',
+        screen: 'RampTokenSelectionRoot',
         params: {
           screen: 'RampHeadlessHost',
           params: { headlessSessionId: started.sessionId },

@@ -4,6 +4,6 @@ import { PriceImpactModalType } from './constants';
 
 export interface PriceImpactModalRouterParams {
   type: PriceImpactModalType;
-  token: BridgeToken;
+  token?: BridgeToken;
   location: MetaMetricsSwapsEventSource;
 }

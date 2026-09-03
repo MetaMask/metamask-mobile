@@ -7,6 +7,7 @@ export const EVENT_PROVIDERS = {
 
 export const EVENT_LOCATIONS = {
   ...STAKE_EVENT_LOCATIONS,
+  ACTIVITY_DETAILS: 'ActivityDetails',
   TOKEN_DETAILS_SCREEN: 'TokenDetailsScreen',
   LENDING_EARNINGS: 'LendingEarnings',
   EARN_INPUT_VIEW: 'EarnInputView',

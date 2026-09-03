@@ -13,6 +13,11 @@ export type UrlAutocompleteComponentProps = {
    */
   onSelect: (item: AutocompleteSearchResult) => void;
   /**
+   * Called on press-in for URL-based results (Sites/Recents/Favorites) before
+   * blur, so the browser can keep the URL bar focused until navigation starts.
+   */
+  onSelectPressIn?: () => void;
+  /**
    * Callback that is triggered while
    * tapping on the background
    */

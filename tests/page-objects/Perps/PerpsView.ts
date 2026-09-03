@@ -5,6 +5,9 @@ import {
   PerpsClosePositionViewSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsHomeViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
+  PerpsOrderHeaderSelectorsIDs,
   getPerpsTPSLViewSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
@@ -12,10 +15,11 @@ import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
 import { waitForStableEnabledIOS } from './waitForStableEnabledIOS';
-import PerpsHomeView from './PerpsHomeView';
 import PerpsMarketListView from './PerpsMarketListView';
+import PerpsMarketDetailsView from './PerpsMarketDetailsView';
+import { type AppiumElement, PlatformDetector, sleep } from '../../framework';
 
-/** Portfolio: limit order primary (`formatOrderLabel`) + position primary (`{symbol} {n}x {side}`). */
+/** Portfolio: limit order primary (`formatOrderLabel`) + position direction badge (`{n}x {side}`). */
 export interface PerpsPortfolioLimitFlowExpectOptions {
   symbol: string;
   direction: 'long' | 'short';
@@ -35,7 +39,7 @@ class PerpsView {
     leverageX: number,
     direction: 'long' | 'short',
     index = 0,
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     return Matchers.getElementByID(
       new RegExp(
         `^perps-positions-item-${symbol}-${leverageX}x-${direction}-${index}$`,
@@ -51,7 +55,7 @@ class PerpsView {
     symbol: string,
     direction: 'long' | 'short',
     index = 0,
-  ): DetoxElement {
+  ): Promise<AppiumElement> {
     const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return Matchers.getElementByID(
       new RegExp(
@@ -67,11 +71,11 @@ class PerpsView {
   }
 
   // "Edit TP/SL" button visible on position details
-  get editTpslButton(): DetoxElement {
+  get editTpslButton(): Promise<AppiumElement> {
     return Matchers.getElementByText('Edit TP/SL');
   }
 
-  get closePositionBottomSheetButton(): DetoxElement {
+  get closePositionBottomSheetButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
     );
@@ -105,22 +109,45 @@ class PerpsView {
     return Matchers.getElementByText('Dismiss');
   }
 
-  /** PerpsTabView main scroll (embedded tab). Not mounted on Perps home (homepage redesign). */
-  get anchor(): DetoxElement {
+  get anchor(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-tab-scroll-view');
   }
 
   /** Perps home header — use as swipe target when {@link anchor} is absent. */
-  get perpsHomeHeader(): DetoxElement {
+  get perpsHomeHeader(): Promise<AppiumElement> {
     return Matchers.getElementByID('perps-home');
   }
 
+  get perpsHomeAddFunds(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON);
+  }
+
+  private getPortfolioOrderCard(index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`,
+    );
+  }
+
+  private getPortfolioPositionDirectionTag(index = 0): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}-direction-tag`,
+    );
+  }
+
+  private getWalletHomePositionDirectionTag(
+    symbol: string,
+  ): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      `perps-position-row-${symbol}-direction-tag`,
+    );
+  }
+
   // Orders section on the Perps main tab
-  get ordersSectionTitle(): DetoxElement {
+  get ordersSectionTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText('Orders');
   }
 
-  get anyOrderCardOnTab(): DetoxElement {
+  get anyOrderCardOnTab(): Promise<AppiumElement> {
     // PerpsCard has no specific testID for orders; assert by the presence of the title and any text matching limit label
     return Matchers.getElementByText('Limit');
   }
@@ -134,6 +161,31 @@ class PerpsView {
     });
   }
 
+  private async scrollLimitOrderIntoViewOnPortfolio(
+    orderLabel: string,
+  ): Promise<void> {
+    const orderCard = this.getPortfolioOrderCard(0);
+    if (await Utilities.isElementVisible(orderCard, 750)) {
+      return;
+    }
+
+    const scrollView = Matchers.scrollContainer(
+      PerpsHomeViewSelectorsIDs.SCROLL_CONTENT,
+    );
+    const orderElement = Matchers.getElementByText(orderLabel);
+
+    try {
+      await Gestures.scrollToElement(orderElement, scrollView, {
+        direction: 'up',
+        scrollAmount: 150,
+        timeout: 5000,
+        elemDescription: `scrollToElement(up) for ${orderLabel} on Perps portfolio`,
+      });
+    } catch {
+      await this.scrollDownOnPerpsTab(1);
+    }
+  }
+
   /**
    * Open limit order visible on portfolio/home (`formatOrderLabel` / PerpsCard).
    */
@@ -144,8 +196,38 @@ class PerpsView {
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
     await Utilities.executeWithRetry(
       async () => {
+        await this.scrollLimitOrderIntoViewOnPortfolio(orderLabel);
+
+        const orderCard = this.getPortfolioOrderCard(0);
+        if (await Utilities.isElementVisible(orderCard, 1500)) {
+          await Assertions.expectElementToBeVisible(orderCard, {
+            description: `${orderLabel} order card on Perps portfolio (${symbol})`,
+            timeout: 3000,
+          });
+          return;
+        }
+
         await Assertions.expectTextDisplayed(orderLabel, {
           description: `${orderLabel} order visible on Perps portfolio (${symbol})`,
+          timeout: 5000,
+        });
+      },
+      { interval: 1000, timeout: 60000 },
+    );
+  }
+
+  /**
+   * Asserts the open limit order label is no longer shown on Perps portfolio/home.
+   */
+  async expectLimitOrderNotVisibleOnPortfolio(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const { symbol, direction } = options;
+    const orderLabel = options.orderLabel ?? `Limit ${direction}`;
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectTextNotDisplayed(orderLabel, {
+          description: `${orderLabel} order cleared from Perps portfolio (${symbol})`,
           timeout: 5000,
         });
       },
@@ -154,32 +236,68 @@ class PerpsView {
   }
 
   /**
-   * After fill: order label gone and position row matches `{symbol} {n}x {direction}` (PerpsCard).
+   * Taps an open limit order card on Perps portfolio/home to open order details.
+   */
+  async tapLimitOrderOnPortfolio(
+    options: PerpsPortfolioLimitFlowExpectOptions,
+  ): Promise<void> {
+    const orderLabel = options.orderLabel ?? `Limit ${options.direction}`;
+    const orderCard = Matchers.getElementByText(orderLabel);
+    await Gestures.waitAndTap(orderCard, {
+      elemDescription: `Tap ${orderLabel} order on Perps portfolio`,
+      timeout: 15000,
+    });
+  }
+
+  /**
+   * After fill: order label gone and the position row or its `{n}x {direction}` badge is visible.
    */
   async expectPositionRowAfterLimitOrderFilled(
     options: PerpsPortfolioLimitFlowExpectOptions,
   ): Promise<void> {
     const { symbol, direction } = options;
     const orderLabel = options.orderLabel ?? `Limit ${direction}`;
-    const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const positionPrimaryLine = new RegExp(
-      `${escapedSymbol} \\d+x ${direction}`,
-    );
+    const directionLabel = direction === 'long' ? 'Long' : 'Short';
+    const positionLocators: Promise<AppiumElement>[] = [
+      this.getPortfolioPositionDirectionTag(0),
+      this.getWalletHomePositionDirectionTag(symbol),
+    ];
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectTextNotDisplayed(orderLabel, {
           description: `Open order "${orderLabel}" cleared after fill (${symbol})`,
           timeout: 5000,
         });
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByText(positionPrimaryLine),
-          {
-            description: `${symbol} position row visible (${direction}, any leverage)`,
-            timeout: 5000,
-          },
-        );
+
+        let positionVisible = false;
+        for (const locator of positionLocators) {
+          try {
+            await Assertions.expectElementToBeVisible(locator, {
+              description: `${symbol} position row visible (${direction})`,
+              timeout: 3000,
+            });
+            await Assertions.expectElementToContainText(
+              locator,
+              directionLabel,
+              {
+                description: `${symbol} position direction is ${direction}`,
+                timeout: 3000,
+              },
+            );
+            positionVisible = true;
+            break;
+          } catch {
+            // Try the next portfolio layout (Perps home vs wallet homepage).
+          }
+        }
+
+        if (!positionVisible) {
+          throw new Error(
+            `No position row found for ${symbol} ${direction} after limit fill`,
+          );
+        }
       },
-      { interval: 1000, timeout: 30000 },
+      { interval: 1000, timeout: 60000 },
     );
   }
 
@@ -289,11 +407,35 @@ class PerpsView {
   }
 
   async tapClosePositionButton() {
-    await Gestures.waitAndTap(this.closePositionButton, {
-      elemDescription: 'Close position button',
-      checkStability: true,
-      timeout: 15000,
-    });
+    await Utilities.waitUntil(
+      async () => {
+        if (
+          await Utilities.isElementVisible(
+            this.closePositionBottomSheetButton,
+            400,
+          )
+        ) {
+          return true;
+        }
+
+        if (await Utilities.isElementVisible(this.closePositionButton, 400)) {
+          await Gestures.waitAndTap(this.closePositionButton, {
+            elemDescription: 'Close position button',
+            checkStability: true,
+            timeout: 5000,
+          });
+        }
+
+        return Utilities.isElementVisible(
+          this.closePositionBottomSheetButton,
+          800,
+        );
+      },
+      {
+        interval: 500,
+        timeout: 15000,
+      },
+    );
   }
 
   async tapConfirmClosePositionButton() {
@@ -317,7 +459,7 @@ class PerpsView {
   }
 
   async tapPlaceOrderButton() {
-    const el = this.placeOrderButton as DetoxElement;
+    const el = this.placeOrderButton;
     await Utilities.waitForReadyState(el, {
       checkStability: false,
       timeout: 8000,
@@ -331,6 +473,7 @@ class PerpsView {
     await Gestures.waitAndTap(el, {
       timeout: 35000,
       elemDescription: 'Place order button',
+      checkStability: true,
     });
   }
 
@@ -378,6 +521,184 @@ class PerpsView {
     });
   }
 
+  /** Perps portfolio home (orders/positions feed), not market details or explore list. */
+  async isOnPerpsPortfolioHome(timeout = 2000): Promise<boolean> {
+    const portfolioMarkers = [
+      'perps-home',
+      PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+      PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON,
+    ];
+
+    for (const testId of portfolioMarkers) {
+      if (
+        await Utilities.isElementVisible(
+          Matchers.getElementByID(testId),
+          timeout,
+        )
+      ) {
+        return true;
+      }
+    }
+
+    if (PlatformDetector.isIOS()) {
+      return this.isIosElementVisibleByXPath(
+        "//*[@type='XCUIElementTypeButton' and (@name='Add funds' or @label='Add funds')]",
+        timeout,
+      );
+    }
+
+    return false;
+  }
+
+  private get iosHeaderBackButtonXPath(): string {
+    return [
+      "//*[@type='XCUIElementTypeButton' and (",
+      "@name='Back' or @label='Back' or contains(@name,'Back') or ",
+      "contains(@label,'Back') or contains(@name,'arrow-left') or ",
+      "contains(@label,'arrow-left') or contains(@name,'arrow.left') or ",
+      "contains(@label,'arrow.left') or contains(@name,'ArrowLeft') or ",
+      "contains(@label,'ArrowLeft')",
+      ')]',
+    ].join('');
+  }
+
+  private async isIosElementVisibleByXPath(
+    xpath: string,
+    timeout = 2000,
+  ): Promise<boolean> {
+    if (!PlatformDetector.isIOS()) {
+      return false;
+    }
+
+    try {
+      await Assertions.expectElementToBeVisible(
+        Matchers.getElementByNativeXPath(xpath, { lastElement: false }),
+        {
+          timeout,
+          description: 'iOS xpath element visibility check',
+        },
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isIosHeaderBackVisible(timeout = 2000): Promise<boolean> {
+    return this.isIosElementVisibleByXPath(
+      this.iosHeaderBackButtonXPath,
+      timeout,
+    );
+  }
+
+  private async tapIosHeaderBackButton(): Promise<boolean> {
+    if (!PlatformDetector.isIOS()) {
+      return false;
+    }
+
+    try {
+      await Gestures.waitAndTap(
+        Matchers.getElementByNativeXPath(this.iosHeaderBackButtonXPath, {
+          lastElement: false,
+        }),
+        {
+          checkEnabled: false,
+          timeout: 10000,
+          elemDescription: 'iOS header back button',
+        },
+      );
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async isMarketDetailsBackVisible(timeout = 2000): Promise<boolean> {
+    return this.isTestIdVisible(
+      PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
+      timeout,
+    );
+  }
+
+  private async isTestIdVisible(
+    testId: string,
+    timeout = 2000,
+  ): Promise<boolean> {
+    return Utilities.isElementVisible(Matchers.getElementByID(testId), timeout);
+  }
+
+  private async isMarketOrderFlowNavigationTargetVisible(
+    marketListBackTestId: string,
+    timeout = 500,
+  ): Promise<boolean> {
+    if (await this.isOnPerpsPortfolioHome(timeout)) {
+      return true;
+    }
+    if (await this.isMarketDetailsBackVisible(timeout)) {
+      return true;
+    }
+    if (await this.isTestIdVisible(marketListBackTestId, timeout)) {
+      return true;
+    }
+    if (
+      await this.isTestIdVisible(
+        PerpsOrderHeaderSelectorsIDs.BACK_BUTTON,
+        timeout,
+      )
+    ) {
+      return true;
+    }
+
+    return this.isIosHeaderBackVisible(timeout);
+  }
+
+  private async waitForMarketOrderFlowNavigationTarget(
+    marketListBackTestId: string,
+    timeout = 30000,
+  ): Promise<void> {
+    await Utilities.waitUntil(
+      async () =>
+        this.isMarketOrderFlowNavigationTargetVisible(
+          marketListBackTestId,
+          500,
+        ),
+      {
+        interval: 500,
+        timeout,
+      },
+    );
+  }
+
+  private async tapMarketOrderFlowBackButton(
+    marketListBackTestId: string,
+  ): Promise<boolean> {
+    if (
+      await this.isTestIdVisible(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON, 1000)
+    ) {
+      await Gestures.waitAndTap(
+        Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON),
+        {
+          elemDescription: 'Perps order header back (to market details)',
+          timeout: 15000,
+        },
+      );
+      return true;
+    }
+
+    if (await this.isMarketDetailsBackVisible(1000)) {
+      await PerpsMarketDetailsView.tapBackButton();
+      return true;
+    }
+
+    if (await this.isTestIdVisible(marketListBackTestId, 1000)) {
+      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+      return true;
+    }
+
+    return this.tapIosHeaderBackButton();
+  }
+
   /**
    * After placing an order from market details (explore → market → order), return to Perps
    * portfolio home where open orders are listed. Uses market-details header back, then
@@ -385,30 +706,37 @@ class PerpsView {
    * exists on portfolio home and exits Perps toward wallet).
    */
   async navigateToPerpsPortfolioHomeFromMarketOrderFlow(): Promise<void> {
-    await this.tapBackButtonPositionSheet();
+    const marketListBackTestId = `${PerpsMarketListViewSelectorsIDs.CLOSE_BUTTON}-back-button`;
 
-    if (await Utilities.isElementVisible(PerpsHomeView.backHome, 3000)) {
-      return;
+    await this.waitForMarketOrderFlowNavigationTarget(
+      marketListBackTestId,
+      30000,
+    );
+
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (await this.isOnPerpsPortfolioHome(1000)) {
+        return;
+      }
+
+      const didTapBack =
+        await this.tapMarketOrderFlowBackButton(marketListBackTestId);
+      if (!didTapBack) {
+        break;
+      }
+
+      await sleep(700);
+
+      try {
+        await this.waitForMarketOrderFlowNavigationTarget(
+          marketListBackTestId,
+          10000,
+        );
+      } catch {
+        // Let the next attempt decide whether we reached home or have no path.
+      }
     }
 
-    if (
-      await Utilities.isElementVisible(
-        PerpsMarketListView.headerBackButton,
-        3000,
-      )
-    ) {
-      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
-      return;
-    }
-
-    if (
-      await Utilities.isElementVisible(
-        this.backButtonPositionSheet as DetoxElement,
-        3000,
-      )
-    ) {
-      await this.tapBackButtonPositionSheet();
-      await PerpsMarketListView.tapHeaderBackToPortfolioHome();
+    if (await this.isOnPerpsPortfolioHome(1000)) {
       return;
     }
 

@@ -10,7 +10,22 @@ import {
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
+import { isNoPositionFoundError } from '../utils/translatePerpsError';
+import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { TraceName } from '../../../../util/trace';
+import {
+  startPerpsCufTrace,
+  endPerpsCufTrace,
+  endPerpsCufRequestAfter,
+  watchPerpsCufTpSlChanged,
+  acceptPerpsCufRequest,
+} from '../utils/perpsCufTrace';
+import {
+  PERPS_CUF_TAG,
+  PERPS_CUF_END_REASON,
+  PERPS_CUF_STREAM_TIMEOUT_MS,
+} from '../constants/perpsCufTags';
 
 interface UseTPSLUpdateOptions {
   onSuccess?: () => void;
@@ -39,6 +54,42 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
+      // Confirmation CUF: ends when the live positions stream delivers the
+      // backend-confirmed TP/SL change (that delivery runs the CUF dispatcher).
+      // The optimistic cache patch renders sooner but does not end the span, so
+      // this measures gesture -> confirmed live data, not the optimistic guess.
+      const tpslCufOpId = startPerpsCufTrace({
+        name: TraceName.PerpsUpdateTPSLToConfirmation,
+      });
+      watchPerpsCufTpSlChanged(tpslCufOpId, position);
+      let controllerSettled = false;
+      endPerpsCufRequestAfter(
+        tpslCufOpId,
+        () => controllerSettled,
+        PERPS_CUF_STREAM_TIMEOUT_MS,
+      );
+
+      // The venue filled, closed or liquidated the position before this
+      // request landed, so there is nothing left to attach TP/SL to. Reconcile
+      // the stale local state and say so instead of raising a generic error.
+      const reconcileAlreadyClosed = () => {
+        endPerpsCufTrace({
+          id: tpslCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.ALREADY_CLOSED,
+          },
+        });
+        showToast(
+          PerpsToastOptions.positionManagement.closePosition
+            .positionAlreadyClosed,
+        );
+        // The position is gone, so its margin and balance moved with it — the
+        // controller pairs these two everywhere it closes.
+        PerpsCacheInvalidator.invalidate('positions');
+        PerpsCacheInvalidator.invalidate('accountState');
+      };
+
       try {
         const result = await updatePositionTPSL({
           symbol: position.symbol,
@@ -47,8 +98,14 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           trackingData,
           position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
         });
+        controllerSettled = true;
 
         if (result.success) {
+          // Controller accepted the update: open the gate before the optimistic
+          // render so a TP/SL change can complete the CUF as a success. A failed
+          // request never reaches here, so it can't be recorded as a success.
+          acceptPerpsCufRequest(tpslCufOpId);
+
           DevLogger.log('Position TP/SL updated successfully:', result);
 
           // Apply optimistic update immediately for better UX
@@ -70,6 +127,19 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
         }
         DevLogger.log('Failed to update position TP/SL:', result.error);
 
+        if (isNoPositionFoundError(result.error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
+
+        endPerpsCufTrace({
+          id: tpslCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.REQUEST_FAILED,
+          },
+        });
+
         const errorMessage = result.error || strings('perps.errors.unknown');
 
         showToast(
@@ -83,6 +153,18 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         return { success: false };
       } catch (error) {
+        if (isNoPositionFoundError(error)) {
+          reconcileAlreadyClosed();
+          return { success: false };
+        }
+
+        endPerpsCufTrace({
+          id: tpslCufOpId,
+          data: {
+            [PERPS_CUF_TAG.SUCCESS]: false,
+            [PERPS_CUF_TAG.REASON]: PERPS_CUF_END_REASON.EXCEPTION,
+          },
+        });
         DevLogger.log('Error updating position TP/SL:', error);
 
         Logger.error(ensureError(error, 'usePerpsTPSLUpdate.handle'), {
@@ -136,6 +218,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       updatePositionTPSL,
       showToast,
       PerpsToastOptions.positionManagement.tpsl,
+      PerpsToastOptions.positionManagement.closePosition,
       options,
       stream,
     ],

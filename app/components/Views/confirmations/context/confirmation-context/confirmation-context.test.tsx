@@ -14,6 +14,9 @@ describe('ConfirmationContext', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
     expect(result.current).toStrictEqual({
+      mmPayRequestInProgressNavHandler: expect.objectContaining({
+        current: false,
+      }),
       headlessBuyError: undefined,
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,

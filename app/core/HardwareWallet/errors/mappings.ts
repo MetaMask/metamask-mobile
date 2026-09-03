@@ -108,6 +108,19 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
       strings('hardware_wallet.error.blind_signing_disabled'),
     getLocalizedMessage: () => strings('hardware_wallet.errors.blind_signing'),
   },
+  [ErrorCode.DeviceStateOnlyV4Supported]: {
+    // Retrying cannot succeed: the dApp requested an unsupported signature
+    // type, so the user should just acknowledge the message.
+    recoveryAction: RecoveryAction.ACKNOWLEDGE,
+    icon: IconName.Danger,
+    iconColor: IconColor.Default,
+    getLocalizedTitle: () =>
+      strings('hardware_wallet.error.unsupported_signature'),
+    getLocalizedMessage: (walletType) =>
+      strings('hardware_wallet.errors.only_v4_supported', {
+        device: getHardwareWalletTypeName(walletType),
+      }),
+  },
   [ErrorCode.DeviceUnresponsive]: {
     recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Clock,

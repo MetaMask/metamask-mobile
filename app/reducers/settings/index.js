@@ -8,8 +8,12 @@ const initialState = {
   avatarAccountType: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: true,
   basicFunctionalityEnabled: true,
+  isBasicFunctionalityConsolidatedEnabled: false,
   deepLinkModalDisabled: false,
   hapticsEnabled: true,
+  // Whether this account is shown on the Top Traders leaderboard. Local mirror
+  // of the backend opt-in/out state; defaults to shown. Not persisted to AUS.
+  showAccountOnLeaderboard: true,
   // Perps chart preferences
   perpsChartPreferences: {
     preferredCandlePeriod: '15m', // Default to 15 minutes
@@ -58,6 +62,12 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         basicFunctionalityEnabled: action.basicFunctionalityEnabled,
       };
+    case 'SET_BASIC_FUNCTIONALITY_CONSOLIDATED_ENABLED':
+      return {
+        ...state,
+        isBasicFunctionalityConsolidatedEnabled:
+          action.isBasicFunctionalityConsolidatedEnabled,
+      };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
         ...state,
@@ -72,6 +82,11 @@ const settingsReducer = (state = initialState, action) => {
       return {
         ...state,
         hapticsEnabled: action.hapticsEnabled,
+      };
+    case 'SET_SHOW_ACCOUNT_ON_LEADERBOARD':
+      return {
+        ...state,
+        showAccountOnLeaderboard: action.showAccountOnLeaderboard,
       };
     case 'SET_PERPS_CHART_PREFERRED_CANDLE_PERIOD':
       return {

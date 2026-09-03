@@ -5,10 +5,6 @@ import { AvatarSize } from '../../../component-library/components/Avatars/Avatar
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -23,6 +19,11 @@ import Identicon from '../Identicon';
 import styleSheet from './Name.styles';
 import { NameProperties, NameType } from './Name.types';
 import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const TrustIcon: React.FC<{ icon: TrustSignalIcon | null }> = ({ icon }) => {
   if (!icon) {
@@ -50,7 +51,7 @@ const NameLabel: React.FC<{
       style={styles.label}
       ellipsizeMode={ellipsizeMode}
       numberOfLines={1}
-      variant={TextVariant.BodyMD}
+      variant={TextVariant.BodyMd}
     >
       {children}
     </Text>
@@ -147,8 +148,8 @@ const Name: React.FC<NameProperties> = ({
       >
         <View style={[styles.base, style]}>
           {/* If an icon override is provided, wrap it so its touch does not
-              propagate to the parent Pressable (avoids opening the tooltip
-              when the user taps an InlineAlert icon). */}
+            propagate to the parent Pressable (avoids opening the tooltip
+            when the user taps an InlineAlert icon). */}
           {iconOverride !== undefined ? (
             <View onStartShouldSetResponder={() => true}>{iconOverride}</View>
           ) : icon ? (
@@ -175,8 +176,8 @@ const Name: React.FC<NameProperties> = ({
             {subtitle && (
               <Text
                 numberOfLines={1}
-                color={TextColor.Alternative}
-                variant={TextVariant.BodySM}
+                color={TextColor.TextAlternative}
+                variant={TextVariant.BodySm}
               >
                 {subtitle}
               </Text>

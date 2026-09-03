@@ -1,5 +1,5 @@
 /**
- * Mainnet token addresses for mUSD conversion E2E and API mocks.
+ * Mainnet token addresses for mUSD E2E and API mocks.
  * Single source of truth so fixture, mocks, and transaction-pay stay in sync.
  */
 export const USDC_MAINNET =

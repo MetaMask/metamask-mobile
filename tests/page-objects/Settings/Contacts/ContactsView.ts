@@ -2,16 +2,15 @@ import { ContactsViewSelectorIDs } from '../../../../app/components/Views/Settin
 import Matchers from '../../../framework/Matchers';
 import Gestures from '../../../framework/Gestures';
 import Assertions from '../../../framework/Assertions';
+import { type AppiumElement } from '../../../framework';
 
 class ContactsView {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ContactsViewSelectorIDs.CONTAINER);
   }
 
-  get addButton(): DetoxElement {
-    return device.getPlatform() === 'ios'
-      ? Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON)
-      : Matchers.getElementByLabel(ContactsViewSelectorIDs.ADD_BUTTON);
+  get addButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ContactsViewSelectorIDs.ADD_BUTTON);
   }
 
   async tapOnAlias(alias: string): Promise<void> {

@@ -4,6 +4,8 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -14,14 +16,16 @@ import PerpsAdjustMarginActionSheet, {
   type AdjustMarginAction,
 } from '../../components/PerpsAdjustMarginActionSheet';
 import { usePerpsNavigation } from '../../hooks/usePerpsNavigation';
-import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { type BottomSheetRef } from '@metamask/design-system-react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 interface PerpsSelectAdjustMarginActionViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   position?: Position;
   onClose?: () => void;
+  enableHaptics?: boolean;
 }
 
 const PerpsSelectAdjustMarginActionView: React.FC<
@@ -30,8 +34,9 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   sheetRef: externalSheetRef,
   position: positionProp,
   onClose: onExternalClose,
+  enableHaptics = false,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
       RouteProp<PerpsNavigationParamList, 'PerpsSelectAdjustMarginAction'>
@@ -43,10 +48,23 @@ const PerpsSelectAdjustMarginActionView: React.FC<
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { navigateToAdjustMargin } = usePerpsNavigation();
+  const { playImpact } = useHaptics();
+
+  const handleClose = useCallback(() => {
+    if (externalSheetRef) {
+      onExternalClose?.();
+    } else {
+      navigation.goBack();
+    }
+  }, [navigation, externalSheetRef, onExternalClose]);
 
   const handleActionSelect = useCallback(
     (action: AdjustMarginAction) => {
       if (!position) return;
+
+      if (enableHaptics) {
+        playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+      }
 
       // Track UI interaction for add/remove margin selection
       const interactionType = {
@@ -68,37 +86,27 @@ const PerpsSelectAdjustMarginActionView: React.FC<
       // Navigate BEFORE closing (prevents navigation loss from component unmounting)
       switch (action) {
         case 'add_margin':
-          navigateToAdjustMargin(position, 'add');
+          navigateToAdjustMargin(position, 'add', { enableHaptics });
           break;
         case 'reduce_margin':
-          navigateToAdjustMargin(position, 'remove');
+          navigateToAdjustMargin(position, 'remove', { enableHaptics });
           break;
       }
 
       // Close bottom sheet AFTER navigation is triggered
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
+      sheetRef.current?.onCloseBottomSheet(handleClose);
     },
     [
       position,
+      enableHaptics,
+      playImpact,
       sheetRef,
-      onExternalClose,
+      handleClose,
       navigateToAdjustMargin,
       trackEvent,
       createEventBuilder,
     ],
   );
-
-  const handleClose = useCallback(() => {
-    if (externalSheetRef) {
-      sheetRef.current?.onCloseBottomSheet(() => {
-        onExternalClose?.();
-      });
-    } else {
-      navigation.goBack();
-    }
-  }, [navigation, externalSheetRef, sheetRef, onExternalClose]);
 
   return (
     <PerpsAdjustMarginActionSheet

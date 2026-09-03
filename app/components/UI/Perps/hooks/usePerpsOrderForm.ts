@@ -1,13 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   TRADING_DEFAULTS,
+  DECIMAL_PRECISION_CONFIG,
   OrderType,
+  PerpsMode,
   getMaxAllowedAmount,
+  isLimitExecutionOrderType,
+  isTriggerOrderType,
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
+  selectSelectedOrderType,
   type OrderFormState,
 } from '@metamask/perps-controller';
+import Engine from '../../../../core/Engine';
 import {
   usePerpsLiveAccount,
   usePerpsLivePositions,
@@ -15,17 +22,41 @@ import {
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
+import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  getMaxAllowedAmountAtExecutionPrice,
+  getProspectiveExecutionPrice,
+  getTriggerMarketSlippageCapPrice,
+} from '../utils/orderSizing';
+import { canonicalizeOrderPrice } from '../utils/triggerOrderValidation';
+import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
+  /** Surface-specific fallback used when no explicit or pending amount exists. */
+  fallbackAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
   /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
   effectiveAvailableBalance?: number;
 }
+
+const isOrderTypeAllowedOnSurface = (
+  type: OrderType | undefined,
+  mode: PerpsMode,
+): type is OrderType => {
+  if (!type) {
+    return false;
+  }
+  if (mode === PerpsMode.Lite) {
+    return type === 'market' || type === 'limit';
+  }
+  return true;
+};
 
 export interface UsePerpsOrderFormReturn {
   orderForm: OrderFormState;
@@ -37,11 +68,29 @@ export interface UsePerpsOrderFormReturn {
   setTakeProfitPrice: (price?: string) => void;
   setStopLossPrice: (price?: string) => void;
   setLimitPrice: (price?: string) => void;
+  /** Marks a limit price as user-committed (including order-book selection). */
+  commitLimitPrice: (price?: string) => void;
+  /** Marks the trigger price as user-committed (including order-book selection). */
+  commitTriggerPrice: (price?: string) => void;
+  hasBlurredLimitPrice: boolean;
+  hasBlurredTriggerPrice: boolean;
+  /** Local to the form; not part of controller `OrderFormState`. */
+  triggerPrice: string | undefined;
+  setTriggerPrice: (price?: string) => void;
+  /** Clears price-field interaction state without clearing entered prices. */
+  resetPriceInputInteraction: () => void;
   setOrderType: (type: OrderType) => void;
+  /** Reduce-only flag restored from the 30s pending draft, if present. */
+  pendingReduceOnly: boolean | undefined;
   handlePercentageAmount: (percentage: number) => void;
   handleMaxAmount: () => void;
   handleMinAmount: () => void;
   maxPossibleAmount: number;
+  /**
+   * Temporarily replace the margin-based max (e.g. Reduce Only, where max is
+   * the open position notional). Pass `null` to restore the margin-based cap.
+   */
+  setMaxPossibleAmountOverride: (amount: number | null) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -55,14 +104,16 @@ export function usePerpsOrderForm(
 ): UsePerpsOrderFormReturn {
   const {
     initialAsset = 'BTC',
-    initialDirection = 'long',
+    initialDirection,
     initialAmount,
+    fallbackAmount: fallbackAmountParam,
     initialLeverage,
-    initialType = 'market',
+    initialType,
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
   const currentNetwork = usePerpsNetwork();
+  const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
   const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
@@ -84,10 +135,13 @@ export function usePerpsOrderForm(
     selectTradeConfiguration(state, initialAsset),
   );
 
-  // Get pending trade configuration for this asset (temporary, expires after 5 minutes)
+  // Get pending trade configuration for this asset (temporary, expires after 30 seconds)
   const pendingConfig = usePerpsSelector((state) =>
     selectPendingTradeConfiguration(state, initialAsset),
   );
+
+  const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
+  const perpsMode = useSelector(selectPerpsMode);
 
   const spendableBalance = Number.parseFloat(
     effectiveAvailableBalanceParam != null
@@ -103,6 +157,7 @@ export function usePerpsOrderForm(
     currentNetwork === 'mainnet'
       ? TRADING_DEFAULTS.amount.mainnet
       : TRADING_DEFAULTS.amount.testnet;
+  const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
@@ -126,40 +181,63 @@ export function usePerpsOrderForm(
 
     // Don't calculate if price is not available yet to avoid temporary 0 values
     if (!currentPrice?.price) {
-      return defaultAmount.toString();
+      return fallbackAmount;
+    }
+
+    if (fallbackAmount === '') {
+      return '';
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
-    // Return the target amount directly (USD as source of truth, no optimization)
-    // Use conservative default ($10) unless explicitly provided via navigation param
+    const numericFallbackAmount = Number.parseFloat(fallbackAmount);
+    if (!Number.isFinite(numericFallbackAmount)) {
+      return fallbackAmount;
+    }
+
+    // Return the target amount directly (USD as source of truth, no optimization).
+    // Lite uses its conservative network default; other surfaces can opt out.
     const targetAmount =
-      tempMaxAmount < defaultAmount
+      tempMaxAmount < numericFallbackAmount
         ? tempMaxAmount.toString()
-        : defaultAmount.toString();
+        : fallbackAmount;
 
     return targetAmount;
   }, [
     initialAmount,
     pendingConfig?.amount,
     balanceForMax,
-    defaultAmount,
+    fallbackAmount,
     currentPrice?.price,
     marketData?.szDecimals,
     defaultLeverage,
   ]);
 
-  // Priority for order type: pending config > navigation param > default (market)
-  const defaultOrderType = pendingConfig?.orderType || initialType || 'market';
+  // Navigation param > persisted global type > pending draft.
+  // Pending is per-market, so it must not override a type chosen on another market.
+  // Lite only offers market/limit; skip Pro-only types (twap, triggers) so they
+  // stay stored for Pro instead of being submitted from Lite.
+  const defaultOrderType =
+    [initialType, persistedOrderType, pendingConfig?.orderType].find((type) =>
+      isOrderTypeAllowedOnSurface(type, perpsMode),
+    ) ?? 'market';
+
+  // Navigation param > pending draft > long. Do not default the param to long
+  // or a short draft cannot restore when the route omits direction.
+  const defaultDirection =
+    initialDirection ?? pendingConfig?.direction ?? 'long';
 
   // Calculate initial balance percentage
-  const initialMarginRequired =
-    Number.parseFloat(initialAmountValue) / defaultLeverage;
+  const parsedInitialAmount = Number.parseFloat(initialAmountValue);
+  const initialMarginRequired = Number.isFinite(parsedInitialAmount)
+    ? parsedInitialAmount / defaultLeverage
+    : 0;
   const initialBalancePercent =
     spendableBalance > 0
       ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
@@ -168,7 +246,7 @@ export function usePerpsOrderForm(
   // Initialize form state with pending config if available
   const [orderForm, setOrderForm] = useState<OrderFormState>({
     asset: initialAsset,
-    direction: initialDirection,
+    direction: defaultDirection,
     amount: initialAmountValue, // Will be updated by useEffect when initialAmountValue is calculated
     leverage: defaultLeverage,
     balancePercent: Math.round(initialBalancePercent * 100) / 100,
@@ -178,31 +256,93 @@ export function usePerpsOrderForm(
     type: defaultOrderType,
   });
 
+  const [maxPossibleAmountOverride, setMaxPossibleAmountOverride] = useState<
+    number | null
+  >(null);
+  const [triggerPrice, setTriggerPrice] = useState<string | undefined>();
+  const [hasBlurredLimitPrice, setHasBlurredLimitPrice] = useState(false);
+  const [hasBlurredTriggerPrice, setHasBlurredTriggerPrice] = useState(false);
+  const resetPriceInputInteraction = useCallback(() => {
+    setHasBlurredLimitPrice(false);
+    setHasBlurredTriggerPrice(false);
+  }, []);
+  const effectiveMaxSlippageBps = useMemo(
+    () =>
+      resolvePerpsMaxSlippageBps({
+        orderType: orderForm.type,
+        maxSlippageBps,
+        maxSlippageSource,
+      }),
+    [maxSlippageBps, maxSlippageSource, orderForm.type],
+  );
+
   // Calculate the maximum possible amount; when paying with custom token, capped by selected token amount in USD
-  // For limit orders, use the limit price instead of market price so the 100% slider
+  // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
-  const maxPossibleAmount = useMemo(() => {
+  const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const effectiveAssetPrice =
-      orderForm.type === 'limit' &&
-      orderForm.limitPrice &&
-      Number.parseFloat(orderForm.limitPrice) > 0
-        ? Number.parseFloat(orderForm.limitPrice)
-        : marketPrice;
+    const sizeDecimals =
+      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+    const canonicalLimitPrice = canonicalizeOrderPrice(
+      orderForm.limitPrice,
+      sizeDecimals,
+    );
+    const canonicalTriggerPrice = canonicalizeOrderPrice(
+      triggerPrice,
+      sizeDecimals,
+    );
+    const effectiveAssetPrice = getProspectiveExecutionPrice({
+      orderType: orderForm.type,
+      limitPrice: canonicalLimitPrice,
+      triggerPrice: canonicalTriggerPrice,
+      marketPrice,
+    });
+    const isTriggerMarketOrder =
+      isTriggerOrderType(orderForm.type) &&
+      !isLimitExecutionOrderType(orderForm.type);
+    const triggerMarketCapPrice =
+      isTriggerMarketOrder && canonicalTriggerPrice
+        ? getTriggerMarketSlippageCapPrice({
+            triggerPrice: canonicalTriggerPrice,
+            isBuy: orderForm.direction === 'long',
+            maxSlippageBps: effectiveMaxSlippageBps,
+            szDecimals: sizeDecimals,
+          })
+        : undefined;
+
+    if (triggerMarketCapPrice !== undefined) {
+      return getMaxAllowedAmountAtExecutionPrice({
+        spendableBalance: balanceForMax,
+        sizePrice: effectiveAssetPrice,
+        executionPrice: triggerMarketCapPrice,
+        assetSzDecimals: sizeDecimals,
+        leverage: orderForm.leverage,
+      });
+    }
+
     return getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: effectiveAssetPrice,
-      assetSzDecimals: marketData?.szDecimals ?? 6,
+      assetSzDecimals:
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
       leverage: orderForm.leverage,
     });
   }, [
     balanceForMax,
     currentPrice?.price,
     orderForm.type,
+    orderForm.direction,
     orderForm.limitPrice,
+    triggerPrice,
     marketData?.szDecimals,
     orderForm.leverage,
+    effectiveMaxSlippageBps,
   ]);
+
+  const maxPossibleAmount =
+    maxPossibleAmountOverride !== null
+      ? maxPossibleAmountOverride
+      : marginBasedMaxPossibleAmount;
 
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
@@ -229,7 +369,10 @@ export function usePerpsOrderForm(
       ...(pendingConfig.limitPrice !== undefined && {
         limitPrice: pendingConfig.limitPrice,
       }),
-      ...(pendingConfig.orderType && { type: pendingConfig.orderType }),
+      ...(pendingConfig.direction &&
+        initialDirection === undefined && {
+          direction: pendingConfig.direction,
+        }),
     }));
     // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -255,11 +398,18 @@ export function usePerpsOrderForm(
     }
   }, [existingPositionLeverage, initialLeverage, orderForm.leverage]);
 
-  // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max
+  // When user changes payment token (or effective balance drops), reset amount to MAX if current amount exceeds new max.
+  // Skip while a max override is set (Reduce Only): size is capped by the open
+  // position, not available margin, and the user may type above that cap.
   useEffect(() => {
+    if (maxPossibleAmountOverride !== null) {
+      return;
+    }
+
     const currentAmount = Number.parseFloat(orderForm.amount);
     if (
-      currentAmount === 0 ||
+      !Number.isFinite(currentAmount) ||
+      currentAmount <= 0 ||
       maxPossibleAmount === 0 ||
       currentAmount < maxPossibleAmount
     )
@@ -270,37 +420,72 @@ export function usePerpsOrderForm(
       ...prev,
       amount: newValue,
     }));
-  }, [balanceForMax, maxPossibleAmount, orderForm.amount]);
+  }, [
+    balanceForMax,
+    maxPossibleAmount,
+    maxPossibleAmountOverride,
+    orderForm.amount,
+  ]);
 
   // Update entire form
-  const updateOrderForm = (updates: Partial<OrderFormState>) => {
-    setOrderForm((prev) => ({ ...prev, ...updates }));
-  };
+  const updateOrderForm = useCallback(
+    (updates: Partial<OrderFormState>) => {
+      setOrderForm((prev) => ({ ...prev, ...updates }));
+      if (updates.leverage !== undefined) {
+        Engine.context.PerpsController.saveTradeConfiguration(
+          initialAsset,
+          updates.leverage,
+        );
+      }
+      if (updates.type !== undefined) {
+        Engine.context.PerpsController.setSelectedOrderType(updates.type);
+      }
+    },
+    [initialAsset],
+  );
 
   // Individual setters for common operations
-  const setAmount = (amount: string) => {
+  const setAmount = useCallback((amount: string) => {
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
-  };
+  }, []);
 
-  const setLeverage = (leverage: number) => {
-    setOrderForm((prev) => ({ ...prev, leverage }));
-  };
+  const setLeverage = useCallback(
+    (leverage: number) => {
+      setOrderForm((prev) => ({ ...prev, leverage }));
+      Engine.context.PerpsController.saveTradeConfiguration(
+        initialAsset,
+        leverage,
+      );
+    },
+    [initialAsset],
+  );
 
-  const setDirection = (direction: 'long' | 'short') => {
+  const setDirection = useCallback((direction: 'long' | 'short') => {
     setOrderForm((prev) => ({ ...prev, direction }));
-  };
+  }, []);
 
-  const setAsset = (asset: string) => {
-    setOrderForm((prev) => ({ ...prev, asset }));
-  };
+  // Asset-specific price drafts and their blur-validation state must not carry
+  // across markets.
+  const setAsset = useCallback(
+    (asset: string) => {
+      setOrderForm((prev) => ({
+        ...prev,
+        asset,
+        limitPrice: undefined,
+      }));
+      setTriggerPrice(undefined);
+      resetPriceInputInteraction();
+    },
+    [resetPriceInputInteraction],
+  );
 
-  const setTakeProfitPrice = (price?: string) => {
+  const setTakeProfitPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => ({ ...prev, takeProfitPrice: cleanedPrice }));
-  };
+  }, []);
 
-  const setStopLossPrice = (price?: string) => {
+  const setStopLossPrice = useCallback((price?: string) => {
     // Convert empty string to undefined for proper clearing
     const cleanedPrice = price === '' || price === null ? undefined : price;
     setOrderForm((prev) => {
@@ -313,18 +498,35 @@ export function usePerpsOrderForm(
       });
       return newState;
     });
-  };
+  }, []);
 
-  const setLimitPrice = (price?: string) => {
+  const setLimitPrice = useCallback((price?: string) => {
     setOrderForm((prev) => {
       const newState = { ...prev, limitPrice: price };
       return newState;
     });
-  };
+    setHasBlurredLimitPrice(false);
+  }, []);
 
-  const setOrderType = (type: OrderType) => {
+  const setTriggerPriceValue = useCallback((price?: string) => {
+    setTriggerPrice(price);
+    setHasBlurredTriggerPrice(false);
+  }, []);
+
+  const commitLimitPrice = useCallback((price?: string) => {
+    setOrderForm((prev) => ({ ...prev, limitPrice: price }));
+    setHasBlurredLimitPrice(true);
+  }, []);
+
+  const commitTriggerPrice = useCallback((price?: string) => {
+    setTriggerPrice(price);
+    setHasBlurredTriggerPrice(true);
+  }, []);
+
+  const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
-  };
+    Engine.context.PerpsController.setSelectedOrderType(type);
+  }, []);
 
   // Handle percentage-based amount selection (respects custom token amount when set).
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
@@ -361,21 +563,58 @@ export function usePerpsOrderForm(
     }));
   }, [currentNetwork]);
 
-  return {
-    orderForm,
-    updateOrderForm,
-    setAmount,
-    setLeverage,
-    setDirection,
-    setAsset,
-    setTakeProfitPrice,
-    setStopLossPrice,
-    setLimitPrice,
-    setOrderType,
-    handlePercentageAmount,
-    handleMaxAmount,
-    handleMinAmount,
-    maxPossibleAmount,
-    balanceForValidation: balanceForMax,
-  };
+  return useMemo(
+    () => ({
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      commitLimitPrice,
+      commitTriggerPrice,
+      hasBlurredLimitPrice,
+      hasBlurredTriggerPrice,
+      triggerPrice,
+      setTriggerPrice: setTriggerPriceValue,
+      resetPriceInputInteraction,
+      setOrderType,
+      pendingReduceOnly: pendingConfig?.reduceOnly,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      setMaxPossibleAmountOverride,
+      balanceForValidation: balanceForMax,
+    }),
+    [
+      orderForm,
+      updateOrderForm,
+      setAmount,
+      setLeverage,
+      setDirection,
+      setAsset,
+      setTakeProfitPrice,
+      setStopLossPrice,
+      setLimitPrice,
+      commitLimitPrice,
+      commitTriggerPrice,
+      hasBlurredLimitPrice,
+      hasBlurredTriggerPrice,
+      triggerPrice,
+      setTriggerPriceValue,
+      resetPriceInputInteraction,
+      setOrderType,
+      pendingConfig?.reduceOnly,
+      handlePercentageAmount,
+      handleMaxAmount,
+      handleMinAmount,
+      maxPossibleAmount,
+      setMaxPossibleAmountOverride,
+      balanceForMax,
+    ],
+  );
 }

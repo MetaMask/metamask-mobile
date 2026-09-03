@@ -1,4 +1,4 @@
-import { TextColor } from '@metamask/design-system-react-native';
+import { TagSeverity, TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../types';
 
@@ -12,6 +12,20 @@ export const getImpactLabel = (
       return strings('whats_happening.impact.bearish');
     default:
       return strings('whats_happening.impact.neutral');
+  }
+};
+
+/** Maps impact to MMDS Tag severity for expanded-card badges. */
+export const getImpactTagSeverity = (
+  impact: WhatsHappeningItem['impact'],
+): TagSeverity => {
+  switch (impact) {
+    case 'positive':
+      return TagSeverity.Success;
+    case 'negative':
+      return TagSeverity.Danger;
+    default:
+      return TagSeverity.Neutral;
   }
 };
 

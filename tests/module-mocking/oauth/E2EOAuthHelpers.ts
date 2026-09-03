@@ -92,6 +92,34 @@ export const E2EOAuthHelpers = {
     };
   },
 
+  // ============================================
+  // TELEGRAM CONFIGURATION
+  // ============================================
+
+  /**
+   * Configure for Telegram New User flow
+   */
+  configureTelegramNewUser: (): void => {
+    currentConfig = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.NEW_USER,
+      email: E2E_EMAILS.TELEGRAM_NEW_USER,
+      shouldSucceed: true,
+    };
+  },
+
+  /**
+   * Configure for Telegram Existing User flow
+   */
+  configureTelegramExistingUser: (): void => {
+    currentConfig = {
+      loginProvider: E2ELoginProvider.TELEGRAM,
+      scenario: E2EScenario.EXISTING_USER,
+      email: E2E_EMAILS.TELEGRAM_EXISTING_USER,
+      shouldSucceed: true,
+    };
+  },
+
   /**
    * Configure for error scenario
    */

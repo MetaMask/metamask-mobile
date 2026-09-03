@@ -2,72 +2,65 @@
 import Matchers from '../../../../../tests/framework/Matchers';
 import Gestures from '../../../../../tests/framework/Gestures';
 import Assertions from '../../../../../tests/framework/Assertions';
+import type { AppiumElement } from '../../../../../tests/framework/AppiumElement';
 import {
   SampleFeatureSelectorsIDs,
   SampleFeatureSelectorsText,
 } from '../selectors/SampleFeature.selectors';
 
 class SampleFeatureView {
-  get container(): Promise<Detox.IndexableNativeElement> {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_FEATURE_CONTAINER,
-    ) as Promise<Detox.IndexableNativeElement>;
+    );
   }
 
-  get title(): Promise<Detox.NativeElement> {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SampleFeatureSelectorsText.SAMPLE_FEATURE_TITLE,
     );
   }
 
-  get description(): Promise<Detox.NativeElement> {
+  get description(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       SampleFeatureSelectorsText.SAMPLE_FEATURE_DESCRIPTION,
     );
   }
 
-  get counterTitle(): Promise<Detox.IndexableNativeElement> {
+  get counterTitle(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_TITLE,
-    ) as Promise<Detox.IndexableNativeElement>;
+    );
   }
 
-  get counterValue(): Promise<Detox.IndexableNativeElement> {
+  get counterValue(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_VALUE,
-    ) as Promise<Detox.IndexableNativeElement>;
+    );
   }
 
-  get incrementButton(): Promise<Detox.IndexableNativeElement> {
+  get incrementButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       SampleFeatureSelectorsIDs.SAMPLE_COUNTER_PANE_INCREMENT_BUTTON,
-    ) as Promise<Detox.IndexableNativeElement>;
+    );
   }
 
-  get networkImage(): Promise<Detox.IndexableNativeElement> {
+  get networkImage(): Promise<AppiumElement> {
     // Assuming the network image has a testID
-    return Matchers.getElementByID(
-      'network-avatar-image',
-    ) as Promise<Detox.IndexableNativeElement>;
+    return Matchers.getElementByID('network-avatar-image');
   }
 
   // Pet Name Elements
-  get petNameAddressInput(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      'pet-name-address-input',
-    ) as Promise<Detox.IndexableNativeElement>;
+  get petNameAddressInput(): Promise<AppiumElement> {
+    return Matchers.getElementByID('pet-name-address-input');
   }
 
-  get petNameNameInput(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      'pet-name-name-input',
-    ) as Promise<Detox.IndexableNativeElement>;
+  get petNameNameInput(): Promise<AppiumElement> {
+    return Matchers.getElementByID('pet-name-name-input');
   }
 
-  get addPetNameButton(): Promise<Detox.IndexableNativeElement> {
-    return Matchers.getElementByID(
-      'add-pet-name-button',
-    ) as Promise<Detox.IndexableNativeElement>;
+  get addPetNameButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID('add-pet-name-button');
   }
 
   async tapIncrementButton(): Promise<void> {

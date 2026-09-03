@@ -16,10 +16,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '400',
   },
-  networkPicker: {
-    marginVertical: 16,
-    alignSelf: 'flex-start',
-  },
 });
 
 export default styles;

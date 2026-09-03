@@ -1,6 +1,6 @@
 // Third party dependencies
 import React, { useRef, useEffect } from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -197,27 +197,14 @@ describe('BottomSheetDialog', () => {
       expect(onCloseMock).toHaveBeenCalledTimes(2);
     });
   });
-  //   Note: Add Gesture tests when react-native-gesture-handler gets updated
-
-  describe('panGestureHandlerProps', () => {
-    it('passes props to the PanGestureHandler via panGestureHandlerProps', () => {
-      const { getByTestId } = render(
-        <BottomSheetDialog
-          panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
-        >
-          <Text>Test Child</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByTestId('pan-gesture-handler')).toBeOnTheScreen();
-    });
-
-    it('renders normally when panGestureHandlerProps is undefined', () => {
+  describe('swipe gesture', () => {
+    it('renders its children inside the GestureDetector', () => {
       const { getByText } = render(
-        <BottomSheetDialog panGestureHandlerProps={undefined}>
-          <Text>No Handler Props</Text>
+        <BottomSheetDialog>
+          <Text>Gesture Child</Text>
         </BottomSheetDialog>,
       );
-      expect(getByText('No Handler Props')).toBeOnTheScreen();
+      expect(getByText('Gesture Child')).toBeOnTheScreen();
     });
   });
 });

@@ -14,6 +14,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
+import Engine from '../../../../../core/Engine';
 
 /**
  * Mock Strategy:
@@ -169,6 +170,44 @@ describe('PredictTransactionsView', () => {
     ...overrides,
   });
 
+  it('tracks activity viewed when the list becomes visible by default', () => {
+    render(<PredictTransactionsView isVisible />);
+
+    expect(
+      Engine.context.PredictController.trackActivityViewed,
+    ).toHaveBeenCalledWith({
+      activityType: PredictEventValues.ACTIVITY_TYPE.ACTIVITY_LIST,
+    });
+  });
+
+  it('fetches activity when the list is visible', () => {
+    render(<PredictTransactionsView isVisible />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('fetches activity when visibility is omitted', () => {
+    render(<PredictTransactionsView />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: true });
+  });
+
+  it('does not fetch activity while the list is hidden', () => {
+    render(<PredictTransactionsView isVisible={false} />);
+
+    expect(usePredictActivity).toHaveBeenCalledWith({ enabled: false });
+  });
+
+  it('can defer visible-list analytics to the parent surface', () => {
+    render(
+      <PredictTransactionsView isVisible shouldTrackActivityViewed={false} />,
+    );
+
+    expect(
+      Engine.context.PredictController.trackActivityViewed,
+    ).not.toHaveBeenCalled();
+  });
+
   it('displays loading indicator when activity data loads', () => {
     (usePredictActivity as jest.Mock).mockReturnValueOnce(
       createUsePredictActivityValue({
@@ -236,7 +275,7 @@ describe('PredictTransactionsView', () => {
     expect(screen.queryByText('No recent activity')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Retry'));
+      fireEvent.press(screen.getByText('Try again'));
     });
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
@@ -444,6 +483,29 @@ describe('PredictTransactionsView', () => {
 
     expect(screen.getByText('Prediction won')).toBeOnTheScreen();
     expect(screen.queryByText('+$4.50')).toBeNull();
+  });
+
+  it('shows redeemable push positions as resolved rather than won', () => {
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        data: [],
+        isLoading: false,
+      }),
+    );
+
+    render(
+      <PredictTransactionsView
+        claimPendingPositions={[
+          createClaimPendingPosition({
+            cashPnl: 0,
+            status: PredictPositionStatus.REDEEMABLE,
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText('Prediction resolved')).toBeOnTheScreen();
+    expect(screen.queryByText('Prediction won')).toBeNull();
   });
 
   it('omits non-actionable claim pending positions', () => {

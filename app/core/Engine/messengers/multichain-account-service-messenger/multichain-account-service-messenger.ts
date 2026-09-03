@@ -7,6 +7,10 @@ import {
   MultichainAccountServiceMessenger,
   MultichainAccountServiceMultichainAccountGroupUpdatedEvent,
 } from '@metamask/multichain-account-service';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 
 /**
@@ -17,14 +21,12 @@ import { RootMessenger } from '../../types';
  * @returns The MultichainAccountServiceMessenger.
  */
 export function getMultichainAccountServiceMessenger(
-  rootMessenger: RootMessenger,
-): MultichainAccountServiceMessenger {
-  const messenger = new Messenger<
-    'MultichainAccountService',
+  rootMessenger: RootMessenger<
     MessengerActions<MultichainAccountServiceMessenger>,
-    MessengerEvents<MultichainAccountServiceMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<MultichainAccountServiceMessenger>
+  >,
+): MultichainAccountServiceMessenger {
+  const messenger: MultichainAccountServiceMessenger = new Messenger({
     namespace: 'MultichainAccountService',
     parent: rootMessenger,
   });
@@ -34,35 +36,38 @@ export function getMultichainAccountServiceMessenger(
       'AccountsController:getAccountByAddress',
       'AccountsController:getAccount',
       'AccountsController:getAccounts',
-      'SnapController:handleRequest',
       'KeyringController:getState',
       'KeyringController:withKeyring',
+      'KeyringController:withKeyringV2',
       'KeyringController:addNewKeyring',
       'KeyringController:getKeyringsByType',
       'KeyringController:createNewVaultAndKeychain',
       'KeyringController:createNewVaultAndRestore',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
-      'SnapController:getState',
+      'SnapController:handleRequest',
+      'SnapAccountService:ensureReady',
+      'SnapAccountService:getCapabilities',
     ],
     events: [
-      'KeyringController:stateChange',
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
-      'SnapController:stateChange',
     ],
     messenger,
   });
   return messenger;
 }
 
+type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
+
 type AllowedInitializationEvents =
-  MultichainAccountServiceMultichainAccountGroupUpdatedEvent;
+  | MultichainAccountServiceMultichainAccountGroupUpdatedEvent
+  | RemoteFeatureFlagControllerStateChangeEvent;
 
-type AllowedInitializationActions = never;
-
-export type MultichainAccountServiceInitMessenger = ReturnType<
-  typeof getMultichainAccountServiceInitMessenger
+export type MultichainAccountServiceInitMessenger = Messenger<
+  'MultichainAccountServiceInit',
+  AllowedInitializationActions,
+  AllowedInitializationEvents
 >;
 
 /**
@@ -73,20 +78,21 @@ export type MultichainAccountServiceInitMessenger = ReturnType<
  * @returns The MultichainAccountServiceInitMessenger.
  */
 export function getMultichainAccountServiceInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'MultichainAccountServiceInit',
-    AllowedInitializationActions,
-    AllowedInitializationEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<MultichainAccountServiceInitMessenger>,
+    MessengerEvents<MultichainAccountServiceInitMessenger>
+  >,
+): MultichainAccountServiceInitMessenger {
+  const messenger: MultichainAccountServiceInitMessenger = new Messenger({
     namespace: 'MultichainAccountServiceInit',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [],
-    events: ['MultichainAccountService:multichainAccountGroupUpdated'],
+    actions: ['RemoteFeatureFlagController:getState'],
+    events: [
+      'MultichainAccountService:multichainAccountGroupUpdated',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
   return messenger;

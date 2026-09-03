@@ -26,6 +26,12 @@ import {
 } from '@metamask/perps-controller';
 import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
 
+// Hoisted to module scope so the selector returns a stable reference when
+// withdrawalProgress is null/undefined. An inline object literal would create a
+// new reference on every Redux evaluation, breaking selector referential
+// stability and causing spurious re-renders on unrelated dispatches.
+const EMPTY_WITHDRAWAL_PROGRESS = { progress: 0, lastUpdated: 0 } as const;
+
 interface PerpsProgressBarProps {
   /**
    * Progress amount as a number between 0 and 100
@@ -107,7 +113,7 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
 
   // Get persistent withdrawal progress from controller
   const persistentWithdrawalProgress = usePerpsSelector(
-    (state) => state?.withdrawalProgress || { progress: 0, lastUpdated: 0 },
+    (state) => state?.withdrawalProgress ?? EMPTY_WITHDRAWAL_PROGRESS,
   );
 
   // Track transaction progress

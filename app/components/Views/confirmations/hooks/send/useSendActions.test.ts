@@ -168,6 +168,8 @@ describe('useSendActions', () => {
         isPredefinedBitcoin: false,
         isTronSendType: false,
         isPredefinedTron: false,
+        isStellarSendType: false,
+        isPredefinedStellar: false,
       });
 
       mockUseSendContext.mockReturnValue({

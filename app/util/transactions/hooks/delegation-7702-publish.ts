@@ -1,6 +1,7 @@
 import { Interface } from '@ethersproject/abi';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import {
+  Authorization,
   AuthorizationList,
   GasFeeToken,
   IsAtomicBatchSupportedRequest,
@@ -12,6 +13,7 @@ import {
   decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
+import { recoverAuthorizationAddress } from 'viem/utils';
 import {
   ANY_BENEFICIARY,
   BATCH_DEFAULT_MODE,
@@ -32,12 +34,11 @@ import {
   Delegation,
   encodeRedeemDelegations,
 } from '../../../core/Delegation/delegation';
-import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
+import { TransactionControllerInitMessenger } from '../../../core/Engine/wallet-init/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   RelaySubmitRequest,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
@@ -46,11 +47,13 @@ import {
   getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
+import { prefixError } from '../error-prefix';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
+const ERROR_PREFIX = 'Gas Station 7702: ';
 
 const EMPTY_RESULT = {
   transactionHash: undefined,
@@ -101,7 +104,7 @@ export class Delegation7702PublishHook {
       return await this.#hook(transactionMeta, _signedTx);
     } catch (error) {
       log('Error', error);
-      throw error;
+      throw prefixError(error, ERROR_PREFIX);
     }
   }
 
@@ -118,6 +121,8 @@ export class Delegation7702PublishHook {
       transactionMeta;
 
     const { from } = txParams;
+    const isGaslessBridge = Boolean(transactionMeta.isGasFeeIncluded);
+    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     const atomicBatchSupport = await this.#isAtomicBatchSupported({
       address: from as Hex,
@@ -135,15 +140,18 @@ export class Delegation7702PublishHook {
 
     if (!isChainSupported) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
+
+      if (isGaslessBridge || isSponsored) {
+        throw new Error(
+          'Chain must support EIP-7702 for sponsored or gas included transaction',
+        );
+      }
+
       return EMPTY_RESULT;
     }
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
-
-    const isGaslessBridge = transactionMeta.isGasFeeIncluded;
-
-    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
@@ -171,8 +179,7 @@ export class Delegation7702PublishHook {
       parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
-    const includeTransfer =
-      !isGaslessBridge && !transactionMeta.isGasFeeSponsored;
+    const includeTransfer = !isGaslessBridge && !isSponsored;
 
     if (includeTransfer && (!gasFeeToken || gasFeeToken === undefined)) {
       throw new Error('Gas fee token not found');
@@ -212,11 +219,14 @@ export class Delegation7702PublishHook {
       },
     };
 
-    if (!delegationAddress) {
-      relayRequest.authorizationList = await this.#buildAuthorizationList(
-        transactionMeta,
-        upgradeContractAddress,
-      );
+    const authorizationList = await this.#resolveAuthorizationList(
+      transactionMeta,
+      upgradeContractAddress,
+      delegationAddress,
+    );
+
+    if (authorizationList?.length) {
+      relayRequest.authorizationList = authorizationList;
     }
 
     log('Relay request', relayRequest);
@@ -241,15 +251,11 @@ export class Delegation7702PublishHook {
 
     const { uuid } = await submitRelayTransaction(relayRequest);
 
-    const { transactionHash, status } = await waitForRelayResult({
+    const { transactionHash } = await waitForRelaySuccess({
       chainId,
       uuid,
       interval: POLLING_INTERVAL_MS,
     });
-
-    if (status !== RelayStatus.Success) {
-      throw new Error(`Transaction relay error - ${status}`);
-    }
 
     // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
     // skips dropped checks
@@ -413,6 +419,95 @@ export class Delegation7702PublishHook {
     caveatBuilder.addCaveat(limitedCalls, 1);
 
     return caveatBuilder.build();
+  }
+
+  /**
+   * Build the authorization list for the Sentinel / Gas Station request.
+   *
+   * Always retain pre-signed authorizations whose recovered signer is not the
+   * transaction `from` (e.g. Money Account upgrades bundled with an EOA-paid
+   * batch). When `from` itself is not upgraded, also include a freshly signed
+   * EOA authorization — without replacing the foreign entries.
+   */
+  async #resolveAuthorizationList(
+    transactionMeta: TransactionMeta,
+    upgradeContractAddress: Hex | undefined,
+    delegationAddress: Hex | undefined,
+  ): Promise<AuthorizationList | undefined> {
+    const { from, authorizationList: existingAuthorizationList } =
+      transactionMeta.txParams;
+
+    const foreignAuthorizations = await this.#getForeignAuthorizations(
+      existingAuthorizationList,
+      from as Hex,
+    );
+
+    if (!delegationAddress) {
+      const fromAuthorization = await this.#buildAuthorizationList(
+        transactionMeta,
+        upgradeContractAddress,
+      );
+
+      return [...foreignAuthorizations, ...fromAuthorization];
+    }
+
+    return foreignAuthorizations.length ? foreignAuthorizations : undefined;
+  }
+
+  /**
+   * Filter `txParams.authorizationList` to fully signed entries whose recovered
+   * EIP-7702 signer is not the batch payer (`from`).
+   */
+  async #getForeignAuthorizations(
+    authorizationList: AuthorizationList | undefined,
+    from: Hex,
+  ): Promise<AuthorizationList> {
+    if (!authorizationList?.length) {
+      return [];
+    }
+
+    const foreignAuthorizations: AuthorizationList = [];
+
+    for (const authorization of authorizationList) {
+      if (!this.#isAuthorizationSigned(authorization)) {
+        continue;
+      }
+
+      try {
+        const signer = await recoverAuthorizationAddress({
+          authorization: {
+            address: authorization.address,
+            chainId: Number(authorization.chainId),
+            nonce: Number(authorization.nonce),
+            r: authorization.r,
+            s: authorization.s,
+            yParity: Number(authorization.yParity),
+          },
+        });
+
+        if (signer.toLowerCase() !== from.toLowerCase()) {
+          foreignAuthorizations.push(authorization);
+        }
+      } catch (error) {
+        log('Failed to recover authorization signer', { authorization, error });
+      }
+    }
+
+    log('Foreign authorizations', foreignAuthorizations);
+
+    return foreignAuthorizations;
+  }
+
+  #isAuthorizationSigned(
+    authorization: Authorization,
+  ): authorization is Required<Authorization> {
+    return Boolean(
+      authorization.chainId &&
+        authorization.nonce !== undefined &&
+        authorization.r &&
+        authorization.s &&
+        authorization.yParity !== undefined,
+    );
   }
 
   async #buildAuthorizationList(

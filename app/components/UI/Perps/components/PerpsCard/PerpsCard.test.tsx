@@ -44,7 +44,15 @@ jest.mock('../../../../../component-library/hooks', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string) => {
+    if (key === 'perps.order.long_label' || key === 'perps.market.long') {
+      return 'Long';
+    }
+    if (key === 'perps.order.short_label' || key === 'perps.market.short') {
+      return 'Short';
+    }
+    return key;
+  },
 }));
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
@@ -206,13 +214,17 @@ describe('PerpsCard', () => {
   describe('Rendering', () => {
     it('renders position card with correct content', () => {
       // Arrange & Act
-      const { getByText } = render(
+      const { getByText, getByTestId } = render(
         <PerpsCard position={mockPosition} testID="test-position-card" />,
       );
 
       // Assert
-      expect(getByText('ETH 3x long')).toBeDefined();
-      expect(getByText('1.5 ETH')).toBeDefined();
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Long')).toBeOnTheScreen();
+      expect(getByTestId('test-position-card-direction-tag')).toBeOnTheScreen();
+      expect(getByText('1.5 ETH • $4,350')).toBeOnTheScreen();
+      expect(getByText('+$150.00')).toBeOnTheScreen();
+      expect(getByText('+10.3%')).toBeOnTheScreen();
     });
 
     it('renders order card with correct content', () => {
@@ -252,7 +264,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('+$100.50 (+5.0%)')).toBeDefined();
+      expect(getByText('+$100.50')).toBeOnTheScreen();
+      expect(getByText('+5.0%')).toBeOnTheScreen();
     });
 
     it('displays correct PnL color for negative position', () => {
@@ -269,7 +282,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('-$50.25 (-2.5%)')).toBeDefined();
+      expect(getByText('-$50.25')).toBeOnTheScreen();
+      expect(getByText('-2.5%')).toBeOnTheScreen();
     });
 
     it('displays short position correctly', () => {
@@ -285,8 +299,9 @@ describe('PerpsCard', () => {
       );
 
       // Assert
-      expect(getByText('ETH 3x short')).toBeDefined();
-      expect(getByText('1.5 ETH')).toBeDefined();
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Short')).toBeOnTheScreen();
+      expect(getByText('1.5 ETH • $4,350')).toBeOnTheScreen();
     });
 
     it('displays order side correctly', () => {
@@ -323,11 +338,14 @@ describe('PerpsCard', () => {
       expect(queryByText('<$0.01')).toBeNull();
     });
 
-    it('uses trigger price label for trigger orders', () => {
+    it('uses limit price label for trigger-limit orders', () => {
       const triggerOrder = {
         ...mockOrder,
         isTrigger: true,
+        orderType: 'limit' as const,
+        triggerOrderType: 'take_profit_limit' as const,
         triggerPrice: '3100',
+        price: '2800',
         detailedOrderType: 'Take Profit Limit',
       };
 
@@ -335,25 +353,27 @@ describe('PerpsCard', () => {
         <PerpsCard order={triggerOrder} testID="test-card" />,
       );
 
-      expect(getByText('$3,100')).toBeDefined();
-      expect(getByText('perps.order.trigger_price')).toBeDefined();
+      expect(getByText('$2,800')).toBeOnTheScreen();
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
     });
 
-    it('falls back to market price label when trigger order has no valid trigger price', () => {
-      const triggerMarketOrderWithoutPrice = {
+    it('uses market price label for trigger-market with trigger and cap prices', () => {
+      const triggerMarketOrder = {
         ...mockOrder,
         isTrigger: true,
-        triggerPrice: '0',
-        price: '0',
+        orderType: 'market' as const,
+        triggerOrderType: 'stop_market' as const,
+        triggerPrice: '3000',
+        price: '2970',
         detailedOrderType: 'Stop Market',
       };
 
       const { getByText, queryByText } = render(
-        <PerpsCard order={triggerMarketOrderWithoutPrice} testID="test-card" />,
+        <PerpsCard order={triggerMarketOrder} testID="test-card" />,
       );
 
-      expect(getByText('perps.order.market')).toBeDefined();
-      expect(getByText('perps.order.market_price')).toBeDefined();
+      expect(getByText('perps.order.market')).toBeOnTheScreen();
+      expect(getByText('perps.order.market_price')).toBeOnTheScreen();
       expect(queryByText('perps.order.trigger_price')).toBeNull();
     });
 
@@ -377,6 +397,26 @@ describe('PerpsCard', () => {
       expect(getByText('$2,800')).toBeDefined();
       expect(getByText('perps.order.limit_price')).toBeDefined();
       expect(queryByText('perps.order.trigger_price')).toBeNull();
+    });
+
+    it('shows unavailable price for trigger-limit order without a limit price', () => {
+      const triggerLimitOrderWithoutPrice = {
+        ...mockOrder,
+        isTrigger: true,
+        orderType: 'limit' as const,
+        triggerOrderType: 'take_profit_limit' as const,
+        detailedOrderType: 'Take Profit Limit',
+        triggerPrice: '2800',
+        price: '0',
+      };
+
+      const { getByText, queryByText } = render(
+        <PerpsCard order={triggerLimitOrderWithoutPrice} testID="test-card" />,
+      );
+
+      expect(getByText('$---')).toBeOnTheScreen();
+      expect(getByText('perps.order.limit_price')).toBeOnTheScreen();
+      expect(queryByText('perps.order.market')).toBeNull();
     });
 
     it('keeps limit price label for non-trigger limit orders when triggerPrice is "0"', () => {
@@ -409,7 +449,7 @@ describe('PerpsCard', () => {
         ...mockPosition,
         positionValue: '4350.00',
         unrealizedPnl: '150.00',
-        returnOnEquity: '10.3',
+        returnOnEquity: '0.103',
       };
 
       // Act
@@ -418,10 +458,11 @@ describe('PerpsCard', () => {
       );
 
       // Assert - right-side financial values replaced with dots
-      expect(queryByText('$4,350')).toBeNull();
-      expect(queryByText(/\+\$150/)).toBeNull();
+      expect(queryByText('1.5 ETH • $4,350')).toBeNull();
+      expect(queryByText('+$150.00')).toBeNull();
+      expect(queryByText('+10.3%')).toBeNull();
       const hiddenElements = getAllByText(DOTS_SHORT);
-      expect(hiddenElements.length).toBeGreaterThanOrEqual(2);
+      expect(hiddenElements.length).toBeGreaterThanOrEqual(3);
     });
 
     it('shows position value and PnL label when privacy mode is disabled', () => {
@@ -439,7 +480,8 @@ describe('PerpsCard', () => {
       );
 
       // Assert - actual values visible, no hiding dots
-      expect(getByText('+$100.50 (+5.0%)')).toBeOnTheScreen();
+      expect(getByText('+$100.50')).toBeOnTheScreen();
+      expect(getByText('+5.0%')).toBeOnTheScreen();
       expect(queryByText(DOTS_SHORT)).toBeNull();
     });
 
@@ -464,13 +506,14 @@ describe('PerpsCard', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
       // Act
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <PerpsCard position={mockPosition} testID="test-card" />,
       );
 
-      // Assert - left-side non-financial content is unaffected
-      expect(getByText('ETH 3x long')).toBeOnTheScreen();
-      expect(getByText('1.5 ETH')).toBeOnTheScreen();
+      // Assert - title stays visible; size is treated as sensitive
+      expect(getByText('ETH')).toBeOnTheScreen();
+      expect(getByText('3x Long')).toBeOnTheScreen();
+      expect(queryByText('1.5 ETH • $4,350')).toBeNull();
     });
   });
 });

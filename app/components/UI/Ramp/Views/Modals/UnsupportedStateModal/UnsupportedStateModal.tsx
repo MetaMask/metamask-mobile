@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import {
   BottomSheet,
@@ -18,12 +19,12 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createStateSelectorModalNavigationDetails } from '../StateSelectorModal';
 import { useRampsUserRegion } from '../../../hooks/useRampsUserRegion';
-import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface UnsupportedStateModalParams {
   stateCode?: string;
@@ -39,13 +40,12 @@ export const createUnsupportedStateModalNavigationDetails =
 
 function UnsupportedStateModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { userRegion } = useRampsUserRegion();
   const { stateCode, stateName, onStateSelect } =
     useParams<UnsupportedStateModalParams>();
 
   const { styles } = useStyles(styleSheet, {});
-  const surfaceClass = useElevatedSurface();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -56,8 +56,9 @@ function UnsupportedStateModal() {
 
   const handleSelectDifferentState = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigation.navigate(
-        ...createStateSelectorModalNavigationDetails({
+      navigateWithDetails(
+        navigation,
+        createStateSelectorModalNavigationDetails({
           selectedState: stateCode,
           onStateSelect,
         }),
@@ -81,7 +82,6 @@ function UnsupportedStateModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       isInteractable={false}
-      twClassName={surfaceClass}
     >
       <BottomSheetHeader onClose={handleClose}>
         <Text variant={TextVariant.HeadingMd}>

@@ -45,6 +45,7 @@ const defaultMockController: UseRampsControllerResult = {
   setUserRegion: jest.fn(),
   selectedProvider: null,
   setSelectedProvider: jest.fn(),
+  setSelectedProviderForAsset: jest.fn(),
   providers: [],
   providersLoading: false,
   providersError: null,

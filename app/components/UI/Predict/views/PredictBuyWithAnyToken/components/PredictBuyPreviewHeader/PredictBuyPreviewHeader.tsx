@@ -11,8 +11,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import React from 'react';
-import { Image, TouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../../../../locales/i18n';
 import {
   OrderPreview,
@@ -21,6 +23,7 @@ import {
   PredictOutcomeToken,
 } from '../../../../types';
 import { formatCents } from '../../../../utils/format';
+import { getDisplayBuyPrice } from '../../../../utils/prices';
 
 export interface PredictBuyPreviewHeaderProps {
   market: PredictMarket;
@@ -45,7 +48,8 @@ const getOutcomeTokenLabel = (
   const selectedOutcomeToken =
     outcome.tokens.find((token) => token.id === preview?.outcomeTokenId) ??
     outcomeToken;
-  const sharePrice = preview?.sharePrice ?? selectedOutcomeToken?.price ?? 0;
+  const sharePrice =
+    preview?.sharePrice ?? getDisplayBuyPrice(selectedOutcomeToken) ?? 0;
 
   return {
     title: selectedOutcomeToken?.title ?? '',
@@ -125,7 +129,7 @@ export function PredictBuyPreviewHeaderBack({
 }: {
   onBack?: () => void;
 }) {
-  const { goBack } = useNavigation();
+  const { goBack } = useNavigation<AppNavigationProp>();
 
   return (
     <TouchableOpacity testID="back-button" onPress={onBack ?? goBack}>

@@ -5,108 +5,101 @@ import {
 import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { waitFor } from 'detox';
-import type {
-  IndexableNativeElement,
-  NativeElement,
-  IndexableSystemElement,
-} from 'detox/detox';
-type DetoxElement = Promise<
-  IndexableNativeElement | NativeElement | IndexableSystemElement
->;
+import Assertions from '../../framework/Assertions';
+import { type AppiumElement } from '../../framework';
 
 class ConnectedAccountsModal {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
   }
 
-  get permissionsButton(): DetoxElement {
+  get permissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,
     );
   }
 
-  get networkPicker(): DetoxElement {
+  get networkPicker(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NETWORK_PICKER,
     );
   }
 
-  get disconnectAllButton(): DetoxElement {
+  get disconnectAllButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.DISCONNECT_ALL,
     );
   }
 
-  get disconnectButton(): DetoxElement {
+  get disconnectButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.DISCONNECT);
   }
 
-  get disconnectAllAccountsAndNetworksButton(): DetoxElement {
+  get disconnectAllAccountsAndNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS,
     );
   }
 
-  get navigateToEditAccountsPermissionsButton(): DetoxElement {
+  get navigateToEditAccountsPermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON,
     );
   }
 
-  get navigateToEditNetworksPermissionsButton(): DetoxElement {
+  get navigateToEditNetworksPermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON,
     );
   }
 
-  get connectAccountsButton(): DetoxElement {
+  get connectAccountsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONNECT_ACCOUNTS_BUTTON,
     );
   }
 
-  get managePermissionsButton(): DetoxElement {
+  get managePermissionsButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.MANAGE_PERMISSIONS,
     );
   }
 
-  get permissionsSummaryTab(): DetoxElement {
+  get permissionsSummaryTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       WalletViewSelectorsText.PERMISSIONS_SUMMARY_TAB,
     );
   }
 
-  get accountsSummaryTab(): DetoxElement {
+  get accountsSummaryTab(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       WalletViewSelectorsText.ACCOUNTS_SUMMARY_TAB,
     );
   }
 
-  get accountListBottomSheet(): DetoxElement {
+  get accountListBottomSheet(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.ACCOUNT_LIST_BOTTOM_SHEET,
     );
   }
 
-  get title(): DetoxElement {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByText(ConnectedAccountModalSelectorsText.TITLE);
   }
 
-  get selectAllNetworksButton(): DetoxElement {
+  get selectAllNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.SELECT_ALL,
     );
   }
 
-  get disconnectNetworksButton(): DetoxElement {
+  get disconnectNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.DISCONNECT_NETWORKS_BUTTON,
     );
   }
 
-  get confirmDisconnectNetworksButton(): DetoxElement {
+  get confirmDisconnectNetworksButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       ConnectedAccountsSelectorsIDs.CONFIRM_DISCONNECT_NETWORKS_BUTTON,
     );
@@ -204,14 +197,10 @@ class ConnectedAccountsModal {
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(
-      this.title as Promise<IndexableNativeElement>,
-      'down',
-      {
-        speed: 'fast',
-        elemDescription: 'Scroll to bottom of modal',
-      },
-    );
+    await Gestures.swipe(this.title, 'down', {
+      speed: 'fast',
+      elemDescription: 'Scroll to bottom of modal',
+    });
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
@@ -221,11 +210,15 @@ class ConnectedAccountsModal {
   }
 
   async getNetworkName(): Promise<string> {
-    const networkNameElement = this.navigateToEditNetworksPermissionsButton;
-    const elem = await networkNameElement;
-    // Type assertion to access label property which exists on Detox elements
-    const attributes = await (elem as IndexableNativeElement).getAttributes();
-    return (attributes as { label: string }).label;
+    const elem = (await this
+      .navigateToEditNetworksPermissionsButton) as AppiumElement;
+    const label =
+      (await elem.getAttribute('label')) ??
+      (await elem.getAttribute('name')) ??
+      (await elem.getAttribute('content-desc')) ??
+      (await elem.textContent()) ??
+      '';
+    return label;
   }
 
   async getDisplayedAccountNames(): Promise<string[]> {
@@ -243,10 +236,12 @@ class ConnectedAccountsModal {
 
     for (const accountName of possibleAccountNames) {
       try {
-        const textElement = await Matchers.getElementByText(accountName);
-        await waitFor(textElement).toBeVisible().withTimeout(1000);
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByText(accountName),
+          { timeout: 1000 },
+        );
         displayedAccounts.push(accountName);
-      } catch (e) {
+      } catch {
         // Account not displayed, continue
       }
     }

@@ -19,6 +19,7 @@ jest.mock('../../../../../reducers/fiatOrders', () => ({
     { chainId: '1', name: 'Ethereum' },
     { chainId: '137', name: 'Polygon' },
   ]),
+  getDetectedGeolocation: jest.fn(() => null),
 }));
 
 const mockNavigate = jest.fn();
@@ -135,13 +136,10 @@ describe('AccountSelector', () => {
 
     fireEvent.press(screen.getByTestId('ramps-account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(
-      'RootModalFlow',
+      'AccountSelector',
       expect.objectContaining({
-        screen: 'AccountSelector',
-        params: expect.objectContaining({
-          isEvmOnly: true,
-          disableAddAccountButton: true,
-        }),
+        isEvmOnly: true,
+        disableAddAccountButton: true,
       }),
     );
   });
@@ -153,13 +151,10 @@ describe('AccountSelector', () => {
 
     fireEvent.press(screen.getByTestId('ramps-account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(
-      'RootModalFlow',
+      'AccountSelector',
       expect.objectContaining({
-        screen: 'AccountSelector',
-        params: expect.objectContaining({
-          isEvmOnly: false,
-          disableAddAccountButton: true,
-        }),
+        isEvmOnly: false,
+        disableAddAccountButton: true,
       }),
     );
   });
@@ -171,13 +166,10 @@ describe('AccountSelector', () => {
 
     fireEvent.press(screen.getByTestId('ramps-account-picker'));
     expect(mockNavigate).toHaveBeenCalledWith(
-      'RootModalFlow',
+      'AccountSelector',
       expect.objectContaining({
-        screen: 'AccountSelector',
-        params: expect.objectContaining({
-          isEvmOnly: undefined,
-          disableAddAccountButton: true,
-        }),
+        isEvmOnly: undefined,
+        disableAddAccountButton: true,
       }),
     );
   });
@@ -190,13 +182,10 @@ describe('AccountSelector', () => {
     fireEvent.press(screen.getByTestId('ramps-account-picker'));
 
     const expectedNavParams = [
-      'RootModalFlow',
+      'AccountSelector',
       {
-        screen: 'AccountSelector',
-        params: {
-          isEvmOnly: undefined,
-          disableAddAccountButton: true,
-        },
+        isEvmOnly: undefined,
+        disableAddAccountButton: true,
       },
     ];
 

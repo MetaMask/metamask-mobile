@@ -3,7 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TokenListItem from './TokenListItem';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import { DepositCryptoCurrency } from '../../types/legacyDeposit';
 import initialRootState from '../../../../../util/test/initial-root-state';
 
 const mockGetTokenNetworkInfo = jest.fn();

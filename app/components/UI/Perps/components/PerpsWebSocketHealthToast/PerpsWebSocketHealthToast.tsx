@@ -8,20 +8,18 @@ import {
   Dimensions,
 } from 'react-native';
 import {
+  Icon,
+  IconColor,
   IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
-  Spinner,
-} from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../../component-library/hooks';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import Icon, {
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+  IconSize as ReactNativeDsIconSize,
+  Spinner,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
@@ -128,7 +126,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           description: strings(
             'perps.connection.websocket_disconnected_message',
           ),
-          iconColor: IconColor.Error,
+          iconColor: IconColor.ErrorDefault,
           showSpinner: false,
         };
 
@@ -141,7 +139,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               attempt: reconnectionAttempt,
             },
           ),
-          iconColor: IconColor.Warning,
+          iconColor: IconColor.WarningDefault,
           showSpinner: false,
         };
 
@@ -149,7 +147,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         return {
           title: strings('perps.connection.websocket_connected'),
           description: strings('perps.connection.websocket_connected_message'),
-          iconColor: IconColor.Success,
+          iconColor: IconColor.SuccessDefault,
           showSpinner: false,
         };
 
@@ -244,48 +242,53 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         pointerEvents="box-none"
         {...panResponder.panHandlers}
       >
-        <View style={styles.toastWrapper}>
-          <View style={styles.toast}>
-            {/* Icon or Spinner */}
-            <View style={styles.iconContainer}>
-              {toastConfig.showSpinner ? (
-                <Spinner
-                  color={ReactNativeDsIconColor.PrimaryDefault}
-                  spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
-                />
-              ) : (
-                <Icon
-                  name={IconName.Connect}
-                  size={IconSize.Xl}
-                  color={toastConfig.iconColor}
-                />
-              )}
-            </View>
-
-            {/* Text Content */}
-            <View style={styles.textContainer}>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                {toastConfig.title}
-              </Text>
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-                {toastConfig.description}
-              </Text>
-            </View>
-
-            {/* Retry Button - only shown when disconnected */}
-            {connectionState === WebSocketConnectionState.Disconnected &&
-              onRetry && (
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={onRetry}
-                  testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
-                >
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {strings('perps.connection.websocket_retry')}
-                  </Text>
-                </TouchableOpacity>
-              )}
+        <View style={styles.toast}>
+          {/* Icon or Spinner */}
+          <View style={styles.iconContainer}>
+            {toastConfig.showSpinner ? (
+              <Spinner
+                color={ReactNativeDsIconColor.PrimaryDefault}
+                spinnerIconProps={{ size: ReactNativeDsIconSize.Md }}
+              />
+            ) : (
+              <Icon
+                name={IconName.Connect}
+                size={IconSize.Lg}
+                color={toastConfig.iconColor}
+              />
+            )}
           </View>
+
+          {/* Text Content */}
+          <View style={styles.textContainer}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+              {toastConfig.title}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              style={styles.description}
+            >
+              {toastConfig.description}
+            </Text>
+          </View>
+
+          {/* Retry Button - only shown when disconnected */}
+          {connectionState === WebSocketConnectionState.Disconnected &&
+            onRetry && (
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={onRetry}
+                testID={PerpsWebSocketHealthToastSelectorsIDs.RETRY_BUTTON}
+              >
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('perps.connection.websocket_retry')}
+                </Text>
+              </TouchableOpacity>
+            )}
         </View>
       </Animated.View>
     </View>

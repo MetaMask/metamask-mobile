@@ -38,17 +38,15 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
   beforeEach(() => {
     process.env = { ...originalEnv };
     delete process.env.REWARDS_API_URL;
-    delete process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY;
   });
 
   afterEach(() => {
     process.env = originalEnv;
   });
 
-  describe('BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY override', () => {
-    it('returns custom URL when REWARDS_API_URL is set and BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is true', () => {
+  describe('REWARDS_API_URL override (builds.yml path)', () => {
+    it('returns custom URL when REWARDS_API_URL is set', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
 
       const [apiUrl, canChange] =
         getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
@@ -58,7 +56,6 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
 
     it('preserves canChange based on env when returning custom URL', () => {
       process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
 
       const [apiUrl, canChange] =
         getDefaultRewardsApiBaseUrlForMetaMaskEnv('production');
@@ -66,16 +63,8 @@ describe('getDefaultRewardsApiBaseUrlForMetaMaskEnv', () => {
       expect(canChange).toBe(false);
     });
 
-    it('falls through to switch when BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY is not true', () => {
-      process.env.REWARDS_API_URL = 'https://custom.api';
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'false';
-
-      const [apiUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
-      expect(apiUrl).toEqual('https://api.uat');
-    });
-
     it('falls through to switch when REWARDS_API_URL is not set', () => {
-      process.env.BUILDS_ENABLED_WITH_GH_ACTIONS_TEMPORARY = 'true';
+      delete process.env.REWARDS_API_URL;
 
       const [apiUrl] = getDefaultRewardsApiBaseUrlForMetaMaskEnv('dev');
       expect(apiUrl).toEqual('https://api.uat');

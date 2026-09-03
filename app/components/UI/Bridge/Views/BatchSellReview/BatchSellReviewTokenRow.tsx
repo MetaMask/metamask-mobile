@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -14,6 +14,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Slider,
   Text,
   TextColor,
   TextVariant,
@@ -21,10 +22,10 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { formatTokenBalance } from '../../utils';
 import { BridgeToken } from '../../types';
 import { BatchSellReviewSelectorsIDs } from './BatchSellReview.testIds';
-import { BatchSellPercentageSlider } from './BatchSellPercentageSlider';
 import { getBatchSellSourceTokenAmount } from '../../hooks/useBatchSellQuoteRequest';
 
 interface BatchSellReviewTokenRowProps {
@@ -66,19 +67,40 @@ export function BatchSellReviewTokenRow({
   isRemoveTokenDisabled = false,
 }: BatchSellReviewTokenRowProps) {
   const tw = useTailwind();
+  // Live slider percent for immediate subtitle updates while dragging. The parent
+  // `percent` prop is only committed on drag end (Redux + debounced quote fetch).
+  const [displayPercent, setDisplayPercent] = useState(percent);
+
+  useEffect(() => {
+    setDisplayPercent(percent);
+  }, [percent]);
+
   const balanceText = useMemo(
-    () => getTokenBalanceText(token, percent),
-    [percent, token],
+    () => getTokenBalanceText(token, displayPercent),
+    [displayPercent, token],
   );
   const shouldShowHighPriceImpactTag =
     !isLoading && !isQuoteUnavailable && isHighPriceImpact;
 
-  const handlePercentChange = useCallback(
+  const handleSliderValueChange = useCallback((nextPercent: number) => {
+    setDisplayPercent(nextPercent);
+  }, []);
+
+  const handleSliderDragEnd = useCallback(
     (nextPercent: number) => {
+      setDisplayPercent(nextPercent);
       onPercentChange(tokenKey, nextPercent);
     },
     [onPercentChange, tokenKey],
   );
+
+  const handleSliderGrip = useCallback(() => {
+    playImpact(ImpactMoment.SliderGrip);
+  }, []);
+
+  const handleSliderMark = useCallback(() => {
+    playImpact(ImpactMoment.SliderTick);
+  }, []);
 
   const handleRemovePress = useCallback(() => {
     if (isRemoveTokenDisabled) return;
@@ -209,9 +231,13 @@ export function BatchSellReviewTokenRow({
           />
         </Box>
       </Box>
-      <BatchSellPercentageSlider
-        value={percent}
-        onValueChange={handlePercentChange}
+      <Slider
+        value={displayPercent}
+        onValueChange={handleSliderValueChange}
+        onDragEnd={handleSliderDragEnd}
+        showRangeDots
+        onGrip={handleSliderGrip}
+        onMark={handleSliderMark}
         testID={`${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${tokenKey}`}
       />
     </Box>

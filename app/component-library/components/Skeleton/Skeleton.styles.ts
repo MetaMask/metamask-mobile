@@ -31,7 +31,7 @@ const styleSheet = (params: { theme: Theme; vars: SkeletonStyleSheetVars }) => {
       style,
     ) as ViewStyle,
     background: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: theme.colors.icon.alternative,
       borderRadius: 4,
     } as ViewStyle,

@@ -6,61 +6,62 @@ import {
   EarnLendingViewSelectorsIDs,
   EarnLendingViewSelectorsText,
 } from '../../selectors/Earn/EarnLendingView.selectors';
+import { type AppiumElement } from '../../framework';
 
 class EarnLendingView {
-  get withdrawButton(): DetoxElement {
+  get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.WITHDRAW_BUTTON);
   }
 
-  get depositButton(): DetoxElement {
+  get depositButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.DEPOSIT_BUTTON);
   }
 
-  get confirmationFooter(): DetoxElement {
+  get confirmationFooter(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.CONFIRMATION_FOOTER,
     );
   }
 
-  get confirmButton(): DetoxElement {
+  get confirmButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
-  get cancelButton(): DetoxElement {
+  get cancelButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.CANCEL_BUTTON);
   }
 
-  get depositInfoSection(): DetoxElement {
+  get depositInfoSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.DEPOSIT_INFO_SECTION,
     );
   }
 
-  get depositReceiveSection(): DetoxElement {
+  get depositReceiveSection(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       EarnLendingViewSelectorsIDs.DEPOSIT_RECEIVE_SECTION,
     );
   }
 
-  get progressBar(): DetoxElement {
+  get progressBar(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.PROGRESS_BAR);
   }
 
-  get supplyTitle(): DetoxElement {
+  get supplyTitle(): Promise<AppiumElement> {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.SUPPLY);
   }
 
-  get reviewButton(): DetoxElement {
+  get reviewButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(EarnLendingViewSelectorsIDs.REVIEW_BUTTON);
   }
 
-  get withdrawalTimeLabel(): DetoxElement {
+  get withdrawalTimeLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(
       EarnLendingViewSelectorsText.WITHDRAWAL_TIME,
     );
   }
 
-  get confirmButtonByLabel(): DetoxElement {
+  get confirmButtonByLabel(): Promise<AppiumElement> {
     return Matchers.getElementByText(EarnLendingViewSelectorsText.CONFIRM);
   }
 
@@ -89,7 +90,7 @@ class EarnLendingView {
   async scrollToWithdrawButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.withdrawButton,
-      Matchers.getIdentifier('transactions-container'),
+      Matchers.scrollContainer('transactions-container'),
       {
         direction: 'down',
         scrollAmount: 200,

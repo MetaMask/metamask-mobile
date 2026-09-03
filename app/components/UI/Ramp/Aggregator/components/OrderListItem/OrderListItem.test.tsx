@@ -8,7 +8,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrderType } from '@consensys/native-ramps-sdk';
+import { DepositOrderType } from '../../../types/legacyDeposit';
 
 const testOrders: DeepPartial<FiatOrder>[] = [
   {

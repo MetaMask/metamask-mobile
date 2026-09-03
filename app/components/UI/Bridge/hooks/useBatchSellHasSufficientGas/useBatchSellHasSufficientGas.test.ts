@@ -23,6 +23,7 @@ const createNetworkFee = (
   overrides: Partial<BatchSellNetworkFee> = {},
 ): BatchSellNetworkFee => ({
   amount: '0.001',
+  usd: null,
   valueInCurrency: '3.25',
   asset: feeAsset,
   formatted: '0.001 ETH',

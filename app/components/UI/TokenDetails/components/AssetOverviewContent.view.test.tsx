@@ -1,7 +1,8 @@
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { merge } from 'lodash';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 
@@ -62,7 +63,6 @@ const baseOverviewProps: AssetOverviewContentProps = {
   timePeriod: '1d' as TimePeriod,
   setTimePeriod: () => undefined,
   chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
-  isPerpsEnabled: false,
   currentCurrency: 'USD',
   onBuy: () => undefined,
   onSend: async () => undefined,
@@ -80,28 +80,33 @@ function renderAssetOverviewMarketInsightsStack(
   }[],
   providerValues: ProviderValues,
 ) {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+  });
 
   const DefaultRouteProbe =
     (routeName: string): React.FC =>
     () => <Text testID={`route-${routeName}`}>{routeName}</Text>;
 
   return renderWithProvider(
-    <AccessRestrictedProvider>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="AssetOverviewMI"
-          component={AssetOverviewContentHarness}
-        />
-        {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientProvider client={queryClient}>
+      <AccessRestrictedProvider>
+        <Stack.Navigator>
           <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            name="AssetOverviewMI"
+            component={AssetOverviewContentHarness}
           />
-        ))}
-      </Stack.Navigator>
-    </AccessRestrictedProvider>,
+          {extraRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={name}
+              name={name}
+              component={Extra ?? DefaultRouteProbe(name)}
+            />
+          ))}
+        </Stack.Navigator>
+      </AccessRestrictedProvider>
+    </QueryClientProvider>,
     providerValues,
   );
 }
@@ -133,6 +138,9 @@ function buildTokenDetailsMarketInsightsState(
           EarnController: {
             pooled_staking: { isEligible: false },
             lending: { positions: [], markets: [] },
+          },
+          MoneyAccountController: {
+            moneyAccounts: {},
           },
         },
       },

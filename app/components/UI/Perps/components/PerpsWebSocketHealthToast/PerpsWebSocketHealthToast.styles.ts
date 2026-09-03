@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
-import type { Theme } from '../../../../../util/theme/models';
+import { AppThemeKey, type Theme } from '../../../../../util/theme/models';
 
 const styleSheet = (params: { theme: Theme }) => {
-  const { colors } = params.theme;
+  const { colors, shadows } = params.theme;
 
   return StyleSheet.create({
     // Toast container - positioned at top of screen
@@ -13,45 +13,38 @@ const styleSheet = (params: { theme: Theme }) => {
       right: 12,
       zIndex: 9999,
     },
-    // Wrapper with default background (close wrap: same edges, radius)
-    toastWrapper: {
-      borderRadius: 12,
-      backgroundColor: colors.background.default,
-      padding: 2,
-      overflow: 'hidden',
-      // Shadow for elevation
-      shadowColor: colors.shadow.default,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    // Inner toast content (muted background)
     toast: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12,
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderRadius: 10,
-      backgroundColor: colors.background.muted,
+      gap: 16,
+      paddingTop: 12,
+      paddingBottom: 12,
+      paddingLeft: 16,
+      paddingRight: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      backgroundColor:
+        params.theme.themeAppearance === AppThemeKey.light
+          ? colors.background.default
+          : colors.background.section,
+      ...(params.theme.themeAppearance === AppThemeKey.light
+        ? shadows.size.md
+        : {}),
     },
-    // Icon container
     iconContainer: {
       width: 32,
       height: 32,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    // Text content container (title + description)
     textContainer: {
       flex: 1,
-      gap: 2,
+      justifyContent: 'center',
     },
-    // Retry button
+    description: {
+      marginTop: 2,
+    },
     retryButton: {
       paddingVertical: 6,
       paddingHorizontal: 16,

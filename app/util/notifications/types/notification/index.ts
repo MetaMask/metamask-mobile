@@ -5,7 +5,7 @@ export enum PressActionId {
   OPEN_NOTIFICATIONS_VIEW = 'open-notifications-view-press-action-id',
 }
 
-export const LAUNCH_ACTIVITY = 'com.metamask.ui.MainActivity';
+export const LAUNCH_ACTIVITY = 'default';
 
 export const NotificationTypes = {
   TRANSACTION: 'transaction',

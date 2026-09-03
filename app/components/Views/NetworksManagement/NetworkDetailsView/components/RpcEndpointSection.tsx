@@ -1,5 +1,6 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { Animated as RNAnimated, View } from 'react-native';
+import { View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
   Box,
@@ -479,7 +480,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
         ) : null}
 
         {/* Form — always mounted, height-animated to drive sheet resize */}
-        <RNAnimated.View style={contentWrapperStyle}>
+        <Animated.View style={contentWrapperStyle}>
           <View
             style={FORM_INNER_STYLE}
             onLayout={onContentLayout}
@@ -524,10 +525,10 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
               </Box>
             </View>
           </View>
-        </RNAnimated.View>
+        </Animated.View>
 
         {/* Add button — crossfades out as form grows */}
-        <RNAnimated.View
+        <Animated.View
           style={toggleButtonStyle}
           pointerEvents={showForm ? 'none' : 'auto'}
         >
@@ -542,7 +543,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
               testID={NetworkDetailsViewSelectorsIDs.ADD_RPC_BUTTON}
             />
           </Box>
-        </RNAnimated.View>
+        </Animated.View>
       </ScrollView>
     </BottomSheet>
   );

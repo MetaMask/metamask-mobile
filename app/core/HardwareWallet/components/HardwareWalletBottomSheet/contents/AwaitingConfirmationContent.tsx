@@ -9,11 +9,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -287,25 +287,33 @@ export const AwaitingConfirmationContent: React.FC<
           footer={
             <>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('hardware_wallet.common.cancel')}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 onPress={onQrCancel}
-              />
+              >
+                {strings('hardware_wallet.common.cancel')}
+              </Button>
               {isSigningQRObject ? (
                 <Button
                   testID={AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID}
-                  variant={ButtonVariants.Primary}
+                  variant={ButtonVariant.Primary}
                   size={ButtonSize.Lg}
-                  label={strings('confirm.qr_get_sign')}
-                  width={ButtonWidthTypes.Full}
+                  isFullWidth
                   onPress={onShowScanner}
-                />
+                >
+                  {strings('confirm.qr_get_sign')}
+                </Button>
               ) : null}
             </>
           }
         />
+        {/*
+          coverScreen={false}: this content mounts under FullWindowOverlay.
+          RN Modal cannot present from that overlay on iOS (no view controller;
+          react-native-screens#1149 / #33022). In-place rendering still fills
+          the window via absolute styles on the scanner container.
+        */}
         <AnimatedQRScannerModal
           pauseQRCode={setShouldPause}
           visible={scannerVisible}
@@ -315,6 +323,7 @@ export const AwaitingConfirmationContent: React.FC<
           onQRHardwareScanError={onQRHardwareScanError}
           onModalHideComplete={handleScannerModalHide}
           hideModal={() => setScannerVisible(false)}
+          coverScreen={false}
         />
       </>
     );
@@ -354,12 +363,13 @@ export const AwaitingConfirmationContent: React.FC<
       footer={
         onCancel ? (
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
-            label={strings('hardware_wallet.common.cancel')}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             onPress={onCancel}
-          />
+          >
+            {strings('hardware_wallet.common.cancel')}
+          </Button>
         ) : undefined
       }
     />

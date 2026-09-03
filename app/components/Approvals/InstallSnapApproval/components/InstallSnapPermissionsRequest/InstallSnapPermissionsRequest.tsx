@@ -4,9 +4,6 @@ import { ScrollView, View } from 'react-native';
 import styleSheet from '../../InstallSnapApproval.styles';
 import { strings } from '../../../../../../locales/i18n';
 import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Cell, {
   CellVariant,
@@ -28,6 +25,7 @@ import {
   SNAP_INSTALL_PERMISSIONS_REQUEST,
   SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
 } from './InstallSnapPermissionsRequest.constants';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const InstallSnapPermissionsRequest = ({
   approvalRequest,
@@ -72,7 +70,7 @@ const InstallSnapPermissionsRequest = ({
         <SheetHeader
           title={strings('install_snap.permissions_request_title')}
         />
-        <Text style={styles.description} variant={TextVariant.BodyMD}>
+        <Text style={styles.description} variant={TextVariant.BodyMd}>
           {strings('install_snap.permissions_request_description', {
             origin,
             snap: snapName,

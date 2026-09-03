@@ -208,6 +208,7 @@ describe(`Migration #${VERSION}`, () => {
   });
 
   it('logs an error and returns the state unchanged if MM_INFURA_PROJECT_ID is not set', async () => {
+    delete process.env.MM_INFURA_PROJECT_ID;
     const state = {
       engine: {
         backgroundState: {

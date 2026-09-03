@@ -4,6 +4,7 @@ import {
   type NavigationState,
   type PartialState,
 } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { closeSession, getSession } from './sessionRegistry';
@@ -17,7 +18,7 @@ import { closeSession, getSession } from './sessionRegistry';
  * registry, so the cleanup re-reads `getSession(id)` and no-ops:
  *
  * - Phase 6 success — `closeSession({ reason: 'completed' })`
- * - Phase 7 errors — `failSession` → `closeSession({ reason: 'unknown' })`
+ * - Phase 7 errors: `failSession` removes the session directly, firing `onError` with no `onClose`
  * - Phase 5 single-live-session restart — `closeSession({ reason: 'consumer_cancelled' })`
  * - Consumer `cancel()` — same
  * - `handleBack` (this PR) — fires `closeSession({ reason: 'user_dismissed' })` synchronously before `goBack`, so the cleanup that follows the unmount is also a no-op.
@@ -41,7 +42,7 @@ import { closeSession, getSession } from './sessionRegistry';
 export function useHeadlessSessionDismissal(
   headlessSessionId: string | undefined,
 ): void {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const navigationRef = useRef(navigation);
   navigationRef.current = navigation;
 

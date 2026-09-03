@@ -37,6 +37,7 @@ import {
   TraceOperation,
   TraceContext,
   endTrace,
+  getTraceContext,
 } from '../../../util/trace';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
@@ -48,7 +49,10 @@ import {
   WRONG_PASSWORD_ERROR_ANDROID_2,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Login/constants';
-import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
+import {
+  isAndroidKeychainBiometricLockout,
+  isBiometricUnlockCancelledByUser,
+} from '../../../core/Authentication/utils';
 import {
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
@@ -57,11 +61,19 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import {
+  cancelUnlockTraces,
+  startUnlockTraces,
+  type UnlockTraceTokens,
+} from '../../../core/Performance/unlockTraces';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { getLoginAppStartType } from '../Login/loginPerformanceTags';
 import { useNetInfo } from '@react-native-community/netinfo';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import ReduxService from '../../../core/redux';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -71,12 +83,14 @@ import {
 } from '../../../core/Analytics/MetaMetrics.types';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
+import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
+import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -152,7 +166,21 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     () => loading || isDeletingInProgress,
     [loading, isDeletingInProgress],
   );
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
+
+  useNavigationPerformance({
+    destinationScreenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    destinationReady: true,
+  });
+
+  // TTC only — do not pass finalLoading as isLoading. That flag is password
+  // submit / delete-in-progress, not an initial data-fetch cycle, and would
+  // emit misleading OnboardingScreenDataFetch success/unmount spans.
+  useScreenPerformance({
+    screenId: OnboardingScreenIds.SOCIAL_REHYDRATE,
+    contentReady: true,
+    isEmpty: false,
+  });
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
@@ -259,11 +287,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
     }
   }, [getAuthType]);
-
-  // default biometric choice to true
-  useEffect(() => {
-    setBiometryChoice(true);
-  }, [setBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -463,12 +486,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         loginError.name?.trim() ||
         String(loginError);
 
-      if (route.params?.onboardingTraceCtx) {
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
         trace({
           name: TraceName.OnboardingPasswordLoginError,
           op: TraceOperation.OnboardingError,
           tags: { errorMessage: loginErrorMessage },
-          parentContext: route.params.onboardingTraceCtx,
+          parentContext: passwordLoginAttemptTraceCtxRef.current ?? journeyCtx,
         });
         endTrace({ name: TraceName.OnboardingPasswordLoginError });
       }
@@ -504,6 +531,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         return;
       }
 
+      if (isAndroidKeychainBiometricLockout(loginError)) {
+        setError(strings('login.biometric_too_many_attempts'));
+        setLoading(false);
+        return;
+      }
+
       const isPasscodeNotSet = loginErrorMessage === PASSCODE_NOT_SET_ERROR;
 
       if (isPasscodeNotSet) {
@@ -532,7 +565,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       handleSeedlessOnboardingControllerError,
       handlePasswordError,
       setBiometryChoice,
-      route.params?.onboardingTraceCtx,
       isComingFromOauthOnboarding,
       accountType,
     ],
@@ -544,11 +576,32 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       account_type: accountType,
       biometrics: biometryChoice,
     });
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
 
     try {
       if (finalLoading) return;
 
+      unlockTraceTokens = startUnlockTraces({
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
+
+      // perf_fix: trace-registry-v1 — fetch parent from trace registry instead of route params
+      // Nest under Existing Social Login when that phase span is open; else journey.
+      const journeyCtx = getTraceContext({
+        name: TraceName.OnboardingJourneyOverall,
+      });
+      if (journeyCtx) {
+        passwordLoginAttemptTraceCtxRef.current = trace({
+          name: TraceName.OnboardingPasswordLoginAttempt,
+          op: TraceOperation.OnboardingUserJourney,
+          parentContext:
+            getTraceContext({
+              name: TraceName.OnboardingExistingSocialLogin,
+            }) ?? journeyCtx,
+        });
+      }
+      const passwordLoginAttemptCtx = passwordLoginAttemptTraceCtxRef.current;
 
       // Password first: do not prompt biometrics until unlock succeeds
       const authData: AuthData = {
@@ -560,12 +613,28 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         {
           name: TraceName.AuthenticateUser,
           op: TraceOperation.Login,
+          parentContext: passwordLoginAttemptCtx ?? undefined,
         },
         async () => {
           await unlockWallet({
             password,
             authPreference: authData,
-            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+            onBeforeNavigate: async () => {
+              // End unlock/journey spans before the biometric keychain upgrade so
+              // human biometric wait is excluded from Password Login Attempt (and
+              // parent journey) duration. Still must finish before unlockWallet
+              // navigates home: navigation unmounts Onboarding, whose cleanup would
+              // otherwise end OnboardingJourneyOverall with success:false.
+              if (passwordLoginAttemptTraceCtxRef.current) {
+                endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
+                passwordLoginAttemptTraceCtxRef.current = null;
+              }
+              endTrace({ name: TraceName.OnboardingExistingSocialLogin });
+              endTrace({ name: TraceName.OnboardingJourneyOverall });
+              await upgradeKeychainAuthAfterSuccessfulUnlock();
+            },
+            // Nest OnboardingFetchSrps under Password Login Attempt when present.
+            parentContext: passwordLoginAttemptCtx ?? journeyCtx,
           });
         },
       );
@@ -587,17 +656,20 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         failed_attempts: rehydrationFailedAttempts,
       });
 
-      if (passwordLoginAttemptTraceCtxRef?.current) {
-        endTrace({ name: TraceName.OnboardingPasswordLoginAttempt });
-        passwordLoginAttemptTraceCtxRef.current = null;
-      }
-      endTrace({ name: TraceName.OnboardingExistingSocialLogin });
-      endTrace({ name: TraceName.OnboardingJourneyOverall });
-
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
+      if (passwordLoginAttemptTraceCtxRef.current) {
+        endTrace({
+          name: TraceName.OnboardingPasswordLoginAttempt,
+          data: { success: false },
+        });
+        passwordLoginAttemptTraceCtxRef.current = null;
+      }
     }
   }, [
     password,
@@ -605,7 +677,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     finalLoading,
     rehydrationFailedAttempts,
     handleLoginError,
-    passwordLoginAttemptTraceCtxRef,
     track,
     promptBiometricFailedAlert,
     unlockWallet,
@@ -615,9 +686,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   ]);
 
   const newGlobalPasswordLogin = useCallback(async () => {
+    let unlockTraceTokens: UnlockTraceTokens | null = null;
+
     try {
       if (finalLoading) return;
 
+      unlockTraceTokens = startUnlockTraces({
+        appStartType: getLoginAppStartType(),
+      });
       setLoading(true);
 
       // biometrics/passcode preference is applied only after sync succeeds
@@ -651,6 +727,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
+      if (unlockTraceTokens) {
+        cancelUnlockTraces(unlockTraceTokens);
+      }
       await handleLoginError(
         ensureError(loginErr, 'Global password login failed'),
       );
@@ -672,17 +751,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     };
   }, []);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-    return false;
-  };
-
+  const hasTrackedScreenView = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenView.current) return;
+    hasTrackedScreenView.current = true;
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+  }, [track]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+    return false;
+  }, [navigation]);
+
+  useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
@@ -691,19 +776,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     return () => {
       backHandlerSubscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
-    if (onboardingTraceCtxFromRoute) {
-      passwordLoginAttemptTraceCtxRef.current = trace({
-        name: TraceName.OnboardingPasswordLoginAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtxFromRoute,
-      });
-    }
-  }, [route.params?.onboardingTraceCtx]);
+  }, [handleBackPress]);
 
   const handleUseOtherMethod = () => {
     track(MetaMetricsEvents.USE_DIFFERENT_LOGIN_METHOD_CLICKED, {
@@ -829,83 +902,72 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             testID={LoginViewSelectors.CONTAINER}
             alignItems={BoxAlignItems.Center}
             paddingHorizontal={6}
-            twClassName="flex-1 w-full"
+            twClassName="flex-1 w-full mt-2.5"
           >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              twClassName="w-full flex-1 mt-2.5"
+            <Image
+              source={METAMASK_NAME}
+              style={[
+                tw.style('w-20 h-10 self-center mt-2.5'),
+                { tintColor: colors.icon.default },
+              ]}
+              resizeMode="contain"
+              resizeMethod={'auto'}
+            />
+
+            <TouchableOpacity
+              style={tw.style('self-center mt-12')}
+              delayLongPress={10 * 1000}
+              onLongPress={handleDownloadStateLogs}
+              activeOpacity={1}
             >
               <Image
-                source={METAMASK_NAME}
-                style={[
-                  tw.style('w-20 h-10 self-center mt-2.5'),
-                  { tintColor: colors.icon.default },
-                ]}
-                resizeMode="contain"
+                source={FOX_LOGO}
+                style={foxImageStyle}
                 resizeMethod={'auto'}
               />
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                style={tw.style('self-center mt-12')}
-                delayLongPress={10 * 1000}
-                onLongPress={handleDownloadStateLogs}
-                activeOpacity={1}
-              >
-                <Image
-                  source={FOX_LOGO}
-                  style={foxImageStyle}
-                  resizeMethod={'auto'}
-                />
-              </TouchableOpacity>
+            <Text
+              variant={TextVariant.DisplayMd}
+              color={TextColor.TextDefault}
+              twClassName="my-6 text-center"
+              testID={LoginViewSelectors.TITLE_ID}
+            >
+              {strings('login.title')}
+            </Text>
 
-              <Text
-                variant={TextVariant.DisplayMd}
+            <Box gap={2} twClassName="w-full">
+              <Label
+                fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
-                twClassName="my-6 text-center"
-                testID={LoginViewSelectors.TITLE_ID}
+                twClassName="-mb-1"
               >
-                {strings('login.title')}
-              </Text>
+                {strings('login.password')}
+              </Label>
+              {renderPasswordField()}
+              {renderHelperText()}
+            </Box>
 
-              <Box gap={2} twClassName="w-full">
-                <Label
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.TextDefault}
-                  twClassName="-mb-1"
-                >
-                  {strings('login.password')}
-                </Label>
-                {renderPasswordField()}
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                twClassName="self-start gap-y-0.5"
+            <Box
+              alignItems={BoxAlignItems.Center}
+              twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
+              pointerEvents="box-none"
+            >
+              <Button
+                variant={ButtonVariant.Primary}
+                isFullWidth
+                size={ButtonSize.Lg}
+                onPress={handleLogin}
+                isDisabled={
+                  password.length === 0 || disabledInput || finalLoading
+                }
+                testID={LoginViewSelectors.LOGIN_BUTTON_ID}
+                isLoading={finalLoading}
               >
-                {renderHelperText()}
-              </Box>
+                {strings('login.unlock_button')}
+              </Button>
 
-              <Box
-                alignItems={BoxAlignItems.Center}
-                twClassName={`w-full mt-4${Platform.OS === 'android' ? ' gap-4' : ''}`}
-                pointerEvents="box-none"
-              >
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  size={ButtonSize.Lg}
-                  onPress={handleLogin}
-                  isDisabled={
-                    password.length === 0 || disabledInput || finalLoading
-                  }
-                  testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  isLoading={finalLoading}
-                >
-                  {strings('login.unlock_button')}
-                </Button>
-
-                {renderFooterAction()}
-              </Box>
+              {renderFooterAction()}
             </Box>
           </Box>
         </KeyboardAwareScrollView>

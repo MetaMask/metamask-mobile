@@ -1,5 +1,5 @@
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../constants/bridge';
-import { isSwapsNativeAsset } from './index';
+import { getMaybeHexChainId, isSwapsNativeAsset } from './index';
 
 describe('isSwapsNativeAsset', () => {
   describe('Native Token Detection', () => {
@@ -101,6 +101,54 @@ describe('isSwapsNativeAsset', () => {
       const result = isSwapsNativeAsset(token);
 
       expect(result).toBe(false);
+    });
+  });
+});
+
+describe('getMaybeHexChainId', () => {
+  describe('absent input', () => {
+    it('returns undefined when called with no argument', () => {
+      expect(getMaybeHexChainId()).toBeUndefined();
+    });
+
+    it('returns undefined for an empty string', () => {
+      expect(getMaybeHexChainId('')).toBeUndefined();
+    });
+
+    it('returns undefined for undefined', () => {
+      expect(getMaybeHexChainId(undefined)).toBeUndefined();
+    });
+  });
+
+  describe('non-EVM (CAIP-2 non-EVM) chain IDs', () => {
+    it('returns undefined for a Solana CAIP-2 chain ID', () => {
+      expect(
+        getMaybeHexChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      ).toBeUndefined();
+    });
+
+    it('returns undefined for a Bitcoin CAIP-2 chain ID', () => {
+      expect(
+        getMaybeHexChainId('bip122:000000000019d6689c085ae165831e93'),
+      ).toBeUndefined();
+    });
+  });
+
+  describe('EVM chain IDs', () => {
+    it('returns the hex chain ID for an EVM CAIP-2 chain ID (Ethereum mainnet)', () => {
+      expect(getMaybeHexChainId('eip155:1')).toBe('0x1');
+    });
+
+    it('returns the hex chain ID for an EVM CAIP-2 chain ID (Polygon)', () => {
+      expect(getMaybeHexChainId('eip155:137')).toBe('0x89');
+    });
+
+    it('returns the hex chain ID for a decimal string chain ID', () => {
+      expect(getMaybeHexChainId('1')).toBe('0x1');
+    });
+
+    it('returns the hex chain ID unchanged when already a hex string', () => {
+      expect(getMaybeHexChainId('0x1')).toBe('0x1');
     });
   });
 });

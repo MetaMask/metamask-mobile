@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { usePredictMarketData } from '../../../../../UI/Predict/hooks/usePredictMarketData';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
 
@@ -41,12 +42,15 @@ export const usePredictMarketsForHomepage = (
     enabled,
   });
 
-  return {
-    markets: marketData,
-    isLoading: isFetching,
-    error,
-    refetch,
-  };
+  return useMemo(
+    () => ({
+      markets: marketData,
+      isLoading: isFetching,
+      error,
+      refetch,
+    }),
+    [marketData, isFetching, error, refetch],
+  );
 };
 
 export default usePredictMarketsForHomepage;

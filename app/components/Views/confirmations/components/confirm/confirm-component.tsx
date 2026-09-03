@@ -8,10 +8,11 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 
 import { ConfirmationUIType } from '../../ConfirmationView.testIds';
-import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
@@ -20,6 +21,7 @@ import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
+import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationLoadMetrics';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
@@ -27,16 +29,23 @@ import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
-import { CustomAmountInfoSkeleton } from '../info/custom-amount-info';
+import {
+  AdvancedCustomAmountInfoSkeleton,
+  CustomAmountInfoSkeleton,
+  PrefillCustomAmountInfoSkeleton,
+} from '../info/custom-amount-info';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfoSkeleton } from '../info/predict-claim-info';
 import { TransferInfoSkeleton } from '../info/transfer/transfer';
+import { MmPayDebugFloatingButton } from '../modals/mm-pay-debug-modal/mm-pay-debug-floating-button';
 
 const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
@@ -53,8 +62,14 @@ const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
 export enum ConfirmationLoader {
   Default = 'default',
   CustomAmount = 'customAmount',
+  AdvancedCustomAmount = 'advancedCustomAmount',
+  PrefillCustomAmount = 'prefillCustomAmount',
   PredictClaim = 'predictClaim',
   Transfer = 'transfer',
+}
+
+export enum PayWithOption {
+  MoneyAccount = 'money_account',
 }
 
 export interface ConfirmationParams {
@@ -62,10 +77,26 @@ export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
   forceBottomSheet?: boolean;
+  payWithOption?: PayWithOption;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
   };
+}
+
+/**
+ * Route params accepted by the full-screen confirmation routes
+ * (`RedesignedConfirmations` / `NoHeaderConfirmations`). This is a superset of
+ * {@link ConfirmationParams} because different entry points pass extra,
+ * feature-specific fields: `amount` (carried by some entry flows for display),
+ * `showPerpsHeader` (Perps deposit+order flow renders a Perps header, read by
+ * the Perps route's header options rather than the confirm component), and
+ * `params` (legacy nested bag passed by some send flows).
+ */
+export interface FullScreenConfirmationParams extends ConfirmationParams {
+  amount?: string;
+  showPerpsHeader?: boolean;
+  params?: ConfirmationParams;
 }
 
 const ConfirmWrapped = ({
@@ -99,6 +130,7 @@ const ConfirmWrapped = ({
               </TouchableWithoutFeedback>
             </ScrollView>
             <Footer />
+            <MmPayDebugFloatingButton />
           </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
@@ -121,8 +153,9 @@ export const Confirm = ({
 }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const { onReject } = useConfirmActions();
+  const { onFirstPaint } = useConfirmationLoadMetrics();
   const { styles } = useStyles(styleSheet, {
     isFullScreenConfirmation,
     disableSafeArea,
@@ -167,6 +200,7 @@ export const Confirm = ({
         edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
         style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
+        onLayout={onFirstPaint}
       >
         <ConfirmWrapped styles={styles} route={route} />
       </SafeAreaView>
@@ -174,13 +208,12 @@ export const Confirm = ({
   }
 
   return (
-    <BottomSheet
-      onClose={() => onReject()}
-      shouldNavigateBack={false}
-      style={styles.bottomSheetDialogSheet}
-      testID={ConfirmationUIType.MODAL}
-    >
-      <View testID={approvalRequest?.type} style={styles.confirmContainer}>
+    <BottomSheet onClose={() => onReject()} testID={ConfirmationUIType.MODAL}>
+      <View
+        testID={approvalRequest?.type}
+        style={styles.confirmContainer}
+        onLayout={onFirstPaint}
+      >
         <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
@@ -204,6 +237,25 @@ function Loader() {
     return (
       <InfoLoader testId="confirm-loader-custom-amount" loader={loader}>
         <CustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.AdvancedCustomAmount) {
+    return (
+      <InfoLoader
+        testId="confirm-loader-advanced-custom-amount"
+        loader={loader}
+      >
+        <AdvancedCustomAmountInfoSkeleton />
+      </InfoLoader>
+    );
+  }
+
+  if (loader === ConfirmationLoader.PrefillCustomAmount) {
+    return (
+      <InfoLoader testId="confirm-loader-prefill-custom-amount" loader={loader}>
+        <PrefillCustomAmountInfoSkeleton />
       </InfoLoader>
     );
   }

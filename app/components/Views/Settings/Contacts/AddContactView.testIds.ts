@@ -9,6 +9,8 @@ export const AddContactViewSelectorsIDs = {
   NETWORK_INPUT: 'add-contact-network-input',
   CONTAINER: 'add-contacts-screen',
   EDIT_BUTTON: 'edit-button',
+  /** First option in the CV action-sheet mock (delete confirmation). */
+  DELETE_CONFIRM_ACTION_SHEET_OPTION: 'action-sheet-option-0',
 };
 
 export const AddContactViewSelectorsText = {

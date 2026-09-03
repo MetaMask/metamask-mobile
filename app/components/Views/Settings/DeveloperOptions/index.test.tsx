@@ -40,6 +40,29 @@ describe('DeveloperOptions', () => {
     expect(getByText('Developer options')).toBeOnTheScreen();
   });
 
+  it('renders back button when opened from settings', () => {
+    const { getByTestId, queryByTestId } = renderScreen(
+      DeveloperOptions,
+      { name: 'DeveloperOptions' },
+      { state: initialState },
+    );
+
+    expect(getByTestId('developer-options-back-button')).toBeOnTheScreen();
+    expect(queryByTestId('developer-options-close-button')).toBeNull();
+  });
+
+  it('renders close button when opened as a full-screen modal', () => {
+    const { getByTestId, queryByTestId } = renderScreen(
+      DeveloperOptions,
+      { name: 'DeveloperOptions' },
+      { state: initialState },
+      { isFullScreenModal: true },
+    );
+
+    expect(getByTestId('developer-options-close-button')).toBeOnTheScreen();
+    expect(queryByTestId('developer-options-back-button')).toBeNull();
+  });
+
   it('does not render PerpsDeveloperOptionsSection when Perps is not enabled', () => {
     mockSelectPerpsEnabledFlag.mockReturnValue(false);
 

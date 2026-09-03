@@ -3,14 +3,13 @@ import { Hex } from '@metamask/utils';
 import { NestedTransactionMetadata } from '@metamask/transaction-controller';
 
 import { strings } from '../../../../../../locales/i18n';
-import Text from '../../../../../component-library/components/Texts/Text/Text';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import Name from '../../../../UI/Name';
 import { NameType } from '../../../../UI/Name/Name.types';
 import InfoSectionAccordion from '../../components/UI/info-section-accordion';
 import CurrencyDisplay from '../UI/info-row/info-value/currency-display';
 import InfoRow from '../UI/info-row';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
+import { Text, TextVariant } from '@metamask/design-system-react-native';
 
 const TransactionInfo = ({
   chainId,
@@ -41,7 +40,7 @@ const TransactionInfo = ({
         </InfoRow>
       )}
       <InfoRow label={strings('confirm.data')} copyText={data} valueOnNewLine>
-        <Text variant={TextVariant.BodyMD}>{data}</Text>
+        <Text variant={TextVariant.BodyMd}>{data}</Text>
       </InfoRow>
     </InfoSectionAccordion>
   );

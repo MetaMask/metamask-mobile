@@ -14,11 +14,16 @@ import {
   checkAccountNameExists,
 } from './Ledger';
 import Engine from '../../core/Engine';
-import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import {
-  LedgerKeyring,
+  SignTypedDataVersion,
+  type RestrictedController,
+} from '@metamask/keyring-controller';
+import {
+  LedgerKeyring as LegacyLedgerKeyring,
   LedgerMobileBridge,
 } from '@metamask/eth-ledger-bridge-keyring';
+import { LedgerKeyring } from '@metamask/eth-ledger-bridge-keyring/v2';
+import type { Keyring } from '@metamask/keyring-api/v2';
 import type BleTransport from '@ledgerhq/react-native-hw-transport-ble';
 import PAGINATION_OPERATIONS from '../../constants/pagination';
 import {
@@ -31,8 +36,19 @@ import { removeAccountsFromPermissions } from '../../core/Permissions';
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
+      state: {
+        keyrings: [
+          {
+            type: 'Ledger Hardware',
+            accounts: [],
+            metadata: { id: 'ledger', name: 'Ledger Hardware' },
+          },
+        ],
+      },
       signTypedMessage: jest.fn(),
-      withKeyring: jest.fn(),
+      addNewKeyring: jest.fn(),
+      withController: jest.fn(),
+      withKeyringV2: jest.fn(),
     },
     AccountsController: {
       state: {
@@ -46,6 +62,7 @@ jest.mock('../../core/Engine', () => ({
   setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
+const mockRestrictedAddNewLedgerKeyring = jest.fn();
 
 jest.mock('../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -65,18 +82,68 @@ const mockBridge = {
   closeApps: jest.fn(),
 };
 
-const ledgerKeyring = new LedgerKeyring({
-  bridge: mockBridge as unknown as LedgerMobileBridge,
-});
+// Stand-in for a legacy BLE Transport object (from @ledgerhq/hw-transport-ble).
+// `connectLedgerHardware` accepts a Transport from the legacy adapter.
+const mockTransport = { id: 'mock-ble-transport' } as unknown as BleTransport;
+
+let ledgerKeyring: LedgerKeyring;
+
+function createRestrictedControllerMock(
+  keyringController: typeof MockEngine.context.KeyringController,
+): RestrictedController {
+  const restrictedKeyrings = keyringController.state.keyrings.map(
+    ({ type }) => ({
+      keyring: { type },
+      metadata: { id: type, name: type },
+    }),
+  );
+
+  return {
+    get keyrings() {
+      return restrictedKeyrings;
+    },
+    addNewKeyring: async (type: string) => {
+      mockRestrictedAddNewLedgerKeyring(type);
+      const entry = {
+        keyring: { type },
+        metadata: { id: type, name: type },
+      };
+      restrictedKeyrings.push(entry);
+      keyringController.state.keyrings.push({
+        type,
+        accounts: [],
+        metadata: { id: type, name: type },
+      });
+      return entry;
+    },
+    removeKeyring: jest.fn(),
+  } as unknown as RestrictedController;
+}
 
 describe('Ledger core', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
+    ledgerKeyring = new LedgerKeyring({
+      // @ts-expect-error: Property '#private' in type LedgerKeyring refers to a
+      // different member that cannot be accessed from within type 'LedgerKeyring'.
+      legacyKeyring: new LegacyLedgerKeyring({
+        bridge: mockBridge as unknown as LedgerMobileBridge,
+      }),
+      entropySource: 'test-entropy-source',
+    });
+
     // Reset AccountsController state that may have been modified by previous tests
     MockEngine.context.AccountsController.state.internalAccounts.accounts = {};
 
     const mockKeyringController = MockEngine.context.KeyringController;
+    mockKeyringController.state.keyrings = [
+      {
+        type: LegacyLedgerKeyring.type,
+        accounts: [],
+        metadata: { id: 'ledger', name: LegacyLedgerKeyring.type },
+      },
+    ];
 
     // Re-establish bridge mock implementations after `jest.resetAllMocks`
     // wipes them.
@@ -87,11 +154,11 @@ describe('Ledger core', () => {
     // Re-establish LedgerKeyring spies each test. `testSetup.js` runs
     // `jest.restoreAllMocks()` in afterEach, which restores spied methods to
     // their real implementations, so spies must be recreated here.
-    jest
-      .spyOn(ledgerKeyring, 'addAccounts')
-      .mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']);
-    jest.spyOn(ledgerKeyring, 'deserialize').mockImplementation();
-    jest.spyOn(ledgerKeyring, 'forgetDevice').mockImplementation();
+    jest.spyOn(ledgerKeyring, 'createAccounts').mockResolvedValue([
+      // @ts-expect-error - partial KeyringAccount fixture for test
+      { address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2' },
+    ]);
+    jest.spyOn(ledgerKeyring, 'forgetDevice').mockResolvedValue();
     jest.spyOn(ledgerKeyring, 'getDeviceId').mockReturnValue('deviceId');
     jest.spyOn(ledgerKeyring, 'getFirstPage').mockResolvedValue([
       {
@@ -131,35 +198,44 @@ describe('Ledger core', () => {
     ]);
     jest.spyOn(ledgerKeyring, 'setDeviceId').mockImplementation();
     jest.spyOn(ledgerKeyring, 'setHdPath').mockImplementation();
-    ledgerKeyring.hdPath = LEDGER_LIVE_PATH;
-    jest.spyOn(ledgerKeyring, 'setAccountToUnlock').mockImplementation();
     jest
-      .spyOn(ledgerKeyring, 'getAccounts')
-      .mockResolvedValue([
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
-      ]);
+      .spyOn(ledgerKeyring, 'hdPath', 'get')
+      .mockReturnValue(LEDGER_LIVE_PATH);
+    jest.spyOn(ledgerKeyring, 'getAccounts').mockResolvedValue([
+      // @ts-expect-error - partial KeyringAccount fixture for test
+      { address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2' },
+      // @ts-expect-error - partial KeyringAccount fixture for test
+      { address: '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3' },
+    ]);
 
-    mockKeyringController.withKeyring.mockImplementation(
+    mockKeyringController.withKeyringV2.mockImplementation(
       (_selector, operation) =>
         operation({
-          keyring: ledgerKeyring,
+          keyring: ledgerKeyring as unknown as Keyring,
           metadata: { id: '1234', name: '' },
         }),
     );
+    let withControllerQueue = Promise.resolve();
+    mockKeyringController.withController.mockImplementation((operation) => {
+      const runOperation = () =>
+        operation(createRestrictedControllerMock(mockKeyringController));
+      const result = withControllerQueue.then(runOperation, runOperation);
+      withControllerQueue = result.then(
+        () => undefined,
+        () => undefined,
+      );
+      return result;
+    });
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
 
-  describe('connectLedgerHardware', () => {
-    const mockTransport = 'foo' as unknown as BleTransport;
-    it('calls keyring.setTransport', async () => {
+  describe('connectLedgerHardware (legacy)', () => {
+    it('calls updateTransportMethod and setDeviceId', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.updateTransportMethod).toHaveBeenCalled();
-    });
-
-    it('calls keyring.getAppAndVersion', async () => {
-      await connectLedgerHardware(mockTransport, 'bar');
-      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
+      expect(mockBridge.updateTransportMethod).toHaveBeenCalledWith(
+        mockTransport,
+      );
+      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
     });
 
     it('returns app name correctly', async () => {
@@ -167,10 +243,9 @@ describe('Ledger core', () => {
       expect(value).toBe('appName');
     });
 
-    it('calls keyring.setHdPath and keyring.setDeviceId if deviceId is different', async () => {
+    it('calls bridge.getAppNameAndVersion', async () => {
       await connectLedgerHardware(mockTransport, 'bar');
-      expect(ledgerKeyring.setHdPath).toHaveBeenCalled();
-      expect(ledgerKeyring.setDeviceId).toHaveBeenCalled();
+      expect(mockBridge.getAppNameAndVersion).toHaveBeenCalled();
     });
 
     it('releases the keyring lock before requesting app metadata from the device', async () => {
@@ -179,10 +254,10 @@ describe('Ledger core', () => {
         events.push('getAppNameAndVersion');
         return { appName: 'Ethereum' };
       });
-      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) => {
           const result = await operation({
-            keyring: ledgerKeyring,
+            keyring: ledgerKeyring as unknown as Keyring,
             metadata: { id: '1234', name: 'Ledger Hardware' },
           });
           events.push('withKeyring settled');
@@ -234,19 +309,19 @@ describe('Ledger core', () => {
       });
 
       expect(
-        MockEngine.context.KeyringController.withKeyring,
+        MockEngine.context.KeyringController.withKeyringV2,
       ).not.toHaveBeenCalled();
       expect(mockBridge.updateTransportMethod).not.toHaveBeenCalled();
       expect(mockBridge.getAppNameAndVersion).not.toHaveBeenCalled();
     });
 
     it('throws when the resolved keyring is not a LedgerKeyring instance', async () => {
-      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) =>
           operation({
             // The withKeyring helper guards against the keyring controller
             // resolving a non-Ledger keyring (e.g. due to a controller bug).
-            keyring: {} as unknown as LedgerKeyring,
+            keyring: {} as unknown as Keyring,
             metadata: { id: '1234', name: '' },
           }),
       );
@@ -268,10 +343,10 @@ describe('Ledger core', () => {
       mockBridge.openEthApp.mockImplementationOnce(async () => {
         events.push('openEthApp');
       });
-      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) => {
           const result = await operation({
-            keyring: ledgerKeyring,
+            keyring: ledgerKeyring as unknown as Keyring,
             metadata: { id: '1234', name: 'Ledger Hardware' },
           });
           events.push('withKeyring settled');
@@ -296,10 +371,10 @@ describe('Ledger core', () => {
       mockBridge.closeApps.mockImplementationOnce(async () => {
         events.push('closeApps');
       });
-      MockEngine.context.KeyringController.withKeyring.mockImplementationOnce(
+      MockEngine.context.KeyringController.withKeyringV2.mockImplementationOnce(
         async (_selector, operation) => {
           const result = await operation({
-            keyring: ledgerKeyring,
+            keyring: ledgerKeyring as unknown as Keyring,
             metadata: { id: '1234', name: 'Ledger Hardware' },
           });
           events.push('withKeyring settled');
@@ -313,12 +388,35 @@ describe('Ledger core', () => {
     });
   });
 
+  describe('withLedgerKeyring on-demand creation', () => {
+    it('creates the Ledger keyring when none exists yet', async () => {
+      MockEngine.context.KeyringController.state.keyrings = [];
+
+      await getDeviceId();
+
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledWith(
+        LegacyLedgerKeyring.type,
+      );
+    });
+
+    it('creates only one Ledger keyring for concurrent callers', async () => {
+      MockEngine.context.KeyringController.state.keyrings = [];
+
+      await Promise.all([getDeviceId(), getDeviceId()]);
+
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledTimes(1);
+      expect(mockRestrictedAddNewLedgerKeyring).toHaveBeenCalledWith(
+        LegacyLedgerKeyring.type,
+      );
+    });
+  });
+
   describe('forgetLedger', () => {
     it('removes the accounts from existing permissions', async () => {
       await forgetLedger();
       expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
         '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2',
-        '0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB3',
+        '0x49b6Ffd1bD9d1c64EEF400a64A1E4bBC33E2Cab3',
       ]);
     });
 
@@ -781,17 +879,14 @@ describe('Ledger core', () => {
 
   describe(`unlockLedgerWalletAccount`, () => {
     const mockAccountsController = MockEngine.context.AccountsController;
-    mockAccountsController.getAccountByAddress.mockReturnValue({
-      // @ts-expect-error: The account metadata type is hard to mock
-      metadata: {
-        name: 'Ledger 1',
-      },
-    });
 
-    it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
+    it(`calls keyring.createAccounts with the derivation path for the unlock index`, async () => {
       await unlockLedgerWalletAccount(1);
-      expect(ledgerKeyring.setAccountToUnlock).toHaveBeenCalled();
-      expect(ledgerKeyring.addAccounts).toHaveBeenCalledWith(1);
+      expect(ledgerKeyring.createAccounts).toHaveBeenCalledWith({
+        type: 'bip44:derive-path',
+        entropySource: 'test-entropy-source',
+        derivationPath: "m/44'/60'/1'/0/0",
+      });
     });
 
     it('sets the newly unlocked account as selected address', async () => {
@@ -888,7 +983,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6d00;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -902,7 +997,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e00;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -916,7 +1011,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6e01;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -930,7 +1025,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6511;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -944,7 +1039,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x6700;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -958,7 +1053,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x650f;
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
@@ -968,7 +1063,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x650f', async () => {
       const error = new Error('Ledger device: UNKNOWN_ERROR (0x650f)');
-      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -977,7 +1072,7 @@ describe('Ledger core', () => {
 
     it('throws ETH app not open error when error message contains 0x6511', async () => {
       const error = new Error('Ledger device: APP_NOT_OPEN (0x6511)');
-      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Please open the Ethereum app on your Ledger device.',
@@ -986,7 +1081,7 @@ describe('Ledger core', () => {
 
     it('throws original error for non-ETH app not open errors', async () => {
       const error = new Error('Some other error');
-      jest.mocked(ledgerKeyring.addAccounts).mockRejectedValueOnce(error);
+      jest.mocked(ledgerKeyring.createAccounts).mockRejectedValueOnce(error);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(
         'Some other error',
@@ -999,7 +1094,7 @@ describe('Ledger core', () => {
       // @ts-expect-error statusCode is a custom property on TransportStatusError
       transportError.statusCode = 0x1234; // Non-matching code
       jest
-        .mocked(ledgerKeyring.addAccounts)
+        .mocked(ledgerKeyring.createAccounts)
         .mockRejectedValueOnce(transportError);
 
       await expect(unlockLedgerWalletAccount(1)).rejects.toThrow(

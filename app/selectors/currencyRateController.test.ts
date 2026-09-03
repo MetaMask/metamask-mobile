@@ -1,4 +1,6 @@
 import {
+  makeSelectConversionRateByChainId,
+  makeSelectUSDConversionRateByChainId,
   selectConversionRate,
   selectConversionRateByChainId,
   selectCurrencyRateForChainId,
@@ -287,6 +289,63 @@ describe('CurrencyRateController Selectors', () => {
         chainId,
       );
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('conversion rate selector factories', () => {
+    const chainId = '0x1';
+
+    beforeEach(() => {
+      (isTestNet as jest.Mock).mockReturnValue(false);
+      jest
+        .spyOn(
+          NetworkControllerSelectors,
+          'selectNetworkConfigurationByChainId',
+        )
+        .mockReturnValue({
+          nativeCurrency: 'ETH',
+        } as MultichainNetworkConfiguration);
+    });
+
+    const createMockState = (): RootState =>
+      ({
+        engine: {
+          backgroundState: {
+            CurrencyRateController: {
+              currencyRates: mockCurrencyRateState.currencyRates,
+            },
+            NetworkController: {
+              networkConfigurationsByChainId: {
+                [chainId]: {
+                  nativeCurrency: 'ETH',
+                },
+              },
+            },
+          },
+        },
+        settings: {
+          showFiatOnTestnets: true,
+        },
+      }) as unknown as RootState;
+
+    it('returns the conversion rate for the chain ID bound to the factory', () => {
+      const state = createMockState();
+      const selectConversionRateForChain =
+        makeSelectConversionRateByChainId(chainId);
+
+      const result = selectConversionRateForChain(state);
+
+      expect(result).toBe(3000);
+    });
+
+    it('returns the USD conversion rate for the chain ID bound to the factory', () => {
+      const state = createMockState();
+      const selectUSDConversionRateForChain =
+        makeSelectUSDConversionRateByChainId(chainId);
+
+      const result = selectUSDConversionRateForChain(state);
+
+      expect(result).toBe(3000);
     });
   });
 });

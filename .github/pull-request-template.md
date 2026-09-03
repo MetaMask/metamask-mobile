@@ -8,8 +8,28 @@ In short: the template must be materially complete (not just section titles
 present), all status checks must be currently passing, and the only expected
 follow-up commits must be reviewer-driven.
 -->
+<!--
+mms-check directive vocabulary — read by .github/scripts/shared/pr-template-checks.ts
+at module load to build the validation plan. Directives are invisible in rendered
+markdown and must NOT be removed or edited without updating the validator registry.
+
+  type=text           Section must contain non-placeholder prose.
+  type=changelog      Section must have a valid CHANGELOG entry: line.
+  type=issue-link     Section must have a Fixes:/Closes:/Refs: line with a value.
+  type=manual-testing Section must have real testing steps or an explicit N/A.
+  type=screenshot     Section must have evidence (image/URL) or an explicit N/A.
+  type=checklist      Section must have all checkboxes consciously checked.
+  required=true|false Whether a missing/invalid section runs the validator at all.
+  blocking=true|false Whether a failure of this check fails the CI workflow.
+                      Default: false — failures are shown as warnings in the sticky
+                      comment but do not block the PR.
+
+Sections without a directive are checked for structural presence only.
+-->
 
 ## **Description**
+
+<!-- mms-check: type=text required=true -->
 
 <!--
 Write a short description of the changes included in this pull request, also include relevant motivation and context. Have in mind the following questions:
@@ -18,6 +38,8 @@ Write a short description of the changes included in this pull request, also inc
 -->
 
 ## **Changelog**
+
+<!-- mms-check: type=changelog required=true blocking=true -->
 
 <!--
 If this PR is not End-User-Facing and should not show up in the CHANGELOG, you can choose to either:
@@ -35,9 +57,13 @@ CHANGELOG entry:
 
 ## **Related issues**
 
+<!-- mms-check: type=issue-link required=true -->
+
 Fixes:
 
 ## **Manual testing steps**
+
+<!-- mms-check: type=manual-testing required=true -->
 
 ```gherkin
 Feature: my feature name
@@ -51,6 +77,8 @@ Feature: my feature name
 
 ## **Screenshots/Recordings**
 
+<!-- mms-check: type=screenshot required=true -->
+
 <!-- If applicable, add screenshots and/or recordings to visualize the before and after of your change. -->
 
 ### **Before**
@@ -62,6 +90,8 @@ Feature: my feature name
 <!-- [screenshots/recordings] -->
 
 ## **Pre-merge author checklist**
+
+<!-- mms-check: type=checklist required=true -->
 
 <!--
 Every checklist item must be consciously assessed before marking this PR as

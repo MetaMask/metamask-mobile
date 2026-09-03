@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { isObject } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { setMultiRpcMigrationModalOpen } from '../../../actions/security';
@@ -9,7 +10,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 
 const useCheckMultiRpcModal = () => {
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );

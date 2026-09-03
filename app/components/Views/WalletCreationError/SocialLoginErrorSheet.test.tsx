@@ -1,6 +1,6 @@
 import React, { ComponentType } from 'react';
 import { Image, Linking } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -47,6 +47,14 @@ jest.mock('../../../core', () => ({
   Authentication: {
     deleteWallet: jest.fn(),
   },
+}));
+
+const mockOpenSupportWithConsent = jest.fn();
+
+jest.mock('../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 const mockError = new Error('Test social login error');
@@ -130,7 +138,7 @@ describe('SocialLoginErrorSheet', () => {
     });
 
     it('tracks retry clicked event when Try again is pressed', async () => {
-      (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
 
       const { getByText } = renderSheet();
 
@@ -138,7 +146,9 @@ describe('SocialLoginErrorSheet', () => {
       mockAddProperties.mockClear();
       mockTrackEvent.mockClear();
 
-      fireEvent.press(getByText('Try again'));
+      await act(async () => {
+        fireEvent.press(getByText('Try again'));
+      });
 
       await waitFor(() => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -191,11 +201,13 @@ describe('SocialLoginErrorSheet', () => {
   });
 
   it('deletes wallet and resets navigation when try again is pressed', async () => {
-    (Authentication.deleteWallet as jest.Mock).mockResolvedValue(undefined);
+    jest.mocked(Authentication.deleteWallet).mockResolvedValue(undefined);
     const { getByText } = renderSheet({}, initialState);
     const tryAgainButton = getByText('Try again');
 
-    fireEvent.press(tryAgainButton);
+    await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
 
     await waitFor(() => {
       expect(Authentication.deleteWallet).toHaveBeenCalled();
@@ -207,14 +219,31 @@ describe('SocialLoginErrorSheet', () => {
     });
   });
 
-  it('opens support URL when MetaMask Support is pressed', () => {
+  it('calls openSupportWithConsent with an opener and the support base URL when MetaMask Support is pressed', () => {
     const { getByText } = renderSheet({}, initialState);
     const supportLink = getByText('MetaMask Support');
 
     fireEvent.press(supportLink);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
+      expect.any(Function),
       AppConstants.REVIEW_PROMPT.SUPPORT,
+    );
+  });
+
+  // Covers only the call-site opener wiring: invoking the opener passed to
+  // openSupportWithConsent opens the URL via Linking. The consent modal
+  // internals are covered by the core support-consent tests.
+  it('opens the support URL via Linking when the opener callback is invoked', () => {
+    const { getByText } = renderSheet({}, initialState);
+    const supportLink = getByText('MetaMask Support');
+
+    fireEvent.press(supportLink);
+    const [open] = mockOpenSupportWithConsent.mock.calls[0];
+    open('https://support.metamask.io/');
+
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.metamask.io/',
     );
   });
 

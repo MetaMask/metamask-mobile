@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  selectIsVipReferee,
   selectReferredByCode,
   selectReferralDetailsLoading,
   selectReferralDetailsError,
@@ -26,10 +27,20 @@ import { useApplyReferralCode } from '../../hooks/useApplyReferralCode';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../../util/theme';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
-const ReferredByCodeSection: React.FC = () => {
+interface ReferredByCodeSectionProps {
+  onInputFocus?: () => void;
+}
+
+const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
+  onInputFocus,
+}) => {
   const { colors } = useTheme();
   const referredByCode = useSelector(selectReferredByCode);
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isLoading = useSelector(selectReferralDetailsLoading);
   const referralDetailsError = useSelector(selectReferralDetailsError);
 
@@ -38,6 +49,7 @@ const ReferredByCodeSection: React.FC = () => {
     setReferralCode: setInputCode,
     isValidating,
     isValid: clientCheckValid,
+    isVipReferralCode,
     isUnknownError,
   } = useValidateReferralCode();
 
@@ -91,6 +103,18 @@ const ReferredByCodeSection: React.FC = () => {
   const renderIcon = () => {
     if ((isValidating || isApplyingReferralCode) && !hasReferredByCode) {
       return <ActivityIndicator color={colors.icon.default} />;
+    }
+
+    // A VIP referral code shows the gold VIP tag instead of the success
+    // checkmark — never both. Gate the whole tag on the VIP program flag so a
+    // stale `isVipReferee` (e.g. a fresh referral-details cache hit) can't
+    // surface the pill after the program is disabled locally — consistent with
+    // ReferralActionsSection and the other VIP surfaces.
+    if (
+      isVipProgramEnabled &&
+      (isVipReferralCode || (hasReferredByCode && isVipReferee))
+    ) {
+      return <RewardsVipReferralTag />;
     }
 
     if (clientCheckValid && applyReferralCodeSuccess) {
@@ -180,7 +204,7 @@ const ReferredByCodeSection: React.FC = () => {
   return (
     <>
       {/* Divider */}
-      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box twClassName="my-4 border-b border-border-muted" />
       <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
         <Box twClassName="gap-2 mt-2">
           <Text variant={TextVariant.HeadingMd}>
@@ -199,6 +223,7 @@ const ReferredByCodeSection: React.FC = () => {
             placeholder={strings('rewards.referred_by_code.input_placeholder')}
             value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
             onChangeText={hasReferredByCode ? undefined : handleInputChange}
+            onFocus={hasReferredByCode ? undefined : onInputFocus}
             isDisabled={hasReferredByCode}
             autoCapitalize="characters"
             endAccessory={renderIcon()}

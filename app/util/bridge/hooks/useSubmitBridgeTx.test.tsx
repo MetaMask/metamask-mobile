@@ -8,37 +8,28 @@ import {
   DummyQuotesNoApproval,
   DummyQuotesWithApproval,
 } from '../../../../tests/api-mocking/mock-responses/bridge-api-quotes';
-import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteResponse } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { selectSourceWalletAddress } from '../../../selectors/bridge';
 import { useABTest } from '../../../hooks';
+import { createActiveABTestAssignment } from '../../analytics/activeABTestAssignments';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../constants/bridge';
+import { CHAIN_VALUE_ORDER_AB_KEY } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 
-type BridgeQuoteResponse = QuoteResponse & QuoteMetadata;
+type BridgeQuoteResponse = QuoteResponse;
 interface MockABTestResult {
   variant: unknown;
   variantName: string;
   isActive: boolean;
 }
 
-let mockSubmitTx: jest.Mock<
-  Promise<TransactionMeta>,
-  [string, BridgeQuoteResponse, boolean]
->;
-let mockSubmitIntent: jest.Mock<
-  Promise<TransactionMeta>,
-  [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
->;
+let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, unknown[]>;
+let mockSubmitIntent: jest.Mock<Promise<TransactionMeta>, unknown[]>;
 
 jest.mock('../../../core/Engine', () => {
-  mockSubmitTx = jest.fn<
-    Promise<TransactionMeta>,
-    [string, QuoteResponse & QuoteMetadata, boolean]
-  >();
-  mockSubmitIntent = jest.fn<
-    Promise<TransactionMeta>,
-    [{ quoteResponse: BridgeQuoteResponse; accountAddress: string }]
-  >();
+  mockSubmitTx = jest.fn<Promise<TransactionMeta>, unknown[]>();
+  mockSubmitIntent = jest.fn<Promise<TransactionMeta>, unknown[]>();
   return {
     controllerMessenger: {},
     context: {
@@ -91,11 +82,6 @@ jest.mock('../../../selectors/networkController', () => {
   };
 });
 
-jest.mock('../../../selectors/smartTransactionsController', () => ({
-  ...jest.requireActual('../../../selectors/smartTransactionsController'),
-  selectShouldUseSmartTransaction: jest.fn(() => true),
-}));
-
 jest.mock('../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(
@@ -114,26 +100,25 @@ const inactiveABTestResult: MockABTestResult = {
   isActive: false,
 };
 
+const expectedDefaultQuotesReceivedContext = expect.objectContaining({
+  custom_slippage: false,
+  slippage_limit: 0,
+});
+
 describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
-    numpad = inactiveABTestResult,
-    tokenSelector = inactiveABTestResult,
-    stickyFooter = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
+    chainValueOrder = inactiveABTestResult,
   }: {
-    numpad?: MockABTestResult;
-    tokenSelector?: MockABTestResult;
-    stickyFooter?: MockABTestResult;
     ambientColor?: MockABTestResult;
+    chainValueOrder?: MockABTestResult;
   } = {}) => {
     jest
       .mocked(useABTest)
       .mockReset()
       .mockReturnValue(inactiveABTestResult)
-      .mockReturnValueOnce(numpad)
-      .mockReturnValueOnce(tokenSelector)
-      .mockReturnValueOnce(stickyFooter)
-      .mockReturnValueOnce(ambientColor);
+      .mockReturnValueOnce(ambientColor)
+      .mockReturnValueOnce(chainValueOrder);
   };
 
   beforeEach(() => {
@@ -142,7 +127,7 @@ describe('useSubmitBridgeTx', () => {
     mockABTests();
   });
 
-  const createWrapper = (mockState = {}) => {
+  const createWrapper = (mockState = {}, bridgeControllerState = {}) => {
     const store = mockStore({
       engine: {
         backgroundState: {
@@ -153,6 +138,8 @@ describe('useSubmitBridgeTx', () => {
                 slippage: 0.5,
               },
             ],
+            inputPrimaryDenomination: 'token_amount',
+            ...bridgeControllerState,
           },
           BridgeStatusController: {
             startPollingForBridgeTxStatus: jest.fn(),
@@ -166,6 +153,9 @@ describe('useSubmitBridgeTx', () => {
       },
       bridge: {
         abTestContext: undefined,
+        isGasIncludedSTXSendBundleSupported: true,
+        slippage: undefined,
+        isSlippageUserOverride: false,
       },
       swaps: {
         featureFlags: {
@@ -206,7 +196,7 @@ describe('useSubmitBridgeTx', () => {
     } as TransactionMeta);
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+      quoteResponse: mockQuoteResponse,
     });
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
@@ -216,11 +206,14 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
       null,
+      undefined,
+      'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -232,10 +225,9 @@ describe('useSubmitBridgeTx', () => {
         from: '0x1234567890123456789012345678901234567890',
       },
     });
-
     // Re-render with an active assignment to verify submitTx forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -267,7 +259,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -278,6 +270,9 @@ describe('useSubmitBridgeTx', () => {
         }),
       ],
       null,
+      undefined,
+      'token_amount',
+      '1.5',
     );
   });
 
@@ -313,11 +308,14 @@ describe('useSubmitBridgeTx', () => {
         approval: mockQuoteResponse.approval ?? undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
       null,
+      undefined,
+      'token_amount',
+      '1.5',
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -520,11 +518,13 @@ describe('useSubmitBridgeTx', () => {
       abTests: undefined,
       activeAbTests: undefined,
       tokenSecurityTypeDestination: null,
+      inputPrimaryDenomination: 'token_amount',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
-
     // Re-render with an active assignment to verify submitIntent forwards activeAbTests.
     mockABTests({
-      tokenSelector: {
+      ambientColor: {
         variant: {},
         variantName: 'treatment',
         isActive: true,
@@ -553,9 +553,57 @@ describe('useSubmitBridgeTx', () => {
         }),
       ],
       tokenSecurityTypeDestination: null,
+      inputPrimaryDenomination: 'token_amount',
+      quotesReceivedContext: expectedDefaultQuotesReceivedContext,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
     expect(mockSubmitTx).not.toHaveBeenCalled();
     expect(txResult).toEqual(mockIntentResult);
+  });
+
+  it('forwards caller-supplied active A/B tests via submitTx', async () => {
+    const transactionActiveAbTests = [
+      createActiveABTestAssignment('callerExperiment', 'treatment'),
+    ];
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+      transactionActiveAbTests,
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      expectedDefaultQuotesReceivedContext,
+      undefined,
+      undefined,
+      transactionActiveAbTests,
+      null,
+      undefined,
+      'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+    );
   });
 
   it('forwards ambient color AB test assignment via submitTx when active', async () => {
@@ -597,7 +645,7 @@ describe('useSubmitBridgeTx', () => {
         approval: undefined,
       },
       true,
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       [
@@ -608,22 +656,99 @@ describe('useSubmitBridgeTx', () => {
         }),
       ],
       null,
+      undefined,
+      'token_amount',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 
-  it('forwards tokenSecurityTypeDestination from destination token securityData', async () => {
+  it('merges network value order assignment into transaction attribution', async () => {
+    mockABTests({
+      chainValueOrder: {
+        variant: { orderByValue: true },
+        variantName: 'treatment',
+        isActive: true,
+      },
+    });
+    mockSubmitTx.mockResolvedValueOnce({
+      chainId: '0x1',
+      id: '1',
+      networkClientId: '1',
+      status: 'submitted',
+      time: Date.now(),
+      txParams: {
+        from: '0x1234567890123456789012345678901234567890',
+      },
+    } as TransactionMeta);
     const { result } = renderHook(() => useSubmitBridgeTx(), {
-      wrapper: createWrapper({
-        bridge: {
-          abTestContext: undefined,
-          destToken: {
-            symbol: 'SCAM',
-            securityData: {
-              type: 'Malicious',
+      wrapper: createWrapper(),
+    });
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
+
+    await result.current.submitBridgeTx({
+      quoteResponse: mockQuoteResponse as BridgeQuoteResponse,
+      transactionActiveAbTests: [
+        {
+          key: 'existingExperiment',
+          value: 'control',
+          key_value_pair: 'existingExperiment=control',
+        },
+      ],
+    });
+
+    expect(mockSubmitTx).toHaveBeenLastCalledWith(
+      '0x1234567890123456789012345678901234567890',
+      {
+        ...mockQuoteResponse,
+        approval: undefined,
+      },
+      true,
+      expectedDefaultQuotesReceivedContext,
+      undefined,
+      undefined,
+      [
+        {
+          key: CHAIN_VALUE_ORDER_AB_KEY,
+          value: 'treatment',
+          key_value_pair: `${CHAIN_VALUE_ORDER_AB_KEY}=treatment`,
+        },
+        {
+          key: 'existingExperiment',
+          value: 'control',
+          key_value_pair: 'existingExperiment=control',
+        },
+      ],
+      null,
+      undefined,
+      'token_amount',
+      '1.5',
+    );
+  });
+
+  it('forwards tokenSecurityTypeDestination and inputPrimaryDenomination', async () => {
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(
+        {
+          bridge: {
+            abTestContext: undefined,
+            isGasIncludedSTXSendBundleSupported: true,
+            slippage: undefined,
+            isSlippageUserOverride: false,
+            destToken: {
+              symbol: 'SCAM',
+              securityData: {
+                type: 'Malicious',
+              },
             },
           },
         },
-      }),
+        {
+          inputPrimaryDenomination: 'fiat_value',
+        },
+      ),
     });
 
     const mockQuoteResponse = {
@@ -650,11 +775,14 @@ describe('useSubmitBridgeTx', () => {
       '0x1234567890123456789012345678901234567890',
       expect.any(Object),
       expect.any(Boolean),
-      undefined,
+      expectedDefaultQuotesReceivedContext,
       undefined,
       undefined,
       undefined,
       'Malicious',
+      undefined,
+      'fiat_value',
+      BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     );
   });
 });

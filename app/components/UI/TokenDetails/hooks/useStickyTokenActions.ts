@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useAddNetwork } from '../../../hooks/useAddNetwork';
 import { selectHasEligibleSwapSource } from '../../../../selectors/assets/assets-list';
-import type { RootState } from '../../../../reducers';
 import {
   TokenActionInput,
   useHandleOnBuy,
@@ -22,9 +21,7 @@ export const useStickyTokenActions = ({
   /** Page name sent with swap/bridge analytics. Defaults to `'MainView'`. */
   sourcePage?: string;
 }) => {
-  const hasEligibleSwapTokens = useSelector((state: RootState) =>
-    selectHasEligibleSwapSource(state, token.chainId, token.address),
-  );
+  const hasEligibleSwapTokens = useSelector(selectHasEligibleSwapSource);
 
   const onBuy = useHandleOnBuy({ token });
   const onSwap = useHandleOnSwap({ token, currentTokenBalance, sourcePage });

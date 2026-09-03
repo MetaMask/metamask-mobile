@@ -1,25 +1,27 @@
 import { AddAddressModalSelectorsIDs } from '../../../app/components/UI/AddToAddressBookWrapper/AddAddressModal.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { type AppiumElement } from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class AddAddressModal {
-  get container(): DetoxElement {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.CONTAINER);
   }
 
-  get aliasInput(): DetoxElement {
+  get aliasInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
     );
   }
 
-  get saveButton(): DetoxElement {
-    return device.getPlatform() === 'android'
+  get saveButton(): Promise<AppiumElement> {
+    return PlatformDetector.isAndroid()
       ? Matchers.getElementByLabel(AddAddressModalSelectorsIDs.SAVE_BUTTON)
       : Matchers.getElementByID(AddAddressModalSelectorsIDs.SAVE_BUTTON);
   }
 
-  get title(): DetoxElement {
+  get title(): Promise<AppiumElement> {
     return Matchers.getElementByID(AddAddressModalSelectorsIDs.TITLE);
   }
 

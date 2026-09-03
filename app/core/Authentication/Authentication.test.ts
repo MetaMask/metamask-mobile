@@ -23,6 +23,8 @@ import {
   SecretType,
   SeedlessOnboardingController,
   SeedlessOnboardingControllerErrorMessage,
+  EncAccountDataType,
+  SeedlessOnboardingMigrationVersion,
 } from '@metamask/seedless-onboarding-controller';
 import {
   KeyringController,
@@ -47,9 +49,10 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-import { TraceName, TraceOperation } from '../../util/trace';
+import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { MetaMetricsEvents } from '../Analytics';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -57,9 +60,10 @@ import Logger from '../../util/Logger';
 import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { trackForcedReset } from '../../util/analytics/accountAccessTracking';
+import { UnlockWalletErrorType, ReauthenticateErrorType } from './types';
 import Routes from '../../constants/navigation/Routes';
 import { IconName } from '../../component-library/components/Icons/Icon';
-import { ReauthenticateErrorType } from './types';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
 import { MultichainAccountService } from '@metamask/multichain-account-service';
 import { AuthenticationType, SecurityLevel } from 'expo-local-authentication';
@@ -75,6 +79,11 @@ const mockAddress = '0x1234567890abcdef';
 const mockMnemonicPhraseToBytes = jest
   .fn()
   .mockReturnValue(new Uint8Array([1, 2, 3, 4]));
+const mockClearBrazeUser = jest.fn();
+
+jest.mock('../Braze', () => ({
+  clearBrazeUser: () => mockClearBrazeUser(),
+}));
 
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
@@ -88,6 +97,13 @@ jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountId: jest.fn(),
+}));
+
+// Mock onboarding selectors
+const mockSelectCompletedOnboarding = jest.fn().mockReturnValue(true);
+
+jest.mock('../../selectors/onboarding', () => ({
+  selectCompletedOnboarding: () => mockSelectCompletedOnboarding(),
 }));
 
 // Mock the bulk link saga to avoid import chain issues
@@ -197,8 +213,15 @@ jest.mock('../Engine', () => ({
     MultichainAccountService: {
       init: jest.fn().mockResolvedValue(undefined),
       resyncAccounts: jest.fn().mockImplementation(() => mockResyncAccounts()),
-      createMultichainAccountWallet: jest.fn(),
+      createMultichainAccountWallet: jest.fn().mockResolvedValue({
+        entropySource: 'primary-entropy-source',
+      }),
       removeMultichainAccountWallet: jest.fn(),
+    },
+
+    QrSyncController: {
+      enrichPrimaryProvisioningEntry: jest.fn(),
+      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -218,6 +241,12 @@ const mockNavigation = {
   navigate: mockNavigate,
 };
 
+const mockNavigateToPostUnlockHome = jest.fn();
+const mockCancelDeeplinkNavigatedTrace = jest.fn();
+const mockClearUnlockAppStartType = jest.fn();
+const mockGetUnlockAppStartType = jest.fn(() => 'warm');
+const mockResumeUnlockDeeplinkNavigatedAfterOptIn = jest.fn();
+
 jest.mock('../NavigationService', () => ({
   __esModule: true,
   default: {
@@ -228,6 +257,22 @@ jest.mock('../NavigationService', () => ({
       // Mock setter - does nothing but prevents errors
     },
   },
+}));
+
+jest.mock('../DeeplinkManager/utils/startupDeeplinkNavigation', () => ({
+  navigateToPostUnlockHome: () => mockNavigateToPostUnlockHome(),
+}));
+
+jest.mock('../Performance/DeeplinkPerformance', () => ({
+  cancelDeeplinkNavigatedTrace: (...args: unknown[]) =>
+    mockCancelDeeplinkNavigatedTrace(...args),
+}));
+
+jest.mock('../Performance/unlockTraces', () => ({
+  clearUnlockAppStartType: () => mockClearUnlockAppStartType(),
+  getUnlockAppStartType: () => mockGetUnlockAppStartType(),
+  resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
+    mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
 
 jest.mock('../SecureKeychain', () => ({
@@ -262,11 +307,38 @@ jest.mock('../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock('../../util/analytics/AnalyticsEventBuilder', () => ({
+  AnalyticsEventBuilder: {
+    createEventBuilder: jest.fn((eventOrName: unknown) => {
+      const name =
+        typeof eventOrName === 'string'
+          ? eventOrName
+          : ((eventOrName as Record<string, string>)?.category ??
+            (eventOrName as Record<string, string>)?.name ??
+            'test');
+      const properties: Record<string, unknown> = {};
+      const builder = {
+        addProperties: jest.fn((props: Record<string, unknown>): unknown => {
+          Object.assign(properties, props);
+          return builder;
+        }),
+        build: jest.fn(() => ({ name, properties })),
+      };
+      return builder;
+    }),
+  },
+}));
+
 jest.mock('../../util/analytics/analyticsDataDeletion', () => ({
   createDataDeletionTask: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('../../components/UI/Ramp/Deposit/utils/ProviderTokenVault', () => ({
+const mockCaptureException = jest.fn();
+jest.mock('@sentry/react-native', () => ({
+  captureException: (...args: unknown[]) => mockCaptureException(...args),
+}));
+
+jest.mock('../../components/UI/Ramp/utils/ProviderTokenVault', () => ({
   resetProviderToken: jest.fn(),
 }));
 
@@ -308,9 +380,14 @@ jest.mock('../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
   jest.fn(),
 );
 
+jest.mock('../../util/analytics/accountAccessTracking', () => ({
+  trackForcedReset: jest.fn(),
+}));
+
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
 const mockGetTraceTags = jest.fn();
+const mockGetTraceContext = jest.fn();
 
 jest.mock('../../util/sentry/tags', () => ({
   getTraceTags: () => mockGetTraceTags(),
@@ -322,6 +399,8 @@ jest.mock('../../util/trace', () => ({
   trace: (...args: any[]) => mockTrace(...args),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTrace: (...args: any[]) => mockEndTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getTraceContext: (...args: any[]) => mockGetTraceContext(...args),
 }));
 
 const mockMultichainAccountGroup = {
@@ -343,6 +422,10 @@ describe('Authentication', () => {
 
   beforeEach(() => {
     mockDispatch = jest.fn();
+    mockNavigate.mockClear();
+    mockReset.mockClear();
+    mockNavigateToPostUnlockHome.mockReset();
+    mockNavigateToPostUnlockHome.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -1318,6 +1401,20 @@ describe('Authentication', () => {
         expect(fallbackMockDispatch).toHaveBeenCalledWith(logIn());
       });
 
+      it('clears stored Transak provider token when creating a new wallet', async () => {
+        const createWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: createWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndKeychain('password', {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+        });
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
       it('falls back to PASSWORD when biometric storePassword fails in newWalletAndRestore', async () => {
         const restoreMockDispatch = jest.fn();
         jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -1357,6 +1454,62 @@ describe('Authentication', () => {
         );
         expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('clears stored Transak provider token when restoring a wallet', async () => {
+        const restoreWalletDispatch = jest.fn();
+        jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+          dispatch: restoreWalletDispatch,
+          getState: () => ({ security: { allowLoginWithRememberMe: true } }),
+        } as unknown as ReduxStore);
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.PASSWORD },
+          'test seed phrase',
+          true,
+        );
+
+        expect(depositResetProviderToken).toHaveBeenCalledTimes(1);
+      });
+
+      it('imports remaining QR sync secrets after primary vault restore', async () => {
+        const Engine = jest.requireMock('../Engine');
+        const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
+        Engine.context.KeyringController.createNewVaultAndRestore.mockResolvedValueOnce(
+          PRIMARY_ENTROPY_SOURCE,
+        );
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          true,
+        );
+
+        expect(
+          Engine.context.QrSyncController.enrichPrimaryProvisioningEntry,
+        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).toHaveBeenCalledWith();
+      });
+
+      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          false,
+        );
+
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).not.toHaveBeenCalled();
       });
 
       it('resyncs accounts after login', async () => {
@@ -1455,6 +1608,7 @@ describe('Authentication', () => {
         storeKeyringEncryptionKey: jest.fn(),
         updateBackupMetadataState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
       };
       Engine.context.KeyringController.state.keyrings = [
         { metadata: { id: 'test-keyring' } },
@@ -1476,6 +1630,101 @@ describe('Authentication', () => {
       await Authentication.createAndBackupSeedPhrase('test-password');
 
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+
+      createWalletSpy.mockRestore();
+    });
+
+    it('nests Create Key and Backup SRP under the open New Social Create Wallet span', async () => {
+      const Engine = jest.requireMock('../Engine');
+      const parentContext = {
+        _name: TraceName.OnboardingNewSocialCreateWallet,
+      } as unknown as TraceContext;
+      mockGetTraceContext.mockReturnValue(parentContext);
+
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: jest.fn(),
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(mockGetTraceContext).toHaveBeenCalledWith({
+        name: TraceName.OnboardingNewSocialCreateWallet,
+      });
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingCreateKeyAndBackupSrp,
+          op: TraceOperation.OnboardingSecurityOp,
+          parentContext,
+        }),
+      );
+
+      createWalletSpy.mockRestore();
+      mockGetTraceContext.mockReturnValue(undefined);
+    });
+
+    it('sets migration version on successful backup', async () => {
+      const Engine = jest.requireMock('../Engine');
+
+      const setMigrationVersionMock = jest.fn();
+
+      // Mock the required Engine context methods
+      Engine.context.SeedlessOnboardingController = {
+        state: {},
+        createToprfKeyAndBackupSeedPhrase: jest
+          .fn()
+          .mockResolvedValue(undefined),
+        clearState: jest.fn(),
+        exportEncryptionKey: jest.fn(),
+        storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
+        setLocked: jest.fn().mockResolvedValue(undefined),
+        setMigrationVersion: setMigrationVersionMock,
+      };
+      Engine.context.KeyringController.state.keyrings = [
+        { metadata: { id: 'test-keyring' } },
+      ];
+      Engine.context.KeyringController.exportSeedPhrase = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      Engine.context.KeyringController.exportEncryptionKey = jest
+        .fn()
+        .mockResolvedValue('test seed phrase');
+
+      // Mock createWalletVaultAndKeychain
+      const createWalletSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'createWalletVaultAndKeychain')
+        .mockResolvedValue(undefined);
+
+      await Authentication.createAndBackupSeedPhrase('test-password');
+
+      expect(setMigrationVersionMock).toHaveBeenCalledWith(
+        SeedlessOnboardingMigrationVersion.V1,
+      );
 
       createWalletSpy.mockRestore();
     });
@@ -1848,6 +2097,8 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
       ]);
       const newWalletVaultAndRestoreSpy = jest
@@ -1872,8 +2123,102 @@ describe('Authentication', () => {
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
+    });
+
+    it('forwards parentContext from unlockWallet to rehydrateSeedPhrase when supplied', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+        parentContext: mockParentContext,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(
+        mockPassword,
+        mockParentContext,
+      );
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('passes an undefined parent context for ordinary unlockWallet callers', async () => {
+      const rehydrateSpy = jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      });
+
+      expect(rehydrateSpy).toHaveBeenCalledWith(mockPassword, undefined);
+
+      rehydrateSpy.mockRestore();
+    });
+
+    it('nests OnboardingFetchSrps under the provided parent context', async () => {
+      const mockParentContext = {
+        spanId: 'onboarding-journey-span',
+      } as unknown as TraceContext;
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword, mockParentContext);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: mockParentContext,
+        }),
+      );
+    });
+
+    it('starts OnboardingFetchSrps without a parent context when called with one argument', async () => {
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        {
+          data: mockSeedPhrase1,
+          type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
+        },
+      ]);
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockResolvedValueOnce(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.OnboardingFetchSrps,
+          parentContext: undefined,
+        }),
+      );
     });
 
     it('rehydrate with multiple seed phrases', async () => {
@@ -1884,10 +2229,14 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockSeedPhrase2,
           type: SecretType.Mnemonic,
+          itemId: 'imported-srp-id',
+          dataType: EncAccountDataType.ImportedSrp,
         },
       ]);
       const mockStateLocal: RecursivePartial<RootState> = {
@@ -1945,7 +2294,7 @@ describe('Authentication', () => {
         keyringId: mockMultichainAccountWallet.entropySource,
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1957,10 +2306,14 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockPrivateKeyData,
           type: SecretType.PrivateKey,
+          itemId: 'imported-pk-id',
+          dataType: EncAccountDataType.ImportedPrivateKey,
         },
       ]);
       const newWalletVaultAndRestoreSpy = jest
@@ -1991,7 +2344,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2003,10 +2356,14 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockPrivateKeyData,
           type: 'unknown' as SecretType,
+          itemId: 'unknown-id',
+          dataType: 0, // Unknown data type
         },
       ]);
       const newWalletAndRestoreSpy = jest
@@ -2021,7 +2378,7 @@ describe('Authentication', () => {
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2033,10 +2390,14 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockPrivateKeyData,
           type: SecretType.PrivateKey,
+          itemId: 'imported-pk-id',
+          dataType: EncAccountDataType.ImportedPrivateKey,
         },
       ]);
 
@@ -2060,7 +2421,7 @@ describe('Authentication', () => {
         importError,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2099,10 +2460,14 @@ describe('Authentication', () => {
         {
           data: mockSeedPhrase1,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockSeedPhrase2,
           type: SecretType.Mnemonic,
+          itemId: 'imported-srp-id',
+          dataType: EncAccountDataType.ImportedSrp,
         },
       ]);
       const newWalletVaultAndRestoreSpy = jest
@@ -2150,7 +2515,7 @@ describe('Authentication', () => {
         error,
         'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(7); // logIn, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -2162,10 +2527,14 @@ describe('Authentication', () => {
         {
           data: null,
           type: SecretType.Mnemonic,
+          itemId: 'primary-srp-id',
+          dataType: EncAccountDataType.PrimarySrp,
         },
         {
           data: mockSeedPhrase2,
           type: SecretType.Mnemonic,
+          itemId: 'imported-srp-id',
+          dataType: EncAccountDataType.ImportedSrp,
         },
       ]);
 
@@ -2918,6 +3287,7 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
+      mockHdKeyringV2.getAccounts.mockResolvedValue([{ address: mockAddress }]);
 
       // Setup Engine context mocks
       Engine.context.KeyringController = {
@@ -2943,6 +3313,7 @@ describe('Authentication', () => {
         createMultichainAccountWallet: jest
           .fn()
           .mockResolvedValue(mockMultichainAccountWallet),
+        removeMultichainAccountWallet: jest.fn(),
       } as unknown as MultichainAccountService;
 
       Engine.context.SeedlessOnboardingController = {
@@ -3096,6 +3467,8 @@ describe('Authentication', () => {
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        runMigrations: jest.fn().mockResolvedValue(false),
+        state: { migrationVersion: 1 },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       // Mock Engine.setSelectedAddress
@@ -3193,15 +3566,19 @@ describe('Authentication', () => {
       ]);
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockImportedAddress,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockImportedAddress,
+        },
+      );
       expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
         mockImportedAddress,
       );
     });
 
-    it('import account from private key with seedless flow but no social backup', async () => {
+    it('imports account from private key with seedless flow but no social backup', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -3259,7 +3636,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to import account');
     });
 
-    it('handle SeedlessOnboardingController.addNewSecretData failure and revert import', async () => {
+    it('handles SeedlessOnboardingController.addNewSecretData failure and reverts import', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: true,
@@ -3402,15 +3779,32 @@ describe('Authentication', () => {
     beforeEach(() => {
       // Reset mocks
       jest.clearAllMocks();
+      mockSelectCompletedOnboarding.mockReturnValue(true);
 
       // Setup Engine context mocks
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
         updateBackupMetadataState: jest.fn(),
+        runMigrations: jest.fn().mockResolvedValue(false),
+        state: { migrationVersion: 1 },
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      // Setup Redux store mock
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        getState: () => ({
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                vault: 'existing vault data',
+                socialBackupsMetadata: [],
+              },
+            },
+          },
+        }),
+      } as unknown as ReduxStore);
     });
 
-    it('add private key backup with social sync', async () => {
+    it('adds private key backup with social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -3421,15 +3815,19 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
     });
 
-    it('add private key backup without social sync', async () => {
+    it('adds private key backup without social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -3450,7 +3848,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('use default syncWithSocial value (true)', async () => {
+    it('uses default syncWithSocial value (true)', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -3460,15 +3858,19 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
     });
 
-    it('handle private key without 0x prefix', async () => {
+    it('handles private key without 0x prefix', async () => {
       // Arrange
       const privateKeyWithoutPrefix =
         '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -3483,12 +3885,16 @@ describe('Authentication', () => {
       // Assert
       expect(
         Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(expect.any(Uint8Array), SecretType.PrivateKey, {
-        keyringId: mockKeyringId,
-      });
+      ).toHaveBeenCalledWith(
+        expect.any(Uint8Array),
+        EncAccountDataType.ImportedPrivateKey,
+        {
+          keyringId: mockKeyringId,
+        },
+      );
     });
 
-    it('handle SeedlessOnboardingController.addNewSecretData failure', async () => {
+    it('handles SeedlessOnboardingController.addNewSecretData failure', async () => {
       // Arrange
       const error = new Error('Failed to add secret data');
       Engine.context.SeedlessOnboardingController.addNewSecretData.mockRejectedValue(
@@ -3530,14 +3936,20 @@ describe('Authentication', () => {
     const mockRootSecret = {
       data: new Uint8Array([1, 2, 3, 4]),
       type: SecretType.Mnemonic,
+      itemId: 'primary-srp-id',
+      dataType: EncAccountDataType.PrimarySrp,
     };
     const mockPrivateKeySecret = {
       data: new Uint8Array([5, 6, 7, 8]),
       type: SecretType.PrivateKey,
+      itemId: 'imported-pk-id',
+      dataType: EncAccountDataType.ImportedPrivateKey,
     };
     const mockMnemonicSecret = {
       data: new Uint8Array([9, 10, 11, 12]),
       type: SecretType.Mnemonic,
+      itemId: 'imported-srp-id',
+      dataType: EncAccountDataType.ImportedSrp,
     };
 
     beforeEach(() => {
@@ -3772,10 +4184,14 @@ describe('Authentication', () => {
       const mockSecret1 = {
         data: new Uint8Array([1, 2, 3]),
         type: SecretType.PrivateKey,
+        itemId: 'imported-pk-id-1',
+        dataType: EncAccountDataType.ImportedPrivateKey,
       };
       const mockSecret2 = {
         data: new Uint8Array([4, 5, 6]),
         type: SecretType.Mnemonic,
+        itemId: 'imported-srp-id-1',
+        dataType: EncAccountDataType.ImportedSrp,
       };
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [mockRootSecret, mockSecret1, mockSecret2],
@@ -3806,6 +4222,8 @@ describe('Authentication', () => {
       const mockUnknownSecret = {
         data: new Uint8Array([1, 2, 3, 4]),
         type: 'unknown' as SecretType,
+        itemId: 'unknown-id',
+        dataType: 0, // Unknown data type
       };
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [mockRootSecret, mockUnknownSecret],
@@ -3845,6 +4263,171 @@ describe('Authentication', () => {
     });
   });
 
+  describe('runSeedlessOnboardingMigrations', () => {
+    const Engine = jest.requireMock('../Engine');
+    const { AnalyticsEventBuilder } = jest.requireMock(
+      '../../util/analytics/AnalyticsEventBuilder',
+    );
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockSelectCompletedOnboarding.mockReturnValue(true);
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockResolvedValue(true),
+        state: { migrationVersion: 1 },
+      };
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(),
+      } as unknown as ReduxStore);
+    });
+
+    it('calls controller runMigrations when onboarding is complete', async () => {
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.runMigrations,
+      ).toHaveBeenCalled();
+    });
+
+    it('skips migration when onboarding not complete', async () => {
+      mockSelectCompletedOnboarding.mockReturnValue(false);
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.runMigrations,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('tracks success event only when migration actually occurred', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockResolvedValue(true),
+        state: { migrationVersion: 1 },
+      };
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+      );
+      expect(analytics.trackEvent).toHaveBeenCalled();
+    });
+
+    it('does not track success event when no migration occurred', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockResolvedValue(false),
+        state: { migrationVersion: 1 },
+      };
+
+      await Authentication.runSeedlessOnboardingMigrations();
+
+      expect(
+        Engine.context.SeedlessOnboardingController.runMigrations,
+      ).toHaveBeenCalled();
+      expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not throw when tracking a successful migration fails', async () => {
+      const logSpy = jest.spyOn(Logger, 'log').mockImplementation(jest.fn());
+      jest.mocked(analytics.trackEvent).mockImplementation(() => {
+        throw new Error('trackEvent failed');
+      });
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockResolvedValue(true),
+        state: { migrationVersion: 1 },
+      };
+
+      try {
+        await expect(
+          Authentication.runSeedlessOnboardingMigrations(),
+        ).resolves.toBeUndefined();
+
+        expect(logSpy).toHaveBeenCalledWith(
+          'Failed to track seedless onboarding migration completion',
+          expect.any(Error),
+        );
+      } finally {
+        jest.mocked(analytics.trackEvent).mockReset();
+        logSpy.mockRestore();
+      }
+    });
+
+    it('tracks failure event on migration error without throwing', async () => {
+      const error = new Error('Network error');
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockRejectedValue(error),
+        state: { migrationVersion: 1 },
+      };
+
+      await expect(
+        Authentication.runSeedlessOnboardingMigrations(),
+      ).resolves.toBeUndefined();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+      );
+      expect(analytics.trackEvent).toHaveBeenCalled();
+      expect(mockCaptureException).toHaveBeenCalledWith(error);
+    });
+
+    it('wraps non-Error thrown values before reporting failure', async () => {
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest.fn().mockRejectedValue('string error'),
+        state: { migrationVersion: 0 },
+      };
+
+      await expect(
+        Authentication.runSeedlessOnboardingMigrations(),
+      ).resolves.toBeUndefined();
+
+      expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
+      );
+      expect(mockCaptureException).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Unknown error' }),
+      );
+    });
+
+    it('logs warnings and still resolves when analytics tracking or Sentry reporting fail', async () => {
+      const logWarnSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(jest.fn());
+      jest.mocked(analytics.trackEvent).mockImplementation(() => {
+        throw new Error('trackEvent failed');
+      });
+      mockCaptureException.mockImplementation(() => {
+        throw new Error('sentry capture failed');
+      });
+      Engine.context.SeedlessOnboardingController = {
+        runMigrations: jest
+          .fn()
+          .mockRejectedValue(new Error('migration failed')),
+        state: { migrationVersion: 0 },
+      };
+
+      try {
+        await expect(
+          Authentication.runSeedlessOnboardingMigrations(),
+        ).resolves.toBeUndefined();
+
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'Failed to track seedless onboarding migration failure',
+          expect.any(Error),
+        );
+        expect(logWarnSpy).toHaveBeenCalledWith(
+          'Failed to capture seedless onboarding migration failure',
+          expect.any(Error),
+        );
+      } finally {
+        jest.mocked(analytics.trackEvent).mockReset();
+        mockCaptureException.mockReset();
+        logWarnSpy.mockRestore();
+      }
+    });
+  });
+
   describe('deleteWallet', () => {
     let Engine: typeof import('../Engine').default;
     let deleteWalletMockDispatch: jest.Mock;
@@ -3865,6 +4448,11 @@ describe('Authentication', () => {
         clearState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
 
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
@@ -3899,10 +4487,14 @@ describe('Authentication', () => {
       await Authentication.deleteWallet();
 
       // Assert
+      expect(mockClearBrazeUser).toHaveBeenCalledTimes(1);
       expect(resetWalletStateSpy).toHaveBeenCalledTimes(1);
       expect(deleteUserSpy).toHaveBeenCalledTimes(1);
+      const clearBrazeCallOrder =
+        mockClearBrazeUser.mock.invocationCallOrder[0];
       const resetCallOrder = resetWalletStateSpy.mock.invocationCallOrder[0];
       const deleteCallOrder = deleteUserSpy.mock.invocationCallOrder[0];
+      expect(clearBrazeCallOrder).toBeLessThan(resetCallOrder);
       expect(resetCallOrder).toBeLessThan(deleteCallOrder);
     });
 
@@ -3948,6 +4540,11 @@ describe('Authentication', () => {
         clearState: jest.fn(),
         setLocked: jest.fn().mockResolvedValue(undefined),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      Engine.context.CardController = {
+        resetAll: jest.fn().mockResolvedValue(undefined),
+        setResetInProgress: jest.fn(),
+      } as unknown as (typeof Engine.context)['CardController'];
 
       Engine.context.KeyringController = {
         setLocked: jest.fn().mockResolvedValue(undefined),
@@ -4009,6 +4606,23 @@ describe('Authentication', () => {
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
 
+    it('re-enables Card reactive fetching even when an error occurs', async () => {
+      // Arrange
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockRejectedValueOnce(new Error('Authentication failed'));
+
+      // Act
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      // Assert - suppression is lifted despite the error
+      expect(
+        Engine.context.CardController.setResetInProgress,
+      ).toHaveBeenLastCalledWith(false);
+    });
+
     it('calls all required methods to reset wallet state', async () => {
       // Arrange
       const newWalletAndKeychain = jest.spyOn(
@@ -4036,6 +4650,15 @@ describe('Authentication', () => {
       expect(resetRewardsSpy).toHaveBeenCalledTimes(1);
       expect(resetRewardsSpy).toHaveBeenCalledWith(
         'RewardsController:resetAll',
+      );
+      expect(Engine.context.CardController.resetAll).toHaveBeenCalledTimes(1);
+      const setResetSpy = Engine.context.CardController
+        .setResetInProgress as jest.Mock;
+      expect(setResetSpy).toHaveBeenNthCalledWith(1, true);
+      expect(setResetSpy).toHaveBeenLastCalledWith(false);
+      // Suppression is enabled before the temporary wallet is created
+      expect(setResetSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
       );
       expect(loggerSpy).not.toHaveBeenCalled();
       expect(resetProviderTokenSpy).toHaveBeenCalledTimes(1);
@@ -4696,7 +5319,7 @@ describe('Authentication', () => {
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
       expect(exportSeedPhraseSpy).toHaveBeenCalledWith(
-        'valid-password',
+        { password: 'valid-password' },
         keyringId,
       );
     });
@@ -4723,7 +5346,10 @@ describe('Authentication', () => {
       await Authentication.revealPrivateKey('valid-password', address);
 
       expect(reauthSpy).toHaveBeenCalledWith('valid-password');
-      expect(exportAccountSpy).toHaveBeenCalledWith('valid-password', address);
+      expect(exportAccountSpy).toHaveBeenCalledWith(
+        { password: 'valid-password' },
+        address,
+      );
     });
   });
 
@@ -4804,12 +5430,18 @@ describe('Authentication', () => {
       });
     });
 
-    it('navigates to the home flow when a password is provided', async () => {
+    it('navigates to the post-unlock home destination when a password is provided', async () => {
       // Call unlockWallet with a password.
       await Authentication.unlockWallet({ password: passwordToUse });
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not navigate home directly after login', async () => {
+      await Authentication.unlockWallet({ password: passwordToUse });
+
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
+      expect(mockReset).not.toHaveBeenCalledWith({
         routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
     });
@@ -4827,21 +5459,16 @@ describe('Authentication', () => {
 
       expect(onBeforeNavigate).toHaveBeenCalledTimes(1);
       expect(onBeforeNavigate.mock.invocationCallOrder[0]).toBeLessThan(
-        mockReset.mock.invocationCallOrder[0],
+        mockNavigateToPostUnlockHome.mock.invocationCallOrder[0],
       );
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to the home flow when biometric credentials are provided', async () => {
+    it('navigates to the post-unlock home destination when biometric credentials are provided', async () => {
       // Call unlockWallet without a password.
       await Authentication.unlockWallet();
 
-      // Verify that it navigates to the home flow.
-      expect(mockReset).toHaveBeenCalledWith({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('navigates to the optin metrics flow when metrics are not enabled and UI has not been seen', async () => {
@@ -4861,11 +5488,33 @@ describe('Authentication', () => {
               screen: Routes.ONBOARDING.NAV,
               params: {
                 screen: Routes.ONBOARDING.OPTIN_METRICS,
+                params: {
+                  onContinue: expect.any(Function),
+                },
               },
             },
           },
         ],
       });
+      expect(mockCancelDeeplinkNavigatedTrace).toHaveBeenCalledWith({
+        reason: 'metrics_opt_in',
+      });
+      expect(mockClearUnlockAppStartType).toHaveBeenCalledTimes(1);
+    });
+
+    it('resumes pending deeplink navigation after metrics consent', async () => {
+      jest.spyOn(StorageWrapper, 'getItem').mockResolvedValue(null);
+      jest.spyOn(analytics, 'isEnabled').mockReturnValue(false);
+
+      await Authentication.unlockWallet({ password: passwordToUse });
+      const onContinue =
+        mockReset.mock.calls[0][0].routes[0].params.params.params.onContinue;
+      await onContinue();
+
+      expect(mockResumeUnlockDeeplinkNavigatedAfterOptIn).toHaveBeenCalledWith({
+        appStartType: 'warm',
+      });
+      expect(mockNavigateToPostUnlockHome).toHaveBeenCalledTimes(1);
     });
 
     it('submits password to KeyringController when password is derived', async () => {
@@ -4930,6 +5579,28 @@ describe('Authentication', () => {
       expect(trackErrorSpy).toHaveBeenCalledWith(
         'Unlock Wallet Error',
         unlockError.message,
+      );
+    });
+
+    it('tracks the classified error type and reset state when unlock fails', async () => {
+      const trackForcedResetSpy = jest.mocked(trackForcedReset);
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(new Error('Failed to rehydrate seed phrase'));
+
+      await expect(
+        Authentication.unlockWallet({
+          password: passwordToUse,
+          authPreference: {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: true,
+          },
+        }),
+      ).rejects.toThrow('Failed to rehydrate seed phrase');
+
+      expect(trackForcedResetSpy).toHaveBeenCalledWith(
+        UnlockWalletErrorType.UNRECOGNIZED_ERROR,
+        false,
       );
     });
 
@@ -5046,7 +5717,10 @@ describe('Authentication', () => {
         });
 
         // Verify that the rehydrateSeedPhrase is called.
-        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(passwordToUse);
+        expect(rehydrateSeedPhraseSpy).toHaveBeenCalledWith(
+          passwordToUse,
+          undefined,
+        );
       });
 
       it('syncs password and unlocks wallet when seedless password is outdated', async () => {
@@ -5256,6 +5930,26 @@ describe('Authentication', () => {
 
           alertSpy.mockRestore();
           lockAppSpy.mockRestore();
+        });
+
+        it('tracks forced reset as USER_NOT_AUTHENTICATED when biometric changed alert is confirmed', async () => {
+          const trackForcedResetSpy = jest.mocked(trackForcedReset);
+          const alertSpy = jest
+            .spyOn(Alert, 'alert')
+            .mockImplementation((_title, _message, buttons) => {
+              buttons?.[0]?.onPress?.();
+            });
+
+          await expect(
+            Authentication.unlockWallet({ password: passwordToUse }),
+          ).rejects.toThrow('User not authenticated');
+
+          expect(trackForcedResetSpy).toHaveBeenCalledWith(
+            UnlockWalletErrorType.USER_NOT_AUTHENTICATED,
+            true,
+          );
+
+          alertSpy.mockRestore();
         });
 
         it('does not show alert when error does not contain USER_NOT_AUTHENTICATED', async () => {

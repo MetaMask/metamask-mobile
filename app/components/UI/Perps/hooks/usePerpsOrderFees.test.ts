@@ -9,12 +9,18 @@ import {
   formatFeeRate,
   clearRewardsCaches,
 } from './usePerpsOrderFees';
-import { type FeeCalculationResult } from '@metamask/perps-controller';
+import {
+  type FeeCalculationParams,
+  type FeeCalculationResult,
+} from '@metamask/perps-controller';
 
 jest.mock('./usePerpsTrading');
 
 // Import existing mocks
-import { createMockEngineContext, TEST_CONSTANTS } from '../__mocks__';
+import {
+  createMockEngineContext,
+  TEST_CONSTANTS,
+} from '../__mocks__/perpsMocks';
 
 // Use shared Engine context mock
 const mockEngineContext = createMockEngineContext();
@@ -71,10 +77,19 @@ const createWrapper = () => {
   };
 };
 
+/**
+ * Split plan (follow-up; this file predates the current size warning):
+ * 1. Keep base fee calculation plus `formatFeeRate` in this file.
+ * 2. Move maker/taker determination to `usePerpsOrderFees.makerTaker.test.ts`.
+ * 3. Move enhanced errors, cache TTL, and lifecycle coverage to `usePerpsOrderFees.resilience.test.ts`.
+ *
+ * Shared controller/Redux builders should move to a sibling test helper first
+ * so each suite can keep isolated AAA setup without duplicating mocks.
+ */
 describe('usePerpsOrderFees', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -130,7 +145,7 @@ describe('usePerpsOrderFees', () => {
           selectorStr.includes('rewards') ||
           selectorStr.includes('Rewards')
         ) {
-          return true; // rewardsEnabled
+          return true; // rewards-related selectors default to enabled
         }
         if (
           selectorStr.includes('address') ||
@@ -148,6 +163,7 @@ describe('usePerpsOrderFees', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -160,6 +176,7 @@ describe('usePerpsOrderFees', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
@@ -214,6 +231,67 @@ describe('usePerpsOrderFees', () => {
       expect(result.current.metamaskFeeRate).toBe(0); // 0% currently
       expect(result.current.metamaskFee).toBe(0); // 100000 * 0
       expect(result.current.totalFee).toBe(45); // protocol + metamask
+    });
+
+    it('routes TWAP fee quotes to the selected provider', async () => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'twap',
+            amount: '1000',
+            symbol: 'BTC',
+            providerId: 'hyperliquid',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'twap',
+        isMaker: false,
+        amount: '1000',
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0);
+    });
+
+    it('uses controller default routing for strategy fees without a provider route', async () => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+      });
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'twap',
+            amount: '1000',
+            symbol: 'BTC',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'twap',
+        isMaker: false,
+        amount: '1000',
+        symbol: 'BTC',
+      });
+      expect(result.current.protocolFeeRate).toBe(0.00045);
+      expect(result.current.metamaskFeeRate).toBe(0);
     });
 
     it('derives total fees from protocol and MetaMask rates when provider fee amount is stale', async () => {
@@ -774,7 +852,7 @@ describe('clearRewardsCaches', () => {
 describe('usePerpsOrderFees - Maker/Taker Determination', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
@@ -846,6 +924,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -858,6 +937,7 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
@@ -905,6 +985,39 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
         symbol: 'ETH',
       });
       expect(result.current.protocolFeeRate).toBe(0.00045);
+    });
+  });
+
+  describe('Chase Orders', () => {
+    it('uses maker pricing for post-only Chase orders', async () => {
+      mockCalculateFees.mockResolvedValue({
+        feeRate: 0.00015,
+        feeAmount: 15,
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      });
+
+      const { result } = renderHook(
+        () =>
+          usePerpsOrderFees({
+            orderType: 'chase',
+            amount: '100000',
+            direction: 'long',
+            providerId: 'hyperliquid',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoadingMetamaskFee).toBe(false);
+      });
+      expect(mockCalculateFees).toHaveBeenCalledWith({
+        orderType: 'chase',
+        isMaker: true,
+        amount: '100000',
+        symbol: 'ETH',
+        providerId: 'hyperliquid',
+      });
     });
   });
 
@@ -1545,17 +1658,19 @@ describe('usePerpsOrderFees - Maker/Taker Determination', () => {
 describe('usePerpsOrderFees - Enhanced Error Handling', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
-    [{ orderType: 'market' | 'limit'; isMaker?: boolean; amount?: string }]
+    [FeeCalculationParams]
   >();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearRewardsCaches();
     // Reset controller messenger mock
     mockControllerMessenger.call.mockReset();
     mockUsePerpsTrading.mockReturnValue({
       calculateFees: mockCalculateFees,
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
+      editOrder: jest.fn(),
       closePosition: jest.fn(),
       getMarkets: jest.fn(),
       getPositions: jest.fn(),
@@ -1568,6 +1683,7 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
       clearDepositResult: jest.fn(),
       withdraw: jest.fn(),
       calculateLiquidationPrice: jest.fn(),
+      previewPositionModify: jest.fn(),
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),

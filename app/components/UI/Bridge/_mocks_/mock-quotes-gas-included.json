@@ -19,6 +19,7 @@
       },
       "destChainId": 1151111081099710,
       "destTokenAmount": "57056221",
+      "minDestTokenAmount": "57056221",
       "destAsset": {
         "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
         "chainId": 1151111081099710,

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import KYCFailed from './KYCFailed';
@@ -12,7 +13,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => jest.fn()),
+  useSelector: jest.fn(() => 'baanx'),
 }));
+
+import { useSelector } from 'react-redux';
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 jest.mock('../../../../../core/redux/slices/card', () => ({
   resetOnboardingState: jest.fn(() => ({ type: 'card/resetOnboardingState' })),
@@ -23,6 +29,7 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../util/metrics', () => ({
+  ...jest.requireActual('../../util/metrics'),
   CardScreens: {
     KYC_FAILED: 'KYC_FAILED',
   },
@@ -236,6 +243,7 @@ describe('KYCFailed Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue('baanx');
     (useNavigation as jest.Mock).mockReturnValue({
       navigate: mockNavigate,
     });
@@ -279,6 +287,24 @@ describe('KYCFailed Component', () => {
       const image = getByTestId('kyc-failed-image');
 
       expect(image).toBeTruthy();
+    });
+
+    it('renders the image as a full-bleed background', () => {
+      const { getByTestId } = render(<KYCFailed />);
+
+      const image = getByTestId('kyc-failed-image');
+      const style = StyleSheet.flatten(image.props.style);
+
+      // The asset has its own purple backdrop baked in, so any area it leaves
+      // uncovered shows the screen's flat fallback color as a visible seam.
+      expect(image.props.resizeMode).toBe('cover');
+      expect(style).toMatchObject({
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+      });
     });
   });
 
@@ -389,6 +415,33 @@ describe('KYCFailed Component', () => {
       const addPropertiesCall =
         mockCreateEventBuilder.mock.results[0].value.addProperties;
       expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'baanx',
+        screen: 'KYC_FAILED',
+      });
+    });
+
+    it('does not track while activeProviderId is null', () => {
+      mockUseSelector.mockReturnValue(null);
+
+      render(<KYCFailed />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it('tracks once when provider resolves after a null provider render', () => {
+      mockUseSelector.mockReturnValue(null);
+      const { rerender } = render(<KYCFailed />);
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+
+      mockUseSelector.mockReturnValue('immersve');
+      rerender(<KYCFailed />);
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      const addPropertiesCall =
+        mockCreateEventBuilder.mock.results[0].value.addProperties;
+      expect(addPropertiesCall).toHaveBeenCalledWith({
+        provider: 'immersve',
         screen: 'KYC_FAILED',
       });
     });

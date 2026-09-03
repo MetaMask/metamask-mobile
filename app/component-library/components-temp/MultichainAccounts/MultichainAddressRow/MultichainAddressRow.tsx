@@ -117,7 +117,7 @@ const MultichainAddressRow = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="p-4 gap-4 bg-default"
+      twClassName="p-4 gap-4"
       testID={testID}
       {...viewProps}
     >
@@ -136,6 +136,7 @@ const MultichainAddressRow = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
+          numberOfLines={1}
           testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
         >
           {networkName}

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Nft } from '@metamask/assets-controllers';
 import { debounce } from 'lodash';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { Pressable, StyleProp, ViewStyle } from 'react-native';
 import {
   Box,
@@ -30,7 +31,7 @@ const NftGridItem = ({
   source?: 'mobile-nft-list' | 'mobile-nft-list-page';
   style?: StyleProp<ViewStyle>;
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const displayNftMedia = useSelector(selectDisplayNftMedia);
   const [isImageLoading, setIsImageLoading] = useState(

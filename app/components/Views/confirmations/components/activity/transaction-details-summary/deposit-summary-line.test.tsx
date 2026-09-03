@@ -13,7 +13,8 @@ import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useB
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { DepositSummaryLine } from './deposit-summary-line';
-
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { configureUseAnalyticsExternalLinkMock } from '../../../../../../util/test/analyticsMock';
 jest.mock('../../../../../UI/Bridge/hooks/useMultichainBlockExplorerTxUrl');
 jest.mock('../../../hooks/useNetworkName');
 jest.mock('../../../hooks/tokens/useTokenWithBalance');
@@ -21,6 +22,9 @@ jest.mock('../../../../../../selectors/bridgeStatusController');
 jest.mock('../../../../../../util/bridge/hooks/useBridgeTxHistoryData');
 jest.mock('../../../hooks/useTokenAmount');
 jest.mock('../../../hooks/activity/useTransactionDetails');
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -29,7 +33,10 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-function render(parentType: TransactionType = TransactionType.perpsDeposit) {
+function render(
+  parentType: TransactionType = TransactionType.perpsDeposit,
+  tokenAddress = '0x123',
+) {
   return renderWithProvider(
     <DepositSummaryLine
       transactionMeta={
@@ -47,7 +54,7 @@ function render(parentType: TransactionType = TransactionType.perpsDeposit) {
           chainId: '0x1',
           type: parentType,
           metamaskPay: {
-            tokenAddress: '0x123',
+            tokenAddress,
             chainId: '0x1',
           },
         } as unknown as TransactionMeta
@@ -74,6 +81,8 @@ describe('DepositSummaryLine', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    configureUseAnalyticsExternalLinkMock();
 
     useMultichainBlockExplorerTxUrlMock.mockReturnValue({
       explorerTxUrl: 'https://explorer.example',
@@ -122,6 +131,34 @@ describe('DepositSummaryLine', () => {
         }),
       ),
     ).toBeDefined();
+  });
+
+  it('renders branded mUSD symbol when registry token at the mUSD address has symbol MUSD', () => {
+    useTokenWithBalanceMock.mockReturnValue({ symbol: 'MUSD' } as ReturnType<
+      typeof useTokenWithBalance
+    >);
+
+    const { getByText, queryByText } = render(
+      TransactionType.perpsDeposit,
+      '0xAcA92E438df0B2401fF60dA7E4337B687a2435DA',
+    );
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'mUSD',
+          sourceChain: 'Ethereum',
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      queryByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'MUSD',
+          sourceChain: 'Ethereum',
+        }),
+      ),
+    ).toBeNull();
   });
 
   it('renders loading title when token or network unavailable', () => {

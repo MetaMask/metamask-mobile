@@ -5,6 +5,8 @@ import {
   ExtractEventHandler,
 } from '@metamask/messenger';
 
+const SUBSCRIPTION_NOT_FOUND_PREFIX = 'Subscription not found for event:';
+
 export class ExtendedMessenger<
   Namespace extends string,
   Action extends ActionConstraint = never,

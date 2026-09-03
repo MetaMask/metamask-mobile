@@ -1,10 +1,1180 @@
 /* eslint-disable import-x/no-nodejs-modules */
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import path from 'path';
 import { Platform } from '../../types.ts';
 import { createLogger } from '../../logger.ts';
+import {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  removeGoldenSnapshot,
+  resolveAndroidBootMode,
+  writeGoldenSnapshotFingerprint,
+} from './AndroidGoldenSnapshot.ts';
+
+export {
+  ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+  buildAndroidEmulatorArgs,
+  buildAndroidEmulatorPoolArgs,
+  computeAndroidSystemImageFingerprint,
+  getAndroidAvdHome,
+  getGoldenSnapshotDir,
+  hasGoldenSnapshot,
+  isGoldenSnapshotUsable,
+  readGoldenSnapshotFingerprint,
+  resolveAndroidBootMode,
+  type AndroidEmulatorArgMode,
+  type AndroidEmulatorBootMode,
+} from './AndroidGoldenSnapshot.ts';
 
 const logger = createLogger({ name: 'EmulatorHelpers' });
+
+const DEFAULT_ANDROID_BOOT_TIMEOUT_MS = 3 * 60 * 1000;
+const ANDROID_BOOT_POLL_INTERVAL_MS = 2000;
+const ANDROID_CI_INITIAL_SETTLE_MS = 30_000;
+const ANDROID_ANR_DISMISS_INTERVAL_MS = 3000;
+const ANDROID_ANR_CLEAR_STREAK_REQUIRED = 3;
+const ANDROID_ANR_STABILIZE_TIMEOUT_MS = 90_000;
+const ANDROID_NETWORK_READY_POLL_MS = 2_000;
+const ANDROID_NETWORK_READY_CONSECUTIVE_PINGS = 3;
+const ANDROID_NETWORK_READY_TIMEOUT_MS = 60_000;
+/** Snapshot resume already has network config in state — fail open quickly. */
+const ANDROID_SNAPSHOT_NETWORK_READY_TIMEOUT_MS = 15_000;
+const DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS = 90_000;
+const DEFAULT_IOS_POST_BOOT_SETTLE_MS = 15_000;
+const UI_AUTOMATOR_DUMP_PATH = '/sdcard/window_dump.xml';
+const ANDROID_NETWORK_PING_HOST = '8.8.8.8';
+
+/** Play Store / GMS packages disabled after cold boot — not needed for Appium E2E. */
+export const ANDROID_E2E_PACKAGES_TO_DISABLE = [
+  'com.android.vending',
+  'com.google.android.gms',
+  'com.google.android.gsf',
+  'com.google.android.partnersetup',
+  'com.google.android.setupwizard',
+  'com.google.android.apps.restore',
+  'com.google.android.apps.wellbeing',
+] as const;
+
+/** Launcher packages force-stopped so ANR dialogs do not cover the test app. */
+export const ANDROID_E2E_LAUNCHER_PACKAGES = [
+  'com.google.android.apps.nexuslauncher',
+  'com.android.launcher3',
+] as const;
+
+interface AdbDevice {
+  serial: string;
+  state: string;
+}
+
+function execAsync(
+  cmd: string,
+  options?: { timeoutMs?: number },
+): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    exec(cmd, { timeout: options?.timeoutMs }, (error, stdout, stderr) => {
+      if (error) {
+        reject(Object.assign(error, { stdout, stderr }));
+      } else {
+        resolve({ stdout, stderr });
+      }
+    });
+  });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function resolvePositiveIntEnv(
+  envKey: string,
+  fallbackMs: number,
+  env: Record<string, string | undefined> = process.env,
+): number {
+  const raw = env[envKey]?.trim();
+  if (!raw) {
+    return fallbackMs;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallbackMs;
+  }
+  return parsed;
+}
+
+function resolveAndroidBootTimeoutMs(): number {
+  return resolvePositiveIntEnv(
+    'ANDROID_BOOT_TIMEOUT_MS',
+    DEFAULT_ANDROID_BOOT_TIMEOUT_MS,
+  );
+}
+
+function resolveSnapshotBootTimeoutMs(): number {
+  return resolvePositiveIntEnv(
+    'ANDROID_EMULATOR_SNAPSHOT_BOOT_TIMEOUT_MS',
+    DEFAULT_ANDROID_SNAPSHOT_BOOT_TIMEOUT_MS,
+  );
+}
+
+async function killEmulatorSerialBestEffort(serial?: string): Promise<void> {
+  if (!serial) {
+    return;
+  }
+  await execAsync(`adb -s ${serial} emu kill`).catch(() => undefined);
+}
+
+async function spawnEmulatorAndAwaitSerial(options: {
+  emulatorBin: string;
+  args: string[];
+  avdName: string;
+  timeoutMs: number;
+  expectedSerial?: string;
+}): Promise<string | undefined> {
+  const emulatorProcess = spawn(options.emulatorBin, options.args, {
+    stdio: 'ignore',
+    detached: true,
+  });
+  emulatorProcess.unref();
+  let processExited = false;
+  emulatorProcess.on('exit', () => {
+    processExited = true;
+  });
+
+  logger.info('Waiting for Android emulator to appear in adb...');
+  const deadline = Date.now() + options.timeoutMs;
+  while (Date.now() < deadline) {
+    if (processExited) {
+      return undefined;
+    }
+    const serial = options.expectedSerial
+      ? (await listAdbDevices()).find(
+          (adbDevice) =>
+            adbDevice.serial === options.expectedSerial &&
+            ['offline', 'authorizing', 'device'].includes(adbDevice.state),
+        )?.serial
+      : await findEmulatorSerialForAvd(options.avdName, [
+          'offline',
+          'authorizing',
+          'device',
+        ]);
+    if (serial) {
+      return serial;
+    }
+    await sleep(ANDROID_BOOT_POLL_INTERVAL_MS);
+  }
+
+  // Timeout: kill the detached emulator process group so a hung qemu (which
+  // never registered in adb and is invisible to `emu kill`) does not survive
+  // into a cold-boot fallback and OOM the runner alongside the retry.
+  if (emulatorProcess.pid !== undefined) {
+    try {
+      process.kill(-emulatorProcess.pid, 'SIGKILL');
+    } catch {
+      // Already exited between the last poll and now.
+    }
+  }
+  return undefined;
+}
+
+function parseAdbDevices(stdout: string): AdbDevice[] {
+  return stdout
+    .trim()
+    .split('\n')
+    .slice(1)
+    .map((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        return null;
+      }
+      const tabIndex = trimmed.indexOf('\t');
+      if (tabIndex === -1) {
+        return null;
+      }
+      const serial = trimmed.slice(0, tabIndex);
+      const state = trimmed.slice(tabIndex + 1).trim();
+      if (!serial.startsWith('emulator-')) {
+        return null;
+      }
+      return { serial, state };
+    })
+    .filter((device): device is AdbDevice => device !== null);
+}
+
+/**
+ * Serialize adb client calls. Concurrent `adb devices` races on starting the
+ * daemon (`failed to start daemon` / cannot connect) when two pool boots run
+ * in Promise.all.
+ */
+let adbCommandQueue: Promise<unknown> = Promise.resolve();
+
+function enqueueAdb<T>(fn: () => Promise<T>): Promise<T> {
+  const run = adbCommandQueue.then(fn, fn);
+  adbCommandQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+async function ensureAdbServer(): Promise<void> {
+  await enqueueAdb(async () => {
+    await execAsync('adb start-server');
+  });
+}
+
+async function listAdbDevices(): Promise<AdbDevice[]> {
+  return enqueueAdb(async () => {
+    const { stdout } = await execAsync('adb devices');
+    return parseAdbDevices(stdout);
+  });
+}
+
+async function getEmulatorAvdName(serial: string): Promise<string | undefined> {
+  try {
+    const { stdout } = await execAsync(`adb -s ${serial} emu avd name`);
+    return stdout.trim().split('\n')[0]?.trim();
+  } catch {
+    return undefined;
+  }
+}
+
+async function findEmulatorSerialForAvd(
+  avdName: string,
+  states: string[],
+): Promise<string | undefined> {
+  const devices = await listAdbDevices();
+  for (const device of devices) {
+    if (!states.includes(device.state)) {
+      continue;
+    }
+    const name = await getEmulatorAvdName(device.serial);
+    if (name === avdName) {
+      return device.serial;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Only reuse an offline/authorizing emulator when its AVD name is known and matches.
+ * If `adb emu avd name` fails, do not attach — another host's emulator may be starting.
+ */
+export function shouldWaitForOfflineEmulator(
+  requestedAvdName: string,
+  resolvedAvdName: string | undefined,
+): boolean {
+  return resolvedAvdName === requestedAvdName;
+}
+
+/**
+ * During cold boot `adb emu avd name` can fail while the device is still offline.
+ * Wait on a lone starting emulator instead of spawning a duplicate (CI uses `-read-only`).
+ */
+export function shouldWaitForUnidentifiedOfflineEmulator(options: {
+  isCI: boolean;
+  offlineOrAuthorizingCount: number;
+}): boolean {
+  return options.isCI && options.offlineOrAuthorizingCount === 1;
+}
+
+interface TapPoint {
+  x: number;
+  y: number;
+}
+
+function parseUiNodeCenter(bounds: string): TapPoint | undefined {
+  const match = bounds.match(/\[(\d+),(\d+)\]\[(\d+),(\d+)\]/);
+  if (!match) {
+    return undefined;
+  }
+  const left = Number.parseInt(match[1], 10);
+  const top = Number.parseInt(match[2], 10);
+  const right = Number.parseInt(match[3], 10);
+  const bottom = Number.parseInt(match[4], 10);
+  return {
+    x: Math.floor((left + right) / 2),
+    y: Math.floor((top + bottom) / 2),
+  };
+}
+
+/**
+ * Finds the tap target for an Android "app isn't responding" dialog.
+ * Prefers "Wait" over "Close app" so the launcher can recover.
+ */
+export function findAnrDialogWaitTapPoint(
+  uiDump: string,
+): TapPoint | undefined {
+  return findAnrDialogRecoveryTapPoint(uiDump, { preferCloseApp: false });
+}
+
+/**
+ * Finds an ANR recovery tap target. Prefers "Close app" for launcher ANRs
+ * (Pixel/Nexus Launcher) since we launch MetaMask directly and do not need HOME.
+ */
+export function findAnrDialogRecoveryTapPoint(
+  uiDump: string,
+  options?: { preferCloseApp?: boolean },
+): TapPoint | undefined {
+  if (!/isn.t responding/i.test(uiDump)) {
+    return undefined;
+  }
+
+  const preferCloseApp =
+    options?.preferCloseApp ??
+    /Pixel Launcher|Nexus Launcher|launcher/i.test(uiDump);
+
+  const waitNode = uiDump.match(
+    /text="Wait"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
+  );
+  const closeNode = uiDump.match(
+    /text="Close app"[^>]*bounds="(\[[^\]]+\]\[[^\]]+\])"/,
+  );
+
+  if (preferCloseApp) {
+    if (closeNode) {
+      return parseUiNodeCenter(closeNode[1]);
+    }
+    if (waitNode) {
+      return parseUiNodeCenter(waitNode[1]);
+    }
+    return undefined;
+  }
+
+  if (waitNode) {
+    return parseUiNodeCenter(waitNode[1]);
+  }
+  if (closeNode) {
+    return parseUiNodeCenter(closeNode[1]);
+  }
+
+  return undefined;
+}
+
+async function dumpUiHierarchy(serial: string): Promise<string> {
+  await execAsync(
+    `adb -s ${serial} shell uiautomator dump ${UI_AUTOMATOR_DUMP_PATH}`,
+  ).catch(() => undefined);
+  const { stdout } = await execAsync(
+    `adb -s ${serial} shell cat ${UI_AUTOMATOR_DUMP_PATH}`,
+  ).catch(() => ({ stdout: '', stderr: '' }));
+  return stdout;
+}
+
+async function disableAndroidAnimations(serial: string): Promise<void> {
+  const settings = [
+    'settings put global window_animation_scale 0',
+    'settings put global transition_animation_scale 0',
+    'settings put global animator_duration_scale 0',
+  ];
+  for (const command of settings) {
+    await execAsync(`adb -s ${serial} shell ${command}`).catch(() => undefined);
+  }
+}
+
+async function runAdbShell(serial: string, command: string): Promise<void> {
+  await execAsync(`adb -s ${serial} shell ${command}`).catch(() => undefined);
+}
+
+async function trimAndroidSystemForE2e(serial: string): Promise<void> {
+  logger.info(
+    'Trimming Android system for E2E (skip setup wizard, disable bloat packages)...',
+  );
+
+  const setupWizardSettings = [
+    'settings put global device_provisioned 1',
+    'settings put secure user_setup_complete 1',
+    'settings put global setup_wizard_has_run 1',
+    'settings put global heads_up_notifications_enabled 0',
+  ];
+  for (const command of setupWizardSettings) {
+    await runAdbShell(serial, command);
+  }
+
+  for (const packageName of ANDROID_E2E_PACKAGES_TO_DISABLE) {
+    await runAdbShell(serial, `pm disable-user --user 0 ${packageName}`);
+  }
+
+  for (const packageName of ANDROID_E2E_LAUNCHER_PACKAGES) {
+    await runAdbShell(serial, `am force-stop ${packageName}`);
+  }
+}
+
+async function dismissAndroidAnrDialogs(serial: string): Promise<boolean> {
+  const uiDump = await dumpUiHierarchy(serial);
+  const tapPoint = findAnrDialogRecoveryTapPoint(uiDump);
+  if (!tapPoint) {
+    return false;
+  }
+
+  logger.warn(
+    `Android system ANR dialog detected on ${serial} — tapping recovery action.`,
+  );
+  await execAsync(
+    `adb -s ${serial} shell input tap ${tapPoint.x} ${tapPoint.y}`,
+  );
+  return true;
+}
+
+/**
+ * Poll until ANR dialogs are absent for several consecutive checks, dismissing
+ * any that appear. Falls through after timeout so boot does not hang forever.
+ */
+async function waitForAndroidSystemReady(serial: string): Promise<void> {
+  const initialSettleMs = Number.parseInt(
+    process.env.ANDROID_EMULATOR_POST_BOOT_SETTLE_MS ??
+      String(ANDROID_CI_INITIAL_SETTLE_MS),
+    10,
+  );
+  if (initialSettleMs > 0) {
+    logger.info(
+      `Waiting ${initialSettleMs / 1000}s before checking Android system readiness...`,
+    );
+    await sleep(initialSettleMs);
+  }
+
+  const deadline = Date.now() + ANDROID_ANR_STABILIZE_TIMEOUT_MS;
+  let clearStreak = 0;
+
+  while (Date.now() < deadline) {
+    const hadAnr = await dismissAndroidAnrDialogs(serial);
+    if (hadAnr) {
+      clearStreak = 0;
+    } else {
+      clearStreak += 1;
+      if (clearStreak >= ANDROID_ANR_CLEAR_STREAK_REQUIRED) {
+        logger.info(
+          `Android system stable (${clearStreak} consecutive ANR-free checks).`,
+        );
+        return;
+      }
+    }
+    await sleep(ANDROID_ANR_DISMISS_INTERVAL_MS);
+  }
+
+  logger.warn(
+    `Android system did not stabilize within ${ANDROID_ANR_STABILIZE_TIMEOUT_MS / 1000}s — continuing.`,
+  );
+}
+
+/** True when `adb shell ping -c 1` output indicates a successful reply. */
+export function isAndroidPingSuccessful(stdout: string): boolean {
+  if (/100% packet loss|0 received/i.test(stdout)) {
+    return false;
+  }
+  return /1 received|1 packets transmitted, 1 received|0% packet loss/i.test(
+    stdout,
+  );
+}
+
+async function ensureAndroidNetworkEnabled(serial: string): Promise<void> {
+  await runAdbShell(serial, 'svc wifi enable');
+  await runAdbShell(serial, 'svc data enable');
+  await runAdbShell(serial, 'settings put global airplane_mode_on 0');
+}
+
+/**
+ * Waits until the emulator has stable outbound network before E2E tests start.
+ * Reduces NetInfo false-offline flips during cold boot on CI.
+ */
+async function waitForAndroidNetworkReady(
+  serial: string,
+  options?: { timeoutMs?: number },
+): Promise<void> {
+  if (process.env.CI !== 'true') {
+    return;
+  }
+
+  const timeoutMs =
+    options?.timeoutMs ??
+    resolvePositiveIntEnv(
+      'ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS',
+      ANDROID_NETWORK_READY_TIMEOUT_MS,
+    );
+  const requiredSuccesses = Number.parseInt(
+    process.env.ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS ??
+      String(ANDROID_NETWORK_READY_CONSECUTIVE_PINGS),
+    10,
+  );
+
+  logger.info(
+    `Waiting for Android emulator network (${requiredSuccesses} consecutive pings, timeout ${timeoutMs / 1000}s)...`,
+  );
+  await ensureAndroidNetworkEnabled(serial);
+
+  const deadline = Date.now() + timeoutMs;
+  let consecutiveSuccesses = 0;
+
+  while (Date.now() < deadline) {
+    try {
+      const { stdout } = await execAsync(
+        `adb -s ${serial} shell ping -c 1 -W 3 ${ANDROID_NETWORK_PING_HOST}`,
+      );
+      if (isAndroidPingSuccessful(stdout)) {
+        consecutiveSuccesses += 1;
+        if (consecutiveSuccesses >= requiredSuccesses) {
+          logger.info(
+            `Android emulator network ready (${consecutiveSuccesses} consecutive pings to ${ANDROID_NETWORK_PING_HOST}).`,
+          );
+          return;
+        }
+      } else {
+        consecutiveSuccesses = 0;
+      }
+    } catch {
+      consecutiveSuccesses = 0;
+    }
+    await sleep(ANDROID_NETWORK_READY_POLL_MS);
+  }
+
+  logger.warn(
+    `Android emulator network not stable within ${timeoutMs / 1000}s — continuing.`,
+  );
+}
+
+/**
+ * After cold `-wipe-data` boot, system apps can ANR while indexing.
+ * Trim bloat, wait for ANR-free window, then force-stop the launcher.
+ */
+async function stabilizeAndroidEmulatorAfterBoot(
+  serial: string,
+): Promise<void> {
+  if (process.env.CI !== 'true') {
+    return;
+  }
+
+  logger.info('Stabilizing Android emulator after cold boot...');
+  await disableAndroidAnimations(serial);
+  await trimAndroidSystemForE2e(serial);
+  await execAsync(`adb -s ${serial} shell input keyevent 3`).catch(() => {
+    /* HOME — surface any remaining system dialogs */
+  });
+
+  await waitForAndroidSystemReady(serial);
+
+  for (const packageName of ANDROID_E2E_LAUNCHER_PACKAGES) {
+    await runAdbShell(serial, `am force-stop ${packageName}`);
+  }
+}
+
+async function waitForEmulatorBoot(
+  serial: string,
+  options?: { postBoot?: 'full' | 'light'; bootTimeoutMs?: number },
+): Promise<void> {
+  const bootTimeoutMs = options?.bootTimeoutMs ?? resolveAndroidBootTimeoutMs();
+  const deadline = Date.now() + bootTimeoutMs;
+
+  // Bound the blocking adb wait so a stuck boot falls back instead of hanging.
+  await execAsync(`adb -s ${serial} wait-for-device`, {
+    timeoutMs: Math.max(0, deadline - Date.now()),
+  }).catch(() => {
+    /* the bounded poll loop below delivers the verdict */
+  });
+
+  let booted = false;
+
+  while (Date.now() < deadline) {
+    const devices = await listAdbDevices();
+    const device = devices.find((entry) => entry.serial === serial);
+    if (device?.state === 'device') {
+      try {
+        const { stdout } = await execAsync(
+          `adb -s ${serial} shell getprop sys.boot_completed 2>/dev/null`,
+        );
+        if (stdout.trim() === '1') {
+          booted = true;
+          break;
+        }
+      } catch {
+        // Device not yet ready — keep polling
+      }
+    }
+    await sleep(ANDROID_BOOT_POLL_INTERVAL_MS);
+  }
+
+  if (!booted) {
+    throw new Error(
+      `Android emulator ${serial} did not complete booting within ${bootTimeoutMs / 1000}s.`,
+    );
+  }
+
+  await execAsync(`adb -s ${serial} shell input keyevent 82`).catch(() => {
+    /* screen may already be unlocked */
+  });
+
+  if (options?.postBoot === 'light') {
+    // Snapshot resume already has stabilized state; only probe network briefly.
+    await waitForAndroidNetworkReady(serial, {
+      timeoutMs: resolvePositiveIntEnv(
+        'ANDROID_EMULATOR_SNAPSHOT_NETWORK_READY_TIMEOUT_MS',
+        ANDROID_SNAPSHOT_NETWORK_READY_TIMEOUT_MS,
+      ),
+    });
+    return;
+  }
+
+  await stabilizeAndroidEmulatorAfterBoot(serial);
+  await waitForAndroidNetworkReady(serial);
+}
+
+/**
+ * Check if any Android emulator is currently running and fully booted.
+ */
+export async function isAndroidEmulatorRunning(): Promise<boolean> {
+  try {
+    const devices = await listAdbDevices();
+    return devices.some((device) => device.state === 'device');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Ensures an Android emulator is booted before Appium session creation.
+ * Prefers `preferredSerial` or `ANDROID_DEVICE_UDID` so tests attach to a
+ * specific adb serial instead of whichever emulator matches the AVD name.
+ */
+async function killAndroidEmulatorsForAvd(avdName: string): Promise<void> {
+  const devices = await listAdbDevices();
+  for (const device of devices) {
+    if (!device.serial.startsWith('emulator-')) {
+      continue;
+    }
+    let resolvedAvdName: string | undefined;
+    try {
+      resolvedAvdName = await getEmulatorAvdName(device.serial);
+    } catch {
+      resolvedAvdName = undefined;
+    }
+    if (resolvedAvdName && resolvedAvdName !== avdName) {
+      continue;
+    }
+    logger.warn(
+      `Stopping Android emulator ${device.serial}${resolvedAvdName ? ` (${resolvedAvdName})` : ''} before restarting "${avdName}".`,
+    );
+    await execAsync(`adb -s ${device.serial} emu kill`).catch(() => undefined);
+  }
+  await sleep(2000);
+}
+
+export async function ensureAndroidEmulatorReady(
+  avdName: string,
+  preferredSerial?: string,
+  options?: { preserveSiblingEmulators?: boolean },
+): Promise<string> {
+  const serial =
+    preferredSerial?.trim() || process.env.ANDROID_DEVICE_UDID?.trim();
+  if (serial) {
+    const devices = await listAdbDevices();
+    const device = devices.find((entry) => entry.serial === serial);
+    if (device?.state === 'device') {
+      logger.info(
+        `Using configured Android emulator ${serial} — skipping AVD name lookup.`,
+      );
+      // Already booted: do not re-run cold-boot stabilize.
+      try {
+        const { stdout } = await execAsync(
+          `adb -s ${serial} shell getprop sys.boot_completed 2>/dev/null`,
+        );
+        if (stdout.trim() === '1') {
+          return serial;
+        }
+      } catch {
+        // Fall through to full boot wait if the property check fails.
+      }
+      await waitForEmulatorBoot(serial);
+      return serial;
+    }
+    if (
+      device &&
+      (device.state === 'offline' || device.state === 'authorizing')
+    ) {
+      logger.info(
+        `Configured Android emulator ${serial} is ${device.state} — waiting for boot instead of spawning a duplicate.`,
+      );
+      await waitForEmulatorBoot(serial);
+      return serial;
+    }
+    if (options?.preserveSiblingEmulators) {
+      throw new Error(
+        `Configured pooled Android emulator ${serial} is missing from adb; leaving sibling emulators running.`,
+      );
+    }
+    logger.warn(
+      `Configured Android serial ${serial} not found in adb devices — restarting emulator for AVD "${avdName}".`,
+    );
+    await killAndroidEmulatorsForAvd(avdName);
+  }
+  return startAndroidEmulator(avdName);
+}
+
+/**
+ * Boot a fixed emulator pool on deterministic console ports. Pool mode waits
+ * for each expected adb serial, avoiding AVD-name matching when multiple
+ * read-only instances share the same AVD.
+ */
+export async function runAndroidPoolTasks<T, R>(
+  bootMode: 'cold' | 'snapshot-resume',
+  tasks: T[],
+  run: (task: T) => Promise<R>,
+): Promise<R[]> {
+  if (bootMode === 'snapshot-resume') {
+    return Promise.all(tasks.map(run));
+  }
+
+  const results: R[] = [];
+  for (const task of tasks) {
+    results.push(await run(task));
+  }
+  return results;
+}
+
+export function isReusableAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return state === 'device' && actualAvdName === expectedAvdName;
+}
+
+export function shouldWaitForAndroidPoolDevice(
+  state: string,
+  expectedAvdName: string,
+  actualAvdName: string | undefined,
+): boolean {
+  return (
+    (state === 'offline' || state === 'authorizing') &&
+    (actualAvdName === undefined || actualAvdName === expectedAvdName)
+  );
+}
+
+export async function startAndroidEmulatorPool(
+  avdName: string,
+  poolSize: number,
+): Promise<string[]> {
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+
+  const bootMode = resolveAndroidBootMode();
+  const useGoldenSnapshot =
+    bootMode !== 'cold' && isGoldenSnapshotUsable(avdName);
+  if (bootMode === 'snapshot' && !useGoldenSnapshot) {
+    throw new Error(
+      `ANDROID_EMULATOR_BOOT_MODE=snapshot but no usable golden snapshot for AVD "${avdName}".`,
+    );
+  }
+
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+  const boots = buildAndroidEmulatorPoolArgs({
+    avdName,
+    isCI,
+    poolSize,
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+    bootMode: useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+  });
+  const timeoutMs = useGoldenSnapshot
+    ? resolveSnapshotBootTimeoutMs()
+    : resolveAndroidBootTimeoutMs();
+
+  logger.info(
+    `Booting Android emulator pool size=${poolSize} mode=${useGoldenSnapshot ? 'golden-snapshot' : 'cold'}.`,
+  );
+
+  await ensureAdbServer();
+  const existingDevices = await listAdbDevices();
+
+  const bootStartedAt = Date.now();
+  const serials = await runAndroidPoolTasks(
+    useGoldenSnapshot ? 'snapshot-resume' : 'cold',
+    boots,
+    async ({ serial: expectedSerial, args }) => {
+      const existing = existingDevices.find(
+        (adbDevice) => adbDevice.serial === expectedSerial,
+      );
+      let serial = expectedSerial;
+      let spawned = false;
+      let bootWaitCompleted = false;
+      if (existing) {
+        const existingAvdName = await getEmulatorAvdName(existing.serial);
+        if (
+          !isReusableAndroidPoolDevice(existing.state, avdName, existingAvdName)
+        ) {
+          if (
+            shouldWaitForAndroidPoolDevice(
+              existing.state,
+              avdName,
+              existingAvdName,
+            )
+          ) {
+            await waitForEmulatorBoot(existing.serial, {
+              postBoot: useGoldenSnapshot ? 'light' : 'full',
+              bootTimeoutMs: timeoutMs,
+            });
+            bootWaitCompleted = true;
+            const bootedAvdName = await getEmulatorAvdName(existing.serial);
+            if (bootedAvdName !== avdName) {
+              throw new Error(
+                `Android pool serial ${existing.serial} booted AVD "${bootedAvdName ?? 'unknown'}"; expected "${avdName}".`,
+              );
+            }
+          } else {
+            throw new Error(
+              `Android pool serial ${existing.serial} is already ${existing.state} for AVD "${existingAvdName ?? 'unknown'}"; expected a ready "${avdName}" device.`,
+            );
+          }
+        }
+      }
+      if (!existing) {
+        const spawnedSerial = await spawnEmulatorAndAwaitSerial({
+          emulatorBin,
+          args,
+          avdName,
+          timeoutMs,
+          expectedSerial,
+        });
+        if (!spawnedSerial) {
+          throw new Error(
+            `Android emulator ${expectedSerial} did not appear in adb within ${timeoutMs / 1000}s.`,
+          );
+        }
+        serial = spawnedSerial;
+        spawned = true;
+      }
+
+      if (!bootWaitCompleted) {
+        await waitForEmulatorBoot(serial, {
+          postBoot: useGoldenSnapshot ? 'light' : 'full',
+          bootTimeoutMs: timeoutMs,
+        });
+      }
+      logger.info(
+        spawned
+          ? useGoldenSnapshot
+            ? `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`
+            : `Android emulator "${avdName}" cold-booted for pool (${serial}).`
+          : `Using existing Android pool emulator "${avdName}" (${serial}).`,
+      );
+      return serial;
+    },
+  );
+  logger.info(
+    `Android emulator pool ready in ${Date.now() - bootStartedAt}ms: ${serials.join(',')}.`,
+  );
+  return serials;
+}
+
+/**
+ * Start the Android emulator and wait for it to fully boot.
+ * If the requested AVD is already running and booted, this is a no-op.
+ * @returns adb serial for the booted emulator (e.g. emulator-5554)
+ */
+export async function startAndroidEmulator(avdName: string): Promise<string> {
+  const bootedSerial = await findEmulatorSerialForAvd(avdName, ['device']);
+  if (bootedSerial) {
+    logger.info(
+      `Android emulator "${avdName}" (${bootedSerial}) is already running — skipping boot.`,
+    );
+    return bootedSerial;
+  }
+
+  const startingSerial = await findEmulatorSerialForAvd(avdName, [
+    'offline',
+    'authorizing',
+  ]);
+  if (startingSerial) {
+    logger.info(
+      `Android emulator "${avdName}" (${startingSerial}) is starting — waiting for boot.`,
+    );
+    await waitForEmulatorBoot(startingSerial);
+    return startingSerial;
+  }
+
+  const devices = await listAdbDevices();
+  const offlineEmulator = devices.find(
+    (device) => device.state === 'offline' || device.state === 'authorizing',
+  );
+  if (offlineEmulator) {
+    const offlineAvdName = await getEmulatorAvdName(offlineEmulator.serial);
+    if (shouldWaitForOfflineEmulator(avdName, offlineAvdName)) {
+      logger.info(
+        `Waiting for Android emulator ${offlineEmulator.serial} (${offlineAvdName}) to finish booting instead of spawning a duplicate.`,
+      );
+      await waitForEmulatorBoot(offlineEmulator.serial);
+      return offlineEmulator.serial;
+    }
+    if (
+      offlineAvdName === undefined &&
+      shouldWaitForUnidentifiedOfflineEmulator({
+        isCI: process.env.CI === 'true',
+        offlineOrAuthorizingCount: devices.filter(
+          (entry) => entry.state === 'offline' || entry.state === 'authorizing',
+        ).length,
+      })
+    ) {
+      logger.info(
+        `Waiting for unidentified offline emulator ${offlineEmulator.serial} — likely "${avdName}" still booting.`,
+      );
+      await waitForEmulatorBoot(offlineEmulator.serial);
+      return offlineEmulator.serial;
+    }
+    if (offlineAvdName) {
+      logger.info(
+        `Ignoring offline emulator ${offlineEmulator.serial} (AVD "${offlineAvdName}") — requested "${avdName}".`,
+      );
+    } else {
+      logger.info(
+        `Ignoring offline emulator ${offlineEmulator.serial} (AVD unknown) — requested "${avdName}".`,
+      );
+    }
+  }
+
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+
+  if (isCI) {
+    const bootMode = resolveAndroidBootMode();
+    if (bootMode !== 'cold' && isGoldenSnapshotUsable(avdName)) {
+      const serial = await tryBootFromGoldenSnapshot(emulatorBin, avdName);
+      if (serial) {
+        return serial;
+      }
+      removeGoldenSnapshot(avdName);
+      if (bootMode === 'snapshot') {
+        throw new Error(
+          `ANDROID_EMULATOR_BOOT_MODE=snapshot but golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" for AVD "${avdName}" failed to boot. ` +
+            'Use ANDROID_EMULATOR_BOOT_MODE=auto (fall back to cold) or cold (skip snapshots).',
+        );
+      }
+      logger.warn(
+        'Golden snapshot boot failed in auto mode — falling back to cold boot.',
+      );
+      await killAndroidEmulatorsForAvd(avdName);
+    } else if (bootMode === 'snapshot') {
+      throw new Error(
+        `ANDROID_EMULATOR_BOOT_MODE=snapshot but no usable golden snapshot for AVD "${avdName}" ` +
+          `(expected ${getGoldenSnapshotDir(avdName)}). Run .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts prime first.`,
+      );
+    } else if (bootMode === 'auto') {
+      logger.info(
+        `No usable golden snapshot for "${avdName}" — cold booting (prime one via .github/scripts/qa-automation/e2e-ci-orchestration/e2e-android-emulator-snapshot-ci.ts prime).`,
+      );
+    }
+  }
+
+  logger.info(`Starting Android emulator (cold boot): ${avdName}`);
+
+  const args = buildAndroidEmulatorArgs({
+    avdName,
+    isCI,
+    bootMode: 'cold',
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+  });
+
+  const bootTimeoutMs = resolveAndroidBootTimeoutMs();
+  const serial = await spawnEmulatorAndAwaitSerial({
+    emulatorBin,
+    args,
+    avdName,
+    timeoutMs: bootTimeoutMs,
+  });
+
+  if (!serial) {
+    throw new Error(
+      `Android emulator for AVD "${avdName}" did not appear in adb within ${bootTimeoutMs / 1000}s.`,
+    );
+  }
+
+  await waitForEmulatorBoot(serial);
+  logger.info(`Android emulator "${avdName}" is booted and ready (${serial}).`);
+  return serial;
+}
+
+async function assertGoldenSnapshotSaved(
+  serial: string,
+  snapshotName: string,
+): Promise<void> {
+  const { stdout, stderr } = await execAsync(
+    `adb -s ${serial} emu avd snapshot save ${snapshotName}`,
+  );
+  const combined = `${stdout}\n${stderr}`.trim();
+  if (/\bKO\b/i.test(combined)) {
+    throw new Error(
+      `Golden snapshot save returned KO${combined ? `: ${combined}` : ''}`,
+    );
+  }
+}
+
+/** Resume from golden snapshot; returns undefined so callers can cold-boot. */
+async function tryBootFromGoldenSnapshot(
+  emulatorBin: string,
+  avdName: string,
+): Promise<string | undefined> {
+  const args = buildAndroidEmulatorArgs({
+    avdName,
+    isCI: true,
+    bootMode: 'snapshot-resume',
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+    snapshotReadOnly:
+      process.env.ANDROID_EMULATOR_SNAPSHOT_READ_ONLY?.trim().toLowerCase() !==
+      'false',
+  });
+  const timeoutMs = resolveSnapshotBootTimeoutMs();
+  logger.info(
+    `Booting Android emulator from golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" (timeout ${timeoutMs / 1000}s)...`,
+  );
+
+  const serial = await spawnEmulatorAndAwaitSerial({
+    emulatorBin,
+    args,
+    avdName,
+    timeoutMs,
+  });
+  if (!serial) {
+    logger.warn(
+      `Emulator for AVD "${avdName}" did not appear in adb within ${timeoutMs / 1000}s when resuming from snapshot.`,
+    );
+    return undefined;
+  }
+
+  try {
+    await waitForEmulatorBoot(serial, {
+      postBoot: 'light',
+      bootTimeoutMs: timeoutMs,
+    });
+    logger.info(
+      `Android emulator "${avdName}" resumed from golden snapshot (${serial}).`,
+    );
+    return serial;
+  } catch (error) {
+    logger.warn(
+      `Emulator ${serial} appeared but did not finish resuming from snapshot: ${error}`,
+    );
+    await killEmulatorSerialBestEffort(serial);
+    return undefined;
+  }
+}
+
+/** Cold-boot, stabilize, save, and resume-verify the golden snapshot. */
+export async function primeAndroidGoldenSnapshot(
+  avdName: string,
+  options?: { fingerprint?: string },
+): Promise<void> {
+  const runningSerial = await findEmulatorSerialForAvd(avdName, [
+    'device',
+    'offline',
+    'authorizing',
+  ]);
+  if (runningSerial) {
+    throw new Error(
+      `Android emulator for AVD "${avdName}" is already running (${runningSerial}) — kill it before priming a golden snapshot.`,
+    );
+  }
+
+  const androidHome = process.env.ANDROID_HOME;
+  if (!androidHome) {
+    throw new Error(
+      'ANDROID_HOME is not set. Please set the ANDROID_HOME environment variable.',
+    );
+  }
+  const emulatorBin = path.join(androidHome, 'emulator', 'emulator');
+  const isCI = process.env.CI === 'true';
+
+  logger.info(`Priming golden snapshot for Android emulator: ${avdName}`);
+  removeGoldenSnapshot(avdName);
+  const args = buildAndroidEmulatorArgs({
+    avdName,
+    isCI,
+    bootMode: 'snapshot-prime',
+    cores: process.env.ANDROID_EMULATOR_CI_CORES,
+    skin: process.env.ANDROID_EMULATOR_CI_SKIN,
+  });
+
+  const bootTimeoutMs = resolveAndroidBootTimeoutMs();
+  const serial = await spawnEmulatorAndAwaitSerial({
+    emulatorBin,
+    args,
+    avdName,
+    timeoutMs: bootTimeoutMs,
+  });
+  if (!serial) {
+    throw new Error(
+      `Prime boot for AVD "${avdName}" did not appear in adb within ${bootTimeoutMs / 1000}s.`,
+    );
+  }
+
+  try {
+    await waitForEmulatorBoot(serial);
+    logger.info(
+      `Saving golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}"...`,
+    );
+    await assertGoldenSnapshotSaved(
+      serial,
+      ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME,
+    );
+  } finally {
+    await killEmulatorSerialBestEffort(serial);
+    await sleep(2000);
+  }
+
+  if (!hasGoldenSnapshot(avdName)) {
+    throw new Error(
+      `Snapshot save completed but ${getGoldenSnapshotDir(avdName)} has no snapshot.pb — refusing to mark the snapshot as primed.`,
+    );
+  }
+
+  logger.info(
+    `Verifying golden snapshot "${ANDROID_EMULATOR_GOLDEN_SNAPSHOT_NAME}" can resume...`,
+  );
+  const verifiedSerial = await tryBootFromGoldenSnapshot(emulatorBin, avdName);
+  if (!verifiedSerial) {
+    removeGoldenSnapshot(avdName);
+    throw new Error(
+      `Golden snapshot for "${avdName}" was saved but failed resume verification — refusing to publish.`,
+    );
+  }
+  await killEmulatorSerialBestEffort(verifiedSerial);
+  await sleep(2000);
+
+  const fingerprint = options?.fingerprint?.trim() || 'unknown';
+  writeGoldenSnapshotFingerprint(avdName, fingerprint);
+  logger.info(
+    `Golden snapshot primed for "${avdName}" (fingerprint: ${fingerprint}).`,
+  );
+}
+
+/**
+ * Stop the running Android emulator gracefully.
+ */
+export async function stopAndroidEmulator(serial?: string): Promise<void> {
+  logger.info('Stopping Android emulator...');
+  try {
+    if (serial) {
+      await execAsync(`adb -s ${serial} emu kill`);
+    } else {
+      await execAsync('adb emu kill');
+    }
+    logger.info('Android emulator stopped.');
+  } catch (error) {
+    logger.warn(`Could not stop Android emulator: ${error}`);
+  }
+}
 
 /**
  * Check if emulator is installed for the given platform
@@ -46,40 +1216,149 @@ export function isEmulatorInstalled(platform: Platform): Promise<boolean> {
         }
       });
     } else {
-      // iOS simulators - to be implemented
       resolve(true);
     }
   });
 }
 
 /**
- * Start Android emulator - to be implemented
+ * Per-process cache: deviceName → resolved UDID.
  */
-export function startAndroidEmulator(deviceName: string): void {
+const iosSimulatorUdidCache = new Map<string, string>();
+
+export async function getIosSimulatorUdid(deviceName: string): Promise<string> {
+  const cached = iosSimulatorUdidCache.get(deviceName);
+  if (cached && (await isIosSimulatorBooted(cached))) {
+    return cached;
+  }
+  if (cached) {
+    iosSimulatorUdidCache.delete(deviceName);
+  }
+
+  const { stdout } = await execAsync('xcrun simctl list devices available -j');
+  const list = JSON.parse(stdout) as {
+    devices: Record<string, { name: string; udid: string; state: string }[]>;
+  };
+
+  let firstMatch: string | undefined;
+
+  for (const devices of Object.values(list.devices)) {
+    for (const d of devices) {
+      if (d.name !== deviceName) continue;
+      if (d.state === 'Booted') {
+        iosSimulatorUdidCache.set(deviceName, d.udid);
+        return d.udid;
+      }
+      firstMatch ??= d.udid;
+    }
+  }
+
+  if (firstMatch) {
+    // Do not cache shutdown simulators — callers may boot a different UDID next.
+    return firstMatch;
+  }
+
   throw new Error(
-    `Starting Android emulator ${deviceName} - Not implemented yet`,
+    `iOS simulator "${deviceName}" not found in available devices. ` +
+      'Run `xcrun simctl list devices available` to see available simulators.',
   );
 }
 
-/**
- * Stop Android emulator - to be implemented
- */
-export function stopAndroidEmulator(deviceName: string): void {
-  throw new Error(
-    `Stopping Android emulator ${deviceName} - Not implemented yet`,
+export async function isIosSimulatorBooted(udid: string): Promise<boolean> {
+  try {
+    const { stdout } = await execAsync('xcrun simctl list devices -j');
+    const list = JSON.parse(stdout) as {
+      devices: Record<string, { udid: string; state: string }[]>;
+    };
+    for (const devices of Object.values(list.devices)) {
+      const sim = devices.find((d) => d.udid === udid);
+      if (sim) {
+        return sim.state === 'Booted';
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+function resolveIosPostBootSettleMs(): number {
+  const raw = process.env.IOS_SIMULATOR_POST_BOOT_SETTLE_MS?.trim();
+  if (!raw) {
+    return DEFAULT_IOS_POST_BOOT_SETTLE_MS;
+  }
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed >= 0
+    ? parsed
+    : DEFAULT_IOS_POST_BOOT_SETTLE_MS;
+}
+
+async function waitForIosSimulatorPostBootSettle(): Promise<void> {
+  const settleMs = resolveIosPostBootSettleMs();
+  if (settleMs <= 0) {
+    return;
+  }
+  logger.info(
+    `Waiting ${settleMs / 1000}s for iOS simulator post-boot settle (SpringBoard / system UI)…`,
   );
+  await sleep(settleMs);
+}
+
+export async function bootIosSimulatorByUdid(udid: string): Promise<string> {
+  const alreadyBooted = await isIosSimulatorBooted(udid);
+  if (alreadyBooted) {
+    logger.info(`iOS simulator ${udid} is already booted — skipping boot.`);
+    return udid;
+  }
+
+  logger.info(`Booting iOS simulator: ${udid}`);
+
+  await execAsync(`xcrun simctl boot "${udid}"`).catch(
+    (err: { code?: number }) => {
+      if (err.code !== 149) {
+        throw err;
+      }
+    },
+  );
+
+  await execAsync(`xcrun simctl bootstatus "${udid}" -b`);
+  await waitForIosSimulatorPostBootSettle();
+
+  logger.info(`iOS simulator ${udid} is booted and ready.`);
+  return udid;
+}
+
+export async function startIosSimulator(deviceName: string): Promise<string> {
+  const udid = await getIosSimulatorUdid(deviceName);
+  const bootedUdid = await bootIosSimulatorByUdid(udid);
+  iosSimulatorUdidCache.set(deviceName, bootedUdid);
+  return bootedUdid;
 }
 
 /**
- * Start iOS simulator - to be implemented
+ * Ensures an iOS simulator is booted before Appium session creation.
+ * Prefers `preferredUdid` or `IOS_SIMULATOR_UDID` (set by CI prepare step)
+ * so tests attach to the same sim that received the app install.
  */
-export function startIosSimulator(deviceName: string): void {
-  throw new Error(`Starting iOS simulator ${deviceName} - Not implemented yet`);
+export async function ensureIosSimulatorReady(
+  deviceName: string,
+  preferredUdid?: string,
+): Promise<string> {
+  const udid = preferredUdid?.trim() || process.env.IOS_SIMULATOR_UDID?.trim();
+  if (udid) {
+    const bootedUdid = await bootIosSimulatorByUdid(udid);
+    iosSimulatorUdidCache.set(deviceName, bootedUdid);
+    return bootedUdid;
+  }
+  return startIosSimulator(deviceName);
 }
 
-/**
- * Stop iOS simulator - to be implemented
- */
-export function stopIosSimulator(deviceName: string): void {
-  throw new Error(`Stopping iOS simulator ${deviceName} - Not implemented yet`);
+export async function stopIosSimulator(udid: string): Promise<void> {
+  logger.info(`Shutting down iOS simulator: ${udid}`);
+  try {
+    await execAsync(`xcrun simctl shutdown "${udid}"`);
+    logger.info(`iOS simulator ${udid} shut down.`);
+  } catch (error) {
+    logger.warn(`Could not stop iOS simulator: ${error}`);
+  }
 }

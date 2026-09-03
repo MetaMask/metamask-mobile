@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PredictActivity from './PredictActivity';
 import { PredictActivityType, type PredictActivityItem } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
-import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { ACTIVITY_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
 import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
 
 const mockTrackEvent = jest.fn();
@@ -150,14 +150,14 @@ describe('PredictActivity', () => {
   });
 
   describe('Analytics Tracking', () => {
-    it('tracks Transaction Detail List Item Clicked when pressed', () => {
+    it('tracks Activity Details Opened when pressed', () => {
       const item = createActivityItem();
 
       render(<PredictActivity item={item} />);
       fireEvent.press(screen.getByText('Buy'));
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+        ACTIVITY_DETAIL_EVENTS.OPENED,
       );
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
         expect.objectContaining({

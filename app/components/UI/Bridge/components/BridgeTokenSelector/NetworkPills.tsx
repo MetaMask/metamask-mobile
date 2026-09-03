@@ -13,7 +13,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
 import {
   selectAllowedChainRanking,
   selectVisiblePillChainIds,
@@ -24,6 +30,13 @@ import { ScrollView } from 'react-native-gesture-handler';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { useABTest } from '../../../../../hooks';
+import { useChainValueOrder } from '../../hooks/useChainValueOrder';
+import {
+  CHAIN_VALUE_ORDER_AB_KEY,
+  CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  CHAIN_VALUE_ORDER_VARIANTS,
+} from './abTestConfig';
 
 /** Maximum number of network pills visible in the horizontal list */
 export const MAX_VISIBLE_PILLS = 4;
@@ -35,11 +48,26 @@ interface NetworkPillsProps {
   selectedChainId?: CaipChainId;
   onChainSelect: (chainId?: CaipChainId) => void;
   onMorePress: () => void;
+  /** When true, renders the watchlist star filter before network pills. */
+  showWatchlistFilter?: boolean;
+  /** Whether the watchlist filter is currently active. */
+  isWatchlistFilterActive?: boolean;
+  /** Called when the watchlist star filter is toggled. */
+  onWatchlistFilterPress?: () => void;
+  /**
+   * When provided, restricts the network list to these chains instead
+   * of the default allowed chainRanking.
+   */
+  enabledChainIds?: CaipChainId[];
 }
 
 interface ChainRankingEntry {
   chainId: CaipChainId;
   name: string;
+}
+
+interface NetworkPillsContentProps extends NetworkPillsProps {
+  chainRanking: ChainRankingEntry[];
 }
 
 /**
@@ -50,23 +78,55 @@ interface ChainRankingEntry {
 const getVisibleChainIds = (chainRanking: ChainRankingEntry[]): CaipChainId[] =>
   chainRanking.slice(0, MAX_VISIBLE_PILLS).map((c) => c.chainId);
 
-export const NetworkPills: React.FC<NetworkPillsProps> = ({
+const NetworkPillsContent: React.FC<NetworkPillsContentProps> = ({
+  chainRanking,
   selectedChainId,
   onChainSelect,
   onMorePress,
+  showWatchlistFilter = false,
+  isWatchlistFilterActive = false,
+  onWatchlistFilterPress,
 }) => {
   const tw = useTailwind();
+  const theme = useTheme();
   const dispatch = useDispatch();
   const scrollViewRef = useRef<ScrollView>(null);
-  const chainRanking: ChainRankingEntry[] = useSelector(
-    selectAllowedChainRanking,
-  );
 
   // Visible pill chain IDs from Redux (shared across source/dest pickers).
-  // Falls back to first N from chainRanking on initial mount.
+  // Once set (out-of-list promotion), Redux is the session SSOT — holdings /
+  // treatment ranking updates must not change membership. While unset, fall
+  // back to the first N from the current chainRanking.
+  //
+  // The pin is a *global* session value, but a picker may be scoped to a
+  // narrower `enabledChainIds` (e.g. Limit Order chains) than whichever
+  // picker originally set the pin. Drop any pinned ids that aren't part of
+  // the current chainRanking, then backfill remaining slots from
+  // chainRanking so a narrower picker never ends up with zero network pills.
   const reduxVisibleChainIds = useSelector(selectVisiblePillChainIds);
-  const visibleChainIds =
-    reduxVisibleChainIds ?? getVisibleChainIds(chainRanking);
+  const visibleChainIds = useMemo(() => {
+    if (!reduxVisibleChainIds) {
+      return getVisibleChainIds(chainRanking);
+    }
+
+    const rankingChainIds = chainRanking.map((c) => c.chainId);
+    const rankingChainIdSet = new Set(rankingChainIds);
+    const validPinnedChainIds = reduxVisibleChainIds.filter((id) =>
+      rankingChainIdSet.has(id),
+    );
+
+    if (validPinnedChainIds.length >= MAX_VISIBLE_PILLS) {
+      return validPinnedChainIds;
+    }
+
+    const backfillChainIds = rankingChainIds.filter(
+      (id) => !validPinnedChainIds.includes(id),
+    );
+
+    return [...validPinnedChainIds, ...backfillChainIds].slice(
+      0,
+      MAX_VISIBLE_PILLS,
+    );
+  }, [reduxVisibleChainIds, chainRanking]);
 
   // Resolve visible chains to full entries from chainRanking
   const visibleChains = useMemo(
@@ -79,15 +139,30 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
 
   const remainingCount = chainRanking.length - visibleChains.length;
 
-  // When a non-visible network is selected (e.g. from the bottom sheet),
-  // push it to the first position and pop the last visible pill.
-  // Also scroll the pills to bring the selected network into view.
+  // On selection change only:
+  // - Out-of-list chain → pin [selected, ...current visible].slice(0, N) in
+  //   Redux for the Swaps session, then scroll to start.
+  // - Already visible → scroll only (do not rewrite Redux).
+  // - All (undefined) → scroll to start; keep any existing session pin.
   //
-  // Only `selectedChainId` is listed as a dependency because
-  // `visibleChainIds` is derived from Redux state that this effect updates;
-  // including it would cause an infinite update loop.
+  // Do not depend on chainRanking / visibleChainIds: that would re-scroll on
+  // routine holdings updates while Redux is still unset.
   useEffect(() => {
     if (!selectedChainId) {
+      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+      return;
+    }
+
+    // A selectedChainId that isn't part of this picker's chainRanking (e.g.
+    // a stale Redux filter, or one derived from a token whose chain isn't
+    // part of a narrower `enabledChainIds` scope) must not be promoted into
+    // the shared session pin. Treat it like "no chain selected" for pill
+    // purposes instead of leaking an out-of-scope chain into Redux.
+    const isSelectedChainInRanking = chainRanking.some(
+      (chain) => chain.chainId === selectedChainId,
+    );
+
+    if (!isSelectedChainInRanking) {
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
       return;
     }
@@ -95,7 +170,7 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
     const existingIndex = visibleChainIds.indexOf(selectedChainId);
 
     if (existingIndex === -1) {
-      // Non-visible network: push to front and scroll to start
+      // Session pin: promote selected to first for the rest of this Swaps session
       dispatch(
         setVisiblePillChainIds([
           selectedChainId,
@@ -103,15 +178,18 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
         ]),
       );
       scrollViewRef.current?.scrollTo({ x: 0, animated: true });
-    } else {
-      // Already visible: scroll to bring it into view
-      const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
-      scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
+      return;
     }
-  }, [selectedChainId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const scrollX = Math.max(0, existingIndex * PILL_WIDTH);
+    scrollViewRef.current?.scrollTo({ x: scrollX, animated: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- selection-only; Redux pins after promote
+  }, [selectedChainId]);
 
   const renderChainPill = (chain: ChainRankingEntry) => {
-    const isSelected = selectedChainId === chain.chainId;
+    // Only one pill may appear selected at a time (star, All, or one network).
+    const isSelected =
+      !isWatchlistFilterActive && selectedChainId === chain.chainId;
     const imageSource = getNetworkImageSource({ chainId: chain.chainId });
 
     return (
@@ -159,10 +237,32 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       style={tw.style('flex-grow-0')}
       contentContainerStyle={tw.style('flex-row items-center gap-2')}
     >
-      {/* All CTA - First pill */}
+      {/* Watchlist filter pill — shown before network pills when feature is enabled */}
+      {showWatchlistFilter && onWatchlistFilterPress ? (
+        <ButtonToggle
+          label={
+            <Icon
+              name={IconName.StarFilled}
+              size={IconSize.Md}
+              color={
+                isWatchlistFilterActive
+                  ? theme.colors.primary.inverse
+                  : theme.colors.icon.default
+              }
+            />
+          }
+          isActive={isWatchlistFilterActive}
+          onPress={onWatchlistFilterPress}
+          size={ButtonSize.Md}
+          style={tw.style('rounded-xl py-2 px-3')}
+          testID="bridge-watchlist-filter-watchlist"
+          accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+        />
+      ) : null}
+      {/* All networks pill */}
       <ButtonToggle
         label={strings('bridge.all')}
-        isActive={!selectedChainId}
+        isActive={!selectedChainId && !isWatchlistFilterActive}
         onPress={() => onChainSelect(undefined)}
         style={tw.style('rounded-xl py-2 px-3')}
         size={ButtonSize.Md}
@@ -182,4 +282,33 @@ export const NetworkPills: React.FC<NetworkPillsProps> = ({
       )}
     </ScrollView>
   );
+};
+
+const NetworkValueOrderedPills: React.FC<NetworkPillsContentProps> = ({
+  chainRanking,
+  ...props
+}) => {
+  const orderedChainRanking = useChainValueOrder(chainRanking);
+
+  return <NetworkPillsContent {...props} chainRanking={orderedChainRanking} />;
+};
+
+export const NetworkPills: React.FC<NetworkPillsProps> = ({
+  enabledChainIds,
+  ...props
+}) => {
+  const chainRanking: ChainRankingEntry[] = useSelector((state: RootState) =>
+    selectAllowedChainRanking(state, enabledChainIds),
+  );
+  const { variant } = useABTest(
+    CHAIN_VALUE_ORDER_AB_KEY,
+    CHAIN_VALUE_ORDER_VARIANTS,
+    CHAIN_VALUE_ORDER_EXPOSURE_METADATA,
+  );
+
+  if (variant.orderByValue) {
+    return <NetworkValueOrderedPills {...props} chainRanking={chainRanking} />;
+  }
+
+  return <NetworkPillsContent {...props} chainRanking={chainRanking} />;
 };

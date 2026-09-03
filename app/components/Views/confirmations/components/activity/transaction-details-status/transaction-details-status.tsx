@@ -6,19 +6,25 @@ import {
 import React from 'react';
 import { StatusTypes } from '@metamask/bridge-controller';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { useSelector } from 'react-redux';
 import { selectBridgeHistoryForAccount } from '../../../../../../selectors/bridgeStatusController';
 import { useTokenAmount } from '../../../hooks/useTokenAmount';
 import { ARBITRUM_USDC } from '../../../constants/perps';
 import { StatusIcon } from '../../status-icon';
 import { getErrorMessage, getSeverity } from '../../../utils/transaction';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+  FontWeight,
+} from '@metamask/design-system-react-native';
+import { BigNumber } from 'bignumber.js';
+import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { ACTIVITY_FIAT_FRACTION_DIGITS } from '../../../constants/confirmations';
 
 export function TransactionDetailsStatus({
   gap,
@@ -32,16 +38,22 @@ export function TransactionDetailsStatus({
   transactionMeta: TransactionMeta;
 }) {
   const { status } = transactionMeta;
+  const isMoneyContext = useIsMoneyAccountContext();
   const hasSuccessfulPerpsBridge = useHasSuccessfulPerpsBridge();
-  const { fiat } = useTokenAmount({ transactionMeta });
+  const { fiatUnformatted } = useTokenAmount({ transactionMeta });
   const errorMessage = getErrorMessage(transactionMeta);
+  // useTokenAmount's own `fiat` lets the decimals follow the amount, which would
+  // disagree with the pinned rows elsewhere on this screen.
+  const formatFiat = useFiatFormatter({
+    fractionDigits: ACTIVITY_FIAT_FRACTION_DIGITS,
+  });
 
   const statusText = text ?? getStatusText(status);
 
   const solutionText =
     !text && status === TransactionStatus.failed && hasSuccessfulPerpsBridge
       ? strings('transaction_details.perps_deposit_solution', {
-          fiat: fiat ?? '0.00',
+          fiat: formatFiat(new BigNumber(fiatUnformatted ?? 0)),
         })
       : undefined;
 
@@ -57,16 +69,22 @@ export function TransactionDetailsStatus({
         gap={gap ?? 6}
         alignItems={AlignItems.center}
       >
-        <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
+        {/* The Money account status row is a plain colour-coded label per the
+            Activity redesign; other contexts keep the status icon (and its
+            error tooltip). */}
+        {!isMoneyContext && (
+          <StatusIcon severity={getSeverity(status)} tooltip={errorMessage} />
+        )}
         <Text
           color={textColour}
-          variant={TextVariant.BodyMDMedium}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
           testID={testId}
         >
           {statusText}
         </Text>
       </Box>
-      {solutionText && <Text variant={TextVariant.BodyMD}>{solutionText}</Text>}
+      {solutionText && <Text variant={TextVariant.BodyMd}>{solutionText}</Text>}
     </Box>
   );
 }
@@ -86,12 +104,12 @@ function getStatusText(status: TransactionStatus): string {
 function getTextColour(status: TransactionStatus): TextColor {
   switch (status) {
     case TransactionStatus.confirmed:
-      return TextColor.Success;
+      return TextColor.SuccessDefault;
     case TransactionStatus.failed:
     case TransactionStatus.dropped:
-      return TextColor.Error;
+      return TextColor.ErrorDefault;
     default:
-      return TextColor.Warning;
+      return TextColor.WarningDefault;
   }
 }
 

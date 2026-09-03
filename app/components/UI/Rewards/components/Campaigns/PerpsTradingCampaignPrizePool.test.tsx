@@ -49,18 +49,17 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const t: Record<string, string> = {
-      'rewards.perps_trading_campaign.prize_pool_error_title':
-        'Prize pool unavailable',
-      'rewards.perps_trading_campaign.prize_pool_error_description':
+      'rewards.campaign_prize_pool.error_title': 'Prize pool unavailable',
+      'rewards.campaign_prize_pool.error_description':
         'Could not load prize pool.',
-      'rewards.perps_trading_campaign.prize_pool_retry_button': 'Retry',
-      'rewards.perps_trading_campaign.prize_pool_current_label': 'Current',
-      'rewards.perps_trading_campaign.prize_pool_next_label': 'Next',
-      'rewards.perps_trading_campaign.prize_pool_volume_subtext':
+      'rewards.campaign_prize_pool.retry': 'Retry',
+      'rewards.campaign_prize_pool.current_label': 'Current',
+      'rewards.campaign_prize_pool.next_label': 'Next',
+      'rewards.campaign_prize_pool.volume_subtext':
         '{{current}} of {{target}} volume',
-      'rewards.perps_trading_campaign.prize_pool_max_tier_subtext':
-        '{{maxThreshold}}+ volume — all milestones reached',
-      'rewards.perps_trading_campaign.prize_pool_max_badge': 'Max prize',
+      'rewards.campaign_prize_pool.max_tier_subtext':
+        '{{maxThreshold}}+ TVL — all milestones reached',
+      'rewards.campaign_prize_pool.max_badge': 'Max',
     };
     let result = t[key] ?? key;
     if (params) {
@@ -148,7 +147,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     );
 
     expect(getByTestId(PERPS_PRIZE_POOL_TEST_IDS.MAX_BADGE)).toBeDefined();
-    expect(getByText('Max prize')).toBeDefined();
+    expect(getByText('Max')).toBeDefined();
     expect(getByText('$50,000.00')).toBeDefined();
     expect(queryByText('Next')).toBeNull();
 
@@ -157,9 +156,7 @@ describe('PerpsTradingCampaignPrizePool', () => {
     expect(innerBar.props.style).toEqual({ width: '100%' });
 
     const subtext = getByTestId(PERPS_PRIZE_POOL_TEST_IDS.SUBTEXT);
-    expect(subtext.props.children).toBe(
-      '$40M+ volume — all milestones reached',
-    );
+    expect(subtext.props.children).toBe('$40M+ TVL — all milestones reached');
   });
 
   it('does not show max badge below top tier', () => {

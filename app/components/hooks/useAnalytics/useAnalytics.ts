@@ -10,8 +10,6 @@ import {
   checkDataDeleteStatus as checkDataDeleteStatusUtil,
   getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
   getDeleteRegulationId as getDeleteRegulationIdUtil,
-  isDataRecorded as isDataRecordedUtil,
-  updateDataRecordingFlag as updateDataRecordingFlagUtil,
 } from '../../../util/analytics/analyticsDataDeletion';
 import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 
@@ -21,28 +19,19 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  * Provides analytics utilities backed by the analytics helper to keep the
  * existing hook API while migrating off MetaMetrics internals.
  *
- * The hook allows to track non-anonymous and anonymous events,
- * with properties and without properties,
- * with a unique trackEvent function
+ * Track with `trackEvent` and `createEventBuilder`. Put properties on the
+ * builder with `addProperties`.
  *
- * ## Regular non-anonymous events
- * Regular events are tracked with the user ID and can have properties set
+ * @returns Analytics functions
  *
- * ## Anonymous events
- * Anonymous tracking track sends two events: one with the anonymous ID and one with the user ID
- * - The anonymous event includes sensitive properties so you can know **what** but not **who**
- * - The non-anonymous event has either no properties or not sensitive one so you can know **who** but not **what**
- *
- * @returns Analytics functions compatible with the useMetrics API
- *
- * @example basic non-anonymous tracking with no properties:
+ * @example basic tracking with no properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.ONBOARDING_STARTED)
  *   .build()
  * );
  *
- * @example track with non-anonymous properties:
+ * @example track with properties:
  * const { trackEvent, createEventBuilder } = useAnalytics();
  * trackEvent(
  *   createEventBuilder(MetaMetricsEvents.BROWSER_SEARCH_USED)
@@ -53,42 +42,16 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
  *   .build()
  * );
  *
- * @example track an anonymous event (without properties)
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.SWAP_COMPLETED)
- *   .build()
- * )
- *
- * @example track an anonymous event with properties
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.GAS_FEES_CHANGED)
- *   .addSensitiveProperties({ ...parameters })
- *   .build()
- * );
- *
- * @example track an event with both anonymous and non-anonymous properties
- * const { trackEvent, createEventBuilder } = useAnalytics();
- * trackEvent(
- *   createEventBuilder(MetaMetricsEvents.MY_EVENT)
- *   .addProperties({ ...nonAnonymousParameters })
- *   .addSensitiveProperties({ ...anonymousParameters })
- *   .build()
- * );
- *
  * @example a full hook destructuring:
  * const {
  *   trackEvent,
  *   createEventBuilder,
  *   enable,
  *   identify,
- *   addTraitsToUser,
  *   createDataDeletionTask,
  *   checkDataDeleteStatus,
  *   getDeleteRegulationCreationDate,
  *   getDeleteRegulationId,
- *   isDataRecorded,
  *   isEnabled,
  *   getAnalyticsId,
  * } = useAnalytics();
@@ -96,16 +59,8 @@ import type { AnalyticsUserTraits } from '@metamask/analytics-controller';
 export const useAnalytics = (): UseAnalyticsHook =>
   useMemo(
     () => ({
-      trackEvent: (
-        event: AnalyticsTrackingEvent,
-        saveDataRecording?: boolean,
-      ): void => {
-        const analyticsEvent = AnalyticsEventBuilder.createEventBuilder(event)
-          .setSaveDataRecording(saveDataRecording ?? true)
-          .build();
-        analytics.trackEvent(analyticsEvent);
-
-        updateDataRecordingFlagUtil(analyticsEvent.saveDataRecording);
+      trackEvent: (event: AnalyticsTrackingEvent): void => {
+        analytics.trackEvent(event);
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
@@ -117,18 +72,11 @@ export const useAnalytics = (): UseAnalyticsHook =>
       identify: async (userTraits: AnalyticsUserTraits): Promise<void> => {
         analytics.identify(userTraits);
       },
-      /** @deprecated Use {@link identify} instead — will be removed after consumers migrate */
-      addTraitsToUser: async (
-        userTraits: AnalyticsUserTraits,
-      ): Promise<void> => {
-        analytics.identify(userTraits);
-      },
       createDataDeletionTask: () => createDataDeletionTaskUtil(),
       checkDataDeleteStatus: () => checkDataDeleteStatusUtil(),
       getDeleteRegulationCreationDate: () =>
         getDeleteRegulationCreationDateUtil(),
       getDeleteRegulationId: () => getDeleteRegulationIdUtil(),
-      isDataRecorded: () => isDataRecordedUtil(),
       isEnabled: (): boolean => analytics.isEnabled(),
       getAnalyticsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();

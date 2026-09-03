@@ -1,6 +1,6 @@
+import { BannerAlertSeverity } from '@metamask/design-system-react-native';
 import { ThemeColors } from '@metamask/design-tokens';
 import { Severity } from '../types/alerts';
-import { BannerAlertSeverity } from '../../../../component-library/components/Banners/Banner';
 import { getSeverityStyle, getBannerAlertSeverity } from './alert-system';
 
 describe('getSeverityStyle', () => {
@@ -50,7 +50,7 @@ describe('getSeverityStyle', () => {
 describe('getBannerAlertSeverity', () => {
   it('returns the correct BannerAlertSeverity for Danger severity', () => {
     const result = getBannerAlertSeverity(Severity.Danger);
-    expect(result).toBe(BannerAlertSeverity.Error);
+    expect(result).toBe(BannerAlertSeverity.Danger);
   });
 
   it('returns the correct BannerAlertSeverity for Warning severity', () => {
