@@ -4,8 +4,11 @@ import {
   getLimitPriceFarFromMarketWarning,
 } from './limitPriceFarFromMarket';
 
+const mockStrings = jest.fn((key: string) => key);
+
 jest.mock('../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: Record<string, unknown>) =>
+    mockStrings(key, params),
 }));
 
 describe('getFarthestRestingLimitPrice', () => {
@@ -98,6 +101,27 @@ describe('getLimitPriceFarFromMarketWarning', () => {
         bestAsk: ask,
       }),
     ).toBe('perps.order.validation.limit_price_far_from_market_ask');
+  });
+
+  it('never renders a percentage at or below the 5% threshold', () => {
+    // 5.4% below the bid warns, but Math.round would display it as '5%',
+    // contradicting the rule that only distances above 5% warn.
+    const message = getLimitPriceFarFromMarketWarning({
+      orderType: 'limit',
+      direction: 'long',
+      reduceOnly: false,
+      limitPrice: '9460',
+      bestBid: 10000,
+      bestAsk: 10001,
+    });
+
+    expect(message).toBe(
+      'perps.order.validation.limit_price_far_from_market_bid',
+    );
+    expect(mockStrings).toHaveBeenLastCalledWith(
+      'perps.order.validation.limit_price_far_from_market_bid',
+      { percent: 6 },
+    );
   });
 
   it('skips reduce-only orders', () => {

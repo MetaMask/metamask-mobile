@@ -5254,7 +5254,7 @@ describe('usePerpsProOrderForm', () => {
           variant: 'banner',
           message: strings(
             'perps.order.validation.limit_price_far_from_market_bid',
-            { percent: 11 },
+            { percent: 12 },
           ),
         });
       });
@@ -5341,7 +5341,7 @@ describe('usePerpsProOrderForm', () => {
             [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
             [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: strings(
               'perps.order.validation.limit_price_far_from_market_bid',
-              { percent: 11 },
+              { percent: 12 },
             ),
             [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
               PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
@@ -5354,6 +5354,7 @@ describe('usePerpsProOrderForm', () => {
         mockOrderForm.direction = 'long';
         mockOrderForm.amount = '600';
         mockOrderForm.limitPrice = '80000';
+        mockContextValue.hasBlurredLimitPrice = true;
 
         renderProForm();
 
@@ -5382,6 +5383,47 @@ describe('usePerpsProOrderForm', () => {
 
       // The price card belongs to the limit-price field, which only renders
       // its message after a blur, so this fallback is a limit-order path.
+      it('emits no telemetry while a limit price is still being typed', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+        mockOrderForm.limitPrice = '';
+        mockContextValue.hasBlurredLimitPrice = false;
+
+        const { rerender } = renderProForm();
+        // setLimitPrice fires per character, and the percentage is baked into
+        // the message, so every partial would otherwise be a distinct event.
+        for (const partial of ['9', '90', '900', '9000', '90000']) {
+          mockOrderForm.limitPrice = partial;
+          rerender();
+        }
+
+        const beforeBlur = mockTrack.mock.calls.filter(
+          ([event, props]) =>
+            event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+            props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+              FAR_FROM_MARKET_WARNING_INTERACTION,
+        );
+        expect(beforeBlur).toHaveLength(0);
+
+        mockOrderForm.limitPrice = '80000';
+        mockContextValue.hasBlurredLimitPrice = true;
+        rerender();
+
+        const afterBlur = mockTrack.mock.calls.filter(
+          ([event, props]) =>
+            event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+            props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+              FAR_FROM_MARKET_WARNING_INTERACTION,
+        );
+        expect(afterBlur).toHaveLength(1);
+        expect(afterBlur[0][1][PERPS_EVENT_PROPERTY.WARNING_MESSAGE]).toBe(
+          strings('perps.order.validation.limit_price_far_from_market_bid', {
+            percent: 12,
+          }),
+        );
+      });
+
       it('falls back to the far-from-market message on the limit price card', () => {
         mockOrderForm.type = 'limit';
         mockOrderForm.direction = 'long';
@@ -5398,7 +5440,7 @@ describe('usePerpsProOrderForm', () => {
           severity: 'warning',
           message: strings(
             'perps.order.validation.limit_price_far_from_market_bid',
-            { percent: 11 },
+            { percent: 12 },
           ),
         });
       });

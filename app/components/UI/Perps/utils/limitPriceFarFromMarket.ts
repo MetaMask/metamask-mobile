@@ -106,7 +106,9 @@ export const getLimitPriceFarFromMarketWarning = ({
     return undefined;
   }
 
-  const percent = Math.round(signedDistance * 100);
+  // Ceil, not round: the warning only fires above the 5% threshold, and
+  // rounding 5.4% down to '5%' reads as contradicting that rule.
+  const percent = Math.ceil(signedDistance * 100);
 
   // Two complete sentences rather than interpolating a translated word, so
   // languages needing declension or different word order stay translatable.

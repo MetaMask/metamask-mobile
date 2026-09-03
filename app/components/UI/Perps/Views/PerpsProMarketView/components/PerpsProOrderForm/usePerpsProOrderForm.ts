@@ -2965,6 +2965,11 @@ export const usePerpsProOrderForm = ({
     ) {
       return undefined;
     }
+    // Same reasoning on the limit path: setLimitPrice fires per character, so
+    // every prefix of '90000' would otherwise read as far from market.
+    if (!isScaleOrder && !hasBlurredLimitPrice) {
+      return undefined;
+    }
     return getLimitPriceFarFromMarketWarning({
       orderType: orderForm.type,
       direction: orderForm.direction,
@@ -2983,6 +2988,7 @@ export const usePerpsProOrderForm = ({
   }, [
     currentTopOfBook?.bestAsk,
     currentTopOfBook?.bestBid,
+    hasBlurredLimitPrice,
     hasScaleValidationInteraction,
     isScaleOrder,
     normalizedLimitPrice,
