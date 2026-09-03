@@ -870,8 +870,8 @@ describe('logs :: downloadStateLogs', () => {
       'utf8',
     );
     expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
+      subject: 'TestApp State logs - v1.0.0 (100)',
+      title: 'TestApp State logs - v1.0.0 (100)',
       url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',
@@ -907,8 +907,8 @@ describe('logs :: downloadStateLogs', () => {
       'utf8',
     );
     expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
+      subject: 'TestApp State logs - v1.0.0 (100)',
+      title: 'TestApp State logs - v1.0.0 (100)',
       url: 'file:///mock/path/state-logs-v1.0.0-(100).json',
       filename: 'state-logs-v1.0.0-(100).json',
       type: 'application/json',

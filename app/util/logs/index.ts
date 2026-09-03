@@ -185,8 +185,8 @@ export const downloadStateLogs = async (
     // attachment on Android (plain paths are shared as EXTRA_TEXT). The
     // library converts the path to a `content://` URI via FileProvider.
     await Share.open({
-      subject: `${appName} State logs -  v${appVersion} (${buildNumber})`,
-      title: `${appName} State logs -  v${appVersion} (${buildNumber})`,
+      subject: `${appName} State logs - v${appVersion} (${buildNumber})`,
+      title: `${appName} State logs - v${appVersion} (${buildNumber})`,
       url: `file://${path}`,
       filename,
       type: 'application/json',
