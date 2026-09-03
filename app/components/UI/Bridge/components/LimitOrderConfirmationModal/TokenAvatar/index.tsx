@@ -29,6 +29,7 @@ export const TokenAvatar = ({ token, withNetworkBadge }: TokenAvatarProps) => {
         name={token.symbol}
         src={tokenImageSource}
         size={AvatarTokenSize.Xs}
+        testID={TokenAvatarSelectorsIDs.TOKEN}
       />
     );
   }
@@ -54,6 +55,7 @@ export const TokenAvatar = ({ token, withNetworkBadge }: TokenAvatarProps) => {
         name={token.symbol}
         src={tokenImageSource}
         size={AvatarTokenSize.Xs}
+        testID={TokenAvatarSelectorsIDs.TOKEN}
       />
     </BadgeWrapper>
   );

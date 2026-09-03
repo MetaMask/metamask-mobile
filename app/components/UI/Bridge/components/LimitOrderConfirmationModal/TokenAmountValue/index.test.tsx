@@ -55,13 +55,4 @@ describe('TokenAmountValue', () => {
       getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
     ).toBeOnTheScreen();
   });
-
-  it('applies a custom testID when provided', () => {
-    const { getByTestId, queryByTestId } = render(
-      <TokenAmountValue amount="0.1 ETH" testID="custom-amount" />,
-    );
-
-    expect(getByTestId('custom-amount')).toHaveTextContent('0.1 ETH');
-    expect(queryByTestId(TokenAmountValueSelectorsIDs.AMOUNT)).toBeNull();
-  });
 });

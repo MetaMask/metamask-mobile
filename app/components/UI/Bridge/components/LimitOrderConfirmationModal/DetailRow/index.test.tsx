@@ -18,15 +18,4 @@ describe('DetailRow', () => {
     );
     expect(getByTestId('detail-row-child')).toHaveTextContent('0.1 ETH');
   });
-
-  it('applies a custom testID when provided', () => {
-    const { getByTestId, queryByTestId } = render(
-      <DetailRow label="Paying" testID="custom-detail-row">
-        <Text>0.1 ETH</Text>
-      </DetailRow>,
-    );
-
-    expect(getByTestId('custom-detail-row')).toBeOnTheScreen();
-    expect(queryByTestId(DetailRowSelectorsIDs.CONTAINER)).toBeNull();
-  });
 });

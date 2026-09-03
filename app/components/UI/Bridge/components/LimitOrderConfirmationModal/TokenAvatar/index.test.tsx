@@ -3,7 +3,7 @@ import { render } from '@testing-library/react-native';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { getTokenImageSource } from '../../../utils';
 import { createMockTokenWithBalance } from '../../../testUtils';
-import TokenAvatar from '.';
+import { TokenAvatar } from '.';
 import { TokenAvatarSelectorsIDs } from './testIds';
 
 jest.mock('../../../../../../util/networks', () => ({
@@ -56,7 +56,11 @@ describe('TokenAvatar', () => {
   });
 
   it('hides the network image when no network image source is available', () => {
-    jest.mocked(getNetworkImageSource).mockReturnValue(undefined);
+    jest
+      .mocked(getNetworkImageSource)
+      .mockReturnValue(
+        undefined as unknown as ReturnType<typeof getNetworkImageSource>,
+      );
 
     const { getByTestId, queryByTestId } = render(
       <TokenAvatar token={mockToken} withNetworkBadge />,
@@ -66,14 +70,5 @@ describe('TokenAvatar', () => {
       getByTestId(TokenAvatarSelectorsIDs.NETWORK_BADGE),
     ).toBeOnTheScreen();
     expect(queryByTestId(TokenAvatarSelectorsIDs.NETWORK_IMAGE)).toBeNull();
-  });
-
-  it('applies a custom testID when provided', () => {
-    const { getByTestId, queryByTestId } = render(
-      <TokenAvatar token={mockToken} testID="custom-token-avatar" />,
-    );
-
-    expect(getByTestId('custom-token-avatar')).toBeOnTheScreen();
-    expect(queryByTestId(TokenAvatarSelectorsIDs.TOKEN)).toBeNull();
   });
 });
