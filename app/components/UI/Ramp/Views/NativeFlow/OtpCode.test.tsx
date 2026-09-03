@@ -27,16 +27,10 @@ const mockSetAuthToken = jest.fn();
 const mockSendUserOtp = jest.fn();
 const mockGetBuyQuote = jest.fn();
 const mockGetSession = jest.fn();
-const mockFailHeadlessQuoteChanged = jest.fn();
 
 jest.mock('../../headless', () => ({
   getChainIdFromAssetId: () => 'eip155:143',
   getSession: (...args: unknown[]) => mockGetSession(...args),
-}));
-
-jest.mock('../../headless/quoteChanged', () => ({
-  failHeadlessQuoteChanged: (...args: unknown[]) =>
-    mockFailHeadlessQuoteChanged(...args),
 }));
 
 jest.mock('../../hooks/useTransakController', () => ({
@@ -343,7 +337,7 @@ describe('V2OtpCode', () => {
     });
   });
 
-  it('fails the headless session before routing when post-OTP fees change', async () => {
+  it('logs but continues routing when post-OTP fees change', async () => {
     jest.useRealTimers();
     const assetId =
       'eip155:143/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -398,15 +392,8 @@ describe('V2OtpCode', () => {
     });
 
     await waitFor(() => {
-      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
-        'headless-buy-abc',
-        expect.any(Object),
-        expect.objectContaining({
-          mismatchCategories: expect.arrayContaining(['provider_fee']),
-        }),
-      );
+      expect(mockRouteAfterAuthentication).toHaveBeenCalled();
     });
-    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
   });
 
   it('navigates back to BuildQuote with error when post-auth routing fails', async () => {

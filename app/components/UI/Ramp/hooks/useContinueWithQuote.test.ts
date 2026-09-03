@@ -70,10 +70,6 @@ jest.mock('../utils/reportRampsError', () => ({
   ),
 }));
 
-jest.mock('../headless/quoteChanged', () => ({
-  failHeadlessQuoteChanged: jest.fn(),
-}));
-
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -121,9 +117,6 @@ const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn')
 };
 const mockReportRampsError = jest.requireMock('../utils/reportRampsError')
   .reportRampsError as jest.Mock;
-const mockFailHeadlessQuoteChanged = jest.requireMock(
-  '../headless/quoteChanged',
-).failHeadlessQuoteChanged as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockNavigationReset = jest.fn();
@@ -708,7 +701,7 @@ describe('useContinueWithQuote', () => {
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 15);
     });
 
-    it('fails and dismisses before routing when the native fee changes', async () => {
+    it('logs but continues routing when the native fee changes', async () => {
       mockCheckExistingToken.mockResolvedValue(true);
       mockGetBuyQuote.mockResolvedValue({
         ...MOCK_TRANSAK_QUOTE,
@@ -727,15 +720,8 @@ describe('useContinueWithQuote', () => {
         HEADLESS_CTX,
       );
 
-      expect(caught).toBeInstanceOf(Error);
-      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
-        'session-1',
-        expect.any(Object),
-        expect.objectContaining({
-          mismatchCategories: expect.arrayContaining(['provider_fee']),
-        }),
-      );
-      expect(mockRouteAfterAuth).not.toHaveBeenCalled();
+      expect(caught).toBeUndefined();
+      expect(mockRouteAfterAuth).toHaveBeenCalled();
     });
 
     it('retains fee exclusion for a non-mUSD headless native quote', async () => {
@@ -850,7 +836,11 @@ describe('useContinueWithQuote', () => {
       );
     });
 
-    it('fails before consuming buyURL when aggregator amount changed', async () => {
+    it('logs but consumes buyURL when aggregator amount changed', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/headless',
+        orderId: 'ord-headless-changed',
+      });
       const changedQuote = {
         ...IN_APP_CHECKOUT_QUOTE,
         provider: '/providers/transak',
@@ -864,15 +854,12 @@ describe('useContinueWithQuote', () => {
 
       const caught = await invoke(result, changedQuote, HEADLESS_CTX);
 
-      expect(caught).toBeInstanceOf(Error);
-      expect(mockFailHeadlessQuoteChanged).toHaveBeenCalledWith(
-        'session-1',
-        expect.any(Object),
+      expect(caught).toBeUndefined();
+      expect(mockGetBuyWidgetData).toHaveBeenCalledWith(
         expect.objectContaining({
-          mismatchCategories: ['fiat_amount'],
+          quote: expect.objectContaining({ amountIn: 14.99 }),
         }),
       );
-      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
     });
 
     it('preserves controller fallback when overrides are omitted', async () => {

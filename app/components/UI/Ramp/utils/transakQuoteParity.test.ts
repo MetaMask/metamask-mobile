@@ -2,8 +2,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import {
   acceptedAmountMatchesRequest,
-  assertTransakFeeInclusiveParity,
-  QuoteChangedError,
+  logTransakFeeInclusiveMismatch,
 } from './transakQuoteParity';
 
 jest.mock('../../../../util/Logger', () => ({
@@ -48,14 +47,14 @@ const NATIVE_QUOTE: TransakBuyQuote = {
   requestedChainId: 'eip155:143',
 };
 
-describe('assertTransakFeeInclusiveParity', () => {
+describe('logTransakFeeInclusiveMismatch', () => {
   it('accepts the captured debit-card Transak fee payload', () => {
-    expect(() =>
-      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, NATIVE_QUOTE, {
+    expect(
+      logTransakFeeInclusiveMismatch(ACCEPTED_QUOTE, NATIVE_QUOTE, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).not.toThrow();
+    ).toEqual([]);
   });
 
   it('normalizes the Apple Pay provider code for a synthetic quote', () => {
@@ -68,12 +67,12 @@ describe('assertTransakFeeInclusiveParity', () => {
     } as Quote;
     const nativeQuote = { ...NATIVE_QUOTE, paymentMethod: 'apple_pay' };
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(acceptedQuote, nativeQuote, {
+    expect(
+      logTransakFeeInclusiveMismatch(acceptedQuote, nativeQuote, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/apple-pay',
       }),
-    ).not.toThrow();
+    ).toEqual([]);
   });
 
   it('does not treat debit/card as Apple Pay', () => {
@@ -85,16 +84,12 @@ describe('assertTransakFeeInclusiveParity', () => {
       },
     } as Quote;
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(acceptedQuote, NATIVE_QUOTE, {
+    expect(
+      logTransakFeeInclusiveMismatch(acceptedQuote, NATIVE_QUOTE, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/apple-pay',
       }),
-    ).toThrow(
-      expect.objectContaining({
-        mismatchCategories: expect.arrayContaining(['payment_method']),
-      }),
-    );
+    ).toEqual(expect.arrayContaining(['payment_method']));
   });
 
   it('rejects changed amounts and provider fees at cent precision', () => {
@@ -108,26 +103,20 @@ describe('assertTransakFeeInclusiveParity', () => {
       totalFee: 1.41,
     };
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+    expect(
+      logTransakFeeInclusiveMismatch(ACCEPTED_QUOTE, nativeQuote, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).toThrow(
-      expect.objectContaining({
-        mismatchCategories: expect.arrayContaining([
-          'fiat_amount',
-          'provider_fee',
-          'fee_total',
-        ]),
-      }),
+    ).toEqual(
+      expect.arrayContaining(['fiat_amount', 'provider_fee', 'fee_total']),
     );
   });
 
   it('compares received mUSD as an exact decimal token amount', () => {
     for (const cryptoAmount of [14.304, 14.296]) {
-      expect(() =>
-        assertTransakFeeInclusiveParity(
+      expect(
+        logTransakFeeInclusiveMismatch(
           {
             ...(ACCEPTED_QUOTE as object),
             quote: {
@@ -141,11 +130,7 @@ describe('assertTransakFeeInclusiveParity', () => {
             paymentMethod: '/payments/debit-credit-card',
           },
         ),
-      ).toThrow(
-        expect.objectContaining({
-          mismatchCategories: expect.arrayContaining(['crypto_amount']),
-        }),
-      );
+      ).toEqual(expect.arrayContaining(['crypto_amount']));
     }
   });
 
@@ -167,15 +152,15 @@ describe('assertTransakFeeInclusiveParity', () => {
       ],
     };
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(acceptedQuote, nativeQuote, {
+    expect(
+      logTransakFeeInclusiveMismatch(acceptedQuote, nativeQuote, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).not.toThrow();
+    ).toEqual([]);
   });
 
-  it('rejects malformed accepted fee values', () => {
+  it('logs malformed accepted fee values', () => {
     const acceptedQuote = {
       ...(ACCEPTED_QUOTE as object),
       quote: {
@@ -184,22 +169,18 @@ describe('assertTransakFeeInclusiveParity', () => {
       },
     } as Quote;
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(acceptedQuote, NATIVE_QUOTE, {
+    expect(
+      logTransakFeeInclusiveMismatch(acceptedQuote, NATIVE_QUOTE, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).toThrow(
-      expect.objectContaining({
-        mismatchCategories: expect.arrayContaining(['provider_fee']),
-      }),
-    );
+    ).toEqual(expect.arrayContaining(['provider_fee']));
   });
 
-  it('rejects missing and malformed fee breakdowns as quote changes', () => {
+  it('logs missing and malformed fee breakdowns', () => {
     for (const feeBreakdown of [undefined, { id: 'transak_fee' }]) {
-      expect(() =>
-        assertTransakFeeInclusiveParity(
+      expect(
+        logTransakFeeInclusiveMismatch(
           ACCEPTED_QUOTE,
           { ...NATIVE_QUOTE, feeBreakdown } as unknown as TransakBuyQuote,
           {
@@ -207,33 +188,25 @@ describe('assertTransakFeeInclusiveParity', () => {
             paymentMethod: '/payments/debit-credit-card',
           },
         ),
-      ).toThrow(
-        expect.objectContaining({
-          mismatchCategories: expect.arrayContaining(['fee_breakdown']),
-        }),
-      );
+      ).toEqual(expect.arrayContaining(['fee_breakdown']));
     }
   });
 
-  it('rejects the wrong native response asset or network', () => {
+  it('logs the wrong native response asset or network', () => {
     for (const nativeQuote of [
       { ...NATIVE_QUOTE, cryptoCurrency: 'USDC' },
       { ...NATIVE_QUOTE, network: 'ethereum' },
     ]) {
-      expect(() =>
-        assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+      expect(
+        logTransakFeeInclusiveMismatch(ACCEPTED_QUOTE, nativeQuote, {
           assetId: ASSET_ID,
           paymentMethod: '/payments/debit-credit-card',
         }),
-      ).toThrow(
-        expect.objectContaining({
-          mismatchCategories: expect.arrayContaining(['asset']),
-        }),
-      );
+      ).toEqual(expect.arrayContaining(['asset']));
     }
   });
 
-  it('rejects a charged partner fee for discounted mUSD', () => {
+  it('logs a charged partner fee for discounted mUSD', () => {
     const nativeQuote = {
       ...NATIVE_QUOTE,
       feeBreakdown: [
@@ -243,15 +216,15 @@ describe('assertTransakFeeInclusiveParity', () => {
       totalFee: 1.5,
     };
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+    expect(
+      logTransakFeeInclusiveMismatch(ACCEPTED_QUOTE, nativeQuote, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).toThrow(QuoteChangedError);
+    ).toEqual(expect.arrayContaining(['partner_fee']));
   });
 
-  it('rejects unknown charged fee components', () => {
+  it('logs unknown charged fee components', () => {
     const nativeQuote = {
       ...NATIVE_QUOTE,
       feeBreakdown: [
@@ -261,16 +234,12 @@ describe('assertTransakFeeInclusiveParity', () => {
       totalFee: 1.5,
     };
 
-    expect(() =>
-      assertTransakFeeInclusiveParity(ACCEPTED_QUOTE, nativeQuote, {
+    expect(
+      logTransakFeeInclusiveMismatch(ACCEPTED_QUOTE, nativeQuote, {
         assetId: ASSET_ID,
         paymentMethod: '/payments/debit-credit-card',
       }),
-    ).toThrow(
-      expect.objectContaining({
-        mismatchCategories: expect.arrayContaining(['fee_breakdown']),
-      }),
-    );
+    ).toEqual(expect.arrayContaining(['fee_breakdown']));
   });
 });
 

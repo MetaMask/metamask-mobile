@@ -170,7 +170,6 @@ export type HeadlessBuyErrorCode =
   | 'KYC_REQUIRED'
   | 'AUTH_FAILED'
   | 'QUOTE_FAILED'
-  | 'QUOTE_CHANGED'
   | 'USER_CANCELLED'
   | 'UNKNOWN';
 

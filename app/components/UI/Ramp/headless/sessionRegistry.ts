@@ -20,7 +20,6 @@ const HEADLESS_BUY_ERROR_CODES: ReadonlySet<HeadlessBuyErrorCode> = new Set([
   'KYC_REQUIRED',
   'AUTH_FAILED',
   'QUOTE_FAILED',
-  'QUOTE_CHANGED',
   'USER_CANCELLED',
   'UNKNOWN',
 ]);

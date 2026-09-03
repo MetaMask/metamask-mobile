@@ -14,15 +14,17 @@ export type TransakQuoteMismatchCategory =
   | 'fee_total'
   | 'fee_breakdown';
 
-export class QuoteChangedError extends Error {
-  readonly headlessBuyErrorCode = 'QUOTE_CHANGED';
-  readonly mismatchCategories: TransakQuoteMismatchCategory[];
-
-  constructor(mismatchCategories: TransakQuoteMismatchCategory[]) {
-    super('The Transak quote changed before checkout');
-    this.name = 'QuoteChangedError';
-    this.mismatchCategories = mismatchCategories;
+export function logTransakQuoteMismatch(
+  mismatches: TransakQuoteMismatchCategory[],
+): void {
+  if (mismatches.length === 0) {
+    return;
   }
+
+  Logger.error(
+    new Error('Transak quote differs from accepted quote'),
+    `Transak quote parity mismatch: ${mismatches.join(',')}`,
+  );
 }
 
 interface AcceptedQuoteDetails {
@@ -90,20 +92,17 @@ function addMismatch(
 }
 
 /**
- * Verifies that the authenticated native quote still matches the accepted
- * fee-inclusive ramps quote. Transak documents `transak_fee`, `network_fee`,
- * and `partner_fee` as the stable fee component identifiers. Any unknown
- * charged component fails closed because it cannot be reconciled with the
- * fee row shown before checkout.
+ * Logs differences between the authenticated native quote and the accepted
+ * fee-inclusive ramps quote without blocking checkout.
  */
-export function assertTransakFeeInclusiveParity(
+export function logTransakFeeInclusiveMismatch(
   acceptedQuote: Quote,
   nativeQuote: TransakBuyQuote,
   context: {
     assetId: string;
     paymentMethod: string;
   },
-): void {
+): TransakQuoteMismatchCategory[] {
   const accepted = acceptedQuote as AcceptedQuote;
   const mismatches: TransakQuoteMismatchCategory[] = [];
   const acceptedAssetId = accepted.outputCurrency?.assetId ?? context.assetId;
@@ -218,13 +217,8 @@ export function assertTransakFeeInclusiveParity(
       acceptedTotal === breakdownTotal,
   );
 
-  if (mismatches.length > 0) {
-    Logger.error(
-      new QuoteChangedError(mismatches),
-      `Transak quote parity mismatch: ${mismatches.join(',')}`,
-    );
-    throw new QuoteChangedError(mismatches);
-  }
+  logTransakQuoteMismatch(mismatches);
+  return mismatches;
 }
 
 export function acceptedAmountMatchesRequest(

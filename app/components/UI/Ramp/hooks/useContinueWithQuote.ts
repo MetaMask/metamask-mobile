@@ -25,10 +25,9 @@ import { reportRampsError } from '../utils/reportRampsError';
 import { isMonadMusdAssetId } from '../utils/fiatDepositAsset';
 import {
   acceptedAmountMatchesRequest,
-  assertTransakFeeInclusiveParity,
-  QuoteChangedError,
+  logTransakFeeInclusiveMismatch,
+  logTransakQuoteMismatch,
 } from '../utils/transakQuoteParity';
-import { failHeadlessQuoteChanged } from '../headless/quoteChanged';
 import {
   type Quote,
   isNativeProvider,
@@ -218,21 +217,10 @@ export function useContinueWithQuote(
             throw new Error(strings('deposit.buildQuote.unexpectedError'));
           }
           if (isFeeInclusiveHeadless && ctx.headlessSessionId) {
-            try {
-              assertTransakFeeInclusiveParity(quote, transakQuote, {
-                assetId,
-                paymentMethod: effectivePaymentMethodId,
-              });
-            } catch (error) {
-              if (error instanceof QuoteChangedError) {
-                failHeadlessQuoteChanged(
-                  ctx.headlessSessionId,
-                  navigation,
-                  error,
-                );
-              }
-              throw error;
-            }
+            logTransakFeeInclusiveMismatch(quote, transakQuote, {
+              assetId,
+              paymentMethod: effectivePaymentMethodId,
+            });
           }
           await transakRouteAfterAuth(transakQuote, amount);
         } else if (hasAgreedTransakNativePolicy) {
@@ -257,9 +245,6 @@ export function useContinueWithQuote(
           );
         }
       } catch (error) {
-        if (error instanceof QuoteChangedError) {
-          throw error;
-        }
         if (nativeCufOpId) {
           endRampsBuyCufChildTrace({
             id: nativeCufOpId,
@@ -336,16 +321,7 @@ export function useContinueWithQuote(
           isMonadMusdAssetId(ctx.assetId) &&
           !acceptedAmountMatchesRequest(quote, ctx.amount)
         ) {
-          // The accepted fees were already rendered in MMPay. Refreshing here
-          // could change them without giving the user another review screen,
-          // so an amount mismatch must fail closed before buyURL is consumed.
-          const quoteChangedError = new QuoteChangedError(['fiat_amount']);
-          failHeadlessQuoteChanged(
-            ctx.headlessSessionId,
-            navigation,
-            quoteChangedError,
-          );
-          throw quoteChangedError;
+          logTransakQuoteMismatch(['fiat_amount']);
         }
         const isCustom = isCustomAction(quote);
         const redirectConfig = getWidgetRedirectConfig(
@@ -359,9 +335,6 @@ export function useContinueWithQuote(
         buyWidget = await getBuyWidgetData(quoteForWidget);
       } catch (error) {
         endCheckoutCuf(false, RAMPS_BUY_CUF_END_REASON.ERROR);
-        if (error instanceof QuoteChangedError) {
-          throw error;
-        }
         throw new Error(
           reportRampsError(
             error,

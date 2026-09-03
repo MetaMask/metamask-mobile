@@ -51,11 +51,7 @@ import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { getChainIdFromAssetId, getSession } from '../../headless';
 import { isMonadMusdAssetId } from '../../utils/fiatDepositAsset';
-import {
-  assertTransakFeeInclusiveParity,
-  QuoteChangedError,
-} from '../../utils/transakQuoteParity';
-import { failHeadlessQuoteChanged } from '../../headless/quoteChanged';
+import { logTransakFeeInclusiveMismatch } from '../../utils/transakQuoteParity';
 import { OtpCodeSelectorsIDs } from './OtpCode.testIds';
 import { hasTestOverrides } from '../../../../../util/test/utils';
 
@@ -312,31 +308,17 @@ const V2OtpCode = () => {
               headlessSessionId &&
               headlessSession?.params.quote
             ) {
-              try {
-                assertTransakFeeInclusiveParity(
-                  headlessSession.params.quote,
-                  quote,
-                  {
-                    assetId,
-                    paymentMethod,
-                  },
-                );
-              } catch (parityError) {
-                if (parityError instanceof QuoteChangedError) {
-                  failHeadlessQuoteChanged(
-                    headlessSessionId,
-                    navigation,
-                    parityError,
-                  );
-                }
-                throw parityError;
-              }
+              logTransakFeeInclusiveMismatch(
+                headlessSession.params.quote,
+                quote,
+                {
+                  assetId,
+                  paymentMethod,
+                },
+              );
             }
             await routeAfterAuthentication(quote);
           } catch (routeError) {
-            if (routeError instanceof QuoteChangedError) {
-              return;
-            }
             const nativeFlowError = parseUserFacingError(
               routeError,
               strings('deposit.otp_code.error'),
