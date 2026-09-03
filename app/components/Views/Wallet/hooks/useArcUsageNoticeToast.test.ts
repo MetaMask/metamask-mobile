@@ -7,6 +7,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
+import { type ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { storeArcUsageNoticeShown } from '../../../../actions/legalNotices';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -56,11 +57,13 @@ function renderWithToast({
   mockUseDispatch.mockReturnValue(dispatch);
   mockUseIsFocused.mockReturnValue(isFocused);
 
-  const toastRef = { current: { showToast, closeToast } };
+  const toastRef: React.RefObject<ToastRef | null> = {
+    current: { showToast, closeToast },
+  };
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(
       ToastContext.Provider,
-      { value: { toastRef } as never },
+      { value: { toastRef } },
       children,
     );
 

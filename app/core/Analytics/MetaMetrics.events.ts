@@ -393,6 +393,7 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
+
   ARC_USAGE_NOTICE_TOAST_VIEWED = 'Arc Usage Notice Toast Viewed',
   ARC_USAGE_NOTICE_TOAST_DISMISSED = 'Arc Usage Notice Toast Dismissed',
 
@@ -1416,6 +1417,7 @@ const events = {
     EVENT_NAME.RAMPS_CHECKOUT_CALLBACK_DETECTED,
   ),
   RAMPS_CHECKOUT_CLOSED: generateOpt(EVENT_NAME.RAMPS_CHECKOUT_CLOSED),
+
   ARC_USAGE_NOTICE_TOAST_VIEWED: generateOpt(
     EVENT_NAME.ARC_USAGE_NOTICE_TOAST_VIEWED,
   ),

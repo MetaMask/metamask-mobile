@@ -193,7 +193,7 @@ describe('legalNoticesReducer', () => {
     });
   });
 
-  describe('arcUsageNoticeShown', () => {
+  describe('STORE_ARC_USAGE_NOTICE_SHOWN', () => {
     it('sets arcUsageNoticeShown to true', () => {
       const state = legalNoticesReducer(undefined, storeArcUsageNoticeShown());
 
