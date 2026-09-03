@@ -207,9 +207,17 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import DummyTabScreen from './DummyTabScreen';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// SPIKE(TMCU-1277): swap the four treatment tabs for trivially cheap screens so
+// the floating tab bar's slide can be judged without screen mount cost. Flip to
+// `true`, reload, compare. `DUMMY_TAB_SCREEN_WEIGHT` in DummyTabScreen dials the
+// cost back in to reproduce a heavy mount. Options are left untouched on every
+// tab so screen content is the only variable. Not for the real branch.
+const DUMMY_TAB_SCREENS = false;
 
 const WalletWithMessenger = withRouteMessenger(Wallet, {
   capabilities: WALLET_ROUTE_ALLOWED_CAPABILITIES,
@@ -630,7 +638,7 @@ const HomeTabs = () => {
     HEADER_NAV_BAR_VARIANTS,
     HEADER_NAV_BAR_AB_TEST_EXPOSURE_OPTIONS,
   );
-  const isFloatingTabBar = headerNavBarVariant.isCompactHeaderEnabled;
+  const isFloatingTabBar = true;
   const [floatingTabBarHeight, setFloatingTabBarHeight] = useState(0);
   const isSocialTabEnabled = useSelector(selectSocialLeaderboardEnabled);
 
@@ -859,7 +867,9 @@ const HomeTabs = () => {
             <Tab.Screen
               name={Routes.WALLET.HOME}
               options={options.home}
-              component={WalletTabStackFlow}
+              component={
+                DUMMY_TAB_SCREENS ? DummyTabScreen : WalletTabStackFlow
+              }
             />
 
             <>
@@ -872,7 +882,7 @@ const HomeTabs = () => {
                       rootScreenName,
                     ),
                 }}
-                component={ExploreHome}
+                component={DUMMY_TAB_SCREENS ? DummyTabScreen : ExploreHome}
               />
               <Tab.Screen
                 name={Routes.BROWSER.HOME}
@@ -896,7 +906,9 @@ const HomeTabs = () => {
               <Tab.Screen
                 name={Routes.MONEY.ROOT}
                 options={options.money}
-                component={MoneyTabScreenStack}
+                component={
+                  DUMMY_TAB_SCREENS ? DummyTabScreen : MoneyTabScreenStack
+                }
               />
             ) : (
               <Tab.Screen
@@ -910,7 +922,9 @@ const HomeTabs = () => {
               <Tab.Screen
                 name={Routes.SOCIAL_LEADERBOARD.TAB}
                 options={options.social}
-                component={SocialTradersTabsView}
+                component={
+                  DUMMY_TAB_SCREENS ? DummyTabScreen : SocialTradersTabsView
+                }
               />
             ) : (
               <Tab.Screen

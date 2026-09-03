@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import {
   ParamListBase,
   TabNavigationState,
@@ -14,6 +14,8 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
 import TabBarFloating from './TabBarFloating';
 import {
+  HIGHLIGHT_LIFT_ICON_SCALE,
+  HIGHLIGHT_LIFT_SCALE,
   TAB_BAR_FLOATING_MIN_BOTTOM_PADDING,
   TAB_BAR_FLOATING_TEST_IDS,
 } from './TabBarFloating.constants';
@@ -133,7 +135,37 @@ const renderBar = (
     { state: mockInitialState },
   );
 
-// Highlight movement is a reanimated timing, so tests settle it before asserting.
+// Highlight movement is a reanimated spring, so tests settle it before asserting.
+// Jest's Reanimated harness cannot observe a spring mid-flight — only where it
+// lands — so these tests cover placement, not the motion itself.
+const flushAnimations = () => act(() => jest.advanceTimersByTime(2000));
+
+const SLOT_WIDTH = 80;
+const SLOT_HEIGHT = 48;
+const TREATMENT_TABS = [
+  TabBarIconKey.Wallet,
+  TabBarIconKey.Trending,
+  TabBarIconKey.Money,
+  TabBarIconKey.Social,
+];
+
+/** Reports a box for each tab slot, as native layout would after first paint. */
+const layoutSlots = (
+  getByTestId: ReturnType<typeof renderBar>['getByTestId'],
+) => {
+  TREATMENT_TABS.forEach((key, slot) => {
+    fireEvent(getByTestId(`tab-bar-item-${key}`), 'layout', {
+      nativeEvent: {
+        layout: {
+          x: slot * SLOT_WIDTH,
+          y: 0,
+          width: SLOT_WIDTH,
+          height: SLOT_HEIGHT,
+        },
+      },
+    });
+  });
+};
 
 describe('TabBarFloating', () => {
   beforeEach(() => {
@@ -181,22 +213,109 @@ describe('TabBarFloating', () => {
     expect(paddingBottom).toBe(TAB_BAR_FLOATING_MIN_BOTTOM_PADDING);
   });
 
-  it('highlights only the active tab, and follows it when the tab changes', () => {
-    const backgroundOf = (
-      view: ReturnType<typeof renderBar>,
-      key: TabBarIconKey,
-    ) =>
-      StyleSheet.flatten(view.getByTestId(`tab-bar-item-${key}`).props.style)
-        .backgroundColor;
-
+  it('places the shared highlight on the active slot once slots are measured', () => {
     const onHome = renderBar();
-    const active = backgroundOf(onHome, TabBarIconKey.Wallet);
-    expect(backgroundOf(onHome, TabBarIconKey.Money)).not.toBe(active);
+    layoutSlots(onHome.getByTestId);
+    flushAnimations();
 
-    // Money active instead of Home: the highlight moves with it.
+    // Slot 0 sits at translateX 0, same as the unplaced state, so opacity is
+    // what proves the highlight actually landed.
+    expect(
+      onHome.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      opacity: 1,
+      width: SLOT_WIDTH,
+      transform: [{ translateX: 0 }, { scaleX: 1 }, { scaleY: 1 }],
+    });
+
+    // Money is the third slot, so the highlight rests two widths across.
     const onMoney = renderBar({}, undefined, 2);
-    expect(backgroundOf(onMoney, TabBarIconKey.Money)).toBe(active);
-    expect(backgroundOf(onMoney, TabBarIconKey.Wallet)).not.toBe(active);
+    layoutSlots(onMoney.getByTestId);
+    flushAnimations();
+
+    expect(
+      onMoney.getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      opacity: 1,
+      transform: [{ translateX: 2 * SLOT_WIDTH }, { scaleX: 1 }, { scaleY: 1 }],
+    });
+  });
+
+  it('stays hidden until a slot has been measured', () => {
+    const { getByTestId } = renderBar();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({ opacity: 0 });
+  });
+
+  // The press writes the target before navigation runs, so the slide is not
+  // held up by mounting the destination screen.
+  it('slides on press without waiting for navigation to report a new index', () => {
+    const { getByTestId } = renderBar();
+    layoutSlots(getByTestId);
+    flushAnimations();
+
+    fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Social}`));
+    flushAnimations();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      transform: [{ translateX: 3 * SLOT_WIDTH }, { scaleX: 1 }, { scaleY: 1 }],
+    });
+  });
+
+  // Lift is observable here only at rest: springs settle on their exact target,
+  // so a held press lands on the full lift and release lands back on none.
+  it('lifts the highlight while a finger is down and drops it on release', () => {
+    const { getByTestId } = renderBar();
+    layoutSlots(getByTestId);
+    flushAnimations();
+    const home = getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`);
+    const lifted = 1 + HIGHLIGHT_LIFT_SCALE;
+
+    fireEvent(home, 'pressIn');
+    flushAnimations();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      transform: [{ translateX: 0 }, { scaleX: lifted }, { scaleY: lifted }],
+    });
+
+    // The icon under the bubble swells with it. The bubble is centred on Home,
+    // so proximity is 1 and the scale is the full amount.
+    expect(
+      getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}-content`),
+    ).toHaveAnimatedStyle({
+      transform: [{ scale: 1 + HIGHLIGHT_LIFT_ICON_SCALE }],
+    });
+
+    fireEvent(home, 'pressOut');
+    flushAnimations();
+
+    expect(
+      getByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT),
+    ).toHaveAnimatedStyle({
+      transform: [{ translateX: 0 }, { scaleX: 1 }, { scaleY: 1 }],
+    });
+  });
+
+  it('renders no lifted glass disc when glass is unavailable', () => {
+    const { queryByTestId } = renderBar();
+
+    expect(queryByTestId(TAB_BAR_FLOATING_TEST_IDS.HIGHLIGHT_GLASS)).toBeNull();
+  });
+
+  it('leaves the active background to the shared highlight, not the item', () => {
+    const { getByTestId } = renderBar();
+
+    const activeItem = StyleSheet.flatten(
+      getByTestId(`tab-bar-item-${TabBarIconKey.Wallet}`).props.style,
+    );
+
+    expect(activeItem.backgroundColor).toBe('transparent');
   });
 
   it('sizes the search button to a circle matching the pill height', () => {
