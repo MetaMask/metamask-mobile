@@ -217,7 +217,7 @@ export function useTransakController(): UseTransakControllerResult {
       network: string,
       paymentMethod: string,
       fiatAmount: string,
-      isFeeExcludedFromFiat = false,
+      isFeeExcludedFromFiat = true,
     ) =>
       (
         getRampsController().transakGetBuyQuote as (

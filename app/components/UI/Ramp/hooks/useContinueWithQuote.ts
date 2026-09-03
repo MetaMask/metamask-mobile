@@ -161,10 +161,17 @@ export function useContinueWithQuote(
   const continueNative = useCallback(
     async (quote: Quote, ctx: ContinueWithQuoteContext) => {
       const { assetId } = ctx;
-      const amount =
-        ctx.headlessSessionId && getEffectiveFeeMode(quote) === 'fee-on-top'
-          ? Number(quote.quote.amountIn)
-          : ctx.amount;
+      const isHeadlessFeeOnTop =
+        Boolean(ctx.headlessSessionId) &&
+        getEffectiveFeeMode(quote) === 'fee-on-top';
+      // UB2 native lookups historically always requested fee-on-top. Keep that
+      // default outside headless MMPay so this fee-mode work cannot flip UB2.
+      const isFeeExcludedFromFiat = ctx.headlessSessionId
+        ? isHeadlessFeeOnTop
+        : true;
+      const amount = isHeadlessFeeOnTop
+        ? Number(quote.quote.amountIn)
+        : ctx.amount;
       if (!Number.isFinite(amount) || amount <= 0) {
         throw new Error(
           'Native provider flow requires a valid quote principal',
@@ -213,7 +220,7 @@ export function useContinueWithQuote(
             effectiveChainId,
             effectivePaymentMethodId,
             String(amount),
-            getEffectiveFeeMode(quote) === 'fee-on-top',
+            isFeeExcludedFromFiat,
           );
           if (!transakQuote) {
             throw new Error(strings('deposit.buildQuote.unexpectedError'));

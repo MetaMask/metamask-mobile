@@ -313,6 +313,32 @@ describe('useContinueWithQuote', () => {
       expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
+    it('keeps UB2 native lookups fee-on-top without an explicit fee mode', async () => {
+      mockCheckExistingToken.mockResolvedValue(true);
+      mockGetBuyQuote.mockResolvedValue(MOCK_TRANSAK_QUOTE);
+      mockRouteAfterAuth.mockResolvedValue(undefined);
+      const ub2Quote = {
+        ...NATIVE_PROVIDER_QUOTE,
+        quote: {
+          amountIn: 100,
+          paymentMethod: SELECTED_PAYMENT_METHOD.id,
+        },
+      };
+
+      const { result } = renderHook(() => useContinueWithQuote());
+      const caught = await invoke(result, ub2Quote);
+
+      expect(caught).toBeUndefined();
+      expect(mockGetBuyQuote).toHaveBeenCalledWith(
+        'USD',
+        'eip155:1/slip44:60',
+        'eip155:1',
+        '/payments/debit-credit-card',
+        '100',
+        true,
+      );
+    });
+
     it('navigates to VerifyIdentity when user has no token and policy not agreed', async () => {
       mockCheckExistingToken.mockResolvedValue(false);
 

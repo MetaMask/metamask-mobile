@@ -247,7 +247,7 @@ describe('V2OtpCode', () => {
         'eip155:1',
         'pm-1',
         '100',
-        false,
+        true,
       );
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });

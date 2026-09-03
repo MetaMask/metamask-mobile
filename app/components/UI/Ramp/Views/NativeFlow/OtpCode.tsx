@@ -301,7 +301,7 @@ const V2OtpCode = () => {
               selectedToken?.chainId || '',
               acceptedPaymentMethod,
               acceptedAmount,
-              Boolean(isFeeOnTop),
+              headlessSessionId ? Boolean(isFeeOnTop) : true,
             );
             await routeAfterAuthentication(quote);
           } catch (routeError) {
