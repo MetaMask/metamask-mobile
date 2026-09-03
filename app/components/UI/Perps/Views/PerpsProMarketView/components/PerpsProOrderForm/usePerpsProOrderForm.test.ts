@@ -5343,7 +5343,40 @@ describe('usePerpsProOrderForm', () => {
               'perps.order.validation.limit_price_far_from_market_bid',
               { percent: 11 },
             ),
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
+              PERPS_EVENT_VALUE.ORDER_TYPE.SCALE,
           }),
+        );
+      });
+
+      it('labels a limit-order warning as limit and omits scale properties', () => {
+        mockOrderForm.type = 'limit';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+        mockOrderForm.limitPrice = '80000';
+
+        renderProForm();
+
+        const shown = mockTrack.mock.calls.filter(
+          ([event, props]) =>
+            event === MetaMetricsEvents.PERPS_UI_INTERACTION &&
+            props?.[PERPS_EVENT_PROPERTY.INTERACTION_TYPE] ===
+              FAR_FROM_MARKET_WARNING_INTERACTION,
+        );
+
+        expect(shown).toHaveLength(1);
+        const payload = shown[0][1];
+        expect(payload[PERPS_EVENT_PROPERTY.ORDER_TYPE]).toBe(
+          PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
+        );
+        // Number('') is 0 and passes isInteger/isFinite, so an unguarded
+        // spread would ship scale_order_count=0 / scale_skew=1 on a limit.
+        expect(payload).not.toHaveProperty(
+          PERPS_EVENT_PROPERTY.SCALE_ORDER_COUNT,
+        );
+        expect(payload).not.toHaveProperty(PERPS_EVENT_PROPERTY.SCALE_SKEW);
+        expect(payload).not.toHaveProperty(
+          PERPS_EVENT_PROPERTY.SCALE_RANGE_PCT,
         );
       });
 

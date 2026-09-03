@@ -3010,9 +3010,26 @@ export const usePerpsProOrderForm = ({
         FAR_FROM_MARKET_WARNING_INTERACTION,
       [PERPS_EVENT_PROPERTY.WARNING_TYPE]: FAR_FROM_MARKET_WARNING_TYPE,
       [PERPS_EVENT_PROPERTY.WARNING_MESSAGE]: farFromMarketWarning,
-      ...scaleAnalyticsProperties,
+      // Scale properties are scale-shaped only. On a limit order the empty
+      // scale inputs coerce to 0/1 and pass the isInteger/isFinite guards,
+      // which would ship junk and mislabel order_type as scale.
+      ...(isScaleOrder
+        ? scaleAnalyticsProperties
+        : {
+            [PERPS_EVENT_PROPERTY.ASSET]: orderForm.asset,
+            [PERPS_EVENT_PROPERTY.ORDER_TYPE]: orderForm.type,
+            [PERPS_EVENT_PROPERTY.REDUCE_ONLY]: reduceOnly,
+          }),
     });
-  }, [farFromMarketWarning, scaleAnalyticsProperties, track]);
+  }, [
+    farFromMarketWarning,
+    isScaleOrder,
+    orderForm.asset,
+    orderForm.type,
+    reduceOnly,
+    scaleAnalyticsProperties,
+    track,
+  ]);
 
   const notices = useMemo<PerpsProOrderNotice[]>(() => {
     const list = [
