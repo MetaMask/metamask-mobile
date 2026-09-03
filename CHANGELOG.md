@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Fixed Card Home failing to load when a non-EVM account was selected in a mixed account group (#35530)
 - Restored the Reduce only checkbox in Perps Pro mode (#35320)
 - Fixed Money Account withdrawal confirmations showing an incorrect dollar amount (#35301)
 - Fixed Card Home failing to load when a non-EVM account was selected in a mixed account group (#35485)
