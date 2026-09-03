@@ -168,6 +168,7 @@ class PerpsMarketListView {
   /**
    * Scrolls the Perps home feed (or full market list) until the market row is visible.
    * Avoids tapping Explore crypto, which is flaky when clipped on CI.
+   * Throws when the row is still missing so callers can fall back to search.
    */
   async scrollToMarketRow(marketName: string): Promise<void> {
     const marketElement = this.getMarketRowElement(marketName);
@@ -202,25 +203,47 @@ class PerpsMarketListView {
         return;
       }
 
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'down',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home`,
-      });
+      try {
+        await Gestures.scrollToElement(
+          marketElement,
+          this.perpsHomeScrollView,
+          {
+            direction: 'down',
+            scrollAmount: 200,
+            timeout: 10000,
+            elemDescription: `${marketName} market row on Perps home`,
+          },
+        );
+      } catch {
+        // Continue with reverse scroll / visibility check below.
+      }
 
       if (await Utilities.isElementVisible(marketElement, 1000)) {
         return;
       }
 
-      await Gestures.scrollToElement(marketElement, this.perpsHomeScrollView, {
-        direction: 'up',
-        scrollAmount: 200,
-        timeout: 10000,
-        elemDescription: `${marketName} market row on Perps home (scroll up)`,
-      });
+      try {
+        await Gestures.scrollToElement(
+          marketElement,
+          this.perpsHomeScrollView,
+          {
+            direction: 'up',
+            scrollAmount: 200,
+            timeout: 10000,
+            elemDescription: `${marketName} market row on Perps home (scroll up)`,
+          },
+        );
+      } catch {
+        // Fall through to the final visibility check.
+      }
 
-      return;
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return;
+      }
+
+      throw new Error(
+        `${marketName} market row not visible on Perps home after scrolling`,
+      );
     }
 
     const marketListVisible = await Utilities.isElementVisible(
@@ -238,7 +261,37 @@ class PerpsMarketListView {
           elemDescription: `${marketName} market row in market list`,
         },
       );
+      if (await Utilities.isElementVisible(marketElement, 1000)) {
+        return;
+      }
     }
+
+    throw new Error(
+      `${marketName} market row not visible after Perps home/list scroll`,
+    );
+  }
+
+  /**
+   * Opens the market-list search UI and types the symbol so late-loading
+   * watchlist rows can still be selected.
+   */
+  private async searchAndRevealMarketRow(marketName: string): Promise<void> {
+    const marketElement = this.getMarketRowElement(marketName);
+    await this.openMarketListFromHomeSearch();
+    await Gestures.typeText(this.searchBar, marketName, {
+      elemDescription: 'Perps market search input',
+      hideKeyboard: true,
+    });
+    await Gestures.scrollToElement(
+      marketElement,
+      this.marketListScrollableContainer,
+      {
+        direction: 'down',
+        scrollAmount: 200,
+        timeout: 10000,
+        elemDescription: `${marketName} market row in searched market list`,
+      },
+    );
   }
 
   async selectMarket(marketName: string) {
@@ -246,24 +299,18 @@ class PerpsMarketListView {
     try {
       await this.scrollToMarketRow(marketName);
     } catch {
-      await this.openMarketListFromHomeSearch();
-      await Gestures.typeText(this.searchBar, marketName, {
-        elemDescription: 'Perps market search input',
-        hideKeyboard: true,
-      });
-      await Gestures.scrollToElement(
-        marketElement,
-        this.marketListScrollableContainer,
-        {
-          direction: 'down',
-          scrollAmount: 200,
-          timeout: 10000,
-          elemDescription: `${marketName} market row in searched market list`,
-        },
-      );
+      await this.searchAndRevealMarketRow(marketName);
     }
+
+    // Scroll can "succeed" without the row mounting (FlatList / late mocks).
+    // Always fall back to search before the final tap when still missing.
+    if (!(await Utilities.isElementVisible(marketElement, 1500))) {
+      await this.searchAndRevealMarketRow(marketName);
+    }
+
     await Gestures.waitAndTap(marketElement, {
       elemDescription: `${marketName} market row`,
+      timeout: 15000,
     });
   }
 

@@ -160,6 +160,7 @@ export const navigateToPerpsOrderEntry = async (
   direction: PerpsPositionDirection,
 ): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
+  await dismissPerpsOnboardingTutorialIfPresent();
   await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
 };
 

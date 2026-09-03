@@ -5,6 +5,7 @@ import CommandQueueServer, {
   CommandQueueItem,
 } from '../../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../../framework/types';
+import Utilities from '../../framework/Utilities';
 
 const logger = createLogger({
   name: 'PerpsE2EModifiers',
@@ -53,6 +54,53 @@ class PerpsE2EModifiers {
       args: { symbol, price },
     };
     await commandQueueServer.addToQueue(command);
+  }
+
+  /**
+   * Pushes a mark price, then polls until `assertClosed` succeeds.
+   * Re-enqueues the same push periodically so a busy app that misses one
+   * command-queue poll still receives the SL/TP trigger price.
+   */
+  static async waitForCloseAfterPricePush(
+    commandQueueServer: CommandQueueServer,
+    symbol: string,
+    price: string,
+    assertClosed: () => Promise<void>,
+    options: {
+      timeout?: number;
+      interval?: number;
+      reenqueueEveryMs?: number;
+      description?: string;
+    } = {},
+  ): Promise<void> {
+    const {
+      timeout = 30000,
+      interval = 1000,
+      reenqueueEveryMs = 5000,
+      description = 'wait for position close after mark price push',
+    } = options;
+
+    await this.updateMarketPriceServer(commandQueueServer, symbol, price);
+
+    let lastEnqueueAt = Date.now();
+    await Utilities.executeWithRetry(
+      async () => {
+        if (Date.now() - lastEnqueueAt >= reenqueueEveryMs) {
+          await this.updateMarketPriceServer(
+            commandQueueServer,
+            symbol,
+            price,
+          );
+          lastEnqueueAt = Date.now();
+        }
+        await assertClosed();
+      },
+      {
+        interval,
+        timeout,
+        description,
+      },
+    );
   }
 
   /**
