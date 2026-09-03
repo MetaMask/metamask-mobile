@@ -4,10 +4,13 @@ import {
   prepareIosSimulatorPool,
 } from './ios-simulator-lib.mjs';
 
-type ExecFileResult = { stdout: string; stderr: string };
+interface ExecFileResult {
+  stdout: string;
+  stderr: string;
+}
 type ExecFileImpl = (
   command: string,
-  args: string[],
+  args: readonly string[],
 ) => Promise<ExecFileResult>;
 
 const BASE_NAME = 'iPhone 16 Pro';
@@ -17,11 +20,11 @@ const CLONE_UDID_1 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 interface RecordedCall {
   command: string;
-  args: string[];
+  args: readonly string[];
 }
 
 function makeListDevicesJson(
-  devices: Array<{ name: string; udid: string; state: string }>,
+  devices: { name: string; udid: string; state: string }[],
 ): string {
   return JSON.stringify({
     devices: {

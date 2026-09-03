@@ -144,7 +144,6 @@ jobs:
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
-
   appium-snaps-ios-smoke:
     if: >-
       ${{

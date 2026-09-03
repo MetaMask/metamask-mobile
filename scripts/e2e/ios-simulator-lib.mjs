@@ -7,8 +7,12 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 
 /**
- * @param {typeof execFileAsync | undefined} execFileImpl
- * @returns {typeof execFileAsync}
+ * @typedef {(file: string, args: readonly string[]) => Promise<{ stdout: string, stderr: string }>} ExecFileImpl
+ */
+
+/**
+ * @param {ExecFileImpl | undefined} execFileImpl
+ * @returns {ExecFileImpl}
  */
 function resolveExecFileImpl(execFileImpl) {
   return execFileImpl ?? execFileAsync;
@@ -141,7 +145,7 @@ export function iosPoolSimulatorName(baseName, workerIndex) {
 
 /**
  * @param {string} deviceName
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<string>}
  */
 export async function getIosSimulatorUdid(deviceName, execFileImpl) {
@@ -180,7 +184,7 @@ export async function getIosSimulatorUdid(deviceName, execFileImpl) {
 
 /**
  * @param {string} deviceName
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<string | undefined>}
  */
 async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
@@ -207,7 +211,7 @@ async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
 
 /**
  * @param {string} udid
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<boolean>}
  */
 async function isIosSimulatorBooted(udid, execFileImpl) {
@@ -235,7 +239,7 @@ async function isIosSimulatorBooted(udid, execFileImpl) {
 
 /**
  * @param {string} udid
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<string>} UDID of the booted simulator
  */
 export async function bootIosSimulatorByUdid(udid, execFileImpl) {
@@ -258,7 +262,7 @@ export async function bootIosSimulatorByUdid(udid, execFileImpl) {
 
 /**
  * @param {string} udid
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<void>}
  */
 export async function shutdownIosSimulator(udid, execFileImpl) {
@@ -270,7 +274,7 @@ export async function shutdownIosSimulator(udid, execFileImpl) {
  * Best-effort delete of a simulator matched by device name.
  *
  * @param {string} name
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<void>}
  */
 export async function deleteIosSimulatorByName(name, execFileImpl) {
@@ -286,7 +290,7 @@ export async function deleteIosSimulatorByName(name, execFileImpl) {
 /**
  * @param {string} sourceUdid
  * @param {string} cloneName
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<string>} new clone UDID
  */
 export async function cloneIosSimulator(sourceUdid, cloneName, execFileImpl) {
@@ -302,7 +306,7 @@ export async function cloneIosSimulator(sourceUdid, cloneName, execFileImpl) {
 
 /**
  * @param {{ baseName: string; poolSize: number }} options
- * @param {typeof execFileAsync} [execFileImpl]
+ * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<string[]>}
  */
 export async function prepareIosSimulatorPool(
