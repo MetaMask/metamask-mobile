@@ -1753,6 +1753,8 @@ jobs:
     with:
       build_type: 'main'
       metamask_environment: 'e2e'
+      # Mirrors the Android pilot: every iOS smoke suite runs N=2 (two sims / two workers).
+      ios-device-pool-size: 2
       # Mirrors build-ios-apps' resolution chain so this consumer always matches
       # the builder's artifact store (GitHub on current, Namespace store on namespace).
       runner_provider: >-

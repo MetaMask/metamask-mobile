@@ -1,9 +1,10 @@
 # iOS Appium device pool
 
 iOS Appium smoke can run two Playwright workers on two cloned simulators (`N=2`).
-Only **SmokeAccounts** is opted in (`ios-device-pool-size: 2` in
-`run-appium-smoke-tests-ios.yml`); all other iOS suites and `total_splits` stay
-at `N=1` until pilot data justifies expansion.
+`ci.yml` sets `ios-device-pool-size: 2` on the `appium-smoke-tests-ios` job (mirroring
+Android's `android-device-pool-size: 2`), so every iOS smoke suite runs `N=2`.
+`run-appium-smoke-tests-ios.yml` forwards the input to each suite; callers that omit it
+default to `1`. `total_splits` is unchanged for all suites.
 
 ## Why iOS differs from Android
 
