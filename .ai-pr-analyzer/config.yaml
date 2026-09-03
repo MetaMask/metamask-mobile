@@ -138,3 +138,9 @@ models:
 
 modes:
   - pr-risk-analysis
+
+# Integration test for MetaMask/ai-analyzer#47 (per-mode runtime overrides).
+# Confirm Analyze logs show "12 iterations" for pr-risk-analysis.
+modeOverrides:
+  pr-risk-analysis:
+    maxIterations: 12

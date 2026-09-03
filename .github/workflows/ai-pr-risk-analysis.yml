@@ -31,12 +31,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Integration test for MetaMask/ai-analyzer#47 — do not merge this pin.
       # https://github.com/MetaMask/ai-analyzer/releases
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: 68870b76360431110ae00b27a0072d3011e6238c
+          ref: feat/per-mode-runtime-overrides
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
