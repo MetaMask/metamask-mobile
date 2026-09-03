@@ -5238,6 +5238,8 @@ describe('usePerpsProOrderForm', () => {
           result.current.scaleOrder.onEndPriceChange(endPrice);
           result.current.scaleOrder.onTotalOrdersChange('3');
           result.current.scaleOrder.onSizeSkewChange('1.00');
+          result.current.scaleOrder.onStartPriceBlur();
+          result.current.scaleOrder.onEndPriceBlur();
         });
       };
 
@@ -5272,12 +5274,68 @@ describe('usePerpsProOrderForm', () => {
         );
       });
 
-      it('stays quiet before any scale interaction so it cannot fire mid-keystroke', () => {
+      it('stays quiet before any scale price blur', () => {
         mockOrderForm.type = 'scale';
         mockOrderForm.direction = 'long';
         mockOrderForm.amount = '600';
 
         const { result } = renderProForm();
+
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+      });
+
+      it('stays quiet while a scale start price is still being typed', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        act(() => {
+          result.current.scaleOrder.onEndPriceChange('84000');
+          result.current.scaleOrder.onEndPriceBlur();
+          result.current.scaleOrder.onTotalOrdersChange('3');
+          result.current.scaleOrder.onSizeSkewChange('1.00');
+          result.current.scaleOrder.onStartPriceChange('8');
+        });
+
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+
+        act(() => {
+          result.current.scaleOrder.onStartPriceChange('80000');
+        });
+
+        expect(result.current.notices).not.toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+
+        act(() => {
+          result.current.scaleOrder.onStartPriceBlur();
+        });
+
+        expect(result.current.notices).toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+      });
+
+      it('hides the warning when a finished scale price is edited again', () => {
+        mockOrderForm.type = 'scale';
+        mockOrderForm.direction = 'long';
+        mockOrderForm.amount = '600';
+
+        const { result } = renderProForm();
+        configureFarLadder(result, '80000', '84000');
+
+        expect(result.current.notices).toContainEqual(
+          expect.objectContaining({ id: 'far-from-market' }),
+        );
+
+        act(() => {
+          result.current.scaleOrder.onStartPriceChange('8');
+        });
 
         expect(result.current.notices).not.toContainEqual(
           expect.objectContaining({ id: 'far-from-market' }),
@@ -5395,7 +5453,7 @@ describe('usePerpsProOrderForm', () => {
         // the message, so every partial would otherwise be a distinct event.
         for (const partial of ['9', '90', '900', '9000', '90000']) {
           mockOrderForm.limitPrice = partial;
-          rerender();
+          rerender(undefined as never);
         }
 
         const beforeBlur = mockTrack.mock.calls.filter(
@@ -5408,7 +5466,7 @@ describe('usePerpsProOrderForm', () => {
 
         mockOrderForm.limitPrice = '80000';
         mockContextValue.hasBlurredLimitPrice = true;
-        rerender();
+        rerender(undefined as never);
 
         const afterBlur = mockTrack.mock.calls.filter(
           ([event, props]) =>

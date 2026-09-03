@@ -632,6 +632,7 @@ export const usePerpsProOrderForm = ({
   const [scaleSizeSkew, setScaleSizeSkew] = useState(SCALE_DEFAULT_SKEW);
   const [hasScaleValidationInteraction, setHasScaleValidationInteraction] =
     useState(false);
+  const [hasBlurredScalePrice, setHasBlurredScalePrice] = useState(false);
   const [isScalePlacementPending, setIsScalePlacementPending] = useState(false);
   const { chaseOrders, getChaseOrders } = usePerpsChaseOrders({
     isEnabled: isChaseEnabled && isScreenFocused,
@@ -2504,6 +2505,7 @@ export const usePerpsProOrderForm = ({
         setScaleTotalOrders('');
         setScaleSizeSkew(SCALE_DEFAULT_SKEW);
         setHasScaleValidationInteraction(false);
+        setHasBlurredScalePrice(false);
         setReduceOnly(false);
         return;
       }
@@ -2956,17 +2958,14 @@ export const usePerpsProOrderForm = ({
     !isTriggeredOrdersEnabled && isTriggerOrderType(orderForm.type);
 
   const farFromMarketWarning = useMemo(() => {
-    // Mirror scaleValidationNotice's gates: while an endpoint is still being
-    // typed a partial value ('9' toward '9500') transiently reads as far from
-    // market, and an invalid ladder has no real endpoint to measure.
-    if (
-      isScaleOrder &&
-      (!hasScaleValidationInteraction || !scaleLadderResult.success)
-    ) {
+    // Scale prices commit on blur, matching limit's hasBlurredLimitPrice.
+    // hasScaleValidationInteraction is too early: a partial start ('8') still
+    // succeeds when end and order count are already filled.
+    if (isScaleOrder && (!hasBlurredScalePrice || !scaleLadderResult.success)) {
       return undefined;
     }
-    // Same reasoning on the limit path: setLimitPrice fires per character, so
-    // every prefix of '90000' would otherwise read as far from market.
+    // setLimitPrice fires per character, so every prefix of '90000' would
+    // otherwise read as far from market.
     if (!isScaleOrder && !hasBlurredLimitPrice) {
       return undefined;
     }
@@ -2989,7 +2988,7 @@ export const usePerpsProOrderForm = ({
     currentTopOfBook?.bestAsk,
     currentTopOfBook?.bestBid,
     hasBlurredLimitPrice,
-    hasScaleValidationInteraction,
+    hasBlurredScalePrice,
     isScaleOrder,
     normalizedLimitPrice,
     orderForm.direction,
@@ -3311,10 +3310,12 @@ export const usePerpsProOrderForm = ({
       onStartPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleStartPrice, setScaleStartPrice);
         }),
       onStartPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
           );
@@ -3322,10 +3323,12 @@ export const usePerpsProOrderForm = ({
       onEndPriceChange: (value) =>
         guardScaleMutation(() => {
           setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(false);
           normalizeScaleInput(value, scaleEndPrice, setScaleEndPrice);
         }),
       onEndPriceBlur: () =>
         guardScaleMutation(() => {
+          setHasBlurredScalePrice(true);
           trackScaleConfiguration(
             PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
           );

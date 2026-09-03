@@ -4,7 +4,9 @@ import {
   getLimitPriceFarFromMarketWarning,
 } from './limitPriceFarFromMarket';
 
-const mockStrings = jest.fn((key: string) => key);
+const mockStrings = jest.fn(
+  (key: string, _params?: Record<string, unknown>) => key,
+);
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, unknown>) =>
