@@ -5,6 +5,7 @@ import {
   getLimitPriceCrossingWarning,
   getOrderFormFieldIssues,
   getRequiredTriggerSide,
+  getScalePriceCrossingWarning,
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
@@ -296,6 +297,122 @@ describe('getLimitPriceCrossingWarning', () => {
         midPrice: 2500,
       }),
     ).toBeUndefined();
+  });
+});
+
+describe('getScalePriceCrossingWarning', () => {
+  it('warns that the whole ladder crosses when a long has both endpoints above the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2600',
+      endPrice: '2700',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.limit_price_above_warning');
+  });
+
+  it('warns that the whole ladder crosses when a short has both endpoints below the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2400',
+      endPrice: '2300',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe('perps.order.validation.limit_price_below_warning');
+  });
+
+  it('uses partial copy when only one long endpoint crosses the best ask', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2600',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
+  });
+
+  it('uses partial copy when only one short endpoint crosses the best bid', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'short',
+      startPrice: '2600',
+      endPrice: '2400',
+      referencePrice: 2500,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_below_partial_warning',
+    );
+  });
+
+  it('returns undefined when neither endpoint crosses the reference price', () => {
+    expect(
+      getScalePriceCrossingWarning({
+        orderType: 'scale',
+        direction: 'long',
+        startPrice: '2400',
+        endPrice: '2500',
+        referencePrice: 2500,
+      }),
+    ).toBeUndefined();
+  });
+
+  it.each([
+    {
+      case: 'a non-scale order type',
+      input: {
+        orderType: 'limit' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: 2500,
+      },
+    },
+    {
+      case: 'a missing reference price',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: '2600',
+        endPrice: '2700',
+        referencePrice: 0,
+      },
+    },
+    {
+      case: 'empty endpoints',
+      input: {
+        orderType: 'scale' as const,
+        direction: 'long' as const,
+        startPrice: undefined,
+        endPrice: '',
+        referencePrice: 2500,
+      },
+    },
+  ])('returns undefined for $case', ({ input }) => {
+    expect(getScalePriceCrossingWarning(input)).toBeUndefined();
+  });
+
+  it('canonicalizes endpoints to venue precision before comparing', () => {
+    const warning = getScalePriceCrossingWarning({
+      orderType: 'scale',
+      direction: 'long',
+      startPrice: '2400',
+      endPrice: '2500.4',
+      referencePrice: 2500,
+      szDecimals: 0,
+    });
+
+    expect(warning).toBe(
+      'perps.order.validation.scale_price_above_partial_warning',
+    );
   });
 });
 

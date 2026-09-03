@@ -51,6 +51,16 @@ export interface LimitPriceCrossingWarningInput {
   szDecimals?: number;
 }
 
+export interface ScalePriceCrossingWarningInput {
+  orderType: OrderType;
+  direction: 'long' | 'short';
+  startPrice: string | undefined;
+  endPrice: string | undefined;
+  /** Best ask for a long, best bid for a short; mid when top-of-book is absent. */
+  referencePrice: number;
+  szDecimals?: number;
+}
+
 const TRIGGER_WRONG_SIDE_KEYS = {
   above: 'perps.order.validation.trigger_must_be_above_mid',
   below: 'perps.order.validation.trigger_must_be_below_mid',
@@ -314,4 +324,66 @@ export const getLimitPriceCrossingWarning = ({
   }
 
   return undefined;
+};
+
+/**
+ * Non-blocking warning when either endpoint of a scale ladder would cross the
+ * book. A crossing endpoint fills immediately as a taker order instead of
+ * resting, which defeats the purpose of laddering passive orders.
+ *
+ * Aggressiveness is monotonic across the ladder, so in practice only the
+ * endpoint closer to the market can cross first; both endpoints are still
+ * checked so the copy can distinguish a partially affected ladder from one
+ * that crosses entirely.
+ *
+ * @param input - Order type, side, both ladder endpoints, and the reference price.
+ * @returns Localized warning copy, or `undefined`.
+ */
+export const getScalePriceCrossingWarning = ({
+  orderType,
+  direction,
+  startPrice,
+  endPrice,
+  referencePrice,
+  szDecimals,
+}: ScalePriceCrossingWarningInput): string | undefined => {
+  if (orderType !== 'scale') {
+    return undefined;
+  }
+
+  if (!(referencePrice > 0)) {
+    return undefined;
+  }
+
+  const crossesBook = (price: string | undefined): boolean => {
+    const canonical = canonicalizeOrderPrice(price, szDecimals);
+    const parsed = Number.parseFloat(canonical ?? '');
+    if (!(parsed > 0)) {
+      return false;
+    }
+    return direction === 'long'
+      ? parsed > referencePrice
+      : parsed < referencePrice;
+  };
+
+  const crossingCount =
+    (crossesBook(startPrice) ? 1 : 0) + (crossesBook(endPrice) ? 1 : 0);
+
+  if (crossingCount === 0) {
+    return undefined;
+  }
+
+  const isFullLadder = crossingCount === 2;
+  if (direction === 'long') {
+    return strings(
+      isFullLadder
+        ? 'perps.order.validation.limit_price_above_warning'
+        : 'perps.order.validation.scale_price_above_partial_warning',
+    );
+  }
+  return strings(
+    isFullLadder
+      ? 'perps.order.validation.limit_price_below_warning'
+      : 'perps.order.validation.scale_price_below_partial_warning',
+  );
 };
