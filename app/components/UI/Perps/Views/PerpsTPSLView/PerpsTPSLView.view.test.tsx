@@ -70,6 +70,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
@@ -113,6 +115,8 @@ describe('PerpsTPSLView', () => {
         szDecimals: 2,
         onConfirm,
       },
+      // The form only submits against a position the live stream still holds.
+      streamOverrides: { positions: [position] },
     });
 
     fireEvent.changeText(
