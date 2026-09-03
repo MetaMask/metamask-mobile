@@ -7,13 +7,11 @@ import {
 
 export type SpreadMarketGroupCardProps = Omit<MarketGroupCardProps, 'title'>;
 
-export function SpreadMarketGroupCard(
-  props: SpreadMarketGroupCardProps,
-): React.JSX.Element {
-  return (
+export const SpreadMarketGroupCard = React.memo(
+  (props: SpreadMarketGroupCardProps): React.JSX.Element => (
     <MarketGroupCard
       {...props}
       title={strings('predict.market_groups.spread')}
     />
-  );
-}
+  ),
+);

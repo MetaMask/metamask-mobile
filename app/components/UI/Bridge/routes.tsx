@@ -32,6 +32,7 @@ import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModa
 import { BatchSellNetworkFeeInfoModal } from './components/BatchSellNetworkFeeInfoModal';
 import { BatchSellMinimumReceivedInfoModal } from './components/BatchSellMinimumReceivedInfoModal';
 import { BatchSellPriceImpactInfoModal } from './components/BatchSellPriceImpactInfoModal';
+import { SwapsLimitOrderExpirationModalScreen } from './components/SwapsLimitOrderExpirationModal/SwapsLimitOrderExpirationModalScreen';
 import type {
   BridgeModalsNavigationParamList,
   BridgeScreensStackParamList,
@@ -163,6 +164,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_PRICE_IMPACT_INFO_MODAL}
       component={BatchSellPriceImpactInfoModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.SWAPS_LIMIT_ORDER_EXPIRATION_MODAL}
+      component={SwapsLimitOrderExpirationModalScreen}
     />
   </ModalStack.Navigator>
 );

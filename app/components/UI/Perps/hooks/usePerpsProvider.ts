@@ -19,6 +19,7 @@ import {
   PERPS_ORDER_CAPABILITIES_RETRY_BASE_DELAY_MS,
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
+import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -77,7 +78,9 @@ export function usePerpsProvider(
       providerId: PerpsActiveProviderMode,
     ): Promise<SwitchProviderResult> => {
       const controller = Engine.context.PerpsController;
-      return controller.switchProvider(providerId);
+      return PerpsConnectionManager.runWithContextChangePreparation(() =>
+        controller.switchProvider(providerId),
+      );
     },
     [],
   );
@@ -225,6 +228,9 @@ export function usePerpsProvider(
     orderCapabilities?.status === 'ready' &&
     orderCapabilities.providerId === PROVIDER_CONFIG.DefaultProvider &&
     orderCapabilities.supportedStrategies.includes('scale');
+  const supportsChaseOrders =
+    orderCapabilities?.status === 'ready' &&
+    orderCapabilities.supportedStrategies.includes('chase');
   const checkOrderCapability = useCallback(
     async (
       strategy: SupportedOrderStrategy,
@@ -284,6 +290,7 @@ export function usePerpsProvider(
     orderCapabilities,
     supportsTwapOrders,
     supportsScaleOrders,
+    supportsChaseOrders,
     checkOrderCapability,
     isMultiProviderEnabled,
   };

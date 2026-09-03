@@ -937,6 +937,7 @@ export type RootStackParamList = {
   BatchSellFinalReviewModal: BridgeModalsNavigationParamList['BatchSellFinalReviewModal'];
   BatchSellNetworkFeeInfoModal: BridgeModalsNavigationParamList['BatchSellNetworkFeeInfoModal'];
   BatchSellMinimumReceivedInfoModal: BridgeModalsNavigationParamList['BatchSellMinimumReceivedInfoModal'];
+  SwapsLimitOrderExpirationModal: BridgeModalsNavigationParamList['SwapsLimitOrderExpirationModal'];
   BridgeTransactionDetails:
     | BridgeTransactionDetailsParams
     | BridgeModalsNavigationParamList['TransactionDetailsBlockExplorer'];
@@ -1077,7 +1078,7 @@ export type RootStackParamList = {
   EarnLendingDepositConfirmation: EarnScreensStackParamList['EarnLendingDepositConfirmation'];
   EarnLendingWithdrawalConfirmation: EarnScreensStackParamList['EarnLendingWithdrawalConfirmation'];
   EarnMusdConversionEducation: EarnScreensStackParamList['EarnMusdConversionEducation'];
-  EarnStrategySelection: EarnScreensStackParamList['EarnStrategySelection'];
+  EarnStrategySelectionModal: EarnModalsNavigationParamList['EarnStrategySelectionModal'];
   EarnModals: NavigatorScreenParams<EarnModalsNavigationParamList> | undefined;
   EarnLendingMaxWithdrawalModal: EarnModalsNavigationParamList['EarnLendingMaxWithdrawalModal'];
   EarnLendingLearnMoreModal: EarnModalsNavigationParamList['EarnLendingLearnMoreModal'];

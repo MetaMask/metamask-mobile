@@ -46,6 +46,8 @@ export const PerpsOHLCVBarSelectorsIDs = {
   CONTAINER: 'perps-ohlcv-bar',
   VALUES_ROW: 'perps-ohlcv-bar-values-row',
   LABELS_ROW: 'perps-ohlcv-bar-labels-row',
+  OPEN_VALUE: 'perps-ohlcv-bar-open-value',
+  VOLUME_VALUE: 'perps-ohlcv-bar-volume-value',
 };
 
 // ========================================
@@ -279,6 +281,14 @@ export const PerpsHomeViewSelectorsIDs = {
   SERVICE_INTERRUPTION_BANNER: 'perps-service-interruption-banner',
   COMPETITION_BANNER: 'perps-home-competition-banner',
   PRODUCTS_SECTION: 'perps-products',
+  /**
+   * Explore crypto section container; PerpsMarketTypeSection derives `-header` and
+   * `-list` from it, and PerpsMarketList derives `-list-empty` from the list ID, e.g.
+   * `perps-home-explore-crypto-section-header`,
+   * `perps-home-explore-crypto-section-list`,
+   * `perps-home-explore-crypto-section-list-empty`
+   */
+  EXPLORE_CRYPTO_SECTION: 'perps-home-explore-crypto-section',
   TOP_MOVERS_SECTION: 'perps-home-top-movers-section',
   TOP_MOVERS_HEADER: 'perps-home-top-movers-header',
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
@@ -355,6 +365,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   TAKE_PROFIT_PERCENTAGE_INPUT: 'perps-tpsl-tp-percentage-input',
   STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
   STOP_LOSS_PERCENTAGE_INPUT: 'perps-tpsl-sl-percentage-input',
+  TAKE_PROFIT_ERROR: 'perps-tpsl-tp-error',
+  STOP_LOSS_ERROR: 'perps-tpsl-sl-error',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -381,20 +393,6 @@ export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
   chartDurationButton: (duration: string) =>
     `perps-chart-duration-selector-duration-${duration}`,
-};
-
-// Helper functions for PerpsCandlePeriodBottomSheet dynamic selectors
-export const getPerpsCandlePeriodBottomSheetSelector = {
-  periodButton: (baseTestID: string, period: string) =>
-    `${baseTestID}-period-${period}`,
-};
-
-// Helper functions for PerpsCandlePeriodSelector dynamic selectors
-export const getPerpsCandlePeriodSelector = {
-  group: (baseTestID: string) => `${baseTestID}-group`,
-  periodButton: (baseTestID: string, period: string) =>
-    `${baseTestID}-period-${period}`,
-  moreButton: (baseTestID: string) => `${baseTestID}-more-button`,
 };
 
 // ========================================
@@ -519,6 +517,14 @@ export const PerpsProMarketViewSelectorsIDs = {
   POSITIONS_PANEL_TAB_POSITIONS:
     'perps-pro-market-positions-panel-tab-positions',
   POSITIONS_PANEL_TAB_ORDERS: 'perps-pro-market-positions-panel-tab-orders',
+  POSITIONS_PANEL_TAB_CHASE: 'perps-pro-market-positions-panel-tab-chase',
+  CHASE_SIDE_FILTER_BUTTON: 'perps-chase-side-filter-button',
+  CHASE_SIDE_FILTER_SHEET: 'perps-chase-side-filter',
+  CHASE_ACTIVE_FILTER: 'perps-chase-active-filter',
+  CHASE_HISTORY_FILTER: 'perps-chase-history-filter',
+  CHASE_FILLED_ONLY: 'perps-chase-filled-only',
+  CHASE_EMPTY_STATE: 'perps-chase-empty-state',
+  CHASE_FOREGROUND_WARNING: 'perps-chase-foreground-warning',
   POSITIONS_TICKER_ONLY: 'perps-pro-market-positions-ticker-only',
   POSITIONS_SIDE_FILTER_BUTTON: 'perps-pro-market-positions-side-filter-button',
   POSITIONS_SIDE_FILTER_SHEET: 'perps-pro-market-positions-side-filter-sheet',
@@ -547,6 +553,48 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_DIRECTION_TAG: 'perps-pro-market-order-direction-tag',
   ORDER_TYPE: 'perps-pro-market-order-type',
   GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
+  POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
+  TWAP_LIST: 'perps-pro-market-twap-list',
+  TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
+  TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
+  TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
+  TWAP_VIEW_TAB_FILL_HISTORY: 'perps-pro-market-twap-view-tab-fill-history',
+  TWAP_SIDE_FILTER_BUTTON: 'perps-pro-market-twap-side-filter-button',
+  TWAP_SIDE_FILTER_SHEET: 'perps-pro-market-twap-side-filter-sheet',
+  TWAP_SIDE_FILTER_SHEET_CLOSE: 'perps-pro-market-twap-side-filter-sheet-close',
+  TWAP_ROW: 'perps-pro-market-twap-row',
+  TWAP_FILL_ROW: 'perps-pro-market-twap-fill-row',
+  TWAP_FILL_MARKET: 'perps-pro-market-twap-fill-market',
+  TWAP_FILL_DIRECTION: 'perps-pro-market-twap-fill-direction',
+  TWAP_FILL_PRICE: 'perps-pro-market-twap-fill-price',
+  TWAP_FILL_TIME: 'perps-pro-market-twap-fill-time',
+  TWAP_FILL_SIZE: 'perps-pro-market-twap-fill-size',
+  TWAP_MARKET_BUTTON: 'perps-pro-market-twap-market-button',
+  TWAP_MARKET: 'perps-pro-market-twap-market',
+  TWAP_DIRECTION_TAG: 'perps-pro-market-twap-direction-tag',
+  TWAP_SIZE: 'perps-pro-market-twap-size',
+  TWAP_FILLED_SIZE: 'perps-pro-market-twap-filled-size',
+  TWAP_AVERAGE_PRICE: 'perps-pro-market-twap-average-price',
+  TWAP_PROGRESS: 'perps-pro-market-twap-progress',
+  TWAP_ELAPSED: 'perps-pro-market-twap-elapsed',
+  TWAP_RANDOMIZE: 'perps-pro-market-twap-randomize',
+  TWAP_REDUCE_ONLY_TAG: 'perps-pro-market-twap-reduce-only-tag',
+  TWAP_CREATED_AT: 'perps-pro-market-twap-created-at',
+  TWAP_STATUS_TAG: 'perps-pro-market-twap-status-tag',
+  TWAP_TERMINATE: 'perps-pro-market-twap-terminate',
+  TWAP_TERMINATE_SHEET: 'perps-pro-market-twap-terminate-sheet',
+  TWAP_TERMINATE_CONFIRM: 'perps-pro-market-twap-terminate-confirm',
+  TWAP_TERMINATE_CANCEL: 'perps-pro-market-twap-terminate-cancel',
+  TWAP_TERMINATE_CLOSE: 'perps-pro-market-twap-terminate-close',
+  TWAP_ERROR: 'perps-pro-market-twap-error',
+  TWAP_RETRY: 'perps-pro-market-twap-retry',
+  TWAP_LOADING: 'perps-pro-market-twap-loading',
+  TWAP_FILL_PREVIOUS: 'perps-pro-market-twap-fill-previous',
+  TWAP_FILL_NEXT: 'perps-pro-market-twap-fill-next',
+  TWAP_FILL_PAGE_LABEL: 'perps-pro-market-twap-fill-page-label',
+  TWAP_HISTORY_PREVIOUS: 'perps-pro-market-twap-history-previous',
+  TWAP_HISTORY_NEXT: 'perps-pro-market-twap-history-next',
+  TWAP_HISTORY_PAGE_LABEL: 'perps-pro-market-twap-history-page-label',
 };
 
 // Helper for dynamic Pro position row test IDs
@@ -555,6 +603,105 @@ export const getPerpsProPositionRowSelector = (symbol: string) =>
 
 export const getPerpsProOrderRowSelector = (symbol: string, index: number) =>
   `${PerpsProMarketViewSelectorsIDs.ORDER_ROW}-${symbol}-${index}`;
+
+export const getPerpsProChaseRowSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-running-row-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const PERPS_PRO_CHASE_VISIBLE_COUNT_SELECTOR =
+  'perps-chase-visible-count';
+
+export const getPerpsProChaseSideFilterOptionSelector = (
+  side: 'long' | 'short' | 'all',
+) => `${PerpsProMarketViewSelectorsIDs.CHASE_SIDE_FILTER_SHEET}-option-${side}`;
+
+export const getPerpsProTwapSideFilterOptionSelector = (
+  side: 'long' | 'short' | 'all',
+) => `${PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_SHEET}-option-${side}`;
+
+export const getPerpsProChaseFormActiveCountSelector = (count: number) =>
+  `perps-pro-chase-active-count-${count}`;
+
+export const getPerpsProChaseStatusSelector = (
+  status: string,
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-status-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const getPerpsProChaseRepriceSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-reprice-observed-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const getPerpsProChaseDistanceSelector = (
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) => `perps-chase-distance-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+export const getPerpsProChaseTerminateSelector = (
+  status: string,
+  symbol: string,
+  handle: string,
+  isPrimary = false,
+) =>
+  `perps-chase-terminate-${status}-${symbol}${isPrimary ? '' : `-${handle}`}`;
+
+const getPerpsProTwapIdentitySelectorSuffix = (
+  providerId: string,
+  orderId: string,
+) => `${providerId}-${orderId}`;
+
+export const getPerpsProTwapValueSelector = (
+  baseTestID: string,
+  providerId: string,
+  orderId: string,
+) =>
+  `${baseTestID}-${getPerpsProTwapIdentitySelectorSuffix(providerId, orderId)}`;
+
+export const getPerpsProTwapRowSelector = (
+  providerId: string,
+  orderId: string,
+) =>
+  getPerpsProTwapValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_ROW,
+    providerId,
+    orderId,
+  );
+
+export const getPerpsProTwapTerminateSelector = (
+  providerId: string,
+  orderId: string,
+) =>
+  getPerpsProTwapValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE,
+    providerId,
+    orderId,
+  );
+
+export const getPerpsProTwapFillValueSelector = (
+  baseTestID: string,
+  providerId: string,
+  orderId: string,
+  fillId: string,
+) =>
+  `${getPerpsProTwapValueSelector(baseTestID, providerId, orderId)}-${fillId}`;
+
+export const getPerpsProTwapFillRowSelector = (
+  providerId: string,
+  orderId: string,
+  fillId: string,
+) =>
+  getPerpsProTwapFillValueSelector(
+    PerpsProMarketViewSelectorsIDs.TWAP_FILL_ROW,
+    providerId,
+    orderId,
+    fillId,
+  );
 
 export const PerpsProOrderFormSelectorsIDs = {
   CONTAINER: 'perps-pro-order-form',
@@ -620,6 +767,11 @@ export const PerpsProOrderFormSelectorsIDs = {
   SCALE_PREVIEW_LIQUIDATION_VALUE:
     'perps-pro-order-form-scale-preview-liquidation-value',
   SCALE_PREVIEW_FEES_VALUE: 'perps-pro-order-form-scale-preview-fees-value',
+  CHASE_FORM: 'perps-pro-chase-order-form',
+  CHASE_MAX_DISTANCE_INPUT: 'perps-pro-chase-max-distance-field',
+  CHASE_MAX_DISTANCE_PREFIX: 'perps-pro-chase-max-distance-prefix',
+  CHASE_MAX_DISTANCE_UNIT: 'perps-pro-chase-max-distance-unit',
+  CHASE_REFERENCE_PRICE: 'perps-pro-chase-reference-price',
 };
 
 // ========================================
@@ -844,10 +996,6 @@ export const PerpsSlippageConfigSelectorsIDs = {
   EDIT_CHIP: 'perps-slippage-config-edit-chip',
 } as const;
 
-export const PerpsCandlePeriodBottomSheetSelectorsIDs = {
-  CLOSE_BUTTON: 'perps-candle-period-bottom-sheet-close',
-} as const;
-
 export const getPerpsSlippageConfigSelector = {
   preset: (pct: number) => `perps-slippage-config-preset-${pct}`,
 };
@@ -911,6 +1059,7 @@ export const PerpsOrderTypeBottomSheetSelectorsIDs = {
   MARKET_OPTION: 'perps-order-type-market',
   LIMIT_OPTION: 'perps-order-type-limit',
   SCALE_OPTION: 'perps-order-type-scale',
+  CHASE_OPTION: 'perps-order-type-chase',
   STOP_LIMIT_OPTION: 'perps-order-type-stop-limit',
   STOP_MARKET_OPTION: 'perps-order-type-stop-market',
   TAKE_PROFIT_LIMIT_OPTION: 'perps-order-type-take-profit-limit',

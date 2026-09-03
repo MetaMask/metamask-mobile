@@ -1,6 +1,7 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SelectRegionSelectors } from '../../selectors/Ramps/SelectRegion.selectors';
+import { REGION_SELECTOR_TEST_IDS } from '../../../app/components/UI/Ramp/Views/Settings/RegionSelector/RegionSelector.testIds';
 import { type AppiumElement } from '../../framework';
 
 class SelectRegionView {
@@ -9,9 +10,7 @@ class SelectRegionView {
   }
 
   get regionSearchInput(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      SelectRegionSelectors.REGION_MODAL_SEARCH_INPUT,
-    );
+    return Matchers.getElementByID(REGION_SELECTOR_TEST_IDS.SEARCH_INPUT);
   }
 
   async tapRegionOption(region: string): Promise<void> {

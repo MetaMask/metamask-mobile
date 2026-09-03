@@ -373,6 +373,7 @@ const Routes = {
       BATCH_SELL_MINIMUM_RECEIVED_INFO_MODAL:
         'BatchSellMinimumReceivedInfoModal',
       BATCH_SELL_PRICE_IMPACT_INFO_MODAL: 'BatchSellPriceImpactInfoModal',
+      SWAPS_LIMIT_ORDER_EXPIRATION_MODAL: 'SwapsLimitOrderExpirationModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -468,7 +469,6 @@ const Routes = {
   EARN: {
     ROOT: 'EarnScreens',
     SEARCH_LIST: 'EarnSearchList',
-    STRATEGY_SELECTION: 'EarnStrategySelection',
     LENDING_DEPOSIT_CONFIRMATION: 'EarnLendingDepositConfirmation',
     LENDING_WITHDRAWAL_CONFIRMATION: 'EarnLendingWithdrawalConfirmation',
     MUSD: {
@@ -478,6 +478,7 @@ const Routes = {
       ROOT: 'EarnModals',
       LENDING_MAX_WITHDRAWAL: 'EarnLendingMaxWithdrawalModal',
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
+      STRATEGY_SELECTION: 'EarnStrategySelectionModal',
     },
   },
   MONEY: {

@@ -304,7 +304,7 @@ describe('useMarketInsights', () => {
     expect(result.current.reportAssetId).toBe('BTC');
   });
 
-  it('reads the controller cache while offline', async () => {
+  it('fetches while offline because networkMode is always', async () => {
     const report = {
       version: '1.0',
       asset: 'eth',
@@ -354,5 +354,59 @@ describe('useMarketInsights', () => {
     expect(result.current.reportAssetId).toBe('ETH');
     expect(result.current.error).toBeNull();
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('reuses a successful report without refetching on remount', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+    mockFetchMarketInsights.mockResolvedValue(report);
+
+    const first = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(first.result.current.report).toEqual(report));
+    first.unmount();
+
+    const second = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(second.result.current.report).toEqual(report));
+
+    expect(mockFetchMarketInsights).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches after a null miss on remount', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+    mockFetchMarketInsights.mockResolvedValueOnce(null);
+
+    const first = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    expect(first.result.current.report).toBeNull();
+    first.unmount();
+
+    mockFetchMarketInsights.mockResolvedValueOnce(report);
+    const second = renderHook(() => useMarketInsights('ETH', true), {
+      wrapper,
+    });
+    await waitFor(() => expect(second.result.current.report).toEqual(report));
+
+    expect(mockFetchMarketInsights).toHaveBeenCalledTimes(2);
   });
 });

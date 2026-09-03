@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import { BigNumber } from 'bignumber.js';
@@ -49,15 +49,18 @@ import {
   MONEY_TOOLTIP_TYPES,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { MoneyNavigationParamList } from '../../types/navigation';
 
 const MoneyPotentialEarningsView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
   const privacyMode = useSelector(selectPrivacyMode);
+  const { params } =
+    useRoute<RouteProp<MoneyNavigationParamList, 'MoneyPotentialEarnings'>>();
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens({
-    overrideToUsd: true,
+    overrideToUsd: params?.overrideToUsd ?? false,
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
