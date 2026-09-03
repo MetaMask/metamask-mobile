@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import {
   CodefiTokenPricesServiceV2,
-  TokenListService,
+  type TokenListService,
 } from '@metamask/assets-controllers';
 import { AccountsController } from '@metamask/accounts-controller';
 import {
@@ -115,6 +115,7 @@ import {
 } from '../../selectors/assets/assets-migration';
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
+import { createTokenListService } from './utils/createTokenListService';
 import { initMessengerClients } from './utils';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
@@ -290,7 +291,7 @@ export class Engine {
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
-    const tokenListService = new TokenListService();
+    const tokenListService = createTokenListService();
     this.tokenListService = tokenListService;
 
     const initRequest = {

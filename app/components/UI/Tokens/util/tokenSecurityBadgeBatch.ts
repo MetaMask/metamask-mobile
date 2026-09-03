@@ -8,6 +8,7 @@ import {
   toCaipAssetType,
   type CaipAssetType,
 } from '@metamask/utils';
+import { filterTokenApiSupportedCaipAssetIds } from '../../../../util/tokenApi/supportedNetworks';
 
 export function normalizeCaipAssetIdForTokenApi(
   assetId: CaipAssetType,
@@ -73,6 +74,8 @@ async function flush() {
 
   const assetIds = [...snapshot.keys()];
 
+  const supportedAssetIds = await filterTokenApiSupportedCaipAssetIds(assetIds);
+
   const resolveAll = (
     getter: (id: CaipAssetType) => TokenSecurityData | null,
   ) => {
@@ -83,9 +86,14 @@ async function flush() {
     }
   };
 
+  if (supportedAssetIds.length === 0) {
+    resolveAll(() => null);
+    return;
+  }
+
   const byAssetId = new Map<CaipAssetType, TokenSecurityData | null>();
   try {
-    for (const chunk of chunkArray(assetIds, MAX_ASSETS_PER_REQUEST)) {
+    for (const chunk of chunkArray(supportedAssetIds, MAX_ASSETS_PER_REQUEST)) {
       try {
         const assets = await fetchTokenAssets(chunk, {
           includeTokenSecurityData: true,

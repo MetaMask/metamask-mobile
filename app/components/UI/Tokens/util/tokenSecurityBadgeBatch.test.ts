@@ -14,6 +14,12 @@ jest.mock('@metamask/assets-controllers', () => ({
   fetchTokenAssets: jest.fn(),
 }));
 
+jest.mock('../../../../util/tokenApi/supportedNetworks', () => ({
+  filterTokenApiSupportedCaipAssetIds: jest.fn(async (assetIds: string[]) =>
+    assetIds.filter((id) => !id.includes('11155111')),
+  ),
+}));
+
 const mockFetchTokenAssets = jest.mocked(fetchTokenAssets);
 
 function tokenAssetFixture(
@@ -146,6 +152,18 @@ describe('requestTokenSecurityForAsset', () => {
 
     await expect(pUsdc).resolves.toEqual({ resultType: 'Verified' });
     await expect(pDai).resolves.toEqual({ resultType: 'Warning' });
+  });
+
+  it('resolves null without calling fetchTokenAssets for unsupported networks', async () => {
+    const sepoliaUsdc =
+      'eip155:11155111/erc20:0x7b79995e5f793a07b53987d39fffc615e1f0fbbb' as CaipAssetType;
+
+    const p = requestTokenSecurityForAsset(sepoliaUsdc);
+
+    await waitForBatchFlush();
+
+    expect(mockFetchTokenAssets).not.toHaveBeenCalled();
+    await expect(p).resolves.toBeNull();
   });
 
   it('resolves null when fetchTokenAssets throws', async () => {
