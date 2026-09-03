@@ -438,6 +438,54 @@ describe('PerpsProPositionsPanel', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps a retained TWAP selected through account-switch loading', () => {
+    // Arrange: placement rollout is off, but discovery found an active TWAP.
+    const activeOrder = makeTwapOrder();
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [activeOrder],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    const view = renderPanel('SOL');
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    );
+
+    // Act: changing accounts temporarily clears the old identity's rows.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [],
+      isLoading: true,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert: the selected tab remains mounted while the new identity loads.
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+
+    // Act: the next account's active schedule arrives.
+    mockUsePerpsTwapOrders.mockReturnValue({
+      twapOrders: [makeTwapOrder({ orderId: 'next-account-twap' })],
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshTwapOrders,
+      isRefreshing: false,
+    });
+    view.rerender(<PerpsProPositionsPanel symbol="SOL" />);
+
+    // Assert
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS),
+    ).toBeOnTheScreen();
+  });
+
   it('stops TWAP polling when the market screen is blurred', () => {
     // Arrange
     const view = renderWithProvider(
@@ -476,6 +524,11 @@ describe('PerpsProPositionsPanel', () => {
         enableLiveUpdates: false,
       }),
     );
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITIONS_PANEL_TAB_TWAP,
+      ),
+    ).not.toBeOnTheScreen();
 
     // Act: an error exposes the retained-access tab without a remount.
     mockUsePerpsTwapOrders.mockReturnValue({

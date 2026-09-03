@@ -84,7 +84,10 @@ export const usePerpsProTwapManagement = ({
     [twapOrders],
   );
   const shouldShowTab =
-    isTwapPlacementEnabled || allActiveOrders.length > 0 || error !== null;
+    isTwapPlacementEnabled ||
+    allActiveOrders.length > 0 ||
+    error !== null ||
+    (isTabSelected && isLoading);
   const terminatingOrder = useMemo(() => {
     if (
       !terminatingSelection ||
