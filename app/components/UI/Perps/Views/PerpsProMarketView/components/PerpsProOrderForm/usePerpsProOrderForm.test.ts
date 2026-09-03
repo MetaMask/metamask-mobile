@@ -5,6 +5,7 @@ import {
   PERPS_EVENT_VALUE,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
+  TRADING_DEFAULTS,
   computeScalePriceLadder,
   formatHyperLiquidPrice,
   type PerpsMarketData,
@@ -49,6 +50,11 @@ const mockShowEligibilityModal = jest.fn();
 const mockUpdatePositionTPSL = jest.fn().mockResolvedValue({ success: true });
 const mockExecuteOrder = jest.fn().mockResolvedValue({ success: true });
 const mockClearPendingTradeConfiguration = jest.fn();
+let mockLiquidationPrice = '80000';
+const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
+  liquidationPrice: mockLiquidationPrice,
+  isCalculating: false,
+}));
 let mockTotalFee = 5;
 const mockUsePerpsOrderFees = jest.fn((_params: unknown) => ({
   totalFee: mockTotalFee,
@@ -179,6 +185,9 @@ let mockExistingPosition: {
 
 let mockPositionModifyPreview: PositionModifyPreviewResult = { status: 'none' };
 let mockIsAwaitingPositionModifyPreview = false;
+let mockPositionModifyPreviewParams:
+  | { providerId?: PerpsProviderType }
+  | undefined;
 
 let mockIsAtCap = false;
 let mockEstimatedSlippageBps: number | null = 50;
@@ -260,7 +269,8 @@ jest.mock('../../../../hooks', () => ({
     existingPosition: mockExistingPosition,
     isLoading: mockPositionStreamLoading,
   }),
-  usePerpsLiquidationPrice: () => ({ liquidationPrice: '80000' }),
+  usePerpsLiquidationPrice: (params: unknown) =>
+    mockUsePerpsLiquidationPrice(params),
   usePerpsMarketData: () => ({
     marketData: mockMarketData
       ? { ...mockMarketData, szDecimals: mockSizeDecimals }
@@ -300,12 +310,17 @@ jest.mock('../../../../hooks', () => ({
     showToast: mockShowToast,
     PerpsToastOptions: mockPerpsToastOptions,
   }),
-  usePerpsPositionModifyPreview: () => ({
-    preview: mockPositionModifyPreview,
-    isCalculating: mockIsAwaitingPositionModifyPreview,
-    isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
-    error: null,
-  }),
+  usePerpsPositionModifyPreview: (params: {
+    providerId?: PerpsProviderType;
+  }) => {
+    mockPositionModifyPreviewParams = params;
+    return {
+      preview: mockPositionModifyPreview,
+      isCalculating: mockIsAwaitingPositionModifyPreview,
+      isAwaitingFirstPreview: mockIsAwaitingPositionModifyPreview,
+      error: null,
+    };
+  },
   usePerpsTrading: () => ({ updatePositionTPSL: mockUpdatePositionTPSL }),
 }));
 
@@ -449,6 +464,7 @@ const renderProForm = (
     providerId?: PerpsProviderType;
     isScreenFocused?: boolean;
   } = {},
+  formMarket: PerpsMarketData = market,
 ) => {
   const checkTwapOrderSupport = jest.fn().mockResolvedValue(true);
   const checkScaleOrderSupport =
@@ -458,7 +474,7 @@ const renderProForm = (
 
   return renderHook(() =>
     usePerpsProOrderForm({
-      market,
+      market: formMarket,
       isTriggeredOrdersEnabled,
       isTwapEnabled,
       isTwapAvailabilityPending,
@@ -539,7 +555,9 @@ describe('usePerpsProOrderForm', () => {
     });
     mockExistingPosition = null;
     mockPositionModifyPreview = { status: 'none' };
+    mockPositionModifyPreviewParams = undefined;
     mockIsAwaitingPositionModifyPreview = false;
+    mockLiquidationPrice = '80000';
     mockIsAtCap = false;
     mockEstimatedSlippageBps = 50;
     mockMaxSlippageBps = 100;
@@ -1585,17 +1603,45 @@ describe('usePerpsProOrderForm', () => {
       });
     });
 
-    it('keeps ordinary placement on controller default routing', async () => {
-      const { result } = renderProForm();
+    it.each(['market', 'limit', 'stop_market'] as const)(
+      'routes a displayed provider through %s fees, validation, preview, and placement',
+      async (orderType) => {
+        mockOrderForm.type = orderType;
+        if (orderType === 'limit') {
+          mockOrderForm.limitPrice = '89000';
+        }
+        if (orderType === 'stop_market') {
+          mockContextValue.triggerPrice = '91000';
+        }
+        const myxMarket = { ...market, providerId: 'myx' } as PerpsMarketData;
+        const { result } = renderProForm(
+          true,
+          true,
+          'hyperliquid',
+          false,
+          {},
+          {},
+          myxMarket,
+        );
 
-      await act(async () => {
-        await result.current.onPlaceOrderPress();
-      });
+        expect(mockUsePerpsOrderFees).toHaveBeenLastCalledWith(
+          expect.objectContaining({ providerId: 'myx' }),
+        );
+        expect(mockOrderValidationParams?.providerId).toBe('myx');
+        expect(mockPositionModifyPreviewParams?.providerId).toBe('myx');
 
-      expect(mockExecuteOrder).toHaveBeenCalledWith(
-        expect.not.objectContaining({ providerId: expect.anything() }),
-      );
-    });
+        await act(async () => {
+          await result.current.onPlaceOrderPress();
+        });
+
+        expect(mockExecuteOrder).toHaveBeenCalledWith(
+          expect.objectContaining({
+            orderType,
+            providerId: 'myx',
+          }),
+        );
+      },
+    );
 
     it('keeps a non-Chase fingerprint out of Chase analytics', async () => {
       const { result } = renderProForm();
@@ -4355,6 +4401,7 @@ describe('usePerpsProOrderForm', () => {
             id: 'scale',
             message: strings(
               'perps.pro_order_form.scale.validation.minimum_lot',
+              { minOrderValue: TRADING_DEFAULTS.amount.mainnet },
             ),
           }),
         ]),
@@ -4446,14 +4493,130 @@ describe('usePerpsProOrderForm', () => {
       expect(Number(middle.size)).toBeLessThan(Number(last.size));
     });
 
-    it('builds the per-rung Scale margin range', () => {
+    it('reports the whole ladder margin as a single target value', () => {
       mockOrderForm.type = 'scale';
       mockOrderForm.amount = '600';
       const { result } = renderProForm();
       configureScaleOrder(result);
 
-      expect(result.current.scaleOrder.marginRange).toContain('→');
-      expect(result.current.scaleOrder.marginRange).not.toBe('$ -');
+      expect(result.current.scaleOrder.margin).not.toContain('→');
+      expect(result.current.scaleOrder.margin).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      // 3 rungs of $600 total, rounded to the market lot size.
+      expect(result.current.scaleOrder.margin).toBe('$120.02');
+    });
+
+    it('reports the ladder liquidation price as a single target value', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const rungs = result.current.scaleOrder.rungs;
+      const totalSize = rungs.reduce(
+        (total, rung) => total + Number(rung.size),
+        0,
+      );
+      const weightedAverageEntry =
+        rungs.reduce(
+          (total, rung) => total + Number(rung.price) * Number(rung.size),
+          0,
+        ) / totalSize;
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBeCloseTo(weightedAverageEntry, 8);
+      expect(result.current.scaleOrder.liquidationPrice).not.toContain('→');
+      expect(result.current.scaleOrder.liquidationPrice).not.toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(result.current.scaleOrder.liquidationPrice).toBe('$80,000');
+    });
+
+    it('keeps Scale liquidation unavailable for an existing position', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockExistingPosition = {
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        size: '1',
+        marginUsed: '1000',
+        liquidationPrice: '48000',
+        entryPrice: '50000',
+        leverage: { type: 'isolated', value: 5 },
+      };
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
+    it('keeps Scale liquidation unavailable while position state loads', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockPositionStreamLoading = true;
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
+    it('keeps Scale liquidation unavailable when calculation returns zero', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      mockLiquidationPrice = '0.00';
+      const { result } = renderProForm();
+      configureScaleOrder(result);
+
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+    });
+
+    it('falls back on both Scale summary rows when the ladder is invalid', () => {
+      mockOrderForm.type = 'scale';
+      mockOrderForm.amount = '600';
+      const { result } = renderProForm();
+
+      // Start and end collapse to the same tick, so no ladder can be built.
+      act(() => {
+        result.current.scaleOrder.onStartPriceChange('100.123456');
+        result.current.scaleOrder.onEndPriceChange('100.123457');
+        result.current.scaleOrder.onTotalOrdersChange('3');
+      });
+
+      expect(result.current.scaleOrder.rungs).toEqual([]);
+      const lastParams = mockUsePerpsLiquidationPrice.mock.calls.at(
+        -1,
+      )?.[0] as {
+        entryPrice: number;
+      };
+      expect(lastParams.entryPrice).toBe(0);
+      expect(result.current.scaleOrder.margin).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(result.current.scaleOrder.liquidationPrice).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
     });
 
     it('weights a below-one Scale skew toward the start of the range', () => {
@@ -4882,7 +5045,9 @@ describe('usePerpsProOrderForm', () => {
 
       expect(mockExecuteOrder).not.toHaveBeenCalled();
       expect(validationError).toHaveBeenCalledWith(
-        strings('perps.pro_order_form.scale.validation.minimum_lot'),
+        strings('perps.pro_order_form.scale.validation.minimum_lot', {
+          minOrderValue: TRADING_DEFAULTS.amount.mainnet,
+        }),
       );
     });
 

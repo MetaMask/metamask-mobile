@@ -461,6 +461,8 @@ jest.mock('../../app/core/Engine', () => {
         }),
         getChaseOrders: jest.fn().mockResolvedValue([]),
         suspendChaseOrders: jest.fn().mockResolvedValue([]),
+        getTwapOrders: jest.fn().mockResolvedValue([]),
+        subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
         getMarkets: jest.fn().mockResolvedValue([
           {

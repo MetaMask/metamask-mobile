@@ -40,6 +40,7 @@ interface InitialStatePerpsOptions {
 export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
   createStateFixture()
     .withMinimalAccounts()
+    .withAccountTreeForSelectedAccount()
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainBalances()

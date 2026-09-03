@@ -47,7 +47,7 @@ export const createSubscribeToPushNotifications = () => async () =>
       id: data?.notification_id,
       title,
       body,
-      data,
+      ...(data === undefined ? {} : { data }),
     });
   });
 
