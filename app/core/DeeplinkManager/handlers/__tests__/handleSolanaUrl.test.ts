@@ -60,6 +60,7 @@ describe('handleSolanaUrl', () => {
       assetId: `${SolScope.Mainnet}/token:${USDC_MINT}`,
       address: USDC_MINT,
       chainId: SolScope.Mainnet,
+      rwaData: undefined,
     });
   });
 
@@ -211,6 +212,7 @@ describe('resolveSolanaPayTokenMeta', () => {
       assetId: `${SolScope.Mainnet}/token:${UNKNOWN_MINT}`,
       address: UNKNOWN_MINT,
       chainId: SolScope.Mainnet,
+      rwaData: undefined,
     });
 
     await expect(resolveSolanaPayTokenMeta(UNKNOWN_MINT)).resolves.toEqual({

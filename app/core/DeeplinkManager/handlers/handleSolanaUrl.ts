@@ -95,7 +95,7 @@ export const resolveSolanaPayTokenMeta = async (
 };
 
 export const buildSolanaPayAsset = (
-  splToken: string | undefined,
+  splToken?: string,
   meta?: SolanaPayTokenMeta,
 ): AssetType => {
   if (!splToken) {
