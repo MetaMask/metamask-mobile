@@ -213,24 +213,25 @@ export class EngineService {
   start = async () => {
     const reduxState = ReduxService.store.getState();
 
-    // perf_fix: coldstart-v1 — Determine new vs. existing user.
+    // perf_fix: coldstart-v1 — Determine fresh install vs. existing install.
     // `existingUser` is set by redux-persist rehydration, which completes before
     // startAppServices saga dispatches ON_PERSISTED_DATA_LOADED (the gate that
-    // triggers this method). Treat `undefined` as existing user defensively:
-    // a false-negative (skipping reads for an existing user) would cause data
-    // loss, whereas a false-positive (reading empty storage for a new user) is
-    // merely slower.
+    // triggers this method). Treat `undefined` as existing install defensively:
+    // a false-negative (skipping reads for an existing install) would cause data
+    // loss, whereas a false-positive (reading empty storage for a fresh install)
+    // is merely slower.
     const existingUserFlag = reduxState?.user?.existingUser;
-    let isNewUser = existingUserFlag === false;
+    let isNewInstall = existingUserFlag === false;
 
-    // Safety check: when the Redux flag says "new user", verify that no vault
-    // actually exists on disk. The flag can desync from reality due to Redux
-    // persist corruption, incomplete persistence, or vault recovery flows.
-    // Overwriting a real vault with defaults would destroy the wallet.
+    // Safety check: when the Redux flag says "not an existing user" (fresh
+    // install path), verify that no vault actually exists on disk. The flag can
+    // desync from reality due to Redux persist corruption, incomplete
+    // persistence, or vault recovery flows. Overwriting a real vault with
+    // defaults would destroy the wallet.
     //
     // Uses getItemStrict (not getItem) so that filesystem I/O errors throw
     // instead of being silently swallowed and treated as "file missing".
-    if (isNewUser) {
+    if (isNewInstall) {
       try {
         const keyringData = await ControllerStorage.getItemStrict(
           'persist:KeyringController',
@@ -248,43 +249,43 @@ export class EngineService {
               Array.isArray(parsed)
             ) {
               Logger.log(
-                `${LOG_TAG}: KeyringController file is not a valid object — falling back to existing-user path to prevent data loss`,
+                `${LOG_TAG}: KeyringController file is not a valid object — falling back to existing-install path to prevent data loss`,
               );
-              isNewUser = false;
+              isNewInstall = false;
             } else if (
               'vault' in parsed &&
               (parsed as { vault?: unknown }).vault
             ) {
               Logger.log(
-                `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing user to prevent data loss`,
+                `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing install to prevent data loss`,
               );
-              isNewUser = false;
+              isNewInstall = false;
             }
             // Valid object without a vault (e.g. partially initialized keyring)
-            // → stay on the new-user optimization path.
+            // → stay on the fresh-install optimization path.
           } catch {
             // Corrupted JSON — fall back to full read to be safe.
-            isNewUser = false;
+            isNewInstall = false;
           }
         }
       } catch {
         // Filesystem read failed — cannot confirm the file is truly absent,
-        // so fall back to the existing-user path to prevent data loss.
+        // so fall back to the existing-install path to prevent data loss.
         Logger.log(
-          `${LOG_TAG}: Safety-check filesystem read failed — falling back to existing-user path to prevent data loss`,
+          `${LOG_TAG}: Safety-check filesystem read failed — falling back to existing-install path to prevent data loss`,
         );
-        isNewUser = false;
+        isNewInstall = false;
       }
     }
 
     // perf_fix: coldstart-v1 — For fresh installs, skip the filesystem read
     // since no controller state has been persisted yet. This avoids async I/O
     // for every controller name on the critical path to the onboarding screen.
-    const persistedState = isNewUser
+    const persistedState = isNewInstall
       ? { backgroundState: {} }
       : await ControllerStorage.getAllPersistedState();
 
-    if (!isNewUser) {
+    if (!isNewInstall) {
       Logger.log(
         'EngineService: Is vault defined at KeyringController before Engine init: ',
         !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
@@ -297,7 +298,7 @@ export class EngineService {
       tags: getTraceTags(reduxState),
       data: {
         perf_fix: 'coldstart-v1',
-        skipped_persisted_read: isNewUser,
+        skipped_persisted_read: isNewInstall,
         existing_user_flag: String(existingUserFlag),
       },
     });
@@ -325,7 +326,7 @@ export class EngineService {
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
-        isNewUser,
+        isNewInstall,
       );
 
       // Fire-and-forget: refresh social following state from the server.

@@ -391,7 +391,7 @@ describe('EngineService', () => {
   });
 
   it('cancels deferred persistence before vault recovery to prevent stale callback race', async () => {
-    // Arrange — start() as new user defers persistence via scheduleAfterPaint
+    // Arrange — start() as fresh install defers persistence via scheduleAfterPaint
     jest.useRealTimers();
     const mockCancel = jest.fn();
     mockScheduleAfterPaint.mockClear();
@@ -411,7 +411,7 @@ describe('EngineService', () => {
       configurable: true,
     });
 
-    // No vault on disk so isNewUser stays true → persistence is deferred
+    // No vault on disk so isNewInstall stays true → persistence is deferred
     (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
     await engineService.start();
@@ -454,7 +454,7 @@ describe('EngineService', () => {
   });
 
   it('cancels deferred persistence when error occurs after initializeControllers', async () => {
-    // Arrange — new user path: initializeControllers sets a deferred handle,
+    // Arrange — fresh-install path: initializeControllers sets a deferred handle,
     // then hydrateSocialFollowing throws, landing in the catch block.
     const mockCancel = jest.fn();
     mockScheduleAfterPaint.mockClear();
@@ -497,7 +497,7 @@ describe('EngineService', () => {
   });
 
   it('routes deferred persistence setup failures to vault recovery', async () => {
-    // Arrange — new-user path defers setupEnginePersistence; force it to throw
+    // Arrange — fresh-install path defers setupEnginePersistence; force it to throw
     jest.useFakeTimers();
     mockScheduleAfterPaint.mockClear();
     mockScheduleAfterPaint.mockImplementation((cb) => {
@@ -829,7 +829,7 @@ describe('EngineService', () => {
       );
     });
 
-    it('skips vault check for new user without existing user flag', async () => {
+    it('skips vault check for fresh install without existing user flag', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
@@ -841,14 +841,14 @@ describe('EngineService', () => {
         configurable: true,
       });
 
-      // No vault on disk — truly a new user
+      // No vault on disk — truly a fresh install
       (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
       await engineService.start();
 
       // Assert
-      // Should not call the vault check log for new users
+      // Should not call the vault check log for fresh installs
       const vaultCheckLogs = (
         Logger.log as jest.MockedFunction<typeof Logger.log>
       ).mock.calls.filter((call) =>
@@ -857,7 +857,7 @@ describe('EngineService', () => {
       expect(vaultCheckLogs).toHaveLength(0);
     });
 
-    it('skips ControllerStorage.getAllPersistedState for new users (perf_fix: coldstart-v1)', async () => {
+    it('skips ControllerStorage.getAllPersistedState for fresh installs (perf_fix: coldstart-v1)', async () => {
       // Arrange
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
@@ -869,7 +869,7 @@ describe('EngineService', () => {
         configurable: true,
       });
 
-      // No vault on disk — truly a new user
+      // No vault on disk — truly a fresh install
       (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
@@ -906,7 +906,7 @@ describe('EngineService', () => {
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
     });
 
-    it('defers persistence setup via scheduleAfterPaint for new users (perf_fix: coldstart-v1)', async () => {
+    it('defers persistence setup via scheduleAfterPaint for fresh installs (perf_fix: coldstart-v1)', async () => {
       // Arrange
       mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
@@ -919,7 +919,7 @@ describe('EngineService', () => {
         configurable: true,
       });
 
-      // No vault on disk — truly a new user
+      // No vault on disk — truly a fresh install
       (ControllerStorage.getItemStrict as jest.Mock).mockResolvedValue(null);
 
       // Act
@@ -993,7 +993,7 @@ describe('EngineService', () => {
       expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
     });
 
-    it('overrides isNewUser when existingUser is false but vault exists on disk (flag/storage mismatch)', async () => {
+    it('overrides isNewInstall when existingUser is false but vault exists on disk (flag/storage mismatch)', async () => {
       // Arrange — Redux flag lost but vault still on disk (e.g. Redux persist corruption)
       mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
@@ -1034,7 +1034,7 @@ describe('EngineService', () => {
           'existingUser flag is false but KeyringController vault found on disk',
         ),
       );
-      // Vault diagnostic log should fire because isNewUser was corrected to false
+      // Vault diagnostic log should fire because isNewInstall was corrected to false
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Is vault defined at KeyringController before Engine init: ',
         false,
@@ -1113,7 +1113,7 @@ describe('EngineService', () => {
       },
     );
 
-    it('stays on new-user path when KeyringController exists on disk but has no vault', async () => {
+    it('stays on fresh-install path when KeyringController exists on disk but has no vault', async () => {
       // Arrange — KeyringController file exists but with no vault (e.g. partially initialized)
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
@@ -1132,7 +1132,7 @@ describe('EngineService', () => {
       // Act
       await engineService.start();
 
-      // Assert — no vault found, so new-user optimization still applies
+      // Assert — no vault found, so fresh-install optimization still applies
       expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
     });
 
