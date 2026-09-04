@@ -56,6 +56,7 @@ interface MockBtcLiveRowProps {
     marketId: string | undefined,
     market: PredictMarket | undefined,
   ) => void;
+  isSectionVisible: boolean;
 }
 
 const mockBtcLiveRow = jest.fn((_props: MockBtcLiveRowProps) => null);
@@ -118,6 +119,7 @@ const defaultProps: HomepagePredictDiscoveryProps = {
   onViewAll: jest.fn(),
   headerTestIdKey: 'predictions',
   marketSlots: createMarketSlots(),
+  isSectionVisible: true,
 };
 
 const renderComponent = (
@@ -187,6 +189,17 @@ describe('HomepagePredictDiscovery', () => {
       ]);
       expect(mockBtcLiveRow).toHaveBeenCalledTimes(1);
     });
+
+    it.each([true, false])(
+      'forwards isSectionVisible to BtcLiveRow (%s)',
+      (isSectionVisible) => {
+        renderComponent({ isSectionVisible });
+
+        expect(getBtcLiveRowProps()).toEqual(
+          expect.objectContaining({ isSectionVisible }),
+        );
+      },
+    );
 
     it('rejects a market whose slug does not match its configured slot', () => {
       const [{ id }] = HOMEPAGE_PREDICT_EVENT_SLOTS;

@@ -15,6 +15,8 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockIsFocused = jest.fn(() => true);
+const mockIsSectionVisible = jest.fn(() => true);
+const mockOnViewportLayout = jest.fn();
 const mockCreateEventBuilder = jest.fn((event: unknown) => ({
   addProperties: (properties: Record<string, unknown>) => ({
     build: () => ({ event, properties }),
@@ -123,6 +125,14 @@ jest.mock('@react-navigation/native', () => {
     useIsFocused: () => mockIsFocused(),
   };
 });
+
+jest.mock('../../hooks/useSectionViewportVisible', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isVisible: mockIsSectionVisible(),
+    onLayout: mockOnViewportLayout,
+  })),
+}));
 
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
@@ -281,6 +291,7 @@ describe('PredictionsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFocused.mockReturnValue(true);
+    mockIsSectionVisible.mockReturnValue(true);
     mockSelectPrivacyMode.mockReturnValue(false);
 
     // Reset mock return value to default (true) to ensure test isolation
@@ -390,6 +401,45 @@ describe('PredictionsSection', () => {
       );
     },
   );
+
+  it.each([true, false])(
+    'sets crypto up/down market data enabled to %s based on section viewport visibility',
+    (isSectionVisible) => {
+      const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
+        '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+      ) as {
+        useCurrentCryptoUpDownMarketData: jest.Mock;
+      };
+      mockIsFocused.mockReturnValue(true);
+      mockIsSectionVisible.mockReturnValue(isSectionVisible);
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: isSectionVisible }),
+      );
+    },
+  );
+
+  it('disables crypto up/down market data when focused but scrolled out of the viewport', () => {
+    const { useCurrentCryptoUpDownMarketData } = jest.requireMock(
+      '../../../../UI/Predict/hooks/useCurrentCryptoUpDownMarketData',
+    ) as {
+      useCurrentCryptoUpDownMarketData: jest.Mock;
+    };
+    mockIsFocused.mockReturnValue(true);
+    mockIsSectionVisible.mockReturnValue(false);
+
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
 
   it('navigates with home_section entry_point when trending markets title is pressed', () => {
     renderWithProvider(

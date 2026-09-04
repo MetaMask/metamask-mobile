@@ -24,6 +24,8 @@ export interface HomepagePredictTrendingMarketsProps {
     ctaName: PredictEmptyStateCtaName,
     categoryName?: string,
   ) => void;
+  /** Whether the Predictions homepage section is scrolled into the viewport. */
+  isSectionVisible: boolean;
 }
 
 const HomepagePredictTrendingMarkets = ({
@@ -37,6 +39,7 @@ const HomepagePredictTrendingMarkets = ({
   marketSlots,
   emptyStateTransactionActiveAbTests,
   onEmptyStateTreatmentCtaClick,
+  isSectionVisible,
 }: HomepagePredictTrendingMarketsProps) => {
   if (discoveryLayout === 'carousel') {
     return (
@@ -63,6 +66,7 @@ const HomepagePredictTrendingMarkets = ({
       marketSlots={marketSlots}
       transactionActiveAbTests={emptyStateTransactionActiveAbTests}
       onTreatmentCtaClick={onEmptyStateTreatmentCtaClick}
+      isSectionVisible={isSectionVisible}
     />
   );
 };
