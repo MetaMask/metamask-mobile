@@ -82,6 +82,26 @@ describe('awaitExternalTransactionReceipt', () => {
     expect(getReceipt).toHaveBeenCalledTimes(1);
   });
 
+  it('times out when remaining budget is exhausted after a pending poll', async () => {
+    jest.setSystemTime(0);
+    const getReceipt = jest.fn().mockImplementation(() => {
+      jest.setSystemTime(Date.now() + 2500);
+      return Promise.resolve(null);
+    });
+
+    await expect(
+      awaitExternalTransactionReceipt({
+        txHash: '0xabc',
+        getReceipt,
+        intervalMs: 1000,
+        timeoutMs: 2500,
+      }),
+    ).rejects.toMatchObject({
+      name: 'ExternalTransactionReceiptTimeoutError',
+      pollAttempts: 1,
+    });
+  });
+
   it('stops polling when shouldContinue returns false', async () => {
     const getReceipt = jest.fn().mockResolvedValue(null);
     let cancelled = false;
