@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useRef,
   type ReactNode,
+  type RefObject,
 } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -18,6 +19,7 @@ import useHomeViewedEvent, {
   type HomeSectionName,
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
+import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import HomepagePredictDiscovery from './components/HomepagePredictDiscovery';
 import HomepagePredictTrendingMarkets from './components/HomepagePredictTrendingMarkets';
 import HomepagePredictPositions from './components/HomepagePredictPositions';
@@ -146,6 +148,13 @@ interface PredictionsSectionShellProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
   children: ReactNode;
+  /**
+   * Ref to attach to the section's wrapping View. Callers that need to track
+   * this section's own viewport visibility (e.g. to gate a live subscription
+   * on scroll position) can pass their own ref in and read it with
+   * `useSectionViewportVisible`. Falls back to an internal ref otherwise.
+   */
+  sectionRef?: RefObject<View | null>;
 }
 
 /**
@@ -169,10 +178,12 @@ const PredictionsSectionShell = forwardRef<
       sectionIndex,
       totalSectionsLoaded,
       children,
+      sectionRef,
     },
     ref,
   ) => {
-    const sectionViewRef = useRef<View>(null);
+    const internalSectionViewRef = useRef<View>(null);
+    const sectionViewRef = sectionRef ?? internalSectionViewRef;
     const { onLayout } = useHomeViewedEvent({
       sectionRef: viewed ? sectionViewRef : null,
       isLoading,
@@ -318,6 +329,12 @@ const PredictionsSectionDefault = forwardRef<
       marketsLength: markets.length,
     });
 
+    const sectionViewRef = useRef<View>(null);
+    const { isVisible: isSectionVisible } = useSectionViewportVisible(
+      sectionViewRef,
+      { isLoading },
+    );
+
     useSectionPerformance({
       sectionId: analyticsName,
       contentReady: predictTimeToContentReady,
@@ -384,6 +401,7 @@ const PredictionsSectionDefault = forwardRef<
         analyticsName={analyticsName}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        sectionRef={sectionViewRef}
       >
         {positionsLayout ? (
           <>
@@ -406,6 +424,7 @@ const PredictionsSectionDefault = forwardRef<
                       ? trackEmptyStateTreatmentCtaClick
                       : undefined
                   }
+                  isSectionVisible={isSectionVisible}
                 />
               </Box>
             )}
@@ -439,6 +458,7 @@ const PredictionsSectionDefault = forwardRef<
                   ? trackEmptyStateTreatmentCtaClick
                   : undefined
               }
+              isSectionVisible={isSectionVisible}
             />
           </Box>
         )}
@@ -469,6 +489,12 @@ const PredictionsSectionSportsOnly = forwardRef<
       await refetchHomepageMarketSlots();
     }, [refetchHomepageMarketSlots]);
 
+    const sectionViewRef = useRef<View>(null);
+    const { isVisible: isSectionVisible } = useSectionViewportVisible(
+      sectionViewRef,
+      { isLoading: homepageMarketSlots.isFetching },
+    );
+
     return (
       <PredictionsSectionShell
         ref={ref}
@@ -481,6 +507,7 @@ const PredictionsSectionSportsOnly = forwardRef<
         analyticsName={HomeSectionNames.PREDICT}
         sectionIndex={sectionIndex}
         totalSectionsLoaded={totalSectionsLoaded}
+        sectionRef={sectionViewRef}
       >
         <Box paddingBottom={3}>
           <HomepagePredictDiscovery
@@ -488,6 +515,7 @@ const PredictionsSectionSportsOnly = forwardRef<
             onViewAll={handleViewAllPredictions}
             headerTestIdKey="predictions"
             marketSlots={homepageMarketSlots}
+            isSectionVisible={isSectionVisible}
           />
         </Box>
       </PredictionsSectionShell>

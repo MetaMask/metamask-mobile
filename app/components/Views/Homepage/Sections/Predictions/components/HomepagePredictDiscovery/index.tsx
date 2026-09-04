@@ -40,6 +40,8 @@ export interface HomepagePredictDiscoveryProps {
     ctaName: PredictEmptyStateCtaName,
     categoryName?: string,
   ) => void;
+  /** Whether the Predictions homepage section is scrolled into the viewport. */
+  isSectionVisible: boolean;
 }
 
 const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
@@ -49,6 +51,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
   marketSlots,
   transactionActiveAbTests,
   onTreatmentCtaClick,
+  isSectionVisible,
 }) => {
   const navigation = useNavigation();
   const { navigateToMarketDetails } = usePredictNavigation();
@@ -141,7 +144,13 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         <Box twClassName="px-4">
           {HOMEPAGE_PREDICT_MARKET_SLOTS.map((slot, index) => {
             if (!isHomepagePredictEventSlot(slot)) {
-              return <BtcLiveRow key={slot.series.id} onPress={handleBtcRow} />;
+              return (
+                <BtcLiveRow
+                  key={slot.series.id}
+                  onPress={handleBtcRow}
+                  isSectionVisible={isSectionVisible}
+                />
+              );
             }
             return (
               <ChampionshipRow
