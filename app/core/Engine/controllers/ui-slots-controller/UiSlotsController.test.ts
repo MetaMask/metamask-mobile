@@ -16,9 +16,9 @@ const buildConfigurationKey = (locale: string) =>
   `wallet-home:${encodeURIComponent(locale)}:${UI_SLOTS_CONTRACT_MAJOR}`;
 
 const makeResponse = (overrides: Record<string, unknown> = {}) => ({
-  contractVersion: 1,
+  contractVersion: 1 as const,
   configurationVersion: 'config-1',
-  screenId: 'wallet-home',
+  screenId: 'wallet-home' as const,
   locale: 'en',
   publishedAt: '2026-08-13T10:00:00.000Z',
   slots: [
@@ -27,17 +27,22 @@ const makeResponse = (overrides: Record<string, unknown> = {}) => ({
       contentId: 'predict-empty-state-1',
       revision: 1,
       widget: {
-        type: 'predict-discovery-list',
-        schemaVersion: 1,
+        type: 'predict-discovery-list' as const,
+        schemaVersion: 1 as const,
         props: {},
       },
       dataReferences: [
         {
-          id: 'markets',
-          type: 'predict-homepage-market-slots',
+          id: 'markets' as const,
+          type: 'predict-homepage-market-slots' as const,
           params: {
-            venue: 'polymarket',
-            items: [{ type: 'series', seriesId: 'btc-up-or-down-5m' }],
+            venue: 'polymarket' as const,
+            items: [
+              {
+                type: 'series' as const,
+                seriesId: 'btc-up-or-down-5m' as const,
+              },
+            ],
           },
         },
       ],
