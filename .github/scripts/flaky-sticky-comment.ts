@@ -374,13 +374,17 @@ async function main(): Promise<void> {
       return false;
     }
 
+    // AI output occasionally includes a terminal newline while a line-anchored
+    // snippet represents the same source without it. Ignore terminal line
+    // breaks only; all code and indentation must still match verbatim.
+    const normalizedSnippet = finding.snippet.replace(/(?:\r?\n)+$/, '');
     const sourceLines = readFileSync(sourcePath, 'utf8').split(/\r?\n/);
-    const snippetLines = finding.snippet.split(/\r?\n/);
+    const snippetLines = normalizedSnippet.split(/\r?\n/);
     const actualSnippet = sourceLines
       .slice(finding.line - 1, finding.line - 1 + snippetLines.length)
       .join('\n');
 
-    if (actualSnippet !== finding.snippet) {
+    if (actualSnippet !== normalizedSnippet) {
       core.warning(
         `Dropping AI finding for ${finding.file}:${finding.line}: reported snippet does not match HEAD`,
       );
