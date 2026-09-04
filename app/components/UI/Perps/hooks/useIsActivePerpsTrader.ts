@@ -1,17 +1,23 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import type { Order, Position } from '@metamask/perps-controller';
+import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import { hasRecentPerpsAction } from '../utils/perpsActivityStorage';
 import { getPreloadedData } from './stream/hasCachedPerpsData';
 
 /** Every source here is synchronous so the answer exists during render. */
 export const evaluateIsActivePerpsTrader = (): boolean => {
-  const positions = getPreloadedData<Position[]>('cachedPositions');
+  const stream = getStreamManagerInstance();
+
+  const positions =
+    stream.positions.getSnapshot() ??
+    getPreloadedData<Position[]>('cachedPositions');
   if (positions && positions.length > 0) {
     return true;
   }
 
-  const orders = getPreloadedData<Order[]>('cachedOrders');
+  const orders =
+    stream.orders.getSnapshot() ?? getPreloadedData<Order[]>('cachedOrders');
   if (orders && orders.length > 0) {
     return true;
   }

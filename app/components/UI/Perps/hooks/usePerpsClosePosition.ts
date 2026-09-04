@@ -242,13 +242,16 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
+        if (result.success || isNoPositionFoundError(result.error)) {
+          recordPerpsAction();
+        }
+
         if (!result.success && isNoPositionFoundError(result.error)) {
           reconcileAlreadyClosed();
           return result;
         }
 
         if (result.success) {
-          recordPerpsAction();
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
           // the request was in flight, that render instant was recorded and the

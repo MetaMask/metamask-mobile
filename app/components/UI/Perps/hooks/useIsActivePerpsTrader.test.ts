@@ -15,6 +15,15 @@ jest.mock('../utils/perpsActivityStorage', () => ({
   hasRecentPerpsAction: jest.fn(() => false),
 }));
 
+const mockPositionsSnapshot = jest.fn<Position[] | null, []>(() => null);
+const mockOrdersSnapshot = jest.fn<Order[] | null, []>(() => null);
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: () => ({
+    positions: { getSnapshot: () => mockPositionsSnapshot() },
+    orders: { getSnapshot: () => mockOrdersSnapshot() },
+  }),
+}));
+
 const mockFocusEffect = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: (callback: () => void) => mockFocusEffect(callback),
@@ -53,6 +62,8 @@ describe('useIsActivePerpsTrader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockHasRecentPerpsAction.mockReturnValue(false);
+    mockPositionsSnapshot.mockReturnValue(null);
+    mockOrdersSnapshot.mockReturnValue(null);
     givenCache({});
   });
 
@@ -94,6 +105,35 @@ describe('useIsActivePerpsTrader', () => {
       evaluateIsActivePerpsTrader();
 
       expect(mockHasRecentPerpsAction).not.toHaveBeenCalled();
+    });
+
+    it('is true for a position the live stream has but the cache snapshot has not caught up to', () => {
+      givenCache({ positions: [], orders: [] });
+      mockPositionsSnapshot.mockReturnValue([aPosition]);
+
+      expect(evaluateIsActivePerpsTrader()).toBe(true);
+    });
+
+    it('is true for a resting order the live stream has before the cache does', () => {
+      givenCache({ positions: [], orders: [] });
+      mockOrdersSnapshot.mockReturnValue([anOrder]);
+
+      expect(evaluateIsActivePerpsTrader()).toBe(true);
+    });
+
+    it('trusts an empty live snapshot over a stale non-empty cache', () => {
+      givenCache({ positions: [aPosition], orders: [anOrder] });
+      mockPositionsSnapshot.mockReturnValue([]);
+      mockOrdersSnapshot.mockReturnValue([]);
+
+      expect(evaluateIsActivePerpsTrader()).toBe(false);
+    });
+
+    it('falls back to the cache when the stream has no data yet', () => {
+      givenCache({ positions: [aPosition] });
+      mockPositionsSnapshot.mockReturnValue(null);
+
+      expect(evaluateIsActivePerpsTrader()).toBe(true);
     });
   });
 
