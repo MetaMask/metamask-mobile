@@ -205,6 +205,8 @@ const MoneyProjection = ({
   );
 };
 
+const MAX_VISIBLE_MONEY_ASSETS = 5;
+
 /**
  * Displays the Earn eligible assets and Money projections.
  */
@@ -416,8 +418,7 @@ const EarnSectionListView = () => {
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
-        // Maximum of 5 asset rows are rendered
-        tokens_in_list: Math.min(moneyAssets.length, 5),
+        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
         token_has_balance: new BigNumber(token.balance).gt(0),
       });
       await handleDeposit(token);
@@ -444,7 +445,7 @@ const EarnSectionListView = () => {
         token_symbol: token.symbol,
         token_position_in_list: tokenIndex + 1,
         token_chain_id: token.chainId ?? '',
-        tokens_in_list: moneyAssets.length,
+        tokens_in_list: Math.min(moneyAssets.length, MAX_VISIBLE_MONEY_ASSETS),
         token_has_balance: new BigNumber(token.balance).gt(0),
       });
       await handleDeposit(token);
@@ -549,7 +550,9 @@ const EarnSectionListView = () => {
       );
     }
 
-    const visibleMoneyAssets = isLoading ? [] : moneyAssets.slice(0, 5);
+    const visibleMoneyAssets = isLoading
+      ? []
+      : moneyAssets.slice(0, MAX_VISIBLE_MONEY_ASSETS);
 
     return (
       <>

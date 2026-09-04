@@ -341,6 +341,9 @@ const EarnStrategySelectionModal = () => {
     >
       <BottomSheetHeader
         onClose={handleClose}
+        closeButtonProps={{
+          testID: EarnStrategySelectionModalTestIds.CLOSE_BUTTON,
+        }}
         testID={EarnStrategySelectionModalTestIds.MODAL_HEADER}
       >
         {strings('earn.strategy_selection.title')}

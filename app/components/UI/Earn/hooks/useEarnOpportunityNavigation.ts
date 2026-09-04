@@ -39,6 +39,39 @@ export type EarnOpportunityRedirectTarget =
   | EarnOpportunityDestination
   | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
 
+type EarnExperienceDepositDestination = Exclude<
+  EarnOpportunityDestination,
+  | EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
+  | EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET
+>;
+
+const EARN_EXPERIENCE_DESTINATIONS: Record<
+  EarnExperience['type'],
+  EarnExperienceDepositDestination
+> = {
+  MONEY_ACCOUNT_DEPOSIT: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+  [EARN_EXPERIENCES.POOLED_STAKING]:
+    EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT,
+  [EARN_EXPERIENCES.STABLECOIN_LENDING]:
+    EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT,
+  [EARN_EXPERIENCES.TRX_STAKING]:
+    EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT,
+};
+
+const getEarnExperienceDestination = (
+  experienceType: EarnExperience['type'],
+): EarnExperienceDepositDestination => {
+  const destination = EARN_EXPERIENCE_DESTINATIONS[experienceType];
+
+  if (!destination) {
+    throw new Error(
+      `${LOG_PREFIX} Unsupported Earn experience: ${experienceType}`,
+    );
+  }
+
+  return destination;
+};
+
 export const getEarnOpportunityDestination = (
   earnAsset: EarnAsset,
 ): EarnOpportunityDestination => {
@@ -54,18 +87,9 @@ export const getEarnOpportunityDestination = (
     return EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET;
   }
 
-  const singleSupportedExperienceType = earnAsset.experiences[0]?.type;
+  const singleSupportedExperience = earnAsset.experiences[0];
 
-  switch (singleSupportedExperienceType) {
-    case 'MONEY_ACCOUNT_DEPOSIT':
-      return EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
-    case EARN_EXPERIENCES.POOLED_STAKING:
-      return EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT;
-    case EARN_EXPERIENCES.STABLECOIN_LENDING:
-      return EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT;
-    case EARN_EXPERIENCES.TRX_STAKING:
-      return EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT;
-  }
+  return getEarnExperienceDestination(singleSupportedExperience.type);
 };
 
 export const getEarnOpportunityRedirectTarget = (
@@ -89,18 +113,12 @@ export const getEarnExperienceRedirectTarget = (
   | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
   | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT => {
-  switch (experience.type) {
-    case 'MONEY_ACCOUNT_DEPOSIT':
-      return isMoneyOnboardingRedirectNeeded
-        ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
-        : EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT;
-    case EARN_EXPERIENCES.POOLED_STAKING:
-      return EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT;
-    case EARN_EXPERIENCES.STABLECOIN_LENDING:
-      return EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT;
-    case EARN_EXPERIENCES.TRX_STAKING:
-      return EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT;
-  }
+  const destination = getEarnExperienceDestination(experience.type);
+
+  return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+    isMoneyOnboardingRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+    : destination;
 };
 
 /**

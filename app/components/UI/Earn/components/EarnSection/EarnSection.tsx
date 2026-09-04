@@ -223,14 +223,10 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
     const hasTrackedNonHomepageViewRef = useRef(false);
     const earnListAnalyticsContext = useMemo(
       () =>
-        buildEarnModuleNavigationContext(
-          {
-            entry_point: earnEntryPoint,
-            screen_name: earnScreenName,
-          },
-          undefined,
-          undefined,
-        ),
+        buildEarnModuleNavigationContext({
+          entry_point: earnEntryPoint,
+          screen_name: earnScreenName,
+        }),
       [earnEntryPoint, earnScreenName],
     );
 
@@ -298,7 +294,6 @@ const EarnSection = forwardRef<SectionRefreshHandle, EarnSectionProps>(
         return;
       }
 
-      // TODO: Determine if we should track once per mount of per view.
       hasTrackedNonHomepageViewRef.current = true;
       trackEarnComponentViewed({
         component_name: earnSectionComponentName,

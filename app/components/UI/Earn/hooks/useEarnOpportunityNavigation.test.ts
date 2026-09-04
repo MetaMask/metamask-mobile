@@ -278,6 +278,16 @@ describe('useEarnOpportunityNavigation', () => {
     );
   });
 
+  it('throws when an experience type is unsupported', () => {
+    const earnAsset = createEarnAsset(1, [
+      createExperience('UNSUPPORTED' as EarnExperience['type']),
+    ]);
+
+    expect(() => getEarnOpportunityDestination(earnAsset)).toThrow(
+      '[useEarnOpportunityNavigation] Unsupported Earn experience: UNSUPPORTED',
+    );
+  });
+
   it.each([
     [
       EARN_EXPERIENCES.STABLECOIN_LENDING,

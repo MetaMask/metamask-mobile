@@ -10,7 +10,6 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 import EarnStrategySelectionModal, { requireEarnStrategyToken } from './index';
@@ -201,9 +200,9 @@ describe('EarnStrategySelectionModal', () => {
   it('tracks closing the strategy selection bottom sheet', () => {
     render(<EarnStrategySelectionModal />);
 
-    const closeButton = screen.UNSAFE_getByType(ButtonIcon);
-
-    expect(closeButton.props.iconName).toBe(IconName.Close);
+    const closeButton = screen.getByTestId(
+      EarnStrategySelectionModalTestIds.CLOSE_BUTTON,
+    );
 
     fireEvent.press(closeButton);
 
