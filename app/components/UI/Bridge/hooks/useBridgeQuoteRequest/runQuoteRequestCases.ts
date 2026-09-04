@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers';
 import { act } from '@testing-library/react-native';
 import {
+  FeatureId,
   formatAddressToCaipReference,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
@@ -24,6 +25,7 @@ import {
   TraceOperation,
 } from '../../../../../util/trace';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
+import { useSwapFeatureId } from '../useSwapFeatureId';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -37,6 +39,10 @@ const mockUseIsInsufficientBalance =
 
 const mockUseLatestBalance = useLatestBalance as jest.MockedFunction<
   typeof useLatestBalance
+>;
+
+const mockUseSwapFeatureId = useSwapFeatureId as jest.MockedFunction<
+  typeof useSwapFeatureId
 >;
 
 const mockUseInsufficientNativeReserveError =
@@ -83,6 +89,7 @@ export const runQuoteRequestCases = ({
   debounceMs,
   renderHook,
   name,
+  featureId,
 }: {
   debounceMs: number;
   renderHook: (options?: {
@@ -103,6 +110,7 @@ export const runQuoteRequestCases = ({
     unmount: () => void;
   };
   name: string;
+  featureId: FeatureId;
 }) => {
   /**
    * @deprecated only use to preserve coverage for old hooks
@@ -162,6 +170,8 @@ export const runQuoteRequestCases = ({
         displayBalance: '10',
         atomicBalance: BigNumber.from('10000000000000000000'), // 10 ETH in wei
       });
+
+      mockUseSwapFeatureId.mockReturnValue(featureId);
 
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);

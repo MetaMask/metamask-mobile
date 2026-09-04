@@ -6,6 +6,7 @@ import {
   useBridgeQuoteDataContext,
 } from './BridgeQuoteDataContext';
 import { runQuoteProviderCases } from './runQuoteProviderCases';
+import { FeatureId } from '@metamask/bridge-controller';
 
 jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn(() => true),
@@ -40,6 +41,10 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+jest.mock('../useSwapFeatureId', () => ({
+  useSwapFeatureId: jest.fn(),
+}));
+
 const Consumer = () => {
   useBridgeQuoteDataContext();
   return null;
@@ -63,4 +68,5 @@ runQuoteProviderCases({
       { state },
     ),
   renderWithoutProvider: () => renderWithProvider(<Consumer />),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 });

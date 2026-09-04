@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react-native';
 import { DEBOUNCE_WAIT, useBridgeQuoteRequest } from './';
 import { mockContext, runQuoteRequestCases } from './runQuoteRequestCases';
 import type { DebounceSettings } from 'lodash';
+import { FeatureId } from '@metamask/bridge-controller';
 
 jest.mock('lodash', () => {
   const actual = jest.requireActual<typeof import('lodash')>('lodash');
@@ -59,8 +60,13 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../useSwapFeatureId', () => ({
+  useSwapFeatureId: jest.fn(),
+}));
+
 runQuoteRequestCases({
   name: 'useBridgeQuoteRequest',
   debounceMs: DEBOUNCE_WAIT,
   renderHook: (options) => renderHook(() => useBridgeQuoteRequest(options)),
+  featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
 });

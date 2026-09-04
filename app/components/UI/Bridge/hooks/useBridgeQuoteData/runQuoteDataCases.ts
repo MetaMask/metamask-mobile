@@ -3,6 +3,7 @@ import {
   RequestStatus,
   getNativeAssetForChainId,
   isSolanaChainId,
+  type FeatureId,
 } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -22,6 +23,7 @@ import * as quoteUtils from '../../utils/quoteUtils';
 import { useBridgeQuoteData } from '.';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import useInsufficientBalance from '../useInsufficientBalance';
+import { useSwapFeatureId } from '../useSwapFeatureId';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeSlice.selectBridgeQuotes
@@ -136,11 +138,15 @@ const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
 >;
 const mockValidateBridgeTx = jest.fn();
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockUseSwapFeatureId = useSwapFeatureId as jest.MockedFunction<
+  typeof useSwapFeatureId
+>;
 
 export const runQuoteDataCases = ({
   name,
   mockDispatch,
   renderHook,
+  featureId,
 }: {
   name: string;
   mockDispatch: jest.Mock;
@@ -149,6 +155,7 @@ export const runQuoteDataCases = ({
     rerender: (props?: unknown) => void;
     unmount: () => void;
   };
+  featureId: FeatureId;
 }) => {
   const renderUseBridgeQuoteData = (
     overrides: QuoteDataState = {},
@@ -202,6 +209,7 @@ export const runQuoteDataCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapFeatureId.mockReturnValue(featureId);
     });
 
     afterEach(() => {

@@ -63,6 +63,10 @@ jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
 }));
 
+jest.mock('../useSwapFeatureId', () => ({
+  useSwapFeatureId: jest.fn(),
+}));
+
 const Consumer = () => {
   useSwapQuotes();
   return null;
@@ -71,10 +75,11 @@ const Consumer = () => {
 runQuoteProviderCases({
   name: 'SwapQuotesContext',
   missingProviderError: 'useSwapQuotes must be used within SwapQuotesProvider',
+  featureId: FeatureId.LIMIT_ORDER,
   renderProvider: (state) =>
     renderWithProvider(
       <SwapQuotesProvider
-        featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
+        featureId={FeatureId.LIMIT_ORDER}
         debounceWait={1000}
         quoteParams={{
           srcAmount: '1000000000',

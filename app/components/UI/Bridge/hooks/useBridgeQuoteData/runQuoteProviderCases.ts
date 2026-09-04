@@ -10,9 +10,15 @@ import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import useInsufficientBalance from '../useInsufficientBalance';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
+import { useSwapFeatureId } from '../useSwapFeatureId';
+import { FeatureId } from '@metamask/bridge-controller';
 
 const mockUseIsInsufficientBalance =
   useInsufficientBalance as jest.MockedFunction<typeof useInsufficientBalance>;
+
+const mockUseSwapFeatureId = useSwapFeatureId as jest.MockedFunction<
+  typeof useSwapFeatureId
+>;
 
 const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
   typeof useValidateBridgeTx
@@ -24,11 +30,13 @@ export const runQuoteProviderCases = ({
   missingProviderError,
   renderProvider,
   renderWithoutProvider,
+  featureId,
 }: {
   name: string;
   missingProviderError: string;
   renderProvider: (state: DeepPartial<RootState>) => void;
   renderWithoutProvider: () => void;
+  featureId: FeatureId;
 }) =>
   describe(name, () => {
     beforeEach(() => {
@@ -45,6 +53,7 @@ export const runQuoteProviderCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapFeatureId.mockReturnValue(featureId);
       jest
         .spyOn(bridgeController, 'selectBridgeQuotes')
         .mockImplementation(() => ({

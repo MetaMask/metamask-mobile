@@ -136,6 +136,7 @@ const Wrapper = ({
   latestSourceAtomicBalance?: BigNumber;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
+  featureId?: FeatureId;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -146,7 +147,7 @@ const Wrapper = ({
 
   return (
     <SwapQuotesProvider
-      featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
+      featureId={FeatureId.LIMIT_ORDER}
       debounceWait={mockDebounceMs}
       quoteRequestIndex={quoteRequestIndex}
       quoteRequestCount={quoteRequestCount}
@@ -167,6 +168,10 @@ const Wrapper = ({
   );
 };
 
+jest.mock('../useSwapFeatureId', () => ({
+  useSwapFeatureId: jest.fn().mockReturnValue('limit_order'),
+}));
+
 describe('useSwapQuotes', () => {
   it('throws an error if used outside of SwapQuotesProvider', () => {
     expect(() => renderHook(() => useSwapQuotes())).toThrow(
@@ -179,22 +184,26 @@ runQuoteRequestCases({
   name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
     renderHook(
       () => {
-        const { debouncedUpdateQuoteParams } = useSwapQuotes();
-        return debouncedUpdateQuoteParams;
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
       },
       {
         wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
       },
     ),
+  featureId: FeatureId.LIMIT_ORDER,
 });
 
 runQuoteDataCases({
   name: 'useQuoteData',
   mockDispatch,
   renderHook: (options) =>
+    // @ts-expect-error - this returns quote data
     renderHook(() => useSwapQuotes(), {
       wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
     }),
+  featureId: FeatureId.LIMIT_ORDER,
 });
