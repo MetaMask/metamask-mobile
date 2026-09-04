@@ -441,7 +441,7 @@ const EarnSectionListView = () => {
             </Button>
           </Box>
         )}
-        {!isLoading && (
+        {!isLoading && moreWaysAssets.length > 0 && (
           <>
             <SectionDivider testID={EARN_SECTION_LIST_TEST_IDS.DIVIDER} />
             <Box twClassName="px-4 py-3 gap-1">
@@ -478,6 +478,7 @@ const EarnSectionListView = () => {
     privacyMode,
     projectedAmount,
     totalAssetsFiat,
+    moreWaysAssets.length,
   ]);
 
   const listEmptyComponent = useMemo(
@@ -485,7 +486,10 @@ const EarnSectionListView = () => {
       isLoading ? (
         <EarnSectionListSkeleton />
       ) : isMoneyAccountVisible ? null : (
-        <Box testID={EARN_SECTION_LIST_TEST_IDS.EMPTY} twClassName="flex-1">
+        <Box
+          testID={EARN_SECTION_LIST_TEST_IDS.EMPTY}
+          twClassName="flex-1 items-center justify-center pt-4"
+        >
           <TabEmptyState
             description={strings('earn_module.empty_state_description')}
           />

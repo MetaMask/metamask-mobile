@@ -10,7 +10,11 @@ import React, {
 } from 'react';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../Homepage/types';
-import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
+import {
+  useArcUsageNoticeToast,
+  useBalanceRefresh,
+  useHomepageEntryPoint,
+} from './hooks';
 
 import {
   ActivityIndicator,
@@ -369,6 +373,7 @@ const Wallet = ({
   );
 
   const { toastRef } = useContext(ToastContext);
+  useArcUsageNoticeToast();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;

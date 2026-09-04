@@ -32,10 +32,10 @@ import {
 import { HyperliquidError } from '@nktkas/hyperliquid';
 // Mobile's current Node resolver cannot read this package export, while Jest
 // and Metro resolve the SDK's declared `./api/exchange` entrypoint.
-// @ts-expect-error The subpath is exported by @nktkas/hyperliquid.
 import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import Engine from '../../../../core/Engine';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
 
@@ -110,9 +110,10 @@ describe('Perps order lifecycle — FLOW integration', () => {
         });
       });
 
-      const tradeEvent = perps.analytics.lastByName(
+      const tradeEvents = perps.analytics.byName(
         PerpsAnalyticsEvent.TradeTransaction,
       );
+      const tradeEvent = tradeEvents.at(-1);
       expect(tradeEvent).toMatchObject({
         status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
         asset: 'BTC',
@@ -124,6 +125,9 @@ describe('Perps order lifecycle — FLOW integration', () => {
         source: 'perp_asset_screen',
         action: 'create_position',
       });
+      expect(tradeEvents.every((event) => event.reduce_only === false)).toBe(
+        true,
+      );
     });
 
     it('starts a TWAP through the hook, TradingService, and provider chain', async () => {
@@ -165,6 +169,120 @@ describe('Perps order lifecycle — FLOW integration', () => {
       expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
     });
 
+    it('places, reads, and terminates Chase through the real provider seam', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placement: OrderResult | null = null;
+      await act(async () => {
+        placement = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'chase',
+          currentPrice: 50_000,
+          chaseIntervalMs: 60_000,
+        });
+      });
+      const activeOrders =
+        await Engine.context.PerpsController.getChaseOrders();
+      const handle = activeOrders[0]?.handle;
+      if (!handle) throw new Error('Expected an active Chase handle');
+      let cancellation: { success: boolean } | null = null;
+      await act(async () => {
+        cancellation = await result.current.cancelOrder({
+          orderId: handle,
+          symbol: 'BTC',
+          orderType: 'chase',
+          skipCufConfirmationTrace: true,
+        });
+      });
+
+      expect(placement).toMatchObject({
+        success: true,
+        submittedSize: '0.1',
+      });
+      expect(activeOrders[0]).toMatchObject({
+        symbol: 'BTC',
+        status: 'active',
+      });
+      expect(cancellation).toMatchObject({ success: true, orderId: handle });
+      expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalled();
+    });
+
+    it('reprices and backgrounds Chase through the real provider lifecycle', async () => {
+      jest.useFakeTimers();
+      try {
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+        await act(async () => {
+          await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.1',
+            orderType: 'chase',
+            currentPrice: 50_000,
+            chaseIntervalMs: 10,
+          });
+        });
+        perps.harness.mocks.infoClient.l2Book.mockResolvedValue({
+          levels: [
+            [{ px: '50009', sz: '1', n: 1 }],
+            [{ px: '50011', sz: '1', n: 1 }],
+          ],
+        });
+
+        await act(async () => {
+          await jest.advanceTimersByTimeAsync(10);
+        });
+        const repriced = await Engine.context.PerpsController.getChaseOrders();
+        const cancelCountAfterRepricing =
+          perps.harness.mocks.exchangeClient.cancel.mock.calls.length;
+        const backgrounded =
+          await Engine.context.PerpsController.suspendChaseOrders();
+
+        expect(repriced[0]).toMatchObject({ repricings: 1, status: 'active' });
+        expect(backgrounded[0]).toMatchObject({ status: 'backgrounded' });
+        expect(cancelCountAfterRepricing).toBeGreaterThan(0);
+        expect(perps.harness.mocks.exchangeClient.cancel).toHaveBeenCalledTimes(
+          cancelCountAfterRepricing,
+        );
+        expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledTimes(
+          2,
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('rejects Chase when the provider has no external book touch', async () => {
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.infoClient.l2Book.mockResolvedValue({
+        levels: [[], []],
+      });
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      let placement: OrderResult | null = null;
+      await act(async () => {
+        placement = await result.current.placeOrder({
+          symbol: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'chase',
+          currentPrice: 50_000,
+        });
+      });
+
+      expect(placement).toMatchObject({
+        success: false,
+        error: PERPS_ERROR_CODES.ORDER_CHASE_TOUCH_UNAVAILABLE,
+      });
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
     it('emits Perp Trade Transaction with status failed when the provider rejects the order', async () => {
       const perps = buildPerpsFlowHarness();
       perps.harness.setupTradingReady();
@@ -184,13 +302,17 @@ describe('Perps order lifecycle — FLOW integration', () => {
         });
       });
 
-      const tradeEvent = perps.analytics.lastByName(
+      const tradeEvents = perps.analytics.byName(
         PerpsAnalyticsEvent.TradeTransaction,
       );
+      const tradeEvent = tradeEvents.at(-1);
       expect(tradeEvent).toMatchObject({
         status: PERPS_EVENT_VALUE.STATUS.FAILED,
         asset: 'BTC',
       });
+      expect(tradeEvents.every((event) => event.reduce_only === false)).toBe(
+        true,
+      );
     });
 
     it('emits a partially_filled Perp Trade Transaction when the fill is partial', async () => {
@@ -214,6 +336,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           isBuy: true,
           size: '0.1',
           orderType: 'market',
+          reduceOnly: true,
           currentPrice: 50_000,
         });
       });
@@ -231,7 +354,69 @@ describe('Perps order lifecycle — FLOW integration', () => {
         amount_filled: 0.05,
         remaining_amount: 0.05,
       });
+      expect(events.every((event) => event.reduce_only === true)).toBe(true);
     });
+
+    it.each([
+      ['stop_market', false],
+      ['stop_market', true],
+      ['stop_limit', false],
+      ['stop_limit', true],
+      ['take_profit_market', false],
+      ['take_profit_market', true],
+      ['take_profit_limit', false],
+      ['take_profit_limit', true],
+    ] as const)(
+      'retains order_type=%s and reduce_only=%s across trade lifecycle events',
+      async (orderType, reduceOnly) => {
+        // Arrange
+        const perps = buildPerpsFlowHarness();
+        perps.harness.setupTradingReady();
+        perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+          status: 'ok',
+          response: {
+            data: {
+              statuses: [
+                { filled: { oid: 123, totalSz: '0.1', avgPx: '50000' } },
+              ],
+            },
+          },
+        });
+        const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+        const triggerPrice = orderType.startsWith('stop') ? '51000' : '49000';
+
+        // Act
+        await act(async () => {
+          await result.current.placeOrder({
+            symbol: 'BTC',
+            isBuy: true,
+            size: '0.1',
+            orderType,
+            reduceOnly,
+            triggerPrice,
+            currentPrice: 50_000,
+            ...(orderType.endsWith('_limit') && { price: triggerPrice }),
+          });
+        });
+
+        // Assert
+        const events = perps.analytics.byName(
+          PerpsAnalyticsEvent.TradeTransaction,
+        );
+        expect(events).toEqual([
+          expect.objectContaining({
+            status: PERPS_EVENT_VALUE.STATUS.SUBMITTED,
+            order_type: orderType,
+            reduce_only: reduceOnly,
+          }),
+          expect.objectContaining({
+            status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+            order_type: orderType,
+            reduce_only: reduceOnly,
+          }),
+        ]);
+      },
+    );
 
     it.each([
       {

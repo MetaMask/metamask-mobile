@@ -1385,6 +1385,7 @@ export class Engine {
       methodData: {},
       transactions: [],
       transactionBatches: [],
+      batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
       swapsTransactions: {},
