@@ -49,7 +49,8 @@ function joinSourceBlock(
 
 /**
  * Locate `snippet` in `source`. Prefers the 1-based `reportedLine` when that
- * slice matches; otherwise scans the file and returns the first hit.
+ * slice matches; otherwise returns the occurrence closest to that line so a
+ * duplicated statement does not steal the link from a later test.
  */
 export function locateSnippetInSource(
   source: string,
@@ -65,34 +66,44 @@ export function locateSnippetInSource(
   }
 
   const sourceLines = source.split(/\r?\n/);
-
-  if (
-    reportedLine !== undefined &&
-    Number.isInteger(reportedLine) &&
-    reportedLine >= 1 &&
-    blockMatches(sourceLines, reportedLine - 1, snippetLines)
-  ) {
-    return {
-      line: reportedLine,
-      sourceSnippet: joinSourceBlock(
-        sourceLines,
-        reportedLine - 1,
-        snippetLines.length,
-      ),
-    };
-  }
-
   const lastStart = sourceLines.length - snippetLines.length;
+  const targetLine =
+    reportedLine !== undefined && Number.isInteger(reportedLine) && reportedLine >= 1
+      ? reportedLine
+      : undefined;
+
+  let nearestStart: number | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+
   for (let start = 0; start <= lastStart; start++) {
-    if (blockMatches(sourceLines, start, snippetLines)) {
+    if (!blockMatches(sourceLines, start, snippetLines)) {
+      continue;
+    }
+    if (targetLine === undefined) {
       return {
         line: start + 1,
         sourceSnippet: joinSourceBlock(sourceLines, start, snippetLines.length),
       };
     }
+    const distance = Math.abs(start + 1 - targetLine);
+    if (distance < nearestDistance) {
+      nearestStart = start;
+      nearestDistance = distance;
+    }
   }
 
-  return null;
+  if (nearestStart === null) {
+    return null;
+  }
+
+  return {
+    line: nearestStart + 1,
+    sourceSnippet: joinSourceBlock(
+      sourceLines,
+      nearestStart,
+      snippetLines.length,
+    ),
+  };
 }
 
 /** Short quoted preview so CI logs show why a snippet was dropped. */

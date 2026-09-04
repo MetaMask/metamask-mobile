@@ -77,6 +77,20 @@ describe('locateSnippetInSource', () => {
 
     expect(result).toBeNull();
   });
+
+  it('picks the occurrence closest to the reported line when the snippet is duplicated', () => {
+    const source = [
+      '    await new Promise((r) => setTimeout(r, 50));',
+      "  it('first', () => {});",
+      "  it('waits with a real timer', async () => {",
+      '    await new Promise((r) => setTimeout(r, 50));',
+    ].join('\n');
+    const snippet = '    await new Promise((r) => setTimeout(r, 50));';
+
+    const result = locateSnippetInSource(source, snippet, 3);
+
+    expect(result?.line).toBe(4);
+  });
 });
 
 describe('snippetMismatchPreview', () => {
