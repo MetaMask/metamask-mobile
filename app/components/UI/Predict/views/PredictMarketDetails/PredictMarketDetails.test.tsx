@@ -884,7 +884,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       expect(
-        screen.getByTestId(getPredictMarketDetailsSelector.icon('ArrowLeft')),
+        screen.getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
       ).toBeOnTheScreen();
     });
 
@@ -1035,7 +1035,7 @@ describe('PredictMarketDetails', () => {
       const { mockGoBack, mockCanGoBack } = setupPredictMarketDetailsTest();
 
       const backButton = screen.getByTestId(
-        getPredictMarketDetailsSelector.icon('ArrowLeft'),
+        PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
       );
       fireEvent.press(backButton);
 
