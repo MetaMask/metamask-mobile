@@ -28,6 +28,7 @@ const initialRootState: RootState = {
     isPna25Acknowledged: false,
     newPrivacyPolicyToastClickedOrClosed: false,
     newPrivacyPolicyToastShownDate: null,
+    arcUsageNoticeShown: false,
   },
   collectibles: undefined,
   engine: { backgroundState },

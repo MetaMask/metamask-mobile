@@ -36,6 +36,24 @@ describe('isDeviceHealthError', () => {
     ).toBe(true);
   });
 
+  it('returns true for shared-adb transport faults (socket hang up / protocol fault)', () => {
+    expect(
+      isDeviceHealthError(
+        new Error(
+          'Could not proxy command to the remote server. Original error: socket hang up when running "element"',
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isDeviceHealthError(
+        new Error('adb: error: protocol fault (could not read status)'),
+      ),
+    ).toBe(true);
+    expect(isDeviceHealthError(new Error('adb: error: device offline'))).toBe(
+      true,
+    );
+  });
+
   it('returns false for ordinary assertion failures', () => {
     expect(
       isDeviceHealthError(

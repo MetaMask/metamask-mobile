@@ -50,6 +50,10 @@ export interface AwaitExternalTransactionReceiptResult {
   pollAttempts: number;
 }
 
+interface Receipt {
+  status?: string | number;
+}
+
 const delay = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -77,6 +81,44 @@ const raceWithTimeout = <T>(
       },
     );
   });
+
+const assertShouldContinue = (
+  shouldContinue: (() => boolean) | undefined,
+  txHash: string,
+): void => {
+  if (shouldContinue && !shouldContinue()) {
+    throw new ExternalTransactionMonitorCancelledError(txHash);
+  }
+};
+
+const isReceiptSuccess = (receipt: Receipt): boolean => {
+  const status =
+    typeof receipt.status === 'string'
+      ? Number.parseInt(receipt.status, 16)
+      : receipt.status;
+  return status === 1;
+};
+
+/**
+ * Returns true when a receipt confirms success. Throws on revert.
+ * Returns false while the receipt is still pending (null).
+ */
+const evaluateReceipt = (receipt: Receipt | null, txHash: string): boolean => {
+  if (!receipt) {
+    return false;
+  }
+  if (isReceiptSuccess(receipt)) {
+    return true;
+  }
+  throw new ExternalTransactionRevertedError(txHash);
+};
+
+const isTerminalPollError = (error: unknown): boolean =>
+  error instanceof ExternalTransactionReceiptTimeoutError ||
+  error instanceof ExternalTransactionRevertedError;
+
+const toPollErrorCode = (error: unknown): string =>
+  error instanceof Error ? error.name || 'Error' : 'unknown';
 
 /**
  * Polls for an externally-submitted transaction receipt (e.g. a Card provider
@@ -113,10 +155,8 @@ export const awaitExternalTransactionReceipt = async (
   };
 
   // Immediate first attempt, then interval polling.
-  for (;;) {
-    if (shouldContinue && !shouldContinue()) {
-      throw new ExternalTransactionMonitorCancelledError(txHash);
-    }
+  while (true) {
+    assertShouldContinue(shouldContinue, txHash);
 
     const budgetMs = remainingMs();
     if (budgetMs === 0) {
@@ -138,28 +178,17 @@ export const awaitExternalTransactionReceipt = async (
             lastErrorAtAttempt,
           ),
       );
-      if (receipt) {
-        const status =
-          typeof receipt.status === 'string'
-            ? parseInt(receipt.status, 16)
-            : receipt.status;
-        if (status === 1) {
-          return {
-            elapsedMs: Date.now() - startedAt,
-            pollAttempts,
-          };
-        }
-        throw new ExternalTransactionRevertedError(txHash);
+      if (evaluateReceipt(receipt, txHash)) {
+        return {
+          elapsedMs: Date.now() - startedAt,
+          pollAttempts,
+        };
       }
     } catch (error) {
-      if (error instanceof ExternalTransactionReceiptTimeoutError) {
+      if (isTerminalPollError(error)) {
         throw error;
       }
-      if (error instanceof ExternalTransactionRevertedError) {
-        throw error;
-      }
-      lastPollErrorCode =
-        error instanceof Error ? error.name || 'Error' : 'unknown';
+      lastPollErrorCode = toPollErrorCode(error);
       // Continue polling on transient RPC errors.
     }
 
