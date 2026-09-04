@@ -61,6 +61,7 @@ import { useMoneyAccountSweepstakesOutcomeToast } from '../hooks/useMoneyAccount
 import VipIcon from '../../../../images/rewards/vip.svg';
 import Engine from '../../../../core/Engine';
 import { handleDeeplink } from '../../../../core/DeeplinkManager';
+import { PrototypeExistingUserInviteHost } from '../components/ReferralRevenueShareDashboard/ReferralRevenueShareDashboard';
 
 const VIP_UNLOCK_TAP_COUNT = 5;
 const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
@@ -510,6 +511,7 @@ const RewardsDashboard: React.FC = () => {
             <BenefitsPreview />
           </Box>
         </ScrollView>
+        <PrototypeExistingUserInviteHost />
       </SafeAreaView>
     </ErrorBoundary>
   );
