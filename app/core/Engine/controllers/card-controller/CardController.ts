@@ -1,5 +1,4 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { ethers } from 'ethers';
 import { numberToHex, type Hex, type Json } from '@metamask/utils';
 import {
   TransactionType,
@@ -21,6 +20,8 @@ import {
   type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
+  type CardHomeDataError,
+  type CardHomeDataErrorReason,
   type FetchCardHomeDataOptions,
 } from './types';
 import type { CardLocation } from '../../../../components/UI/Card/types';
@@ -64,6 +65,7 @@ import {
   isCardAuthTokenError,
   CardProviderIds,
   type CardProviderId,
+  type UserResponse,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
 import { CardOnboardingStore } from './CardOnboardingStore';
@@ -75,19 +77,11 @@ import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
 } from './utils/awaitTransactionConfirmed';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import {
-  isMoneyAccountDelegatedForCard,
-  resolveMoneyAccountCardToken,
-} from './utils/moneyAccountCardToken';
-import {
-  getVedaTokenConfig,
   MONEY_ACCOUNT_DELEGATION_NETWORK,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
 } from '../../../../components/UI/Card/util/vedaToken';
-import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
-import { readErc20AllowanceAndBalance } from '../../../../components/UI/Card/util/onChainAllowance';
-import { toCardFundingToken } from '../../../../components/UI/Card/util/toCardTokenAllowance';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -109,13 +103,6 @@ import type { CardApiSupportedRegionsResponse } from './services/card-supported-
 const CARDHOLDER_BATCH_SIZE = 50;
 const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
-const PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY =
-  'pendingMoneyAccountCardRegistration';
-
-interface PendingMoneyAccountCardRegistration {
-  cardId: string;
-  moneyAccountAddress: string;
-}
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
@@ -178,6 +165,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
+  cardHomeDataError: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
   cardHomeDataFetchedThisSession: {
     persist: false,
     includeInDebugSnapshot: false,
@@ -203,6 +196,7 @@ export const defaultCardControllerState: CardControllerState = {
   cardHomeData: null,
   cardHomeDataAddress: null,
   cardHomeDataStatus: 'idle',
+  cardHomeDataError: null,
   cardHomeDataFetchedThisSession: false,
   moneyAccountCardLinkInProgress: false,
 };
@@ -287,6 +281,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -308,9 +303,8 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed).
-    // The selector traverses all wallet→group→account IDs so the handler fires
-    // for both new wallets and new accounts added within an existing wallet.
+    // Re-check when the account tree changes (account added/removed) or the
+    // selected group changes. Membership alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
@@ -319,14 +313,17 @@ export class CardController extends BaseController<
         this.#handleAccountSwitch();
       },
       (state) =>
-        Object.values(state.accountTree?.wallets ?? {})
-          .flatMap((wallet) =>
-            Object.values(wallet.groups ?? {}).flatMap(
-              (group) => group.accounts ?? [],
-            ),
-          )
-          .sort()
-          .join(','),
+        [
+          state.selectedAccountGroup ?? '',
+          Object.values(state.accountTree?.wallets ?? {})
+            .flatMap((wallet) =>
+              Object.values(wallet.groups ?? {}).flatMap(
+                (group) => group.accounts ?? [],
+              ),
+            )
+            .sort()
+            .join(','),
+        ].join('|'),
     );
 
     this.messenger.subscribe(
@@ -360,6 +357,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
     });
   }
 
@@ -632,8 +630,19 @@ export class CardController extends BaseController<
       // fetch: doing so stops `useCardHomeData` retrying once an address
       // exists, stranding restored data until a forced refresh.
       if (!hasRestoredCardHomeData) {
+        const cardHomeDataError =
+          this.#buildCardHomeDataError('no_evm_address');
+        Logger.error(new Error('CardHomeData fetch aborted: no EVM address'), {
+          tags: { feature: 'card', reason: 'no_evm_address' },
+          context: {
+            name: 'CardController',
+            data: { method: 'fetchCardHomeData' },
+          },
+        });
         this.update((s) => {
           s.cardHomeDataStatus = 'error';
+          (s as unknown as CardControllerState).cardHomeDataError =
+            cardHomeDataError as unknown as Record<string, Json>;
         });
       }
       return;
@@ -665,25 +674,41 @@ export class CardController extends BaseController<
             data as unknown as Record<string, Json>;
           s.cardHomeDataAddress = address;
           s.cardHomeDataStatus = 'success';
+          s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
+        const cardHomeDataError = this.#classifyCardHomeError(error);
         Logger.error(error as Error, {
-          tags: { feature: 'card' },
+          tags: {
+            feature: 'card',
+            reason: cardHomeDataError.reason,
+          },
           context: {
             name: 'CardController',
-            data: { method: 'fetchCardHomeData' },
+            data: {
+              method: 'fetchCardHomeData',
+              code: cardHomeDataError.code,
+              statusCode: cardHomeDataError.statusCode,
+            },
           },
         });
+        // Read at completion so a joined forced call's failure stays visible.
+        const recordsFailure = !this.#silentRevalidation;
         this.update((s) => {
-          // Read at completion so a joined forced call's failure stays visible.
-          if (!this.#silentRevalidation) {
+          if (recordsFailure) {
             s.cardHomeDataStatus = 'error';
+            (s as unknown as CardControllerState).cardHomeDataError =
+              cardHomeDataError as unknown as Record<string, Json>;
           }
         });
-        this.#lastFetchedAt = Date.now();
+        // A swallowed failure leaves restored data on screen with no error to
+        // retry from, so the freshness window must not suppress the next fetch.
+        if (recordsFailure) {
+          this.#lastFetchedAt = Date.now();
+        }
       }
     }
   }
@@ -705,12 +730,101 @@ export class CardController extends BaseController<
           annotateTrace(context, { success: true });
           return data;
         } catch (error) {
+          const classified = this.#classifyCardHomeError(error);
           annotateTrace(context, {
             success: false,
             error_name: (error as Error)?.name ?? 'unknown',
+            reason: classified.reason,
+            ...(typeof classified.statusCode === 'number'
+              ? { statusCode: classified.statusCode }
+              : {}),
+            ...(typeof classified.code === 'string'
+              ? { code: classified.code }
+              : {}),
           });
           throw error;
         }
+      },
+    );
+  }
+
+  #buildCardHomeDataError(
+    reason: CardHomeDataErrorReason,
+    extras: { code?: string; statusCode?: number } = {},
+  ): CardHomeDataError {
+    return {
+      reason,
+      code: extras.code ?? null,
+      statusCode: extras.statusCode ?? null,
+      at: Date.now(),
+    };
+  }
+
+  #getCardHomeErrorStatusCode(error: unknown): number | undefined {
+    if (error instanceof CardProviderError || error instanceof CardApiError) {
+      return error.statusCode;
+    }
+    const statusCode = (error as { statusCode?: unknown })?.statusCode;
+    return typeof statusCode === 'number' ? statusCode : undefined;
+  }
+
+  #getCardHomeErrorCode(error: unknown): string | undefined {
+    if (error instanceof CardProviderError) {
+      return error.code;
+    }
+    if (error instanceof CardApiError) {
+      return error.errorCode;
+    }
+    return undefined;
+  }
+
+  #classifyCardHomeErrorReason(
+    error: unknown,
+    statusCode: number | undefined,
+  ): CardHomeDataErrorReason {
+    const providerCode =
+      error instanceof CardProviderError ? error.code : undefined;
+
+    if (
+      error instanceof CardProviderError &&
+      error.message.startsWith('No active provider')
+    ) {
+      return 'no_active_provider';
+    }
+    if (
+      statusCode === 401 ||
+      providerCode === CardProviderErrorCode.InvalidCredentials
+    ) {
+      return 'auth_expired';
+    }
+    if (statusCode === 429) {
+      return 'rate_limited';
+    }
+    if (
+      statusCode === 0 ||
+      statusCode === 408 ||
+      providerCode === CardProviderErrorCode.Network ||
+      providerCode === CardProviderErrorCode.Timeout
+    ) {
+      return 'network';
+    }
+    if (
+      (statusCode !== undefined && statusCode >= 500) ||
+      providerCode === CardProviderErrorCode.ServerError
+    ) {
+      return 'server_error';
+    }
+    return 'unknown';
+  }
+
+  #classifyCardHomeError(error: unknown): CardHomeDataError {
+    const statusCode = this.#getCardHomeErrorStatusCode(error);
+    const code = this.#getCardHomeErrorCode(error);
+    return this.#buildCardHomeDataError(
+      this.#classifyCardHomeErrorReason(error, statusCode),
+      {
+        ...(code !== undefined ? { code } : {}),
+        ...(statusCode !== undefined ? { statusCode } : {}),
       },
     );
   }
@@ -730,6 +844,18 @@ export class CardController extends BaseController<
     const { internalAccounts } = this.messenger.call(
       'AccountsController:getState',
     );
+
+    try {
+      const groupAccount = this.messenger.call(
+        'AccountTreeController:getAccountFromSelectedAccountGroup',
+      );
+      if (groupAccount && isEthAccount(groupAccount)) {
+        return groupAccount.address;
+      }
+    } catch {
+      // Fall through to the legacy selectedAccount pointer.
+    }
+
     const selected =
       internalAccounts.accounts[internalAccounts.selectedAccount];
     if (!selected || !isEthAccount(selected)) return null;
@@ -807,6 +933,7 @@ export class CardController extends BaseController<
         s.cardHomeData = null;
         s.cardHomeDataAddress = null;
         s.cardHomeDataStatus = 'idle';
+        s.cardHomeDataError = null;
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
         ] = { location: tokenSet.location };
@@ -867,6 +994,7 @@ export class CardController extends BaseController<
       s.cardHomeData = null;
       s.cardHomeDataAddress = null;
       s.cardHomeDataStatus = 'idle';
+      s.cardHomeDataError = null;
       if (pid) {
         (s.providerData as unknown as Record<string, Record<string, string>>)[
           pid
@@ -1422,6 +1550,22 @@ export class CardController extends BaseController<
     );
   }
 
+  /**
+   * Authenticated profile for the active provider (`GET /v1/user` on Baanx).
+   * Used by UK migration SignUp prefill while the Baanx session is still active.
+   */
+  async getUserDetails(): Promise<UserResponse> {
+    const provider = this.getActiveProvider();
+    const getUserDetails = provider.getUserDetails?.bind(provider);
+    if (!getUserDetails) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'User details not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getUserDetails(tokens));
+  }
+
   async updateAssetPriority(
     asset: CardFundingAsset,
     allAssets: CardFundingAsset[],
@@ -1564,281 +1708,6 @@ export class CardController extends BaseController<
     return this.state.moneyAccountCardLinkInProgress;
   }
 
-  /**
-   * Cross-device guardrail: detects whether the primary Money Account is
-   * already linked to a DIFFERENT card account than the one the given tokens
-   * authenticate.
-   *
-   * The server-side registration (`GET /v1/wallet/external`) is scoped to the
-   * authenticated card user, so a link created on another device under a
-   * different card login is invisible to this session. The on-chain Monad
-   * allowance from the Money Account to the delegation contract, however, is
-   * globally observable. A non-zero allowance combined with the Money Account
-   * being absent from this session's funding wallets means the Money Account
-   * is delegated to another card account, unless this controller recorded
-   * that the same card confirmed the approval but failed to complete provider
-   * registration. That card-bound marker allows a safe retry without letting
-   * a different card bypass the guardrail.
-   *
-   * Fail-open by design: any error in the check (RPC unreachable, wallet
-   * fetch failure) resolves to `false` so a degraded network never blocks
-   * linking. Returns `false` immediately when there is no primary Money
-   * Account or the provider exposes no Monad delegation config (e.g.
-   * Immersve), since the guardrail is then irrelevant.
-   *
-   * Only the LINK flow enforces this check (product decision): logging in
-   * to a second card is allowed; creating a second link is not.
-   *
-   * @param tokens - Auth tokens for the card session being checked.
-   */
-  async #detectMoneyAccountCardConflict(
-    tokens: CardAuthTokens,
-  ): Promise<{ hasConflict: boolean; cardId?: string }> {
-    let stage = 'select_money_account';
-    try {
-      const moneyAccountAddress = selectPrimaryMoneyAccount(
-        ReduxService.store.getState() as RootState,
-      )?.address;
-      if (!moneyAccountAddress) {
-        Logger.log(
-          'CardController: Money Account card conflict check skipped — no primary Money Account',
-        );
-        return { hasConflict: false };
-      }
-
-      stage = 'fetch_card_home_data';
-      const provider = this.getActiveProvider();
-      const homeData = await provider.getCardHomeData(
-        moneyAccountAddress,
-        tokens,
-      );
-      const cardId = homeData.card?.id;
-
-      stage = 'resolve_veda_config';
-      const vedaConfig = getVedaTokenConfig(homeData.delegationSettings);
-      if (!vedaConfig?.delegationContract) {
-        Logger.log(
-          'CardController: Money Account card conflict check skipped — no Monad delegation config',
-          { hasDelegationSettings: Boolean(homeData.delegationSettings) },
-        );
-        return { hasConflict: false, cardId };
-      }
-
-      // Money Account registered on THIS card session — same card owns the
-      // link (re-login on the original card, or a spending-cap update).
-      const fundingTokens = homeData.fundingAssets.map((asset) =>
-        toCardFundingToken(asset),
-      );
-      if (
-        isMoneyAccountDelegatedForCard({
-          fundingTokens,
-          moneyAccountAddress,
-          vedaConfig,
-        })
-      ) {
-        Logger.log(
-          'CardController: Money Account card conflict check — delegated to this card session, no conflict',
-        );
-        return { hasConflict: false, cardId };
-      }
-
-      if (
-        cardId &&
-        this.#isPendingRegistrationForCurrentCard(cardId, moneyAccountAddress)
-      ) {
-        Logger.log(
-          'CardController: Money Account card conflict check — retrying pending registration for this card, no conflict',
-        );
-        return { hasConflict: false, cardId };
-      }
-
-      stage = 'read_on_chain_allowance';
-      const allowance = await this.#readMoneyAccountDelegationAllowance({
-        caipChainId: vedaConfig.caipChainId,
-        tokenAddress: vedaConfig.address,
-        owner: moneyAccountAddress,
-        spender: vedaConfig.delegationContract,
-        decimals: vedaConfig.decimals,
-      });
-      const allowanceFloat = parseFloat(allowance);
-      const hasConflict = Number.isFinite(allowanceFloat) && allowanceFloat > 0;
-      Logger.log(
-        'CardController: Money Account card conflict check — on-chain allowance read',
-        {
-          allowance,
-          hasConflict,
-          caipChainId: vedaConfig.caipChainId,
-          token: vedaConfig.address,
-          owner: moneyAccountAddress,
-          spender: vedaConfig.delegationContract,
-        },
-      );
-      return { hasConflict, cardId };
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: {
-          name: 'CardController',
-          data: { method: 'detectMoneyAccountCardConflict', stage },
-        },
-      });
-      return { hasConflict: false };
-    }
-  }
-
-  #isPendingRegistrationForCurrentCard(
-    cardId: string,
-    moneyAccountAddress: string,
-  ): boolean {
-    const providerId = this.state.activeProviderId;
-    if (!providerId) return false;
-
-    const pendingValue =
-      this.state.providerData[providerId]?.[
-        PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY
-      ];
-    if (
-      !pendingValue ||
-      typeof pendingValue !== 'object' ||
-      Array.isArray(pendingValue)
-    ) {
-      return false;
-    }
-    const pending =
-      pendingValue as unknown as PendingMoneyAccountCardRegistration;
-    return (
-      typeof pending.cardId === 'string' &&
-      typeof pending.moneyAccountAddress === 'string' &&
-      pending.cardId === cardId &&
-      pending.moneyAccountAddress.toLowerCase() ===
-        moneyAccountAddress.toLowerCase()
-    );
-  }
-
-  #setPendingRegistrationForCurrentCard(
-    cardId: string,
-    moneyAccountAddress: string,
-  ): void {
-    const providerId = this.state.activeProviderId;
-    if (!providerId) return;
-
-    const providerData = this.state.providerData[providerId] ?? {};
-    const nextProviderData: CardControllerState['providerData'] = {
-      ...this.state.providerData,
-      [providerId]: {
-        ...providerData,
-        [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: {
-          cardId,
-          moneyAccountAddress,
-        },
-      },
-    };
-    this.update(() => ({
-      ...this.state,
-      providerData: nextProviderData,
-    }));
-  }
-
-  #clearPendingRegistrationForCurrentCard(): void {
-    const providerId = this.state.activeProviderId;
-    if (!providerId) return;
-
-    const providerData = this.state.providerData[providerId];
-    if (!providerData) return;
-
-    const {
-      [PENDING_MONEY_ACCOUNT_CARD_REGISTRATION_KEY]: _pendingRegistration,
-      ...remainingProviderData
-    } = providerData;
-    const nextProviderData: CardControllerState['providerData'] = {
-      ...this.state.providerData,
-      [providerId]: remainingProviderData,
-    };
-    this.update(() => ({
-      ...this.state,
-      providerData: nextProviderData,
-    }));
-  }
-
-  /**
-   * Reads the Money Account's ERC-20 allowance to the delegation contract.
-   *
-   * Tries the dedicated Monad RPC first (the pattern every other Card
-   * on-chain read uses — `StaticJsonRpcProvider` with `skipFetchSetup`,
-   * required in React Native), then falls back to the app's own network
-   * client. Throws only when every provider fails, so the caller's
-   * fail-open handling still applies.
-   */
-  async #readMoneyAccountDelegationAllowance(params: {
-    caipChainId: string;
-    tokenAddress: string;
-    owner: string;
-    spender: string;
-    decimals: number;
-  }): Promise<string> {
-    const { caipChainId, tokenAddress, owner, spender, decimals } = params;
-    const chainNumber = Number.parseInt(caipChainId.split(':')[1] ?? '', 10);
-
-    const providers: ethers.providers.Provider[] = [];
-    const rpcUrl = cardNetworkInfos[MONEY_ACCOUNT_DELEGATION_NETWORK]?.rpcUrl;
-    // An Infura URL without a project ID ends in `/v3/` — unusable.
-    if (rpcUrl && !rpcUrl.endsWith('/v3/') && Number.isFinite(chainNumber)) {
-      providers.push(
-        new ethers.providers.StaticJsonRpcProvider(
-          { url: rpcUrl, skipFetchSetup: true },
-          { name: MONEY_ACCOUNT_DELEGATION_NETWORK, chainId: chainNumber },
-        ),
-      );
-    }
-    try {
-      providers.push(this.#getEthersProviderForCaipChainId(caipChainId));
-    } catch {
-      // Monad not configured in NetworkController — static RPC remains.
-    }
-
-    let lastError: unknown;
-    for (const provider of providers) {
-      try {
-        const { allowance } = await readErc20AllowanceAndBalance(
-          provider,
-          tokenAddress,
-          owner,
-          spender,
-          decimals,
-        );
-        return allowance;
-      } catch (error) {
-        lastError = error;
-        Logger.log(
-          'CardController: delegation allowance read failed, trying next provider',
-          { message: (error as Error)?.message },
-        );
-      }
-    }
-    throw (
-      (lastError as Error) ??
-      new Error('No RPC provider available for the delegation allowance read')
-    );
-  }
-
-  #getEthersProviderForCaipChainId(
-    caipChainId: string,
-  ): ethers.providers.Web3Provider {
-    const chainNumber = parseInt(caipChainId.split(':')[1] ?? '143', 10);
-    const hexChainId = numberToHex(chainNumber) as Hex;
-    const networkClientId = this.messenger.call(
-      'NetworkController:findNetworkClientIdByChainId',
-      hexChainId,
-    );
-    const networkClient = this.messenger.call(
-      'NetworkController:getNetworkClientById',
-      networkClientId,
-    );
-    return new ethers.providers.Web3Provider(
-      networkClient.provider as unknown as ethers.providers.ExternalProvider,
-    );
-  }
-
   async #linkMoneyAccountCardUnsafe(params: {
     moneyAccountAddress: string;
     delegationAmountHuman: string;
@@ -1865,7 +1734,7 @@ export class CardController extends BaseController<
     }
 
     // Fail fast before any transaction work when there is no usable session.
-    const tokens = await this.requireValidTokens();
+    await this.requireValidTokens();
     const provider = this.getActiveProvider();
     if (
       !provider.fetchDelegationChallenge ||
@@ -1876,30 +1745,6 @@ export class CardController extends BaseController<
         CardProviderErrorCode.Unknown,
         'Money account card delegation is not supported for this provider',
       );
-    }
-
-    // Pre-flight: refuse to link when the Money Account is already delegated
-    // on-chain to a different card account (linked from another device under
-    // another card login). Never blocks unlink/revoke (amount "0") so users
-    // can always take an allowance down.
-    const delegationAmountFloat = parseFloat(delegationAmountHuman);
-    let currentCardId: string | undefined;
-    if (Number.isFinite(delegationAmountFloat) && delegationAmountFloat > 0) {
-      Logger.log(
-        'CardController: running Money Account card conflict check (link)',
-      );
-      const conflictResult = await this.#detectMoneyAccountCardConflict(tokens);
-      currentCardId = conflictResult.cardId;
-      Logger.log(
-        'CardController: Money Account card conflict check (link) result',
-        { hasConflict: conflictResult.hasConflict },
-      );
-      if (conflictResult.hasConflict) {
-        throw new CardProviderError(
-          CardProviderErrorCode.MoneyAccountLinkedToDifferentCard,
-          'Money Account is already linked to a different card account',
-        );
-      }
     }
 
     const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
@@ -2017,17 +1862,6 @@ export class CardController extends BaseController<
 
     const txHash = confirmedMeta.hash ?? '';
 
-    // The approval is now globally visible on-chain, but the provider has not
-    // registered it yet. Persist which card initiated it so a failed
-    // post-approval can be retried by this card without being mistaken for a
-    // cross-device conflict. A different card ID cannot use this exception.
-    if (currentCardId) {
-      this.#setPendingRegistrationForCurrentCard(
-        currentCardId,
-        moneyAccountAddress,
-      );
-    }
-
     await this.approveFunding({
       address: fromAddress,
       network: MONEY_ACCOUNT_DELEGATION_NETWORK,
@@ -2038,7 +1872,6 @@ export class CardController extends BaseController<
       sigMessage: signatureMessage,
       token: delegationToken,
     });
-    this.#clearPendingRegistrationForCurrentCard();
 
     try {
       await this.fetchCardHomeData({ force: true });

@@ -40,6 +40,7 @@ interface InitialStatePerpsOptions {
 export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
   createStateFixture()
     .withMinimalAccounts()
+    .withAccountTreeForSelectedAccount()
     .withMinimalKeyringController()
     .withMinimalTokenRates()
     .withMinimalMultichainBalances()
@@ -54,6 +55,10 @@ export const initialStatePerps = (options: InitialStatePerpsOptions = {}) =>
         minimumVersion: null,
       },
       perpsWatchlistV2Enabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+      perpsMobileChase: {
         enabled: true,
         minimumVersion: '0.0.0',
       },

@@ -27,6 +27,7 @@ import {
   InsufficientNativeReserveBanner,
   MissingQuoteAndAssetsPriceDataBanner,
   QuoteErrorBanner,
+  DestAssetRequireActivateBanner,
   SwapsBanners,
   TokenWarningBanner,
 } from '../../../components/SwapsBanners';
@@ -229,6 +230,7 @@ const BridgeRecurringBuyViewContent = ({
               <HardwareWalletUnsupportedBanner />
               <QuoteErrorBanner />
               <TokenWarningBanner />
+              <DestAssetRequireActivateBanner />
               <InsufficientNativeReserveBanner />
               <MissingQuoteAndAssetsPriceDataBanner />
             </SwapsBanners>
@@ -316,6 +318,7 @@ const BridgeRecurringBuyViewContent = ({
         <RecurringConfirmOrderSheet
           isVisible={isConfirmSheetVisible}
           onClose={handleConfirmSheetClosed}
+          latestSourceBalance={latestSourceBalance}
         />
       </Box>
     </Box>

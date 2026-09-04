@@ -15,10 +15,12 @@ function getInitRequestMock({
   analyticsId,
   analyticsEnabled,
   pna25Acknowledged,
+  basicFunctionalityEnabled,
 }: {
   analyticsId: string;
   analyticsEnabled: boolean;
   pna25Acknowledged: boolean;
+  basicFunctionalityEnabled: boolean;
 }): jest.Mocked<
   MessengerClientInitRequest<
     ProfileMetricsControllerMessenger,
@@ -32,6 +34,9 @@ function getInitRequestMock({
   const mockGetState = jest.fn().mockReturnValue({
     legalNotices: {
       isPna25Acknowledged: pna25Acknowledged,
+    },
+    settings: {
+      basicFunctionalityEnabled,
     },
   });
 
@@ -60,30 +65,46 @@ describe.each([
     analyticsId: 'dd6395a5-7a84-47b8-8bc3-713170c2f3e8',
     analyticsEnabled: true,
     pna25Acknowledged: true,
+    basicFunctionalityEnabled: true,
   },
   {
     analyticsId: '898cbad5-7a5e-4ea1-8ca0-822bb4804665',
     analyticsEnabled: false,
     pna25Acknowledged: false,
+    basicFunctionalityEnabled: true,
   },
   {
     analyticsId: '9c9fe89c-76c3-4ad6-89f8-b76061159458',
     analyticsEnabled: false,
     pna25Acknowledged: false,
+    basicFunctionalityEnabled: false,
   },
   {
     analyticsId: '5aed4107-f430-4bb0-84c9-1e7031599cc2',
     analyticsEnabled: true,
     pna25Acknowledged: false,
+    basicFunctionalityEnabled: true,
   },
   {
     analyticsId: '3f4e2d2a-1c4e-4f5e-9f3a-2b6d8c9e7f10',
     analyticsEnabled: true,
     pna25Acknowledged: false,
+    basicFunctionalityEnabled: false,
+  },
+  {
+    analyticsId: '4a5f3e2d-1c4e-4f5e-9f3a-2b6d8c9e7f11',
+    analyticsEnabled: true,
+    pna25Acknowledged: true,
+    basicFunctionalityEnabled: false,
   },
 ])(
   'profileMetricsControllerInit',
-  ({ analyticsId, analyticsEnabled, pna25Acknowledged }) => {
+  ({
+    analyticsId,
+    analyticsEnabled,
+    pna25Acknowledged,
+    basicFunctionalityEnabled,
+  }) => {
     beforeEach(() => {
       jest.clearAllMocks();
     });
@@ -95,6 +116,7 @@ describe.each([
             analyticsId,
             analyticsEnabled,
             pna25Acknowledged,
+            basicFunctionalityEnabled,
           }),
         );
 
@@ -107,6 +129,7 @@ describe.each([
             analyticsId,
             analyticsEnabled,
             pna25Acknowledged,
+            basicFunctionalityEnabled,
           }),
         );
 
@@ -120,7 +143,7 @@ describe.each([
           initialDelayDuration: 60_000,
         });
         expect(controllerMock.mock.calls[0][0].assertUserOptedIn()).toBe(
-          analyticsEnabled && pna25Acknowledged,
+          analyticsEnabled && pna25Acknowledged && basicFunctionalityEnabled,
         );
         expect(controllerMock.mock.calls[0][0].getMetaMetricsId()).toBe(
           analyticsId,

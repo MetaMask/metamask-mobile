@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import {
   selectIsCardAuthenticated,
   selectCardActiveProviderId,
+  selectCardHomeDataError,
 } from '../../../../../../selectors/cardController';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
@@ -16,6 +17,7 @@ import { withCardProvider } from '../../../util/metrics';
 interface UseCardHomeAnalyticsParams {
   data: CardHomeData | null | undefined;
   isLoading: boolean;
+  isError: boolean;
   hasSetupActions: boolean;
   balanceFormatted: string | undefined;
   rawTokenBalance: number | undefined;
@@ -25,6 +27,7 @@ interface UseCardHomeAnalyticsParams {
 export function useCardHomeAnalytics({
   data,
   isLoading,
+  isError,
   hasSetupActions,
   balanceFormatted,
   rawTokenBalance,
@@ -32,12 +35,36 @@ export function useCardHomeAnalytics({
 }: UseCardHomeAnalyticsParams) {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const activeProviderId = useSelector(selectCardActiveProviderId);
+  const cardHomeDataError = useSelector(selectCardHomeDataError);
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const hasTracked = useRef(false);
+  const hasTrackedView = useRef(false);
+  const hasTrackedError = useRef(false);
 
   useEffect(() => {
     // Wait for a known provider so we don't permanently lock provider: null.
-    if (hasTracked.current || isLoading || !activeProviderId) return;
+    if (isLoading || !activeProviderId) return;
+
+    if (isError) {
+      if (hasTrackedError.current) return;
+      hasTrackedError.current = true;
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_HOME_ERROR)
+          .addProperties(
+            withCardProvider(activeProviderId, {
+              error_reason: cardHomeDataError?.reason ?? 'unknown',
+              error_status_code: cardHomeDataError?.statusCode,
+              error_code: cardHomeDataError?.code,
+            }),
+          )
+          .build(),
+      );
+      return;
+    }
+
+    // Re-armed on recovery so a later failure in the same visit is reported.
+    hasTrackedError.current = false;
+
+    if (hasTrackedView.current) return;
 
     const hasValidBalance =
       balanceFormatted !== undefined &&
@@ -48,7 +75,7 @@ export function useCardHomeAnalytics({
     const isLoaded = hasPrimaryAsset ? hasValidBalance : !isLoading;
 
     if (isLoaded) {
-      hasTracked.current = true;
+      hasTrackedView.current = true;
 
       let cardHomeState = 'VERIFIED';
       if (!isAuthenticated) {
@@ -93,8 +120,10 @@ export function useCardHomeAnalytics({
     trackEvent,
     createEventBuilder,
     isLoading,
+    isError,
     isAuthenticated,
     hasSetupActions,
     activeProviderId,
+    cardHomeDataError,
   ]);
 }

@@ -1,11 +1,14 @@
 import React from 'react';
 import { Box } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
+import type { CandlePeriod } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PriceChartProvider } from '../../../../UI/AssetOverview/PriceChart/PriceChart.context';
 import { TOKEN_OVERVIEW_CHART_HEIGHT } from '../../../../UI/AssetOverview/Price/tokenOverviewChart.constants';
+import { ChartType } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
 import type { TimePeriod } from '../useTraderPositionData';
 import TraderAdvancedChart, {
+  type PerpMetrics,
   type TradeFocusRequest,
 } from './TraderAdvancedChart';
 import TraderPriceChart from './TraderPriceChart';
@@ -31,11 +34,13 @@ export interface TraderPositionChartSectionProps {
    * and unsupported chains (which fall back to the legacy SVG chart).
    */
   assetId?: string;
-  /**
-   * Hyperliquid perp position — render the AdvancedChart from `historicalPrices`
-   * (no CAIP asset id / spot OHLCV feed).
-   */
+  /** Hyperliquid perp position — chart data comes from the perps stream adapter. */
   isPerp?: boolean;
+  /** Raw Hyperliquid perp symbol from the position (may include HIP-3 prefix). */
+  perpSymbol?: string;
+  /** Active perp candle period. */
+  selectedCandlePeriod?: CandlePeriod;
+  chartType: ChartType;
   activeTimePeriod: TimePeriod;
   /** Whether the selected period is still controlled by automatic trade framing. */
   shouldAutoRequestTimePeriod?: boolean;
@@ -45,8 +50,17 @@ export interface TraderPositionChartSectionProps {
   focusRequest?: TradeFocusRequest;
   /** Request a wider period when the focused trade is older than loaded chart data. */
   onRequestTimePeriod?: (period: TimePeriod) => void;
+  /** Request a coarser candle period when perp history is unavailable for the focused trade. */
+  onRequestCandlePeriod?: (period: CandlePeriod) => void;
+  /** Publishes header % change and latest price for perp positions. */
+  onPerpMetricsChange?: (metrics: PerpMetrics) => void;
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
   onTradeMarkerPress?: (id: string) => void;
+  /**
+   * Reports whether the AdvancedChart (which honors `chartType`) is active.
+   * False when the section falls back to TraderPriceChart.
+   */
+  onSupportsChartTypeChange?: (supported: boolean) => void;
   /**
    * When true, the chart stops capturing touches so drags fall through to the
    * scrolling list behind it once the chart is pinned as a scroll-linked overlay.
@@ -62,12 +76,18 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   trades,
   assetId,
   isPerp,
+  perpSymbol,
+  selectedCandlePeriod,
+  chartType,
   activeTimePeriod,
   shouldAutoRequestTimePeriod,
   onScrubPercentChange,
   focusRequest,
   onRequestTimePeriod,
+  onRequestCandlePeriod,
+  onPerpMetricsChange,
   onTradeMarkerPress,
+  onSupportsChartTypeChange,
   scrollPassthrough = false,
 }) => (
   <PriceChartProvider>
@@ -76,17 +96,23 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
         <TraderAdvancedChart
           assetId={assetId}
           isPerp={isPerp}
+          perpSymbol={perpSymbol}
+          selectedCandlePeriod={selectedCandlePeriod}
+          chartType={chartType}
           activeTimePeriod={activeTimePeriod}
           shouldAutoRequestTimePeriod={shouldAutoRequestTimePeriod}
           trades={trades}
           focusRequest={focusRequest}
           onRequestTimePeriod={onRequestTimePeriod}
+          onRequestCandlePeriod={onRequestCandlePeriod}
           historicalPrices={historicalPrices}
           priceDiff={priceDiff}
           isPricesLoading={isPricesLoading}
           onChartIndexChange={onChartIndexChange}
           onScrubPercentChange={onScrubPercentChange}
+          onPerpMetricsChange={onPerpMetricsChange}
           onTradeMarkerPress={onTradeMarkerPress}
+          onSupportsChartTypeChange={onSupportsChartTypeChange}
           chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
           scrollPassthrough={scrollPassthrough}
         />

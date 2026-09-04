@@ -222,7 +222,7 @@ import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../../UI/Predict';
 import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
-import { selectExploreEarnSectionEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
+import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import WhatsHappeningSection from '../../../UI/WhatsHappening';
 import NowTab from './NowTab';
@@ -260,19 +260,19 @@ const createMockSelectorImpl =
     perpsEnabled = false,
     predictEnabled = false,
     whatsHappeningEnabled = false,
-    earnSectionEnabled = false,
+    earnSectionVisible = false,
   }: {
     perpsEnabled?: boolean;
     predictEnabled?: boolean;
     whatsHappeningEnabled?: boolean;
-    earnSectionEnabled?: boolean;
+    earnSectionVisible?: boolean;
   }) =>
   (selector: unknown) => {
     if (selector === selectPerpsEnabledFlag) return perpsEnabled;
     if (selector === selectPredictEnabledFlag) return predictEnabled;
     if (selector === selectWhatsHappeningEnabled) return whatsHappeningEnabled;
-    if (selector === selectExploreEarnSectionEnabledFlag)
-      return earnSectionEnabled;
+    if (selector === selectIsExploreEarnSectionVisible)
+      return earnSectionVisible;
     return undefined;
   };
 
@@ -702,10 +702,10 @@ describe('NowTab — Crypto Movers', () => {
 });
 
 describe('NowTab — Earn section', () => {
-  it('renders Earn section without Homepage analytics metadata when enabled', () => {
+  it('renders Earn section without Homepage analytics metadata when visible', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab();
@@ -721,7 +721,7 @@ describe('NowTab — Earn section', () => {
   it('forwards Explore refresh trigger to Earn section', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab({
@@ -739,7 +739,7 @@ describe('NowTab — Earn section', () => {
   it('disables Earn when another Explore tab is active', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
 
     renderNowTab(defaultTabProps, { activeTab: 'Crypto' });
@@ -752,7 +752,7 @@ describe('NowTab — Earn section', () => {
   it('disables Earn when Explore screen is unfocused', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: true }),
+      createMockSelectorImpl({ earnSectionVisible: true }),
     );
     mockUseIsFocused.mockReturnValue(false);
 
@@ -763,10 +763,10 @@ describe('NowTab — Earn section', () => {
     );
   });
 
-  it('does not render Earn section when disabled', () => {
+  it('does not render Earn section when not visible', () => {
     const mocks = arrangeMocks();
     mocks.useSelector.mockImplementation(
-      createMockSelectorImpl({ earnSectionEnabled: false }),
+      createMockSelectorImpl({ earnSectionVisible: false }),
     );
 
     renderNowTab();

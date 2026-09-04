@@ -7,6 +7,7 @@ export interface BrowserParams {
   showTabsView?: boolean;
   existingTabId?: number;
   fromTrending?: boolean;
+  fromExploreSearch?: boolean;
   fromPerps?: boolean;
   fromBenefit?: boolean;
   fromCard?: boolean;
