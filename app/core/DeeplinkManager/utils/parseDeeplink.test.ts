@@ -71,6 +71,7 @@ describe('parseDeeplink', () => {
     jest.clearAllMocks();
     instance = {} as unknown as DeeplinkManager;
     mockHandleEthereumUrl.mockResolvedValue(undefined);
+    mockHandleSolanaUrl.mockResolvedValue(undefined);
     mockGetDappUrl.mockImplementation((urlObj) => {
       urlObj.set('protocol', 'https:');
       return urlObj.href;
@@ -180,7 +181,6 @@ describe('parseDeeplink', () => {
 
     expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
       url,
-      origin: 'testOrigin',
     });
   });
 

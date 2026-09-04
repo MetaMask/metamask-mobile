@@ -1,7 +1,45 @@
-import { parseSolanaPayUrl } from './parseSolanaPayUrl';
+import {
+  hasExcessiveSolanaPayDecimals,
+  normalizeSolanaPayAmount,
+  parseSolanaPayUrl,
+} from './parseSolanaPayUrl';
 
 const TRIPLE_A_RECIPIENT = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+
+describe('normalizeSolanaPayAmount', () => {
+  it('strips trailing zeros from decimal amounts', () => {
+    expect(normalizeSolanaPayAmount('25.515000')).toBe('25.515');
+    expect(normalizeSolanaPayAmount('25.5000')).toBe('25.5');
+    expect(normalizeSolanaPayAmount('1.0')).toBe('1');
+  });
+
+  it('rejects scientific notation, negatives, and malformed values', () => {
+    expect(normalizeSolanaPayAmount('1e5')).toBeNull();
+    expect(normalizeSolanaPayAmount('-1')).toBeNull();
+    expect(normalizeSolanaPayAmount('.5')).toBeNull();
+    expect(normalizeSolanaPayAmount('01')).toBeNull();
+    expect(normalizeSolanaPayAmount('1.')).toBeNull();
+    expect(normalizeSolanaPayAmount('abc')).toBeNull();
+  });
+
+  it('accepts valid Solana Pay amounts including zero', () => {
+    expect(normalizeSolanaPayAmount('0')).toBe('0');
+    expect(normalizeSolanaPayAmount('0.01')).toBe('0.01');
+    expect(normalizeSolanaPayAmount('1.5')).toBe('1.5');
+  });
+});
+
+describe('hasExcessiveSolanaPayDecimals', () => {
+  it('returns false when fractional digits fit the asset decimals', () => {
+    expect(hasExcessiveSolanaPayDecimals('25.515000', 6)).toBe(false);
+    expect(hasExcessiveSolanaPayDecimals('1.5', 9)).toBe(false);
+  });
+
+  it('returns true when fractional digits exceed the asset decimals', () => {
+    expect(hasExcessiveSolanaPayDecimals('1.1234567', 6)).toBe(true);
+  });
+});
 
 describe('parseSolanaPayUrl', () => {
   it('parses a Solana Pay transfer request with amount and USDC mint', () => {
@@ -12,9 +50,8 @@ describe('parseSolanaPayUrl', () => {
     expect(result).toEqual({
       type: 'transfer',
       recipient: TRIPLE_A_RECIPIENT,
-      amount: '25.515000',
+      amount: '25.515',
       splToken: USDC_MINT,
-      label: undefined,
       reference: undefined,
     });
   });
@@ -29,13 +66,12 @@ describe('parseSolanaPayUrl', () => {
       recipient: TRIPLE_A_RECIPIENT,
       amount: '1.5',
       splToken: undefined,
-      label: undefined,
       reference: undefined,
     });
   });
 
-  it('parses optional label and reference query params', () => {
-    const url = `solana:${TRIPLE_A_RECIPIENT}?amount=1&label=Emirates&reference=${TRIPLE_A_RECIPIENT}`;
+  it('parses optional reference query params', () => {
+    const url = `solana:${TRIPLE_A_RECIPIENT}?amount=1&reference=${TRIPLE_A_RECIPIENT}`;
 
     const result = parseSolanaPayUrl(url);
 
@@ -44,7 +80,6 @@ describe('parseSolanaPayUrl', () => {
       recipient: TRIPLE_A_RECIPIENT,
       amount: '1',
       splToken: undefined,
-      label: 'Emirates',
       reference: TRIPLE_A_RECIPIENT,
     });
   });
@@ -77,6 +112,12 @@ describe('parseSolanaPayUrl', () => {
     const result = parseSolanaPayUrl(url);
 
     expect(result).toBeNull();
+  });
+
+  it('returns null for a malformed amount', () => {
+    const url = `solana:${TRIPLE_A_RECIPIENT}?amount=1e5`;
+
+    expect(parseSolanaPayUrl(url)).toBeNull();
   });
 
   it('returns null when the scheme is not solana', () => {

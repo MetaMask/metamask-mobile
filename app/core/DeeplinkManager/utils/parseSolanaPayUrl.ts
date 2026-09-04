@@ -1,15 +1,22 @@
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import { trimTrailingZeros } from '../../../components/UI/Bridge/utils/trimTrailingZeros';
 
 const SOLANA_PAY_PREFIX = `${PROTOCOLS.SOLANA}:`;
+
+/**
+ * Solana Pay amount: non-negative integer or decimal in user units.
+ * No scientific notation; values < 1 must include a leading `0` before `.`.
+ * @see https://docs.solanapay.com/spec
+ */
+const SOLANA_PAY_AMOUNT_REGEX = /^(?:0|[1-9]\d*)(?:\.\d+)?$/;
 
 export interface SolanaPayTransferRequest {
   type: 'transfer';
   recipient: string;
   amount?: string;
   splToken?: string;
-  label?: string;
   reference?: string;
 }
 
@@ -25,6 +32,35 @@ export type SolanaPayParseResult =
 const isHttpUrl = (value: string) =>
   value.startsWith(`${PROTOCOLS.HTTP}:`) ||
   value.startsWith(`${PROTOCOLS.HTTPS}:`);
+
+/**
+ * Validates and normalizes a Solana Pay `amount` query value.
+ * Returns null when the amount is malformed.
+ */
+export function normalizeSolanaPayAmount(amount: string): string | null {
+  if (!SOLANA_PAY_AMOUNT_REGEX.test(amount)) {
+    return null;
+  }
+
+  return trimTrailingZeros(amount);
+}
+
+/**
+ * True when the amount's fractional digit count exceeds the asset's decimals
+ * (after trailing zeros are stripped, matching Solana Pay reference behavior).
+ */
+export function hasExcessiveSolanaPayDecimals(
+  amount: string,
+  decimals: number,
+): boolean {
+  const normalized = trimTrailingZeros(amount);
+  const decimalIndex = normalized.indexOf('.');
+  if (decimalIndex === -1) {
+    return false;
+  }
+
+  return normalized.length - decimalIndex - 1 > decimals;
+}
 
 /**
  * Parses a Solana Pay URI (`solana:<recipient>?amount=&spl-token=` or
@@ -63,9 +99,8 @@ export function parseSolanaPayUrl(url: string): SolanaPayParseResult | null {
   }
 
   const searchParams = new URLSearchParams(queryString);
-  const amount = searchParams.get('amount') ?? undefined;
+  const rawAmount = searchParams.get('amount');
   const splToken = searchParams.get('spl-token') ?? undefined;
-  const label = searchParams.get('label') ?? undefined;
   // Solana Pay allows repeated `reference` params; any presence must be
   // surfaced so the handler can reject unsupported reference-bearing URIs.
   const references = searchParams.getAll('reference').filter(Boolean);
@@ -75,12 +110,20 @@ export function parseSolanaPayUrl(url: string): SolanaPayParseResult | null {
     return null;
   }
 
+  let amount: string | undefined;
+  if (rawAmount !== null && rawAmount !== '') {
+    const normalized = normalizeSolanaPayAmount(rawAmount);
+    if (normalized === null) {
+      return null;
+    }
+    amount = normalized;
+  }
+
   return {
     type: 'transfer',
     recipient: path,
-    amount: amount || undefined,
+    amount,
     splToken: splToken || undefined,
-    label: label || undefined,
     reference: reference || undefined,
   };
 }
