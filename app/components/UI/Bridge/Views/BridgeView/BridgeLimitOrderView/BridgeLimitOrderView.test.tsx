@@ -150,6 +150,7 @@ jest.mock('../../../components/SwapsBanners', () => ({
   InsufficientNativeReserveBanner: () => null,
   MissingQuoteAndAssetsPriceDataBanner: () => null,
   QuoteErrorBanner: () => null,
+  DestAssetRequireActivateBanner: () => null,
   TokenWarningBanner: () => null,
 }));
 
@@ -299,6 +300,7 @@ function buildPriceAdjustMock() {
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
+    quotedToken: mockSourceToken,
     secondaryValue: undefined,
     value: '1',
   };

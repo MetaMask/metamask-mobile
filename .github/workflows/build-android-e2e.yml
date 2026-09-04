@@ -83,7 +83,7 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
       E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-android-build-metadata
     outputs:
-      apk-uploaded: ${{ steps.upload-apk-namespace.outcome == 'success' || steps.upload-apk.outcome == 'success' }}
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
@@ -628,6 +628,7 @@ jobs:
           E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
+          E2E_MOCK_OAUTH: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
@@ -699,6 +700,7 @@ jobs:
           E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
+          E2E_MOCK_OAUTH: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: 'true'
           CI: 'true'
@@ -883,67 +885,36 @@ jobs:
             }' > .e2e-build-metadata/android.json
           cat .e2e-build-metadata/android.json
 
-      - name: Upload Android APK (Namespace)
-        id: upload-apk-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
-          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-          retention-days: 7
-          if-no-files-found: error
-
-      # Always mirrored to the GitHub store, including on Namespace: cross-run
-      # reuse discovery lists artifacts through the GitHub API, which cannot see
-      # the Namespace store. See "Runner provider switch" in .github/CONTRIBUTING.md.
-      - name: Upload Android APK (GitHub store)
+      - name: Upload Android APK (artifact stores)
         id: upload-apk
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
-      - name: Upload Android Test APK (Namespace)
-        id: upload-test-apk-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
-          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          retention-days: 7
-          if-no-files-found: error
-
-      - name: Upload Android build metadata (Namespace)
-        id: upload-metadata-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
-          path: .e2e-build-metadata/android.json
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload Android build metadata (GitHub store)
-        id: upload-metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
-          path: .e2e-build-metadata/android.json
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload Android Test APK (GitHub store)
+      - name: Upload Android Test APK (artifact stores)
         id: upload-test-apk
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
+      - name: Upload Android build metadata (artifact stores)
+        id: upload-metadata
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/android.json
+          retention-days: 7
+          if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+        continue-on-error: true
 
       # Gradle builds every RN library module inside node_modules
       # (node_modules/<pkg>/android/build) and CMake writes to

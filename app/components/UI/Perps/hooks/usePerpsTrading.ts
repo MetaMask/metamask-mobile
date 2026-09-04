@@ -28,6 +28,8 @@ import {
   type OrderParams,
   type OrderResult,
   type Position,
+  type PositionModifyPreviewParams,
+  type PositionModifyPreviewResult,
   type SubscribeOrderFillsParams,
   type SubscribePricesParams,
   type SubscribePositionsParams,
@@ -61,6 +63,10 @@ import {
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
 
+type MobileCancelOrderParams = CancelOrderParams & {
+  skipCufConfirmationTrace?: boolean;
+};
+
 /**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
@@ -78,8 +84,14 @@ export function usePerpsTrading() {
   );
 
   const cancelOrder = useCallback(
-    async (params: CancelOrderParams): Promise<CancelOrderResult> => {
+    async ({
+      skipCufConfirmationTrace,
+      ...params
+    }: MobileCancelOrderParams): Promise<CancelOrderResult> => {
       const controller = Engine.context.PerpsController;
+      if (skipCufConfirmationTrace) {
+        return controller.cancelOrder(params);
+      }
       // Confirmation CUF: every cancel UI path funnels through here; the span
       // ends when the stream no longer lists the order.
       const cancelCufOpId = startPerpsCufTrace({
@@ -293,6 +305,16 @@ export function usePerpsTrading() {
     [],
   );
 
+  const previewPositionModify = useCallback(
+    async (
+      params: PositionModifyPreviewParams,
+    ): Promise<PositionModifyPreviewResult> => {
+      const controller = Engine.context.PerpsController;
+      return controller.previewPositionModify(params);
+    },
+    [],
+  );
+
   const calculateMaintenanceMargin = useCallback(
     async (params: MaintenanceMarginParams): Promise<number> => {
       const controller = Engine.context.PerpsController;
@@ -408,6 +430,7 @@ export function usePerpsTrading() {
     clearDepositResult,
     withdraw,
     calculateLiquidationPrice,
+    previewPositionModify,
     calculateMaintenanceMargin,
     getMaxLeverage,
     updatePositionTPSL,

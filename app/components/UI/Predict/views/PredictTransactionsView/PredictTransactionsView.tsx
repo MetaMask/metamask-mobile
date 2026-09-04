@@ -233,7 +233,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
     hasNextPage,
     fetchNextPage,
     refetch: refetchActivity,
-  } = usePredictActivity();
+  } = usePredictActivity({
+    // PredictPositionsView keeps this list mounted while the positions tab
+    // is showing. Skip the fetch until the history tab is actually visible
+    // (standalone usage omits `isVisible` and still fetches).
+    enabled: isVisible !== false,
+  });
 
   // Track screen load performance (activity data loaded)
   usePredictMeasurement({
