@@ -417,11 +417,7 @@ describe('usePerpsPostOrderTPSL', () => {
     await act(flushPromises);
     let attachmentResult: OrderResult | undefined;
     await act(async () => {
-      jest.advanceTimersByTime(
-        POST_ORDER_TPSL_RETRY_OFFSETS_MS[
-          POST_ORDER_TPSL_RETRY_OFFSETS_MS.length - 1
-        ],
-      );
+      jest.advanceTimersByTime(POST_ORDER_TPSL_RETRY_OFFSETS_MS.at(-1) ?? 0);
       attachmentResult = await attachment;
     });
 

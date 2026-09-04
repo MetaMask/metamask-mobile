@@ -4,6 +4,7 @@ import {
   type OrderParams,
   type OrderResult,
   type Position,
+  type UpdatePositionTPSLParams,
 } from '@metamask/perps-controller';
 import { ensureError } from '../../../../util/errorUtils';
 import Logger from '../../../../util/Logger';
@@ -35,7 +36,51 @@ type AttachmentWakeResult =
   | { type: 'delay' }
   | { type: 'context-changed' };
 
+interface AttachmentPositionState {
+  position?: Position;
+  waitBaselineSize?: string;
+}
+
+type AttachmentOutcome =
+  | { type: 'success'; result: OrderResult }
+  | { type: 'failure'; result: OrderResult; rejectedError?: Error }
+  | { type: 'context-changed' };
+
+type AttachmentPositionOutcome =
+  | { type: 'ready'; state: AttachmentPositionState }
+  | Extract<AttachmentOutcome, { type: 'failure' | 'context-changed' }>;
+
+type AttachmentPreparationOutcome =
+  | { type: 'ready'; state: AttachmentPositionState }
+  | Extract<AttachmentOutcome, { type: 'context-changed' }>;
+
+type PreparedAttachmentOutcome =
+  | {
+      type: 'attempted';
+      outcome: Extract<AttachmentOutcome, { type: 'failure' | 'success' }>;
+      state: AttachmentPositionState;
+    }
+  | Extract<AttachmentOutcome, { type: 'context-changed' }>;
+
+type UpdatePositionTPSL = (
+  params: UpdatePositionTPSLParams,
+) => Promise<OrderResult>;
+
+interface AttachmentCoordinatorParams {
+  order: PostOrderTPSLSource;
+  positionsStream: PerpsPositionStream;
+  updatePositionTPSL: UpdatePositionTPSL;
+  isContextCurrent: () => boolean;
+  startedAt: number;
+  initialBaselineSize?: string;
+}
+
 export const POST_ORDER_TPSL_RETRY_OFFSETS_MS = [0, 500, 2000, 4000] as const;
+
+const createPositionNotFoundResult = (): OrderResult => ({
+  success: false,
+  error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+});
 
 const getPerpsTradingContextKey = (): string => {
   const state = store.getState();
@@ -136,6 +181,191 @@ const waitForPositionOrDelay = (
   });
 };
 
+const resolveInitialAttachmentPosition = async ({
+  positionsStream,
+  order,
+  initialBaselineSize,
+  isContextCurrent,
+}: AttachmentCoordinatorParams): Promise<AttachmentPositionOutcome> => {
+  if (initialBaselineSize === undefined) {
+    return {
+      type: 'ready',
+      state: { waitBaselineSize: initialBaselineSize },
+    };
+  }
+
+  const wakeResult = await waitForPositionOrDelay(
+    positionsStream,
+    order.symbol,
+    initialBaselineSize,
+    POST_ORDER_TPSL_RETRY_OFFSETS_MS.at(-1) ?? 0,
+    isContextCurrent,
+  );
+  if (wakeResult.type === 'context-changed') {
+    return wakeResult;
+  }
+  if (wakeResult.type !== 'position') {
+    return { type: 'failure', result: createPositionNotFoundResult() };
+  }
+
+  return {
+    type: 'ready',
+    state: {
+      position: wakeResult.position,
+      waitBaselineSize: wakeResult.position.size,
+    },
+  };
+};
+
+const prepareAttachmentAttempt = async (
+  attemptIndex: number,
+  state: AttachmentPositionState,
+  {
+    positionsStream,
+    order,
+    startedAt,
+    isContextCurrent,
+  }: AttachmentCoordinatorParams,
+): Promise<AttachmentPreparationOutcome> => {
+  const targetOffset = POST_ORDER_TPSL_RETRY_OFFSETS_MS[attemptIndex];
+  const elapsedMs = Date.now() - startedAt;
+  const wakeResult = await waitForPositionOrDelay(
+    positionsStream,
+    order.symbol,
+    state.waitBaselineSize,
+    Math.max(0, targetOffset - elapsedMs),
+    isContextCurrent,
+  );
+  if (wakeResult.type === 'context-changed') {
+    return wakeResult;
+  }
+  if (wakeResult.type !== 'position') {
+    return { type: 'ready', state };
+  }
+
+  return {
+    type: 'ready',
+    state: {
+      position: wakeResult.position,
+      waitBaselineSize: wakeResult.position.size,
+    },
+  };
+};
+
+const executeAttachmentAttempt = async (
+  updatePositionTPSL: UpdatePositionTPSL,
+  order: PostOrderTPSLSource,
+  position?: Position,
+): Promise<Extract<AttachmentOutcome, { type: 'failure' | 'success' }>> => {
+  try {
+    const result = await updatePositionTPSL({
+      symbol: order.symbol,
+      takeProfitPrice: order.takeProfitPrice,
+      stopLossPrice: order.stopLossPrice,
+      position,
+    });
+    return result.success
+      ? { type: 'success', result }
+      : { type: 'failure', result };
+  } catch (error) {
+    const rejectedError = ensureError(
+      error,
+      'usePerpsPostOrderTPSL.attachPostOrderTPSL',
+    );
+    return {
+      type: 'failure',
+      result: {
+        success: false,
+        error: rejectedError.message,
+      },
+      rejectedError,
+    };
+  }
+};
+
+const executePreparedAttachmentAttempt = async (
+  attemptIndex: number,
+  state: AttachmentPositionState,
+  params: AttachmentCoordinatorParams,
+): Promise<PreparedAttachmentOutcome> => {
+  let preparedState = state;
+  if (attemptIndex > 0) {
+    const preparedAttempt = await prepareAttachmentAttempt(
+      attemptIndex,
+      state,
+      params,
+    );
+    if (preparedAttempt.type !== 'ready') {
+      return preparedAttempt;
+    }
+    preparedState = preparedAttempt.state;
+  }
+
+  const outcome = await executeAttachmentAttempt(
+    params.updatePositionTPSL,
+    params.order,
+    preparedState.position,
+  );
+  return { type: 'attempted', outcome, state: preparedState };
+};
+
+const isRetryableAttachmentFailure = (
+  outcome: Extract<AttachmentOutcome, { type: 'failure' }>,
+  attemptIndex: number,
+): boolean =>
+  isPerpsErrorCode(
+    outcome.result.error,
+    PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+  ) && attemptIndex < POST_ORDER_TPSL_RETRY_OFFSETS_MS.length - 1;
+
+const runPostOrderTPSLAttachment = async (
+  params: AttachmentCoordinatorParams,
+): Promise<AttachmentOutcome> => {
+  let initialPosition: AttachmentPositionOutcome = {
+    type: 'ready',
+    state: { waitBaselineSize: params.initialBaselineSize },
+  };
+  if (params.initialBaselineSize !== undefined) {
+    initialPosition = await resolveInitialAttachmentPosition(params);
+  }
+  if (initialPosition.type !== 'ready') {
+    return initialPosition;
+  }
+
+  let state = initialPosition.state;
+  for (
+    let attemptIndex = 0;
+    attemptIndex < POST_ORDER_TPSL_RETRY_OFFSETS_MS.length;
+    attemptIndex += 1
+  ) {
+    if (!params.isContextCurrent()) {
+      return { type: 'context-changed' };
+    }
+
+    const preparedAttempt = await executePreparedAttachmentAttempt(
+      attemptIndex,
+      state,
+      params,
+    );
+    if (preparedAttempt.type === 'context-changed') {
+      return preparedAttempt;
+    }
+    state = preparedAttempt.state;
+    const { outcome } = preparedAttempt;
+    if (!params.isContextCurrent()) {
+      return { type: 'context-changed' };
+    }
+    if (outcome.type === 'success') {
+      return outcome;
+    }
+    if (!isRetryableAttachmentFailure(outcome, attemptIndex)) {
+      return outcome;
+    }
+  }
+
+  return { type: 'failure', result: createPositionNotFoundResult() };
+};
+
 export function usePerpsPostOrderTPSL() {
   const { updatePositionTPSL } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
@@ -173,126 +403,38 @@ export function usePerpsPostOrderTPSL() {
         setIsAttachingPostOrderTPSL(true);
       }
 
-      const attachment = (async (): Promise<OrderResult | undefined> => {
-        let position: Position | undefined;
-        let waitBaselineSize = initialBaselineSize;
-
-        if (initialBaselineSize !== undefined) {
-          const wakeResult = await waitForPositionOrDelay(
-            stream.positions,
-            order.symbol,
-            initialBaselineSize,
-            POST_ORDER_TPSL_RETRY_OFFSETS_MS[
-              POST_ORDER_TPSL_RETRY_OFFSETS_MS.length - 1
-            ],
-            isContextCurrent,
-          );
-          if (wakeResult.type === 'context-changed') {
+      const attachment = runPostOrderTPSLAttachment({
+        order,
+        positionsStream: stream.positions,
+        updatePositionTPSL,
+        isContextCurrent,
+        startedAt,
+        initialBaselineSize,
+      })
+        .then((outcome): OrderResult | undefined => {
+          if (outcome.type === 'context-changed') {
             return undefined;
           }
-          if (wakeResult.type !== 'position') {
-            const result = {
-              success: false,
-              error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-            };
+          if (outcome.type === 'failure') {
+            if (outcome.rejectedError) {
+              Logger.error(
+                outcome.rejectedError,
+                'usePerpsPostOrderTPSL: Failed to attach protection',
+              );
+            }
             showToast(
               PerpsToastOptions.positionManagement.tpsl
                 .postOrderAttachmentFailed,
             );
-            return result;
           }
-          position = wakeResult.position;
-          waitBaselineSize = position.size;
-        }
-
-        let lastResult: OrderResult = {
-          success: false,
-          error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-        };
-
-        for (
-          let attemptIndex = 0;
-          attemptIndex < POST_ORDER_TPSL_RETRY_OFFSETS_MS.length;
-          attemptIndex += 1
-        ) {
-          if (!isContextCurrent()) {
-            return undefined;
+          return outcome.result;
+        })
+        .finally(() => {
+          activeAttachmentRef.current = undefined;
+          if (isMountedRef.current) {
+            setIsAttachingPostOrderTPSL(false);
           }
-
-          if (attemptIndex > 0) {
-            const targetOffset = POST_ORDER_TPSL_RETRY_OFFSETS_MS[attemptIndex];
-            const elapsedMs = Date.now() - startedAt;
-            const wakeResult = await waitForPositionOrDelay(
-              stream.positions,
-              order.symbol,
-              waitBaselineSize,
-              Math.max(0, targetOffset - elapsedMs),
-              isContextCurrent,
-            );
-            if (wakeResult.type === 'context-changed') {
-              return undefined;
-            }
-            if (wakeResult.type === 'position') {
-              position = wakeResult.position;
-              waitBaselineSize = position.size;
-            }
-          }
-
-          let rejectedError: Error | undefined;
-          try {
-            lastResult = await updatePositionTPSL({
-              symbol: order.symbol,
-              takeProfitPrice: order.takeProfitPrice,
-              stopLossPrice: order.stopLossPrice,
-              position,
-            });
-          } catch (error) {
-            rejectedError = ensureError(
-              error,
-              'usePerpsPostOrderTPSL.attachPostOrderTPSL',
-            );
-            lastResult = {
-              success: false,
-              error: rejectedError.message,
-            };
-          }
-
-          if (!isContextCurrent()) {
-            return undefined;
-          }
-          if (lastResult.success) {
-            return lastResult;
-          }
-
-          const isPositionNotFound = isPerpsErrorCode(
-            lastResult.error,
-            PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-          );
-          const hasMoreAttempts =
-            attemptIndex < POST_ORDER_TPSL_RETRY_OFFSETS_MS.length - 1;
-          if (isPositionNotFound && hasMoreAttempts) {
-            continue;
-          }
-
-          if (rejectedError) {
-            Logger.error(
-              rejectedError,
-              'usePerpsPostOrderTPSL: Failed to attach protection',
-            );
-          }
-          showToast(
-            PerpsToastOptions.positionManagement.tpsl.postOrderAttachmentFailed,
-          );
-          return lastResult;
-        }
-
-        return lastResult;
-      })().finally(() => {
-        activeAttachmentRef.current = undefined;
-        if (isMountedRef.current) {
-          setIsAttachingPostOrderTPSL(false);
-        }
-      });
+        });
 
       activeAttachmentRef.current = attachment;
       return attachment;
