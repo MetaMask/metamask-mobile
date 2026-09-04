@@ -12,6 +12,7 @@ import {
   createMockState,
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
+import { strings } from '../../../../../locales/i18n';
 import ManageAccountRow, { ManageAccountRowVariant } from './ManageAccountRow';
 import {
   getManageAccountRowId,
@@ -87,7 +88,9 @@ describe('ManageAccountRow', () => {
       const eyeToggle = getByTestId(getManageAccountRowEyeToggleId(GROUP_ID));
 
       expect(eyeToggle).toBeEnabled();
-      expect(eyeToggle.props.accessibilityLabel).toBe('Hide account');
+      expect(eyeToggle.props.accessibilityLabel).toBe(
+        strings('multichain_accounts.account_details.hide_account'),
+      );
       expect(eyeToggle.props.accessibilityRole).toBe('button');
     });
 
@@ -117,7 +120,9 @@ describe('ManageAccountRow', () => {
 
       const eyeIcon = utils.getByTestId(getManageAccountRowEyeIconId(GROUP_ID));
 
-      expect(eyeToggle.props.accessibilityLabel).toBe('Unhide account');
+      expect(eyeToggle.props.accessibilityLabel).toBe(
+        strings('multichain_accounts.account_details.unhide_account'),
+      );
       expect(eyeIcon).toBeOnTheScreen();
       expect(eyeIcon.props.name).toBe(IconName.EyeSlash);
     });
@@ -212,7 +217,9 @@ describe('ManageAccountRow', () => {
         getManageAccountRowRemoveIconId(GROUP_ID),
       );
 
-      expect(removeControl.props.accessibilityLabel).toBe('Remove account');
+      expect(removeControl.props.accessibilityLabel).toBe(
+        strings('multichain_accounts.account_details.remove_account'),
+      );
       expect(removeControl.props.accessibilityRole).toBe('button');
       expect(removeControl).toBeEnabled();
       expect(removeIcon).toBeOnTheScreen();
@@ -267,7 +274,7 @@ describe('ManageAccountRow', () => {
       expect(
         utils.getByTestId(getManageAccountRowEyeToggleId(GROUP_ID)).props
           .accessibilityLabel,
-      ).toBe('Hide account');
+      ).toBe(strings('multichain_accounts.account_details.hide_account'));
       expect(
         utils.getByTestId(getManageAccountRowRemoveId(GROUP_ID)),
       ).toBeOnTheScreen();

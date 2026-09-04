@@ -902,6 +902,53 @@ describe('AgenticService.install', () => {
       expect(visiblePress).toHaveBeenCalledTimes(1);
     });
 
+    it('presses one control whose test ID is forwarded through nested fibers', async () => {
+      const onPress = jest.fn();
+      const stateNode = {
+        measureInWindow: (callback) => callback(10, 10, 40, 40),
+      } as FiberNode['stateNode'];
+      const innerTarget = makeFiber({
+        testID: 'forwarded-button',
+        onPress,
+        stateNode,
+      });
+      const outerTarget = makeFiber({
+        testID: 'forwarded-button',
+        onPress,
+        child: innerTarget,
+      });
+      innerTarget.return = outerTarget;
+      installFiberHook(makeFiber({ child: outerTarget }));
+
+      const result = await bridge().pressTestId('forwarded-button');
+
+      expect(result).toEqual({ ok: true, testId: 'forwarded-button' });
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not collapse nested controls with different press handlers', async () => {
+      const outerPress = jest.fn();
+      const innerPress = jest.fn();
+      const innerTarget = makeFiber({
+        testID: 'nested-button',
+        onPress: innerPress,
+      });
+      const outerTarget = makeFiber({
+        testID: 'nested-button',
+        onPress: outerPress,
+        child: innerTarget,
+      });
+      innerTarget.return = outerTarget;
+      installFiberHook(makeFiber({ child: outerTarget }));
+
+      const result = await bridge().pressTestId('nested-button');
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('duplicate matches');
+      expect(outerPress).not.toHaveBeenCalled();
+      expect(innerPress).not.toHaveBeenCalled();
+    });
+
     it('does not borrow a visible frame from a duplicate sibling', async () => {
       const unmeasurablePress = jest.fn();
       const visiblePress = jest.fn();
