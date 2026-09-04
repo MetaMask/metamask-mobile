@@ -676,10 +676,15 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 jest.mock(
   '../../Views/NetworkSelector/RpcSelectionModal/RpcSelectionModal',
   () => {
-    const { View: RNView, Text: RNText } = jest.requireActual('react-native');
+    const {
+      View: RNView,
+      Text: RNText,
+      TouchableOpacity: RNTouchableOpacity,
+    } = jest.requireActual('react-native');
     return ({
       showMultiRpcSelectModal,
       networkConfigurations,
+      onLocalNetworkSelect,
     }: {
       showMultiRpcSelectModal: {
         isVisible: boolean;
@@ -687,6 +692,7 @@ jest.mock(
         networkName: string;
       };
       networkConfigurations: Record<string, unknown>;
+      onLocalNetworkSelect?: (chainIds: string[] | null) => void;
     }) => {
       if (!showMultiRpcSelectModal.isVisible) return null;
       return (
@@ -700,6 +706,12 @@ jest.mock(
           <RNText testID="rpc-modal-configs-count">
             {Object.keys(networkConfigurations).length}
           </RNText>
+          <RNTouchableOpacity
+            testID="rpc-modal-select-network-button"
+            onPress={() => onLocalNetworkSelect?.(['eip155:1'])}
+          >
+            <RNText>Select RPC</RNText>
+          </RNTouchableOpacity>
         </RNView>
       );
     };
@@ -1156,6 +1168,20 @@ describe('NetworkManager Component', () => {
         expect(getByTestId('rpc-modal-configs-count')).toHaveTextContent('2');
       });
     });
+
+    it('syncs the local network filter when an RPC endpoint is selected', async () => {
+      const { getByTestId } = renderComponent();
+
+      fireEvent.press(getByTestId('open-rpc-modal-button'));
+
+      await waitFor(() => {
+        expect(getByTestId('rpc-selection-modal')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId('rpc-modal-select-network-button'));
+
+      expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith(['eip155:1']);
+    });
   });
 
   describe('Enabled Networks Processing', () => {
@@ -1385,6 +1411,10 @@ describe('NetworkManager Component', () => {
       fireEvent.press(confirmButton);
 
       expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith(null);
+      // The picker's own checkmarks come from the (now stale) local
+      // selection it was opened with, so close it rather than leave it
+      // showing the just-deleted network as selected.
+      expect(mockDismissModal).toHaveBeenCalled();
     });
 
     it('does not touch the local network filter when the deleted network is not the active filter', async () => {
@@ -1428,6 +1458,9 @@ describe('NetworkManager Component', () => {
       fireEvent.press(confirmButton);
 
       expect(mockOnLocalNetworkSelect).not.toHaveBeenCalled();
+      // Deleting a network that isn't the active filter shouldn't disturb
+      // the open picker.
+      expect(mockDismissModal).not.toHaveBeenCalled();
     });
   });
 });

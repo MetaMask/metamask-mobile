@@ -328,9 +328,12 @@ const NetworkManager = () => {
 
       // If the deleted network was the local filter's selection, reset it so
       // the Tokens/NFT/DeFi lists don't stay filtered to a chain that no
-      // longer exists.
+      // longer exists. localSelectedChainIds is a snapshot from the nav
+      // params this screen opened with, so it won't reflect the reset above -
+      // close the sheet to avoid it showing the deleted network as selected.
       if (localSelectedChainIds?.includes(showConfirmDeleteModal.caipChainId)) {
         onLocalNetworkSelect(null);
+        sheetRef.current?.onCloseBottomSheet();
       }
 
       identify(removeItemFromChainIdList(chainId));
@@ -496,6 +499,7 @@ const NetworkManager = () => {
         closeRpcModal={closeRpcModal}
         rpcMenuSheetRef={rpcMenuSheetRef}
         networkConfigurations={evmNetworkConfigurations}
+        onLocalNetworkSelect={onLocalNetworkSelect}
         styles={styles}
       />
     </>
