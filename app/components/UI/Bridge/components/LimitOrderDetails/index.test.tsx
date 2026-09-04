@@ -17,7 +17,7 @@ import type { LimitOrderDetailsProps } from './types';
 /**
  * Unit fallback: LimitOrderDetails is a nested card, not a screen. Visibility
  * depends on quote context that component-view tests would need the full
- * BridgeQuoteDataProvider and quote fetch to drive.
+ * SwapQuotesProvider and quote fetch to drive.
  */
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),

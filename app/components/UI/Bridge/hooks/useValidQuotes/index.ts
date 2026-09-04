@@ -31,6 +31,7 @@ import { parseCaipAssetType } from '@metamask/utils';
 
 interface UseValidQuotesParams {
   latestSourceAtomicBalance?: EthersBigNumber;
+  isActive?: boolean;
   quoteParams: {
     srcAmount?: string;
     srcToken?: BridgeToken;
@@ -46,10 +47,12 @@ interface UseValidQuotesParams {
  * @param params - The parameters for the hook
  * @param params.latestSourceAtomicBalance - The latest source atomic balance
  * @param params.quoteParams - The quote parameters
+ * @param params.isActive - Whether this is the rendered tab's quote source
  * @returns The valid quotes and whether they need to be refreshed
  */
 export const useValidQuotes = ({
   latestSourceAtomicBalance,
+  isActive = false,
   quoteParams,
 }: UseValidQuotesParams) => {
   const quotes = useSelector(selectBridgeQuotes);
@@ -202,10 +205,10 @@ export const useValidQuotes = ({
   // Unset manually selected quote when no quote is selected
   const dispatch = useDispatch();
   useEffect(() => {
-    if (!manuallySelectedQuote) {
+    if (isActive && !manuallySelectedQuote) {
       dispatch(setSelectedQuoteRequestId(undefined));
     }
-  }, [manuallySelectedQuote, dispatch]);
+  }, [isActive, manuallySelectedQuote, dispatch]);
 
   return useMemo(
     () => ({

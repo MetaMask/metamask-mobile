@@ -4,6 +4,7 @@ import {
   FeatureId,
   formatAddressToCaipReference,
   isSolanaChainId,
+  FeatureId,
 } from '@metamask/bridge-controller';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
@@ -96,6 +97,7 @@ export const runQuoteRequestCases = ({
     latestSourceAtomicBalance?: BigNumber;
     quoteRequestIndex?: number;
     quoteRequestCount?: number;
+    featureId: FeatureId;
   }) => {
     result: {
       current: ((opts?: {
@@ -124,6 +126,7 @@ export const runQuoteRequestCases = ({
       walletAddress?: string;
       quoteRequestIndex?: number;
       quoteRequestCount?: number;
+      featureId: FeatureId;
     },
   ) => {
     const bridge = { ...mockBridgeReducerState, ...overrides };
@@ -539,7 +542,7 @@ export const runQuoteRequestCases = ({
     it('skips update when wallet address is missing', async () => {
       const { result } = renderUseBridgeQuoteRequest(
         {},
-        { walletAddress: undefined },
+        { walletAddress: undefined, featureId: FeatureId.UNIFIED_SWAP_BRIDGE },
       );
 
       await act(async () => {
@@ -650,7 +653,12 @@ export const runQuoteRequestCases = ({
       async ({ overrides, omitWallet }) => {
         const { result } = renderUseBridgeQuoteRequest(
           overrides,
-          omitWallet ? { walletAddress: undefined } : undefined,
+          omitWallet
+            ? {
+                walletAddress: undefined,
+                featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+              }
+            : undefined,
         );
 
         await act(async () => {
@@ -1115,7 +1123,10 @@ export const runQuoteRequestCases = ({
 
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: overriddenAtomicBalance },
+          {
+            latestSourceAtomicBalance: overriddenAtomicBalance,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});
@@ -1130,7 +1141,10 @@ export const runQuoteRequestCases = ({
       it('uses override path when latestSourceAtomicBalance key is provided as undefined', () => {
         const testState = renderUseBridgeQuoteRequest(
           { sourceAmount: '5.5' },
-          { latestSourceAtomicBalance: undefined },
+          {
+            latestSourceAtomicBalance: undefined,
+            featureId: FeatureId.UNIFIED_SWAP_BRIDGE,
+          },
         );
 
         expect(mockUseLatestBalance).toHaveBeenCalledWith({});

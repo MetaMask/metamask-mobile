@@ -39,17 +39,17 @@ import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
 
-interface UseBridgeQuoteDataParams {
-  latestSourceAtomicBalance?: EthersBigNumber;
-}
-
 /**
  * Hook for getting bridge quote data without request logic
  * @deprecated use useBridgeQuoteDataContext or useSwapQuotes instead
  */
 export const useBridgeQuoteData = ({
   latestSourceAtomicBalance,
-}: UseBridgeQuoteDataParams = {}) => {
+  isActive = true,
+}: {
+  latestSourceAtomicBalance?: EthersBigNumber;
+  isActive?: boolean;
+} = {}) => {
   const dispatch = useDispatch();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const sourceToken = useSelector(selectSourceToken);
@@ -373,14 +373,10 @@ export const useBridgeQuoteData = ({
   }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
 
   useEffect(() => {
-    validateQuote();
-  }, [validateQuote]);
-
-  useEffect(() => {
-    if (!manuallySelectedQuote) {
+    if (isActive && !manuallySelectedQuote) {
       dispatch(setSelectedQuoteRequestId(undefined));
     }
-  }, [manuallySelectedQuote, dispatch]);
+  }, [isActive, manuallySelectedQuote, dispatch]);
 
   const isActiveQuoteForCurrentTokenPair =
     isQuoteSourceTokenMatch && isQuoteDestTokenMatch;

@@ -4,23 +4,24 @@ import {
   selectIsSolanaToNonSolana,
 } from '../../../../../core/redux/slices/bridge';
 import { type QuoteResponse } from '@metamask/bridge-controller';
-import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
-
-interface UseBlockaidErrorParams {
-  activeQuote?: QuoteResponse | null;
-}
 
 /**
  * Hook for resolving the blockaid error for the active quote
  *
  * @param params - The parameters for the hook
  * @param params.activeQuote - The active quote
+ * @param params.isActive - Whether this is the rendered tab's quote source
  * @returns The blockaid error
  */
 export const useBlockaidError = ({
   activeQuote,
-}: UseBlockaidErrorParams = {}) => {
+  isActive,
+}: {
+  activeQuote?: QuoteResponse | null;
+  isActive?: boolean;
+} = {}) => {
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
   const isSolanaToNonSolana = useSelector(selectIsSolanaToNonSolana);
   const { validateBridgeTx } = useValidateBridgeTx();
@@ -44,6 +45,7 @@ export const useBlockaidError = ({
 
   const validateQuote = useCallback(async () => {
     if (
+      !isActive ||
       !activeQuote ||
       (!isSolanaSwap && !isSolanaToNonSolana) ||
       // Skip validation for gas-included quotes on Solana
@@ -115,11 +117,17 @@ export const useBlockaidError = ({
       }
       setBlockaidError(null);
     }
-  }, [activeQuote, isSolanaSwap, isSolanaToNonSolana, validateBridgeTx]);
+  }, [
+    activeQuote,
+    isActive,
+    isSolanaSwap,
+    isSolanaToNonSolana,
+    validateBridgeTx,
+  ]);
 
   useEffect(() => {
     validateQuote();
   }, [validateQuote]);
 
-  return useMemo(() => blockaidError, [blockaidError]);
+  return blockaidError;
 };
