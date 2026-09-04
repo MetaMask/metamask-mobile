@@ -11,7 +11,7 @@ import {
 } from './hard-rule-extract';
 
 const SPEC_REL = 'tests/smoke-appium/accounts.spec.ts';
-const SPEC_IMPORT = `import { SmokeAccounts } from '../../tags';
+const SPEC_IMPORT = `import { SmokeAccounts } from '../../tags.js';
 `;
 
 const e2eCatalog: TagCatalog = {
@@ -34,7 +34,7 @@ function extractRule(extras: Record<string, unknown> = {}) {
 function writeSpecTree(baseDir: string, specSource: string): void {
   mkdirSync(join(baseDir, 'tests', 'smoke-appium'), { recursive: true });
   writeFileSync(join(baseDir, SPEC_REL), specSource);
-  writeFileSync(join(baseDir, 'tags.ts'), '');
+  writeFileSync(join(baseDir, 'tags.js'), '');
 }
 
 describe('evaluateExtractTagsFromChangedSpecs', () => {
@@ -144,7 +144,7 @@ const TOKEN_SPEC = 'tests/smoke-appium/tokens.spec.ts';
 const TOKEN_PAGE = 'tests/page-objects/TokenPage.ts';
 const TOKEN_SELECTORS = 'tests/page-objects/TokenSelectors.ts';
 const TOKEN_SPEC_SOURCE = `import { TokenPage } from '../../page-objects/TokenPage';
-import { SmokeTokens } from '../../tags';
+import { SmokeTokens } from '../../tags.js';
 `;
 
 const tokensCatalog: TagCatalog = {
@@ -171,7 +171,7 @@ function writeDirectImportTree(baseDir: string): void {
   mkdirSync(join(baseDir, 'tests', 'smoke-appium'), { recursive: true });
   writeFileSync(join(baseDir, TOKEN_PAGE), 'export const TokenPage = true;\n');
   writeFileSync(join(baseDir, TOKEN_SPEC), TOKEN_SPEC_SOURCE);
-  writeFileSync(join(baseDir, 'tags.ts'), '');
+  writeFileSync(join(baseDir, 'tags.js'), '');
 }
 
 function writeOneHopTree(baseDir: string): void {
@@ -188,7 +188,7 @@ export const TokenPage = true;
 `,
   );
   writeFileSync(join(baseDir, TOKEN_SPEC), TOKEN_SPEC_SOURCE);
-  writeFileSync(join(baseDir, 'tags.ts'), '');
+  writeFileSync(join(baseDir, 'tags.js'), '');
 }
 
 describe('evaluateExtractTagsFromImportGraph', () => {
@@ -278,7 +278,7 @@ describe('evaluateExtractTagsFromImportGraph', () => {
     writeFileSync(
       join(baseDir, TOKEN_SPEC),
       `import { Tokens } from '../../page-objects/Tokens';
-import { SmokeTokens } from '../../tags';
+import { SmokeTokens } from '../../tags.js';
 `,
     );
     const out = run(
@@ -300,7 +300,7 @@ import { SmokeTokens } from '../../tags';
     );
     writeFileSync(
       join(baseDir, TOKEN_SPEC),
-      `import { SmokeTokens } from '../../tags';
+      `import { SmokeTokens } from '../../tags.js';
 `,
     );
     const out = run([TOKEN_PAGE], importGraphRule(), tokensCatalog, baseDir);

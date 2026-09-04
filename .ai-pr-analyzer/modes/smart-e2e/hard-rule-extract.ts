@@ -34,7 +34,7 @@ type ExtractRule = {
 
 const DEFAULT_SPEC_PATTERN = '\\.spec\\.';
 const DEFAULT_TAGS_IMPORT_REGEX =
-  'import\\s*\\{([^}]+)\\}\\s*from\\s*[\'"][^\'"]*\\/tags(?:\\.(?:js|ts))?[\'"]';
+  'import\\s*\\{([^}]+)\\}\\s*from\\s*[\'"][^\'"]*\\/tags\\.js[\'"]';
 
 type NormalizePath = (path: string) => string;
 

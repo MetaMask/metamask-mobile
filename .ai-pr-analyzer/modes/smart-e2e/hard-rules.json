@@ -122,7 +122,7 @@
       "specPrefixes": ["tests/smoke-appium/"],
       "catalogGroup": "e2e",
       "hop": 1,
-      "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags(?:\\.(?:js|ts))?['\"]",
+      "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags\\.js['\"]",
       "onlyIfRemainingChangesMatch": {
         "prefixes": ["tests/"],
         "ignorablePathRegexes": [
@@ -152,7 +152,7 @@
       "type": "extractTagsFromChangedSpecs",
       "specPrefixes": ["tests/smoke-appium/"],
       "catalogGroup": "e2e",
-      "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags(?:\\.(?:js|ts))?['\"]",
+      "tagsImportRegex": "import\\s*\\{([^}]+)\\}\\s*from\\s*['\"][^'\"]*\\/tags\\.js['\"]",
       "onlyIfRemainingChangesMatch": {
         "prefixes": ["tests/"],
         "ignorablePathRegexes": [
