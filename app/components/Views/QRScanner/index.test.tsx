@@ -306,6 +306,12 @@ describe('QrScanner', () => {
     mockNavigate.mockImplementation(() => undefined);
   });
 
+  afterEach(() => {
+    // Restore real timers so waitFor() works in subsequent tests when a
+    // prior case enabled fake timers (J8 flaky-timer leak prevention).
+    jest.useRealTimers();
+  });
+
   it('render matches snapshot', () => {
     renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
       state: initialState,

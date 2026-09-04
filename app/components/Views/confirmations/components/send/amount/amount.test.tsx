@@ -61,7 +61,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       currencyRates: {
         ETH: {
           conversionRate: 2000,
-          conversionDate: Date.now(),
+          conversionDate: 1700000000000,
         },
       },
     },

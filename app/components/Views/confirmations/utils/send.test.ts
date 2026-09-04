@@ -38,6 +38,10 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 jest.mock('../../../../lib/ppom/ppom-util', () => ({
   ...jest.requireActual('../../../../lib/ppom/ppom-util'),
   validateRequest: jest.fn(),

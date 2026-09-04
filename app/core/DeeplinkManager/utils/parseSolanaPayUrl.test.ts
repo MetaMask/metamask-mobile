@@ -7,6 +7,10 @@ import {
 const TRIPLE_A_RECIPIENT = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
 
+beforeEach(() => {
+  jest.clearAllMocks();
+});
+
 describe('normalizeSolanaPayAmount', () => {
   it('strips trailing zeros from decimal amounts', () => {
     expect(normalizeSolanaPayAmount('25.515000')).toBe('25.515');
