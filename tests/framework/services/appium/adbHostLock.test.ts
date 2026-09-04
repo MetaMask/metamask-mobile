@@ -38,9 +38,9 @@ describe('withAdbHostLock', () => {
   });
 
   it('runs the critical section and returns its value', async () => {
-    await expect(
-      withAdbHostLock(async () => 'ok', fakeOpts()),
-    ).resolves.toBe('ok');
+    await expect(withAdbHostLock(async () => 'ok', fakeOpts())).resolves.toBe(
+      'ok',
+    );
   });
 
   it('clears a stale lock and proceeds', async () => {
@@ -101,9 +101,7 @@ describe('isAdbTransportFault', () => {
       ),
     ).toBe(true);
     expect(
-      isAdbTransportFault(
-        '* daemon not running; starting now at tcp:5037',
-      ),
+      isAdbTransportFault('* daemon not running; starting now at tcp:5037'),
     ).toBe(true);
     expect(isAdbTransportFault('adb: error: device offline')).toBe(true);
     expect(isAdbTransportFault('not found')).toBe(false);
