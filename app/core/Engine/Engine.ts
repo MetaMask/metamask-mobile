@@ -702,6 +702,10 @@ export class Engine {
       }
     });
 
+    // The bootstrap's chain hook reads `Engine.context`, so this must run
+    // after the context is assigned.
+    messengerClientsByName.MoneyAccountUpgradeController.init();
+
     this.controllerMessenger.subscribe(
       AppConstants.NETWORK_STATE_CHANGE_EVENT,
       (state: NetworkState) => {

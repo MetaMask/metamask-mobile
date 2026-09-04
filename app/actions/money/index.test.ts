@@ -9,7 +9,6 @@ import {
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
-import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import type { RootState } from '../../reducers';
 
 jest.mock('../../core/Engine', () => ({
@@ -36,20 +35,12 @@ jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-jest.mock(
-  '../../core/Engine/controllers/money-account-upgrade-controller-init',
-  () => ({
-    whenMoneyAccountUpgradeReady: jest.fn(() => Promise.resolve()),
-  }),
-);
-
 const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
   .upgradeAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
 const mockLogLog = Logger.log as jest.Mock;
-const mockWhenReady = whenMoneyAccountUpgradeReady as jest.Mock;
 
 const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
@@ -292,6 +283,32 @@ describe('upgradeMoneyAccount', () => {
     await flushPromises();
   });
 
+  it('retries a superseded sequence without reporting it to Sentry', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    const abortController = new AbortController();
+    mockUpgradeAccount.mockRejectedValueOnce(
+      new Error(
+        'MoneyAccountUpgradeController upgrade aborted: the upgrade config was disarmed or superseded while the sequence was running',
+      ),
+    );
+
+    dispatchUpgrade(abortController.signal);
+    await flushPromises();
+
+    // A vault-config rotation landing mid-sequence is a benign race the
+    // controller self-heals, so it must not reach Sentry — but it is still
+    // logged locally and the run retries against the new config.
+    expect(mockLogError).not.toHaveBeenCalled();
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'attempt failed; will retry',
+      { address: ADDRESS, attempt: 1 },
+    );
+
+    abortController.abort();
+    await flushPromises();
+  });
+
   it('stops reporting retried failures to Sentry after the per-run cap', async () => {
     jest.useFakeTimers({ doNotFake: ['setImmediate'] });
     try {
@@ -439,14 +456,18 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('skips quietly (no Sentry error) when the controller is not ready', async () => {
+  it('skips quietly (no Sentry error) when the controller is not bootstrapped', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    mockWhenReady.mockRejectedValueOnce(new Error('bootstrap not scheduled'));
+    mockUpgradeAccount.mockRejectedValueOnce(
+      new Error(
+        'MoneyAccountUpgradeController is not bootstrapped: upgradeAccount() requires the feature flag on, the wallet unlocked, and a successful bootstrap',
+      ),
+    );
 
     dispatchUpgrade();
     await flushPromises();
 
-    expect(mockUpgradeAccount).not.toHaveBeenCalled();
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
     expect(mockLogError).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),

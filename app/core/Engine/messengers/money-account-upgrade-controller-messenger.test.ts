@@ -6,15 +6,7 @@ import {
   type MockAnyNamespace,
 } from '@metamask/messenger';
 import { MoneyAccountUpgradeControllerMessenger } from '@metamask/money-account-upgrade-controller';
-import {
-  KeyringControllerGetStateAction,
-  KeyringControllerUnlockEvent,
-} from '@metamask/keyring-controller';
-import {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
-import { ControllerStateChangeEvent } from '@metamask/base-controller';
+import { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import {
   getMoneyAccountUpgradeControllerMessenger,
   getMoneyAccountUpgradeControllerInitMessenger,
@@ -23,14 +15,8 @@ import {
 type RootMessenger = Messenger<
   MockAnyNamespace,
   | MessengerActions<MoneyAccountUpgradeControllerMessenger>
-  | KeyringControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction,
-  | MessengerEvents<MoneyAccountUpgradeControllerMessenger>
-  | KeyringControllerUnlockEvent
-  | ControllerStateChangeEvent<
-      'RemoteFeatureFlagController',
-      RemoteFeatureFlagControllerState
-    >
+  | NetworkControllerGetStateAction,
+  MessengerEvents<MoneyAccountUpgradeControllerMessenger>
 >;
 
 function getRootMessenger(): RootMessenger {
@@ -46,6 +32,26 @@ describe('getMoneyAccountUpgradeControllerMessenger', () => {
       getMoneyAccountUpgradeControllerMessenger(rootMessenger);
 
     expect(moneyAccountUpgradeControllerMessenger).toBeInstanceOf(Messenger);
+  });
+
+  it('delegates the bootstrap triggers the controller subscribes to', () => {
+    const rootMessenger: RootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getMoneyAccountUpgradeControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'KeyringController:getState',
+          'RemoteFeatureFlagController:getState',
+        ]),
+        events: [
+          'KeyringController:stateChange',
+          'RemoteFeatureFlagController:stateChange',
+        ],
+      }),
+    );
   });
 });
 

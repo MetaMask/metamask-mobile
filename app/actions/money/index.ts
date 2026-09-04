@@ -6,9 +6,10 @@ import type { RootState } from '../../reducers';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
-import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import {
   isMoneyAccountUpgradeAbortedError,
+  isMoneyAccountUpgradeNotBootstrappedError,
+  isMoneyAccountUpgradeSupersededError,
   upgradeAccountWithRetry,
 } from '../../lib/Money/upgrade-account-with-retry';
 
@@ -76,6 +77,72 @@ export const __resetUpgradesInFlightForTesting = () => {
 };
 
 /**
+ * Runs one retrying upgrade for `address` against the controller.
+ *
+ * @param address - The Money Account address to upgrade.
+ * @param signal - Stops the retry loop.
+ * @param startedAt - When the run started, for the duration log.
+ */
+async function runUpgrade(
+  address: Hex,
+  signal: AbortSignal,
+  startedAt: number,
+): Promise<void> {
+  const { MoneyAccountUpgradeController } = Engine.context;
+  const accountKey = address.toLowerCase() as Hex;
+  const recordedBefore = Boolean(
+    MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+  );
+  Logger.log(LOG_PREFIX, 'starting upgrade', {
+    address,
+    recordedBefore,
+  });
+
+  await upgradeAccountWithRetry(
+    (upgradeAddress) =>
+      MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
+    address,
+    {
+      signal,
+      // Failures that end the run are reported by the caller.
+      // Retried failures are reported here so they reach Sentry even
+      // when a later attempt succeeds — but capped per run, so a
+      // persistent outage cannot flood Sentry from the unbounded
+      // retry loop. Beyond the cap they are only logged locally.
+      onRetry: (error, attempt) => {
+        Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
+          address,
+          attempt,
+        });
+        // The config was rotated or the feature disabled mid-sequence. The
+        // controller re-bootstraps and the retry runs against the new config,
+        // so this is a benign race rather than a failure — reporting it would
+        // spike Sentry for every user in flight during a vault-config rollout.
+        if (isMoneyAccountUpgradeSupersededError(error)) {
+          return;
+        }
+        if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
+          reportUpgradeError(error, {
+            attempt,
+            willRetry: true,
+            ...(attempt === MAX_REPORTED_RETRIED_FAILURES
+              ? { furtherRetryReportsSuppressed: true }
+              : {}),
+          });
+        }
+      },
+    },
+  );
+
+  Logger.log(LOG_PREFIX, 'upgrade succeeded', {
+    address,
+    recordedBefore,
+    durationMs: Date.now() - startedAt,
+    recorded: MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
+  });
+}
+
+/**
  * Runs the upgrade for `address`, deduplicating against an in-flight run and
  * restarting under the newest shadowed caller's signal when an aborted run
  * settles.
@@ -105,70 +172,8 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
   // aborted. Only a run that actually ended because of its abort hands
   // over to a queued takeover signal.
   let endedByAbort = false;
-  whenMoneyAccountUpgradeReady()
-    .then(
-      async () => {
-        const { MoneyAccountUpgradeController } = Engine.context;
-        const accountKey = address.toLowerCase() as Hex;
-        const recordedBefore = Boolean(
-          MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        );
-        Logger.log(LOG_PREFIX, 'starting upgrade', {
-          address,
-          recordedBefore,
-        });
-
-        await upgradeAccountWithRetry(
-          (upgradeAddress) =>
-            MoneyAccountUpgradeController.upgradeAccount(upgradeAddress),
-          address,
-          {
-            signal,
-            // Failures that end the run are reported by the catch below.
-            // Retried failures are reported here so they reach Sentry even
-            // when a later attempt succeeds — but capped per run, so a
-            // persistent outage cannot flood Sentry from the unbounded
-            // retry loop. Beyond the cap they are only logged locally.
-            onRetry: (error, attempt) => {
-              Logger.log(LOG_PREFIX, 'attempt failed; will retry', {
-                address,
-                attempt,
-              });
-              if (attempt <= MAX_REPORTED_RETRIED_FAILURES) {
-                reportUpgradeError(error, {
-                  attempt,
-                  willRetry: true,
-                  ...(attempt === MAX_REPORTED_RETRIED_FAILURES
-                    ? { furtherRetryReportsSuppressed: true }
-                    : {}),
-                });
-              }
-            },
-          },
-        );
-
-        Logger.log(LOG_PREFIX, 'upgrade succeeded', {
-          address,
-          recordedBefore,
-          durationMs: Date.now() - startedAt,
-          recorded:
-            MoneyAccountUpgradeController.state.upgradedAccounts[accountKey],
-        });
-      },
-      (error: unknown) => {
-        // The controller isn't ready: the feature flag is off, the keyring
-        // is locked, or bootstrap failed. "Not ready" is a normal state, and
-        // bootstrap failures are already reported to Sentry by the
-        // controller-init module — so we skip quietly here rather than
-        // double-reporting a Sentry error.
-        Logger.log(LOG_PREFIX, 'upgrade controller not ready; skipping', {
-          address,
-          reason: error instanceof Error ? error.message : String(error),
-        });
-      },
-    )
+  runUpgrade(address, signal, startedAt)
     .catch((error: unknown) => {
-      // Reached only for errors thrown by upgradeAccountWithRetry itself.
       // An aborted run (screen lost focus) is a normal way for the retry
       // loop to end, not a failure worth reporting. Match the abort
       // rejection itself rather than `signal.aborted`, so a genuine failure
@@ -176,6 +181,18 @@ function startUpgradeRun(address: Hex, signal: AbortSignal): void {
       if (isMoneyAccountUpgradeAbortedError(error)) {
         endedByAbort = true;
         Logger.log(LOG_PREFIX, 'upgrade aborted; skipping', { address });
+        return;
+      }
+      // The controller isn't ready: the feature flag is off, the keyring
+      // is locked, or bootstrap failed. "Not ready" is a normal state, and
+      // bootstrap failures are already reported to Sentry by the
+      // controller-init hooks — so we skip quietly here rather than
+      // double-reporting a Sentry error.
+      if (isMoneyAccountUpgradeNotBootstrappedError(error)) {
+        Logger.log(LOG_PREFIX, 'upgrade controller not ready; skipping', {
+          address,
+          reason: error.message,
+        });
         return;
       }
       reportUpgradeError(error);

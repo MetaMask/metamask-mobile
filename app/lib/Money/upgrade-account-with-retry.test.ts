@@ -5,6 +5,8 @@ import {
 import {
   MoneyAccountUpgradeAbortedError,
   isMoneyAccountUpgradeAbortedError,
+  isMoneyAccountUpgradeNotBootstrappedError,
+  isMoneyAccountUpgradeSupersededError,
   upgradeAccountWithRetry,
 } from './upgrade-account-with-retry';
 
@@ -17,6 +19,16 @@ const terminalError = () =>
   new MoneyAccountUpgradeStepError(
     'associate-address',
     new TerminalUpgradeError('address belongs to another profile'),
+  );
+
+const supersededError = () =>
+  new Error(
+    'MoneyAccountUpgradeController upgrade aborted: the upgrade config was disarmed or superseded while the sequence was running',
+  );
+
+const notBootstrappedError = () =>
+  new Error(
+    'MoneyAccountUpgradeController is not bootstrapped: upgradeAccount() requires the feature flag on, the wallet unlocked, and a successful bootstrap',
   );
 
 describe('upgradeAccountWithRetry', () => {
@@ -46,6 +58,35 @@ describe('upgradeAccountWithRetry', () => {
     const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS);
     await jest.advanceTimersByTimeAsync(10_000);
     await run;
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries a superseded sequence so the run picks up the re-bootstrapped config', async () => {
+    const upgradeAccount = jest
+      .fn()
+      .mockRejectedValueOnce(supersededError())
+      .mockResolvedValueOnce(undefined);
+    const onRetry = jest.fn();
+
+    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS, { onRetry });
+    await jest.advanceTimersByTimeAsync(10_000);
+    await run;
+
+    expect(upgradeAccount).toHaveBeenCalledTimes(2);
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the run when a superseded sequence is followed by a disabled controller', async () => {
+    const upgradeAccount = jest
+      .fn()
+      .mockRejectedValueOnce(supersededError())
+      .mockRejectedValueOnce(notBootstrappedError());
+
+    const run = upgradeAccountWithRetry(upgradeAccount, ADDRESS);
+    const assertion = await expect(run).rejects.toThrow('is not bootstrapped');
+    await jest.advanceTimersByTimeAsync(10_000);
+    await assertion;
 
     expect(upgradeAccount).toHaveBeenCalledTimes(2);
   });
@@ -264,5 +305,68 @@ describe('isMoneyAccountUpgradeAbortedError', () => {
     expect(isMoneyAccountUpgradeAbortedError(retryableError())).toBe(false);
     expect(isMoneyAccountUpgradeAbortedError(undefined)).toBe(false);
     expect(isMoneyAccountUpgradeAbortedError('aborted')).toBe(false);
+  });
+});
+
+describe('isMoneyAccountUpgradeNotBootstrappedError', () => {
+  it('accepts the controller rejection for an unbootstrapped upgradeAccount call', () => {
+    expect(
+      isMoneyAccountUpgradeNotBootstrappedError(
+        new Error(
+          'MoneyAccountUpgradeController is not bootstrapped: upgradeAccount() requires the feature flag on, the wallet unlocked, and a successful bootstrap',
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it('rejects other errors and non-errors', () => {
+    expect(
+      isMoneyAccountUpgradeNotBootstrappedError(
+        new MoneyAccountUpgradeAbortedError(),
+      ),
+    ).toBe(false);
+    expect(isMoneyAccountUpgradeNotBootstrappedError(retryableError())).toBe(
+      false,
+    );
+    expect(isMoneyAccountUpgradeNotBootstrappedError(undefined)).toBe(false);
+    expect(
+      isMoneyAccountUpgradeNotBootstrappedError(
+        'MoneyAccountUpgradeController is not bootstrapped',
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('isMoneyAccountUpgradeSupersededError', () => {
+  it('accepts the controller rejection for a sequence disarmed mid-run', () => {
+    expect(isMoneyAccountUpgradeSupersededError(supersededError())).toBe(true);
+  });
+
+  it('rejects other errors and non-errors', () => {
+    expect(
+      isMoneyAccountUpgradeSupersededError(
+        new MoneyAccountUpgradeAbortedError(),
+      ),
+    ).toBe(false);
+    expect(isMoneyAccountUpgradeSupersededError(retryableError())).toBe(false);
+    expect(isMoneyAccountUpgradeSupersededError(undefined)).toBe(false);
+    expect(
+      isMoneyAccountUpgradeSupersededError(
+        'MoneyAccountUpgradeController upgrade aborted',
+      ),
+    ).toBe(false);
+  });
+
+  // The two controller-thrown plain Errors are told apart only by their
+  // message, and they drive opposite behaviour: superseded retries, not
+  // bootstrapped ends the run quietly. An overlap would silently collapse one
+  // into the other.
+  it('does not overlap with the not-bootstrapped rejection', () => {
+    expect(isMoneyAccountUpgradeSupersededError(notBootstrappedError())).toBe(
+      false,
+    );
+    expect(isMoneyAccountUpgradeNotBootstrappedError(supersededError())).toBe(
+      false,
+    );
   });
 });

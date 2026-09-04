@@ -13,6 +13,7 @@ import { Hex } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
 import { ConnectivityController } from '@metamask/connectivity-controller';
+import { MoneyAccountUpgradeController } from '@metamask/money-account-upgrade-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
 import { backupVault } from '../BackupVault';
@@ -383,6 +384,19 @@ describe('Engine', () => {
     await engine.destroyEngineInstance();
     const newEngine = Engine.init(TEST_ANALYTICS_ID, {});
     expect(engine).not.toStrictEqual(newEngine);
+  });
+
+  // The MoneyAccountUpgradeController owns its own bootstrap and arms itself
+  // from `init()`. Nothing else calls it, and a controller that never
+  // bootstraps fails every upgrade with a rejection the Money action logs
+  // quietly — so losing this call would disable Money Account upgrades for
+  // every user with no Sentry signal at all.
+  it('calls MoneyAccountUpgradeController.init so its bootstrap is armed', () => {
+    const initSpy = jest.spyOn(MoneyAccountUpgradeController.prototype, 'init');
+
+    Engine.init(TEST_ANALYTICS_ID, {});
+
+    expect(initSpy).toHaveBeenCalledTimes(1);
   });
 
   // Use this to keep the unit test initial background state fixture up-to-date
