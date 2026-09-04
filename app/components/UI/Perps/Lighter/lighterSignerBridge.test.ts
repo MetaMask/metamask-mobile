@@ -129,6 +129,20 @@ describe('lighterSignerBridge', () => {
     expect(executor).not.toHaveBeenCalled();
   });
 
+  it('ignores late executor connections after terminal unavailability', async () => {
+    const zombieExecutor = jest.fn();
+    setLighterBridgeUnavailable('Lighter signer unavailable');
+
+    connectLighterExecutor(zombieExecutor);
+    const pending = lighterSignerBridge.execute({
+      function: '_createAuthToken',
+      params: [28, 7],
+    });
+
+    await expect(pending).rejects.toThrow('Lighter signer unavailable');
+    expect(zombieExecutor).not.toHaveBeenCalled();
+  });
+
   it('persists a generated key and keeps it inside createClient transport params', async () => {
     const executor = jest.fn().mockResolvedValue({
       success: true,
