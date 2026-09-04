@@ -24,8 +24,6 @@ import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ConfirmationsDeveloperOptions } from '../../confirmations/components/developer/confirmations-developer-options';
-import { selectIsMusdConversionFlowEnabledFlag } from '../../../UI/Earn/selectors/featureFlags';
-import { MusdDeveloperOptionsSection } from '../../../UI/Earn/components/MusdDeveloperOptionsSection';
 import { CardDeveloperOptionsSection } from '../../../UI/Card/components/CardDeveloperOptionsSection';
 import { selectMoneyEnableMoneyAccountFlag } from '../../../UI/Money/selectors/featureFlags';
 import { MoneyUiDeveloperOptionsSection } from '../../../UI/Money/components/MoneyUiDeveloperOptionsSection';
@@ -43,9 +41,6 @@ const DeveloperOptions = () => {
   const { styles } = useStyles(styleSheet, { theme });
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isMusdConversionEnabled = useSelector(
-    selectIsMusdConversionFlowEnabledFlag,
-  );
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isSocialLeaderboardEnabled = useSelector(
     selectSocialLeaderboardEnabled,
@@ -91,7 +86,6 @@ const DeveloperOptions = () => {
         }
         {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
         <ConfirmationsDeveloperOptions />
-        {isMusdConversionEnabled && <MusdDeveloperOptionsSection />}
         {isMoneyAccountEnabled && <MoneyUiDeveloperOptionsSection />}
         <CardDeveloperOptionsSection />
         <IdentityDeveloperOptionsSection />
