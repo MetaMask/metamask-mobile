@@ -374,11 +374,11 @@ async function main(): Promise<void> {
       return false;
     }
 
-    const sourceLines = readFileSync(sourcePath, 'utf8').split(/\\r?\\n/);
-    const snippetLines = finding.snippet.split(/\\r?\\n/);
+    const sourceLines = readFileSync(sourcePath, 'utf8').split(/\r?\n/);
+    const snippetLines = finding.snippet.split(/\r?\n/);
     const actualSnippet = sourceLines
       .slice(finding.line - 1, finding.line - 1 + snippetLines.length)
-      .join('\\n');
+      .join('\n');
 
     if (actualSnippet !== finding.snippet) {
       core.warning(
