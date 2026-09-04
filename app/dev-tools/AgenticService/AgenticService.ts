@@ -887,8 +887,9 @@ function findMeasurableStateNode(
 
   let result = fiber ? resolveMeasurableStateNode(fiber) : null;
   walkFiber(fiber?.child ?? null, (node) => {
-    result = resolveMeasurableStateNode(node);
-    if (result) {
+    const descendant = resolveMeasurableStateNode(node);
+    if (descendant) {
+      result = descendant;
       return true;
     }
     return false;

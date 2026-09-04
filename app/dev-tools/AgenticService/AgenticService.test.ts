@@ -399,6 +399,24 @@ describe('findMeasurableStateNode', () => {
     expect(result).toBe(publicInstance);
   });
 
+  it('keeps a measurable Fabric public instance when its child is flattened', () => {
+    const publicInstance = {
+      measureInWindow: jest.fn(),
+    } as FiberNode['stateNode'];
+    const flattenedChild = makeFiber({ stateNode: null });
+    const fabricHost = makeFiber({
+      stateNode: {
+        canonical: { publicInstance },
+      } as FiberNode['stateNode'],
+      child: flattenedChild,
+    });
+    flattenedChild.return = fabricHost;
+
+    const result = findMeasurableStateNode(fabricHost);
+
+    expect(result).toBe(publicInstance);
+  });
+
   it('uses a measurable ancestor for a flattened host node', () => {
     const measurableParent = makeFiber({
       stateNode: { measureInWindow: jest.fn() } as FiberNode['stateNode'],
