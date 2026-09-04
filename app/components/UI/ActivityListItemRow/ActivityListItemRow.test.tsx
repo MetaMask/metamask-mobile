@@ -152,6 +152,10 @@ jest.mock('../../../selectors/currencyRateController', () => ({
   ),
   selectConversionRateByChainId: jest.fn(() => 2500),
   selectCurrencyRateForChainId: jest.fn(() => 2500),
+  selectCurrencyRates: jest.fn(
+    (state) =>
+      state.engine.backgroundState.CurrencyRateController.currencyRates,
+  ),
   selectUSDConversionRateByChainId: jest.fn(() => 2500),
 }));
 
