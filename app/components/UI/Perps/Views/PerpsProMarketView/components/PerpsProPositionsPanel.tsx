@@ -844,22 +844,27 @@ const PerpsProPositionsPanel = ({
   };
 
   const renderTwapTab = () => (
-    <PerpsProTwapPanel
-      activeTwapOrders={activeTwapOrders}
-      historicalTwapOrders={historicalTwapOrders}
-      isInitialLoading={areTwapOrdersInitiallyLoading}
-      error={twapOrdersError}
-      onRetry={refreshTwapOrders}
-      isRefreshing={areTwapOrdersRefreshing}
-      onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
-      onTerminate={handleSelectTwapToTerminate}
-      isTerminationInFlight={isTerminationInFlight}
-      filterScopeKey={twapFilterScopeKey}
-      acceptedTerminationOrderIdentityKeys={
-        acceptedTerminationOrderIdentityKeys
-      }
-      emptyMetadataByView={twapEmptyMetadataByView}
-    />
+    <Box
+      twClassName="pt-3"
+      testID={PerpsProMarketViewSelectorsIDs.TWAP_TAB_BODY}
+    >
+      <PerpsProTwapPanel
+        activeTwapOrders={activeTwapOrders}
+        historicalTwapOrders={historicalTwapOrders}
+        isInitialLoading={areTwapOrdersInitiallyLoading}
+        error={twapOrdersError}
+        onRetry={refreshTwapOrders}
+        isRefreshing={areTwapOrdersRefreshing}
+        onSelectMarket={onSelectMarket ? handleSelectTwapMarket : undefined}
+        onTerminate={handleSelectTwapToTerminate}
+        isTerminationInFlight={isTerminationInFlight}
+        filterScopeKey={twapFilterScopeKey}
+        acceptedTerminationOrderIdentityKeys={
+          acceptedTerminationOrderIdentityKeys
+        }
+        emptyMetadataByView={twapEmptyMetadataByView}
+      />
+    </Box>
   );
 
   const renderTickerOnlyCheckbox = () => (

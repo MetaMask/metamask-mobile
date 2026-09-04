@@ -555,6 +555,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   GEO_BLOCK_TOOLTIP: 'perps-pro-positions-panel-geo-block-tooltip',
   POSITIONS_PANEL_TAB_TWAP: 'perps-pro-market-positions-panel-tab-twap',
   TWAP_LIST: 'perps-pro-market-twap-list',
+  TWAP_TAB_BODY: 'perps-pro-market-twap-tab-body',
   TWAP_VIEW_TABS: 'perps-pro-market-twap-view-tabs',
   TWAP_VIEW_TAB_ACTIVE: 'perps-pro-market-twap-view-tab-active',
   TWAP_VIEW_TAB_HISTORY: 'perps-pro-market-twap-view-tab-history',
