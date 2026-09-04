@@ -11422,11 +11422,13 @@
   },
   "pro_hub": {
     "title": "MetaMask Pro",
-    "subtitle": "Your Pro membership",
     "manage": "Manage subscription",
     "manage_plan": "Manage plan",
-    "earned_with_pro": "Earned with Pro",
-    "saved_with_pro": "Saved with Pro",
+    "membership_brand": "METAMASK",
+    "membership_label": "Pro",
+    "lifetime_earnings": "Lifetime earnings",
+    "money_balance": "Money balance",
+    "musd_back": "3% mUSD back",
     "next_payment": "Your next payment of {{amount}} is coming up {{date}}.",
     "member_pricing": {
       "title": "Member pricing on trades",
@@ -11447,9 +11449,8 @@
       }
     },
     "physical_card": {
-      "title": "Get your physical card.",
-      "description": "Get 3% mUSD back at 150M+ merchants when you spend with MetaMask Card.",
-      "cta": "Get card"
+      "title": "Get your free MetaMask Card",
+      "description": "Earn 3% mUSD back on purchases"
     },
     "earned": {
       "total_label": "Earned since joining Pro",
@@ -11463,7 +11464,6 @@
       "grow_description": "Every $1,000 in your Money account earns about $70 a year at up to 7% APY.",
       "add_money": "Add money"
     },
-    "explore_benefits": "Explore benefits",
     "membership": {
       "title": "Your membership",
       "plan": "Membership",
