@@ -145,7 +145,7 @@ describe('buildResult', () => {
     expect(result.fixed).toEqual([]);
     expect(result.manual).toHaveLength(2);
     expect(result.manual.map((e) => e.id)).toEqual(['GHSA-1', 'GHSA-2']);
-    expect(result.manual[0].reason).toBe('Pending review.');
+    expect(result.manual[0].reason).toBe('Pending AI-assisted review.');
   });
 
   it('drops advisories whose id is in the skip-list', () => {
@@ -170,5 +170,29 @@ describe('buildResult', () => {
     const result = buildResult([advisory('lodash', 'GHSA-1')], new Set(['GHSA-1']));
 
     expect(result.manual).toEqual([]);
+  });
+
+  it('caps the manual list at maxPerRun, leaving the rest for a later run', () => {
+    const advisories = [advisory('a', 'GHSA-1'), advisory('b', 'GHSA-2'), advisory('c', 'GHSA-3')];
+
+    const result = buildResult(advisories, new Set(), 2);
+
+    expect(result.manual.map((e) => e.id)).toEqual(['GHSA-1', 'GHSA-2']);
+  });
+
+  it('does not count skip-listed or duplicate advisories against the cap', () => {
+    const advisories = [advisory('skip-me', 'GHSA-0'), advisory('a', 'GHSA-1'), advisory('a', 'GHSA-1'), advisory('b', 'GHSA-2')];
+
+    const result = buildResult(advisories, new Set(['GHSA-0']), 2);
+
+    expect(result.manual.map((e) => e.id)).toEqual(['GHSA-1', 'GHSA-2']);
+  });
+
+  it('defaults maxPerRun to 20 when not specified', () => {
+    const advisories = Array.from({ length: 25 }, (_, i) => advisory(`pkg-${i}`, `GHSA-${i}`));
+
+    const result = buildResult(advisories, new Set());
+
+    expect(result.manual).toHaveLength(20);
   });
 });

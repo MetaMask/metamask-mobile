@@ -465,9 +465,15 @@ jobs:
     needs:
       - dependency-audit
     if: ${{ needs.dependency-audit.outputs.has-advisories == 'true' }}
+    # A reusable workflow's own `permissions:` block can only narrow what its
+    # caller grants here, never widen it — this must be a superset of
+    # dependency-audit-escalation.yml's own permissions block, or the call
+    # fails at startup (zero jobs run) rather than at any individual step.
     permissions:
-      contents: read
+      contents: write
+      pull-requests: write
       issues: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     uses: ./.github/workflows/dependency-audit-escalation.yml
     secrets: inherit
 
