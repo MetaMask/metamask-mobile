@@ -111,10 +111,15 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
           ? 'failed'
           : 'idle';
 
-  const monitoringError =
-    modeWithdrawal?.status === 'failed' && modeWithdrawal.error
-      ? new Error(modeWithdrawal.error.reason)
+  // Stable identity so consumers don't re-toast on every render while failed.
+  const monitoringErrorReason =
+    modeWithdrawal?.status === 'failed'
+      ? (modeWithdrawal.error?.reason ?? null)
       : null;
+  const monitoringError = useMemo(
+    () => (monitoringErrorReason ? new Error(monitoringErrorReason) : null),
+    [monitoringErrorReason],
+  );
 
   const resetMutation = withdrawMutation.reset;
 
@@ -130,6 +135,11 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     }
   }, [modeWithdrawal?.status, queries.allKey, queryClient]);
 
+  // Controller already owns failed/monitoring/success outcomes — don't also
+  // surface the mutation rejection as withdrawError (duplicate failure toasts).
+  const withdrawError =
+    monitoringStatus === 'idle' ? withdrawMutation.error : null;
+
   return {
     wallet: walletQuery.data ?? null,
     isLoading: walletQuery.isLoading,
@@ -143,7 +153,7 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
 
     withdraw: withdrawMutation.mutate,
     isWithdrawing: withdrawMutation.isPending || isAnyRedeemInFlight,
-    withdrawError: withdrawMutation.error,
+    withdrawError,
     txHash: modeWithdrawal?.txHash ?? null,
 
     monitoringStatus,
