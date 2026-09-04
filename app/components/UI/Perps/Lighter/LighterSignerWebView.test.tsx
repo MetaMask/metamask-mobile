@@ -60,6 +60,10 @@ jest.mock('../../../../core/SecureKeychain', () => ({
   },
 }));
 
+jest.mock('../../../../util/test/utils', () => ({
+  isTestEnvironment: false,
+}));
+
 function messageEvent(message: unknown): WebViewMessageEvent {
   return {
     nativeEvent: { data: JSON.stringify(message) },
@@ -173,11 +177,20 @@ describe('LighterSignerWebView', () => {
     );
   });
 
-  it('stops reloading after repeated renderer failures despite ready events', async () => {
+  it('records dev readiness without creating a throwaway WASM client', () => {
+    render(<LighterSignerWebView />);
+
+    act(() => {
+      mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' }));
+    });
+
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
+  it('keeps the signer unavailable after a same-tick terminal ready event', async () => {
     jest.useFakeTimers();
     render(<LighterSignerWebView />);
-    const terminateReadyRenderer = () => {
-      mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' }));
+    const terminateRenderer = () => {
       mockWebViewProps.onContentProcessDidTerminate?.();
     };
 
@@ -186,14 +199,17 @@ describe('LighterSignerWebView', () => {
       attempt < MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS;
       attempt++
     ) {
-      act(terminateReadyRenderer);
+      act(terminateRenderer);
       await act(async () => {
         await jest.advanceTimersByTimeAsync(
           LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS * 2 ** attempt,
         );
       });
     }
-    act(terminateReadyRenderer);
+    act(() => {
+      mockWebViewProps.onContentProcessDidTerminate?.();
+      mockWebViewProps.onMessage?.(messageEvent({ type: 'ready' }));
+    });
 
     expect(mockWebViewRenderCount).toBe(MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS + 1);
     await expect(
