@@ -50,6 +50,34 @@ export interface AwaitExternalTransactionReceiptResult {
   pollAttempts: number;
 }
 
+const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Race `promise` against a timer so a hung RPC call cannot stall forever.
+ * Rejects with `onTimeout()` when the timer fires first.
+ */
+const raceWithTimeout = <T>(
+  promise: Promise<T>,
+  ms: number,
+  onTimeout: () => Error,
+): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(onTimeout());
+    }, ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+
 /**
  * Polls for an externally-submitted transaction receipt (e.g. a Card provider
  * withdrawal that returns a txHash rather than going through
@@ -73,14 +101,43 @@ export const awaitExternalTransactionReceipt = async (
   let pollAttempts = 0;
   let lastPollErrorCode: string | null = null;
 
+  const remainingMs = () => Math.max(0, timeoutMs - (Date.now() - startedAt));
+
+  const throwTimeout = () => {
+    throw new ExternalTransactionReceiptTimeoutError(
+      timeoutMs,
+      Date.now() - startedAt,
+      pollAttempts,
+      lastPollErrorCode,
+    );
+  };
+
   // Immediate first attempt, then interval polling.
   for (;;) {
     if (shouldContinue && !shouldContinue()) {
       throw new ExternalTransactionMonitorCancelledError(txHash);
     }
+
+    const budgetMs = remainingMs();
+    if (budgetMs === 0) {
+      throwTimeout();
+    }
+
     pollAttempts += 1;
+    const attempt = pollAttempts;
+    const lastErrorAtAttempt = lastPollErrorCode;
     try {
-      const receipt = await getReceipt();
+      const receipt = await raceWithTimeout(
+        getReceipt(),
+        budgetMs,
+        () =>
+          new ExternalTransactionReceiptTimeoutError(
+            timeoutMs,
+            Date.now() - startedAt,
+            attempt,
+            lastErrorAtAttempt,
+          ),
+      );
       if (receipt) {
         const status =
           typeof receipt.status === 'string'
@@ -95,6 +152,9 @@ export const awaitExternalTransactionReceipt = async (
         throw new ExternalTransactionRevertedError(txHash);
       }
     } catch (error) {
+      if (error instanceof ExternalTransactionReceiptTimeoutError) {
+        throw error;
+      }
       if (error instanceof ExternalTransactionRevertedError) {
         throw error;
       }
@@ -103,16 +163,11 @@ export const awaitExternalTransactionReceipt = async (
       // Continue polling on transient RPC errors.
     }
 
-    const elapsedMs = Date.now() - startedAt;
-    if (elapsedMs > timeoutMs) {
-      throw new ExternalTransactionReceiptTimeoutError(
-        timeoutMs,
-        elapsedMs,
-        pollAttempts,
-        lastPollErrorCode,
-      );
+    if (remainingMs() === 0) {
+      throwTimeout();
     }
 
-    await new Promise<void>((resolve) => setTimeout(resolve, intervalMs));
+    const sleepMs = Math.min(intervalMs, remainingMs());
+    await delay(sleepMs);
   }
 };

@@ -4485,9 +4485,14 @@ describe('CardController — data pass-throughs', () => {
       expect(controller.state.redeemWithdrawal).toMatchObject({
         status: 'success',
       });
+      // Success is a terminal lock for the mounted UI only — a later submit
+      // clears it and starts a new withdrawal.
       await expect(
         controller.withdrawCashback({ amount: '1' }),
-      ).rejects.toBeInstanceOf(CardRedeemWithdrawalInProgressError);
+      ).resolves.toEqual({ txHash: '0xabc' });
+      expect(controller.state.redeemWithdrawal).toMatchObject({
+        status: 'success',
+      });
     });
 
     it('abandons monitoring and leaves state cleared when the session ends mid-withdrawal', async () => {
