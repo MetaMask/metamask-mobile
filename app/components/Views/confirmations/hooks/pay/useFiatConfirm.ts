@@ -87,12 +87,9 @@ export function useFiatConfirm() {
 
     setIsHeadlessBuyInProgress(true);
 
-    // Subtract the on-ramp provider fee from the total so the Ramps order
-    // amount covers exactly the Relay leg of the intent (fees + deposit).
-    // The on-ramp provider adds its own fee on top of what we request.
-    const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0)
-      .minus(new BigNumber(totals?.fees.providerFiat?.usd ?? 0))
-      .toNumber();
+    // The on-ramp treats this amount as the total charge and takes its fee
+    // from it, so request the full total shown to the user.
+    const totalAmountToBuy = new BigNumber(totals?.total?.usd ?? 0).toNumber();
 
     // `rampSurface` is analytics-only; it does not filter the quote.
     const rampSurface = transactionMetadata?.type
