@@ -38,10 +38,6 @@ const _getSizes = (scaleVertical, baseModel) => {
   return { currSize, baseScreenSize };
 };
 
-/**
- * @param {number} size
- * @param {{ factor?: number, scaleVertical?: boolean, scaleUp?: boolean, baseSize?: number, baseModel?: number }} [options]
- */
 const scale = (
   size,
   {
