@@ -164,7 +164,7 @@ describe('usePerpsTerminateTwap', () => {
   it('routes cancellation to the provider that owns the schedule', async () => {
     // Arrange
     const { result } = renderHook(() => usePerpsTerminateTwap());
-    const routedOrder = { ...twapOrder, providerId: 'myx' as const };
+    const routedOrder = { ...twapOrder, providerId: 'lighter' as const };
 
     // Act
     await act(async () => {
@@ -173,7 +173,7 @@ describe('usePerpsTerminateTwap', () => {
 
     // Assert
     expect(mockCancelOrder).toHaveBeenCalledWith(
-      expect.objectContaining({ providerId: 'myx' }),
+      expect.objectContaining({ providerId: 'lighter' }),
     );
   });
 
@@ -231,7 +231,7 @@ describe('usePerpsTerminateTwap', () => {
     const { result } = renderHook(() => usePerpsTerminateTwap({ onSuccess }));
     const collidingProviderOrder = {
       ...twapOrder,
-      providerId: 'myx' as const,
+      providerId: 'lighter' as const,
     };
     let firstTermination: Promise<void> | undefined;
     let secondTermination: Promise<void> | undefined;
@@ -377,7 +377,7 @@ describe('usePerpsTerminateTwap', () => {
 
   it.each([
     ['account', () => (mockSelectedAddress = '0xdef')],
-    ['provider', () => (mockProvider = 'myx')],
+    ['provider', () => (mockProvider = 'lighter')],
     ['network', () => (mockNetwork = 'mainnet')],
   ])(
     'suppresses pending cancellation completion after a %s switch',

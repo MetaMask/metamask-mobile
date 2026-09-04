@@ -715,7 +715,7 @@ describe('PerpsProTwapPanel', () => {
     renderPanel({
       activeTwapOrders: [
         buildTwapOrder({ providerId: 'hyperliquid' }),
-        buildTwapOrder({ providerId: 'myx' }),
+        buildTwapOrder({ providerId: 'lighter' }),
       ],
       onTerminate,
       isTerminationInFlight: true,
@@ -728,7 +728,7 @@ describe('PerpsProTwapPanel', () => {
       ),
     );
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('myx', 'twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector('lighter', 'twap-1')),
     );
 
     // Assert
@@ -741,12 +741,12 @@ describe('PerpsProTwapPanel', () => {
     renderPanel({
       activeTwapOrders: [
         buildTwapOrder({ providerId: 'hyperliquid' }),
-        buildTwapOrder({ providerId: 'myx' }),
+        buildTwapOrder({ providerId: 'lighter' }),
       ],
       onTerminate,
       acceptedTerminationOrderIdentityKeys: new Set([
         'hyperliquid:twap-1',
-        'myx:twap-1',
+        'lighter:twap-1',
       ]),
     });
 
@@ -757,7 +757,7 @@ describe('PerpsProTwapPanel', () => {
       ),
     );
     fireEvent.press(
-      screen.getByTestId(getPerpsProTwapTerminateSelector('myx', 'twap-1')),
+      screen.getByTestId(getPerpsProTwapTerminateSelector('lighter', 'twap-1')),
     );
 
     // Assert
