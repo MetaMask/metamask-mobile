@@ -34,13 +34,18 @@ import {
   getPlanSelectorCardCopy,
   resolveSelectedPlanId,
 } from './utils/getMoneyAccountPlusPricingCopy';
+import {
+  getSelectedPlusPlan,
+  type SelectedPlusPlan,
+} from './utils/getSelectedPlusPlan';
 
 interface BenefitsProps {
-  onSuccess: () => void;
+  onSuccess: (plan: SelectedPlusPlan) => void;
+  onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
+const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
@@ -86,12 +91,22 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
     if (isCtaDisabled) {
       return;
     }
-    onSuccess();
-  }, [isCtaDisabled, onSuccess]);
 
-  const handlePlanPress = useCallback((planId: PlanId) => {
-    setSelectedPlan(planId);
-  }, []);
+    const checkoutPlan = getSelectedPlusPlan(resolvedPlan, plusPricing);
+    if (checkoutPlan === undefined) {
+      return;
+    }
+
+    onSuccess(checkoutPlan);
+  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan]);
+
+  const handlePlanPress = useCallback(
+    (planId: PlanId) => {
+      setSelectedPlan(planId);
+      onPlanChange?.(planId);
+    },
+    [onPlanChange],
+  );
 
   return (
     <Box

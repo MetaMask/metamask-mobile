@@ -1,7 +1,10 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render, fireEvent, within } from '@testing-library/react-native';
-import { RECURRING_INTERVALS } from '@metamask/subscription-controller';
+import {
+  PRODUCT_TYPES,
+  RECURRING_INTERVALS,
+} from '@metamask/subscription-controller';
 import Benefits from './Benefits';
 import { BenefitsTestIds } from './Benefits.testIds';
 import {
@@ -202,12 +205,38 @@ describe('Benefits', () => {
   // ── Callbacks ─────────────────────────────────────────────────────────────
 
   describe('Callbacks', () => {
-    it('calls onSuccess when the CTA is pressed', () => {
+    it('calls onSuccess with the annual checkout plan by default', () => {
       const { getByTestId } = renderBenefits();
 
       fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
 
       expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnSuccess).toHaveBeenCalledWith({
+        planId: 'annual',
+        product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        interval: RECURRING_INTERVALS.year,
+        currency: 'usd',
+        unitAmount: 4999,
+        unitDecimals: 2,
+        amount: 49.99,
+      });
+    });
+
+    it('calls onSuccess with the monthly checkout plan after Monthly is selected', () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).toHaveBeenCalledWith({
+        planId: 'monthly',
+        product: PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+        interval: RECURRING_INTERVALS.month,
+        currency: 'usd',
+        unitAmount: 499,
+        unitDecimals: 2,
+        amount: 4.99,
+      });
     });
 
     it('pressing a benefit row opens the detail sheet', () => {
