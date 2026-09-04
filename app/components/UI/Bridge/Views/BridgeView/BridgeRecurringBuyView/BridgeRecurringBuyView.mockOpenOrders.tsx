@@ -3,50 +3,59 @@ import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import OpenOrderRow from '../../../components/OpenOrderRow';
 import type { OrdersTabConfig } from '../../../components/OrdersTabs';
-import type { BridgeToken } from '../../../types';
+import {
+  getRecurringJobOrderCounts,
+  MOCK_RECURRING_OPEN_JOB,
+  MOCK_RECURRING_OPEN_JOB_SECONDARY,
+  MOCK_RECURRING_OPEN_JOB_TERTIARY,
+} from '../../RecurringJobDetailsView/RecurringJobDetailsView.mock';
+import { RecurringJobDetailsViewSelectorsIDs } from '../../RecurringJobDetailsView/RecurringJobDetailsView.testIds';
+import type {
+  OnRecurringJobPress,
+  RecurringJob,
+} from '../../RecurringJobDetailsView/RecurringJobDetailsView.types';
 
-const MOCK_DEST_TOKEN: BridgeToken = {
-  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-  chainId: '0x1',
-  decimals: 6,
-  symbol: 'USDC',
-  name: 'USD Coin',
-};
+export const MOCK_RECURRING_OPEN_JOBS = [
+  MOCK_RECURRING_OPEN_JOB,
+  MOCK_RECURRING_OPEN_JOB_SECONDARY,
+  MOCK_RECURRING_OPEN_JOB_TERTIARY,
+];
 
-const MOCK_RECURRING_OPEN_ORDER = {
-  id: 'mock-recurring-open',
-  token: MOCK_DEST_TOKEN,
-};
+function renderRecurringOpenJob(
+  job: RecurringJob,
+  onJobPress: OnRecurringJobPress,
+) {
+  const { filledPercent, totalOrderCount } = getRecurringJobOrderCounts(job);
 
-export const MOCK_RECURRING_OPEN_ORDERS = [MOCK_RECURRING_OPEN_ORDER];
-
-type MockRecurringOpenOrder = (typeof MOCK_RECURRING_OPEN_ORDERS)[number];
-
-function renderRecurringOpenOrder(item: MockRecurringOpenOrder) {
   return (
     <OpenOrderRow
-      token={item.token}
+      token={job.destinationToken}
       title={strings('bridge.recurring.pair', {
-        source: 'ETH',
-        dest: item.token.symbol,
+        source: job.sourceToken.symbol,
+        dest: job.destinationToken.symbol,
       })}
       subtitle={strings('bridge.recurring.schedule_summary', {
-        interval: '1 day',
-        count: '5',
+        interval: job.interval,
+        count: totalOrderCount,
       })}
-      primaryValue={`+0.325 ${item.token.symbol}`}
+      primaryValue={`+${job.totalReceived}`}
       secondaryValue={strings('bridge.recurring.percent_filled', {
-        percent: '49',
+        percent: filledPercent,
       })}
       primaryColor={TextColor.SuccessDefault}
+      onPress={() => onJobPress(job.jobId)}
+      testID={RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(job.jobId)}
     />
   );
 }
 
-export const RECURRING_MOCK_OPEN_ORDERS_TAB: OrdersTabConfig<MockRecurringOpenOrder> =
-  {
-    items: MOCK_RECURRING_OPEN_ORDERS,
-    renderItem: renderRecurringOpenOrder,
-    keyExtractor: (item) => item.id,
-    getItemChainId: (item) => item.token.chainId,
+export function createRecurringMockOpenOrdersTab(
+  onJobPress: OnRecurringJobPress,
+): OrdersTabConfig<RecurringJob> {
+  return {
+    items: MOCK_RECURRING_OPEN_JOBS,
+    renderItem: (job) => renderRecurringOpenJob(job, onJobPress),
+    keyExtractor: (job) => job.jobId,
+    getItemChainId: (job) => job.destinationToken.chainId,
   };
+}

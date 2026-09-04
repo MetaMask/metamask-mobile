@@ -5,6 +5,7 @@ import { BridgeTokenSelector } from './components/BridgeTokenSelector';
 import BridgeView from './Views/BridgeView';
 import { BatchSellTokenSelect } from './Views/BatchSellTokenSelect';
 import { BatchSellReview } from './Views/BatchSellReview';
+import RecurringJobDetailsView from './Views/RecurringJobDetailsView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
@@ -63,6 +64,11 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.RECURRING_JOB_DETAILS}
+      component={RecurringJobDetailsView}
+      options={{ headerShown: false }}
     />
     <Stack.Screen
       name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}

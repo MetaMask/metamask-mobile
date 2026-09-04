@@ -1,8 +1,11 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Routes from '../../../../../../constants/navigation/Routes';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   selectBridgeBalanceRefreshKey,
   selectRecurringEveryUnit,
@@ -50,8 +53,8 @@ import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
-import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
-import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
+import { createRecurringMockHistoryTab } from './BridgeRecurringBuyView.mockHistory';
+import { createRecurringMockOpenOrdersTab } from './BridgeRecurringBuyView.mockOpenOrders';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 
 interface BridgeRecurringBuyViewContentProps {
@@ -62,6 +65,7 @@ const BridgeRecurringBuyViewContent = ({
   latestSourceBalance,
 }: BridgeRecurringBuyViewContentProps) => {
   const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const inputRef = useRef<TokenInputAreaRef>(null);
   const [isPriceRangeSheetVisible, setIsPriceRangeSheetVisible] =
@@ -121,6 +125,22 @@ const BridgeRecurringBuyViewContent = ({
   const handleConfirmSheetClosed = useCallback(() => {
     setIsConfirmSheetVisible(false);
   }, []);
+
+  const handleJobPress = useCallback(
+    (jobId: string) => {
+      navigation.navigate(Routes.BRIDGE.RECURRING_JOB_DETAILS, { jobId });
+    },
+    [navigation],
+  );
+
+  const openOrders = useMemo(
+    () => createRecurringMockOpenOrdersTab(handleJobPress),
+    [handleJobPress],
+  );
+  const history = useMemo(
+    () => createRecurringMockHistoryTab(handleJobPress),
+    [handleJobPress],
+  );
 
   const effectiveRange = isPriceRangeInCurrentCurrency(
     priceRange,
@@ -254,8 +274,8 @@ const BridgeRecurringBuyViewContent = ({
           <Box onTouchEnd={dismissInputAndKeypad}>
             <OrdersTabs
               enabledChainIds={enabledChainIds}
-              openOrders={RECURRING_MOCK_OPEN_ORDERS_TAB}
-              history={RECURRING_MOCK_HISTORY_TAB}
+              openOrders={openOrders}
+              history={history}
             />
           </Box>
         </ScrollView>
