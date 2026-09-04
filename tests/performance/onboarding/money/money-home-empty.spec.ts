@@ -35,10 +35,12 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
       await timer.measure(async () => {
         await MoneyHomeView.waitForEmptyBalanceLoaded();
         await MoneyHomeView.waitForApyLoaded();
-        await MoneyHomeView.expectOnboardingCardTitleVisible();
-        await MoneyHomeView.expectSendButtonDisabled();
-        await MoneyHomeView.expectEarningsSectionNotVisible();
       });
+      // Don't include regular assertions in measure().
+      // Each assertion carries overhead and can skew the results.
+      await MoneyHomeView.expectOnboardingCardTitleVisible();
+      await MoneyHomeView.expectSendButtonDisabled();
+      await MoneyHomeView.expectEarningsSectionNotVisible();
 
       performanceTracker.addTimers(timer);
     },
