@@ -183,6 +183,27 @@ import {
   isExpectedPolymarketRequestAbort,
 } from './fetchWithTimeout';
 
+/**
+ * Narrows the geoblock payload to the fields the app relies on. Returns `null`
+ * unless `blocked` is a boolean and `country` is a non-empty string, so an
+ * incomplete response is never mistaken for a definitive result.
+ */
+const parseGeoBlockPayload = (
+  data: unknown,
+): { blocked: boolean; country: string } | null => {
+  if (!data || typeof data !== 'object') {
+    return null;
+  }
+  const { blocked, country } = data as { blocked?: unknown; country?: unknown };
+  if (typeof blocked !== 'boolean') {
+    return null;
+  }
+  if (typeof country !== 'string' || country.trim() === '') {
+    return null;
+  }
+  return { blocked, country };
+};
+
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
   version: SignTypedDataVersion,
@@ -2526,48 +2547,40 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
+  /**
+   * Checks the Polymarket geoblock endpoint.
+   *
+   * Only a complete payload (`blocked` boolean plus a non-empty `country`)
+   * produces a result. Anything else throws so the controller can record the
+   * check as unavailable instead of treating a connectivity failure as a
+   * geo-restriction. Error classification and reporting are owned by the
+   * controller, so nothing is logged here.
+   */
   public async isEligible(): Promise<GeoBlockResponse> {
     const { GEOBLOCK_API_ENDPOINT } = getPolymarketEndpoints();
-    const result: GeoBlockResponse = { isEligible: false };
 
-    try {
-      const res = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
-      const data = (await res.json()) as {
-        blocked?: boolean;
-        country?: string;
-      };
-
-      if (data.blocked !== undefined) {
-        result.isEligible = data.blocked === false;
-        result.country = data.country;
-      }
-    } catch (error) {
-      DevLogger.log('PolymarketProvider: Error checking geoblock status', {
-        error:
-          error instanceof Error
-            ? error.message
-            : `Error checking geoblock status: ${error}`,
-        timestamp: new Date().toISOString(),
-      });
-
-      const errorContext = this.getErrorContext('isEligible', {
-        operation: 'geoblock_check',
-      });
-      if (isExpectedPolymarketRequestAbort(error)) {
-        Logger.log(
-          'Predict geoblock request ended by expected timeout/cancellation:',
-          error instanceof Error ? error.message : String(error),
-          errorContext,
-        );
-      } else {
-        // This error is swallowed (returns false), so the controller cannot report it.
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          errorContext,
-        );
-      }
+    const response = await fetchWithTimeout(GEOBLOCK_API_ENDPOINT);
+    if (!response.ok) {
+      throw new Error(
+        `Polymarket geoblock check failed with status ${response.status}`,
+      );
     }
-    return result;
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Polymarket geoblock check returned malformed JSON');
+    }
+
+    const payload = parseGeoBlockPayload(data);
+    if (!payload) {
+      throw new Error(
+        'Polymarket geoblock check returned an incomplete response',
+      );
+    }
+
+    return { isEligible: payload.blocked === false, country: payload.country };
   }
 
   /**

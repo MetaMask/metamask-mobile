@@ -1111,39 +1111,98 @@ describe('PolymarketProvider', () => {
     signer.signTypedMessage.mockResolvedValue('0xsigned-order');
   });
 
-  describe('eligibility request errors', () => {
-    it('does not report expected caller cancellation to Sentry', async () => {
+  describe('isEligible', () => {
+    const mockJson = (payload: unknown, ok = true, status = 200) => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok,
+        status,
+        json: jest.fn().mockResolvedValue(payload),
+      });
+    };
+
+    it('returns eligible for a complete unblocked response', async () => {
+      mockJson({ blocked: false, country: 'PT' });
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: true,
+        country: 'PT',
+      });
+    });
+
+    it('returns ineligible for a complete blocked response', async () => {
+      mockJson({ blocked: true, country: 'DE' });
+
+      await expect(createProvider().isEligible()).resolves.toEqual({
+        isEligible: false,
+        country: 'DE',
+      });
+    });
+
+    it('throws when country is missing', async () => {
+      mockJson({ blocked: false });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'incomplete response',
+      );
+    });
+
+    it('throws when blocked is missing', async () => {
+      mockJson({ country: 'PT' });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'incomplete response',
+      );
+    });
+
+    it('throws when the payload is malformed JSON', async () => {
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: jest.fn().mockRejectedValue(new Error('Unexpected token')),
+      });
+
+      await expect(createProvider().isEligible()).rejects.toThrow(
+        'malformed JSON',
+      );
+    });
+
+    it('throws when the response is not 2xx', async () => {
+      mockJson({ blocked: false, country: 'PT' }, false, 500);
+
+      await expect(createProvider().isEligible()).rejects.toThrow('status 500');
+    });
+
+    it('propagates a request timeout', async () => {
+      const timeoutError = new PolymarketRequestTimeoutError(
+        new Error('The operation was aborted'),
+      );
+      global.fetch = jest.fn().mockRejectedValue(timeoutError);
+
+      await expect(createProvider().isEligible()).rejects.toBe(timeoutError);
+    });
+
+    it('propagates a network failure without reporting it', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger').default;
+      const networkError = new TypeError('Network request failed');
+      global.fetch = jest.fn().mockRejectedValue(networkError);
+
+      await expect(createProvider().isEligible()).rejects.toBe(networkError);
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('propagates expected cancellation without reporting it as a Sentry error', async () => {
       const Logger = jest.requireMock('../../../../../util/Logger').default;
       const cancellationError = new PolymarketRequestCancelledError(
         new Error('The operation was aborted'),
       );
       global.fetch = jest.fn().mockRejectedValue(cancellationError);
 
-      await expect(createProvider().isEligible()).resolves.toEqual({
-        isEligible: false,
-      });
-
+      await expect(createProvider().isEligible()).rejects.toBe(
+        cancellationError,
+      );
       expect(Logger.error).not.toHaveBeenCalled();
-      expect(Logger.log).toHaveBeenCalledWith(
-        'Predict geoblock request ended by expected timeout/cancellation:',
-        cancellationError.message,
-        expect.any(Object),
-      );
-    });
-
-    it('reports genuine geoblock connectivity failures to Sentry', async () => {
-      const Logger = jest.requireMock('../../../../../util/Logger').default;
-      const networkError = new TypeError('Network request failed');
-      global.fetch = jest.fn().mockRejectedValue(networkError);
-
-      await expect(createProvider().isEligible()).resolves.toEqual({
-        isEligible: false,
-      });
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        networkError,
-        expect.any(Object),
-      );
+      expect(Logger.log).not.toHaveBeenCalled();
     });
   });
 

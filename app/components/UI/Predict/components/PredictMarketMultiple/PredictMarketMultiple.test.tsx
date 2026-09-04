@@ -342,6 +342,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user as not eligible
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
     });
     // Mock user has balance
     mockUsePredictBalance.mockReturnValue({
@@ -411,6 +413,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
@@ -439,6 +443,8 @@ describe('PredictMarketMultiple', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
       isEligible: false,
+      isIneligible: true,
+      status: 'ineligible',
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({

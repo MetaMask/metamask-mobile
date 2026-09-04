@@ -225,7 +225,11 @@ export type PredictControllerConfirmClaimAction = {
 };
 
 /**
- * Refresh eligibility status
+ * Refresh eligibility status.
+ *
+ * Concurrent callers share one in-flight request. A definitive result
+ * requires a country; failures and incomplete responses become
+ * `unavailable` so they are never described as a geo-restriction.
  */
 export type PredictControllerRefreshEligibilityAction = {
   type: `PredictController:refreshEligibility`;
