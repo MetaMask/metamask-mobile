@@ -231,7 +231,7 @@ slack-message-ts.txt
 .ai-pr-analyzer/flaky*
 .cursor/rules/*
 !.cursor/rules/*.mdc
-.cursor/skills/
+.cursor/skills/*
 .cursor/commands/
 # Carve-outs: IDE/bugbot config that must stay tracked
 !.cursor/rules/*.mdc
@@ -239,6 +239,8 @@ slack-message-ts.txt
 !.cursor/hooks.json
 !.cursor/worktrees.json
 !.claude/settings.json
+!.cursor/skills/maestro-visual-regression/
+!.cursor/skills/maestro-visual-regression/**
 
 # Build environment validation
 build-env.json
