@@ -889,6 +889,8 @@ const ChoosePassword = () => {
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
             keyboardShouldPersistTaps="handled"
+            // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
+            mode="layout"
           >
             <Box
               flexDirection={BoxFlexDirection.Column}
