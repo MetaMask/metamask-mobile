@@ -31,6 +31,7 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
+import { useTransactionPayingAccount } from './useTransactionPayingAccount';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -55,6 +56,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../../../UI/HardwareWallet/Swaps/useHandleHwSend', () => ({
   useHandleHwSend: jest.fn(),
 }));
+jest.mock('./useTransactionPayingAccount');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -65,6 +67,8 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const CHAIN_ID_MOCK = '0x123';
+const SOFTWARE_SIGNER_ADDRESS = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const HARDWARE_PAYER_ADDRESS = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
 
 // ---------- Top-level mocks (referenced by beforeEach and tests) ----------
 
@@ -84,6 +88,9 @@ const useTransactionMetadataRequestMock = jest.mocked(
 );
 const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 const useHandleHwSendMock = jest.mocked(useHandleHwSend);
+const useTransactionPayingAccountMock = jest.mocked(
+  useTransactionPayingAccount,
+);
 const onFiatConfirmMock = jest.fn();
 const useParamsMock = jest.mocked(useParams);
 
@@ -194,6 +201,7 @@ describe('useTransactionConfirm', () => {
     });
 
     isHardwareAccountMock.mockReturnValue(false);
+    useTransactionPayingAccountMock.mockReturnValue(undefined);
 
     useHandleHwSendMock.mockReturnValue({
       shouldDefer: jest.fn(() => false),
@@ -322,6 +330,32 @@ describe('useTransactionConfirm', () => {
       expect.objectContaining({
         waitForResult: false,
       }),
+      expect.anything(),
+    );
+  });
+
+  it('waits for result when a hardware payer differs from the software signer', async () => {
+    useTransactionPayingAccountMock.mockReturnValue(HARDWARE_PAYER_ADDRESS);
+    isHardwareAccountMock.mockImplementation(
+      (address) => address === HARDWARE_PAYER_ADDRESS,
+    );
+    useTransactionPayQuotesMock.mockReturnValue([
+      {} as TransactionPayQuote<Json>,
+    ]);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_MOCK,
+      txParams: { from: SOFTWARE_SIGNER_ADDRESS },
+    } as unknown as TransactionMeta);
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm();
+    });
+
+    expect(onApprovalConfirm).toHaveBeenCalledWith(
+      expect.objectContaining({ waitForResult: true }),
       expect.anything(),
     );
   });
@@ -790,6 +824,32 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('appends the fee-token transfer to existing smart transaction batches', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        txParams: {},
+        batchTransactions: [
+          { data: '0xexisting', to: '0xexisting', value: '0x0' },
+        ],
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({ data: '0xexisting' }),
+            expect.objectContaining({ data: '0xabc' }),
+          ],
+        }),
+      });
+    });
+
     it('does nothing if selectedGasFeeToken missing', async () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
@@ -897,6 +957,31 @@ describe('useTransactionConfirm', () => {
       });
     });
 
+    it('uses the software signer capability when the fee payer is a hardware account', async () => {
+      useTransactionPayingAccountMock.mockReturnValue(HARDWARE_PAYER_ADDRESS);
+      isHardwareAccountMock.mockImplementation(
+        (address) => address === HARDWARE_PAYER_ADDRESS,
+      );
+      useSelectedGasFeeTokenMock.mockReturnValue({
+        transferTransaction: { data: '0xabc' },
+      } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        txParams: { from: SOFTWARE_SIGNER_ADDRESS },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({ isExternalSign: true }),
+      });
+    });
+
     it('does nothing if selectedGasFeeToken is missing', async () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
         undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
@@ -913,16 +998,22 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('does nothing if isGasFeeTokenIgnoredIfBalance', async () => {
+    it('clears stale external signing when the fee token is ignored for native balance', async () => {
       isSendBundleSupportedMock.mockReturnValue(Promise.resolve(false));
-
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
       useSelectedGasFeeTokenMock.mockReturnValue({
         transferTransaction: { data: '0xabc' },
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>);
-
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
+        isExternalSign: true,
+        isGasFeeSponsored: true,
         isGasFeeTokenIgnoredIfBalance: true,
+        txParams: { from: SOFTWARE_SIGNER_ADDRESS },
       } as unknown as TransactionMeta);
 
       const { result } = renderHook();
@@ -932,7 +1023,10 @@ describe('useTransactionConfirm', () => {
       });
 
       expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
-        txMeta: expect.not.objectContaining({ isExternalSign: true }),
+        txMeta: expect.objectContaining({
+          isExternalSign: false,
+          isGasFeeSponsored: false,
+        }),
       });
     });
   });
@@ -1081,6 +1175,41 @@ describe('useTransactionConfirm', () => {
           txParams: expect.objectContaining({
             to: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
           }),
+        }),
+      );
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+    });
+
+    it('forwards locally signed metadata when sponsorship is unsupported by a hardware signer', async () => {
+      const spy = setupHwSend();
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSupported: false,
+        isSmartTransaction: false,
+        pending: false,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        type: TransactionType.simpleSend,
+        isExternalSign: true,
+        isGasFeeSponsored: true,
+        txParams: {
+          from: HARDWARE_PAYER_ADDRESS,
+          to: SOFTWARE_SIGNER_ADDRESS,
+          value: '0x64',
+        },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isExternalSign: false,
+          isGasFeeSponsored: false,
         }),
       );
       expect(onApprovalConfirm).not.toHaveBeenCalled();

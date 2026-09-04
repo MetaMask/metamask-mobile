@@ -9,6 +9,7 @@ import {
   TransactionMeta,
   TransactionType,
   hasTransactionType,
+  prepareTransactionForApproval,
 } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -20,7 +21,7 @@ import {
 } from '../../components/confirm/confirm-component';
 import { createProjectLogger } from '@metamask/utils';
 import { useSelectedGasFeeToken } from '../gas/useGasFeeToken';
-import { shouldApplyGasFeeSponsorship } from '../../utils/transaction';
+import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
@@ -191,28 +192,28 @@ export function useTransactionConfirm() {
         return;
       }
 
-      const updatedMetadata = cloneDeep(transactionMetadata);
-
-      // Sponsorship eligibility is account-specific (HW wallets are excluded),
-      // unlike the controller's account-agnostic simulation result.
-      const isGaslessEligible = shouldApplyGasFeeSponsorship({
-        transactionMeta: transactionMetadata,
-        isGaslessSupported,
-      });
-      updatedMetadata.isGasFeeSponsored = isGaslessEligible;
-
-      // The controller sets `isExternalSign` from `isGasFeeSponsored` for any
-      // account. When gasless isn't eligible, revert it or signing is skipped
-      // and an empty `'0x'` reaches `eth_sendRawTransaction`.
-      const isExternalSignStale =
-        Boolean(transactionMetadata.isExternalSign) && !isGaslessEligible;
-      if (isExternalSignStale) {
-        updatedMetadata.isExternalSign = false;
-      }
+      const { transactionMeta: updatedMetadata } =
+        prepareTransactionForApproval({
+          transactionMeta: cloneDeep(transactionMetadata),
+          sponsorship: {
+            available:
+              isTransactionMarkedAsGasFeeSponsored(transactionMetadata),
+            supported: isGaslessSupported,
+            optedOut: false,
+            required: false,
+          },
+          signing: {
+            externalSigningSupported: Boolean(
+              transactionMetadata.isExternalSign,
+            ),
+          },
+        });
 
       if (isGaslessSupportedSTX) {
         handleSmartTransaction(updatedMetadata);
       } else if (selectedGasFeeToken && !isSignerHardwareWallet) {
+        // Gas-fee-token EIP-7702 signing remains client-owned and is applied
+        // after canonical sponsorship normalization.
         handleGasless7702(updatedMetadata);
       }
 
