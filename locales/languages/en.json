@@ -4342,7 +4342,7 @@
       "select_all": "Select all",
       "deselect_all": "Deselect all",
       "select_accounts_title": "Accounts",
-      "select_accounts_desc": "Choose which accounts you'd like to get notifications for.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "Wallet activity",
       "wallet_activity_desc": "Buy, sells, transfers, swaps",
       "perps_title": "Trading activity",
