@@ -724,20 +724,13 @@ jobs:
             "https://api.github.com/repos/${GITHUB_REPOSITORY}/statuses/${COMMIT_SHA}" \
             -d "$BODY"
 
-      - name: Upload iOS bundle (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload iOS bundle (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ios-bundle
           path: ios/main.jsbundle
           retention-days: 7
-      - name: Upload iOS bundle (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-bundle
-          path: ios/main.jsbundle
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
   ship-js-bundle-size-check:
     name: Ship JS bundle size check
@@ -952,32 +945,17 @@ jobs:
           cp tests/results/unit-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/unit-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - name: Upload coverage unit shard (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      # Namespace stores the full shard dir for merge; GitHub gets jest-results.json
+      # only so qa-stats can read it via the GitHub API.
+      - name: Upload coverage unit shard (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-unit-${{ matrix.shard }}
           path: ./tests/coverage/
+          github-path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
-      # QA Stats reads artifacts through the GitHub API, which cannot see
-      # artifacts stored by namespace-actions/upload-artifact.
-      - name: Upload unit test results for QA Stats (GitHub)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-unit-${{ matrix.shard }}
-          path: ./tests/coverage/jest-results.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload coverage unit shard (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-unit-${{ matrix.shard }}
-          path: ./tests/coverage/
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -1114,155 +1092,87 @@ jobs:
           find ./tests/coverage/coverage-* -name 'coverage-*.json' -exec mv {} ./tests/coverage/ \;
       - run: yarn test:merge-coverage
       - run: yarn test:validate-coverage
-      - name: Upload lcov.info (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload lcov.info (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: lcov.info
           path: ./tests/merged-coverage/lcov.info
           if-no-files-found: error
           retention-days: 7
-      - name: Upload lcov.info (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: lcov.info
-          path: ./tests/merged-coverage/lcov.info
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload cv-test-stats (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Upload cv-test-stats (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-stats
           path: ./cv-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-stats (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cv-test-stats
-          path: ./cv-test-stats.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload integration-test-stats (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Upload integration-test-stats (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: integration-test-stats
           path: ./integration-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration-test-stats (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-stats
-          path: ./integration-test-stats.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload unit-test-stats (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Upload unit-test-stats (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: unit-test-stats
           path: ./unit-test-stats.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-stats (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-stats
-          path: ./unit-test-stats.json
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate CV test coverage report
         run: yarn nyc report --temp-dir ./tests/coverage-cv-merged --report-dir ./tests/coverage-cv-lcov --reporter html --reporter json-summary
-      - name: Upload cv-test-coverage-html (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload cv-test-coverage-html (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-html
           path: ./tests/coverage-cv-lcov/
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-html (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: cv-test-coverage-html
-          path: ./tests/coverage-cv-lcov/
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload cv-test-coverage-summary (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Upload cv-test-coverage-summary (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: cv-test-coverage-summary
           path: ./tests/coverage-cv-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload cv-test-coverage-summary (GitHub)
-        uses: actions/upload-artifact@v4
-        with:
-          name: cv-test-coverage-summary
-          path: ./tests/coverage-cv-lcov/coverage-summary.json
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate integration test coverage report
         if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
         run: yarn nyc report --temp-dir ./tests/coverage-integration-merged --report-dir ./tests/coverage-integration-lcov --reporter html --reporter json-summary
-      - name: Upload integration-test-coverage-html (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: integration-test-coverage-html
-          path: ./tests/coverage-integration-lcov/
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload integration-test-coverage-html (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: integration-test-coverage-html
-          path: ./tests/coverage-integration-lcov/
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload integration-test-coverage-summary (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: integration-test-coverage-summary
-          path: ./tests/coverage-integration-lcov/coverage-summary.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload integration-test-coverage-summary (GitHub)
+      - name: Upload integration-test-coverage-html (artifact stores)
         if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: integration-test-coverage-html
+          path: ./tests/coverage-integration-lcov/
+          if-no-files-found: error
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+      - name: Upload integration-test-coverage-summary (artifact stores)
+        if: ${{ steps.aggregate-coverage.outputs.has_integration_coverage == 'true' }}
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: integration-test-coverage-summary
           path: ./tests/coverage-integration-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Generate unit test coverage summary
         run: yarn nyc report --temp-dir ./tests/coverage-unit-merged --report-dir ./tests/coverage-unit-lcov --reporter json-summary
-      - name: Upload unit-test-coverage-summary (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload unit-test-coverage-summary (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: unit-test-coverage-summary
           path: ./tests/coverage-unit-lcov/coverage-summary.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload unit-test-coverage-summary (GitHub)
-        uses: actions/upload-artifact@v4
-        with:
-          name: unit-test-coverage-summary
-          path: ./tests/coverage-unit-lcov/coverage-summary.json
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
       - name: Require clean working directory
         shell: bash
         run: |
@@ -1331,30 +1241,15 @@ jobs:
           cp tests/results/cv-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/cv-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - name: Upload coverage CV shard (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload coverage CV shard (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-cv-${{ matrix.shard }}
           path: ./tests/coverage/
+          github-path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload component view test results for QA Stats (GitHub)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-cv-${{ matrix.shard }}
-          path: ./tests/coverage/jest-results.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload coverage CV shard (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-cv-${{ matrix.shard }}
-          path: ./tests/coverage/
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
   # Integration tests are optional for the PR gate — they feed coverage into
   # merge → Sonar but are not listed in check-all-jobs-pass needs.
@@ -1432,30 +1327,15 @@ jobs:
           cp tests/results/integration-test-results-${{ matrix.shard }}.json ./tests/coverage/jest-results.json
           count=$(jq '(.numPassedTests // 0) + (.numFailedTests // 0)' tests/results/integration-test-results-${{ matrix.shard }}.json)
           echo "{\"count\": $count}" > ./tests/coverage/count.json
-      - name: Upload coverage integration shard (Namespace)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+      - name: Upload coverage integration shard (artifact stores)
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: coverage-integration-${{ matrix.shard }}
           path: ./tests/coverage/
+          github-path: ./tests/coverage/jest-results.json
           if-no-files-found: error
           retention-days: 7
-      - name: Upload integration test results for QA Stats (GitHub)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-integration-${{ matrix.shard }}
-          path: ./tests/coverage/jest-results.json
-          if-no-files-found: error
-          retention-days: 7
-      - name: Upload coverage integration shard (current)
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-integration-${{ matrix.shard }}
-          path: ./tests/coverage/
-          if-no-files-found: error
-          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
   smart-e2e-selection:
     name: 'Smart E2E Selection'
@@ -1722,7 +1602,6 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-      android-device-pool-size: 2
     secrets: inherit
 
   appium-smoke-tests-ios:

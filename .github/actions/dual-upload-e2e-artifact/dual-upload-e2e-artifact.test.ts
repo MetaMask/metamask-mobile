@@ -109,6 +109,18 @@ describe('dual-upload-e2e-artifact', () => {
       name: 'Upload to GitHub',
       if: "${{ inputs.skip-github != 'true' || !contains(inputs.runner-provider, 'namespace') }}",
     });
+    expect(githubUploadSteps[0]?.with?.path).toBe(
+      "${{ contains(inputs.runner-provider, 'namespace') && inputs.github-path != '' && inputs.github-path || inputs.path }}",
+    );
+  });
+
+  it('exposes github-path as an optional input defaulting to empty', () => {
+    const actionMetadata = loadActionMetadata();
+
+    expect(actionMetadata.inputs['github-path']).toMatchObject({
+      required: false,
+    });
+    expect(actionMetadata.inputs['github-path'].default).toBe('');
   });
 
   it('exposes skip-github as an optional input defaulting to false', () => {

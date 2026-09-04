@@ -34,6 +34,11 @@ on:
         required: false
         type: string
         default: ''
+      ios-device-pool-size:
+        description: 'iOS simulator and Playwright worker count (default 2). Mirrors android-device-pool-size.'
+        required: false
+        type: number
+        default: 2
 
 permissions:
   contents: read
@@ -64,6 +69,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -90,6 +96,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -115,6 +122,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -140,9 +148,9 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
-
 
   appium-snaps-ios-smoke:
     if: >-
@@ -167,6 +175,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -191,6 +200,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -216,6 +226,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -241,6 +252,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -266,6 +278,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -291,6 +304,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -316,6 +330,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -341,6 +356,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -366,6 +382,7 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
 
@@ -391,5 +408,6 @@ jobs:
       build_type: ${{ inputs.build_type || 'main' }}
       metamask_environment: ${{ inputs.metamask_environment || 'e2e' }}
       runner_provider: ${{ inputs.runner_provider || 'current' }}
+      ios-device-pool-size: ${{ inputs.ios-device-pool-size }}
       changed_spec_files: ${{ inputs.changed_spec_files }}
     secrets: inherit
