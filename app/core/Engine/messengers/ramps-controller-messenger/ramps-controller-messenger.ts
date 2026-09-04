@@ -51,7 +51,7 @@ export function getRampsControllerMessenger(
       ...RAMPS_CONTROLLER_REQUIRED_SERVICE_ACTIONS,
       // Autoramp Backup & Sync (User Storage + auth gate).
       ...RAMPS_CONTROLLER_AUTORAMP_SYNC_ACTIONS,
-      // Autoramp creation resolves the MoonPay customer id from KYC rather
+      // Autoramp creation resolves the customer id from Profile Sync rather
       // than trusting a caller-supplied one.
       ...RAMPS_CONTROLLER_REQUIRED_CONTROLLER_ACTIONS,
     ],

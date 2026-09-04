@@ -787,13 +787,21 @@
     "statusMessage": "",
     "error": null,
     "email": null,
-    "termsAcceptedAt": null,
-    "acceptedDisclaimerIds": [],
-    "disclaimers": [],
-    "disclaimersError": null,
+    "vendorDisclaimersAccepted": {
+      "moonpay": null,
+      "iron": null
+    },
+    "providerDisclaimersAccepted": {
+      "sumsub": null
+    },
+    "idosDisclaimersAccepted": null,
+    "credentialReusabilityConsentGiven": null,
+    "vendorDisclaimers": [],
+    "vendorError": null,
+    "sessionDisclaimers": null,
     "geoCountry": null,
-    "sessionToken": null,
-    "accessToken": null,
+    "moonpaySessionToken": null,
+    "moonpayAccessToken": null,
     "moonpayCustomerId": null,
     "activeVendor": "moonpay",
     "activeProduct": null,
@@ -947,6 +955,7 @@
     "marketOverview": null
   },
   "RampsController": {
+    "autoramps": [],
     "userRegion": null,
     "countries": {
       "data": [],

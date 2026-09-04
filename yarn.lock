@@ -7924,19 +7924,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-data-service@npm:^0.1.3":
-  version: 0.1.3
-  resolution: "@metamask/base-data-service@npm:0.1.3"
-  dependencies:
-    "@metamask/controller-utils": "npm:^12.1.0"
-    "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/utils": "npm:^11.9.0"
-    "@tanstack/query-core": "npm:^4.43.0"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/f5a714b4d6954cef1ab203c164d2e549937ecd185104a2cc0eef2954a7a150b0c35608671df281fc71574022204823b633c486efac0e98d6018a1a111a2edaf0
-  languageName: node
-  linkType: hard
-
 "@metamask/base-data-service@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/base-data-service@npm:1.0.0"
@@ -9096,26 +9083,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/kyc-controller@npm:@metamask-previews/kyc-controller@0.0.0-preview-c34a16a37":
-  version: 0.0.0-preview-c34a16a37
-  resolution: "@metamask-previews/kyc-controller@npm:0.0.0-preview-c34a16a37"
+"@metamask/kyc-controller@npm:@metamask-previews/kyc-controller@0.0.0-preview-23eb7095a":
+  version: 0.0.0-preview-23eb7095a
+  resolution: "@metamask-previews/kyc-controller@npm:0.0.0-preview-23eb7095a"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/base-data-service": "npm:^0.1.3"
+    "@metamask/base-data-service": "npm:^1.0.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/geolocation-controller": "npm:^1.0.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^11.11.0"
+    "@metamask/utils": "npm:^11.12.0"
     "@noble/ciphers": "npm:^1.3.0"
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
     "@scure/base": "npm:^1.2.6"
-    "@tanstack/query-core": "npm:^4.43.0"
+    "@tanstack/query-core": "npm:^5.62.16"
     reselect: "npm:^5.1.1"
     tweetnacl: "npm:^1.0.3"
-  checksum: 10/76de66f948f730af9b723c9b072e75d2c4a686558939e9c07ff49ff59b89417a069fe497152092b62be7f0c859b1e4213b9f74da7579bbdaf2d3795cd2b7e3d3
+  checksum: 10/4ac6e6e842226e8e244e686b8f0b3e03b1d0af24736bb97e3066d8a1d0b4de3b119e3d31a0e443078cd646312226abb19355839c7590396e13b16efd73f0b516
   languageName: node
   linkType: hard
 
@@ -9814,16 +9801,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^20.0.0":
-  version: 20.0.0
-  resolution: "@metamask/ramps-controller@npm:20.0.0"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@20.0.0-preview-c34a16a37":
+  version: 20.0.0-preview-c34a16a37
+  resolution: "@metamask-previews/ramps-controller@npm:20.0.0-preview-c34a16a37"
   dependencies:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^5.0.0"
-  checksum: 10/5dceb58717d74553c13f628ca8bf1153d94f0b7b89611e1d1d645578afaf2c6c058a07aceb83184039a390e78419986e725f9c5d105d2c256f2726628b33685b
+  checksum: 10/93fd7077e9c6842e59af0d5be7f547300be2ee984a47a8581c56269ef436ccd8ce22f154bbb5395cc42c294c70a8781ffe50933acd8bab85e447f2622bbfc725
   languageName: node
   linkType: hard
 
@@ -10003,7 +9990,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
+"@metamask/scure-bip39@npm:^2.0.3, @metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
   version: 2.1.1
   resolution: "@metamask/scure-bip39@npm:2.1.1"
   dependencies:
@@ -10677,6 +10664,26 @@ __metadata:
     semver: "npm:^7.5.4"
     uuid: "npm:^9.0.1"
   checksum: 10/c4381b9e451a9616bde84ac659bc0d1848ef06b6e605f877bfa065b78c8ed5015706683ea88a3387de5eaeb3a50d1af9af0994f04f9e06258d992598fe2be3bf
+  languageName: node
+  linkType: hard
+
+"@metamask/utils@npm:^11.12.0":
+  version: 11.12.0
+  resolution: "@metamask/utils@npm:11.12.0"
+  dependencies:
+    "@ethereumjs/tx": "npm:^4.2.0"
+    "@metamask/scure-bip39": "npm:^2.0.3"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@noble/hashes": "npm:^1.3.1"
+    "@scure/base": "npm:^1.1.3"
+    "@types/debug": "npm:^4.1.7"
+    "@types/lodash": "npm:^4.17.20"
+    debug: "npm:^4.3.4"
+    lodash: "npm:^4.17.21"
+    pony-cause: "npm:^2.1.10"
+    semver: "npm:^7.5.4"
+    uuid: "npm:^9.0.1"
+  checksum: 10/91b21f92858e96499d780ac408b2a6e99aadde9eb566f7413b425f0583aa746d7bfcd7bf4310578723939aa940d3724e91761e68d1db49caac233f533f108052
   languageName: node
   linkType: hard
 
@@ -18392,13 +18399,6 @@ __metadata:
   version: 5.101.4
   resolution: "@tanstack/query-core@npm:5.101.4"
   checksum: 10/df86031035ac9a5cf54efece85718b90e93fca62068a44a176da232b6dd49b27168840f2da18c64a0eb25d171bc3fb1aab417db4643025cd194ff887833bd73f
-  languageName: node
-  linkType: hard
-
-"@tanstack/query-core@npm:^4.43.0":
-  version: 4.43.0
-  resolution: "@tanstack/query-core@npm:4.43.0"
-  checksum: 10/c2a5a151c7adaea8311e01a643255f31946ae3164a71567ba80048242821ae14043f13f5516b695baebe5ea7e4b2cf717fd60908a929d18a5c5125fee925ff67
   languageName: node
   linkType: hard
 
@@ -35785,7 +35785,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^3.1.0"
     "@metamask/keyring-snap-client": "npm:^10.0.0"
     "@metamask/keyring-utils": "npm:^5.0.0"
-    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.0.0-preview-c34a16a37"
+    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.0.0-preview-23eb7095a"
     "@metamask/logging-controller": "npm:^9.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^2.0.0"
@@ -35819,7 +35819,7 @@ __metadata:
     "@metamask/profile-metrics-controller": "npm:^4.0.3"
     "@metamask/profile-sync-controller": "npm:^29.0.0"
     "@metamask/providers": "npm:^18.3.1"
-    "@metamask/ramps-controller": "npm:^20.0.0"
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@20.0.0-preview-c34a16a37"
     "@metamask/react-data-query": "npm:^1.0.0"
     "@metamask/react-native-acm": "patch:@metamask/react-native-acm@npm%3A1.2.0#~/.yarn/patches/@metamask-react-native-acm-npm-1.2.0-944bf863eb.patch"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
