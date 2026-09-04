@@ -364,6 +364,7 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import { MoneyAccountMigrationController } from './controllers/money-account-migration-controller/MoneyAccountMigrationController';
 import { PredictNextController } from '../../components/UI/PredictNext/controller/PredictNextController';
 import type {
   PredictMarketDataServiceActions,
@@ -374,6 +375,11 @@ import type {
   CardControllerActions,
   CardControllerEvents,
 } from './controllers/card-controller/types';
+import type {
+  MoneyAccountMigrationControllerState,
+  MoneyAccountMigrationControllerActions,
+  MoneyAccountMigrationControllerEvents,
+} from './controllers/money-account-migration-controller/types';
 import { QrSyncController } from '../QrSync/QrSyncController';
 import type {
   QrSyncControllerState,
@@ -673,6 +679,7 @@ export type GlobalActions =
   | PredictControllerActions
   | PredictMarketDataServiceActions
   | CardControllerActions
+  | MoneyAccountMigrationControllerActions
   | QrSyncControllerActions
   | QrSyncProvisioningServiceActions
   | ClientControllerActions
@@ -787,6 +794,7 @@ export type GlobalEvents =
   | PredictControllerEvents
   | PredictMarketDataServiceEvents
   | CardControllerEvents
+  | MoneyAccountMigrationControllerEvents
   | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
@@ -941,6 +949,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   PredictNextController: PredictNextController;
   CardController: CardController;
+  MoneyAccountMigrationController: MoneyAccountMigrationController;
   QrSyncController: QrSyncController;
   QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
@@ -1039,6 +1048,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  MoneyAccountMigrationController: MoneyAccountMigrationControllerState;
   QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
@@ -1143,6 +1153,7 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'PredictNextController'
   | 'CardController'
+  | 'MoneyAccountMigrationController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
   | 'ClientController'
