@@ -37,6 +37,12 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+}));
+
 jest.mock('../../../../../util/notifications/methods/common', () => ({
   getProviderByChainId: jest.fn(() => ({
     getBalance: jest.fn().mockResolvedValue('1000000000000000000'),

@@ -22,6 +22,7 @@ import type { BatchSellNetworkFeeInfoModalParams } from '../components/BatchSell
 import type { BatchSellMinimumReceivedInfoModalParams } from '../components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type { NetworkListModalParams } from '../components/BridgeTokenSelector/NetworkListModal';
 import type { SwapsLimitOrderExpirationModalParams } from '../components/SwapsLimitOrderExpirationModal/types';
+import type { LimitOrderConfirmationModalParams } from '../components/LimitOrderConfirmationModal/types';
 
 /**
  * Param list for screens inside the Bridge screen stack (`BridgeScreenStack`).
@@ -69,6 +70,7 @@ export type BridgeModalsNavigationParamList = {
     | undefined;
   BatchSellPriceImpactInfoModal: BatchSellPriceImpactInfoModalParams;
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
+  LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
 };
 
 /**

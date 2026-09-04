@@ -21,8 +21,9 @@ import {
   KEY_VALUE_ROW_VALUE_TEXT_PROPS,
   useKeyValueRowTooltip,
 } from '../../../../utils/keyValueRow';
+import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './DepositInfoSection.testIds';
 
-export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
+export { DEPOSIT_DETAILS_SECTION_TEST_ID } from './DepositInfoSection.testIds';
 
 export interface DepositInfoSectionProps {
   token: TokenI;

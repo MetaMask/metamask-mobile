@@ -1,5 +1,54 @@
-import { selectIsMusdConversionGeoEligible } from './eligibility';
+import {
+  selectIsEarnSectionEligible,
+  selectIsMusdConversionGeoEligible,
+} from './eligibility';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from './featureFlags';
+import { selectIsMoneyAccountVisible } from '../../Money/selectors/visibility';
+import { selectTrxStakingEnabled } from '../../../../selectors/featureFlagController/trxStakingEnabled';
+import { pooledStakingSelectors } from '../../../../selectors/earnController/pooledStaking';
 import type { RootState } from '../../../../reducers';
+
+jest.mock('./featureFlags', () => {
+  const actual =
+    jest.requireActual<typeof import('./featureFlags')>('./featureFlags');
+
+  return {
+    ...actual,
+    selectPooledStakingEnabledFlag: jest.fn(),
+    selectStablecoinLendingEnabledFlag: jest.fn(),
+  };
+});
+jest.mock('../../Money/selectors/visibility', () => ({
+  selectIsMoneyAccountVisible: jest.fn(),
+}));
+jest.mock(
+  '../../../../selectors/featureFlagController/trxStakingEnabled',
+  () => ({
+    selectTrxStakingEnabled: jest.fn(),
+  }),
+);
+jest.mock('../../../../selectors/earnController/pooledStaking', () => ({
+  pooledStakingSelectors: {
+    selectEligibility: jest.fn(),
+  },
+}));
+
+const mockSelectIsMoneyAccountVisible = jest.mocked(
+  selectIsMoneyAccountVisible,
+);
+const mockSelectTrxStakingEnabled = jest.mocked(selectTrxStakingEnabled);
+const mockSelectPooledStakingEligibility = jest.mocked(
+  pooledStakingSelectors.selectEligibility,
+);
+const mockSelectPooledStakingEnabledFlag = jest.mocked(
+  selectPooledStakingEnabledFlag,
+);
+const mockSelectStablecoinLendingEnabledFlag = jest.mocked(
+  selectStablecoinLendingEnabledFlag,
+);
 
 describe('selectIsMusdConversionGeoEligible', () => {
   const createStateWithGeolocation = (
@@ -121,5 +170,51 @@ describe('selectIsMusdConversionGeoEligible', () => {
     const result = selectIsMusdConversionGeoEligible(state);
 
     expect(result).toBe(true);
+  });
+});
+
+describe('selectIsEarnSectionEligible', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when Money account is visible', () => {
+    mockSelectIsMoneyAccountVisible.mockReturnValue(true);
+    mockSelectPooledStakingEligibility.mockReturnValue(false);
+    mockSelectPooledStakingEnabledFlag.mockReturnValue(false);
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(false);
+    mockSelectTrxStakingEnabled.mockReturnValue(false);
+
+    expect(selectIsEarnSectionEligible({} as RootState)).toBe(true);
+  });
+
+  it('returns true when an eligible Earn experience is enabled', () => {
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+    mockSelectPooledStakingEligibility.mockReturnValue(true);
+    mockSelectPooledStakingEnabledFlag.mockReturnValue(false);
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(true);
+    mockSelectTrxStakingEnabled.mockReturnValue(false);
+
+    expect(selectIsEarnSectionEligible({} as RootState)).toBe(true);
+  });
+
+  it('returns false when no eligible Earn experience is enabled', () => {
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+    mockSelectPooledStakingEligibility.mockReturnValue(true);
+    mockSelectPooledStakingEnabledFlag.mockReturnValue(false);
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(false);
+    mockSelectTrxStakingEnabled.mockReturnValue(false);
+
+    expect(selectIsEarnSectionEligible({} as RootState)).toBe(false);
+  });
+
+  it('returns false when Earn eligibility is false', () => {
+    mockSelectIsMoneyAccountVisible.mockReturnValue(false);
+    mockSelectPooledStakingEligibility.mockReturnValue(false);
+    mockSelectPooledStakingEnabledFlag.mockReturnValue(true);
+    mockSelectStablecoinLendingEnabledFlag.mockReturnValue(true);
+    mockSelectTrxStakingEnabled.mockReturnValue(true);
+
+    expect(selectIsEarnSectionEligible({} as RootState)).toBe(false);
   });
 });

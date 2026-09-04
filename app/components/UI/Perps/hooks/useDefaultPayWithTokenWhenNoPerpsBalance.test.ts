@@ -21,7 +21,7 @@ function getState(
     perpsAccount?: { spendableBalance: string } | null;
     allowlistAssets?: string[];
     isTestnet?: boolean;
-    activeProvider?: 'hyperliquid' | 'myx' | 'aggregated';
+    activeProvider?: 'hyperliquid' | 'lighter' | 'aggregated';
     defaultPayTokenWhenNoBalanceEnabled?: boolean;
   } = {},
 ) {

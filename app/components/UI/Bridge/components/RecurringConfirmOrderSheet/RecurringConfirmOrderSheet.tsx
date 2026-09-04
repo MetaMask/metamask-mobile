@@ -37,6 +37,8 @@ import { getNetworkImageSource } from '../../../../../util/networks';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
+import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas';
 import type { BridgeToken } from '../../types';
 import { formatMinimumReceived } from '../../utils/currencyUtils';
 import { getTokenImageSource } from '../../utils';
@@ -169,6 +171,7 @@ function formatTokenAmountValue(
 const RecurringConfirmOrderSheet = ({
   isVisible,
   onClose,
+  latestSourceBalance,
 }: RecurringConfirmOrderSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
@@ -179,6 +182,19 @@ const RecurringConfirmOrderSheet = ({
   const slippage = useSelector(selectSlippage);
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
+  const hasInsufficientBalance = useIsInsufficientBalance({
+    amount: sourceAmount,
+    token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
+  const hasInsufficientGas = !hasSufficientGas;
+  const isConfirmDisabled = hasInsufficientBalance || hasInsufficientGas;
+  const confirmLabel = hasInsufficientBalance
+    ? strings('bridge.insufficient_funds')
+    : hasInsufficientGas
+      ? strings('bridge.insufficient_gas')
+      : strings('bridge.recurring.confirm');
   const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
   const showQuoteSkeletons = isLoading;
@@ -350,8 +366,9 @@ const RecurringConfirmOrderSheet = ({
       </Box>
       <BottomSheetFooter
         primaryButtonProps={{
-          children: strings('bridge.recurring.confirm'),
+          children: confirmLabel,
           onPress: closeSheet,
+          isDisabled: isConfirmDisabled,
           testID: RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
         }}
       />

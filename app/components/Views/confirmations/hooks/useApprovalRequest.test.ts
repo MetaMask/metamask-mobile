@@ -151,6 +151,7 @@ describe('useApprovalRequest', () => {
       expect(Engine.rejectPendingApproval).toHaveBeenCalledWith(
         APPROVAL_REQUEST.id,
         providerErrors.userRejectedRequest(),
+        { ignoreMissing: true },
       );
     });
 
