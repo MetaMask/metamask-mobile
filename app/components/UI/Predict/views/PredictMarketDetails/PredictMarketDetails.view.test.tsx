@@ -306,8 +306,16 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows the share button once the market has loaded', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, queryByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(
+            PredictMarketDetailsSelectorsIDs.DETAILS_CONTENT_SKELETON_LINE_1,
+          ),
+        ).not.toBeOnTheScreen();
       });
 
       expect(
