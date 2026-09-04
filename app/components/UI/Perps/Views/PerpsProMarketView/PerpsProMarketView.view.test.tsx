@@ -109,7 +109,7 @@ const completeTwapFill: TwapOrderFill = {
 };
 const completeTwap: TwapOrder = {
   ...activeTwap,
-  providerId: 'myx',
+  providerId: 'lighter',
   randomize: true,
   reduceOnly: true,
   startedAt: 1_700_000_000_000,
@@ -373,7 +373,7 @@ const renderProMarketWithTriggeredOrdersFlag = (enabled: boolean) =>
 
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
-  activeProvider: 'hyperliquid' | 'myx' = 'hyperliquid',
+  activeProvider: 'hyperliquid' | 'lighter' = 'hyperliquid',
 ) => {
   jest
     .mocked(Engine.context.PerpsController.getOrderCapabilities)
@@ -386,7 +386,7 @@ const renderProMarketWithTwapFlag = (
           }
         : {
             status: 'unavailable',
-            providerId: 'myx',
+            providerId: 'lighter',
             reason: 'strategy_market_unsupported',
           },
     );
@@ -790,8 +790,8 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect.stringContaining(strings('perps.market.close_short')),
       );
 
-      // Act / Assert: the route starts on Hyperliquid ETH. A MYX ETH TWAP must
-      // still switch venue, carrying its provider into the remounted form.
+      // Act / Assert: the route starts on Hyperliquid ETH. A Lighter ETH TWAP
+      // must still switch venue, carrying its provider into the remounted form.
       fireEvent.press(
         screen.getByTestId(
           cardValueTestID(PerpsProMarketViewSelectorsIDs.TWAP_MARKET_BUTTON),
@@ -801,7 +801,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         expect(
           Engine.context.PerpsController.getOrderCapabilities,
         ).toHaveBeenCalledWith(
-          expect.objectContaining({ symbol: 'ETH', providerId: 'myx' }),
+          expect.objectContaining({ symbol: 'ETH', providerId: 'lighter' }),
         ),
       );
 
@@ -1150,7 +1150,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
           syncEngineControllerState(store, 'PerpsController', {
             ...perpsController,
             ...(identityChange === 'provider'
-              ? { activeProvider: 'myx' }
+              ? { activeProvider: 'lighter' }
               : { isTestnet: true }),
           });
         });
@@ -2658,7 +2658,7 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   itForPlatforms(
     'hides TWAP for a provider without TWAP placement support',
     async () => {
-      renderProMarketWithTwapFlag(true, 'myx');
+      renderProMarketWithTwapFlag(true, 'lighter');
       await findSizeInput();
 
       fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
