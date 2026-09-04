@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useBrazeIdentity } from './useBrazeIdentity';
 import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
+import { registerBrazePush } from '../../registerPush';
 import {
   selectCanonicalProfileId,
   selectIsSignedIn,
@@ -18,13 +19,20 @@ jest.mock('../..', () => ({
   refreshBrazeBanners: jest.fn(),
 }));
 
+jest.mock('../../registerPush', () => ({
+  registerBrazePush: jest.fn().mockResolvedValue(undefined),
+}));
+
 const mockSetBrazeUser = jest.mocked(setBrazeUser);
 const mockClearBrazeUser = jest.mocked(clearBrazeUser);
 const mockRefreshBrazeBanners = jest.mocked(refreshBrazeBanners);
+const mockRegisterBrazePush = jest.mocked(registerBrazePush);
 const mockUseSelector = jest.mocked(useSelector);
 
 let mockIsSignedIn = false;
 let mockCanonicalProfileId: string | undefined;
+let mockIsPushEnabled = false;
+let mockFcmToken = '';
 
 const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
   ({
@@ -53,6 +61,11 @@ const createState = (isSignedIn: boolean, canonicalProfileId?: string) =>
               }
             : {}),
         },
+        NotificationServicesPushController: {
+          isPushEnabled: mockIsPushEnabled,
+          fcmToken: mockFcmToken,
+          isUpdatingFCMToken: false,
+        },
       },
     },
   }) as unknown as Record<string, unknown>;
@@ -61,6 +74,8 @@ describe('useBrazeIdentity', () => {
   beforeEach(() => {
     mockIsSignedIn = false;
     mockCanonicalProfileId = undefined;
+    mockIsPushEnabled = false;
+    mockFcmToken = '';
     jest.clearAllMocks();
     mockUseSelector.mockImplementation((selector) => {
       const state = createState(
@@ -95,6 +110,30 @@ describe('useBrazeIdentity', () => {
 
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
     expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+  });
+
+  it('registers push after Braze identifies the signed-in profile', () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockIsPushEnabled = true;
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    expect(mockRegisterBrazePush).toHaveBeenCalledWith('fcm-token');
+    expect(mockSetBrazeUser.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRegisterBrazePush.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('does not register push when NaaP push is disabled', () => {
+    mockIsSignedIn = true;
+    mockCanonicalProfileId = 'canonical-123';
+    mockFcmToken = 'fcm-token';
+
+    renderHook(() => useBrazeIdentity());
+
+    expect(mockRegisterBrazePush).not.toHaveBeenCalled();
   });
 
   it('does not clear Braze on initial mount when not signed in', () => {

@@ -16,6 +16,27 @@ RCT_EXPORT_MODULE();
 }
 
 RCT_REMAP_METHOD(
+  registerPush,
+  registerPushWithResolver:(RCTPromiseResolveBlock)resolve
+  rejecter:(RCTPromiseRejectBlock)reject
+) {
+  Braze *braze = AppDelegate.braze;
+  if (braze == nil) {
+    reject(@"SDK_UNAVAILABLE", @"Braze is not initialized", nil);
+    return;
+  }
+
+  NSData *deviceToken = AppDelegate.apnsDeviceToken;
+  if (deviceToken == nil) {
+    reject(@"NO_APNS_TOKEN", @"APNs device token is not available", nil);
+    return;
+  }
+
+  [braze.notifications registerDeviceToken:deviceToken];
+  resolve(nil);
+}
+
+RCT_REMAP_METHOD(
   unregisterPush,
   unregisterPushWithResolver:(RCTPromiseResolveBlock)resolve
   rejecter:(RCTPromiseRejectBlock)reject

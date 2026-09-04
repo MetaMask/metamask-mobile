@@ -31,6 +31,7 @@ class AppDelegate: ExpoAppDelegate {
   private var isForwardingNotificationResponse = false
 
   @objc static var braze: Braze?
+  @objc static var apnsDeviceToken: Data?
 
   // Detox's `+[ReactNativeSupport reloadApp]` does
   // `[appDelegate valueForKey:@"rootViewFactory"]` to grab RN's RootViewFactory
@@ -97,10 +98,12 @@ class AppDelegate: ExpoAppDelegate {
        !brazeApiKey.isEmpty, !brazeEndpoint.isEmpty {
       let configuration = Braze.Configuration(apiKey: brazeApiKey, endpoint: brazeEndpoint)
       configuration.logger.level = .info
-      // push.automation handles APNs token registration and Braze-originated notification display.
+      // Keep Braze-originated notification handling automated, but register
+      // APNs tokens manually according to the in-app Notifications setting.
       // requestAuthorizationAtLaunch is false so the existing permission flow (Firebase/Notifee) is preserved.
       configuration.push.automation = true
       configuration.push.automation.requestAuthorizationAtLaunch = false
+      configuration.push.automation.registerDeviceToken = false
       configuration.forwardUniversalLinks = true
       // swiftlint:disable:next force_cast
       let braze = BrazeHelperInit(configuration) as! Braze
@@ -170,6 +173,7 @@ class AppDelegate: ExpoAppDelegate {
     _ application: UIApplication,
     didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
+    AppDelegate.apnsDeviceToken = deviceToken
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 
