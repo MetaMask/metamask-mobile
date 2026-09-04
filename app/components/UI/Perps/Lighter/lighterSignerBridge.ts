@@ -1,60 +1,48 @@
+import QuickCrypto from 'react-native-quick-crypto';
 import type {
+  LighterCreateClientParams,
   LighterSignerBridge,
   LighterWasmCall,
 } from '@metamask/perps-controller';
 
-/**
- * Executor wired up by LighterSignerWebView once the WASM page reports ready.
- * Mirrors the queue pattern of the reference Lighter RN SDK (`wasm.ts`): calls
- * made before the WebView is ready await the readiness promise instead of
- * failing, so the bridge can be handed to PerpsController at Engine init —
- * before the React tree (and the hidden WebView) has mounted.
- */
-type LighterExecutor = (call: LighterWasmCall) => Promise<unknown>;
+import SecureKeychain from '../../../../core/SecureKeychain';
+
+export interface LighterExecutorCall {
+  function: LighterWasmCall['function'];
+  params: unknown[];
+}
+
+export type LighterExecutor = (
+  call: LighterExecutorCall,
+  timeoutMs: number,
+) => Promise<unknown>;
 
 /** Upper bound covering both the pre-ready wait and the page round-trip. */
-const READY_TIMEOUT_MS = 90_000;
+export const LIGHTER_SIGNER_TIMEOUT_MS = 90_000;
+const LIGHTER_SIGNER_KEY_PREFIX = 'com.metamask.PERPS_LIGHTER_SIGNER';
+const LIGHTER_SIGNER_KEY_NAME = 'LIGHTER_SIGNER_PRIVATE_KEY';
+const PRIVATE_KEY_PATTERN = /^[0-9a-f]{64}$/u;
+const RELOAD_ERROR = 'Lighter signer WebView reloaded; retry the operation';
 
 const resetListeners = new Set<() => void>();
 let executor: LighterExecutor | null = null;
+let unavailableError: Error | null = null;
 let readyResolve: () => void;
 let readyReject: (reason: Error) => void;
-let ready = new Promise<void>((resolve, reject) => {
-  readyResolve = resolve;
-  readyReject = reject;
-});
-// Callers race `ready`; without a handler here an early reset would surface
-// as an unhandled rejection before any caller attached.
-ready.catch(() => undefined);
+let ready: Promise<void>;
 
-/**
- * Called by LighterSignerWebView when the WASM page posts `ready`.
- *
- * @param newExecutor - Function that posts an execute message to the WebView.
- */
-export function connectLighterExecutor(newExecutor: LighterExecutor): void {
-  executor = newExecutor;
-  readyResolve();
-}
-
-/**
- * Re-arms the readiness promise so new calls queue while the WebView
- * reloads (crash recovery, content/render process loss). Callers already
- * waiting on the OLD readiness promise are rejected — their page-side state
- * is gone and they must retry against the re-initialized signer.
- */
-export function resetLighterBridge(): void {
-  executor = null;
-  readyReject(
-    new Error('Lighter signer WebView reloaded; retry the operation'),
-  );
+function armReadiness(): void {
   ready = new Promise<void>((resolve, reject) => {
     readyResolve = resolve;
     readyReject = reject;
   });
+  // A reset can happen before a caller attaches to the readiness promise.
   ready.catch(() => undefined);
-  // Notify subscribers (PerpsController's LighterProvider) so the cached
-  // signer session is invalidated immediately, not on the next failure.
+}
+
+armReadiness();
+
+function notifyResetListeners(): void {
   for (const listener of resetListeners) {
     try {
       listener();
@@ -64,38 +52,158 @@ export function resetLighterBridge(): void {
   }
 }
 
-/**
- * Singleton bridge handed to PerpsController via the Lighter credentials
- * bag (`providerCredentials.lighter.signerBridge`).
- */
+function timeoutAfter<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  message: string,
+): Promise<T> {
+  if (timeoutMs <= 0) {
+    return Promise.reject(new Error(message));
+  }
+  let timer: ReturnType<typeof setTimeout>;
+  return Promise.race([
+    promise,
+    new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+
+function signerKeyScope(params: LighterCreateClientParams) {
+  return {
+    service: `${LIGHTER_SIGNER_KEY_PREFIX}.${params.chainId}.${params.accountIndex}.${params.apiKeyIndex}`,
+    accessible: SecureKeychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+  };
+}
+
+async function getOrCreatePrivateKey(
+  params: LighterCreateClientParams,
+): Promise<string> {
+  const scope = signerKeyScope(params);
+  const stored = await SecureKeychain.getSecureItem(scope);
+  if (stored) {
+    if (!PRIVATE_KEY_PATTERN.test(stored.value)) {
+      throw new Error('Stored Lighter signer key is invalid');
+    }
+    return stored.value;
+  }
+
+  const privateKey = QuickCrypto.randomBytes(32).toString('hex');
+  const storedKey = await SecureKeychain.setSecureItem(
+    LIGHTER_SIGNER_KEY_NAME,
+    privateKey,
+    scope,
+  );
+  if (storedKey === false) {
+    throw new Error('Unable to persist Lighter signer key');
+  }
+  return privateKey;
+}
+
+async function executeWithDeadline(
+  call: LighterExecutorCall,
+  deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS,
+): Promise<unknown> {
+  if (unavailableError) {
+    throw unavailableError;
+  }
+
+  await timeoutAfter(
+    ready,
+    deadline - Date.now(),
+    `Lighter signer not ready within ${LIGHTER_SIGNER_TIMEOUT_MS}ms for ${call.function}`,
+  );
+
+  if (unavailableError) {
+    throw unavailableError;
+  }
+  const connectedExecutor = executor;
+  if (!connectedExecutor) {
+    throw new Error('Lighter signer bridge executor not connected');
+  }
+
+  const remainingMs = deadline - Date.now();
+  if (remainingMs <= 0) {
+    throw new Error(
+      `Lighter signer call ${call.function} exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
+    );
+  }
+  return timeoutAfter(
+    connectedExecutor(call, remainingMs),
+    remainingMs,
+    `Lighter signer call ${call.function} exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
+  );
+}
+
+/** Connect the executor after the WASM page reports ready. */
+export function connectLighterExecutor(newExecutor: LighterExecutor): void {
+  if (unavailableError) {
+    armReadiness();
+  }
+  unavailableError = null;
+  executor = newExecutor;
+  readyResolve();
+}
+
+/** Re-arm the bridge while the WebView reloads. */
+export function resetLighterBridge(): void {
+  executor = null;
+  unavailableError = null;
+  readyReject(new Error(RELOAD_ERROR));
+  armReadiness();
+  notifyResetListeners();
+}
+
+/** Fail current and future calls after the WebView exhausts reload attempts. */
+export function setLighterBridgeUnavailable(reason: string): void {
+  const error = new Error(reason);
+  executor = null;
+  unavailableError = error;
+  readyReject(error);
+  notifyResetListeners();
+}
+
+type LighterCreateClientResult = Awaited<
+  ReturnType<LighterSignerBridge['createClient']>
+>;
+
+const createClient: LighterSignerBridge['createClient'] = async (params) => {
+  const deadline = Date.now() + LIGHTER_SIGNER_TIMEOUT_MS;
+  const privateKey = await timeoutAfter(
+    getOrCreatePrivateKey(params),
+    deadline - Date.now(),
+    `Lighter signer client setup exceeded the ${LIGHTER_SIGNER_TIMEOUT_MS}ms deadline`,
+  );
+  return (await executeWithDeadline(
+    {
+      function: '_createClient',
+      params: [
+        privateKey,
+        params.chainId,
+        params.accountIndex,
+        params.nonce,
+        params.apiKeyIndex,
+      ],
+    },
+    deadline,
+  )) as LighterCreateClientResult;
+};
+
+// Results are validated against the pending call's operation before the
+// WebView executor resolves; this assertion restores the package's generic
+// operation/result relationship at the transport boundary.
+const execute = (async (call: LighterWasmCall) => {
+  if (call.function === '_createClient') {
+    const [chainId, accountIndex, nonce, apiKeyIndex] = call.params;
+    return createClient({ chainId, accountIndex, nonce, apiKeyIndex });
+  }
+  return executeWithDeadline(call);
+}) as LighterSignerBridge['execute'];
+
+/** Singleton bridge handed to PerpsController in the Lighter credentials. */
 export const lighterSignerBridge: LighterSignerBridge = {
-  async execute<Result>(call: LighterWasmCall): Promise<Result> {
-    // The timeout covers the readiness wait too: a signer that never mounts
-    // must fail callers instead of queueing them forever.
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    try {
-      await Promise.race([
-        ready,
-        new Promise<never>((_resolve, reject) => {
-          timer = setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `Lighter signer not ready within ${READY_TIMEOUT_MS}ms for ${call.function}`,
-                ),
-              ),
-            READY_TIMEOUT_MS,
-          );
-        }),
-      ]);
-    } finally {
-      clearTimeout(timer);
-    }
-    if (!executor) {
-      throw new Error('Lighter signer bridge executor not connected');
-    }
-    return (await executor(call)) as Result;
-  },
+  createClient,
+  execute,
   onReset(listener: () => void): () => void {
     resetListeners.add(listener);
     return () => {

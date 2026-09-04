@@ -1118,34 +1118,45 @@ describe('PerpsConnectionManager', () => {
       const reconnectSpy = jest
         .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
         .mockImplementation(async () => undefined);
-
-      // Identity change WHILE CONNECTED arms the 50 ms debounce timer.
-      (
-        selectSelectedInternalAccountByScope as unknown as jest.Mock
-      ).mockReturnValue(() => ({ address: '0xdef456' }));
-      storeCallback();
-
-      // A preserveCaches soft reconnect takes over before the timer fires
-      // and stalls inside the controller disconnect await.
       let releaseDisconnect = (): void => undefined;
+      let signalDisconnectStarted = (): void => undefined;
       const disconnectGate = new Promise<void>((resolve) => {
         releaseDisconnect = resolve;
       });
-      mockPerpsController.disconnect.mockImplementation(() => disconnectGate);
-      const softReconnect = PerpsConnectionManager.ensureConnected({
-        source: 'test',
-        preserveCaches: true,
+      const disconnectStarted = new Promise<void>((resolve) => {
+        signalDisconnectStarted = resolve;
       });
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      mockPerpsController.disconnect.mockImplementation(() => {
+        signalDisconnectStarted();
+        return disconnectGate;
+      });
+      jest.useFakeTimers();
+      let softReconnect: Promise<void> | undefined;
+      try {
+        // Identity change WHILE CONNECTED arms the 50 ms debounce timer.
+        (
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
+        storeCallback();
 
-      // The pre-armed timer elapses while the soft reconnect is mid-flight:
-      // it must NOT fire a concurrent second reconnection.
-      await new Promise((resolve) => setTimeout(resolve, 60));
-      expect(reconnectSpy).not.toHaveBeenCalled();
+        // A preserveCaches soft reconnect takes over before the timer fires
+        // and stalls inside the controller disconnect await.
+        softReconnect = PerpsConnectionManager.ensureConnected({
+          source: 'test',
+          preserveCaches: true,
+        });
+        await disconnectStarted;
+        await jest.advanceTimersByTimeAsync(60);
 
-      releaseDisconnect();
-      await softReconnect;
-      reconnectSpy.mockRestore();
+        expect(reconnectSpy).not.toHaveBeenCalled();
+        releaseDisconnect();
+        await softReconnect;
+      } finally {
+        releaseDisconnect();
+        await softReconnect?.catch(() => undefined);
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
+      }
     });
 
     it('clears user caches when the account switches during a preserveCaches soft reconnect', async () => {
@@ -1157,61 +1168,67 @@ describe('PerpsConnectionManager', () => {
       // Hold the soft reconnect inside its disconnect await: by this point
       // isConnected is already false but the store listener is still live.
       let releaseDisconnect = (): void => undefined;
+      let signalDisconnectStarted = (): void => undefined;
       const disconnectGate = new Promise<void>((resolve) => {
         releaseDisconnect = resolve;
       });
-      mockPerpsController.disconnect.mockImplementation(() => disconnectGate);
+      const disconnectStarted = new Promise<void>((resolve) => {
+        signalDisconnectStarted = resolve;
+      });
+      mockPerpsController.disconnect.mockImplementation(() => {
+        signalDisconnectStarted();
+        return disconnectGate;
+      });
+      const reconnectSpy = jest
+        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
+        .mockImplementation(async () => undefined);
+      jest.useFakeTimers();
       const softReconnect = PerpsConnectionManager.ensureConnected({
         source: 'test',
         preserveCaches: true,
       });
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      try {
+        await disconnectStarted;
 
-      // The preserveCaches disconnect itself must NOT clear caches — that is
-      // the point of the soft resume, and it proves we are in the window.
-      mockStreamManagerInstance.positions.clearCache.mockClear();
-      mockStreamManagerInstance.orders.clearCache.mockClear();
-      mockStreamManagerInstance.account.clearCache.mockClear();
-      mockStreamManagerInstance.fills.clearCache.mockClear();
-      mockStreamManagerInstance.marketData.clearCache.mockClear();
-      // No-op implementation: if the gating regresses and a reconnect IS
-      // scheduled, the assertion below fails without a real reconnection
-      // hanging the rest of the suite on the held disconnect gate.
-      const reconnectSpy = jest
-        .spyOn(PerpsConnectionManager, 'reconnectWithNewContext')
-        .mockImplementation(async () => undefined);
+        // The preserveCaches disconnect itself must NOT clear caches — that is
+        // the point of the soft resume, and it proves we are in the window.
+        mockStreamManagerInstance.positions.clearCache.mockClear();
+        mockStreamManagerInstance.orders.clearCache.mockClear();
+        mockStreamManagerInstance.account.clearCache.mockClear();
+        mockStreamManagerInstance.fills.clearCache.mockClear();
+        mockStreamManagerInstance.marketData.clearCache.mockClear();
 
-      // Account A -> B while temporarily disconnected.
-      (
-        selectSelectedInternalAccountByScope as unknown as jest.Mock
-      ).mockReturnValue(() => ({ address: '0xdef456' }));
-      storeCallback();
+        // Account A -> B while temporarily disconnected.
+        (
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
+        storeCallback();
 
-      // User caches are invalidated IMMEDIATELY despite isConnected=false;
-      // previously this window skipped the clear but still advanced the
-      // tracked address, leaving account A data cached indefinitely.
-      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
-      expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
-      expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
-      expect(mockStreamManagerInstance.fills.clearCache).toHaveBeenCalled();
-      expect(
-        mockStreamManagerInstance.marketData.clearCache,
-      ).toHaveBeenCalledWith(true);
+        expect(
+          mockStreamManagerInstance.positions.clearCache,
+        ).toHaveBeenCalled();
+        expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
+        expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
+        expect(mockStreamManagerInstance.fills.clearCache).toHaveBeenCalled();
+        expect(
+          mockStreamManagerInstance.marketData.clearCache,
+        ).not.toHaveBeenCalled();
 
-      // Reconnection scheduling stays gated on isConnected: the in-flight
-      // soft reconnect owns bringing the connection back.
-      await new Promise((resolve) => setTimeout(resolve, 60));
-      expect(reconnectSpy).not.toHaveBeenCalled();
+        await jest.advanceTimersByTimeAsync(60);
+        expect(reconnectSpy).not.toHaveBeenCalled();
 
-      // Release the held disconnect; the soft reconnect completes and the
-      // tracked identity is B — the switch is not lost.
-      releaseDisconnect();
-      await softReconnect;
-      expect(
-        (PerpsConnectionManager as unknown as { previousAddress?: string })
-          .previousAddress,
-      ).toBe('0xdef456');
-      reconnectSpy.mockRestore();
+        releaseDisconnect();
+        await softReconnect;
+        expect(
+          (PerpsConnectionManager as unknown as { previousAddress?: string })
+            .previousAddress,
+        ).toBe('0xdef456');
+      } finally {
+        releaseDisconnect();
+        await softReconnect.catch(() => undefined);
+        reconnectSpy.mockRestore();
+        jest.useRealTimers();
+      }
     });
 
     it('detects network changes and triggers reconnection', async () => {
@@ -1269,9 +1286,7 @@ describe('PerpsConnectionManager', () => {
       callback();
 
       expect(startPerpsLoadingSession).not.toHaveBeenCalled();
-      expect(
-        mockStreamManagerInstance.positions.clearCache,
-      ).not.toHaveBeenCalled();
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
     });
 
     it('debounces rapid state changes into a single reconnection', async () => {

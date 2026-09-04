@@ -145,6 +145,7 @@ jest.mock('../../../../util/intl', () => ({
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectVipProgramEnabled.mockReturnValue(true);
   });
 
   describe('performance tracing', () => {

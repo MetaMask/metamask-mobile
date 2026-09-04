@@ -21,9 +21,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  useFocusEffect: jest.fn(),
-}));
+jest.mock('@react-navigation/native', () => {
+  const react = jest.requireActual('react') as typeof import('react');
+  return {
+    useFocusEffect: jest.fn((effect: () => void) =>
+      react.useEffect(effect, [effect]),
+    ),
+  };
+});
 
 const { useSelector } = jest.requireMock('react-redux') as {
   useSelector: jest.Mock;
@@ -151,6 +156,31 @@ describe('usePerpsRecoveryStatus', () => {
       expect(
         mockController.getRecoveredDispatches.mock.calls.length,
       ).toBeGreaterThan(callsAfterAccount);
+    });
+  });
+
+  it('hides the previous context while the next context read is pending', async () => {
+    mockController.getRecoveredDispatches.mockResolvedValueOnce([
+      recoveredDispatch,
+    ]);
+    const { result, rerender } = renderHook(() => usePerpsRecoveryStatus());
+    await waitFor(() => {
+      expect(result.current.recoveredDispatches).toEqual([recoveredDispatch]);
+    });
+    let resolveNext: (value: never[]) => void = () => undefined;
+    mockController.getRecoveredDispatches.mockImplementationOnce(
+      () =>
+        new Promise<never[]>((resolve) => {
+          resolveNext = resolve;
+        }),
+    );
+
+    selectorState.address = '0xother';
+    rerender(undefined);
+
+    expect(result.current.recoveredDispatches).toEqual([]);
+    await act(async () => {
+      resolveNext([]);
     });
   });
 
