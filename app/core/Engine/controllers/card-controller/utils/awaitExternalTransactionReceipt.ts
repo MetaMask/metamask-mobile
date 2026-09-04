@@ -113,7 +113,7 @@ export const awaitExternalTransactionReceipt = async (
   };
 
   // Immediate first attempt, then interval polling.
-  for (;;) {
+  while (true) {
     if (shouldContinue && !shouldContinue()) {
       throw new ExternalTransactionMonitorCancelledError(txHash);
     }
