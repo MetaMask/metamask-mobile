@@ -11,7 +11,7 @@
 
 import {
   startProfiling,
-  stopProfilingToExternalFiles,
+  stopProfiling,
 } from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
@@ -88,8 +88,8 @@ export async function startAppProfiling(
 
 /**
  * Stops the active profiling session and returns the on-device profile path.
- * On Android, `stopProfilingToExternalFiles()` writes the `.cpuprofile` to
- * app-scoped external storage, which Appium can pull without Downloads.
+ * Uses `stopProfiling(true)` which writes to internal cache then copies to
+ * the public Downloads folder via MediaStore (Appium-pullable on Android).
  * No-ops unless this is a performance-test APK with an active session.
  */
 export async function stopAppProfiling(
@@ -109,7 +109,13 @@ export async function stopAppProfiling(
   notifyListeners();
 
   try {
-    const path = await stopProfilingToExternalFiles();
+    // saveToDownloads=true: writes to internal cache then copies via MediaStore
+    // to the public Downloads folder.  The cache write is fast (avoids the
+    // external-storage hang seen with stopProfilingToExternalFiles) and the
+    // MediaStore copy puts the file at /sdcard/Download/<name> where Appium
+    // can pull it.  The promise resolves with the internal cache path, which
+    // the test-side toAndroidPullPath() converts to /sdcard/Download/<name>.
+    const path = await stopProfiling(true);
     isRecording = false;
 
     if (typeof path === 'string' && path.length > 0) {
