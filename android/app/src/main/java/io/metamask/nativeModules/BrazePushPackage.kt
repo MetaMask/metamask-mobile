@@ -10,6 +10,7 @@ class BrazePushPackage : ReactPackage {
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> =
         emptyList()
 
+    @Suppress("OVERRIDE_DEPRECATION")
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> =
         listOf(BrazePushModule(reactContext))
 }
