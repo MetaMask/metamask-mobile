@@ -225,10 +225,14 @@ const createStyles = ({ colors }: Theme) =>
     headerActionButtonsContainer: {
       flexDirection: 'row',
       gap: 8,
+      flexShrink: 0,
     },
     headerAccountPickerStyle: {
       marginRight: 16,
       backgroundColor: 'transparent',
+      flexShrink: 1,
+      minWidth: 0,
+      maxWidth: '100%',
     },
     compactHeaderAccountName: {
       marginTop: 12,
