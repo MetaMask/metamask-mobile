@@ -203,36 +203,38 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
           <Text variant={TextVariant.DisplayLg} fontWeight={FontWeight.Bold}>
             {balanceDisplay}
           </Text>
-          <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
-            <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {entriesDisplay}
-            </Text>
-            <Text
-              variant={TextVariant.BodyLg}
-              color={TextColor.TextAlternative}
-            >
-              · {localizedText.thisWeekLabel}
-            </Text>
+          <Box twClassName="gap-1">
+            <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-1">
+              <Text
+                variant={TextVariant.BodyLg}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {entriesDisplay}
+              </Text>
+              <Text
+                variant={TextVariant.BodyLg}
+                color={TextColor.TextAlternative}
+              >
+                · {localizedText.thisWeekLabel}
+              </Text>
+            </Box>
+            {qualificationMessage && (
+              <Text
+                variant={TextVariant.BodySm}
+                color={
+                  isQualified
+                    ? TextColor.SuccessDefault
+                    : isPaused
+                      ? TextColor.WarningDefault
+                      : TextColor.TextAlternative
+                }
+              >
+                {qualificationMessage}
+              </Text>
+            )}
           </Box>
-          {qualificationMessage && (
-            <Text
-              variant={TextVariant.BodySm}
-              color={
-                isQualified
-                  ? TextColor.SuccessDefault
-                  : isPaused
-                    ? TextColor.WarningDefault
-                    : TextColor.TextAlternative
-              }
-            >
-              {qualificationMessage}
-            </Text>
-          )}
-          <Box twClassName="border-t border-border-muted" />
+          <Box twClassName="my-1 border-t border-border-muted" />
           <Box twClassName="gap-1">
             <Box
               alignItems={BoxAlignItems.Center}
