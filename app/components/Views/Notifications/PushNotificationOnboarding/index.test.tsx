@@ -1,20 +1,26 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { Platform } from 'react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
 import PushNotificationOnboarding from '.';
 import type { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
+const mockToast = jest.mocked(toast);
 
 const mockMarkPrePromptShown = jest.fn().mockResolvedValue(undefined);
 const mockDismissPrePrompt = jest.fn();
 const mockRequestPushPermission = jest.fn();
 const mockEnableNotificationsInBackground = jest.fn();
 const mockEnableMarketingConsent = jest.fn();
-const mockShowToast = jest.fn();
 const mockTrackPrePromptViewed = jest.fn();
 const mockTrackPrePromptDismissed = jest.fn();
 const mockTrackPrePromptButtonClicked = jest.fn();
@@ -146,25 +152,14 @@ const renderPushNotificationOnboarding = ({
   prePromptVariant?: PushPrePromptVariant;
 } = {}) =>
   renderWithProvider(
-    <ToastContext.Provider
-      value={{
-        toastRef: {
-          current: {
-            showToast: mockShowToast,
-            closeToast: jest.fn(),
-          },
-        },
-      }}
-    >
-      <PushNotificationOnboarding
-        dismissPrePrompt={mockDismissPrePrompt}
-        isVisible={isVisible}
-        markPrePromptShown={mockMarkPrePromptShown}
-        nativeOsPermissionEnabled={nativeOsPermissionEnabled}
-        onComplete={mockOnComplete}
-        prePromptVariant={prePromptVariant}
-      />
-    </ToastContext.Provider>,
+    <PushNotificationOnboarding
+      dismissPrePrompt={mockDismissPrePrompt}
+      isVisible={isVisible}
+      markPrePromptShown={mockMarkPrePromptShown}
+      nativeOsPermissionEnabled={nativeOsPermissionEnabled}
+      onComplete={mockOnComplete}
+      prePromptVariant={prePromptVariant}
+    />,
     {
       state: {
         security: {
@@ -175,56 +170,44 @@ const renderPushNotificationOnboarding = ({
   );
 
 const expectNotificationsOnToast = () => {
-  expect(mockShowToast).toHaveBeenCalledWith(
+  expect(mockToast).toHaveBeenCalledWith(
     expect.objectContaining({
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Notifications are on', isBold: true }],
-      descriptionOptions: {
-        description: "We'll send you transactions, price alerts, and updates.",
-      },
-      startAccessory: expect.any(Object),
+      title: 'Notifications are on',
+      description: "We'll send you transactions, price alerts, and updates.",
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
     }),
   );
 };
 
 const expectNotificationsOffToast = () => {
-  expect(mockShowToast).toHaveBeenCalledWith(
+  expect(mockToast).toHaveBeenCalledWith(
     expect.objectContaining({
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Notifications are off', isBold: true }],
-      descriptionOptions: {
-        description: 'Turn them on anytime in Settings → Notifications.',
-      },
-      startAccessory: expect.any(Object),
+      title: 'Notifications are off',
+      description: 'Turn them on anytime in Settings → Notifications.',
+      severity: ToastSeverity.Default,
       hasNoTimeout: false,
     }),
   );
 };
 
 const expectPersonalizedAlertsOnToast = () => {
-  expect(mockShowToast).toHaveBeenCalledWith(
+  expect(mockToast).toHaveBeenCalledWith(
     expect.objectContaining({
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Personalized alerts is on', isBold: true }],
-      descriptionOptions: {
-        description: 'Manage this anytime in Settings.',
-      },
-      startAccessory: expect.any(Object),
+      title: 'Personalized alerts is on',
+      description: 'Manage this anytime in Settings.',
+      severity: ToastSeverity.Success,
       hasNoTimeout: false,
     }),
   );
 };
 
 const expectPersonalizedAlertsOffToast = () => {
-  expect(mockShowToast).toHaveBeenCalledWith(
+  expect(mockToast).toHaveBeenCalledWith(
     expect.objectContaining({
-      variant: ToastVariants.Plain,
-      labelOptions: [{ label: 'Personalized alerts is off', isBold: true }],
-      descriptionOptions: {
-        description: 'Turn it on anytime in Settings.',
-      },
-      startAccessory: expect.any(Object),
+      title: 'Personalized alerts is off',
+      description: 'Turn it on anytime in Settings.',
+      severity: ToastSeverity.Default,
       hasNoTimeout: false,
     }),
   );
