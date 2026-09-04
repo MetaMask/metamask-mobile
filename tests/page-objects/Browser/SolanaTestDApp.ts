@@ -9,7 +9,7 @@ import DappConnectionModal from '../MMConnect/DappConnectionModal.js';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import type { EncapsulatedElementType } from '../../framework';
+import type { AppiumElement } from '../../framework';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors.js';
 import { dataTestIds } from '@metamask/test-dapp-solana';
 
@@ -32,7 +32,7 @@ const wait = (ms: number): Promise<void> =>
 
 class SolanaTestDApp {
   /** Exact native text match via XPath (name/label/text/content-desc). */
-  private getExactTextElement(text: string): EncapsulatedElementType {
+  private getExactTextElement(text: string): Promise<AppiumElement> {
     const escaped = text.replace(/'/g, "\\'");
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByNativeXPath(

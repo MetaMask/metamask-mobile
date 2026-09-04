@@ -174,6 +174,8 @@ const config = {
     '.github/scripts/e2e-report-fixture-validation.mjs',
     '.github/scripts/e2e-smart-selection.mjs',
     '.github/scripts/e2e-split-tags-shards.mjs',
+    '.github/scripts/shared/e2e-timing-shards.mjs',
+    '.github/scripts/e2e-timing-shards.test.ts',
 
     // E2E platform-gating logic. Its outputs (`native_build_needed`,
     // `ios_e2e_needed`, `android_e2e_needed`, `skip_e2e`, ...) only decide *whether*
@@ -243,7 +245,6 @@ const config = {
 
     // Fire-and-forget dispatchers/re-runners around `ci.yml` (which is itself tracked) -
     // these don't run any build steps of their own.
-    '.github/workflows/ci-bitrise-shadow.yml',
     '.github/workflows/rerun-ci-on-skipped-e2e-labels.yml',
 
     // Notification-only.

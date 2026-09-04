@@ -48,6 +48,24 @@ describe('getCardTransactionHeroToken', () => {
     expect(result.iconSource).toEqual({
       uri: 'https://example.com/token.png',
     });
+    expect(result.isMoneyAccount).toBeUndefined();
+  });
+
+  it('marks Money Account fallback with no funding source as isMoneyAccount', () => {
+    const result = getCardTransactionHeroToken(createTransaction(), {
+      address: '0xveda',
+      caipChainId: 'eip155:143',
+      symbol: 'veda',
+      displaySymbol: MONEY_ACCOUNT_DISPLAY_SYMBOL,
+      isMoneyAccountEntry: true,
+      name: 'Veda',
+      decimals: 6,
+      fundingStatus: 'enabled',
+      spendableBalance: '10',
+    } as never);
+
+    expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
+    expect(result.isMoneyAccount).toBe(true);
   });
 
   it('returns mUSD for veda funding currency', () => {
@@ -64,6 +82,7 @@ describe('getCardTransactionHeroToken', () => {
     );
 
     expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
+    expect(result.isMoneyAccount).toBe(true);
   });
 
   it('returns the resolved funding token when currency is present', () => {
@@ -92,6 +111,7 @@ describe('getCardTransactionHeroToken', () => {
     expect(result.iconSource).toEqual({
       uri: 'https://example.com/token.png',
     });
+    expect(result.isMoneyAccount).toBeUndefined();
   });
 
   it('returns mUSD for musd funding currency', () => {
@@ -102,6 +122,7 @@ describe('getCardTransactionHeroToken', () => {
     );
 
     expect(result.symbol).toBe(MONEY_ACCOUNT_DISPLAY_SYMBOL);
+    expect(result.isMoneyAccount).toBe(true);
   });
 
   it('returns the fallback token when funding has currency but no resolved token', () => {

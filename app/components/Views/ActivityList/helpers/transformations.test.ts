@@ -275,6 +275,36 @@ describe('ActivityList transformations', () => {
     expect(merged.map((item) => item.timestamp)).toEqual([3, 2, 1]);
   });
 
+  it('maps a Tron stake to the staking kind rather than a contract interaction', () => {
+    const nonEvmItems = mapNonEvmTransactions([
+      {
+        id: 'tron-stake',
+        chain: 'tron:728126428',
+        from: [
+          {
+            address,
+            asset: {
+              amount: '100',
+              fungible: true,
+              type: 'tron:728126428/slip44:195',
+              unit: 'TRX',
+            },
+          },
+        ],
+        status: KeyringTransactionStatus.Confirmed,
+        timestamp: 1,
+        to: [],
+        type: KeyringTransactionType.StakeDeposit,
+      },
+    ] as never);
+
+    expect(nonEvmItems[0]).toMatchObject({
+      type: 'stake',
+      hash: 'tron-stake',
+      data: { token: { symbol: 'TRX', amount: '100', direction: 'out' } },
+    });
+  });
+
   describe('selectApiEvmTransactions', () => {
     it('filters incoming ERC-20 transfers when the account only appears in valueTransfers', () => {
       const incomingTokenTransfer = buildTransaction({
@@ -376,6 +406,47 @@ describe('ActivityList transformations', () => {
       );
 
       expect(result.pages[0].data).toHaveLength(0);
+    });
+
+    it('classifies pooled-staking calls instead of leaving them as contract interactions', () => {
+      const stakeDeposit = buildTransaction({
+        hash: '0xstake',
+        to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+        chainId: 1,
+        methodId: '0xf9609f08',
+        transactionCategory: 'CONTRACT_CALL',
+        value: '1000000000000000000',
+        valueTransfers: [
+          {
+            amount: '1000000000000000000',
+            contractAddress: '',
+            decimal: 18,
+            from: address,
+            name: 'Ether',
+            symbol: 'ETH',
+            to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+            transferType: 'normal',
+          },
+        ],
+      });
+
+      const result = selectApiEvmTransactions({ address })(
+        buildData([stakeDeposit]),
+      );
+
+      expect(result.pages[0].data[0]).toMatchObject({
+        chainId: 'eip155:1',
+        hash: '0xstake',
+        type: 'stake',
+        data: {
+          token: {
+            amount: '1000000000000000000',
+            assetId: 'eip155:1/slip44:60',
+            direction: 'out',
+            symbol: 'ETH',
+          },
+        },
+      });
     });
 
     it('filters outgoing value-transfer-only rows where the top-level tx is unrelated', () => {

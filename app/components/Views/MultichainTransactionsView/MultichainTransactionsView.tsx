@@ -35,12 +35,9 @@ import { TabEmptyState } from '../../../component-library/components-temp/TabEmp
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { useMultichainActivityMaliciousTokenKeys } from '../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys';
 import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../../../util/multichain/multichainTransactionTokenScan';
-import {
-  selectIsActivityRedesignEnabled,
-  selectIsTransactionsRedesignEnabled,
-} from '../../../selectors/featureFlagController/activityRedesign';
 import { mapKeyringTransaction } from '@metamask/client-utils';
 import {
+  classifyKeyringStakingActivity,
   getGroupedActivityListItemKey,
   groupActivityListItems,
   type ActivityListItem,
@@ -182,14 +179,7 @@ const MultichainTransactionsView = ({
   const { bridgeHistoryItemsBySrcTxHash, bridgeHistoryItemsByDestTxHash } =
     useBridgeHistoryItemBySrcTxHash();
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const isTransactionsRedesignEnabled = useSelector(
-    selectIsTransactionsRedesignEnabled,
-  );
-  const isActivityRedesignEnabled = useSelector(
-    selectIsActivityRedesignEnabled,
-  );
   const shouldUseActivityRedesign =
-    isActivityRedesignEnabled &&
     location === TransactionDetailLocation.AssetDetails;
   const { bridgeArrivalItems, arrivalDestTxHashes } = useMemo(() => {
     const items: ActivityListItem[] = [];
@@ -232,14 +222,17 @@ const MultichainTransactionsView = ({
                   !arrivalDestTxHashes.has(transaction.id?.toLowerCase()),
               )
               .map((transaction) => {
-                const activity = mapKeyringTransaction({
-                  transaction: {
-                    ...transaction,
-                    chain: transaction.chain ?? chainId,
-                    fees: transaction.fees ?? [],
-                  },
-                  subjectAddress: address,
-                }) as ActivityListItem;
+                const activity = classifyKeyringStakingActivity(
+                  transaction,
+                  mapKeyringTransaction({
+                    transaction: {
+                      ...transaction,
+                      chain: transaction.chain ?? chainId,
+                      fees: transaction.fees ?? [],
+                    },
+                    subjectAddress: address,
+                  }) as ActivityListItem,
+                );
                 const bridgeHistoryItem =
                   bridgeHistoryItemsBySrcTxHash[transaction.id] ??
                   bridgeHistoryItemsByDestTxHash[transaction.id];
@@ -270,12 +263,10 @@ const MultichainTransactionsView = ({
 
   const handleBridgeArrivalPress = React.useCallback(
     (item: ActivityListItem) => {
-      if (isTransactionsRedesignEnabled) {
-        const detailsRoute = getActivityDetailsRoute(item);
-        if (detailsRoute) {
-          nav.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
-          return;
-        }
+      const detailsRoute = getActivityDetailsRoute(item);
+      if (detailsRoute) {
+        nav.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+        return;
       }
 
       const evmTxMeta =
@@ -299,7 +290,7 @@ const MultichainTransactionsView = ({
         }),
       });
     },
-    [bridgeHistory, isTransactionsRedesignEnabled, nav],
+    [bridgeHistory, nav],
   );
 
   const [refreshing, setRefreshing] = React.useState(false);

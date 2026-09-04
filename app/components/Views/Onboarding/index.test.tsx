@@ -3862,7 +3862,10 @@ describe('Onboarding', () => {
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
-            name: MetaMetricsEvents.SOCIAL_LOGIN_STARTED.category,
+            name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+            properties: expect.objectContaining({
+              status: 'started',
+            }),
           }),
         );
       });
@@ -3883,8 +3886,9 @@ describe('Onboarding', () => {
       });
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
           properties: expect.objectContaining({
+            status: 'backgrounded',
             auth_connection: 'google',
             had_background_during_oauth: false,
             background_count: 0,
@@ -3893,8 +3897,9 @@ describe('Onboarding', () => {
       );
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_RESUMED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
           properties: expect.objectContaining({
+            status: 'resumed',
             auth_connection: 'google',
             had_background_during_oauth: true,
             background_count: 1,
@@ -3936,7 +3941,10 @@ describe('Onboarding', () => {
       expect(isOAuthLifecycleInProgress()).toBe(true);
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_STARTED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
+          properties: expect.objectContaining({
+            status: 'started',
+          }),
         }),
       );
 
@@ -3955,16 +3963,18 @@ describe('Onboarding', () => {
       });
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_BACKGROUNDED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
           properties: expect.objectContaining({
+            status: 'backgrounded',
             had_background_during_oauth: false,
           }),
         }),
       );
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_RESUMED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
           properties: expect.objectContaining({
+            status: 'resumed',
             had_background_during_oauth: true,
             time_in_background_ms: 2_000,
           }),
@@ -3974,7 +3984,7 @@ describe('Onboarding', () => {
       Platform.OS = originalPlatform;
     });
 
-    it('tracks Social Login Abandoned after the grace period without resetting OAuth UI state', async () => {
+    it('tracks Social Login Status Updated abandoned after the grace period without resetting OAuth UI state', async () => {
       (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
       mockOAuthService.handleOAuthLogin.mockReturnValue(
         new Promise(() => {
@@ -4007,8 +4017,9 @@ describe('Onboarding', () => {
 
       expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: MetaMetricsEvents.SOCIAL_LOGIN_ABANDONED.category,
+          name: MetaMetricsEvents.SOCIAL_LOGIN_STATUS_UPDATED.category,
           properties: expect.objectContaining({
+            status: 'abandoned',
             auth_connection: 'google',
             resume_outcome: 'abandoned',
             had_background_during_oauth: true,

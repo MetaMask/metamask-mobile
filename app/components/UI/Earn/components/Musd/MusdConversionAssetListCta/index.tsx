@@ -1,14 +1,19 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import styleSheet from './MusdConversionAssetListCta.styles';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
 import {
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Text,
+  TextVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import {
   MUSD_CONVERSION_APY,
@@ -28,19 +33,11 @@ import {
   useMusdCtaVisibility,
 } from '../../../hooks/useMusdCtaVisibility';
 import { useMusdConversionFlowData } from '../../../hooks/useMusdConversionFlowData';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../../constants/events';
 import { useNetworkName } from '../../../../../Views/confirmations/hooks/useNetworkName';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../../component-library/components/Badges/Badge';
 
 enum CTA_CLICK_TARGET {
   CTA_BUTTON = 'cta_button',
@@ -151,8 +148,13 @@ const MusdConversionAssetListCta = () => {
   const renderTokenAvatar = () => (
     <AvatarToken
       name={MUSD_TOKEN.symbol}
-      imageSource={MUSD_TOKEN.imageSource}
-      size={AvatarSize.Lg}
+      src={
+        MUSD_TOKEN.imageSource as React.ComponentProps<
+          typeof AvatarToken
+        >['src']
+      }
+      size={AvatarTokenSize.Lg}
+      twClassName="bg-default"
     />
   );
 
@@ -165,13 +167,16 @@ const MusdConversionAssetListCta = () => {
         {showNetworkIcon && selectedChainId ? (
           <BadgeWrapper
             style={styles.badge}
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={getNetworkImageSource({
-                  chainId: selectedChainId,
-                })}
+            testID={EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA_BADGE}
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork
+                twClassName="h-5 w-5 rounded-[5px] bg-default"
+                src={
+                  getNetworkImageSource({
+                    chainId: selectedChainId,
+                  }) as React.ComponentProps<typeof BadgeNetwork>['src']
+                }
               />
             }
           >
@@ -181,13 +186,21 @@ const MusdConversionAssetListCta = () => {
           renderTokenAvatar()
         )}
         <View>
-          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             MetaMask USD
           </Text>
           <TouchableOpacity
             onPress={() => handlePress(CTA_CLICK_TARGET.CTA_TEXT_LINK)}
           >
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Primary}>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.PrimaryDefault}
+            >
               {strings('earn.earn_a_percentage_bonus', {
                 percentage: MUSD_CONVERSION_APY,
               })}

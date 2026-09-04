@@ -1,13 +1,15 @@
 import '../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
+import { updateBgState } from '../../../core/redux/slices/engine';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
   renderActivityScreenView,
   renderActivityScreenViewWithRoutes,
+  ActivityDetailsWithProviders,
 } from '../../../../tests/component-view/renderers/activity';
 import {
   ACTIVITY_CV_ACCOUNT,
@@ -22,16 +24,21 @@ import {
   LINEA_ACTIVITY_HASH,
   MAINNET_ACTIVITY_HASH,
   activityCvBridgeHistoryEntry,
+  activityCvBridgeMonToBaseHistoryEntry,
   activityCvCrossChainSwapBridgeHistoryEntry,
+  activityCvPendingBridgeMonToBaseHistoryEntry,
   activityCvPerpsCanceledTakeProfitRowHash,
   activityCvPerpsFundingRowHash,
   activityCvPerpsTradeRowHash,
   activityLineaNetworkOverride,
+  activityMonToBaseTokenRatesOverride,
+  activityMonadBaseNetworkOverride,
   activityPerpsTradingEnabledFlag,
   activityPredictTradingEnabledFlag,
   buildActivityCvPerpsOverviewEngineSeed,
   buildActivityCvRampBuyMusdOrder,
   buildActivityCvRampSellEthOrder,
+  buildConfirmedLocalBridgeMonToBaseTransaction,
   buildConfirmedLocalBridgeTransaction,
   buildConfirmedLocalContractInteractionTransaction,
   buildConfirmedLocalCrossChainSwapTransaction,
@@ -43,6 +50,7 @@ import {
   buildConfirmedLocalUsdcRevokeTransaction,
   buildConfirmedLocalUsdcSendTransaction,
   buildConfirmedLocalUsdcUnlimitedApproveTransaction,
+  buildPendingLocalBridgeMonToBaseTransaction,
   buildPredictBuyActivity,
   buildPredictClaimActivity,
   buildPredictSellActivity,
@@ -61,8 +69,49 @@ import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterS
 import { PERPS_ACTIVITY_FILTER_LABEL_KEY } from './components/PerpsActivityFilterSheet';
 import { ActivityTypeFilter, PerpsActivityFilter } from './types';
 
+// Details testIDs mirrored locally so this route suite does not import from the
+// sibling ActivityDetails route (ADR 0020).
+const ACTIVITY_DETAILS_SCREEN = 'activity-details-screen';
+const ACTIVITY_DETAILS_AMOUNT_HEADER = 'activity-details-amount-header';
+const ACTIVITY_DETAILS_STATUS_PILL = 'activity-details-status-pill';
+const ACTIVITY_DETAILS_NETWORK_ROW = 'activity-details-network-row';
+const ACTIVITY_DETAILS_FEE_ROW = 'activity-details-fee-row';
+const ACTIVITY_DETAILS_TOTAL_ROW = 'activity-details-total-row';
+
+const monToBaseBridgeState = (
+  transaction: ReturnType<typeof buildPendingLocalBridgeMonToBaseTransaction>,
+  historyEntry:
+    | typeof activityCvPendingBridgeMonToBaseHistoryEntry
+    | typeof activityCvBridgeMonToBaseHistoryEntry,
+) =>
+  initialStateActivityWithLocalTransactions([transaction])
+    .withRemoteFeatureFlags({
+      // List redesign + details redesign (both required for list → ActivityDetails nav).
+      tmcuActivityRedesignEnabled: true,
+      tmcuTransactionsRedesignEnabled: true,
+    })
+    .withOverrides(activityMonadBaseNetworkOverride)
+    .withOverrides(activityMonToBaseTokenRatesOverride)
+    .withOverrides({
+      engine: {
+        backgroundState: {
+          PreferencesController: {
+            privacyMode: false,
+          },
+          BridgeStatusController: {
+            txHistory: {
+              [transaction.id]: historyEntry,
+            },
+          },
+        },
+      },
+    } as never)
+    .build();
+
 // Row testIDs mirror ActivityListItemRow markup. Defined locally so this route
 // suite does not import from the sibling ActivityList route (ADR 0020).
+const activityListRowItemTestId = (index: number): string =>
+  `transaction-item-${index}`;
 const activityListRowTitleTestId = (hash: string): string =>
   `activity-title-${hash}`;
 const activityListRowSubtitleTestId = (hash: string): string =>
@@ -75,6 +124,39 @@ const activityListRowAvatarSingleTestId = (hash: string): string =>
   `activity-row-avatar-single-${hash}`;
 const activityListRowAvatarStackTestId = (hash: string): string =>
   `activity-row-avatar-stack-${hash}`;
+// Container wraps the a11y-hidden spinner (PendingActivityListItemRow).
+const activityListRowPendingSpinnerTestId = (hash: string): string =>
+  `activity-pending-spinner-container-${hash}`;
+
+/** Patch Engine.state then UPDATE_BG_STATE so Redux selectors see live controller updates. */
+const syncEngineControllerState = (
+  store: ReturnType<typeof renderActivityScreenViewWithRoutes>['store'],
+  key: 'TransactionController' | 'BridgeStatusController',
+  patch: Record<string, unknown>,
+) => {
+  const engineWithState = Engine as unknown as {
+    state?: Record<string, unknown>;
+  };
+  const backgroundState = store.getState().engine.backgroundState as Record<
+    string,
+    unknown
+  >;
+  const existing =
+    (backgroundState[key] as Record<string, unknown> | undefined) ?? {};
+  const existingEngine =
+    (engineWithState.state?.[key] as Record<string, unknown> | undefined) ?? {};
+
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    [key]: {
+      ...existing,
+      ...existingEngine,
+      ...patch,
+    },
+  };
+
+  store.dispatch(updateBgState({ key }));
+};
 
 /** Trade fills append `-${index}` in transformFillsToTransactions. */
 const activityListRowTitleTestIdPattern = (hashPrefix: string): RegExp =>
@@ -1549,5 +1631,128 @@ describeForPlatforms('ActivityScreen — perps funding', () => {
     expect(
       queryByTestId(activityListRowTitleTestIdPattern(tradeHash)),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('ActivityScreen — Monad bridge status', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const assertPendingList = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+    bridgeHash: string,
+  ) => {
+    expect(
+      await screen.findByTestId(activityListRowTitleTestId(bridgeHash)),
+    ).toHaveTextContent('Bridging USDC');
+    expect(
+      await screen.findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Monad → Base');
+    expect(
+      await screen.findByTestId(
+        activityListRowPendingSpinnerTestId(bridgeHash),
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Swapping')).toBeNull();
+    expect(screen.queryByText('Swapped')).toBeNull();
+  };
+
+  const assertBridgedList = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+    bridgeHash: string,
+  ) => {
+    expect(
+      await screen.findByTestId(activityListRowTitleTestId(bridgeHash)),
+    ).toHaveTextContent('Bridged USDC');
+    expect(
+      await screen.findByTestId(activityListRowSubtitleTestId(bridgeHash)),
+    ).toHaveTextContent('Monad → Base');
+    expect(
+      screen.queryByTestId(activityListRowPendingSpinnerTestId(bridgeHash)),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Swapping')).toBeNull();
+    expect(screen.queryByText('Swapped')).toBeNull();
+  };
+
+  const assertDetailsAmountFeeTotal = async (
+    screen: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+  ) => {
+    expect(
+      await screen.findByTestId(ACTIVITY_DETAILS_SCREEN),
+    ).toBeOnTheScreen();
+    expect(await screen.findByText('Bridged USDC')).toBeOnTheScreen();
+
+    const amountHeader = await screen.findByTestId(
+      ACTIVITY_DETAILS_AMOUNT_HEADER,
+    );
+    expect(
+      screen.getByText(strings('activity_details.you_sent')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('activity_details.you_received')),
+    ).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^-.*MON/)).toBeOnTheScreen();
+    expect(within(amountHeader).getByText(/^\+.*USDC/)).toBeOnTheScreen();
+
+    expect(
+      await screen.findByTestId(ACTIVITY_DETAILS_STATUS_PILL),
+    ).toHaveTextContent(strings('transaction.confirmed'));
+
+    const networkRow = screen.getByTestId(ACTIVITY_DETAILS_NETWORK_ROW);
+    expect(networkRow).toHaveTextContent('Monad', { exact: false });
+    expect(networkRow).toHaveTextContent('Base', { exact: false });
+
+    await waitFor(() => {
+      expect(screen.getByTestId(ACTIVITY_DETAILS_FEE_ROW)).toHaveTextContent(
+        /\$/,
+      );
+    });
+    expect(screen.getByTestId(ACTIVITY_DETAILS_TOTAL_ROW)).toHaveTextContent(
+      /\$/,
+    );
+  };
+
+  // One tree: pending list → live controller update → Bridged → press → Details
+  // (requires both tmcuActivityRedesignEnabled + tmcuTransactionsRedesignEnabled).
+  it('shows Bridging then Bridged after dest completes, not Swap, with Amount Fee Total via details nav', async () => {
+    setupAccountsTransactionsApiMock([]);
+
+    const pendingBridge = buildPendingLocalBridgeMonToBaseTransaction();
+    const confirmedBridge = buildConfirmedLocalBridgeMonToBaseTransaction();
+    const bridgeHash = pendingBridge.hash as string;
+
+    const screen = renderActivityScreenViewWithRoutes({
+      state: monToBaseBridgeState(
+        pendingBridge,
+        activityCvPendingBridgeMonToBaseHistoryEntry,
+      ),
+      extraRoutes: [
+        {
+          name: Routes.ACTIVITY_DETAILS,
+          Component: ActivityDetailsWithProviders,
+        },
+      ],
+    });
+
+    await assertPendingList(screen, bridgeHash);
+
+    act(() => {
+      syncEngineControllerState(screen.store, 'TransactionController', {
+        transactions: [confirmedBridge],
+        swapsTransactions: {},
+      });
+      syncEngineControllerState(screen.store, 'BridgeStatusController', {
+        txHistory: {
+          [confirmedBridge.id]: activityCvBridgeMonToBaseHistoryEntry,
+        },
+      });
+    });
+
+    await assertBridgedList(screen, bridgeHash);
+
+    fireEvent.press(screen.getByTestId(activityListRowItemTestId(1)));
+
+    await assertDetailsAmountFeeTotal(screen);
   });
 });

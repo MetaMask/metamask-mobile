@@ -148,6 +148,46 @@ describe('SwapDetails', () => {
     expect(capturedSentToken?.decimals).toBe(6);
   });
 
+  it('keeps keyring swap amounts human-readable while still attaching API decimals for Swap again', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+    jest.mocked(useTokensData).mockReturnValue({
+      [solAssetId.toLowerCase()]: {
+        assetId: solAssetId,
+        symbol: 'SOL',
+        decimals: 9,
+        name: 'Solana',
+        iconUrl: '',
+      },
+    });
+
+    render(
+      <SwapDetails
+        item={
+          {
+            ...makeItem('swap', {
+              sourceToken: {
+                direction: 'out',
+                amount: '1',
+                assetId: solAssetId,
+                symbol: 'SOL',
+              },
+            }),
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          } as never
+        }
+      />,
+    );
+
+    expect(capturedSentToken).toStrictEqual(
+      expect.objectContaining({
+        amount: '1',
+        decimals: 9,
+        symbol: 'SOL',
+        amountIsHumanReadable: true,
+      }),
+    );
+  });
+
   describe('call-to-action', () => {
     it('renders "Lend again" instead of "Swap again" for a lending deposit', () => {
       arrangeLendAgain(true);

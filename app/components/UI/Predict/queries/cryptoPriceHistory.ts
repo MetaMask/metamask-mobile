@@ -1,6 +1,9 @@
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import type { CryptoPriceHistoryPoint } from '../types';
+import type {
+  CryptoPriceHistoryPoint,
+  CryptoTwapWindowSeconds,
+} from '../types';
 import type { LivelinePoint } from '../../Charts/LivelineChart/LivelineChart.types';
 import { toTimestampSeconds } from '../utils/cryptoUpDown';
 
@@ -11,6 +14,7 @@ export const predictCryptoPriceHistoryKeys = {
     eventStartTime: string,
     variant: string,
     endDate?: string,
+    twapWindowSeconds?: CryptoTwapWindowSeconds,
   ) =>
     [
       ...predictCryptoPriceHistoryKeys.all(),
@@ -18,6 +22,7 @@ export const predictCryptoPriceHistoryKeys = {
       eventStartTime,
       variant,
       endDate ?? '',
+      ...(twapWindowSeconds !== undefined ? [twapWindowSeconds] : []),
     ] as const,
 };
 
@@ -32,11 +37,13 @@ export const predictCryptoPriceHistoryOptions = ({
   eventStartTime,
   variant,
   endDate,
+  twapWindowSeconds,
 }: {
   symbol: string;
   eventStartTime: string;
   variant: string;
   endDate?: string;
+  twapWindowSeconds?: CryptoTwapWindowSeconds;
 }) =>
   queryOptions({
     queryKey: predictCryptoPriceHistoryKeys.detail(
@@ -44,6 +51,7 @@ export const predictCryptoPriceHistoryOptions = ({
       eventStartTime,
       variant,
       endDate,
+      twapWindowSeconds,
     ),
     queryFn: async (): Promise<LivelinePoint[]> => {
       const history =
@@ -52,6 +60,7 @@ export const predictCryptoPriceHistoryOptions = ({
           eventStartTime,
           variant,
           endDate,
+          twapWindowSeconds,
         });
       return toLivelinePoints(history ?? []);
     },

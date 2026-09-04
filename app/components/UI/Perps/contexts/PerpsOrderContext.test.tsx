@@ -44,6 +44,7 @@ describe('PerpsOrderContext', () => {
     hasBlurredTriggerPrice: false,
     triggerPrice: undefined,
     setTriggerPrice: jest.fn(),
+    resetPriceInputInteraction: jest.fn(),
     setOrderType: jest.fn(),
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),

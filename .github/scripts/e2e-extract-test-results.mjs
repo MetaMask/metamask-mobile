@@ -193,7 +193,7 @@ export async function extractTestResults(resultsDir) {
 /**
  * CLI entry point for testing the script directly
  */
-if (process.argv[1].endsWith('e2e-extract-test-results.mjs')) {
+if (process.argv[1]?.endsWith('e2e-extract-test-results.mjs')) {
   const resultsDir = process.argv[2] || './previous-test-results';
 
   extractTestResults(resultsDir)

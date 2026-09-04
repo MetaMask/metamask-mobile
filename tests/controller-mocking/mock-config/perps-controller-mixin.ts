@@ -726,6 +726,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
       },
     },
     fills: {
+      getSnapshot: () => mockService.getMockOrderFills(),
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
         setTimeout(() => params.callback(mockService.getMockOrderFills()), 0);
         return () => undefined;

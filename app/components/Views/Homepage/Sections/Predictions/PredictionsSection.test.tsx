@@ -73,6 +73,13 @@ const HOMEPAGE_DISCOVERY_MARKET_BASE = {
   ],
 };
 
+const HOMEPAGE_DISCOVERY_NFL_MARKET = {
+  ...HOMEPAGE_DISCOVERY_MARKET_BASE,
+  id: '202857',
+  title: 'Pro Football: 2027 Champion',
+  slug: 'pro-football-2027-champion-20260729185915366',
+};
+
 const HOMEPAGE_DISCOVERY_EPL_MARKET = {
   ...HOMEPAGE_DISCOVERY_MARKET_BASE,
   id: '659518',
@@ -80,17 +87,10 @@ const HOMEPAGE_DISCOVERY_EPL_MARKET = {
   slug: 'epl-2027-champion-20260701200428749',
 };
 
-const HOMEPAGE_DISCOVERY_NBA_MARKET = {
-  ...HOMEPAGE_DISCOVERY_MARKET_BASE,
-  id: '478277',
-  title: 'NBA: 2027 Champion',
-  slug: 'nba-2027-champion',
-};
-
 const homepageMarketSlotsMock = () =>
   homepageMarketSlotsResultMock([
+    HOMEPAGE_DISCOVERY_NFL_MARKET,
     HOMEPAGE_DISCOVERY_EPL_MARKET,
-    HOMEPAGE_DISCOVERY_NBA_MARKET,
   ]);
 
 const mockUseABTest = jest.fn(
@@ -657,8 +657,10 @@ describe('PredictionsSection', () => {
       );
 
       await waitFor(() => {
+        expect(
+          screen.getByText('Pro Football: 2027 Champion'),
+        ).toBeOnTheScreen();
         expect(screen.getByText('EPL: 2027 Champion')).toBeOnTheScreen();
-        expect(screen.getByText('NBA: 2027 Champion')).toBeOnTheScreen();
       });
     });
 
@@ -675,7 +677,10 @@ describe('PredictionsSection', () => {
 
       await waitFor(() => {
         expect(
-          screen.getByTestId('homepage-predict-discovery-market-slot-2'),
+          screen.getByTestId('homepage-predict-discovery-market-slot-1'),
+        ).toBeOnTheScreen();
+        expect(
+          screen.getByTestId('homepage-predict-discovery-btc-row'),
         ).toBeOnTheScreen();
         expect(
           screen.getByTestId('homepage-predict-discovery-market-slot-3'),
@@ -683,17 +688,48 @@ describe('PredictionsSection', () => {
       });
       expect(
         within(
-          screen.getByTestId('homepage-predict-discovery-market-slot-2'),
-        ).getByText('EPL: 2027 Champion'),
+          screen.getByTestId('homepage-predict-discovery-market-slot-1'),
+        ).getByText('Pro Football: 2027 Champion'),
       ).toBeOnTheScreen();
       expect(
         within(
           screen.getByTestId('homepage-predict-discovery-market-slot-3'),
-        ).getByText('NBA: 2027 Champion'),
+        ).getByText('EPL: 2027 Champion'),
       ).toBeOnTheScreen();
     });
 
-    it('navigates to the EPL market details from slot 2', async () => {
+    it('navigates to the NFL market details from slot 1', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: noPositionsTrendingMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Pro Football: 2027 Champion'),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Pro Football: 2027 Champion'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_DETAILS,
+        params: {
+          marketId: '202857',
+          entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+          title: 'Pro Football: 2027 Champion',
+          image: undefined,
+          transactionActiveAbTests: predictEmptyStateTreatmentActiveAbTests,
+        },
+      });
+    });
+
+    it('navigates to the EPL market details from slot 3', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: noPositionsTrendingMarkets,
         isLoading: false,
@@ -749,7 +785,7 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('tracks the NBA slot click as a sports CTA', async () => {
+    it('tracks the NFL slot click as a sports CTA', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: noPositionsTrendingMarkets,
         isLoading: false,
@@ -761,12 +797,14 @@ describe('PredictionsSection', () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText('NBA: 2027 Champion')).toBeOnTheScreen();
+        expect(
+          screen.getByText('Pro Football: 2027 Champion'),
+        ).toBeOnTheScreen();
       });
 
       mockTrackEvent.mockClear();
 
-      fireEvent.press(screen.getByText('NBA: 2027 Champion'));
+      fireEvent.press(screen.getByText('Pro Football: 2027 Champion'));
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith({
@@ -796,7 +834,10 @@ describe('PredictionsSection', () => {
 
       expect(screen.getByText('Predictions')).toBeOnTheScreen();
       expect(
-        screen.getByTestId('homepage-predict-discovery-market-slot-2'),
+        screen.getByTestId('homepage-predict-discovery-market-slot-1'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('homepage-predict-discovery-btc-row'),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId('homepage-predict-discovery-market-slot-3'),
@@ -830,7 +871,7 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       });
       mockUseHomepagePredictMarketSlots.mockReturnValue(
-        homepageMarketSlotsResultMock([HOMEPAGE_DISCOVERY_EPL_MARKET]),
+        homepageMarketSlotsResultMock([HOMEPAGE_DISCOVERY_NFL_MARKET]),
       );
 
       renderWithProvider(
@@ -839,8 +880,8 @@ describe('PredictionsSection', () => {
 
       expect(
         within(
-          screen.getByTestId('homepage-predict-discovery-market-slot-2'),
-        ).getByText('EPL: 2027 Champion'),
+          screen.getByTestId('homepage-predict-discovery-market-slot-1'),
+        ).getByText('Pro Football: 2027 Champion'),
       ).toBeOnTheScreen();
       expect(
         within(
@@ -1134,8 +1175,10 @@ describe('PredictionsSection', () => {
       await waitFor(() => {
         expect(screen.getByText('Claim $200.00')).toBeOnTheScreen();
       });
+      expect(
+        screen.queryByText('Pro Football: 2027 Champion'),
+      ).not.toBeOnTheScreen();
       expect(screen.queryByText('EPL: 2027 Champion')).not.toBeOnTheScreen();
-      expect(screen.queryByText('NBA: 2027 Champion')).not.toBeOnTheScreen();
     });
 
     it('does not render active position rows in claimable-only state', async () => {

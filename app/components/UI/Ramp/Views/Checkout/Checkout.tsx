@@ -395,13 +395,14 @@ const Checkout = () => {
     // providerCode and walletAddress are passed, so hasCallbackFlow is true
     // and we can register. hasCallbackFlow being false means we lack the data
     // required for addPrecreatedOrder anyway.
-    // Note: network/chainId is optional in addPrecreatedOrder; do not require it
-    // in the guard, otherwise orders with unusual chain ID formats (e.g. empty
-    // string from chainId.split(':')[1]) would silently skip registration here
-    // while external-browser flows would still register (BuildQuote passes
-    // chainId: network || undefined without requiring network).
+    // RampsController requires a non-empty chainId (see Core #9777); skip
+    // registration when network is missing rather than seeding an empty stub.
     const canRegister =
-      hasCallbackFlow && effectiveOrderId && providerCode && walletAddress;
+      hasCallbackFlow &&
+      effectiveOrderId &&
+      providerCode &&
+      walletAddress &&
+      network;
     if (!canRegister) return;
     if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
     registeredOrderIdsRef.current.add(effectiveOrderId);
@@ -409,7 +410,7 @@ const Checkout = () => {
       orderId: effectiveOrderId,
       providerCode,
       walletAddress,
-      chainId: network || undefined,
+      chainId: network,
     });
   }, [
     hasCallbackFlow,

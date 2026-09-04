@@ -1,5 +1,7 @@
 import {
   fetchWithTimeout,
+  PolymarketRequestCancelledError,
+  PolymarketRequestTimeoutError,
   POLYMARKET_REQUEST_TIMEOUT_MS,
 } from './fetchWithTimeout';
 
@@ -16,20 +18,24 @@ describe('fetchWithTimeout', () => {
     jest.useRealTimers();
   });
 
-  it('aborts a request after the Polymarket timeout', async () => {
+  it('classifies the internal Polymarket timeout', async () => {
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
     mockFetch.mockImplementation(
       (_input: RequestInfo | URL, init?: RequestInit) =>
         new Promise((_resolve, reject) => {
-          init?.signal?.addEventListener('abort', () =>
-            reject(new Error('Request timeout')),
-          );
+          init?.signal?.addEventListener('abort', () => reject(abortError));
         }),
     );
 
     const request = fetchWithTimeout('https://example.com');
     jest.advanceTimersByTime(POLYMARKET_REQUEST_TIMEOUT_MS);
 
-    await expect(request).rejects.toThrow('Polymarket request timeout');
+    expect(POLYMARKET_REQUEST_TIMEOUT_MS).toBe(35_000);
+    await expect(request).rejects.toMatchObject({
+      name: PolymarketRequestTimeoutError.name,
+      cause: abortError,
+    });
   });
 
   it('passes request options and an abort signal to fetch', async () => {
@@ -49,14 +55,14 @@ describe('fetchWithTimeout', () => {
     });
   });
 
-  it('preserves caller cancellation without reporting a timeout', async () => {
+  it('classifies caller cancellation separately from timeout', async () => {
     const callerController = new AbortController();
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
     mockFetch.mockImplementation(
       (_input: RequestInfo | URL, init?: RequestInit) =>
         new Promise((_resolve, reject) => {
-          init?.signal?.addEventListener('abort', () =>
-            reject(new Error('Caller cancelled request')),
-          );
+          init?.signal?.addEventListener('abort', () => reject(abortError));
         }),
     );
     const request = fetchWithTimeout('https://example.com', {
@@ -65,21 +71,39 @@ describe('fetchWithTimeout', () => {
 
     callerController.abort();
 
-    await expect(request).rejects.toThrow('Caller cancelled request');
+    await expect(request).rejects.toMatchObject({
+      name: PolymarketRequestCancelledError.name,
+      cause: abortError,
+    });
   });
 
   it('passes an aborted caller signal to fetch', async () => {
     const callerController = new AbortController();
     callerController.abort();
-    mockFetch.mockRejectedValue(new Error('Caller cancelled request'));
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+    mockFetch.mockRejectedValue(abortError);
 
     await expect(
       fetchWithTimeout('https://example.com', {
         signal: callerController.signal,
       }),
-    ).rejects.toThrow('Caller cancelled request');
+    ).rejects.toMatchObject({
+      name: PolymarketRequestCancelledError.name,
+      cause: abortError,
+    });
 
     const requestInit = mockFetch.mock.calls[0][1] as RequestInit;
     expect(requestInit.signal?.aborted).toBe(true);
+  });
+
+  it('preserves native fetch aborts not owned by the wrapper or caller', async () => {
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+    mockFetch.mockRejectedValue(abortError);
+
+    await expect(fetchWithTimeout('https://example.com')).rejects.toBe(
+      abortError,
+    );
   });
 });

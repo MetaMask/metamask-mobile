@@ -16,10 +16,8 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
-  getOrderManagementToastKey,
-  getOrderPlacementKind,
 } from './orderUtils';
-import { Order, OrderParams, type OrderType } from '@metamask/perps-controller';
+import { Order, OrderParams } from '@metamask/perps-controller';
 import { Position } from '../hooks';
 
 // Mock DevLogger
@@ -30,24 +28,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 describe('orderUtils', () => {
-  describe('order placement kind', () => {
-    it.each([
-      ['market', 'immediate'],
-      ['limit', 'resting'],
-      ['stop_market', 'resting'],
-      ['stop_limit', 'resting'],
-      ['take_profit_market', 'resting'],
-      ['take_profit_limit', 'resting'],
-    ] as const)('classifies %s as %s', (orderType, expectedKind) => {
-      expect(getOrderPlacementKind(orderType)).toBe(expectedKind);
-    });
-
-    it('maps resting placements to limit management copy', () => {
-      expect(getOrderManagementToastKey('stop_market')).toBe('limit');
-      expect(getOrderManagementToastKey('market')).toBe('market');
-    });
-  });
-
   describe('formatOrderLabel', () => {
     it('should format opening long market order', () => {
       const order: Order = {

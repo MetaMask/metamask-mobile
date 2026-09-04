@@ -13,6 +13,7 @@ import { RootState } from '../../../../../reducers';
 import { selectBatchSellSourceWalletAddress } from '../../../../../selectors/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
 import { getMaybeHexChainId } from '../../../../../util/bridge';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../../constants/bridge';
 
 export function useSubmitBatchSellTx() {
   const sourceTokens = useSelector(selectBatchSellSourceTokens);
@@ -44,6 +45,7 @@ export function useSubmitBatchSellTx() {
       isStxEnabled: smartTransactionsEnabled,
       quotesReceivedContext: undefined,
       tokenSecurityTypeDestination,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
   };
 

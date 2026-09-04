@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Switch, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { ScrollView, Switch, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './NotificationsSettings.styles';
@@ -32,6 +32,20 @@ interface SectionContentProps {
   disabled?: boolean;
 }
 
+interface ListSectionContentProps extends SectionContentProps {
+  ListHeaderComponent: React.ReactElement;
+}
+
+type SectionDefinition =
+  | {
+      layout: 'scroll';
+      Content?: React.ComponentType<SectionContentProps>;
+    }
+  | {
+      layout: 'list';
+      Content: React.ComponentType<ListSectionContentProps>;
+    };
+
 const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
   {
     walletActivity: 'wallet_activity',
@@ -45,7 +59,8 @@ const SETTINGS_TYPE_BY_SECTION: Record<NotificationPreferenceSection, string> =
 const WalletActivitySectionContent = ({
   styles,
   disabled = false,
-}: SectionContentProps) => {
+  ListHeaderComponent,
+}: ListSectionContentProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { updatePreferencesSection } = useNotificationStoragePreferences();
   const {
@@ -89,56 +104,79 @@ const WalletActivitySectionContent = ({
     createEventBuilder,
   ]);
 
-  return (
-    <View style={disabled ? styles.disabledContent : undefined}>
-      <View style={styles.line} />
-      <View style={styles.setting}>
-        <View style={styles.walletActivityHeader}>
-          <Text
-            color={TextColor.TextDefault}
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Medium}
-          >
-            {strings('app_settings.notifications_opts.select_accounts_title')}
-          </Text>
-          {hasNotificationAccounts ? (
-            <TouchableOpacity
-              onPress={handleToggleAllAccounts}
-              disabled={disabled || isUpdatingAllAccounts}
-              accessibilityRole="button"
-              style={styles.selectAllButton}
-              testID={
-                NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL
-              }
-            >
+  const accountsListHeader = useMemo(
+    () => (
+      <View>
+        {ListHeaderComponent}
+        <View style={disabled ? styles.disabledContent : undefined}>
+          <View style={styles.line} />
+          <View style={styles.setting}>
+            <View style={styles.walletActivityHeader}>
               <Text
-                color={
-                  disabled || isUpdatingAllAccounts
-                    ? TextColor.TextMuted
-                    : TextColor.PrimaryDefault
-                }
-                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                variant={TextVariant.HeadingMd}
                 fontWeight={FontWeight.Medium}
               >
                 {strings(
-                  hasEnabledAccount
-                    ? 'app_settings.notifications_opts.deselect_all'
-                    : 'app_settings.notifications_opts.select_all',
+                  'app_settings.notifications_opts.select_accounts_title',
                 )}
               </Text>
-            </TouchableOpacity>
-          ) : null}
+              {hasNotificationAccounts ? (
+                <TouchableOpacity
+                  onPress={handleToggleAllAccounts}
+                  disabled={disabled || isUpdatingAllAccounts}
+                  accessibilityRole="button"
+                  style={styles.selectAllButton}
+                  testID={
+                    NotificationSettingsViewSelectorsIDs.ACCOUNT_NOTIFICATIONS_SELECT_ALL
+                  }
+                >
+                  <Text
+                    color={
+                      disabled || isUpdatingAllAccounts
+                        ? TextColor.TextMuted
+                        : TextColor.PrimaryDefault
+                    }
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Medium}
+                  >
+                    {strings(
+                      hasEnabledAccount
+                        ? 'app_settings.notifications_opts.deselect_all'
+                        : 'app_settings.notifications_opts.select_all',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+            <Text
+              color={TextColor.TextAlternative}
+              variant={TextVariant.BodyMd}
+            >
+              {strings('app_settings.notifications_opts.select_accounts_desc')}
+            </Text>
+          </View>
         </View>
-        <Text color={TextColor.TextAlternative} variant={TextVariant.BodyMd}>
-          {strings('app_settings.notifications_opts.select_accounts_desc')}
-        </Text>
       </View>
-      <AccountsList
-        accountProps={accountProps}
-        notificationAccountListProps={notificationAccountListProps}
-        disabled={disabled}
-      />
-    </View>
+    ),
+    [
+      ListHeaderComponent,
+      disabled,
+      handleToggleAllAccounts,
+      hasEnabledAccount,
+      hasNotificationAccounts,
+      isUpdatingAllAccounts,
+      styles,
+    ],
+  );
+
+  return (
+    <AccountsList
+      accountProps={accountProps}
+      notificationAccountListProps={notificationAccountListProps}
+      disabled={disabled}
+      ListHeaderComponent={accountsListHeader}
+    />
   );
 };
 
@@ -171,15 +209,25 @@ const MarketingSectionContent = ({
   </View>
 );
 
-const SECTION_CONTENT_BY_TYPE: Partial<
-  Record<
-    NotificationPreferenceSection,
-    React.ComponentType<SectionContentProps>
-  >
+const SECTION_DEFINITIONS: Record<
+  NotificationPreferenceSection,
+  SectionDefinition
 > = {
-  walletActivity: WalletActivitySectionContent,
-  socialAI: SocialAISectionContent,
-  marketing: MarketingSectionContent,
+  walletActivity: {
+    layout: 'list',
+    Content: WalletActivitySectionContent,
+  },
+  socialAI: {
+    layout: 'scroll',
+    Content: SocialAISectionContent,
+  },
+  marketing: {
+    layout: 'scroll',
+    Content: MarketingSectionContent,
+  },
+  perps: { layout: 'scroll' },
+  agenticCli: { layout: 'scroll' },
+  priceAlerts: { layout: 'scroll' },
 };
 
 export interface NotificationSettingsSectionContentProps {
@@ -201,7 +249,7 @@ export const NotificationSettingsSectionContent = ({
   const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
   const sectionPrefs = preferences?.[type];
-  const SectionContent = SECTION_CONTENT_BY_TYPE[type];
+  const sectionDefinition = SECTION_DEFINITIONS[type];
 
   const trackChannelUpdate = useCallback(
     (channel: NotificationChannel, enabled: boolean) => {
@@ -278,79 +326,115 @@ export const NotificationSettingsSectionContent = ({
   const isSectionContentDisabled =
     Boolean(disabled) || (!push.value && !inApp.value);
 
+  const listHeader = useMemo(
+    () => (
+      <View>
+        {title ? (
+          <View style={styles.setting}>
+            <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
+              {title}
+            </Text>
+            {description ? (
+              <Text
+                color={TextColor.TextAlternative}
+                variant={TextVariant.BodyMd}
+              >
+                {description}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
+        <View style={styles.switchElement}>
+          <Text
+            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
+            {strings('app_settings.notifications_opts.push_recommended')}
+          </Text>
+          <Switch
+            value={push.value}
+            onValueChange={push.onValueChange}
+            disabled={disabled}
+            trackColor={{
+              true: theme.colors.primary.default,
+              false: theme.colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
+            }
+          />
+        </View>
+
+        <View style={styles.switchElement}>
+          <Text
+            color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+          >
+            {strings('app_settings.notifications_opts.in_app')}
+          </Text>
+          <Switch
+            value={inApp.value}
+            onValueChange={inApp.onValueChange}
+            disabled={disabled}
+            trackColor={{
+              true: theme.colors.primary.default,
+              false: theme.colors.border.muted,
+            }}
+            thumbColor={theme.brandColors.white}
+            style={styles.switch}
+            ios_backgroundColor={theme.colors.border.muted}
+            testID={
+              NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
+            }
+          />
+        </View>
+      </View>
+    ),
+    [
+      description,
+      disabled,
+      inApp.onValueChange,
+      inApp.value,
+      push.onValueChange,
+      push.value,
+      styles,
+      theme,
+      title,
+    ],
+  );
+
   if (!sectionPrefs) return null;
 
+  if (sectionDefinition.layout === 'list') {
+    const ListContent = sectionDefinition.Content;
+
+    return (
+      <ListContent
+        styles={styles}
+        disabled={isSectionContentDisabled}
+        ListHeaderComponent={listHeader}
+      />
+    );
+  }
+
+  const SectionContent = sectionDefinition.Content;
+
   return (
-    <>
-      {title ? (
-        <View style={styles.setting}>
-          <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
-            {title}
-          </Text>
-          {description ? (
-            <Text
-              color={TextColor.TextAlternative}
-              variant={TextVariant.BodyMd}
-            >
-              {description}
-            </Text>
-          ) : null}
-        </View>
-      ) : null}
-
-      <View style={styles.switchElement}>
-        <Text
-          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('app_settings.notifications_opts.push_recommended')}
-        </Text>
-        <Switch
-          value={push.value}
-          onValueChange={push.onValueChange}
-          disabled={disabled}
-          trackColor={{
-            true: theme.colors.primary.default,
-            false: theme.colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          style={styles.switch}
-          ios_backgroundColor={theme.colors.border.muted}
-          testID={
-            NotificationSettingsViewSelectorsIDs.PUSH_NOTIFICATIONS_TOGGLE
-          }
-        />
-      </View>
-
-      <View style={styles.switchElement}>
-        <Text
-          color={disabled ? TextColor.TextMuted : TextColor.TextDefault}
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('app_settings.notifications_opts.in_app')}
-        </Text>
-        <Switch
-          value={inApp.value}
-          onValueChange={inApp.onValueChange}
-          disabled={disabled}
-          trackColor={{
-            true: theme.colors.primary.default,
-            false: theme.colors.border.muted,
-          }}
-          thumbColor={theme.brandColors.white}
-          style={styles.switch}
-          ios_backgroundColor={theme.colors.border.muted}
-          testID={
-            NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE
-          }
-        />
-      </View>
-
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      testID={NotificationSettingsViewSelectorsIDs.SECTION_SCROLL_VIEW}
+    >
+      {listHeader}
       {SectionContent ? (
         <SectionContent styles={styles} disabled={isSectionContentDisabled} />
       ) : null}
-    </>
+    </ScrollView>
   );
 };

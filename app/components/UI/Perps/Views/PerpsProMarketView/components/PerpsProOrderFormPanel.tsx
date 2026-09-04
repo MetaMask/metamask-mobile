@@ -1,7 +1,11 @@
 import { Box } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import type { PerpsMarketData } from '@metamask/perps-controller';
-import React, { useCallback, useMemo, useState } from 'react';
+import type {
+  OrderType,
+  PerpsMarketData,
+  PerpsProviderType,
+} from '@metamask/perps-controller';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
@@ -12,13 +16,30 @@ import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomShe
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
-import { selectPerpsProTriggeredOrdersEnabledFlag } from '../../../selectors/featureFlags';
+import {
+  selectPerpsProTriggeredOrdersEnabledFlag,
+  selectPerpsProTwapEnabledFlag,
+} from '../../../selectors/featureFlags';
+import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
+import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
+import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
+
+const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
+const TRIGGERED_ORDER_TYPES: readonly OrderType[] = [
+  'stop_limit',
+  'stop_market',
+  'take_profit_limit',
+  'take_profit_market',
+];
+const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
+const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
+  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -46,6 +67,38 @@ const PerpsProOrderFormPanel = ({
   const isTriggeredOrdersEnabled = useSelector(
     selectPerpsProTriggeredOrdersEnabledFlag,
   );
+  const isTwapFlagEnabled = useSelector(selectPerpsProTwapEnabledFlag);
+  const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
+  const { isLoadingOrderCapabilities, orderCapabilities, supportsTwapOrders } =
+    usePerpsProvider(
+      isTwapRolloutEnabled
+        ? {
+            symbol: market.symbol,
+            providerId: market.providerId,
+          }
+        : undefined,
+    );
+  const resolvedTwapProviderId =
+    orderCapabilities?.status === 'ready'
+      ? orderCapabilities.providerId
+      : undefined;
+  // Controller v13 exposes executable strategy limits for Hyperliquid only.
+  // Keep other providers undiscoverable until capabilities own their limits.
+  const isTwapEnabled =
+    isTwapRolloutEnabled &&
+    supportsTwapOrders &&
+    resolvedTwapProviderId === TWAP_SUPPORTED_PROVIDER;
+  const isTwapAvailabilityPending =
+    isTwapRolloutEnabled && isLoadingOrderCapabilities;
+  const areTriggeredOrdersEnabled = isProModeActive && isTriggeredOrdersEnabled;
+  const availableOrderTypes = useMemo<readonly OrderType[]>(
+    () => [
+      ...BASIC_ORDER_TYPES,
+      ...(areTriggeredOrdersEnabled ? TRIGGERED_ORDER_TYPES : []),
+      ...(isTwapEnabled ? TWAP_ORDER_TYPES : []),
+    ],
+    [areTriggeredOrdersEnabled, isTwapEnabled],
+  );
   const {
     direction,
     onDirectionChange,
@@ -67,6 +120,7 @@ const PerpsProOrderFormPanel = ({
     onAddFundsPress,
     reduceOnly,
     onReduceOnlyChange,
+    twap,
     isTPSLConfigured,
     onTPSLPress,
     notices,
@@ -97,15 +151,32 @@ const PerpsProOrderFormPanel = ({
     feeDiscountPercentage,
   } = usePerpsProOrderForm({
     market,
-    isTriggeredOrdersEnabled: isProModeActive && isTriggeredOrdersEnabled,
+    isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
+    isTwapEnabled,
+    isTwapAvailabilityPending,
+    resolvedTwapProviderId,
   });
 
   const { styles } = useStyles(createStyles, {});
-  const showTriggeredTypes = isProModeActive && isTriggeredOrdersEnabled;
 
   const [isMarginModeVisible, setIsMarginModeVisible] = useState(false);
   const openMarginMode = useCallback(() => setIsMarginModeVisible(true), []);
   const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+  const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
+  const openTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(true),
+    [],
+  );
+  const closeTwapDuration = useCallback(
+    () => setIsTwapDurationVisible(false),
+    [],
+  );
+
+  useEffect(() => {
+    if (orderType !== 'twap') {
+      setIsTwapDurationVisible(false);
+    }
+  }, [orderType]);
 
   const {
     cardRef: sizeCardRef,
@@ -191,6 +262,8 @@ const PerpsProOrderFormPanel = ({
         onAddFundsPress={onAddFundsPress}
         reduceOnly={reduceOnly}
         onReduceOnlyChange={onReduceOnlyChange}
+        twap={twap}
+        onTwapDurationPress={openTwapDuration}
         isTPSLConfigured={isTPSLConfigured}
         onTPSLPress={onTPSLPress}
         notices={notices}
@@ -224,7 +297,18 @@ const PerpsProOrderFormPanel = ({
             direction={direction}
             title={strings('perps.pro_order_form.choose_order_type')}
             showSelectedIcon
-            showTriggeredTypes={showTriggeredTypes}
+            availableOrderTypes={availableOrderTypes}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isTwapDurationVisible && orderType === 'twap' && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeTwapDuration}
+        >
+          <PerpsProTwapDurationBottomSheet
+            twap={twap}
+            onClose={closeTwapDuration}
           />
         </PerpsProModalPortal>
       )}

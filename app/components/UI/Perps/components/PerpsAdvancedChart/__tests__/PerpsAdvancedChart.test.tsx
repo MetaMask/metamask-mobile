@@ -621,6 +621,71 @@ describe('mapTpslToPositionLines', () => {
     const result = mapTpslToPositionLines({ entryPrice: '42000' }, '0');
     expect(result?.side).toBe('long');
   });
+
+  it('maps limit-only overlays without an entry price', () => {
+    const result = mapTpslToPositionLines(
+      {
+        limitOrders: [
+          { id: 'limit-buy', price: '41000', side: 'buy' },
+          { id: 'limit-sell', price: '43000', side: 'sell' },
+        ],
+      },
+      undefined,
+    );
+
+    expect(result).toEqual({
+      side: 'long',
+      limitOrders: [
+        { price: 41000, side: 'long' },
+        { price: 43000, side: 'short' },
+      ],
+    });
+  });
+
+  it('drops non-finite limit prices and returns undefined when none remain', () => {
+    const result = mapTpslToPositionLines(
+      {
+        limitOrders: [{ id: 'bad', price: 'NaN', side: 'buy' }],
+      },
+      '1.0',
+    );
+
+    expect(result).toBeUndefined();
+  });
+
+  it('keeps entry and limit lines on the same overlay', () => {
+    const result = mapTpslToPositionLines(
+      {
+        entryPrice: '42000',
+        limitOrders: [{ id: 'limit-buy', price: '41000', side: 'buy' }],
+      },
+      '1.0',
+    );
+
+    expect(result).toEqual({
+      side: 'long',
+      entryPrice: 42000,
+      limitOrders: [{ price: 41000, side: 'long' }],
+    });
+  });
+
+  it('omits TP/SL/liquidation when entryPrice is non-finite but limits remain', () => {
+    const result = mapTpslToPositionLines(
+      {
+        entryPrice: 'NaN',
+        takeProfitPrice: '45000',
+        stopLossPrice: '40000',
+        liquidationPrice: '38000',
+        limitOrders: [{ id: 'limit-buy', price: '41000', side: 'buy' }],
+      },
+      '1.0',
+    );
+
+    expect(result).toEqual({
+      side: 'long',
+      limitOrders: [{ price: 41000, side: 'long' }],
+    });
+  });
 });
 
 describe('getPerpsPositionLineColors', () => {
@@ -641,6 +706,8 @@ describe('getPerpsPositionLineColors', () => {
       takeProfit: 'token-success-default',
       stopLoss: 'token-warning-default',
       liquidation: 'token-error-default',
+      limitBuy: 'token-success-default',
+      limitSell: 'token-error-default',
     });
   });
 });

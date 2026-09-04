@@ -139,13 +139,21 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=92d9001b-8b64-4b13-9c1b-ba9292a6099a',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 
   it('falls back to social leaderboard when positionId is missing', () => {
     handleSocialTraderPositionUrl({ actionPath: '' });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
+    );
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Missing positionId or traderId, falling back to social leaderboard',
     );
@@ -156,7 +164,11 @@ describe('handleSocialTraderPositionUrl', () => {
       actionPath: '?positionId=%20%20&traderId=trader-1',
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 
   it('invalidates open and closed position queries before navigating', () => {
@@ -190,7 +202,11 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 
   it('does not invalidate queries when positionId is missing', () => {
@@ -199,7 +215,11 @@ describe('handleSocialTraderPositionUrl', () => {
     });
 
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_LEADERBOARD.VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
+    );
   });
 
   it('still navigates when invalidation throws', () => {
@@ -276,6 +296,8 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(2);
     expect(mockNavigate).toHaveBeenLastCalledWith(
       Routes.SOCIAL_LEADERBOARD.VIEW,
+      undefined,
+      { pop: true },
     );
   });
 });

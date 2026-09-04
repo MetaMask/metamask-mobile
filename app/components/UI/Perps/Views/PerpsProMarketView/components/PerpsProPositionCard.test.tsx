@@ -46,7 +46,22 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText(/^\+\$150/)).toBeOnTheScreen();
     expect(screen.getByText('Close')).toBeOnTheScreen();
     expect(screen.getByText('Reverse')).toBeOnTheScreen();
-    expect(screen.getByText('Share')).toBeOnTheScreen();
+    expect(screen.queryByText('Share')).toBeNull();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.POSITION_SHARE),
+    ).toBeOnTheScreen();
+    expect(screen.getByLabelText('Share')).toBeOnTheScreen();
+  });
+
+  it('renders all six summary labels', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByText('Entry price')).toBeOnTheScreen();
+    expect(screen.getByText('Mark price')).toBeOnTheScreen();
+    expect(screen.getByText('Liq. price')).toBeOnTheScreen();
+    expect(screen.getByText('Margin')).toBeOnTheScreen();
+    expect(screen.getByText('Funding')).toBeOnTheScreen();
+    expect(screen.getByText('TP / SL')).toBeOnTheScreen();
   });
 
   it('derives mark price and notional from positionValue', () => {

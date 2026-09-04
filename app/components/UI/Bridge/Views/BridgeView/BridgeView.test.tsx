@@ -202,7 +202,7 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   }),
 }));
 
-// Mock useSubmitBridgeTx hook (needed because SwapsConfirmButton imports it)
+// Mock useSubmitBridgeTx hook (needed because SwapsMarketOrderConfirmButton imports it)
 jest.mock('../../../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
   __esModule: true,
   default: () => ({
@@ -1754,7 +1754,7 @@ describe('BridgeView', () => {
   });
 
   describe('location forwarding', () => {
-    it('forwards route.params.location to SwapsConfirmButton via price impact modal navigation', async () => {
+    it('forwards route.params.location to SwapsMarketOrderConfirmButton via price impact modal navigation', async () => {
       mockRoute.params = {
         sourcePage: 'test',
         location: MetaMetricsSwapsEventSource.MainView,
@@ -1764,7 +1764,7 @@ describe('BridgeView', () => {
       // navigate to the PriceImpactModal — the location value is embedded in
       // the navigation params, making this the easiest observable side-effect
       // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact (raw decimal),
+      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
       // so we must override it alongside the formatted display string.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)

@@ -3,16 +3,16 @@ import {
   Gestures,
   Assertions,
   Utilities,
-  EncapsulatedElementType,
+  type AppiumElement,
 } from '../../framework';
 import { PredictBalanceSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 
 class PredictBalance {
-  get balanceCard(): EncapsulatedElementType {
+  get balanceCard(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.BALANCE_CARD);
   }
 
-  get withdrawButton(): EncapsulatedElementType {
+  get withdrawButton(): Promise<AppiumElement> {
     return Matchers.getElementByID(PredictBalanceSelectorsIDs.WITHDRAW_BUTTON);
   }
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, act, fireEvent, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import ManagePriceAlertsView from './ManagePriceAlertsView';
 import {
   ManagePriceAlertsTestIds,
@@ -10,7 +11,6 @@ import {
   type PercentChangeAlert,
 } from '../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { ToastContext } from '../../../../../../component-library/components/Toast';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
@@ -31,8 +31,17 @@ const createWrapper = () => {
 const mockGoBack = jest.fn();
 const mockReplace = jest.fn();
 const mockNavigate = jest.fn();
-const mockShowToast = jest.fn();
 const mockFeatureGate = jest.fn((_props: unknown) => null);
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock(
   '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate',
@@ -41,22 +50,11 @@ jest.mock(
   }),
 );
 
-function WithToast({ children }: { children: React.ReactNode }) {
-  const ref = React.useRef({ showToast: mockShowToast, closeToast: jest.fn() });
-  return (
-    <ToastContext.Provider value={{ toastRef: ref }}>
-      {children}
-    </ToastContext.Provider>
-  );
-}
-
 const renderView = () => {
   const { Wrapper } = createWrapper();
   return render(
     <Wrapper>
-      <WithToast>
-        <ManagePriceAlertsView />
-      </WithToast>
+      <ManagePriceAlertsView />
     </Wrapper>,
   );
 };
@@ -557,14 +555,11 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
+        expect(toast).toHaveBeenCalledWith(
           expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Price alert deleted.',
-              }),
-            ]),
+            title: 'Price alert deleted.',
             hasNoTimeout: false,
+            showCloseButton: false,
           }),
         );
       });
@@ -877,16 +872,12 @@ describe('ManagePriceAlertsView', () => {
       renderView();
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to load price alerts. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to load price alerts. Please try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
 
@@ -904,16 +895,12 @@ describe('ManagePriceAlertsView', () => {
       renderView();
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to load price alerts. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to load price alerts. Please try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
   });
@@ -947,16 +934,12 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to delete price alert. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to delete price alert. Please try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
 
@@ -974,16 +957,12 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() =>
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: 'Failed to update price alert. Please try again.',
-              }),
-            ]),
-            hasNoTimeout: false,
-          }),
-        ),
+        expect(toast).toHaveBeenCalledWith({
+          title: 'Failed to update price alert. Please try again.',
+          severity: ToastSeverity.Danger,
+          hasNoTimeout: false,
+          showCloseButton: false,
+        }),
       );
     });
   });
@@ -1051,7 +1030,7 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalled();
+        expect(toast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
@@ -1119,7 +1098,7 @@ describe('ManagePriceAlertsView', () => {
       );
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalled();
+        expect(toast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,

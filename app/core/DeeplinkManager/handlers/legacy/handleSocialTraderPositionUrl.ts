@@ -38,7 +38,11 @@ const parseSocialTraderPositionNavigationParams = (
 };
 
 const navigateToFallback = () => {
-  NavigationService.navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW);
+  NavigationService.navigation.navigate(
+    Routes.SOCIAL_LEADERBOARD.VIEW,
+    undefined,
+    { pop: true },
+  );
 };
 
 /**

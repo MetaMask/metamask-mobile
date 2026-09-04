@@ -6,8 +6,8 @@ import {
 } from '../../Constants.ts';
 import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
-import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
-import { createPlaywrightLogger } from '../../playwrightLogger.ts';
+import AppiumUtilities from '../../AppiumUtilities.ts';
+import { createAppiumLogger } from '../../appiumLogger.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
 import { switchToNativeContext } from './sessionHealth.ts';
 import {
@@ -15,7 +15,7 @@ import {
   requestSharedSessionRecreate,
 } from './sessionRecovery.ts';
 
-const logger = createPlaywrightLogger('softReloadApp');
+const logger = createAppiumLogger('softReloadApp');
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
@@ -129,7 +129,7 @@ export async function softReloadAppForFixtures(
 
   try {
     launchAppMs = await measureMs(() =>
-      PlaywrightUtilities.launchApp(currentDeviceDetails, { launchArgs }),
+      AppiumUtilities.launchApp(currentDeviceDetails, { launchArgs }),
     );
 
     const bootstrapStart = Date.now();

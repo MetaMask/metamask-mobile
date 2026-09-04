@@ -67,7 +67,9 @@ const ConfirmAddAsset = () => {
    * Return to the View all tokens screen after a successful import.
    */
   const goToTokensFullView = useCallback(() => {
-    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+    navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+      pop: true,
+    });
   }, [navigation]);
 
   const handleImport = useCallback(async () => {

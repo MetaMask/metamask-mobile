@@ -8,8 +8,11 @@ import {
   InitializationState,
   MARKET_SORTING_CONFIG,
   PerpsMode,
+  DEFAULT_ORDER_BOOK_PREFERENCES,
   DEFAULT_PRO_LAYOUT_PREFERENCES,
+  DEFAULT_SELECTED_ORDER_TYPE,
   PerpsPlatformDependencies,
+  VISIBLE_CANDLE_COUNT_CONFIG,
 } from '@metamask/perps-controller';
 import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
@@ -49,6 +52,10 @@ jest.mock('@metamask/perps-controller', () => {
     PerpsMode: actualConstants.PerpsMode,
     DEFAULT_PRO_LAYOUT_PREFERENCES:
       actualConstants.DEFAULT_PRO_LAYOUT_PREFERENCES,
+    DEFAULT_ORDER_BOOK_PREFERENCES:
+      actualConstants.DEFAULT_ORDER_BOOK_PREFERENCES,
+    DEFAULT_SELECTED_ORDER_TYPE: actualConstants.DEFAULT_SELECTED_ORDER_TYPE,
+    VISIBLE_CANDLE_COUNT_CONFIG: actualConstants.VISIBLE_CANDLE_COUNT_CONFIG,
   };
 });
 
@@ -161,6 +168,9 @@ describe('perps controller init', () => {
       cachedUserDataByProvider: {},
       mode: PerpsMode.Lite,
       proLayoutPreferences: DEFAULT_PRO_LAYOUT_PREFERENCES,
+      orderBookPreferences: DEFAULT_ORDER_BOOK_PREFERENCES,
+      selectedOrderType: DEFAULT_SELECTED_ORDER_TYPE,
+      visibleCandleCount: VISIBLE_CANDLE_COUNT_CONFIG.Default,
     };
 
     initRequestMock.persistedState = {

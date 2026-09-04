@@ -5,6 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService/NavigationService';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
 import type { MoneyOnboardingParams } from '../types/navigation';
+import type { NavigationAnalyticsContext } from '../../../../util/analytics/navigationAnalyticsAttribution';
 
 /**
  * Why NavigationService instead of useNavigation():
@@ -56,20 +57,26 @@ export const useMoneyNavigation = () => {
     useMoneyOnboardingNavigation();
 
   const navigateToMoneyHome = useCallback(
-    (entryPoint?: string) => {
+    (analyticsContext?: NavigationAnalyticsContext) => {
       if (
-        redirectToOnboardingIfNeeded(entryPoint ? { entryPoint } : undefined)
+        redirectToOnboardingIfNeeded(
+          analyticsContext ? { analyticsContext } : undefined,
+        )
       ) {
         return;
       }
 
-      NavigationService.navigation.navigate(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: {
-          screen: Routes.MONEY.HOME,
-          ...(entryPoint ? { params: { entryPoint } } : {}),
+      NavigationService.navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            ...(analyticsContext ? { params: { analyticsContext } } : {}),
+          },
         },
-      });
+        { pop: true },
+      );
     },
     [redirectToOnboardingIfNeeded],
   );

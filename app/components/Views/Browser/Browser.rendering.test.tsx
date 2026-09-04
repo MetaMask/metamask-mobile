@@ -12,7 +12,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
@@ -185,7 +185,7 @@ describe('Browser - Rendering and Initialization', () => {
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -202,7 +202,7 @@ describe('Browser - Rendering and Initialization', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </ThemeContext.Provider>
       </Provider>,
       { state: { ...mockInitialState } },
@@ -217,7 +217,7 @@ describe('Browser - Rendering and Initialization', () => {
     });
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -234,7 +234,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -248,7 +248,7 @@ describe('Browser - Rendering and Initialization', () => {
     const mockCreateNewTab = jest.fn();
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -265,7 +265,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -278,7 +278,7 @@ describe('Browser - Rendering and Initialization', () => {
     // Render the component with an initial prop value
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -295,7 +295,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -305,7 +305,7 @@ describe('Browser - Rendering and Initialization', () => {
     // rerender with a different route value
     rerender(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -324,7 +324,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
     );
     // Check if navigate was called to show the modal
@@ -342,7 +342,7 @@ describe('Browser - Rendering and Initialization', () => {
 
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -359,7 +359,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -370,7 +370,7 @@ describe('Browser - Rendering and Initialization', () => {
     // rerender with a new URL when max tabs are reached, coming from Explore (fromTrending)
     rerender(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -393,7 +393,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
     );
 
@@ -581,13 +581,13 @@ describe('Browser - Rendering and Initialization', () => {
         <Provider store={mockStore(mockInitialState)}>
           <ThemeContext.Provider value={mockTheme}>
             <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
+              <IndependentNavigationContainer>
                 <Stack.Navigator>
                   <Stack.Screen name={Routes.BROWSER.VIEW}>
                     {() => <Browser {...defaultBrowserProps} {...props} />}
                   </Stack.Screen>
                 </Stack.Navigator>
-              </NavigationContainer>
+              </IndependentNavigationContainer>
             </ToastContext.Provider>
           </ThemeContext.Provider>
         </Provider>,
@@ -634,7 +634,7 @@ describe('Browser - Rendering and Initialization', () => {
         <Provider store={mockStore(mockInitialState)}>
           <ThemeContext.Provider value={mockTheme}>
             <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
+              <IndependentNavigationContainer>
                 <Stack.Navigator>
                   <Stack.Screen name={Routes.BROWSER.VIEW}>
                     {() => (
@@ -645,7 +645,7 @@ describe('Browser - Rendering and Initialization', () => {
                     )}
                   </Stack.Screen>
                 </Stack.Navigator>
-              </NavigationContainer>
+              </IndependentNavigationContainer>
             </ToastContext.Provider>
           </ThemeContext.Provider>
         </Provider>,
@@ -696,7 +696,7 @@ describe('Browser - Rendering and Initialization', () => {
         <Provider store={mockStore(mockInitialState)}>
           <ThemeContext.Provider value={mockTheme}>
             <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
+              <IndependentNavigationContainer>
                 <Stack.Navigator>
                   <Stack.Screen name={Routes.BROWSER.VIEW}>
                     {() => (
@@ -707,7 +707,7 @@ describe('Browser - Rendering and Initialization', () => {
                     )}
                   </Stack.Screen>
                 </Stack.Navigator>
-              </NavigationContainer>
+              </IndependentNavigationContainer>
             </ToastContext.Provider>
           </ThemeContext.Provider>
         </Provider>,
@@ -750,7 +750,7 @@ describe('Browser - Rendering and Initialization', () => {
         <Provider store={mockStore(mockInitialState)}>
           <ThemeContext.Provider value={mockTheme}>
             <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
+              <IndependentNavigationContainer>
                 <Stack.Navigator>
                   <Stack.Screen name={Routes.BROWSER.VIEW}>
                     {() => (
@@ -763,7 +763,7 @@ describe('Browser - Rendering and Initialization', () => {
                     )}
                   </Stack.Screen>
                 </Stack.Navigator>
-              </NavigationContainer>
+              </IndependentNavigationContainer>
             </ToastContext.Provider>
           </ThemeContext.Provider>
         </Provider>,
@@ -792,7 +792,7 @@ describe('Browser - Rendering and Initialization', () => {
         <Provider store={mockStore(mockInitialState)}>
           <ThemeContext.Provider value={mockTheme}>
             <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
+              <IndependentNavigationContainer>
                 <Stack.Navigator>
                   <Stack.Screen name={Routes.BROWSER.VIEW}>
                     {() => (
@@ -803,7 +803,7 @@ describe('Browser - Rendering and Initialization', () => {
                     )}
                   </Stack.Screen>
                 </Stack.Navigator>
-              </NavigationContainer>
+              </IndependentNavigationContainer>
             </ToastContext.Provider>
           </ThemeContext.Provider>
         </Provider>,

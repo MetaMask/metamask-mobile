@@ -1,3 +1,5 @@
+import type { RecurringPriceRange } from './priceRange';
+
 export const RECURRING_INTERVAL_UNITS = [
   'minute',
   'hour',
@@ -7,10 +9,13 @@ export const RECURRING_INTERVAL_UNITS = [
 
 export type RecurringIntervalUnit = (typeof RECURRING_INTERVAL_UNITS)[number];
 
+export type { RecurringPriceRange };
+
 export interface RecurringState {
   everyValue: string;
   everyUnit: RecurringIntervalUnit;
   repeatCount: string;
+  priceRange?: RecurringPriceRange;
 }
 
 export enum RecurringScheduleErrorCode {
@@ -58,6 +63,7 @@ export const initialRecurringState: RecurringState = {
   everyValue: DEFAULT_RECURRING_EVERY_VALUE,
   everyUnit: DEFAULT_RECURRING_EVERY_UNIT,
   repeatCount: DEFAULT_RECURRING_REPEAT_COUNT,
+  priceRange: undefined,
 };
 
 export function parsePositiveInteger(value: string): number | undefined {

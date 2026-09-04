@@ -113,8 +113,8 @@ describe('useAddressTrustSignalAlerts', () => {
         key: `${AlertKeys.AddressTrustSignalMalicious}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
-          'If you confirm this request, you will probably lose your assets to a scammer.',
-        title: 'Malicious address',
+          'Security partners have flagged this address for malicious activity.',
+        title: 'Address flagged as high risk',
         severity: Severity.Danger,
         isBlocking: false,
       },
@@ -149,8 +149,8 @@ describe('useAddressTrustSignalAlerts', () => {
         key: `${AlertKeys.AddressTrustSignalWarning}_${RowAlertKey.FromToAddress}`,
         field: RowAlertKey.FromToAddress,
         message:
-          "We can't verify this address. It may be new or unverified. Only continue if you trust the source.",
-        title: 'Address needs review',
+          "Security partners don't have enough reliable history to verify this address.",
+        title: 'Limited or mixed address signals',
         severity: Severity.Warning,
         isBlocking: false,
       },

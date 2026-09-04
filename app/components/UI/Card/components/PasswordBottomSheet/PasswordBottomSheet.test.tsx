@@ -85,11 +85,11 @@ describe('PasswordBottomSheet', () => {
   });
 
   afterEach(async () => {
-    // Flush pending timers and state updates to avoid act() warnings
+    // Flush pending timers and state updates to avoid act() warnings.
+    // Avoid jest.resetAllMocks() — it breaks RN Animated listener mocks used by native-stack.
     await act(async () => {
       jest.runAllTimers();
     });
-    jest.resetAllMocks();
   });
 
   it('renders correctly', () => {

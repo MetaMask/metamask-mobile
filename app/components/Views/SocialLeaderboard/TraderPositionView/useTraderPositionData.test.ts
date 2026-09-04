@@ -55,7 +55,7 @@ const mockFetchHyperliquid =
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const tradeAt = (timestamp: number) => ({ timestamp });
+const tradeAt = (timestamp: number) => ({ timestamp, action: 'opened' });
 
 const baseSpotPosition = {
   chain: 'base',
@@ -68,7 +68,7 @@ const baseSpotPosition = {
   currentValueUSD: 1500,
   pnlValueUsd: 500,
   pnlPercent: 50,
-  trades: [{ timestamp: Date.now() - 60_000 }],
+  trades: [{ timestamp: Date.now() - 60_000, action: 'opened' }],
 } as unknown as Position;
 
 const spotPosition = {
@@ -87,7 +87,7 @@ const perpPosition = {
   realizedPnl: 200,
   pnlValueUsd: 300,
   pnlPercent: 30,
-  trades: [{ timestamp: Date.now() - 60_000 }],
+  trades: [{ timestamp: Date.now() - 60_000, action: 'opened' }],
 } as unknown as Position;
 
 describe('getRecommendedTradeSpanPeriod', () => {

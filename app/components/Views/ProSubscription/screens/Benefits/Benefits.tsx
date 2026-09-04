@@ -21,7 +21,7 @@ import {
   BENEFIT_DETAILS,
 } from './Benefits.constants';
 import { BenefitsTestIds } from './Benefits.testIds';
-import BenefitRow from './components/BenefitRow';
+import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
 import { strings } from '../../../../../../locales/i18n';
@@ -90,6 +90,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
               key={item.id}
               item={item}
               onPress={() => handleBenefitPress(item.id)}
+              selectedPlan={selectedPlan}
             />
           ))}
         </Box>
@@ -121,6 +122,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}
           details={selectedBenfitDetail}
+          selectedPlan={selectedPlan}
         />
       )}
     </Box>

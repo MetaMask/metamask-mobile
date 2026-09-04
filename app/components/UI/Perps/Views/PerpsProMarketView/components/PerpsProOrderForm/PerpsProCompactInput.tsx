@@ -1,5 +1,9 @@
 import {
   Box,
+  BoxAlignItems,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Input,
   Text,
   TextColor,
@@ -7,10 +11,41 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
-import { Platform, Pressable, type TextInput } from 'react-native';
+import {
+  InputAccessoryView,
+  Keyboard,
+  Platform,
+  Pressable,
+  type KeyboardTypeOptions,
+  type TextInput,
+} from 'react-native';
+import { strings } from '../../../../../../../../locales/i18n';
+import { PerpsProOrderFormSelectorsIDs } from '../../../../Perps.testIds';
 
 export const getPerpsProInputAccessoryID = (testID: string) =>
   `${testID}-input-accessory`;
+
+export const PerpsProInputKeyboardAccessory = ({
+  inputTestID,
+}: {
+  inputTestID: string;
+}) =>
+  Platform.OS === 'ios' ? (
+    <InputAccessoryView nativeID={getPerpsProInputAccessoryID(inputTestID)}>
+      <Box
+        twClassName="border-t border-muted bg-default px-3 py-2"
+        alignItems={BoxAlignItems.End}
+      >
+        <ButtonIcon
+          iconName={IconName.ArrowDown}
+          size={ButtonIconSize.Sm}
+          onPress={Keyboard.dismiss}
+          testID={`${PerpsProOrderFormSelectorsIDs.KEYBOARD_CLOSE}-${inputTestID}`}
+          accessibilityLabel={strings('perps.pro_order_form.close_keyboard')}
+        />
+      </Box>
+    </InputAccessoryView>
+  ) : null;
 
 interface PerpsProCompactInputProps {
   label: string;
@@ -23,6 +58,9 @@ interface PerpsProCompactInputProps {
   footer?: React.ReactNode;
   placeholder?: string;
   placeholderColor?: 'default' | 'muted';
+  keyboardType?: KeyboardTypeOptions;
+  labelVariant?: TextVariant;
+  labelNumberOfLines?: number;
   onFocus?: () => void;
   onBlur?: () => void;
   /** Fires on every field tap, including while already focused. Idempotent. */
@@ -45,6 +83,9 @@ const PerpsProCompactInput = ({
   footer,
   placeholder = '0',
   placeholderColor = 'muted',
+  keyboardType = 'decimal-pad',
+  labelVariant = TextVariant.BodySm,
+  labelNumberOfLines,
   onFocus,
   onBlur,
   onFieldPress,
@@ -78,7 +119,7 @@ const PerpsProCompactInput = ({
       ref={inputRef}
       value={value}
       onChangeText={onChangeText}
-      keyboardType="decimal-pad"
+      keyboardType={keyboardType}
       onFocus={onFocus}
       onBlur={onBlur}
       // A tap landing here is consumed by the input, so neither the inline
@@ -136,7 +177,11 @@ const PerpsProCompactInput = ({
         {/* Tapping the label focuses the input and opens the keyboard, same
             as tapping the (visually small) input row itself. */}
         <Pressable onPress={focusInput}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={labelVariant}
+            color={TextColor.TextAlternative}
+            numberOfLines={labelNumberOfLines}
+          >
             {label}
           </Text>
         </Pressable>

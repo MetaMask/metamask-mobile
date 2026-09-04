@@ -205,9 +205,11 @@ usePerpsMarketStats → Statistics
 usePerpsPositionData → Existing position
 usePerpsDataMonitor → Data consistency
     ↓
-Render: Chart + Stats + Tabs
+Render: Chart (position TP/SL/liq plus resting Limit lines) + Stats + Tabs
     ↓
 User actions:
+  ├─ Chart overlay: Entry / TP / SL / Liq from the open position, plus
+     a Limit line per resting (non-trigger) limit order
   ├─ Trade → PerpsOrderView
   ├─ Manage position → PerpsClosePositionView or PerpsTPSLView
   └─ View orders → Market orders tab

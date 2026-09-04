@@ -44,6 +44,8 @@ export const PERPS_CHART_CONFIG = {
     FULLSCREEN_INITIAL_HEIGHT_RATIO: 0.7, // Initial height as ratio of screen height
     HEIGHT_CHANGE_THRESHOLD: 10, // Minimum pixels change to trigger height update (debouncing)
   },
+  /** Extra price-scale range so resting Limit lines stay on-screen. */
+  LIMIT_AUTOSCALE_PADDING_FRACTION: 0.04,
 } as const;
 
 /**

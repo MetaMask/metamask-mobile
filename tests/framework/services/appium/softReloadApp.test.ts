@@ -6,7 +6,7 @@ import {
 import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import AndroidWebViewCdpHelpers from '../../AndroidWebViewCdpHelpers.ts';
 import ChromeCdpHelpers from '../../ChromeCdpHelpers.ts';
-import PlaywrightUtilities from '../../PlaywrightUtilities.ts';
+import AppiumUtilities from '../../AppiumUtilities.ts';
 import { shouldHandleMetroDevLauncherLocally } from '../../Constants.ts';
 import { switchToNativeContext } from './sessionHealth.ts';
 import { dismissDevelopmentServerPickerPlaywright } from '../../../flows/general.flow';
@@ -29,7 +29,7 @@ jest.mock('../../ChromeCdpHelpers.ts', () => ({
   },
 }));
 
-jest.mock('../../PlaywrightUtilities.ts', () => ({
+jest.mock('../../AppiumUtilities.ts', () => ({
   __esModule: true,
   default: {
     launchApp: jest.fn().mockResolvedValue(undefined),
@@ -52,8 +52,8 @@ jest.mock('../../../flows/general.flow', () => ({
     .mockResolvedValue(undefined),
 }));
 
-const launchAppMock = PlaywrightUtilities.launchApp as jest.MockedFunction<
-  typeof PlaywrightUtilities.launchApp
+const launchAppMock = AppiumUtilities.launchApp as jest.MockedFunction<
+  typeof AppiumUtilities.launchApp
 >;
 const switchToNativeContextMock = switchToNativeContext as jest.MockedFunction<
   typeof switchToNativeContext

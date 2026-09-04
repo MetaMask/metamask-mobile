@@ -104,11 +104,16 @@ let _artifactList = null;
  * Fetches the ID of the latest successful CI workflow run on `main` triggered
  * by a `push` (merge-queue merge) or `schedule` event.
  *
- * These two event types always upload artifacts to standard GitHub storage.
- * `workflow_dispatch` runs with runner_provider=namespace upload to Namespace's
- * own storage instead, which is invisible to the standard GitHub artifacts API
- * and would cause all artifact-based metrics to silently drop from the output.
- * `workflow_call` runs are PR shadow runs — also not useful here.
+ * `workflow_dispatch` and `workflow_call` runs are skipped: dispatch can be
+ * a Namespace trial with a different artifact store, and `workflow_call` is
+ * used for PR shadow runs.
+ *
+ * Do not query `status=success`. That filter can return a stale cached run
+ * (it pinned QA Stats to a July 2026 push on 19 Aug 2026). Page completed
+ * runs and keep the newest with `conclusion === 'success'`.
+ *
+ * Namespace jobs dual-upload Playwright JSON and coverage results to GitHub
+ * so this collector can still see them via the GitHub artifacts API.
  *
  * The GitHub API only supports a single `event` filter per request, so both
  * event types are fetched in parallel and the most recently created run wins.
@@ -122,13 +127,20 @@ async function getLatestCiRunId() {
   };
 
   const fetchLatestForEvent = async (event) => {
-    const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=success&event=${event}&per_page=1`;
-    const res = await fetch(url, { headers });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+    const maxPages = 3;
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      const runs = data.workflow_runs ?? [];
+      const successful = runs.find((r) => r.conclusion === 'success');
+      if (successful) return successful;
+      if (runs.length < 30) break;
     }
-    const data = await res.json();
-    return data.workflow_runs?.[0] ?? null;
+    return null;
   };
 
   const [pushRun, scheduleRun] = await Promise.all([
@@ -986,7 +998,13 @@ async function collectE2ETestTimes() {
     .filter(({ dims }) => dims);
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
-  if (e2eArtifacts.length === 0) return {};
+  if (e2eArtifacts.length === 0) {
+    console.warn(
+      '[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ' +
+        'Appium timing-balanced sharding will fall back to equal-count splits until the next successful collect',
+    );
+    return {};
+  }
 
   const acc = {};
   for (const { artifact, dims } of e2eArtifacts) {
@@ -1118,6 +1136,13 @@ async function main() {
   const outputPath = './qa-stats.json';
   await writeFile(outputPath, JSON.stringify(stats, null, 2), 'utf8');
   console.log(`✅ QA stats written to ${outputPath}:`, stats);
+
+  if (!stats.e2e_test_times || Object.keys(stats.e2e_test_times).length === 0) {
+    console.warn(
+      '⚠️  qa-stats.json has no e2e_test_times — check that Appium Playwright JSON reports ' +
+        'were uploaded to GitHub Artifacts on the selected main CI run',
+    );
+  }
 }
 
 if (isExecutedDirectly()) {

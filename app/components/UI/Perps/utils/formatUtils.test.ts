@@ -181,15 +181,12 @@ describe('formatUtils', () => {
       expect(result).toBe('');
     });
 
-    it('displays zero display value when value rounds to zero', () => {
-      // Given a value that rounds to zero with 4 decimals
-      const value = 0.000000001; // Would round to 0.0000%
+    it('displays threshold when positive value is below display precision', () => {
+      const value = 0.000000001;
 
-      // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      expect(result).toBe('<0.0001%');
     });
 
     it('handles number precision edge cases correctly', () => {

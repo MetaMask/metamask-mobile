@@ -1419,4 +1419,57 @@ describe('TokenInputArea', () => {
       expect(mockOnInputPress).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('hideAmount', () => {
+    const destToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+
+    it('renders the amount label and hides the dest amount, fiat, and subtitle', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('$100.00');
+
+      const { getByTestId, queryByTestId, queryByText } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={destToken}
+            amount="1.5"
+            hideAmount
+            amountReplacementLabel="You get"
+            amountReplacementLabelTestID="token-input-you-get"
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-input-you-get')).toHaveTextContent('You get');
+      expect(queryByTestId('token-input-input')).toBeNull();
+      expect(queryByText('$100.00')).toBeNull();
+      expect(queryByText('1.5')).toBeNull();
+      expect(getByTestId('token-button')).toHaveTextContent('TEST');
+    });
+
+    it('renders the dest amount input when hideAmount is not set', () => {
+      const { getByTestId, queryByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Destination}
+            token={destToken}
+            amount="1.5"
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByTestId('token-input-you-get')).toBeNull();
+    });
+  });
 });

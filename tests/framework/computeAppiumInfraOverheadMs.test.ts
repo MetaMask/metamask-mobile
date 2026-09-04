@@ -2,7 +2,7 @@ import {
   clampInfraSubtractionMs,
   computeAppiumInfraOverheadMs,
   nextMeasuringPollIntervalMs,
-} from './PlaywrightUtilities';
+} from './AppiumUtilities';
 
 describe('computeAppiumInfraOverheadMs', () => {
   it('subtracts probe plus failed/success polls capped at probe RTT', () => {

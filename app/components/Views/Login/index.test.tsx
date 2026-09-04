@@ -220,13 +220,6 @@ jest.mock('../../../util/test/utils', () => ({
   hasTestOverrides: false,
 }));
 
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: () => null,
-  Fit: { Contain: 'contain' },
-  Alignment: { Center: 'center' },
-}));
-
 jest.mock('../../UI/ScreenshotDeterrent', () => ({
   ScreenshotDeterrent: () => null,
 }));

@@ -17,5 +17,8 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingHorizontal: 12,
       paddingVertical: 24,
     },
+    compactDestTokenCard: {
+      paddingVertical: 12,
+    },
   });
 };

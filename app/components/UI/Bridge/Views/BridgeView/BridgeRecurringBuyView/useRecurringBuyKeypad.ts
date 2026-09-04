@@ -135,7 +135,6 @@ export const useRecurringBuyKeypad = ({
     focusEvery,
     focusRepeat,
     handleChange,
-    isAmountFocused,
     keypadProps,
     keypadRef,
   };

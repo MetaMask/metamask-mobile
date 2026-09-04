@@ -106,23 +106,41 @@ describe('getTriggerPriceValidationIssue', () => {
     expect(issue).toBeUndefined();
   });
 
-  it('returns required when the trigger price is empty', () => {
-    const issue = getTriggerPriceValidationIssue({
-      ...base,
-      triggerPrice: '  ',
-    });
+  it.each(triggerDirectionCases)(
+    'returns required for empty $direction $orderType trigger price',
+    ({ orderType, direction }) => {
+      const issue = getTriggerPriceValidationIssue({
+        ...base,
+        orderType,
+        direction,
+        triggerPrice: '  ',
+      });
 
-    expect(issue).toEqual({ code: 'required' });
-  });
+      expect(issue).toEqual({ code: 'required' });
+    },
+  );
 
-  it('returns positive when the trigger price is zero or non-numeric', () => {
-    expect(
-      getTriggerPriceValidationIssue({ ...base, triggerPrice: '0' }),
-    ).toEqual({ code: 'positive' });
-    expect(
-      getTriggerPriceValidationIssue({ ...base, triggerPrice: 'abc' }),
-    ).toEqual({ code: 'positive' });
-  });
+  it.each(triggerDirectionCases)(
+    'returns positive for non-positive $direction $orderType trigger prices',
+    ({ orderType, direction }) => {
+      expect(
+        getTriggerPriceValidationIssue({
+          ...base,
+          orderType,
+          direction,
+          triggerPrice: '0',
+        }),
+      ).toEqual({ code: 'positive' });
+      expect(
+        getTriggerPriceValidationIssue({
+          ...base,
+          orderType,
+          direction,
+          triggerPrice: 'abc',
+        }),
+      ).toEqual({ code: 'positive' });
+    },
+  );
 
   it('returns undefined when mid is missing even if the trigger is set', () => {
     const issue = getTriggerPriceValidationIssue({

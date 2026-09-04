@@ -282,6 +282,7 @@ describe('QRTabSwitcher', () => {
           initialStep: 1,
           qrSyncImport: true,
         },
+        { pop: true },
       );
     });
     expect(mockImportRemainingSecrets).not.toHaveBeenCalled();

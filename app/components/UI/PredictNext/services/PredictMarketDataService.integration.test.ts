@@ -31,6 +31,20 @@ const event = {
   ],
 };
 
+const marketHistory = {
+  venueId: 'kalshi',
+  marketId: 'market-1',
+  range: 'LIVE',
+  observedAt: '2026-03-01T00:00:00.000Z',
+  points: [
+    {
+      timestamp: '2026-03-01T00:00:00.000Z',
+      yesPrice: '0.42',
+      noPrice: '0.58',
+    },
+  ],
+};
+
 describe('PredictNext public market data', () => {
   const harnesses: ReturnType<typeof createPredictNextIntegrationHarness>[] =
     [];
@@ -58,6 +72,25 @@ describe('PredictNext public market data', () => {
 
     expect(result).toEqual(status);
     expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    harness.destroy();
+  });
+
+  it('reads Market history through the real controller-to-transport chain', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({
+      body: marketHistory,
+    }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getMarketHistory',
+      KALSHI_VENUE_ID,
+      marketHistory.marketId as PredictEntityId,
+      'LIVE',
+    );
+
+    expect(result).toEqual(marketHistory);
+    expect(harness.fetchMock.mock.calls[0][0]).toBe(
+      'https://predict.example/v1/venues/kalshi/markets/market-1/history?range=LIVE',
+    );
     harness.destroy();
   });
 

@@ -7,7 +7,12 @@ import {
   MOCK_CHAIN_IDS,
 } from '../testUtils/fixtures';
 import { PopularToken } from '../types';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 
 global.fetch = jest.fn();
 
@@ -90,7 +95,12 @@ describe('useSearchTokens', () => {
       );
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.SwapTokenSearch,
+        op: TraceOperation.BridgeDataFetch,
         id: expect.any(String),
+        data: {
+          chain_scope: 'single_chain',
+          query_length_bucket: '6-10',
+        },
         startTime: expect.any(Number),
       });
       const traceId = mockTrace.mock.calls[0][0].id;
@@ -98,6 +108,10 @@ describe('useSearchTokens', () => {
         name: TraceName.SwapTokenSearch,
         id: traceId,
         timestamp: expect.any(Number),
+        data: {
+          result: 'success',
+          result_count_bucket: '1-5',
+        },
       });
     });
 
@@ -187,6 +201,14 @@ describe('useSearchTokens', () => {
       expect(result.current.searchCursor).toBeUndefined();
       expect(mockTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            result: 'success',
+            result_count_bucket: '0',
+          }),
+        }),
+      );
     });
   });
 
@@ -361,6 +383,14 @@ describe('useSearchTokens', () => {
       );
       expect(mockTrace).toHaveBeenCalledTimes(1);
       expect(mockEndTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            result: 'error',
+            result_count_bucket: '0',
+          }),
+        }),
+      );
 
       consoleSpy.mockRestore();
     });

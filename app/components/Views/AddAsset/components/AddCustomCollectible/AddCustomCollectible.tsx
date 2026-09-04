@@ -2,19 +2,20 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useContext,
   useRef,
   useMemo,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { TextInput } from 'react-native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
 import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../../../../UI/ActionView';
@@ -135,7 +136,6 @@ const AddCustomCollectible = ({
 
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toastRef } = useContext(ToastContext);
   const tw = useTailwind();
 
   const selectedAddress = useSelector(
@@ -194,36 +194,26 @@ const AddCustomCollectible = ({
         );
 
         if (!isOwner) {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Plain,
-            labelOptions: [
-              { label: strings('collectible.not_owner_error_title') },
-            ],
-            descriptionOptions: {
-              description: strings('collectible.not_owner_error'),
-            },
+          toast({
+            title: strings('collectible.not_owner_error_title'),
+            description: strings('collectible.not_owner_error'),
+            severity: ToastSeverity.Danger,
             hasNoTimeout: false,
           });
         }
 
         return isOwner;
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: strings('collectible.ownership_verification_error_title'),
-            },
-          ],
-          descriptionOptions: {
-            description: strings('collectible.ownership_verification_error'),
-          },
+        toast({
+          title: strings('collectible.ownership_verification_error_title'),
+          description: strings('collectible.ownership_verification_error'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
         });
 
         return false;
       }
-    }, [selectedAddress, address, tokenId, networkClientId, toastRef]);
+    }, [selectedAddress, address, tokenId, networkClientId]);
 
   const addNft = useCallback(async (): Promise<void> => {
     setHasSubmitted(true);

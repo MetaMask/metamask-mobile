@@ -13,7 +13,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { act } from '@testing-library/react-native';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
@@ -200,7 +200,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -217,7 +217,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         { state: mockInitialState },
       );
@@ -269,7 +269,7 @@ describe('Browser - Tab Operations', () => {
 
       const { rerender } = renderWithProvider(
         <Provider store={mockStore(initialStateWithTab)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -286,7 +286,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         { state: initialStateWithTab },
       );
@@ -309,7 +309,7 @@ describe('Browser - Tab Operations', () => {
 
       rerender(
         <Provider store={mockStore(stateWithNoTabs)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -326,7 +326,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
       );
 
@@ -378,7 +378,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -395,7 +395,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -437,7 +437,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -454,7 +454,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -481,7 +481,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -498,7 +498,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -523,7 +523,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -545,7 +545,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         { state: mockInitialState },
       );
@@ -566,7 +566,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -583,7 +583,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -616,7 +616,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -633,7 +633,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -660,7 +660,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -677,7 +677,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -702,7 +702,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -719,7 +719,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {
@@ -745,7 +745,7 @@ describe('Browser - Tab Operations', () => {
 
       renderWithProvider(
         <Provider store={mockStore(mockInitialState)}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -762,7 +762,7 @@ describe('Browser - Tab Operations', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </Provider>,
         {
           state: {

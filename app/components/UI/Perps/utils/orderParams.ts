@@ -1,11 +1,13 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
   isLimitExecutionOrderType,
+  isStrategyOrderType,
   isTriggerOrderType,
   type InputMethod,
   type Order,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 import { derivePerpsTradeAction } from './deriveTradeAction';
@@ -107,6 +109,10 @@ export interface BuildPerpsOrderParamsInput {
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  /** Provider route required for strategy placement. */
+  providerId?: PerpsProviderType;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -139,10 +145,15 @@ export const buildPerpsOrderParams = ({
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  twapDuration,
+  twapRandomize,
+  providerId,
   isFullClose,
   trackingData,
 }: BuildPerpsOrderParamsInput): OrderParams => {
-  const canAttachTpSl = !reduceOnly && !isTriggerOrderType(orderType);
+  const isStrategyOrder = isStrategyOrderType(orderType);
+  const canAttachTpSl =
+    !reduceOnly && !isTriggerOrderType(orderType) && !isStrategyOrder;
 
   return {
     symbol: asset,
@@ -153,9 +164,13 @@ export const buildPerpsOrderParams = ({
     leverage,
     ...(usdAmount !== undefined ? { usdAmount } : {}),
     priceAtCalculation: effectivePrice,
-    maxSlippageBps: isLimitExecutionOrderType(orderType)
-      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps,
+    ...(!isStrategyOrder
+      ? {
+          maxSlippageBps: isLimitExecutionOrderType(orderType)
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : maxSlippageBps,
+        }
+      : {}),
     ...(reduceOnly !== undefined ? { reduceOnly } : {}),
     ...(isFullClose !== undefined ? { isFullClose } : {}),
     ...(isLimitExecutionOrderType(orderType) && limitPrice
@@ -164,6 +179,13 @@ export const buildPerpsOrderParams = ({
     ...(isTriggerOrderType(orderType) && triggerPrice?.trim()
       ? { triggerPrice }
       : {}),
+    ...(orderType === 'twap' && twapDuration !== undefined
+      ? { twapDuration }
+      : {}),
+    ...(orderType === 'twap' && twapRandomize !== undefined
+      ? { twapRandomize }
+      : {}),
+    ...(providerId !== undefined ? { providerId } : {}),
     ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
     ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
     trackingData,

@@ -181,46 +181,46 @@ describe('usePostTradeTxStatus', () => {
       expect(
         statusOf(undefined, BridgeStatus.UNKNOWN, {
           metaHash: '',
-          srcChainId: SOLANA_MAINNET_CHAIN_ID,
-          destChainId: SOLANA_MAINNET_CHAIN_ID,
-          transactionHash: 'sol-sig',
-          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+          srcChainId: chainId,
+          destChainId: chainId,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
         }),
       ).toBe(Status.Success);
 
       expect(
         statusOf(undefined, BridgeStatus.UNKNOWN, {
-          srcChainId: SOLANA_MAINNET_CHAIN_ID,
-          destChainId: SOLANA_MAINNET_CHAIN_ID,
-          transactionHash: 'sol-sig',
-          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Failed),
+          srcChainId: chainId,
+          destChainId: chainId,
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Failed),
         }),
       ).toBe(Status.Failed);
 
       expect(
         statusOf(undefined, BridgeStatus.UNKNOWN, {
           isBridge: true,
-          srcChainId: SOLANA_MAINNET_CHAIN_ID,
+          srcChainId: chainId,
           destChainId: 1,
-          transactionHash: 'sol-sig',
-          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+          transactionHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
         }),
       ).toBe(Status.InProgress);
 
       expect(
         statusOf(undefined, BridgeStatus.UNKNOWN, {
-          srcChainId: SOLANA_MAINNET_CHAIN_ID,
-          destChainId: SOLANA_MAINNET_CHAIN_ID,
-          statusSrcTxHash: 'sol-sig',
-          nonEvmTransactions: solanaTx(KeyringTransactionStatus.Confirmed),
+          srcChainId: chainId,
+          destChainId: chainId,
+          statusSrcTxHash: txHash,
+          nonEvmTransactions: txnGenerator(KeyringTransactionStatus.Confirmed),
         }),
       ).toBe(Status.Success);
 
       expect(
         statusOf(undefined, BridgeStatus.UNKNOWN, {
-          srcChainId: SOLANA_MAINNET_CHAIN_ID,
-          destChainId: SOLANA_MAINNET_CHAIN_ID,
-          nonEvmTransactions: solanaTx(
+          srcChainId: chainId,
+          destChainId: chainId,
+          nonEvmTransactions: txnGenerator(
             KeyringTransactionStatus.Confirmed,
             'tx-id',
           ),

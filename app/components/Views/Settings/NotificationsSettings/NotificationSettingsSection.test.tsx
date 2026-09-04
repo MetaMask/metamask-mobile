@@ -80,7 +80,11 @@ jest.mock('../../../../util/notifications/hooks/useSessionProfileId', () => ({
 
 jest.mock('./SocialAINotificationPreferencesContent', () => () => null);
 jest.mock('./AccountsList', () => ({
-  AccountsList: () => null,
+  AccountsList: ({
+    ListHeaderComponent,
+  }: {
+    ListHeaderComponent?: React.ReactElement;
+  }) => ListHeaderComponent ?? null,
 }));
 jest.mock('./AccountsList.hooks', () => ({
   useWalletActivityAccountSelection: () => ({

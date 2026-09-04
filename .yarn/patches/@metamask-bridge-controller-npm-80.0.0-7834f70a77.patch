@@ -1,0 +1,28 @@
+diff --git a/dist/selectors.cjs b/dist/selectors.cjs
+index 602d01f1015ea2ee0825427f6b1e2d97fcdc7d54..565f75fce9ab4fb8806075c3d3a9165df8273f98 100644
+--- a/dist/selectors.cjs
++++ b/dist/selectors.cjs
+@@ -267,6 +267,9 @@ const selectSortedBridgeQuotes = createBridgeSelector([
+         case types_js_1.SortOrder.ETA_ASC:
+             return (0, lodash_1.orderBy)(quotesWithMetadata, (quote) => quote.estimatedProcessingTimeInSeconds, 'asc');
+         default:
++            if (quotesWithMetadata.every((quote) => quote.cost?.valueInCurrency)) {
++                return (0, lodash_1.orderBy)(quotesWithMetadata, ({ cost }) => Number(cost?.valueInCurrency), 'asc');
++            }
+             if (quotesWithMetadata.every((quote) => quote.quote.priceData?.priceImpact?.amount)) {
+                 return (0, lodash_1.orderBy)(quotesWithMetadata, ({ quote: { priceData } }) => Number(priceData?.priceImpact?.amount), 'asc');
+             }
+diff --git a/dist/selectors.mjs b/dist/selectors.mjs
+index f5eae8981a946abb3dd67fdc97a2165904ce39d0..48930f9241dd488d93cc8cfc21a2897ddfc5b9de 100644
+--- a/dist/selectors.mjs
++++ b/dist/selectors.mjs
+@@ -263,6 +263,9 @@ const selectSortedBridgeQuotes = createBridgeSelector([
+         case SortOrder.ETA_ASC:
+             return orderBy(quotesWithMetadata, (quote) => quote.estimatedProcessingTimeInSeconds, 'asc');
+         default:
++            if (quotesWithMetadata.every((quote) => quote.cost?.valueInCurrency)) {
++                return orderBy(quotesWithMetadata, ({ cost }) => Number(cost?.valueInCurrency), 'asc');
++            }
+             if (quotesWithMetadata.every((quote) => quote.quote.priceData?.priceImpact?.amount)) {
+                 return orderBy(quotesWithMetadata, ({ quote: { priceData } }) => Number(priceData?.priceImpact?.amount), 'asc');
+             }
