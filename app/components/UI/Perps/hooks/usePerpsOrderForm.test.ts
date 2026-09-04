@@ -243,6 +243,10 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   describe('initialization', () => {
     it('initializes with default values', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
@@ -1255,6 +1259,39 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe('1500'); // 50% of 1000 * 3x leverage
     });
 
+    it('preserves a percentage selection when the venue minimum loads later', () => {
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: null,
+        refetch: jest.fn(),
+        isLoading: true,
+        error: null,
+      });
+      const { result, rerender } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        result.current.handlePercentageAmount(0.5);
+      });
+      const selectedAmount = result.current.orderForm.amount;
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          szDecimals: 6,
+          name: 'BTC',
+          maxLeverage: 10,
+          marginTableId: 1,
+          minimumOrderSize: 2000,
+        },
+        refetch: jest.fn(),
+        isLoading: false,
+        error: null,
+      });
+
+      rerender({});
+
+      expect(selectedAmount).toBe('1500');
+      expect(result.current.orderForm.amount).toBe(selectedAmount);
+    });
+
     it('handles max amount', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),
@@ -1677,8 +1714,6 @@ describe('usePerpsOrderForm', () => {
         '[Order Debug] setStopLossPrice state update:',
         expect.objectContaining({ wasCleared: true }),
       );
-
-      devLoggerSpy.mockRestore();
     });
   });
 });

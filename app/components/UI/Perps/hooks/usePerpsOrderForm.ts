@@ -387,6 +387,12 @@ export function usePerpsOrderForm(
   // below the venue minimum would land one tick under the floor.
   const hasSetInitialAmount = useRef(false);
   const userEditedAmount = useRef(false);
+  const initialPendingRestoreRef = useRef({
+    pendingConfig,
+    initialDirection,
+    clampSeedToVenueMinimum,
+    clampLeverageToMarketMax,
+  });
   useEffect(() => {
     if (!userEditedAmount.current && initialAmountValue !== '0') {
       setOrderForm((prev) =>
@@ -399,31 +405,35 @@ export function usePerpsOrderForm(
   }, [initialAmountValue]);
 
   useEffect(() => {
-    if (!pendingConfig) return;
+    const {
+      pendingConfig: initialPendingConfig,
+      initialDirection: initialPendingDirection,
+      clampSeedToVenueMinimum: clampInitialSeed,
+      clampLeverageToMarketMax: clampInitialLeverage,
+    } = initialPendingRestoreRef.current;
+    if (!initialPendingConfig) return;
     setOrderForm((prev) => ({
       ...prev,
-      ...(pendingConfig.amount && {
-        amount: clampSeedToVenueMinimum(pendingConfig.amount),
+      ...(initialPendingConfig.amount && {
+        amount: clampInitialSeed(initialPendingConfig.amount),
       }),
-      ...(pendingConfig.leverage && {
-        leverage: clampLeverageToMarketMax(pendingConfig.leverage),
+      ...(initialPendingConfig.leverage && {
+        leverage: clampInitialLeverage(initialPendingConfig.leverage),
       }),
-      ...(pendingConfig.takeProfitPrice !== undefined && {
-        takeProfitPrice: pendingConfig.takeProfitPrice,
+      ...(initialPendingConfig.takeProfitPrice !== undefined && {
+        takeProfitPrice: initialPendingConfig.takeProfitPrice,
       }),
-      ...(pendingConfig.stopLossPrice !== undefined && {
-        stopLossPrice: pendingConfig.stopLossPrice,
+      ...(initialPendingConfig.stopLossPrice !== undefined && {
+        stopLossPrice: initialPendingConfig.stopLossPrice,
       }),
-      ...(pendingConfig.limitPrice !== undefined && {
-        limitPrice: pendingConfig.limitPrice,
+      ...(initialPendingConfig.limitPrice !== undefined && {
+        limitPrice: initialPendingConfig.limitPrice,
       }),
-      ...(pendingConfig.direction &&
-        initialDirection === undefined && {
-          direction: pendingConfig.direction,
+      ...(initialPendingConfig.direction &&
+        initialPendingDirection === undefined && {
+          direction: initialPendingConfig.direction,
         }),
     }));
-    // We don't need to depend on pendingConfig because we only want to restore it once when the component mounts
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Market metadata loads asynchronously: leverage is seeded once via
@@ -597,6 +607,7 @@ export function usePerpsOrderForm(
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (balanceForMax === 0) return;
+      userEditedAmount.current = true;
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
@@ -609,6 +620,7 @@ export function usePerpsOrderForm(
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
     if (balanceForMax === 0) return;
+    userEditedAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
       amount: Math.floor(maxPossibleAmount).toString(),
@@ -617,6 +629,7 @@ export function usePerpsOrderForm(
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {
+    userEditedAmount.current = true;
     const minAmount =
       currentNetwork === 'mainnet'
         ? TRADING_DEFAULTS.amount.mainnet

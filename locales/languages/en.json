@@ -2950,7 +2950,8 @@
       "dispatch_description": "A previous {{intent}} that appeared to fail actually reached the exchange. Refresh your balances and orders, then acknowledge to continue trading.",
       "dispatch_unknown_description": "A previous {{intent}} has an unknown outcome. Refresh your balances and orders, then acknowledge to continue trading.",
       "acknowledge": "Acknowledge",
-      "error_title": "Could not read recovery status"
+      "error_title": "Could not read recovery status",
+      "error_description": "Try again before continuing to trade."
     }
   },
   "market_insights": {

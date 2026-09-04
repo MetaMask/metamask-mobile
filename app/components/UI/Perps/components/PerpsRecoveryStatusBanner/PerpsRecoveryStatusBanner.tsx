@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 
 import {
   BannerAlert,
@@ -26,11 +26,35 @@ const PerpsRecoveryStatusBanner: React.FC<PerpsRecoveryStatusBannerProps> = ({
 }) => {
   const { pendingManualRecoveries, recoveredDispatches, error, acknowledge } =
     usePerpsRecoveryStatus();
+  const acknowledgingIdsRef = useRef(new Set<string>());
+  const [acknowledgingIds, setAcknowledgingIds] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
 
-  const firstDispatch = recoveredDispatches[0];
-  const firstManual = pendingManualRecoveries[0];
+  const handleAcknowledge = useCallback(
+    (recoveryId: string) => {
+      if (acknowledgingIdsRef.current.has(recoveryId)) {
+        return;
+      }
+      acknowledgingIdsRef.current.add(recoveryId);
+      setAcknowledgingIds(new Set(acknowledgingIdsRef.current));
+      acknowledge(recoveryId)
+        .catch(() => {
+          // Hook records the original failure for diagnostics and UI state.
+        })
+        .finally(() => {
+          acknowledgingIdsRef.current.delete(recoveryId);
+          setAcknowledgingIds(new Set(acknowledgingIdsRef.current));
+        });
+    },
+    [acknowledge],
+  );
 
-  if (!firstDispatch && !firstManual && !error) {
+  if (
+    recoveredDispatches.length === 0 &&
+    pendingManualRecoveries.length === 0 &&
+    !error
+  ) {
     return null;
   }
 
@@ -40,43 +64,46 @@ const PerpsRecoveryStatusBanner: React.FC<PerpsRecoveryStatusBannerProps> = ({
         <BannerAlert
           severity={BannerAlertSeverity.Danger}
           title={strings('perps.recovery_status.error_title')}
-          description={error.message}
+          description={strings('perps.recovery_status.error_description')}
           testID={`${testID}-error`}
         />
       ) : null}
-      {firstDispatch ? (
+      {recoveredDispatches.map((dispatch, index) => {
+        const dispatchTestID = `${testID}-dispatch${
+          index === 0 ? '' : `-${index}`
+        }`;
+        return (
+          <BannerAlert
+            key={dispatch.recoveryId}
+            severity={BannerAlertSeverity.Warning}
+            title={strings('perps.recovery_status.dispatch_title')}
+            description={strings(
+              dispatch.outcome === 'succeeded'
+                ? 'perps.recovery_status.dispatch_description'
+                : 'perps.recovery_status.dispatch_unknown_description',
+              { intent: dispatch.intent },
+            )}
+            actionButtonLabel={strings('perps.recovery_status.acknowledge')}
+            actionButtonOnPress={() => handleAcknowledge(dispatch.recoveryId)}
+            actionButtonProps={{
+              isDisabled: acknowledgingIds.has(dispatch.recoveryId),
+              testID: `${dispatchTestID}-acknowledge`,
+            }}
+            testID={dispatchTestID}
+          />
+        );
+      })}
+      {pendingManualRecoveries.map((manualRecovery, index) => (
         <BannerAlert
-          severity={BannerAlertSeverity.Warning}
-          title={strings('perps.recovery_status.dispatch_title')}
-          description={strings(
-            firstDispatch.outcome === 'succeeded'
-              ? 'perps.recovery_status.dispatch_description'
-              : 'perps.recovery_status.dispatch_unknown_description',
-            { intent: firstDispatch.intent },
-          )}
-          actionButtonLabel={strings('perps.recovery_status.acknowledge')}
-          actionButtonOnPress={() => {
-            // The user has the refreshed surface in front of them; this
-            // acknowledges exactly the outcome being shown. A failure
-            // stays visible via the hook's error state, and the banner
-            // (with its action) remains rendered and actionable.
-            acknowledge(firstDispatch.recoveryId).catch(() => {
-              // Hook records the failure; banner re-renders from state.
-            });
-          }}
-          testID={`${testID}-dispatch`}
-        />
-      ) : null}
-      {firstManual ? (
-        <BannerAlert
+          key={manualRecovery.settlementKey}
           severity={BannerAlertSeverity.Danger}
           title={strings('perps.recovery_status.manual_title')}
           description={strings('perps.recovery_status.manual_description', {
-            symbol: firstManual.symbol,
+            symbol: manualRecovery.symbol,
           })}
-          testID={`${testID}-manual`}
+          testID={`${testID}-manual${index === 0 ? '' : `-${index}`}`}
         />
-      ) : null}
+      ))}
     </>
   );
 };
