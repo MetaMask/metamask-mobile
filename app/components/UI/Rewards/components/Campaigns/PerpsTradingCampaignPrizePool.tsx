@@ -12,6 +12,10 @@ export const PERPS_PRIZE_POOL_TEST_IDS = CAMPAIGN_PRIZE_POOL_TEST_IDS;
  * $5k per $5M notional volume up to $50k at $40M. The backend now serves this
  * per campaign; this stays as the fallback so the section keeps rendering
  * against deployments that predate the prize-pool endpoint.
+ *
+ * TODO: delete this and the `thresholdsUsd.length === 0` branch below once the
+ * prize-pool endpoint is live on every environment. Its backend defaults
+ * reproduce these exact values, so at that point this is dead weight.
  */
 export const PERPS_PRIZE_POOL_FALLBACK_MILESTONES: CampaignPrizePoolMilestone[] =
   [
