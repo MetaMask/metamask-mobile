@@ -9,7 +9,7 @@ import {
   createMockWallet,
 } from '../../../../component-library/components-temp/MultichainAccounts/test-utils';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-import useManageAccountsHide from './useManageAccountsHide';
+import useToggleAccountGroupHidden from './useToggleAccountGroupHidden';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -27,9 +27,9 @@ const mockSyncWithUserStorage = jest.mocked(
   Engine.context.AccountTreeController.syncWithUserStorage,
 );
 
-const renderUseManageAccountsHide = (
+const renderUseToggleAccountGroupHidden = (
   state: ReturnType<typeof createMockState>,
-) => renderHookWithProvider(() => useManageAccountsHide(), { state });
+) => renderHookWithProvider(() => useToggleAccountGroupHidden(), { state });
 
 const createStateWithSingleGroup = (
   groupId: AccountGroupId,
@@ -42,7 +42,7 @@ const createStateWithSingleGroup = (
   return createMockState([wallet], {});
 };
 
-describe('useManageAccountsHide', () => {
+describe('useToggleAccountGroupHidden', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -62,7 +62,7 @@ describe('useManageAccountsHide', () => {
     const groupId = 'keyring:wallet-1/1' as AccountGroupId;
     const state = createStateWithSingleGroup(groupId, { hidden });
 
-    const { result } = renderUseManageAccountsHide(state);
+    const { result } = renderUseToggleAccountGroupHidden(state);
     act(() => {
       result.current.toggleHidden(groupId);
     });
@@ -87,7 +87,7 @@ describe('useManageAccountsHide', () => {
     ]);
     const state = createMockState([wallet1, wallet2], {});
 
-    const { result } = renderUseManageAccountsHide(state);
+    const { result } = renderUseToggleAccountGroupHidden(state);
     act(() => {
       result.current.toggleHidden(visibleGroupId);
       result.current.toggleHidden(hiddenGroupId);
@@ -107,7 +107,7 @@ describe('useManageAccountsHide', () => {
     const groupId = 'keyring:wallet-1/1' as AccountGroupId;
     const state = createStateWithSingleGroup(groupId);
 
-    const { result } = renderUseManageAccountsHide(state);
+    const { result } = renderUseToggleAccountGroupHidden(state);
     act(() => {
       result.current.toggleHidden(groupId);
     });

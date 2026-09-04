@@ -6,7 +6,7 @@ import { RootState } from '../../../../reducers';
 import { selectAccountGroupHidden } from '../../../../selectors/multichainAccounts/manageAccounts';
 
 /**
- * Hook exposing the hide/unhide action for the Manage Accounts screen.
+ * Toggles an account group's hidden state on the Manage Accounts screen.
  *
  * `toggleHidden` reads the group's current hidden state through the
  * `selectAccountGroupHidden` selector (fresh store state, not stale props)
@@ -19,7 +19,7 @@ import { selectAccountGroupHidden } from '../../../../selectors/multichainAccoun
  *
  * @returns An object with the `toggleHidden` action
  */
-const useManageAccountsHide = () => {
+const useToggleAccountGroupHidden = () => {
   const store = useStore();
 
   const toggleHidden = useCallback(
@@ -37,4 +37,4 @@ const useManageAccountsHide = () => {
   return { toggleHidden };
 };
 
-export default useManageAccountsHide;
+export default useToggleAccountGroupHidden;
