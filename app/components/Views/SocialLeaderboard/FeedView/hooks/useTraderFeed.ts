@@ -141,6 +141,11 @@ export const useTraderFeed = (
     initialPageParam: undefined as string | undefined,
     enabled: enabled && isUnlocked,
     retry: false,
+    // UI QueryClient owns this snapshot (same windows as ReactQueryService
+    // defaults). SocialService.fetchFeed still uses staleTime: 0, so each
+    // queryFn run is a network fetch.
+    staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 60 * 60 * 24,
   });
 
   const pages = query.data?.pages ?? undefined;
