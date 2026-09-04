@@ -1,229 +1,138 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryFunction, QueryKey } from '@tanstack/query-core';
-import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
+import {
+  selectIsCardAuthenticated,
+  selectCardRedeemWithdrawal,
+} from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
+import {
+  REDEEM_STALE_TIME_MS,
+  shouldRetryRedeemQuery,
+} from '../queries/redeemQueryDefaults';
 import Engine from '../../../../core/Engine';
-import { cardNetworkInfos } from '../constants';
-import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import type { CardNetwork } from '../types';
 import type {
-  CashbackWalletResponse,
-  CashbackWithdrawEstimationResponse,
-  CashbackWithdrawResponse,
-  CreditWalletResponse,
-  CreditWithdrawResponse,
+  RedeemWalletMode,
+  RedeemWalletResponse,
+  RedeemWithdrawEstimationResponse,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
-export type RedeemableWalletMode = 'cashback' | 'credit';
+export type RedeemableWalletMode = RedeemWalletMode;
 
-type MonitoringStatus = 'idle' | 'monitoring' | 'success' | 'failed';
-type RedeemableWalletResponse = CashbackWalletResponse | CreditWalletResponse;
-type RedeemableWithdrawEstimationResponse = CashbackWithdrawEstimationResponse;
-type RedeemableWithdrawResponse =
-  | CashbackWithdrawResponse
-  | CreditWithdrawResponse;
-interface RedeemableQueryOptions<TResponse> {
+interface RedeemQueryConfig {
   queryKey: QueryKey;
-  queryFn: QueryFunction<TResponse>;
-  staleTime: number;
+  queryFn: () => Promise<RedeemWalletResponse>;
+  estimationQueryKey: QueryKey;
+  estimationQueryFn: () => Promise<RedeemWithdrawEstimationResponse>;
+  allKey: QueryKey;
 }
 
-const TX_POLLING_INTERVAL_MS = 5000;
-const TX_POLLING_TIMEOUT_MS = 3 * 60 * 1000;
-
-const resolvePollingChainId = (network?: string): string | undefined => {
-  const info = network ? cardNetworkInfos[network as CardNetwork] : undefined;
-  return info?.caipChainId
-    ? safeFormatChainIdToHex(info.caipChainId)
-    : undefined;
+const REDEEM_QUERIES: Record<RedeemableWalletMode, RedeemQueryConfig> = {
+  credit: {
+    queryKey: cardQueries.credit.keys.wallet(),
+    queryFn: () => Engine.context.CardController.getCreditWallet(),
+    estimationQueryKey: cardQueries.credit.keys.withdrawEstimation(),
+    estimationQueryFn: () =>
+      Engine.context.CardController.getCreditWithdrawEstimation(),
+    allKey: cardQueries.credit.keys.all(),
+  },
+  cashback: {
+    queryKey: cardQueries.cashback.keys.wallet(),
+    queryFn: () => Engine.context.CardController.getCashbackWallet(),
+    estimationQueryKey: cardQueries.cashback.keys.withdrawEstimation(),
+    estimationQueryFn: () =>
+      Engine.context.CardController.getCashbackWithdrawEstimation(),
+    allKey: cardQueries.cashback.keys.all(),
+  },
 };
-
-const withdrawForMode = (mode: RedeemableWalletMode, amount: string) =>
-  mode === 'credit'
-    ? Engine.context.CardController.withdrawCredit({ amount })
-    : Engine.context.CardController.withdrawCashback({ amount });
-
-const walletOptionsForMode = (
-  mode: RedeemableWalletMode,
-): RedeemableQueryOptions<RedeemableWalletResponse> =>
-  mode === 'credit'
-    ? {
-        queryKey: cardQueries.credit.keys.wallet(),
-        queryFn: async () => Engine.context.CardController.getCreditWallet(),
-        staleTime: 0,
-      }
-    : {
-        queryKey: cardQueries.cashback.keys.wallet(),
-        queryFn: async () => Engine.context.CardController.getCashbackWallet(),
-        staleTime: 0,
-      };
-
-const withdrawEstimationOptionsForMode = (
-  mode: RedeemableWalletMode,
-): RedeemableQueryOptions<RedeemableWithdrawEstimationResponse> =>
-  mode === 'credit'
-    ? {
-        queryKey: cardQueries.credit.keys.withdrawEstimation(),
-        queryFn: async () =>
-          Engine.context.CardController.getCreditWithdrawEstimation(),
-        staleTime: 0,
-      }
-    : {
-        queryKey: cardQueries.cashback.keys.withdrawEstimation(),
-        queryFn: async () =>
-          Engine.context.CardController.getCashbackWithdrawEstimation(),
-        staleTime: 0,
-      };
-
-const queryKeyForMode = (mode: RedeemableWalletMode): QueryKey =>
-  mode === 'credit'
-    ? cardQueries.credit.keys.all()
-    : cardQueries.cashback.keys.all();
 
 const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const redeemWithdrawal = useSelector(selectCardRedeemWithdrawal);
   const queryClient = useQueryClient();
-  const walletOptions = useMemo(() => walletOptionsForMode(mode), [mode]);
-  const withdrawEstimationOptions = useMemo(
-    () => withdrawEstimationOptionsForMode(mode),
-    [mode],
-  );
-  const modeQueryKey = useMemo(() => queryKeyForMode(mode), [mode]);
+  const queries = REDEEM_QUERIES[mode];
 
-  const walletQuery = useQuery<RedeemableWalletResponse>({
-    queryKey: walletOptions.queryKey,
-    queryFn: walletOptions.queryFn,
+  const walletQuery = useQuery({
+    queryKey: queries.queryKey,
+    queryFn: queries.queryFn,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
     enabled: isAuthenticated,
-    staleTime: walletOptions.staleTime,
   });
 
-  const estimationQuery = useQuery<RedeemableWithdrawEstimationResponse>({
-    queryKey: withdrawEstimationOptions.queryKey,
-    queryFn: withdrawEstimationOptions.queryFn,
+  const estimationQuery = useQuery({
+    queryKey: queries.estimationQueryKey,
+    queryFn: queries.estimationQueryFn,
+    staleTime: REDEEM_STALE_TIME_MS,
+    retry: shouldRetryRedeemQuery,
     enabled: false,
-    staleTime: withdrawEstimationOptions.staleTime,
   });
-
-  const [monitoringStatus, setMonitoringStatus] =
-    useState<MonitoringStatus>('idle');
-  const [monitoringError, setMonitoringError] = useState<Error | null>(null);
-
-  const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(
-    null,
-  );
-  const pollingStartTimeRef = useRef<number | null>(null);
-
-  useEffect(
-    () => () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
-    },
-    [],
-  );
 
   const fetchEstimation = useCallback(
     async () =>
-      queryClient.fetchQuery<RedeemableWithdrawEstimationResponse>({
-        queryKey: withdrawEstimationOptions.queryKey,
-        queryFn: withdrawEstimationOptions.queryFn,
-        staleTime: withdrawEstimationOptions.staleTime,
+      queryClient.fetchQuery({
+        queryKey: queries.estimationQueryKey,
+        queryFn: queries.estimationQueryFn,
+        staleTime: REDEEM_STALE_TIME_MS,
       }),
-    [queryClient, withdrawEstimationOptions],
-  );
-
-  const startTxPolling = useCallback(
-    (hash: string, chainId: string) => {
-      if (pollingIntervalRef.current) {
-        return;
-      }
-
-      setMonitoringStatus('monitoring');
-      setMonitoringError(null);
-      pollingStartTimeRef.current = Date.now();
-
-      pollingIntervalRef.current = setInterval(async () => {
-        if (
-          pollingStartTimeRef.current &&
-          Date.now() - pollingStartTimeRef.current > TX_POLLING_TIMEOUT_MS
-        ) {
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-          setMonitoringStatus('failed');
-          setMonitoringError(new Error('Transaction monitoring timed out'));
-          return;
-        }
-
-        try {
-          const { NetworkController } = Engine.context;
-          const provider = NetworkController.getNetworkClientById(
-            NetworkController.findNetworkClientIdByChainId(
-              chainId as `0x${string}`,
-            ),
-          )?.provider;
-          if (provider) {
-            const receipt = await provider.request({
-              method: 'eth_getTransactionReceipt',
-              params: [hash],
-            });
-            if (receipt) {
-              if (pollingIntervalRef.current) {
-                clearInterval(pollingIntervalRef.current);
-                pollingIntervalRef.current = null;
-              }
-              const status =
-                typeof (receipt as { status?: string }).status === 'string'
-                  ? parseInt((receipt as { status: string }).status, 16)
-                  : (receipt as { status?: number }).status;
-              if (status === 1) {
-                setMonitoringStatus('success');
-                queryClient.invalidateQueries({
-                  queryKey: modeQueryKey,
-                });
-              } else {
-                setMonitoringStatus('failed');
-                setMonitoringError(new Error('Transaction reverted on-chain'));
-              }
-            }
-          }
-        } catch {
-          // continue polling on transient errors
-        }
-      }, TX_POLLING_INTERVAL_MS);
-    },
-    [queryClient, modeQueryKey],
+    [queryClient, queries],
   );
 
   const withdrawMutation = useMutation({
-    mutationFn: async (amount: string): Promise<RedeemableWithdrawResponse> =>
-      withdrawForMode(mode, amount),
-    onSuccess: (data) => {
-      const chainId = resolvePollingChainId(estimationQuery.data?.network);
-      if (chainId) {
-        startTxPolling(data.txHash, chainId);
-      }
+    mutationFn: async (amount: string) =>
+      Engine.context.CardController.withdrawRedeemable({ mode, amount }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queries.allKey });
     },
   });
+
+  const modeWithdrawal =
+    redeemWithdrawal?.mode === mode ? redeemWithdrawal : null;
+
+  // Shared controller lock — only one redeem can be in flight at a time.
+  // Disable withdraw in every mode while any redeem is submitting/monitoring,
+  // but keep monitoringStatus/txHash scoped to this mode for toasts/UI.
+  const isAnyRedeemInFlight =
+    redeemWithdrawal?.status === 'submitting' ||
+    redeemWithdrawal?.status === 'monitoring';
+
+  const monitoringStatus =
+    modeWithdrawal?.status === 'submitting' ||
+    modeWithdrawal?.status === 'monitoring'
+      ? 'monitoring'
+      : modeWithdrawal?.status === 'success'
+        ? 'success'
+        : modeWithdrawal?.status === 'failed'
+          ? 'failed'
+          : 'idle';
+
+  const monitoringError =
+    modeWithdrawal?.status === 'failed' && modeWithdrawal.error
+      ? new Error(modeWithdrawal.error.reason)
+      : null;
 
   const resetMutation = withdrawMutation.reset;
 
   const resetWithdraw = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-    setMonitoringStatus('idle');
-    setMonitoringError(null);
+    Engine.context.CardController.clearRedeemWithdrawal();
     resetMutation();
   }, [resetMutation]);
 
+  // Invalidate wallet cache when controller reports success (covers unmount case).
+  useEffect(() => {
+    if (modeWithdrawal?.status === 'success') {
+      queryClient.invalidateQueries({ queryKey: queries.allKey });
+    }
+  }, [modeWithdrawal?.status, queries.allKey, queryClient]);
+
   return {
     wallet: walletQuery.data ?? null,
-    isLoading: walletQuery.isLoading && walletQuery.isFetching,
+    isLoading: walletQuery.isLoading,
     error: walletQuery.error,
     fetchWallet: walletQuery.refetch,
 
@@ -233,9 +142,9 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     fetchEstimation,
 
     withdraw: withdrawMutation.mutate,
-    isWithdrawing: withdrawMutation.isPending,
+    isWithdrawing: withdrawMutation.isPending || isAnyRedeemInFlight,
     withdrawError: withdrawMutation.error,
-    txHash: withdrawMutation.data?.txHash ?? null,
+    txHash: modeWithdrawal?.txHash ?? null,
 
     monitoringStatus,
     monitoringError,
