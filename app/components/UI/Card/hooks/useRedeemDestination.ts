@@ -76,10 +76,11 @@ const useRedeemDestination = ({
       ? (receivingEntry?.address ?? primaryMoneyAccount?.address)
       : receivingEntry?.address;
 
-    // Resolved means the estimation named a supported network+currency.
-    // Addressability is separate: a missing receiving wallet triggers setup,
-    // not an endless loading state.
-    const isResolved = Boolean(caipChainId && symbol);
+    // Resolved means the estimation named a supported, withdrawable
+    // network+currency. Residency-blocked Monad is not withdrawable, so keep
+    // isResolved false — otherwise needsSetup shows a Linea funding banner
+    // that can never produce a Monad receiving address.
+    const isResolved = Boolean(caipChainId && symbol) && !isUnavailableNetwork;
 
     const hasFunding = hasApprovedFundingFor(
       fundingTokens,

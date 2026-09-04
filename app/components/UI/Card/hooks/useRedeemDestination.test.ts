@@ -166,6 +166,26 @@ describe('useRedeemDestination', () => {
       expect(result.current.isMoneyAccountDestination).toBe(false);
     });
 
+    it('marks Monad unresolved when the resident region is blocked', () => {
+      mockIsResidencyBlocked = true;
+      mockExternalWalletPriority = [
+        priorityEntry({
+          address: '0x85d1f62222222222222222222222222222222222',
+          currency: 'veda',
+          network: 'monad',
+          priority: 1,
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useRedeemDestination({ currency: 'musd', network: 'monad' }),
+      );
+
+      expect(result.current.isResolved).toBe(false);
+      expect(result.current.hasApprovedDestination).toBe(false);
+      expect(result.current.receivingAddress).toBeUndefined();
+    });
+
     it('marks the destination unapproved for Monad when the resident region is blocked', () => {
       mockIsResidencyBlocked = true;
       mockExternalWalletPriority = [
