@@ -1,6 +1,5 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -26,12 +25,8 @@ import {
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import {
   navigateToPerpsHomeTarget,
-  PERPS_DEFAULT_PRO_MARKET_SYMBOL,
-  resolvePerpsHomeNavigationTarget,
-  useIsPerpsProModeActive,
+  useGetPerpsHomeNavigationTarget,
 } from '../utils/perpsModeSwitch';
-import { selectPerpsLastViewedMarketSymbol } from '../selectors/perpsController';
-import { usePerpsMarkets } from './usePerpsMarkets';
 
 /**
  * Navigation handler result interface
@@ -163,29 +158,18 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
     [navigation],
   );
 
-  const isProModeActive = useIsPerpsProModeActive();
-  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
-  const { markets, hasResolvedInitialData } = usePerpsMarkets();
-  const tradableSymbols = useMemo(() => {
-    if (!hasResolvedInitialData) {
-      return undefined;
-    }
-    return markets.map((market) => market.symbol);
-  }, [hasResolvedInitialData, markets]);
+  // Keep this stream-free: usePerpsNavigation is also used by screens that can
+  // mount outside PerpsStreamProvider (e.g. select-modify sheet in view tests).
+  // Tradable-symbol validation belongs in stream-backed flows such as
+  // usePerpsRecordMarketViewed.
+  const getPerpsHomeNavigationTarget = useGetPerpsHomeNavigationTarget();
 
   const navigateToHome = useCallback(
     (source?: string) => {
-      const target = resolvePerpsHomeNavigationTarget(
-        isProModeActive,
-        { source },
-        typeof lastViewedMarketSymbol === 'string'
-          ? lastViewedMarketSymbol
-          : PERPS_DEFAULT_PRO_MARKET_SYMBOL,
-        tradableSymbols,
-      );
+      const target = getPerpsHomeNavigationTarget({ source });
       navigateToPerpsHomeTarget(navigation, target);
     },
-    [navigation, isProModeActive, lastViewedMarketSymbol, tradableSymbols],
+    [navigation, getPerpsHomeNavigationTarget],
   );
 
   const navigateToMarketList = useCallback(
