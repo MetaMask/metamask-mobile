@@ -9,7 +9,10 @@ import React, {
 } from 'react';
 import { Linking, View } from 'react-native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
-import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/WebViewTypes';
+import type {
+  WebViewOpenWindowEvent,
+  ShouldStartLoadRequest,
+} from '@metamask/react-native-webview/lib/WebViewTypes';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
@@ -33,7 +36,54 @@ import {
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
 
+/**
+ * Protocols the chart WebView is allowed to hand off to the OS / in-app browser.
+ * Only secure web URLs are permitted so that untrusted chart content cannot use
+ * a custom scheme (e.g. `ethereum:`, `metamask:`, `wc:`) to re-enter the wallet
+ * and drive a prefilled Send/confirmation flow.
+ */
+const SAFE_EXTERNAL_URL_PROTOCOLS = ['https:'];
+
+/**
+ * Returns true only for secure web URLs (`https:`). Custom schemes and malformed
+ * URLs are rejected. Used to gate outbound "open" handoffs from the WebView.
+ */
+const isSafeExternalUrl = (url: string): boolean => {
+  try {
+    return SAFE_EXTERNAL_URL_PROTOCOLS.includes(new URL(url).protocol);
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Returns true if a WebView navigation request should be allowed. Permits the
+ * internal navigations the charting library relies on (about:/data:/blob: and
+ * relative paths resolved against the https baseUrl) plus secure web URLs, and
+ * blocks everything else (notably custom-scheme deeplinks).
+ */
+const isAllowedChartNavigation = (url: string): boolean => {
+  if (
+    url.startsWith('about:') ||
+    url.startsWith('data:') ||
+    url.startsWith('blob:')
+  ) {
+    return true;
+  }
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    // Relative URLs (no scheme) resolve against the https baseUrl -> safe.
+    return true;
+  }
+};
+
 const openInAppBrowser = (url: string) => {
+  // Drop non-https targets (e.g. `ethereum:` / `metamask:` deeplinks) that
+  // untrusted chart content could use to re-enter the wallet.
+  if (!isSafeExternalUrl(url)) {
+    return;
+  }
   const fallback = () => {
     try {
       Linking.openURL(url);
@@ -500,6 +550,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         handleTradingViewOpen(event.nativeEvent.targetUrl);
       },
       [handleTradingViewOpen],
+    );
+
+    /**
+     * App-level navigation guard. Blocks the WebView from navigating to
+     * non-http(s) schemes (e.g. `ethereum:` / `metamask:` deeplinks) that
+     * untrusted chart content could use to re-enter the wallet.
+     */
+    const handleShouldStartLoadWithRequest = useCallback(
+      (request: ShouldStartLoadRequest) => isAllowedChartNavigation(request.url),
+      [],
     );
 
     // ---- WebView message handling ----
@@ -1100,8 +1160,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             style={styles.webview}
             onMessage={handleMessage}
             onOpenWindow={handleOpenWindow}
+            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
             onError={handleWebViewError}
             onLoadEnd={handleLoadEnd}
+            // Keep this permissive ON PURPOSE. react-native-webview auto-opens
+            // any URL that FAILS originWhitelist via `Linking.openURL` (see
+            // createOnShouldStartLoadWithRequest) BEFORE consulting our handler.
+            // A restrictive list would therefore hand `ethereum:`/`metamask:`
+            // deeplinks straight to the OS. Using ['*'] routes every navigation
+            // through `handleShouldStartLoadWithRequest`, which blocks non-https.
             originWhitelist={['*']}
             javaScriptEnabled
             domStorageEnabled
