@@ -454,3 +454,56 @@ export const HEADER_NAV_BAR_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
     validVariants: Object.values(HeaderNavBarVariant),
     eventNames: [EVENT_NAME.HOME_VIEWED],
   };
+
+// ─── Perps section priority on wallet home (TAT-3597) ────────────────────────
+
+/**
+ * LaunchDarkly / remote flag key. Pattern: `{team}{TICKET}Abtest{Name}` — keep in
+ * sync with the flag in LD (team `perps`, ticket TAT-3597).
+ */
+export const PERPS_SECTION_PRIORITY_AB_KEY =
+  'perpsTAT3597AbtestPerpsSectionPriority';
+
+export enum PerpsSectionPriorityVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+interface PerpsSectionPriorityVariantConfig {
+  /** Permits the reorder; still gated at render time by active-trader status. */
+  perpsAboveTokensEligible: boolean;
+}
+
+export const PERPS_SECTION_PRIORITY_VARIANTS: Record<
+  PerpsSectionPriorityVariant,
+  PerpsSectionPriorityVariantConfig
+> = {
+  [PerpsSectionPriorityVariant.Control]: {
+    perpsAboveTokensEligible: false,
+  },
+  [PerpsSectionPriorityVariant.Treatment]: {
+    perpsAboveTokensEligible: true,
+  },
+};
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Perps Section Priority',
+  variationNames: {
+    control: 'Tokens above Perps (current)',
+    treatment: 'Perps above Tokens when eligible',
+  },
+} as const;
+
+export const PERPS_SECTION_PRIORITY_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: PERPS_SECTION_PRIORITY_AB_KEY,
+    validVariants: Object.values(PerpsSectionPriorityVariant),
+    eventNames: [
+      EVENT_NAME.HOME_VIEWED,
+      EVENT_NAME.PERPS_UI_INTERACTION,
+      EVENT_NAME.PERPS_TRADE_TRANSACTION,
+      EVENT_NAME.ACTION_BUTTON_CLICKED,
+      // Token-row taps surface here as `source: mobile-token-list`.
+      EVENT_NAME.TOKEN_DETAILS_OPENED,
+    ],
+  };

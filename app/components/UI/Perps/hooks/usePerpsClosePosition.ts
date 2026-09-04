@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
   PERPS_CONSTANTS,
   type OrderResult,
@@ -247,6 +248,7 @@ export const usePerpsClosePosition = (
         }
 
         if (result.success) {
+          recordPerpsAction();
           // Controller accepted the close: only now may a stream shrink/absence
           // complete the CUF as a success. If the position already shrank while
           // the request was in flight, that render instant was recorded and the
