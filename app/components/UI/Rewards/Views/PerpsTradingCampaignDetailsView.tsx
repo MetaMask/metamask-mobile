@@ -36,11 +36,15 @@ import PerpsTradingCampaignCTA from '../components/Campaigns/PerpsTradingCampaig
 import PerpsCampaignStatsSummary from '../components/Campaigns/PerpsCampaignStatsSummary';
 import PerpsTradingCampaignEndedStats from '../components/Campaigns/PerpsTradingCampaignEndedStats';
 import { CampaignOutcomeBanner } from '../components/Campaigns/CampaignOutcomeBanners';
-import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import {
+  getCampaignStatus,
+  getLatestActiveOrUpcomingCampaignOfType,
+} from '../components/Campaigns/CampaignTile.utils';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { useGetPerpsTradingCampaignPrizePool } from '../hooks/useGetPerpsTradingCampaignPrizePool';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
@@ -87,15 +91,17 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     fetchCampaigns,
   } = useRewardCampaigns();
 
-  const campaign = useMemo(
-    () =>
-      campaigns.find((c) =>
-        routeCampaignId
-          ? c.id === routeCampaignId
-          : c.type === CampaignType.PERPS_TRADING,
-      ) ?? null,
-    [campaigns, routeCampaignId],
-  );
+  const campaign = useMemo(() => {
+    if (routeCampaignId) {
+      return campaigns.find((c) => c.id === routeCampaignId) ?? null;
+    }
+    // Entry points that reach this view without an id must not land on a past
+    // campaign once a second perps campaign exists.
+    return getLatestActiveOrUpcomingCampaignOfType(
+      campaigns,
+      CampaignType.PERPS_TRADING,
+    );
+  }, [campaigns, routeCampaignId]);
 
   const effectiveCampaignId = routeCampaignId ?? campaign?.id ?? '';
 
@@ -132,6 +138,13 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
     hasError: hasVolumeError,
     refetch: refetchVolume,
   } = useGetPerpsTradingCampaignVolume(effectiveCampaignId || undefined);
+
+  // Only the prize ladder comes from this endpoint; the progress figure stays on
+  // the volume endpoint, so a missing prize pool falls back to the built-in
+  // ladder instead of blanking the section.
+  const { prizePool } = useGetPerpsTradingCampaignPrizePool(
+    effectiveCampaignId || undefined,
+  );
 
   const leaderboardUserPosition = useMemo(
     () =>
@@ -368,6 +381,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       {strings('rewards.campaign_prize_pool.title')}
                     </Text>
                     <PerpsTradingCampaignPrizePool
+                      prizePool={prizePool}
                       totalNotionalVolume={volume?.totalUsdVolume ?? null}
                       isLoading={isVolumeLoading}
                       hasError={hasVolumeError}

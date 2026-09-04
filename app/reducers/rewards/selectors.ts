@@ -14,6 +14,7 @@ import type {
   OndoGmCampaignDepositsDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignVolumeDto,
+  PerpsTradingCampaignPrizePoolDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
@@ -591,6 +592,30 @@ export const selectPredictThePitchPositionsById =
           buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
+
+// Perps Trading Campaign prize pool selectors
+export const selectPerpsTradingCampaignPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.data ?? null)
+      : null;
+
+export const selectPerpsTradingCampaignPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.loading ??
+        false)
+      : false;
+
+export const selectPerpsTradingCampaignPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignPrizePools[campaignId]?.error ??
+        false)
+      : false;
 
 // Predict The Pitch prize pool selectors
 export const selectPredictThePitchPrizePoolByCampaignId =

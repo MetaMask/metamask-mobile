@@ -910,11 +910,6 @@ describe('RewardsDashboard', () => {
       ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
       [
         'campaign',
-        'perps-comp',
-        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-      ],
-      [
-        'campaign',
         'predict-the-pitch',
         Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
       ],
@@ -930,6 +925,90 @@ describe('RewardsDashboard', () => {
         expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
       },
     );
+
+    describe('campaign=perps-comp', () => {
+      const buildPerpsCampaign = (
+        overrides: Partial<CampaignDto> = {},
+      ): CampaignDto => ({
+        id: 'perps-active',
+        type: CampaignType.PERPS_TRADING,
+        name: 'Perps Competition',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-01-01T00:00:00.000Z',
+        termsAndConditions: null,
+        excludedRegions: [],
+        details: null,
+        featured: false,
+        showUpcomingDate: false,
+        ...overrides,
+      });
+
+      const mockCampaigns = (
+        campaigns: CampaignDto[],
+        overrides: { isLoading?: boolean; hasError?: boolean } = {},
+      ) => {
+        mockUseRewardCampaigns.mockReturnValue({
+          campaigns,
+          categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+          isLoading: overrides.isLoading ?? false,
+          hasError: overrides.hasError ?? false,
+          hasLoaded: true,
+          fetchCampaigns: jest.fn(),
+        });
+      };
+
+      it('navigates to the active perps campaign with its id', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+          buildPerpsCampaign({ id: 'perps-active' }),
+        ]);
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+          screen: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+          params: { campaignId: 'perps-active' },
+        });
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('stays on the dashboard when only a past perps campaign exists', () => {
+        mockCampaigns([
+          buildPerpsCampaign({
+            id: 'perps-past',
+            startDate: '2020-01-01T00:00:00.000Z',
+            endDate: '2020-02-01T00:00:00.000Z',
+          }),
+        ]);
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending while campaigns are still loading', () => {
+        mockCampaigns([], { isLoading: true });
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+
+      it('keeps the deeplink pending when the campaigns fetch failed', () => {
+        mockCampaigns([], { hasError: true });
+
+        renderWithPendingDeeplink({ campaign: 'perps-comp' });
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+      });
+    });
 
     it('opens the Money deeplink and clears the pending deeplink for page=musd', () => {
       renderWithPendingDeeplink({ page: 'musd' });

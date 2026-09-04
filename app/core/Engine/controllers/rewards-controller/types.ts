@@ -1086,6 +1086,25 @@ export interface PerpsTradingCampaignLeaderboardDto {
   totalParticipants: number;
   /** Minimum cumulative volume (USD) required to appear on the leaderboard */
   minVolumeForEligibility: number;
+  /**
+   * Number of prize-winning ranks for this campaign. Optional because the
+   * backend only started sending it with per-campaign config; clients fall back
+   * to PERPS_TRADING_MAX_WINNERS while older backends are deployed.
+   */
+  numberOfWinners?: number;
+}
+
+/**
+ * Response DTO for GET /perps-trading/:campaignId/prize-pool (public, no auth).
+ */
+export interface PerpsTradingCampaignPrizePoolDto {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  /** Volume thresholds (USD) that unlock each prize tier, index-aligned with poolScheduleUsd */
+  thresholdsUsd: number[];
+  /** Prize pool size (USD) unlocked at the matching thresholdsUsd index */
+  poolScheduleUsd: number[];
+  computedAt: string | null;
 }
 
 /**
@@ -1128,6 +1147,7 @@ export type PerpsTradingCampaignLeaderboardState = {
   }[];
   totalParticipants: number;
   minVolumeForEligibility: number;
+  numberOfWinners?: number;
   lastFetched: number;
 };
 
@@ -1166,6 +1186,19 @@ export type PerpsTradingCampaignLeaderboardPositionState =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsTradingCampaignVolumeState = {
   totalUsdVolume: string;
+  lastFetched: number;
+};
+
+/**
+ * Cached campaign prize pool (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsTradingCampaignPrizePoolState = {
+  totalVolumeUsd: number;
+  unlockedPoolUsd: number;
+  thresholdsUsd: number[];
+  poolScheduleUsd: number[];
+  computedAt: string | null;
   lastFetched: number;
 };
 
@@ -2828,6 +2861,10 @@ export type RewardsControllerState = {
   /** Perps Trading Campaign volume keyed by campaignId (public endpoint). */
   perpsTradingCampaignVolume: {
     [campaignId: string]: PerpsTradingCampaignVolumeState;
+  };
+  /** Perps Trading Campaign prize pool keyed by campaignId (public endpoint). */
+  perpsTradingCampaignPrizePool: {
+    [campaignId: string]: PerpsTradingCampaignPrizePoolState;
   };
   /** Predict The Pitch leaderboard keyed by campaignId (public endpoint). */
   predictThePitchLeaderboard: {
