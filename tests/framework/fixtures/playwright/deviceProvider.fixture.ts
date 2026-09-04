@@ -1,8 +1,13 @@
 import type { Fixtures, FullProject, WorkerInfo } from '@playwright/test';
 import { createServiceProvider, type ServiceProvider } from '../../services';
-import type { WebDriverConfig } from '../../types.ts';
+import {
+  Platform,
+  type EmulatorConfig,
+  type WebDriverConfig,
+} from '../../types.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import type { SharedAppiumSession, WorkerLevelFixtures } from './types.ts';
+import { applyAndroidDevicePoolToWorker } from '../../services/providers/emulator/android/androidDevicePool.ts';
 
 const logger = createAppiumLogger('deviceProvider');
 
@@ -25,6 +30,18 @@ export const workerDeviceProviderFixture: Fixtures<
     ) => {
       const project = workerInfo.project as FullProject<WebDriverConfig>;
       const providerName = project.use.device?.provider ?? 'unknown';
+      if (project.use.platform === Platform.ANDROID) {
+        const assignment = applyAndroidDevicePoolToWorker(
+          workerInfo.parallelIndex,
+        );
+        if (assignment) {
+          (project.use.device as EmulatorConfig).udid = assignment.serial;
+          logger.info(
+            `Android pool worker ${workerInfo.parallelIndex}: ` +
+              `serial=${assignment.serial}, systemPort=${assignment.systemPort}`,
+          );
+        }
+      }
 
       logger.info(
         `Creating worker-scoped device provider "${providerName}" for project "${project.name}"`,

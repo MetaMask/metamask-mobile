@@ -733,6 +733,11 @@ const Onboarding = () => {
       };
 
       if (error instanceof OAuthError) {
+        if (error.code === OAuthErrorType.LoginInProgress) {
+          // Duplicate tap while the first OAuth attempt is still in flight.
+          return;
+        }
+
         // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
         if (
           error.code === OAuthErrorType.UserCancelled ||
@@ -1210,6 +1215,14 @@ const Onboarding = () => {
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
         dispatch(clearSeedlessOnboarding());
+        // Measure Create/Import wallet tap → sheet interactive (UI CUF).
+        // Sheet completes via useNavigationPerformance; SRP/social CTAs start a
+        // new span when the user continues from the sheet.
+        startOnboardingCtaNavigation(
+          actionType === 'create'
+            ? OnboardingCtaIds.CREATE_WALLET
+            : OnboardingCtaIds.IMPORT_WALLET,
+        );
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.SHEET.ONBOARDING_SHEET,
           params: {

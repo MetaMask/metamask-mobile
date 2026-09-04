@@ -1,6 +1,5 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import {
   SolScope,
   type Transaction,
@@ -12,12 +11,8 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import MultichainAssetDetailsActivityListItem from './MultichainAssetDetailsActivityListItem';
 import Routes from '../../../constants/navigation/Routes';
-import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
-
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
+import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -104,33 +99,43 @@ const createTransaction = (
   ...overrides,
 });
 
-const mockUseSelector = jest.mocked(useSelector);
-
-const mockSelectors = ({ keyringTransactions = [] as Transaction[] } = {}) => {
-  mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectNonEvmTransactionsForSelectedAccountGroup) {
-      return { transactions: keyringTransactions };
-    }
-    return undefined;
-  });
-};
+const mapTransactionToItem = (
+  transaction: TransactionWithImportTime,
+): ActivityListItem =>
+  mapKeyringTransaction({ transaction }) as ActivityListItem;
 
 describe('MultichainAssetDetailsActivityListItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectors();
+  });
+
+  it('uses the source transaction attached to the activity item', () => {
+    const transaction = createTransaction();
+
+    render(
+      <MultichainAssetDetailsActivityListItem
+        item={mapTransactionToItem(transaction)}
+        transaction={transaction}
+        index={0}
+        chainId={SolScope.Mainnet}
+        navigation={createNavigation()}
+      />,
+    );
+
+    expect(useMultichainTransactionDisplay).toHaveBeenCalledWith(
+      transaction,
+      SolScope.Mainnet,
+    );
   });
 
   it('routes to the ActivityDetails screen', () => {
     const navigation = createNavigation();
     const transaction = createTransaction();
-    mockSelectors({
-      keyringTransactions: [transaction],
-    });
 
     const { getByTestId } = render(
       <MultichainAssetDetailsActivityListItem
-        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+        item={mapTransactionToItem(transaction)}
+        transaction={transaction}
         index={0}
         chainId={SolScope.Mainnet}
         navigation={navigation}
@@ -154,11 +159,11 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     );
     const navigation = createNavigation();
     const transaction = createTransaction();
-    mockSelectors({ keyringTransactions: [transaction] });
 
     render(
       <MultichainAssetDetailsActivityListItem
-        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+        item={mapTransactionToItem(transaction)}
+        transaction={transaction}
         index={0}
         chainId={SolScope.Mainnet}
         navigation={navigation}
@@ -171,11 +176,11 @@ describe('MultichainAssetDetailsActivityListItem', () => {
   it('routes import-time rows to ActivityDetails', () => {
     const navigation = createNavigation();
     const transaction = createTransaction({ insertImportTime: true });
-    mockSelectors({ keyringTransactions: [transaction] });
 
     const { getByTestId, queryByTestId } = render(
       <MultichainAssetDetailsActivityListItem
-        item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+        item={mapTransactionToItem(transaction)}
+        transaction={transaction}
         index={0}
         chainId={SolScope.Mainnet}
         navigation={navigation}
@@ -223,13 +228,11 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     it('routes a same-chain swap to the redesigned ActivityDetails screen', () => {
       const navigation = createNavigation();
       const transaction = createTransaction({ type: TransactionType.Swap });
-      mockSelectors({
-        keyringTransactions: [transaction],
-      });
 
       const { getByTestId } = render(
         <MultichainAssetDetailsActivityListItem
-          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          item={mapTransactionToItem(transaction)}
+          transaction={transaction}
           bridgeHistoryItem={createBridgeHistoryItem(
             SolScope.Mainnet,
             SolScope.Mainnet,
@@ -252,13 +255,11 @@ describe('MultichainAssetDetailsActivityListItem', () => {
     it('routes a cross-chain bridge to the redesigned ActivityDetails screen', () => {
       const navigation = createNavigation();
       const transaction = createTransaction({ type: TransactionType.Swap });
-      mockSelectors({
-        keyringTransactions: [transaction],
-      });
 
       const { getByTestId } = render(
         <MultichainAssetDetailsActivityListItem
-          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          item={mapTransactionToItem(transaction)}
+          transaction={transaction}
           bridgeHistoryItem={createBridgeHistoryItem(
             SolScope.Mainnet,
             'eip155:1',
@@ -283,7 +284,6 @@ describe('MultichainAssetDetailsActivityListItem', () => {
         '../../UI/ActivityListItemRow/ActivityListItemRow',
       );
       const transaction = createTransaction({ type: TransactionType.Swap });
-      mockSelectors({ keyringTransactions: [transaction] });
       const bridgeHistoryItem = createBridgeHistoryItem(
         SolScope.Mainnet,
         SolScope.Mainnet,
@@ -291,7 +291,8 @@ describe('MultichainAssetDetailsActivityListItem', () => {
 
       render(
         <MultichainAssetDetailsActivityListItem
-          item={mapKeyringTransaction({ transaction }) as ActivityListItem}
+          item={mapTransactionToItem(transaction)}
+          transaction={transaction}
           bridgeHistoryItem={bridgeHistoryItem}
           index={0}
           chainId={SolScope.Mainnet}

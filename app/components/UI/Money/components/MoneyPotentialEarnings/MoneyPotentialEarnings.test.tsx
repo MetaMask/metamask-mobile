@@ -141,7 +141,11 @@ describe('MoneyPotentialEarnings', () => {
       getByText(strings('money.potential_earnings.title')),
     ).toBeOnTheScreen();
     const description = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
-    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(
+      new RegExp(
+        strings('money.potential_earnings.description_with_amounts_prefix'),
+      ),
+    );
     expect(description).toHaveTextContent(/in one year\./);
   });
 

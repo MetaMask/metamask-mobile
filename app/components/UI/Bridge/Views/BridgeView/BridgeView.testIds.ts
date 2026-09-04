@@ -12,6 +12,8 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  OFF_HOURS_TRADING_BANNER: 'bridge-off-hours-trading-banner',
+  MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
@@ -20,6 +22,7 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_TAB: 'bridge-recurring-tab',
   LIMIT_ORDER_CONTAINER: 'bridge-limit-order-container',
   LIMIT_ORDER_SCROLL: 'bridge-limit-order-scroll',
+  LIMIT_ORDER_DISMISS_AREA: 'bridge-limit-order-dismiss-area',
   LIMIT_SOURCE_TOKEN_AREA: 'limit-source-token-area',
   LIMIT_SOURCE_TOKEN_INPUT: 'limit-source-token-area-input',
   LIMIT_SOURCE_AMOUNT_TYPE_TOGGLE: 'limit-source-token-area-amount-type-toggle',
@@ -34,6 +37,7 @@ export const BridgeViewSelectorsIDs = {
   RECURRING_DEST_TOKEN_AREA: 'recurring-dest-token-area',
   RECURRING_DEST_TOKEN_INPUT: 'recurring-dest-token-area-input',
   RECURRING_DEST_YOU_GET: 'recurring-dest-you-get',
+  RECURRING_SPEND_SUMMARY: 'recurring-spend-summary',
 } as const;
 
 export type BridgeViewSelectorsIDsType = typeof BridgeViewSelectorsIDs;

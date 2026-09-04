@@ -1,16 +1,20 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
 import { type OrderFormState } from '@metamask/perps-controller';
 import { usePerpsPayWithToken } from './useIsPerpsBalanceSelected';
 
 /**
- * Hook to save pending trade configuration when user navigates away from the trade screen
- * Saves the current form state (including pay-with token selection) so it can be restored when user returns within 5 minutes
+ * Save pending trade configuration when the user leaves the trade screen.
+ * Restored if they return within 30 seconds.
  */
-export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
+export function usePerpsSavePendingConfig(
+  orderForm: OrderFormState,
+  extras: { reduceOnly?: boolean } = {},
+) {
   const { PerpsController } = Engine.context;
   const selectedPaymentToken = usePerpsPayWithToken();
+  const { reduceOnly } = extras;
 
   const config = useMemo(
     () => ({
@@ -20,6 +24,8 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       stopLossPrice: orderForm.stopLossPrice,
       limitPrice: orderForm.limitPrice,
       orderType: orderForm.type,
+      direction: orderForm.direction,
+      reduceOnly,
       selectedPaymentToken: selectedPaymentToken
         ? {
             description: selectedPaymentToken.description,
@@ -35,32 +41,39 @@ export function usePerpsSavePendingConfig(orderForm: OrderFormState) {
       orderForm.stopLossPrice,
       orderForm.limitPrice,
       orderForm.type,
+      orderForm.direction,
+      reduceOnly,
       selectedPaymentToken,
     ],
   );
 
-  // Save config when component loses focus (user navigates away)
+  // Latest draft in refs so blur/unmount save current values without writing
+  // Redux on every keystroke (which would reset the 30s TTL).
+  const configRef = useRef(config);
+  configRef.current = config;
+  const assetRef = useRef(orderForm.asset);
+  assetRef.current = orderForm.asset;
+
+  const savePendingConfig = useCallback(() => {
+    const asset = assetRef.current;
+    if (asset) {
+      PerpsController.savePendingTradeConfiguration(asset, configRef.current);
+    }
+  }, [PerpsController]);
+
   useFocusEffect(
     useCallback(
       () => () => {
-        if (orderForm.asset) {
-          PerpsController.savePendingTradeConfiguration(
-            orderForm.asset,
-            config,
-          );
-        }
+        savePendingConfig();
       },
-      [orderForm.asset, PerpsController, config],
+      [savePendingConfig],
     ),
   );
 
-  // Also save on unmount as a fallback
   useEffect(
     () => () => {
-      if (orderForm.asset) {
-        PerpsController.savePendingTradeConfiguration(orderForm.asset, config);
-      }
+      savePendingConfig();
     },
-    [orderForm.asset, PerpsController, config],
+    [savePendingConfig],
   );
 }

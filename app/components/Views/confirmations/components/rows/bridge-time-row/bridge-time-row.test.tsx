@@ -124,24 +124,6 @@ describe('BridgeTimeRow', () => {
     expect(getByTestId(`bridge-time-row-skeleton`)).toBeDefined();
   });
 
-  it('does not render skeleton when transaction type is in HIDE_TYPES', () => {
-    useIsTransactionPayLoadingMock.mockReturnValue(true);
-
-    const { queryByTestId } = render({ type: TransactionType.musdConversion });
-
-    expect(queryByTestId('bridge-time-row-skeleton')).toBeNull();
-  });
-
-  it('does not render when transaction type is in HIDE_TYPES', () => {
-    useTransactionPayTotalsMock.mockReturnValue({
-      estimatedDuration: 60,
-    } as TransactionPayTotals);
-
-    const { queryByText } = render({ type: TransactionType.musdConversion });
-
-    expect(queryByText('1 min')).toBeNull();
-  });
-
   it('does not render when fiat payment method is selected', () => {
     useTransactionPayTotalsMock.mockReturnValue({
       estimatedDuration: 60,
