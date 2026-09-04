@@ -324,10 +324,10 @@ import { SmokeTokens } from '../../tags.js';
       baseDir,
     );
     assert.ok(out);
-    assert.deepEqual(
-      [...out.selectedTags].sort(),
-      ['SmokeAccounts', 'SmokeTokens'],
-    );
+    assert.deepEqual([...out.selectedTags].sort(), [
+      'SmokeAccounts',
+      'SmokeTokens',
+    ]);
   });
 
   it('reads tags from a changed spec when the page-object has no smoke importers', () => {
@@ -353,12 +353,7 @@ import { SmokeTokens } from '../../tags.js';
     const baseDir = makeTemp();
     writeDirectImportTree(baseDir);
     writeFileSync(join(baseDir, ACCOUNTS_SPEC), ACCOUNTS_SPEC_SOURCE);
-    const out = run(
-      [ACCOUNTS_SPEC],
-      importGraphRule(),
-      tokensCatalog,
-      baseDir,
-    );
+    const out = run([ACCOUNTS_SPEC], importGraphRule(), tokensCatalog, baseDir);
     assert.equal(out, null);
   });
 
