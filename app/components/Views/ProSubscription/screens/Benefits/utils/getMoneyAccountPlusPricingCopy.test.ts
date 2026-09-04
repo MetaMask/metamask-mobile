@@ -110,6 +110,19 @@ describe('getMoneyAccountPlusPricingCopy', () => {
         }),
       );
     });
+
+    it('uses the annual-only description when monthly is missing', () => {
+      const result = getBenefitsPriceLine({
+        status: 'ready',
+        annual: READY_BOTH.annual,
+      });
+
+      expect(result).toBe(
+        strings('pro_subscription.description_annual', {
+          annualPrice: formatSubscriptionFiat(49.99, 'usd'),
+        }),
+      );
+    });
   });
 
   describe('getPlanSelectorCardCopy', () => {

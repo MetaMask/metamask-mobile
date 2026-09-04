@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import {
   Box,
@@ -54,8 +54,6 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   const resolvedPlan = resolveSelectedPlanId(selectedPlan, plusPricing);
   const priceLine = getBenefitsPriceLine(plusPricing);
   const isPricingReady = plusPricing.status === 'ready';
-  const canSelectPlans = !isLoading && !hasError && isPricingReady;
-  const isCtaDisabled = !canSelectPlans;
 
   const visiblePlans = useMemo(
     () =>
@@ -68,6 +66,10 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
       }),
     [plusPricing],
   );
+
+  const canSelectPlans =
+    !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
+  const isCtaDisabled = !canSelectPlans;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);

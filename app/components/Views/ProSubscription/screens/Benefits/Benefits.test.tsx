@@ -505,7 +505,9 @@ describe('Benefits', () => {
 
       const { getByTestId, queryByTestId } = renderBenefits();
 
-      expect(getByTestId(BenefitsTestIds.PLAN_CARD('monthly'))).toBeOnTheScreen();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).toBeOnTheScreen();
       expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
       expect(
         queryByTestId(BenefitsTestIds.PLAN_CARD_SAVINGS_BADGE('annual')),
@@ -533,7 +535,9 @@ describe('Benefits', () => {
 
       const { getByTestId, queryByTestId } = renderBenefits();
 
-      expect(getByTestId(BenefitsTestIds.PRICING_UNAVAILABLE)).toBeOnTheScreen();
+      expect(
+        getByTestId(BenefitsTestIds.PRICING_UNAVAILABLE),
+      ).toBeOnTheScreen();
       expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
     });
 
@@ -548,6 +552,16 @@ describe('Benefits', () => {
 
     it('does not call onSuccess when Plus pricing is unavailable', () => {
       mockPricingState({ plusPricing: { status: 'unavailable' } });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSuccess when Plus prices are malformed', () => {
+      mockPricingState({ plusPricing: { status: 'malformed' } });
 
       const { getByTestId } = renderBenefits();
 
