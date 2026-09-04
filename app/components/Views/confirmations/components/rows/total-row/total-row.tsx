@@ -37,20 +37,6 @@ function isSameTokenAddressAndChain(
   );
 }
 
-function isSameTokenAddressAndChain(
-  left: { address?: string; chainId?: string } | undefined,
-  right: { address?: string; chainId?: string } | undefined,
-): boolean {
-  if (!left?.address || !left.chainId || !right?.address || !right.chainId) {
-    return false;
-  }
-
-  return (
-    left.address.toLowerCase() === right.address.toLowerCase() &&
-    left.chainId.toLowerCase() === right.chainId.toLowerCase()
-  );
-}
-
 /**
  * Row component that owns the bottom line of the totals section.
  *
