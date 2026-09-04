@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
-          ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
+          ref: aa4456db29d531a2bb4ce046ca0d57f6bc80e0b9
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
