@@ -28,6 +28,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import {
+  getPerpsProTwapMarketSelector,
   getPerpsProTwapTerminateSelector,
   getPerpsProTwapValueSelector,
   getPerpsProTwapRowSelector,
@@ -199,9 +200,7 @@ const PerpsProTwapCard = ({
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
-                    testID={getValueTestID(
-                      PerpsProMarketViewSelectorsIDs.TWAP_MARKET,
-                    )}
+                    testID={getPerpsProTwapMarketSelector(displaySymbol)}
                   >
                     {displaySymbol}
                   </Text>
