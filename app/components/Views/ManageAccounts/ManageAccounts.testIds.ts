@@ -13,6 +13,7 @@ export const ManageAccountsViewSelectorsIDs = {
 } as const;
 
 const ROW_ID_PREFIX = 'manage-accounts-row-';
+const ROW_CELL_ID_PREFIX = 'manage-accounts-row-cell-';
 const ROW_EYE_TOGGLE_ID_PREFIX = 'manage-accounts-row-eye-toggle-';
 const ROW_EYE_ICON_ID_PREFIX = 'manage-accounts-row-eye-icon-';
 const ROW_REMOVE_ID_PREFIX = 'manage-accounts-row-remove-';
@@ -29,6 +30,10 @@ const toTestIdSlug = (value: string): string =>
 /** Test ID for the management row of a single account group. */
 export const getManageAccountRowId = (groupId: string): string =>
   `${ROW_ID_PREFIX}${groupId}`;
+
+/** Test ID for the account-cell wrapper inside a management row. */
+export const getManageAccountRowCellId = (groupId: string): string =>
+  `${ROW_CELL_ID_PREFIX}${groupId}`;
 
 /** Test ID for the eye toggle (hide/unhide) on a management row. */
 export const getManageAccountRowEyeToggleId = (groupId: string): string =>
