@@ -124,6 +124,28 @@ describe('syncPushNotificationOsPermission', () => {
     expect(getStoredState()).toBe(false);
   });
 
+  it('fires the disabled event when OS permission is revoked even if the controller already disabled push', async () => {
+    // Engine init auto-disables push when native permission is off. That is
+    // the common Android path after process death returning from Settings.
+    mmStorage.saveLocal(STORED_STATE_KEY, true);
+    setControllerPushEnabled(false);
+    mockIsPushPermissionGranted.mockResolvedValue(false);
+
+    await syncPushNotificationOsPermission();
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        name: MetaMetricsEvents.PUSH_NOTIFICATIONS_DISABLED.category,
+        properties: {},
+      }),
+    );
+    expect(mockIdentify).toHaveBeenCalledWith({
+      [UserProfileProperty.PUSH_NOTIFICATIONS_ENABLED]: false,
+    });
+    expect(getStoredState()).toBe(false);
+  });
+
   it('does not fire the disabled event on an in-app disable, and clears the stored state', async () => {
     // Enabled + granted, then the user turns push off in-app (the disable
     // helper syncs after the controller call).
