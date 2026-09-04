@@ -1392,14 +1392,18 @@ jobs:
         id: e2e-selection
         uses: ./.github/actions/smart-e2e-selection
         with:
-          claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
-          openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
-          google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
           github-token: ${{ github.token }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
+          # Feature branch until MetaMask/ai-analyzer cuts a release with
+          # mode-owned hard-rule plugins + continue. Swap to a tag/SHA pin after.
+          analyzer-ref: docs/smart-e2e-engine-migration
+          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
+          langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
+          langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
