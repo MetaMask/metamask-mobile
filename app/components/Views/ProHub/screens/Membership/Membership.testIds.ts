@@ -14,6 +14,7 @@ export const MembershipTestIds = {
   RENEWS_ON_ROW: 'membership-renews-on-row',
   // Manage section
   MANAGE_SECTION: 'membership-manage-section',
+  INVOICES_ROW: 'membership-invoices-row',
   CONTACT_SUPPORT_ROW: 'membership-contact-support-row',
   CANCEL_MEMBERSHIP_ROW: 'membership-cancel-membership-row',
   // Stat info bottom sheet
