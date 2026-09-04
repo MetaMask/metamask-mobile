@@ -3132,7 +3132,7 @@ describe('CardController — data pass-throughs', () => {
   }
 
   function wireRedeemNetworkMessenger(
-    messenger: { call: jest.Mock },
+    messenger: { call: unknown },
     providerRequest: jest.Mock = jest.fn().mockResolvedValue({ status: '0x1' }),
     options: { missingProvider?: boolean } = {},
   ) {
@@ -4603,27 +4603,31 @@ describe('CardController — data pass-throughs', () => {
       ['50', '10-100'],
       ['250', '100-1000'],
       ['1500', '1000+'],
-    ])('logs amount bucket %s as %s on successful submit', async (amount) => {
-      const provider = buildMockProvider({
-        withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xabc' }),
-        getCashbackWithdrawEstimation: jest
-          .fn()
-          .mockResolvedValue(lineaEstimation),
-      });
-      const { controller, messenger } = buildAuthenticatedController(provider);
-      wireRedeemNetworkMessenger(messenger);
-      jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
-      jest.mocked(Logger.log).mockClear();
+    ])(
+      'logs amount bucket %s as %s on successful submit',
+      async (amount, expectedBucket) => {
+        const provider = buildMockProvider({
+          withdrawCashback: jest.fn().mockResolvedValue({ txHash: '0xabc' }),
+          getCashbackWithdrawEstimation: jest
+            .fn()
+            .mockResolvedValue(lineaEstimation),
+        });
+        const { controller, messenger } =
+          buildAuthenticatedController(provider);
+        wireRedeemNetworkMessenger(messenger);
+        jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+        jest.mocked(Logger.log).mockClear();
 
-      await controller.withdrawCashback({ amount });
+        await controller.withdrawCashback({ amount });
 
-      expect(Logger.log).toHaveBeenCalledWith(
-        'Card redeem withdraw submitted',
-        expect.objectContaining({
-          amountBucket: expect.any(String),
-        }),
-      );
-    });
+        expect(Logger.log).toHaveBeenCalledWith(
+          'Card redeem withdraw submitted',
+          expect.objectContaining({
+            amountBucket: expectedBucket,
+          }),
+        );
+      },
+    );
 
     it('fails with network reason when provider returns a network error', async () => {
       const provider = buildMockProvider({
@@ -4679,7 +4683,7 @@ describe('CardController — data pass-throughs', () => {
       });
     });
 
-    it('classifies CardApiError status codes when submit throws one', async () => {
+    it('classifies CardApiError 5xx submit failures as server_error', async () => {
       const provider = buildMockProvider({
         withdrawCashback: jest
           .fn()
@@ -4710,8 +4714,8 @@ describe('CardController — data pass-throughs', () => {
       });
     });
 
-    it('classifies CardApiError network (status 0) and client failures', async () => {
-      const networkProvider = buildMockProvider({
+    it('classifies CardApiError status 0 submit failures as network', async () => {
+      const provider = buildMockProvider({
         withdrawCashback: jest
           .fn()
           .mockRejectedValue(
@@ -4721,18 +4725,19 @@ describe('CardController — data pass-throughs', () => {
           .fn()
           .mockResolvedValue(lineaEstimation),
       });
-      const { controller: networkController, messenger: networkMessenger } =
-        buildAuthenticatedController(networkProvider);
-      wireRedeemNetworkMessenger(networkMessenger);
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
 
       await expect(
-        networkController.withdrawCashback({ amount: '5' }),
+        controller.withdrawCashback({ amount: '5' }),
       ).rejects.toBeInstanceOf(CardApiError);
-      expect(networkController.state.redeemWithdrawal).toMatchObject({
+      expect(controller.state.redeemWithdrawal).toMatchObject({
         error: { reason: 'network', statusCode: 0 },
       });
+    });
 
-      const clientProvider = buildMockProvider({
+    it('classifies CardApiError 4xx submit failures as submit_failed', async () => {
+      const provider = buildMockProvider({
         withdrawCashback: jest
           .fn()
           .mockRejectedValue(
@@ -4742,20 +4747,19 @@ describe('CardController — data pass-throughs', () => {
           .fn()
           .mockResolvedValue(lineaEstimation),
       });
-      const { controller: clientController, messenger: clientMessenger } =
-        buildAuthenticatedController(clientProvider);
-      wireRedeemNetworkMessenger(clientMessenger);
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
 
       await expect(
-        clientController.withdrawCashback({ amount: '5' }),
+        controller.withdrawCashback({ amount: '5' }),
       ).rejects.toBeInstanceOf(CardApiError);
-      expect(clientController.state.redeemWithdrawal).toMatchObject({
+      expect(controller.state.redeemWithdrawal).toMatchObject({
         error: { reason: 'submit_failed', statusCode: 400 },
       });
     });
 
-    it('classifies unknown errors and in-progress errors from submit', async () => {
-      const unknownProvider = buildMockProvider({
+    it('classifies unknown submit errors as unknown', async () => {
+      const provider = buildMockProvider({
         withdrawCashback: jest
           .fn()
           .mockRejectedValue(
@@ -4765,18 +4769,19 @@ describe('CardController — data pass-throughs', () => {
           .fn()
           .mockResolvedValue(lineaEstimation),
       });
-      const { controller: unknownController, messenger: unknownMessenger } =
-        buildAuthenticatedController(unknownProvider);
-      wireRedeemNetworkMessenger(unknownMessenger);
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
 
       await expect(
-        unknownController.withdrawCashback({ amount: '5' }),
+        controller.withdrawCashback({ amount: '5' }),
       ).rejects.toMatchObject({ name: 'WeirdError' });
-      expect(unknownController.state.redeemWithdrawal).toMatchObject({
+      expect(controller.state.redeemWithdrawal).toMatchObject({
         error: { reason: 'unknown', code: 'WeirdError' },
       });
+    });
 
-      const inProgressProvider = buildMockProvider({
+    it('classifies in-progress submit errors as in_progress', async () => {
+      const provider = buildMockProvider({
         withdrawCashback: jest
           .fn()
           .mockRejectedValue(new CardRedeemWithdrawalInProgressError()),
@@ -4784,16 +4789,13 @@ describe('CardController — data pass-throughs', () => {
           .fn()
           .mockResolvedValue(lineaEstimation),
       });
-      const {
-        controller: inProgressController,
-        messenger: inProgressMessenger,
-      } = buildAuthenticatedController(inProgressProvider);
-      wireRedeemNetworkMessenger(inProgressMessenger);
+      const { controller, messenger } = buildAuthenticatedController(provider);
+      wireRedeemNetworkMessenger(messenger);
 
       await expect(
-        inProgressController.withdrawCashback({ amount: '5' }),
+        controller.withdrawCashback({ amount: '5' }),
       ).rejects.toBeInstanceOf(CardRedeemWithdrawalInProgressError);
-      expect(inProgressController.state.redeemWithdrawal).toMatchObject({
+      expect(controller.state.redeemWithdrawal).toMatchObject({
         error: { reason: 'in_progress' },
       });
     });
