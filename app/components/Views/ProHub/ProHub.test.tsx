@@ -2,11 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import ProHub from './ProHub';
 import { ProHubTestIds } from './ProHub.testIds';
-import {
-  MOCK_NEXT_PAYMENT,
-  MOCK_PRO_HUB_STATS,
-  MOCK_TRADE_ALLOWANCES,
-} from './ProHub.constants';
+import { ALSO_INCLUDED_ITEMS } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -98,14 +94,11 @@ describe('ProHub', () => {
       expect(managePlansButton).toBeOnTheScreen();
     });
 
-    it('renders earned and saved stat cards with mock amounts', () => {
+    it('renders earned and saved stat cards', () => {
       const { getByTestId } = renderProHub();
 
-      const earnedCard = getByTestId(ProHubTestIds.EARNED_CARD);
-      const savedCard = getByTestId(ProHubTestIds.SAVED_CARD);
-
-      expect(earnedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.earned));
-      expect(savedCard).toHaveTextContent(toRegex(MOCK_PRO_HUB_STATS.saved));
+      expect(getByTestId(ProHubTestIds.EARNED_CARD)).toBeOnTheScreen();
+      expect(getByTestId(ProHubTestIds.SAVED_CARD)).toBeOnTheScreen();
     });
 
     it('renders the physical card placeholder, title, and description', () => {
@@ -132,7 +125,7 @@ describe('ProHub', () => {
       );
     });
 
-    it('renders member pricing section title and all trade rows', () => {
+    it('renders the member pricing section title', () => {
       const { getByTestId } = renderProHub();
 
       const section = getByTestId(MemberPricingOnTradesTestIds.SECTION);
@@ -140,34 +133,33 @@ describe('ProHub', () => {
 
       expect(section).toBeOnTheScreen();
       expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
-
-      MOCK_TRADE_ALLOWANCES.forEach((item) => {
-        const row = getByTestId(MemberPricingOnTradesTestIds.ROW(item.id));
-        const progress = getByTestId(
-          MemberPricingOnTradesTestIds.PROGRESS(item.id),
-        );
-
-        expect(row).toBeOnTheScreen();
-        expect(progress).toBeOnTheScreen();
-        expect(row).toHaveTextContent(
-          toRegex(strings(`pro_hub.member_pricing.${item.id}.label`)),
-        );
-      });
     });
 
-    it('renders next payment amount, date, and manage plan button', () => {
+    it('renders also included section, rows, disclaimer, and manage membership button', () => {
       const { getByTestId } = renderProHub();
 
-      const nextPaymentText = getByTestId(ProHubTestIds.NEXT_PAYMENT_TEXT);
-      const manageButton = getByTestId(ProHubTestIds.MANAGE_BUTTON);
+      expect(
+        getByTestId(ProHubTestIds.ALSO_INCLUDED_SECTION),
+      ).toBeOnTheScreen();
 
-      expect(nextPaymentText).toHaveTextContent(
-        strings('pro_hub.next_payment', {
-          amount: MOCK_NEXT_PAYMENT.amount,
-          date: MOCK_NEXT_PAYMENT.date,
-        }),
+      ALSO_INCLUDED_ITEMS.forEach((item) => {
+        const row = getByTestId(ProHubTestIds.ALSO_INCLUDED_ROW(item.id));
+
+        expect(row).toBeOnTheScreen();
+        expect(row).toHaveTextContent(toRegex(strings(item.titleKey)));
+        expect(row).toHaveTextContent(toRegex(strings(item.subtitleKey)));
+
+        if (item.badgeKey) {
+          expect(row).toHaveTextContent(toRegex(strings(item.badgeKey)));
+        }
+      });
+
+      expect(getByTestId(ProHubTestIds.DISCLAIMER_TEXT)).toHaveTextContent(
+        strings('pro_hub.also_included.disclaimer'),
       );
-      expect(manageButton).toHaveTextContent(strings('pro_hub.manage_plan'));
+      expect(getByTestId(ProHubTestIds.MANAGE_BUTTON)).toHaveTextContent(
+        strings('pro_hub.manage_membership'),
+      );
     });
   });
 
@@ -192,7 +184,7 @@ describe('ProHub', () => {
   // ── Navigation ───────────────────────────────────────────────────────────
 
   describe('navigation', () => {
-    it('navigates to Membership when manage plan is pressed', () => {
+    it('navigates to Membership when manage membership is pressed', () => {
       const { getByTestId } = renderProHub();
 
       fireEvent.press(getByTestId(ProHubTestIds.MANAGE_BUTTON));
