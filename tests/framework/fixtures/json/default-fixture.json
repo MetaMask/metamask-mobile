@@ -796,6 +796,7 @@
       "networkId": "1"
     },
     "legalNotices": {
+      "arcUsageNoticeShown": true,
       "isPna25Acknowledged": true,
       "newPrivacyPolicyToastClickedOrClosed": true,
       "newPrivacyPolicyToastShownDate": 1684232000000

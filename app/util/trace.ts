@@ -39,6 +39,10 @@ export enum TraceName {
   EngineInitialization = 'Engine Initialization',
   UIStartup = 'UI Startup',
   HomepageReady = 'Homepage Ready',
+  DeeplinkProcessed = 'Deeplink Processed',
+  DeeplinkNavigated = 'Deeplink Navigated',
+  DeeplinkSignatureVerify = 'Deeplink Signature Verify',
+  DeeplinkIntentPrepare = 'Deeplink Intent Prepare',
   NavInit = 'Navigation Initialization',
   Login = 'Login',
   NetworkSwitch = 'Network Switch',
@@ -296,6 +300,9 @@ export enum TraceName {
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
+  // Notifications & Braze Performance
+  NotificationListTimeToContent = 'Notification List Time To Content',
+  BrazeBannerTimeToContent = 'Braze Banner Time To Content',
 }
 
 export enum TraceOperation {
@@ -306,6 +313,7 @@ export enum TraceOperation {
   StorageRehydration = 'storage.rehydration',
   UIStartup = 'ui.startup',
   HomepagePerformance = 'homepage.performance',
+  DeeplinkPerformance = 'deeplink.performance',
   NavInit = 'navigation.initialization',
   NetworkSwitch = 'network.switch',
   SwitchBuiltInNetwork = 'switch.to.built.in.network',
@@ -369,6 +377,9 @@ export enum TraceOperation {
   MoneyAccountDataFetch = 'money.account.data_fetch',
   // Rewards
   RewardsPerformance = 'rewards.performance',
+  // Notifications & Braze Performance
+  NotificationPerformance = 'notification.performance',
+  BrazeBannerPerformance = 'braze_banner.performance',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
