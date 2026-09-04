@@ -2139,11 +2139,14 @@ export class CardController extends BaseController<
   }): Promise<CreditWithdrawResponse | CashbackWithdrawResponse> {
     const { mode, amount } = params;
     const existing = this.#getRedeemWithdrawal();
-    if (
+    // Terminal states are stale once the user leaves the redeem UI — allow a
+    // fresh submit. The view keeps the button locked through `success` while
+    // still mounted for the toast/navigation gap.
+    if (existing?.status === 'success' || existing?.status === 'failed') {
+      this.clearRedeemWithdrawal();
+    } else if (
       existing &&
-      (existing.status === 'submitting' ||
-        existing.status === 'monitoring' ||
-        existing.status === 'success')
+      (existing.status === 'submitting' || existing.status === 'monitoring')
     ) {
       throw new CardRedeemWithdrawalInProgressError();
     }
