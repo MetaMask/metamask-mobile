@@ -52,8 +52,6 @@
 		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
-		B4A2E0110100000100000C01 /* BrazePushModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C05 /* BrazePushModule.swift */; };
-		B4A2E0110100000100000C02 /* BrazePushModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C05 /* BrazePushModule.swift */; };
 		B4A2E0110100000100000C03 /* BrazePushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C06 /* BrazePushModule.m */; };
 		B4A2E0110100000100000C04 /* BrazePushModule.m in Sources */ = {isa = PBXBuildFile; fileRef = B4A2E0110100000100000C06 /* BrazePushModule.m */; };
 		BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist-Regular.otf */; };
@@ -182,7 +180,6 @@
 		AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MetaMask/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
-		B4A2E0110100000100000C05 /* BrazePushModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BrazePushModule.swift; path = MetaMask/NativeModules/BrazePush/BrazePushModule.swift; sourceTree = "<group>"; };
 		B4A2E0110100000100000C06 /* BrazePushModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = BrazePushModule.m; path = MetaMask/NativeModules/BrazePush/BrazePushModule.m; sourceTree = "<group>"; };
 		B848D40B87744D32949BDC25 /* Geist-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Regular.otf"; path = "../app/fonts/Geist-Regular.otf"; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
@@ -447,7 +444,6 @@
 			isa = PBXGroup;
 			children = (
 				B4A2E0110100000100000C06 /* BrazePushModule.m */,
-				B4A2E0110100000100000C05 /* BrazePushModule.swift */,
 			);
 			name = BrazePush;
 			sourceTree = "<group>";
@@ -939,7 +935,6 @@
 			files = (
 				E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */,
 				F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */,
-				B4A2E0110100000100000C01 /* BrazePushModule.swift in Sources */,
 				B4A2E0110100000100000C03 /* BrazePushModule.m in Sources */,
 				2EF283322B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				654378B0243E2ADC00571B9C /* File.swift in Sources */,
@@ -956,7 +951,6 @@
 			files = (
 				E4B580772E33A001008165E1 /* AppDelegate.swift in Sources */,
 				F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */,
-				B4A2E0110100000100000C02 /* BrazePushModule.swift in Sources */,
 				B4A2E0110100000100000C04 /* BrazePushModule.m in Sources */,
 				2EF283342B17EC1A00D7B4B1 /* RNTar.m in Sources */,
 				2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */,
@@ -1045,7 +1039,6 @@
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "development-metamask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -1112,7 +1105,6 @@
 				PRODUCT_NAME = MetaMask;
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
 				SWIFT_VERSION = 5.0;
@@ -1181,7 +1173,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "development-metamask-flask";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1247,7 +1238,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask-Flask";
-				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";

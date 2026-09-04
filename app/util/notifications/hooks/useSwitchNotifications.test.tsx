@@ -34,7 +34,7 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
         enableNotifications: mockEnableNotifications,
       });
 
-    const mockDisableNotifications = jest.fn();
+    const mockDisableNotifications = jest.fn().mockResolvedValue(true);
     const mockUseDisableNotifications = jest
       .spyOn(UseNotificationsModule, 'useDisableNotifications')
       .mockReturnValue({
@@ -77,6 +77,16 @@ describe('useSwitchNotifications - useNotificationsToggle', () => {
       expect(mocks.mockDisableNotifications).toHaveBeenCalled(),
     );
     expect(mocks.mockEnableNotifications).not.toHaveBeenCalled();
+  });
+
+  it('throws when disabling notifications fails', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockDisableNotifications.mockResolvedValue(false);
+    const hook = renderHookWithProvider(() => useNotificationsToggle());
+
+    await expect(
+      act(() => hook.result.current.switchNotifications(false)),
+    ).rejects.toThrow('Failed to disable notifications');
   });
 });
 
