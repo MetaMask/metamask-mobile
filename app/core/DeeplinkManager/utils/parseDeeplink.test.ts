@@ -9,6 +9,7 @@ import handleUniversalLink from '../handlers/handleUniversalLink';
 import connectWithWC from '../handlers/connectWithWC';
 import parseDeeplink from './parseDeeplink';
 import handleEthereumUrl from '../handlers/handleEthereumUrl';
+import handleSolanaUrl from '../handlers/handleSolanaUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import {
   cancelDeeplinkProcessedTrace,
@@ -23,6 +24,7 @@ jest.mock('../handlers/intent/handleDappUrl');
 jest.mock('../handlers/handleUniversalLink');
 jest.mock('../handlers/connectWithWC');
 jest.mock('../handlers/handleEthereumUrl');
+jest.mock('../handlers/handleSolanaUrl');
 jest.mock('../../Performance/DeeplinkPerformance');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -61,11 +63,15 @@ describe('parseDeeplink', () => {
   const mockHandleEthereumUrl = handleEthereumUrl as jest.MockedFunction<
     typeof handleEthereumUrl
   >;
+  const mockHandleSolanaUrl = handleSolanaUrl as jest.MockedFunction<
+    typeof handleSolanaUrl
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     instance = {} as unknown as DeeplinkManager;
     mockHandleEthereumUrl.mockResolvedValue(undefined);
+    mockHandleSolanaUrl.mockResolvedValue(undefined);
     mockGetDappUrl.mockImplementation((urlObj) => {
       urlObj.set('protocol', 'https:');
       return urlObj.href;
@@ -158,6 +164,23 @@ describe('parseDeeplink', () => {
     expect(mockHandleEthereumUrl).toHaveBeenCalledWith({
       url,
       origin: 'testOrigin',
+    });
+  });
+
+  it('handles Solana Pay URL', async () => {
+    const url =
+      'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000';
+
+    await parseDeeplink({
+      deeplinkManager: instance,
+      url,
+      origin: 'testOrigin',
+      browserCallBack: mockBrowserCallBack,
+      onHandled: mockOnHandled,
+    });
+
+    expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
+      url,
     });
   });
 
