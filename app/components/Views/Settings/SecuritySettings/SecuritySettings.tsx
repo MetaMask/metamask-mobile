@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { MAINNET } from '../../../../constants/network';
 import ActionModal from '../../../UI/ActionModal';
 import { clearHistory } from '../../../../actions/browser';
-import { SIMULATION_DETALS_ARTICLE_URL } from '../../../../constants/urls';
+import { SIMULATION_DETAILS_ARTICLE_URL } from '../../../../constants/urls';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { SEED_PHRASE_HINTS } from '../../../../constants/storage';
@@ -311,11 +311,11 @@ const Settings: React.FC = () => {
             size={OldButtonSize.Auto}
             labelTextVariant={LibraryTextVariant.BodySMMedium}
             onPress={() => {
-              Linking.openURL(SIMULATION_DETALS_ARTICLE_URL);
+              Linking.openURL(SIMULATION_DETAILS_ARTICLE_URL);
               trackExternalLinkClicked(trackEvent, createEventBuilder, {
                 location: 'app_settings',
                 text: strings('app_settings.simulation_details_learn_more'),
-                url_domain: SIMULATION_DETALS_ARTICLE_URL,
+                url_domain: SIMULATION_DETAILS_ARTICLE_URL,
               });
             }}
             label={strings('app_settings.simulation_details_learn_more')}

@@ -18,7 +18,7 @@ export const PASSWORD_GUIDE_URL = `https://support.metamask.io/configure/wallet/
 export const LEARN_MORE_URL = `https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/${MOBILE_UTM}`;
 export const WHY_TRANSACTION_TAKE_TIME_URL =
   'https://community.metamask.io/t/what-is-gas-why-do-transactions-take-so-long/3172';
-export const SIMULATION_DETALS_ARTICLE_URL = `https://support.metamask.io/transactions-and-gas/transactions/simulations/${MOBILE_UTM}`;
+export const SIMULATION_DETAILS_ARTICLE_URL = `https://support.metamask.io/transactions-and-gas/transactions/simulations/${MOBILE_UTM}`;
 
 export const TOKEN_APPROVAL_SPENDING_CAP = `https://support.metamask.io/privacy-and-security/how-to-customize-token-approvals-with-a-spending-cap/${MOBILE_UTM}`;
 export const CONNECTING_TO_A_DECEPTIVE_SITE = `https://support.metamask.io/troubleshooting/deceptive-site-ahead-when-trying-to-connect-to-a-site/${MOBILE_UTM}`;
