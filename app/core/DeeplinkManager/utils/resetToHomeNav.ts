@@ -24,11 +24,10 @@ export interface NavigationBranchState {
  * so there is no mounted tree to navigate into and it has to name the
  * intervening navigators itself.
  *
- * This is the only place in production that spells that path out. Navigation
- * flattening removes the `MAIN_FLOW` level, and this function is the single
- * edit that takes. A second copy elsewhere would be the dangerous kind of
- * stale: React Navigation drops a level it does not recognise rather than
- * throwing, so the deeplink would quietly land on the wrong screen.
+ * This is the only place in production that spells that path out. A second
+ * copy elsewhere would be the dangerous kind of stale: React Navigation drops
+ * a level it does not recognise rather than throwing, so the deeplink would
+ * quietly land on the wrong screen.
  */
 export const buildHomeNavResetState = (
   mainNavigatorState: NavigationBranchState,
@@ -36,14 +35,7 @@ export const buildHomeNavResetState = (
   routes: [
     {
       name: Routes.ONBOARDING.HOME_NAV,
-      state: {
-        routes: [
-          {
-            name: Routes.MAIN_FLOW,
-            state: mainNavigatorState,
-          },
-        ],
-      },
+      state: mainNavigatorState,
     },
   ],
 });
