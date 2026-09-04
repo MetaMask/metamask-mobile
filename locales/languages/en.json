@@ -9231,7 +9231,7 @@
   },
   "error_sheet": {
     "still_there_title": "Still there?",
-    "still_there_description": "Your session has expired. Log in again.",
+    "still_there_description": "Your session timed out due to inactivity. Log in again when you're ready.",
     "unable_to_login_title": "Unable to connect",
     "unable_to_login_description": "Your internet connection is unstable. Check your connection and try again.",
     "something_went_wrong_title": "Something went wrong",
