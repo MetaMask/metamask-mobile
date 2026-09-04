@@ -38,7 +38,7 @@ const createStateWithSingleGroup = (
   const group = hidden
     ? createMockHiddenAccountGroup(groupId, 'Group 1')
     : createMockAccountGroup(groupId, 'Group 1');
-  const wallet = createMockWallet('wallet-1', 'Wallet 1', [group]);
+  const wallet = createMockWallet('keyring:wallet-1', 'Wallet 1', [group]);
   return createMockState([wallet], {});
 };
 
@@ -59,7 +59,7 @@ describe('useManageAccountsHide', () => {
       expectedHidden: false,
     },
   ])('$name', ({ hidden, expectedHidden }) => {
-    const groupId = 'wallet-1/group-1' as AccountGroupId;
+    const groupId = 'keyring:wallet-1/1' as AccountGroupId;
     const state = createStateWithSingleGroup(groupId, { hidden });
 
     const { result } = renderUseManageAccountsHide(state);
@@ -75,12 +75,14 @@ describe('useManageAccountsHide', () => {
   });
 
   it('reads hidden state from the current store, not a cached value, per group', () => {
-    const visibleGroupId = 'wallet-1/group-1' as AccountGroupId;
-    const hiddenGroupId = 'wallet-2/group-1' as AccountGroupId;
+    const visibleGroupId = 'keyring:wallet-1/1' as AccountGroupId;
+    const hiddenGroupId = 'entropy:wallet-2/1' as AccountGroupId;
     const visibleGroup = createMockAccountGroup(visibleGroupId, 'Group 1');
-    const wallet1 = createMockWallet('wallet-1', 'Wallet 1', [visibleGroup]);
+    const wallet1 = createMockWallet('keyring:wallet-1', 'Wallet 1', [
+      visibleGroup,
+    ]);
     const hiddenGroup = createMockHiddenAccountGroup(hiddenGroupId, 'Group 2');
-    const wallet2 = createMockEntropyWallet('wallet-2', 'Wallet 2', [
+    const wallet2 = createMockEntropyWallet('entropy:wallet-2', 'Wallet 2', [
       hiddenGroup,
     ]);
     const state = createMockState([wallet1, wallet2], {});
@@ -102,7 +104,7 @@ describe('useManageAccountsHide', () => {
   });
 
   it('does not call syncWithUserStorage when toggling hidden state', () => {
-    const groupId = 'wallet-1/group-1' as AccountGroupId;
+    const groupId = 'keyring:wallet-1/1' as AccountGroupId;
     const state = createStateWithSingleGroup(groupId);
 
     const { result } = renderUseManageAccountsHide(state);
