@@ -108,6 +108,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
+  'UiSlotsController:stateChanged',
   'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',
