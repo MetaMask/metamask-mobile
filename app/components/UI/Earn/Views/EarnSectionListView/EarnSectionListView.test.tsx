@@ -7,7 +7,7 @@ import {
   View as MockView,
 } from 'react-native';
 import type { Asset } from '@metamask/assets-controllers';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type EarnMoneyAccountRow from '../../../../Views/TrendingView/feeds/earn/EarnMoneyAccountRow';
 import type EarnSearchAssetRow from '../../../../Views/TrendingView/feeds/earn/EarnSearchAssetRow';
@@ -20,6 +20,8 @@ import type {
 } from '../../types/earnAssets';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import {
+  EARN_MODULE_BUTTON_INTENTS,
+  EARN_MODULE_BUTTON_TYPES,
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
   EARN_MODULE_SCREEN_NAMES,
@@ -107,6 +109,7 @@ const mockPotentialEarningsTokenRow = jest.fn(
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useRoute: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -148,7 +151,7 @@ jest.mock('../../hooks/useEarnOpportunityNavigation', () => ({
   default: jest.fn(() => ({
     navigateFromEarnAsset: mockNavigateFromEarnAsset,
   })),
-  getEarnOpportunityRedirectTarget: jest.fn(() => 'earn_deposit'),
+  getEarnOpportunityRedirectTarget: jest.fn(() => 'stablecoin_lending_deposit'),
 }));
 
 jest.mock('../../../Money/hooks/useMoneyNavigation', () => ({
@@ -386,6 +389,9 @@ describe('EarnSectionListView', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     } as ReturnType<typeof useNavigation>);
+    jest.mocked(useRoute).mockReturnValue({
+      params: {},
+    } as ReturnType<typeof useRoute>);
     mockUseEarnAssetCatalogue.mockReturnValue(createCatalogueResult());
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceResult());
     mockUseProjectedEarnings.mockReturnValue(createProjectionResult());
@@ -408,9 +414,10 @@ describe('EarnSectionListView', () => {
       screen.getByText(strings('earn_module.stake_or_lend_description')),
     ).toBeOnTheScreen();
     expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
-      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST,
-      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
     });
+    expect(mockTrackEarnScreenViewed).toHaveBeenCalledTimes(1);
     expect(
       screen.queryByTestId(EARN_SECTION_LIST_TEST_IDS.MONEY_PROJECTION),
     ).toBeNull();
@@ -473,7 +480,7 @@ describe('EarnSectionListView', () => {
     expect(mockTrackMoneyTooltipClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         tooltip_name: 'earn_on_your_crypto',
-        component_name: 'money_potential_earnings_section',
+        component_name: 'money_balance_projection',
       }),
     );
   });
@@ -807,12 +814,57 @@ describe('EarnSectionListView', () => {
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       expect.objectContaining({ assetId: asset.assetId }),
       TokenDetailsSource.ExploreEarn,
-      expect.objectContaining({ entry_point: 'explore' }),
+      expect.objectContaining({
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        asset_position: 1,
+        assets_in_list: 1,
+      }),
     );
     expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith(
       expect.objectContaining({
         component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SECTION_LIST_ASSET_ROW,
       }),
+    );
+  });
+
+  it('uses the caller entry point in Earn asset analytics context', () => {
+    isMoneyAccountVisible = false;
+    const asset = createDiscoveryAsset(
+      'USDC',
+      1,
+      EARN_EXPERIENCES.STABLECOIN_LENDING,
+    );
+    mockUseEarnAssetCatalogue.mockReturnValue(
+      createCatalogueResult({ assets: [asset] }),
+    );
+    jest.mocked(useRoute).mockReturnValue({
+      params: {
+        analyticsContext: {
+          entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+        },
+      },
+    } as ReturnType<typeof useRoute>);
+
+    render(<EarnSectionListView />);
+
+    fireEvent.press(
+      screen.getByTestId(`mock-earn-search-asset-row-${asset.assetId}`),
+    );
+
+    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+    });
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ assetId: asset.assetId }),
+      TokenDetailsSource.ExploreEarn,
+      {
+        entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        asset_position: 1,
+        assets_in_list: 1,
+      },
     );
   });
 
@@ -824,6 +876,10 @@ describe('EarnSectionListView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockTrackEarnButtonClicked).toHaveBeenCalledWith({
+      button_type: EARN_MODULE_BUTTON_TYPES.ICON,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.GO_BACK,
+    });
   });
 
   it('renders fallback projection copy when projection data is unavailable', () => {

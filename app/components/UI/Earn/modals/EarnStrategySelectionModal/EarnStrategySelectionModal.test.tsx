@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { EarnStrategySelectionModalTestIds } from './EarnStrategySelectionModal.testIds';
 import EarnStrategySelectionModal, { requireEarnStrategyToken } from './index';
@@ -20,7 +21,9 @@ import useEarnToasts, {
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import {
+  EARN_MODULE_BUTTON_INTENTS,
   EARN_MODULE_BOTTOM_SHEET_NAMES,
+  EARN_MODULE_SCREEN_NAMES,
   EARN_MODULE_REDIRECT_TARGETS,
 } from '../../constants/earnModuleEvents';
 import type {
@@ -64,6 +67,7 @@ const mockUseEarnToasts = jest.mocked(useEarnToasts);
 const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockTrackBottomSheetViewed = jest.fn();
 const mockTrackButtonClicked = jest.fn();
+const mockTrackSurfaceClicked = jest.fn();
 
 const assetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as EarnAssetId;
@@ -138,7 +142,7 @@ describe('EarnStrategySelectionModal', () => {
       trackScreenViewed: jest.fn(),
       trackComponentViewed: jest.fn(),
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
-      trackSurfaceClicked: jest.fn(),
+      trackSurfaceClicked: mockTrackSurfaceClicked,
       trackButtonClicked: mockTrackButtonClicked,
     });
     mockUseNavigation.mockReturnValue({
@@ -186,6 +190,27 @@ describe('EarnStrategySelectionModal', () => {
     expect(
       screen.getByTestId(EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('tracks the strategy selection bottom sheet view on mount', () => {
+    render(<EarnStrategySelectionModal />);
+
+    expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks closing the strategy selection bottom sheet', () => {
+    render(<EarnStrategySelectionModal />);
+
+    const closeButton = screen.UNSAFE_getByType(ButtonIcon);
+
+    expect(closeButton.props.iconName).toBe(IconName.Close);
+
+    fireEvent.press(closeButton);
+
+    expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+      component_name: 'earn_strategy_selection_modal_close_icon',
+    });
+    expect(goBack).toHaveBeenCalledTimes(1);
   });
 
   it('renders fallback info copy for an unavailable money strategy', () => {
@@ -336,7 +361,7 @@ describe('EarnStrategySelectionModal', () => {
           earnAsset,
           analyticsContext: {
             entry_point: 'homepage',
-            source_surface_name: 'homepage_earn_section',
+            screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
             asset_position: 2,
             assets_in_list: 5,
           },
@@ -366,15 +391,20 @@ describe('EarnStrategySelectionModal', () => {
         expect.objectContaining({
           bottom_sheet_name:
             EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-          source_surface_name: 'homepage_earn_section',
+          entry_point: 'homepage',
+          screen_name: EARN_MODULE_SCREEN_NAMES.WALLET_HOME,
         }),
       );
       expect(mockTrackButtonClicked).toHaveBeenCalledWith(
         expect.objectContaining({
-          button_intent: 'get_started',
-          strategy_type: 'MONEY_ACCOUNT_DEPOSIT',
-          strategy_position: 1,
-          strategies_in_list: 2,
+          button_intent: EARN_MODULE_BUTTON_INTENTS.DEPOSIT,
+          selected_strategy_type: 'money_account_deposit',
+          selected_strategy_position: 1,
+          asset_position: 2,
+          assets_in_list: 5,
+          rate_type: 'apy',
+          selected_strategy_rate_percentage: 6.2,
+          is_fee_subsidized: false,
           redirect_target: expectedRedirectTarget,
         }),
       );

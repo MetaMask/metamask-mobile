@@ -13,6 +13,8 @@ import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
 } from '../../../UI/Earn/constants/earnModuleEvents';
+import { EARN_EXPERIENCES } from '../../../UI/Earn/constants/experiences';
+import type { EarnSectionRankedAsset } from '../../../UI/Earn/utils/earnSection';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 jest.mock('react-redux', () => ({
@@ -32,24 +34,27 @@ jest.mock('../../../UI/Earn/hooks/useEarnOpportunityNavigation', () => ({
 jest.mock('../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(),
 }));
-jest.mock('../../../UI/Earn/utils/earnModuleAnalytics', () => ({
-  getEarnModuleAnalyticsContext: jest.fn(() => ({
-    entry_point: 'explore_search',
-  })),
-  getEarnModuleAssetProperties: jest.fn(() => ({
-    asset_symbol: 'USDC',
-  })),
+jest.mock('../../../UI/Earn/utils/analytics', () => ({
+  formatChainIdForAnalytics: jest.fn((chainId?: string | number) =>
+    chainId === undefined ? undefined : `formatted:${chainId}`,
+  ),
 }));
 jest.mock('../feeds/earn/EarnMoneyAccountRow', () => ({
   __esModule: true,
-  default: ({ onPress }: React.ComponentProps<typeof EarnMoneyAccountRow>) => (
-    <MockPressable testID="money-row" onPress={() => onPress({} as never)} />
+  default: ({
+    item,
+    onPress,
+  }: React.ComponentProps<typeof EarnMoneyAccountRow>) => (
+    <MockPressable testID="money-row" onPress={() => onPress(item)} />
   ),
 }));
 jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
   __esModule: true,
-  default: ({ onPress }: React.ComponentProps<typeof EarnSearchAssetRow>) => (
-    <MockPressable testID="asset-row" onPress={() => onPress({} as never)} />
+  default: ({
+    item,
+    onPress,
+  }: React.ComponentProps<typeof EarnSearchAssetRow>) => (
+    <MockPressable testID="asset-row" onPress={() => onPress(item)} />
   ),
 }));
 
@@ -59,6 +64,40 @@ const mockNavigateFromEarnAsset = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
 const mockTrackEarnSurfaceClicked = jest.fn();
 const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
+
+const createEarnAsset = (): EarnSectionRankedAsset => ({
+  kind: 'discovery',
+  assetId: 'eip155:1/erc20:0x123',
+  metadata: {
+    address: '0x123',
+    chainId: '1',
+    decimals: 6,
+    image: 'usdc.png',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    ticker: 'USDC',
+    logo: 'usdc.png',
+    isETH: false,
+  },
+  experiences: [
+    {
+      id: 'stablecoin-lending-usdc',
+      type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+      role: 'underlying',
+      rate: { type: 'APY', status: 'ready', percentage: 4.259 },
+      isFeeSubsidized: true,
+    },
+  ],
+  highestRatePercent: 4.259,
+  highestRateExperience: {
+    id: 'stablecoin-lending-usdc',
+    type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+    role: 'underlying',
+    rate: { type: 'APY', status: 'ready', percentage: 4.259 },
+    isFeeSubsidized: true,
+  },
+  rateStatus: 'ready',
+});
 
 describe('EarnSearchRow', () => {
   beforeEach(() => {
@@ -100,17 +139,19 @@ describe('EarnSearchRow', () => {
       redirect_target: 'money_home',
     });
     expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
-      component_name: EARN_MODULE_COMPONENT_NAMES.EARCH_SEARCH_ROW,
+      component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,
+      screen_name: 'explore_search',
       entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
     });
     expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
   });
 
   it('tracks Earn surface ownership and preserves Explore search source', () => {
+    const asset = createEarnAsset();
     const item = {
       kind: 'asset',
       id: 'eip155:1/erc20:usdc',
-      asset: {} as never,
+      asset,
     } as const;
 
     const { getByTestId } = render(
@@ -123,13 +164,26 @@ describe('EarnSearchRow', () => {
       expect.objectContaining({
         component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ASSET_ROW,
         asset_symbol: 'USDC',
+        chain_id: 'formatted:1',
+        asset_position: 2,
+        assets_in_list: 3,
+        eligible_strategy_count: 1,
+        eligible_strategy_types: ['stablecoin_lending'],
+        asset_has_balance: false,
+        rate_percentage: 4.25,
+        is_fee_subsidized: true,
         redirect_target: 'token_details',
       }),
     );
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       item.asset,
       TokenDetailsSource.ExploreSearch,
-      expect.objectContaining({ entry_point: 'explore_search' }),
+      {
+        entry_point: 'explore_search',
+        screen_name: 'explore_search',
+        asset_position: 2,
+        assets_in_list: 3,
+      },
     );
   });
 

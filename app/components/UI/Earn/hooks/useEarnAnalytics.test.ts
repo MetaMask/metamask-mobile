@@ -62,16 +62,16 @@ describe('useEarnAnalytics', () => {
   it('tracks a screen view with screen location properties', () => {
     const { result } = renderHook(() =>
       useEarnAnalytics({
-        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+        screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
       }),
     );
 
     result.current.trackScreenViewed();
 
     expect(mockAddProperties).toHaveBeenCalledWith({
-      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST,
-      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+      screen_name: EARN_MODULE_SCREEN_NAMES.EARN_SECTION_LIST_VIEW,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
     });
   });
 
@@ -80,7 +80,7 @@ describe('useEarnAnalytics', () => {
       useEarnAnalytics({
         bottom_sheet_name:
           EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
       }),
     );
 
@@ -89,7 +89,7 @@ describe('useEarnAnalytics', () => {
     expect(mockAddProperties).toHaveBeenCalledWith({
       bottom_sheet_name:
         EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
     });
   });
 
@@ -112,13 +112,13 @@ describe('useEarnAnalytics', () => {
       useEarnAnalytics({
         bottom_sheet_name:
           EARN_MODULE_BOTTOM_SHEET_NAMES.STRATEGY_SELECTION_MODAL,
-        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTIONJ_LIST,
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
       }),
     );
 
     result.current.trackButtonClicked({
       button_type: EARN_MODULE_BUTTON_TYPES.TEXT,
-      button_intent: EARN_MODULE_BUTTON_INTENTS.GET_STARTED,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.DEPOSIT,
       label_key: 'earn.strategy_selection.get_started',
       redirect_target: EARN_MODULE_REDIRECT_TARGETS.MONEY_HOME,
     });
@@ -136,7 +136,7 @@ describe('useEarnAnalytics', () => {
   it('tracks non-button surfaces without adding button properties', () => {
     const { result } = renderHook(() =>
       useEarnAnalytics({
-        component_name: EARN_MODULE_COMPONENT_NAMES.EARCH_SEARCH_ROW,
+        component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,
         entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
       }),
     );
@@ -160,5 +160,27 @@ describe('useEarnAnalytics', () => {
     expect(mockAddProperties.mock.calls[0][0]).not.toHaveProperty(
       'button_intent',
     );
+  });
+
+  it('tracks icon buttons without text label properties', () => {
+    const { result } = renderHook(() =>
+      useEarnAnalytics({
+        entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+      }),
+    );
+
+    result.current.trackButtonClicked({
+      button_type: EARN_MODULE_BUTTON_TYPES.ICON,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.GO_BACK,
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.EARN_MODULE_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      entry_point: EARN_MODULE_ENTRY_POINTS.EARN_SECTION_LIST,
+      button_type: EARN_MODULE_BUTTON_TYPES.ICON,
+      button_intent: EARN_MODULE_BUTTON_INTENTS.GO_BACK,
+    });
   });
 });
