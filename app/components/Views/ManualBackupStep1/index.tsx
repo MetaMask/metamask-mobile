@@ -29,8 +29,8 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
 import Engine from '../../../core/Engine';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import SecureContentView from '../../UI/SecureContentView';
@@ -172,10 +172,12 @@ const ManualBackupStep1 = () => {
       }
 
       if (exportError) {
-        const srpRecoveryError = new Error(
-          'Error trying to recover SRP from keyring-controller',
+        trackErrorAsAnalytics(
+          'ManualBackupStep1: SRP recovery failed',
+          exportError instanceof Error
+            ? exportError.message
+            : String(exportError),
         );
-        Logger.error(srpRecoveryError);
       }
 
       setView(CONFIRM_PASSWORD);
