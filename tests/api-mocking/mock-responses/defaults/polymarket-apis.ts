@@ -21,8 +21,21 @@ export const POLYMARKET_GEOBLOCK_ELIGIBLE = {
   },
 } as const;
 
+/**
+ * Polymarket market/position icons hosted on S3.
+ * MMDS AvatarToken / AvatarGroup (expo-image) issue HEAD then GET for these
+ * URLs when claim confirmations render winning-position avatars.
+ */
+export const POLYMARKET_S3_UPLOAD_URL =
+  /^https:\/\/polymarket-upload\.s3\.us-east-2\.amazonaws\.com\/.+/;
+
 export const POLYMARKET_API_MOCKS = {
   GET: [
+    {
+      urlEndpoint: POLYMARKET_S3_UPLOAD_URL,
+      responseCode: 200,
+      response: '',
+    },
     POLYMARKET_GEOBLOCK_ELIGIBLE,
     // gamma-api: events pagination — legacy consumer reads `data?.data`
     {
@@ -107,4 +120,11 @@ export const POLYMARKET_API_MOCKS = {
   PUT: [],
   DELETE: [],
   PATCH: [],
+  HEAD: [
+    {
+      urlEndpoint: POLYMARKET_S3_UPLOAD_URL,
+      responseCode: 200,
+      response: '',
+    },
+  ],
 };
