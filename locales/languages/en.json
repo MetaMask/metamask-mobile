@@ -9481,6 +9481,12 @@
       "search_placeholder": "Search networks",
       "no_networks_found": "No networks found",
       "no_networks_available": "No networks available"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
