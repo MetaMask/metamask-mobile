@@ -25,6 +25,7 @@ const availableFeatures = new Set([
   'sample-feature',
   'tron',
   'experimental',
+  'lighter',
 ]);
 
 // Legacy (main) hardcoded feature sets — used when CODE_FENCING_FEATURES is not set (e.g. local dev)
@@ -62,9 +63,9 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
-function getBuildTypeFeaturesFromEnv() {
-  const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
-  const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
+function getBuildTypeFeaturesFromEnv(environment = process.env) {
+  const buildType = environment.METAMASK_BUILD_TYPE ?? 'main';
+  const envType = environment.METAMASK_ENVIRONMENT ?? 'production';
   let features;
 
   switch (buildType) {
@@ -100,20 +101,24 @@ function getBuildTypeFeaturesFromEnv() {
  *
  * @returns {Set<string>} The set of features to be included in the build.
  */
-function getBuildTypeFeatures() {
+function getBuildTypeFeatures(environment = process.env) {
   let featureSet;
 
   // Prefer GH Actions path: single source of truth from builds.yml
-  if (process.env.CODE_FENCING_FEATURES) {
-    const features = JSON.parse(process.env.CODE_FENCING_FEATURES);
+  if (environment.CODE_FENCING_FEATURES) {
+    const features = JSON.parse(environment.CODE_FENCING_FEATURES);
     featureSet = new Set(features);
   } else {
     // Fallback for local dev builds
-    featureSet = getBuildTypeFeaturesFromEnv();
+    featureSet = getBuildTypeFeaturesFromEnv(environment);
   }
 
-  if (process.env.INCLUDE_SAMPLE_FEATURE === 'true') {
+  if (environment.INCLUDE_SAMPLE_FEATURE === 'true') {
     featureSet.add('sample-feature');
+  }
+
+  if (environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+    featureSet.add('lighter');
   }
 
   return featureSet;
@@ -219,3 +224,7 @@ function getESLintInstance() {
   }
   return eslintInstance;
 }
+
+// Exposed for focused code-fencing tests only.
+module.exports.getBuildTypeFeatures = getBuildTypeFeatures;
+module.exports.availableFeatures = availableFeatures;

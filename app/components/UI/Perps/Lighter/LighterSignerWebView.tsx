@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { WebView } from '@metamask/react-native-webview';
 import type {
@@ -13,17 +13,21 @@ import lighterSdkHtml from './wasm-wrapper.standalone.html';
 import {
   connectLighterExecutor,
   resetLighterBridge,
-  lighterSignerBridge,
+  setLighterBridgeUnavailable,
+  LIGHTER_SIGNER_TIMEOUT_MS,
+  type LighterExecutorCall,
+  type LighterExecutor,
 } from './lighterSignerBridge';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { isTestEnvironment } from '../../../../util/test/utils';
 
 /**
  * Dev-only synthetic signer round-trip: derives a throwaway venue key through
  * the real postMessage + WASM path so on-device signing latency is measurable
  * without touching any account (pure offline WASM computation).
  */
-function runWarmupProbe(mountedAt: number): void {
-  if (!__DEV__) {
+function runWarmupProbe(mountedAt: number, execute: LighterExecutor): void {
+  if (!__DEV__ || isTestEnvironment) {
     return;
   }
   const readyAt = Date.now();
@@ -31,11 +35,13 @@ function runWarmupProbe(mountedAt: number): void {
     `[LighterSignerBridge] perf mount→ready ${readyAt - mountedAt}ms`,
   );
   const startedAt = Date.now();
-  lighterSignerBridge
-    .execute({
+  execute(
+    {
       function: '_createClient',
       params: ['ab'.repeat(32), 300, 0, 0, 254],
-    })
+    },
+    LIGHTER_SIGNER_TIMEOUT_MS,
+  )
     .then(() => {
       DevLogger.log(
         `[LighterSignerBridge] perf warmup _createClient ${Date.now() - startedAt}ms`,
@@ -57,7 +63,10 @@ const styles = StyleSheet.create({
   },
 });
 
-const EXECUTE_TIMEOUT_MS = 60_000;
+export const MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS = 3;
+export const LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS = 1_000;
+const UNAVAILABLE_ERROR =
+  'Lighter signer is unavailable after repeated WebView load failures';
 
 const executePromises: Record<
   string,
@@ -65,6 +74,7 @@ const executePromises: Record<
       resolve: (value: unknown) => void;
       reject: (reason?: unknown) => void;
       timer: ReturnType<typeof setTimeout>;
+      functionName: LighterExecutorCall['function'];
     }
   | undefined
 > = {};
@@ -88,6 +98,101 @@ function rejectAllPending(reason: string): void {
   }
 }
 
+type LighterPageMessage =
+  | { type: 'ready' }
+  | { type: 'executeResult'; executeId: string; result: unknown }
+  | { type: 'executeError'; executeId: string; message: string }
+  | { type: 'log' | 'warn' | 'error'; message: string | string[] };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isLogMessage(value: unknown): value is string | string[] {
+  return (
+    typeof value === 'string' ||
+    (Array.isArray(value) && value.every((item) => typeof item === 'string'))
+  );
+}
+
+function hasOptionalString(
+  value: Record<string, unknown>,
+  key: string,
+): boolean {
+  return value[key] === undefined || typeof value[key] === 'string';
+}
+
+export function parseLighterPageMessage(
+  data: string,
+): LighterPageMessage | null {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(data) as unknown;
+  } catch {
+    return null;
+  }
+  if (!isRecord(parsed) || typeof parsed.type !== 'string') {
+    return null;
+  }
+
+  switch (parsed.type) {
+    case 'ready':
+      return { type: 'ready' };
+    case 'executeResult':
+      return typeof parsed.executeId === 'string' && 'result' in parsed
+        ? {
+            type: 'executeResult',
+            executeId: parsed.executeId,
+            result: parsed.result,
+          }
+        : null;
+    case 'executeError':
+      return typeof parsed.executeId === 'string' &&
+        typeof parsed.message === 'string'
+        ? {
+            type: 'executeError',
+            executeId: parsed.executeId,
+            message: parsed.message,
+          }
+        : null;
+    case 'log':
+    case 'warn':
+    case 'error':
+      return isLogMessage(parsed.message)
+        ? { type: parsed.type, message: parsed.message }
+        : null;
+    default:
+      return null;
+  }
+}
+
+export function isValidLighterSignerResult(
+  functionName: LighterExecutorCall['function'],
+  result: unknown,
+): boolean {
+  if (!isRecord(result) || !hasOptionalString(result, 'error')) {
+    return false;
+  }
+  if (functionName === '_createClient') {
+    return (
+      typeof result.success === 'boolean' &&
+      typeof result.pk === 'string' &&
+      typeof result.pubKeySuccess === 'boolean' &&
+      typeof result.body === 'string'
+    );
+  }
+  if (functionName === '_createAuthToken') {
+    return (
+      typeof result.token === 'string' &&
+      typeof result.deadline === 'number' &&
+      Number.isFinite(result.deadline)
+    );
+  }
+  return (
+    typeof result.txInfo === 'string' && hasOptionalString(result, 'txHash')
+  );
+}
+
 /**
  * Hidden off-screen WebView hosting the Lighter Go/WASM signer.
  *
@@ -103,36 +208,78 @@ export const LighterSignerWebView = () => {
   const webviewRef = useRef<WebView>(null);
   const mountedAtRef = useRef<number>(Date.now());
   const [reloadKey, setReloadKey] = useState(0);
+  const [isUnavailable, setIsUnavailable] = useState(false);
+  const reloadAttemptsRef = useRef(0);
+  const reloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMountedRef = useRef(true);
+  const isUnavailableRef = useRef(false);
 
-  const refresh = useCallback(() => {
-    rejectAllPending('Lighter signer WebView reloaded; retry the operation');
-    resetLighterBridge();
-    setReloadKey((prev) => prev + 1);
-  }, []);
-
-  const onMessage = useCallback((event: WebViewMessageEvent) => {
-    let message: {
-      type?: string;
-      executeId?: string;
-      result?: unknown;
-      message?: string | string[];
-    };
-    try {
-      message = JSON.parse(event.nativeEvent.data);
-    } catch {
-      DevLogger.log(
-        '[LighterSignerWebView] Invalid message',
-        event.nativeEvent.data,
-      );
+  const handleFailure = useCallback(() => {
+    if (
+      reloadTimerRef.current ||
+      !isMountedRef.current ||
+      isUnavailableRef.current
+    ) {
       return;
     }
+    rejectAllPending('Lighter signer WebView reloaded; retry the operation');
+    if (reloadAttemptsRef.current >= MAX_LIGHTER_SIGNER_RELOAD_ATTEMPTS) {
+      isUnavailableRef.current = true;
+      setIsUnavailable(true);
+      setLighterBridgeUnavailable(UNAVAILABLE_ERROR);
+      return;
+    }
+    resetLighterBridge();
 
-    switch (message.type) {
-      case 'ready':
-        DevLogger.log('[LighterSignerWebView] WASM signer ready');
-        connectLighterExecutor(
-          (call) =>
-            new Promise((resolve, reject) => {
+    const delay =
+      LIGHTER_SIGNER_RELOAD_BASE_DELAY_MS * 2 ** reloadAttemptsRef.current;
+    reloadAttemptsRef.current += 1;
+    reloadTimerRef.current = setTimeout(() => {
+      reloadTimerRef.current = null;
+      if (isMountedRef.current) {
+        setReloadKey((previous) => previous + 1);
+      }
+    }, delay);
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (reloadTimerRef.current) {
+        clearTimeout(reloadTimerRef.current);
+        reloadTimerRef.current = null;
+      }
+      rejectAllPending('Lighter signer WebView unmounted');
+      resetLighterBridge();
+    };
+  }, []);
+
+  const onMessage = useCallback(
+    (event: WebViewMessageEvent) => {
+      const message = parseLighterPageMessage(event.nativeEvent.data);
+      if (!message) {
+        DevLogger.log(
+          '[LighterSignerWebView] Invalid message',
+          event.nativeEvent.data,
+        );
+        return;
+      }
+
+      switch (message.type) {
+        case 'ready': {
+          if (reloadTimerRef.current || isUnavailable) {
+            return;
+          }
+          DevLogger.log('[LighterSignerWebView] WASM signer ready');
+          const execute: LighterExecutor = (call, timeoutMs) => {
+            const webview = webviewRef.current;
+            if (!webview) {
+              return Promise.reject(
+                new Error('Lighter signer WebView is not mounted'),
+              );
+            }
+            return new Promise((resolve, reject) => {
               const executeId = `${call.function}_${Date.now()}_${Math.random()
                 .toString(36)
                 .slice(2)}`;
@@ -140,53 +287,80 @@ export const LighterSignerWebView = () => {
                 delete executePromises[executeId];
                 reject(
                   new Error(
-                    `Lighter signer call ${call.function} timed out after ${EXECUTE_TIMEOUT_MS}ms`,
+                    `Lighter signer call ${call.function} timed out after ${timeoutMs}ms`,
                   ),
                 );
-              }, EXECUTE_TIMEOUT_MS);
-              executePromises[executeId] = { resolve, reject, timer };
-              webviewRef.current?.postMessage(
-                JSON.stringify({ type: 'execute', ...call, executeId }),
-              );
-            }),
-        );
-        runWarmupProbe(mountedAtRef.current);
-        break;
-      case 'executeResult':
-        if (message.executeId) {
-          const pending = executePromises[message.executeId];
-          if (pending) {
-            clearTimeout(pending.timer);
-            pending.resolve(message.result);
-          }
-          delete executePromises[message.executeId];
+              }, timeoutMs);
+              executePromises[executeId] = {
+                resolve,
+                reject,
+                timer,
+                functionName: call.function,
+              };
+              try {
+                webview.postMessage(
+                  JSON.stringify({ type: 'execute', ...call, executeId }),
+                );
+              } catch (error) {
+                clearTimeout(timer);
+                delete executePromises[executeId];
+                reject(error);
+              }
+            });
+          };
+          connectLighterExecutor(execute);
+          runWarmupProbe(mountedAtRef.current, execute);
+          break;
         }
-        break;
-      case 'executeError':
-        if (message.executeId) {
-          const pending = executePromises[message.executeId];
-          if (pending) {
-            clearTimeout(pending.timer);
-            pending.reject(new Error(String(message.message)));
+        case 'executeResult':
+          {
+            const pendingResult = executePromises[message.executeId];
+            if (pendingResult) {
+              clearTimeout(pendingResult.timer);
+              if (
+                isValidLighterSignerResult(
+                  pendingResult.functionName,
+                  message.result,
+                )
+              ) {
+                pendingResult.resolve(message.result);
+              } else {
+                pendingResult.reject(
+                  new Error(
+                    `Invalid Lighter signer result for ${pendingResult.functionName}`,
+                  ),
+                );
+              }
+            }
+            delete executePromises[message.executeId];
           }
-          delete executePromises[message.executeId];
-        }
-        break;
-      case 'log':
-      case 'warn':
-      case 'error':
-        DevLogger.log(
-          `[LighterSignerWebView] page ${message.type}:`,
-          message.message,
-        );
-        break;
-      default:
-        DevLogger.log(
-          '[LighterSignerWebView] Unknown message type',
-          message.type,
-        );
-    }
-  }, []);
+          break;
+        case 'executeError':
+          {
+            const pendingError = executePromises[message.executeId];
+            if (pendingError) {
+              clearTimeout(pendingError.timer);
+              pendingError.reject(new Error(message.message));
+            }
+            delete executePromises[message.executeId];
+          }
+          break;
+        case 'log':
+        case 'warn':
+        case 'error':
+          DevLogger.log(
+            `[LighterSignerWebView] page ${message.type}:`,
+            message.message,
+          );
+          break;
+      }
+    },
+    [isUnavailable],
+  );
+
+  if (isUnavailable) {
+    return null;
+  }
 
   return (
     <View style={styles.hidden}>
@@ -199,9 +373,9 @@ export const LighterSignerWebView = () => {
         javaScriptEnabled
         webviewDebuggingEnabled={__DEV__}
         onMessage={onMessage}
-        onContentProcessDidTerminate={refresh}
+        onContentProcessDidTerminate={handleFailure}
         // Android equivalent of iOS content-process termination.
-        onRenderProcessGone={refresh}
+        onRenderProcessGone={handleFailure}
         onError={(event: WebViewErrorEvent) => {
           DevLogger.log(
             '[LighterSignerWebView] load error',
@@ -209,7 +383,7 @@ export const LighterSignerWebView = () => {
           );
           // A failed load leaves the page without a WASM runtime; reload and
           // fail pending callers rather than letting them hang.
-          refresh();
+          handleFailure();
         }}
       />
     </View>
