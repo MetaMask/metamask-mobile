@@ -20,6 +20,11 @@ import * as core from '@actions/core';
 import { getOctokit } from '@actions/github';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import {
+  locateSnippetInSource,
+  snippetMismatchPreview,
+  sourceSliceAtLine,
+} from './flaky-sticky-snippet';
 
 // Stable HTML comment on the first line — used to identify and update this
 // script's own comment across runs. Any change breaks stickiness (a new
@@ -343,9 +348,8 @@ async function main(): Promise<void> {
   const headSha = typeof history.headSha === 'string' ? history.headSha : env.headSha;
 
   // Deterministic validation is applied only to fresh AI findings — prior
-  // findings were validated when first recorded. The analyzer may suggest a
-  // finding, but it must still point at an exact, current snippet on the
-  // reported line before it is allowed into a PR-visible comment.
+  // findings were validated when first recorded. The snippet must exist in
+  // the current file; the reported line is a hint, not a lock.
   const allowedFiles = new Set(historyFiles.map((f) => f.path));
   const filteredFreshFindings = rawFindings.filter((finding) => {
     if (!allowedFiles.has(finding.file)) {
@@ -374,28 +378,27 @@ async function main(): Promise<void> {
       return false;
     }
 
-    // AI output occasionally includes a terminal newline while a line-anchored
-    // snippet represents the same source without it. Ignore terminal line
-    // breaks only; all code and indentation must still match verbatim.
-    const normalizedSnippet = finding.snippet.replace(/(?:\r?\n)+$/, '');
-    if (normalizedSnippet.length === 0) {
-      core.warning(`Dropping AI finding for ${finding.file}: snippet contains no code`);
-      return false;
-    }
-
-    const sourceLines = readFileSync(sourcePath, 'utf8').split(/\r?\n/);
-    const snippetLines = normalizedSnippet.split(/\r?\n/);
-    const actualSnippet = sourceLines
-      .slice(finding.line - 1, finding.line - 1 + snippetLines.length)
-      .join('\n');
-
-    if (actualSnippet !== normalizedSnippet) {
+    const source = readFileSync(sourcePath, 'utf8');
+    const match = locateSnippetInSource(source, finding.snippet, finding.line);
+    if (!match) {
+      const snippetLineCount = finding.snippet
+        .replace(/(?:\r?\n)+$/, '')
+        .split(/\r?\n/).length;
+      const actualAtLine = sourceSliceAtLine(
+        source,
+        finding.line,
+        snippetLineCount,
+      );
       core.warning(
-        `Dropping AI finding for ${finding.file}:${finding.line}: reported snippet does not match HEAD`,
+        `Dropping AI finding for ${finding.file}:${finding.line}: reported snippet does not match HEAD. ${snippetMismatchPreview(finding.snippet, actualAtLine)}`,
       );
       return false;
     }
 
+    // Point the sticky comment at the code that actually matched, which may
+    // be a nearby line when the model quoted the inner statement.
+    finding.line = match.line;
+    finding.snippet = match.sourceSnippet;
     return true;
   });
 
