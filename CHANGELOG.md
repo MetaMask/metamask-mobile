@@ -7,12 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.11.0]
+
+### Uncategorized
+
+- Disabled Recurring confirm when the first swap has insufficient token balance or gas, and kept Preview Order greyed out while a quote is loading (#35635)
+- Chore cache OFAC compliance check freshness to avoid redundant network calls (#34618)
+
+### Added
+
+- Added a warning when a Perps Pro limit or scale price is more than 5% away from the best bid or ask (#35666)
+- Added a sequenced entrance animation to the Card education screen where the cards animate into place before the title and description appear (#33759)
+- Added a confirmation bottom sheet that summarizes swaps limit order details before the user confirms (#35693)
+- Added a TWAP tab to the Perps Pro market panel for monitoring and terminating TWAP orders (#35544)
+- Added a warning banner for off-hours trading when swapping or bridging RWA stock tokens, informing users that prices may differ from regular market hours (#34464)
+
 ### Changed
 
+- Updated Activity date headers to match other section labels (#35668)
+- Improved asset details performance tracing (#35305)
+- Changed Ledger-funded Money Account deposits to finish after the final signature and treat rejection as cancellation (#34872)
+- Updated Perps position rows to use a consistent layout across Wallet Home, Perps Home, and Asset Detail (#35654)
 - Upgraded `@metamask/delegation-deployments` from `^1.0.0` to `^2.0.0` (#35678)
 
 ### Fixed
 
+- Temp agg balance filter missing assets-info tokens (#35653)
+- Fixed the back button reopening the order screen after placing a Perps trade, and the add funds screen after depositing (#35597)
 - Made Perps Add funds open the deposit confirmation immediately instead of waiting for transaction prep
 
 ## [8.9.1]
@@ -13630,7 +13651,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.11.0...HEAD
+[8.11.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.1...v8.11.0
 [8.9.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.9.0...v8.9.1
 [8.9.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.3...v8.9.0
 [8.8.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.8.2...v8.8.3
