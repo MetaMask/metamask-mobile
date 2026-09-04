@@ -9,7 +9,10 @@
  * `react-native-release-profiler` in app code, gated to performance APKs.
  */
 
-import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import {
+  startProfiling,
+  stopProfilingToExternalFiles,
+} from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';
@@ -85,8 +88,8 @@ export async function startAppProfiling(
 
 /**
  * Stops the active profiling session and returns the on-device profile path.
- * Uses `stopProfiling(true)` which writes to internal cache then copies to
- * the public Downloads folder via MediaStore (Appium-pullable on Android).
+ * Uses a patched cache-first export that copies the completed trace to
+ * app-scoped external storage (Appium-pullable without Downloads).
  * No-ops unless this is a performance-test APK with an active session.
  */
 export async function stopAppProfiling(
@@ -106,13 +109,7 @@ export async function stopAppProfiling(
   notifyListeners();
 
   try {
-    // saveToDownloads=true: writes to internal cache then copies via MediaStore
-    // to the public Downloads folder.  The cache write is fast (avoids the
-    // external-storage hang seen with stopProfilingToExternalFiles) and the
-    // MediaStore copy puts the file at /sdcard/Download/<name> where Appium
-    // can pull it.  The promise resolves with the internal cache path, which
-    // the test-side toAndroidPullPath() converts to /sdcard/Download/<name>.
-    const path = await stopProfiling(true);
+    const path = await stopProfilingToExternalFiles();
     isRecording = false;
 
     if (typeof path === 'string' && path.length > 0) {

@@ -1,22 +1,33 @@
 diff --git a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
-index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..07e74162618330f50515869c9e936f2cc1b7cc41 100644
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..6fa1b36e959e11693fd551af32273b10c138161c 100644
 --- a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
 +++ b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
-@@ -79,6 +79,19 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
+@@ -79,6 +79,30 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
      promise.resolve(outputPath)
    }
  
 +  @ReactMethod
 +  fun stopProfilingToExternalFiles(promise: Promise) {
++    val cacheFile = File.createTempFile(
++      "sampling-profiler-trace", ".cpuprofile", reactContext.getCacheDir())
 +    val externalDirectory =
 +      reactContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
 +        ?: reactContext.getCacheDir()
 +    val outputFile = File.createTempFile(
 +      "sampling-profiler-trace", ".cpuprofile", externalDirectory)
-+    val outputPath = outputFile.getPath()
-+    HermesSamplingProfiler.dumpSampledTraceToFile(outputPath)
++    val cachePath = cacheFile.getPath()
++    HermesSamplingProfiler.dumpSampledTraceToFile(cachePath)
 +    HermesSamplingProfiler.disable()
-+    promise.resolve(outputPath)
++    cacheFile.inputStream().use { input ->
++      outputFile.outputStream().use { output ->
++        input.copyTo(output)
++      }
++    }
++    if (!outputFile.exists() || outputFile.length() == 0L) {
++      promise.reject("PROFILE_EXPORT_FAILED", "Profile copy was empty")
++      return
++    }
++    promise.resolve(outputFile.getPath())
 +  }
 +
    companion object {

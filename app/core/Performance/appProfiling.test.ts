@@ -8,11 +8,14 @@ import {
   stopAppProfiling,
   subscribeAppProfilingStatus,
 } from './appProfiling';
-import { startProfiling, stopProfiling } from 'react-native-release-profiler';
+import {
+  startProfiling,
+  stopProfilingToExternalFiles,
+} from 'react-native-release-profiler';
 
 jest.mock('react-native-release-profiler', () => ({
   startProfiling: jest.fn(),
-  stopProfiling: jest.fn(),
+  stopProfilingToExternalFiles: jest.fn(),
 }));
 
 describe('appProfiling', () => {
@@ -37,16 +40,14 @@ describe('appProfiling', () => {
     const path = await stopAppProfiling(false);
 
     expect(path).toBeNull();
-    expect(stopProfiling).not.toHaveBeenCalled();
+    expect(stopProfilingToExternalFiles).not.toHaveBeenCalled();
     expect(getLastAppProfilePath()).toBeNull();
   });
 
   it('starts and stops profiling when enabled', async () => {
     (startProfiling as jest.Mock).mockReturnValue(true);
-    // stopProfiling(true) resolves with the internal cache path; the library
-    // also copies to MediaStore Downloads (Appium-pullable at /sdcard/Download/).
-    (stopProfiling as jest.Mock).mockResolvedValue(
-      '/data/user/0/io.metamask/cache/sampling-profiler-trace-1234.cpuprofile',
+    (stopProfilingToExternalFiles as jest.Mock).mockResolvedValue(
+      '/storage/emulated/0/Android/data/io.metamask/files/Documents/sampling-profiler-trace-1234.cpuprofile',
     );
 
     const statuses: {
@@ -68,9 +69,9 @@ describe('appProfiling', () => {
 
     const path = await stopAppProfiling(true);
 
-    expect(stopProfiling).toHaveBeenCalledWith(true);
+    expect(stopProfilingToExternalFiles).toHaveBeenCalledTimes(1);
     expect(path).toBe(
-      '/data/user/0/io.metamask/cache/sampling-profiler-trace-1234.cpuprofile',
+      '/storage/emulated/0/Android/data/io.metamask/files/Documents/sampling-profiler-trace-1234.cpuprofile',
     );
     expect(getLastAppProfilePath()).toBe(path);
     expect(isAppProfilingRecording()).toBe(false);
@@ -79,7 +80,7 @@ describe('appProfiling', () => {
       statuses.some(
         (status) =>
           status.lastProfilePath ===
-          '/data/user/0/io.metamask/cache/sampling-profiler-trace-1234.cpuprofile',
+          '/storage/emulated/0/Android/data/io.metamask/files/Documents/sampling-profiler-trace-1234.cpuprofile',
       ),
     ).toBe(true);
 
@@ -90,7 +91,7 @@ describe('appProfiling', () => {
     const path = await stopAppProfiling(true);
 
     expect(path).toBeNull();
-    expect(stopProfiling).not.toHaveBeenCalled();
+    expect(stopProfilingToExternalFiles).not.toHaveBeenCalled();
     expect(getLastAppProfilingError()).toContain('no active profiling session');
   });
 
