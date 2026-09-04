@@ -71,8 +71,10 @@ interface SlackPayload {
 export function loadOwners(path: string): Owners {
   const raw = fs.readFileSync(path, 'utf8');
   const parsed = yaml.load(raw) as Partial<Owners> | undefined;
-  if (!parsed?.slack_channel || !parsed?.owner?.slack_id) {
-    throw new Error(`${path} is missing slack_channel or owner.slack_id`);
+  if (!parsed?.slack_channel || !parsed?.owner?.github || !parsed?.owner?.slack_id) {
+    throw new Error(
+      `${path} is missing slack_channel, owner.github, or owner.slack_id`,
+    );
   }
   return parsed as Owners;
 }

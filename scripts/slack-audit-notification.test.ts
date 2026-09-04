@@ -71,7 +71,21 @@ owner:
   github: 'someone'
 `);
 
-    expect(() => loadOwners('.github/audit-owners.yml')).toThrow(/missing slack_channel or owner.slack_id/);
+    expect(() => loadOwners('.github/audit-owners.yml')).toThrow(
+      /missing slack_channel, owner.github, or owner.slack_id/,
+    );
+  });
+
+  it('throws when owner.github is missing', () => {
+    fs.readFileSync.mockReturnValue(`
+slack_channel: 'C0123'
+owner:
+  slack_id: 'U0123'
+`);
+
+    expect(() => loadOwners('.github/audit-owners.yml')).toThrow(
+      /missing slack_channel, owner.github, or owner.slack_id/,
+    );
   });
 });
 
