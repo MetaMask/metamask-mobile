@@ -368,6 +368,31 @@ function findFiberByTestId(
 }
 
 /**
+ * Collapse matching fibers nested on the same component path. React forwards
+ * props through composite components, so one rendered control can expose the
+ * same testID and press handler on several ancestor/descendant fibers.
+ */
+function collapseNestedFibers(fibers: FiberNode[]): FiberNode[] {
+  const candidates = new Set(fibers);
+  return fibers.filter((fiber) => {
+    let ancestor = fiber.return;
+    while (ancestor) {
+      if (
+        candidates.has(ancestor) &&
+        ancestor.memoizedProps?.onPress === fiber.memoizedProps?.onPress &&
+        isFiberDisabled(ancestor) === isFiberDisabled(fiber) &&
+        findMeasurableStateNode(ancestor, false) ===
+          findMeasurableStateNode(fiber, false)
+      ) {
+        return false;
+      }
+      ancestor = ancestor.return;
+    }
+    return true;
+  });
+}
+
+/**
  * Iterate all React renderer roots and call `visitor` on each root fiber.
  * Returns true if any visitor call returns true.
  */
@@ -1217,9 +1242,10 @@ const AgenticService = {
             });
             return false;
           });
+          const distinctCandidates = collapseNestedFibers(candidates);
           const viewport = Dimensions.get('window');
           const measuredCandidates = await Promise.all(
-            candidates.map(async (fiber) => ({
+            distinctCandidates.map(async (fiber) => ({
               fiber,
               rect: await measureStateNode(
                 findMeasurableStateNode(fiber, false),
@@ -1239,13 +1265,13 @@ const AgenticService = {
           )?.fiber;
           const candidate =
             visibleCandidate ??
-            (candidates.length === 1 ? candidates[0] : null);
+            (distinctCandidates.length === 1 ? distinctCandidates[0] : null);
           if (!candidate) {
             return {
               ok: false,
               testId,
               error:
-                candidates.length > 1
+                distinctCandidates.length > 1
                   ? `No visible component with testID="${testId}" found among duplicate matches`
                   : `No component with testID="${testId}" found or no onPress prop`,
             };
