@@ -53,11 +53,41 @@ describe('PredictDetails.utils', () => {
       expect(steps[0].subtext).toBeDefined();
     });
 
-    it('marks the terminal step failed on failure', () => {
+    it('marks the terminal step failed when nothing was classified', () => {
       const steps = getPredictFundsSteps('failed', TS);
       expect(steps[0].status).toBe('completed');
       expect(steps[1].status).toBe('failed');
       expect(steps[1].subtext).toBe(strings('transaction.failed'));
+    });
+
+    it('places a bridge failure on the bridge step', () => {
+      const steps = getPredictFundsSteps('failed', TS, {
+        failedLeg: 'relay',
+        message: 'Bridge did not land',
+      });
+
+      expect(steps[0].status).toBe('failed');
+      expect(steps[0].failureMessage).toBe('Bridge did not land');
+      expect(steps[1].status).toBe('upcoming');
+      expect(steps[1].subtext).toBeUndefined();
+    });
+
+    it('places a deposit failure on the terminal step', () => {
+      const steps = getPredictFundsSteps('failed', TS, {
+        message: 'execution reverted: deposit below minimum',
+      });
+
+      expect(steps[0].status).toBe('completed');
+      expect(steps[1].status).toBe('failed');
+      expect(steps[1].failureMessage).toBe(
+        'execution reverted: deposit below minimum',
+      );
+    });
+
+    it('leaves the failure message unset when none was classified', () => {
+      const steps = getPredictFundsSteps('failed', TS);
+
+      expect(steps[1].failureMessage).toBeUndefined();
     });
 
     it('marks the terminal step pending otherwise', () => {
