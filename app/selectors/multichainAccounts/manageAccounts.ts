@@ -5,7 +5,6 @@ import type { RootState } from '../../reducers';
 import {
   selectAccountGroupsByWallet,
   selectAccountGroupById,
-  selectAccountGroups,
 } from './accountTreeController';
 import type { AccountSection } from '../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 
