@@ -17,6 +17,7 @@ import type { AccountAvatarVariant } from '../../../../component-library/compone
 import { strings } from '../../../../../locales/i18n';
 import {
   getManageAccountRowId,
+  getManageAccountRowCellId,
   getManageAccountRowEyeToggleId,
   getManageAccountRowEyeIconId,
   getManageAccountRowRemoveId,
@@ -103,6 +104,7 @@ const ManageAccountRow = ({
         pointerEvents={isHidden ? 'none' : 'auto'}
         accessibilityElementsHidden={isHidden}
         importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
+        testID={getManageAccountRowCellId(accountGroup.id)}
       >
         <AccountCell
           accountGroup={accountGroup}

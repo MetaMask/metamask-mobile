@@ -17,6 +17,7 @@ import { ManageAccountRowVariant } from './components/ManageAccountRow';
 import {
   ManageAccountsViewSelectorsIDs,
   getManageAccountRowId,
+  getManageAccountRowCellId,
   getManageAccountRowEyeToggleId,
   getManageAccountRowRemoveId,
   getManageAccountSectionHeaderId,
@@ -160,13 +161,16 @@ describeForPlatforms('ManageAccountsView', () => {
   it('renders a hidden group in the eye-slash state and unhides it on eye press', () => {
     const fixture = buildMultichainAccountsFixture();
     const onToggleHidden = jest.fn();
-    const { getByTestId, UNSAFE_getByProps } = renderManageAccountsView({
+    const { getByTestId } = renderManageAccountsView({
       fixture,
       onToggleHidden,
       isHiddenByGroupId: { [ACCOUNT_2_GROUP_ID]: true },
     });
-    // Cell content is excluded from the a11y tree when hidden
-    // (accessibilityElementsHidden + no-hide-descendants on the cell wrapper).
+    const hiddenRow = getByTestId(getManageAccountRowId(ACCOUNT_2_GROUP_ID));
+    const hiddenCell = getByTestId(
+      getManageAccountRowCellId(ACCOUNT_2_GROUP_ID),
+      { includeHiddenElements: true },
+    );
     const hiddenEye = getByTestId(
       getManageAccountRowEyeToggleId(ACCOUNT_2_GROUP_ID),
     );
@@ -174,14 +178,15 @@ describeForPlatforms('ManageAccountsView', () => {
     expect(hiddenEye.props.accessibilityLabel).toBe(
       strings('multichain_accounts.account_details.unhide_account'),
     );
-    expect(
-      UNSAFE_getByProps({ accessibilityElementsHidden: true }),
-    ).toBeTruthy();
+    expect(hiddenRow).toBeOnTheScreen();
+    expect(hiddenCell).toBeOnTheScreen();
+    expect(hiddenCell.props.accessibilityElementsHidden).toBe(true);
+    expect(hiddenCell.props.importantForAccessibility).toBe(
+      'no-hide-descendants',
+    );
     fireEvent.press(hiddenEye);
 
-    expect(
-      getByTestId(getManageAccountRowId(ACCOUNT_2_GROUP_ID)),
-    ).toBeOnTheScreen();
+    expect(hiddenRow).toBeOnTheScreen();
     expect(onToggleHidden).toHaveBeenCalledTimes(1);
     expect(onToggleHidden).toHaveBeenCalledWith(ACCOUNT_2_GROUP_ID, false);
   });
