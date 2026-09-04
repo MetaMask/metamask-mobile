@@ -6,6 +6,8 @@ import type {
 } from '@metamask/design-system-react-native';
 import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
+import type { EarningOriginType } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { ClaimEarningsBottomSheetParams } from '../../RewardsMoney/earnings/components/ClaimEarningsBottomSheet';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
 
@@ -173,6 +175,10 @@ export interface RewardOptInAccountGroupModalParams {
 /**
  * Param list for screens registered in `RewardsNavigator`.
  */
+export interface RewardsMoneyEarningsParams {
+  originTypes?: EarningOriginType[];
+}
+
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsStackParamList = {
@@ -182,6 +188,8 @@ export type RewardsStackParamList = {
   RewardsVipView: undefined;
   RewardsVipTiersView: undefined;
   RewardsVipTransactionsView: undefined;
+  RewardsMoneyView: undefined;
+  RewardsMoneyEarningsView: RewardsMoneyEarningsParams | undefined;
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
@@ -229,4 +237,5 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
+  RewardsMoneyClaimSheet: ClaimEarningsBottomSheetParams;
 };

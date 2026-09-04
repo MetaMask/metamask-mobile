@@ -13,6 +13,8 @@ import RewardsVipRefereeSplashView from './Views/RewardsVipRefereeSplashView';
 import RewardsVipRefereeView from './Views/RewardsVipRefereeView';
 import RewardsVipTiersView from './Views/RewardsVipTiersView';
 import RewardsVipTransactionsView from './Views/RewardsVipTransactionsView';
+import RewardsMoneyView from '../RewardsMoney/Views/RewardsMoneyView';
+import RewardsMoneyEarningsView from '../RewardsMoney/earnings/Views/RewardsMoneyEarningsView';
 import CampaignsView from './Views/CampaignsView';
 import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
 import OndoCampaignWinningView from './Views/OndoCampaignWinningView';
@@ -206,6 +208,14 @@ const RewardsNavigator: React.FC = () => {
         name={Routes.REWARDS_VIP_TRANSACTIONS_VIEW}
         component={RewardsVipTransactionsView}
         options={vipScreenOptions}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_VIEW}
+        component={RewardsMoneyView}
+      />
+      <Stack.Screen
+        name={Routes.REWARDS_MONEY_EARNINGS_VIEW}
+        component={RewardsMoneyEarningsView}
       />
       <Stack.Screen
         name={Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW}

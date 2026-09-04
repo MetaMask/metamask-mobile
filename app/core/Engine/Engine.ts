@@ -165,6 +165,8 @@ import { geolocationApiServiceInit } from './controllers/geolocation-api-service
 import { sentinelApiServiceInit } from './controllers/sentinel-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { rewardsMoneyControllerInit } from './controllers/rewards-money-controller';
+import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-service-init';
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
@@ -383,6 +385,8 @@ export class Engine {
         PredictNextController: predictNextControllerInit,
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
+        RewardsMoneyController: rewardsMoneyControllerInit,
+        RewardsMoneyDataService: rewardsMoneyDataServiceInit,
         DelegationController: DelegationControllerInit,
         NetworkConnectionBannerController:
           networkConnectionBannerControllerInit,
@@ -438,6 +442,8 @@ export class Engine {
     const predictController = messengerClientsByName.PredictController;
     const predictNextController = messengerClientsByName.PredictNextController;
     const rewardsController = messengerClientsByName.RewardsController;
+    const rewardsMoneyController =
+      messengerClientsByName.RewardsMoneyController;
     const gatorPermissionsController =
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
@@ -673,6 +679,7 @@ export class Engine {
       PredictController: predictController,
       PredictNextController: predictNextController,
       RewardsController: rewardsController,
+      RewardsMoneyController: rewardsMoneyController,
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
@@ -1570,6 +1577,7 @@ export default {
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
+      RewardsMoneyController,
       SeedlessOnboardingController,
       SelectedNetworkController,
       SignatureController,
@@ -1650,6 +1658,7 @@ export default {
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,
+      RewardsMoneyController: RewardsMoneyController.state,
       SeedlessOnboardingController: SeedlessOnboardingController.state,
       SelectedNetworkController: SelectedNetworkController.state,
       SignatureController: SignatureController.state,
