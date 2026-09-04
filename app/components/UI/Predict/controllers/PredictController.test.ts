@@ -577,7 +577,10 @@ describe('PredictController', () => {
     it('initializes with default state', () => {
       withController(({ controller }) => {
         expect(controller.state).toEqual(getDefaultPredictControllerState());
-        expect(controller.state.eligibility).toEqual({ status: 'checking' });
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
         expect(controller.state.accountMeta).toEqual({});
       });
     });
@@ -2772,6 +2775,7 @@ describe('PredictController', () => {
         expect(controller.state.eligibility).toEqual({
           status: 'eligible',
           country: 'PT',
+          eligible: true,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
@@ -2790,6 +2794,7 @@ describe('PredictController', () => {
 
         expect(controller.state.eligibility).toEqual({
           status: 'unavailable',
+          eligible: false,
         });
         expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
       });
@@ -2803,9 +2808,10 @@ describe('PredictController', () => {
 
         const result = await controller.refreshEligibility();
 
-        expect(result).toEqual({ status: 'unavailable' });
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
         expect(controller.state.eligibility).toEqual({
           status: 'unavailable',
+          eligible: false,
         });
       });
     });
@@ -2825,6 +2831,7 @@ describe('PredictController', () => {
           expect(controller.state.eligibility).toEqual({
             status: 'ineligible',
             country: 'DE',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2844,6 +2851,7 @@ describe('PredictController', () => {
           expect(controller.state.eligibility).toEqual({
             status: 'ineligible',
             country: 'RO',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2863,6 +2871,7 @@ describe('PredictController', () => {
           expect(controller.state.eligibility).toEqual({
             status: 'eligible',
             country: 'US',
+            eligible: true,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2882,6 +2891,7 @@ describe('PredictController', () => {
           expect(controller.state.eligibility).toEqual({
             status: 'ineligible',
             country: 'US',
+            eligible: false,
           });
           expect(mockPolymarketProvider.isEligible).toHaveBeenCalled();
         });
@@ -2898,9 +2908,10 @@ describe('PredictController', () => {
 
           const result = await controller.refreshEligibility();
 
-          expect(result).toEqual({ status: 'unavailable' });
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(controller.state.eligibility).toEqual({
             status: 'unavailable',
+            eligible: false,
           });
         });
       });
@@ -2918,6 +2929,7 @@ describe('PredictController', () => {
 
           expect(controller.state.eligibility).toEqual({
             status: 'unavailable',
+            eligible: false,
           });
         });
       });
@@ -2935,6 +2947,7 @@ describe('PredictController', () => {
 
           expect(controller.state.eligibility).toEqual({
             status: 'unavailable',
+            eligible: false,
           });
         });
       });
@@ -2951,12 +2964,17 @@ describe('PredictController', () => {
 
           const result = await controller.refreshEligibility();
 
-          expect(result).toEqual({ status: 'unavailable' });
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(controller.state.eligibility).toEqual({
             status: 'unavailable',
+            eligible: false,
           });
         },
-        { state: { eligibility: { status: 'eligible', country: 'US' } } },
+        {
+          state: {
+            eligibility: { status: 'eligible', country: 'US', eligible: true },
+          },
+        },
       );
     });
 
@@ -2983,10 +3001,12 @@ describe('PredictController', () => {
         await expect(first).resolves.toEqual({
           status: 'eligible',
           country: 'PT',
+          eligible: true,
         });
         await expect(second).resolves.toEqual({
           status: 'eligible',
           country: 'PT',
+          eligible: true,
         });
       });
     });
@@ -3003,6 +3023,7 @@ describe('PredictController', () => {
         await expect(controller.refreshEligibility()).resolves.toEqual({
           status: 'ineligible',
           country: 'FR',
+          eligible: false,
         });
       });
     });
@@ -3024,7 +3045,7 @@ describe('PredictController', () => {
         await withController(async ({ controller }) => {
           const result = await controller.refreshEligibility();
 
-          expect(result).toEqual({ status: 'unavailable' });
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(logSpy).toHaveBeenCalledWith(
             'Predict geoblock request ended by expected timeout/cancellation:',
             timeoutError.message,
@@ -3049,10 +3070,15 @@ describe('PredictController', () => {
 
           const result = await controller.refreshEligibility();
 
-          expect(result).toEqual({ status: 'eligible', country: 'N/A' });
+          expect(result).toEqual({
+            status: 'eligible',
+            country: 'N/A',
+            eligible: true,
+          });
           expect(controller.state.eligibility).toEqual({
             status: 'eligible',
             country: 'N/A',
+            eligible: true,
           });
           expect(mockPolymarketProvider.isEligible).not.toHaveBeenCalled();
         });
@@ -10046,7 +10072,11 @@ describe('PredictController', () => {
             transactionId: 'tx-789',
             amount: 200,
           };
-          state.eligibility = { status: 'eligible', country: 'PT' };
+          state.eligibility = {
+            status: 'eligible',
+            country: 'PT',
+            eligible: true,
+          };
           state.lastError = 'Some error';
         });
 

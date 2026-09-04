@@ -897,9 +897,10 @@ export type PredictEligibilityStatus =
  *
  * Sensitive actions stay fail-closed for every status other than eligible.
  */
-export type PredictEligibility =
+export type PredictEligibility = (
   | { status: 'checking' | 'unavailable' }
-  | { status: 'eligible' | 'ineligible'; country: string };
+  | { status: 'eligible' | 'ineligible'; country: string }
+) & { eligible?: boolean };
 
 export interface ConnectionStatus {
   sportsConnected: boolean;

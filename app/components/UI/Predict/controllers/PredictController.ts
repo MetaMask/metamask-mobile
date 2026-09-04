@@ -209,7 +209,7 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  eligibility: { status: 'checking' },
+  eligibility: { status: 'checking', eligible: false },
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -2916,13 +2916,14 @@ export class PredictController extends BaseController<
   private async performEligibilityRefresh(): Promise<PredictEligibility> {
     DevLogger.log('PredictController: Refreshing eligibility');
     this.update((state) => {
-      state.eligibility = { status: 'checking' };
+      state.eligibility = { status: 'checking', eligible: false };
     });
 
     if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
       const eligibility: PredictEligibility = {
         status: 'eligible',
         country: 'N/A',
+        eligible: true,
       };
       this.update((state) => {
         state.eligibility = eligibility;
@@ -2941,13 +2942,20 @@ export class PredictController extends BaseController<
         geoBlockResponse.isEligible && !this.isLocallyGeoblocked({ country })
           ? 'eligible'
           : 'ineligible';
-      const eligibility: PredictEligibility = { status, country };
+      const eligibility: PredictEligibility = {
+        status,
+        country,
+        eligible: status === 'eligible',
+      };
       this.update((state) => {
         state.eligibility = eligibility;
       });
       return eligibility;
     } catch (error) {
-      const eligibility: PredictEligibility = { status: 'unavailable' };
+      const eligibility: PredictEligibility = {
+        status: 'unavailable',
+        eligible: false,
+      };
       this.update((state) => {
         state.eligibility = eligibility;
       });

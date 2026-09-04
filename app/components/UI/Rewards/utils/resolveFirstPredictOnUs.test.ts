@@ -238,7 +238,7 @@ describe('resolveFirstPredictOnUsLaunch', () => {
     jest.clearAllMocks();
     mockFeatureEnabled.mockReturnValue(true);
     mockAlreadyShown.mockReturnValue(false);
-    setEligibility({ status: 'eligible', country: 'US' });
+    setEligibility({ eligible: true, country: 'US' });
     mockRefreshEligibility.mockResolvedValue(undefined as never);
     mockCall.mockResolvedValue(content as never);
     mockGetMarket.mockResolvedValue(buildMarket());
@@ -277,7 +277,7 @@ describe('resolveFirstPredictOnUsLaunch', () => {
   });
 
   it('returns null when Predict is geo-ineligible', async () => {
-    setEligibility({ status: 'ineligible', country: 'GB' });
+    setEligibility({ eligible: false, country: 'GB' });
 
     const result = await resolveFirstPredictOnUsLaunch();
 
@@ -286,7 +286,7 @@ describe('resolveFirstPredictOnUsLaunch', () => {
   });
 
   it('returns null when no country has resolved', async () => {
-    setEligibility({ status: 'unavailable' });
+    setEligibility({ eligible: true, country: undefined });
 
     const result = await resolveFirstPredictOnUsLaunch();
 

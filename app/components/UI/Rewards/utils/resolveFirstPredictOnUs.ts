@@ -140,7 +140,7 @@ const resolveEligibility = async (): Promise<boolean> => {
   const eligibility = (store.getState() as RootState).engine.backgroundState
     .PredictController?.eligibility;
 
-  return eligibility?.status === 'eligible' && Boolean(eligibility.country);
+  return Boolean(eligibility?.eligible && eligibility?.country);
 };
 
 const resolve = async (): Promise<ResolvedFirstPredictOnUsLaunch | null> => {
