@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import {
   Box,
@@ -16,11 +16,11 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   BENEFITS,
+  BENEFIT_DETAILS,
   DEFAULT_PLAN,
   PLANS,
   type BenefitDetailItem,
   type PlanId,
-  BENEFIT_DETAILS,
 } from './Benefits.constants';
 import { BenefitsTestIds } from './Benefits.testIds';
 import { BenefitRow } from '../../../shared/pro';
@@ -29,6 +29,11 @@ import PlanSelectorCard from './components/PlanSelectorCard';
 import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import {
+  getBenefitsPriceLine,
+  getPlanSelectorCardCopy,
+  resolveSelectedPlanId,
+} from './utils/getMoneyAccountPlusPricingCopy';
 
 interface BenefitsProps {
   onSuccess: () => void;
@@ -36,7 +41,7 @@ interface BenefitsProps {
 }
 
 const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
-  const { isLoading, hasError, retry } = useSubscriptionPricing();
+  const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -45,6 +50,24 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
     useState(false);
   const [selectedBenfitDetail, setSelectedBenfitDetail] =
     useState<BenefitDetailItem | null>(null);
+
+  const resolvedPlan = resolveSelectedPlanId(selectedPlan, plusPricing);
+  const priceLine = getBenefitsPriceLine(plusPricing);
+  const isPricingReady = plusPricing.status === 'ready';
+  const canSelectPlans = !isLoading && !hasError && isPricingReady;
+  const isCtaDisabled = !canSelectPlans;
+
+  const visiblePlans = useMemo(
+    () =>
+      PLANS.flatMap((plan) => {
+        const copy = getPlanSelectorCardCopy(plan.id, plusPricing);
+        if (copy === undefined) {
+          return [];
+        }
+        return [{ plan, copy }];
+      }),
+    [plusPricing],
+  );
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -58,11 +81,15 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   }, []);
 
   const handleCtaPress = useCallback(() => {
-    if (isLoading || hasError) {
+    if (isCtaDisabled) {
       return;
     }
     onSuccess();
-  }, [hasError, isLoading, onSuccess]);
+  }, [isCtaDisabled, onSuccess]);
+
+  const handlePlanPress = useCallback((planId: PlanId) => {
+    setSelectedPlan(planId);
+  }, []);
 
   return (
     <Box
@@ -78,20 +105,22 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         >
           {strings('pro_subscription.title')}
         </Text>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="gap-2 flex-wrap"
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            testID={BenefitsTestIds.PRICE_LINE}
+        {priceLine ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2 flex-wrap"
           >
-            {strings('pro_subscription.description')}
-          </Text>
-        </Box>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={BenefitsTestIds.PRICE_LINE}
+            >
+              {priceLine}
+            </Text>
+          </Box>
+        ) : null}
       </Box>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -102,7 +131,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
               key={item.id}
               item={item}
               onPress={() => handleBenefitPress(item.id)}
-              selectedPlan={selectedPlan}
+              selectedPlan={resolvedPlan}
             />
           ))}
         </Box>
@@ -143,13 +172,56 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
           </Box>
         ) : null}
 
-        {!isLoading && !hasError
-          ? PLANS.map((plan) => (
+        {!isLoading && !hasError && plusPricing.status === 'unavailable' ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_UNAVAILABLE}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Warning}
+              description={strings('pro_subscription.pricing.unavailable')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {!isLoading && !hasError && plusPricing.status === 'malformed' ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_MALFORMED}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={strings('pro_subscription.pricing.malformed')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {canSelectPlans
+          ? visiblePlans.map(({ plan, copy }) => (
               <PlanSelectorCard
                 key={plan.id}
                 plan={plan}
-                isSelected={selectedPlan === plan.id}
-                onPress={setSelectedPlan}
+                copy={copy}
+                isSelected={resolvedPlan === plan.id}
+                onPress={handlePlanPress}
               />
             ))
           : null}
@@ -159,7 +231,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
           size={ButtonSize.Lg}
           onPress={handleCtaPress}
           testID={BenefitsTestIds.CTA_BUTTON}
-          isDisabled={isLoading || hasError}
+          isDisabled={isCtaDisabled}
           isFullWidth
         >
           {strings('pro_subscription.join_pro')}
@@ -170,7 +242,7 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
         <BenefitDetails
           onClose={handleBenefitDetailSheetClose}
           details={selectedBenfitDetail}
-          selectedPlan={selectedPlan}
+          selectedPlan={resolvedPlan}
         />
       )}
     </Box>

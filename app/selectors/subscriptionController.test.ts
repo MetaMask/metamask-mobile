@@ -15,12 +15,14 @@ import type { RootState } from '../reducers';
 import {
   selectLastSelectedPaymentMethodByProduct,
   selectLastSubscriptionByProduct,
+  selectMoneyAccountPlusPricing,
   selectSubscriptionByProduct,
   selectSubscriptionControllerState,
   selectSubscriptionPricing,
   selectSubscriptions,
   selectTrialedSubscriptionProducts,
 } from './subscriptionController';
+import { mapMoneyAccountPlusPricing } from '../components/Views/ProSubscription/screens/Benefits/utils/mapMoneyAccountPlusPricing';
 
 const SHIELD_ADDRESS = '0x1111111111111111111111111111111111111111' as Hex;
 const VAULT_TOKEN_ADDRESS = '0xb4563bcd3b7764ccbf497f515585f70b6c3ea5ae' as Hex;
@@ -263,6 +265,30 @@ describe('subscriptionController selectors', () => {
       expect(cryptoMethod?.chains?.[0]?.delegateAddress).toBe(DELEGATE_ADDRESS);
       expect(vaultToken?.accountantAddress).toBe(ACCOUNTANT_ADDRESS);
       expect(vaultToken?.conversionRate).toBeUndefined();
+    });
+  });
+
+  describe('selectMoneyAccountPlusPricing', () => {
+    it('returns the same view as mapMoneyAccountPlusPricing for cached pricing', () => {
+      const state = createState({
+        subscriptions: [],
+        trialedProducts: [],
+        pricing: PRICING_FIXTURE,
+      });
+
+      const result = selectMoneyAccountPlusPricing(state);
+
+      expect(result).toEqual(mapMoneyAccountPlusPricing(PRICING_FIXTURE));
+      expect(result.status).toBe('ready');
+      expect(result.monthly?.unitAmount).toBe(500);
+      expect(result.annual).toBeUndefined();
+    });
+
+    it('returns unavailable when pricing has not been fetched', () => {
+      const result = selectMoneyAccountPlusPricing(createState());
+
+      expect(result).toEqual(mapMoneyAccountPlusPricing(undefined));
+      expect(result.status).toBe('unavailable');
     });
   });
 

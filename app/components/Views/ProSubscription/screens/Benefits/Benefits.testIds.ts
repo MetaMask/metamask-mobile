@@ -11,5 +11,13 @@ export const BenefitsTestIds = {
   BENEFIT_DETAILS_CONTAINER: 'benefits-details-container',
   PRICING_LOADING: 'benefits-pricing-loading',
   PRICING_ERROR: 'benefits-pricing-error',
+  PRICING_UNAVAILABLE: 'benefits-pricing-unavailable',
+  PRICING_MALFORMED: 'benefits-pricing-malformed',
   PRICING_RETRY_BUTTON: 'benefits-pricing-retry-button',
+  PLAN_CARD_PRICE: (planId: string) => `benefits-plan-card-${planId}-price`,
+  PLAN_CARD_SUB_PRICE: (planId: string) =>
+    `benefits-plan-card-${planId}-sub-price`,
+  PLAN_CARD_SAVINGS_BADGE: (planId: string) =>
+    `benefits-plan-card-${planId}-savings-badge`,
+  PLAN_CARD_TRIAL: (planId: string) => `benefits-plan-card-${planId}-trial`,
 } as const;

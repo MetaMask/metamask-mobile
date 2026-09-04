@@ -172,7 +172,7 @@ describe('useSubscriptionPricing', () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it('returns pricing from SubscriptionController state', () => {
+  it('returns mapped Plus pricing from SubscriptionController state', () => {
     mockedGetPricing.mockReturnValue(new Promise(() => undefined));
     const pricing = {
       products: [
@@ -195,6 +195,7 @@ describe('useSubscriptionPricing', () => {
 
     const { result } = renderUseSubscriptionPricing(pricing);
 
-    expect(result.current.pricing).toEqual(pricing);
+    expect(result.current.plusPricing.status).toBe('ready');
+    expect(result.current.plusPricing.monthly?.amount).toBe(4.99);
   });
 });

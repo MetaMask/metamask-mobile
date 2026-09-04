@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { PricingResponse } from '@metamask/subscription-controller';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
-import { selectSubscriptionPricing } from '../../../../../../selectors/subscriptionController';
+import { selectMoneyAccountPlusPricing } from '../../../../../../selectors/subscriptionController';
+import type { MoneyAccountPlusPricingView } from '../utils/mapMoneyAccountPlusPricing';
 
 export interface UseSubscriptionPricingResult {
-  pricing: PricingResponse | undefined;
+  plusPricing: MoneyAccountPlusPricingView;
   isLoading: boolean;
   hasError: boolean;
   retry: () => void;
@@ -29,12 +29,12 @@ const PRICING_ERROR_LOG_OPTIONS = {
  * exposes loading, error, and retry state for the Pro plan-selection UI.
  *
  * Duplicate in-flight requests are ignored. Prices stay in controller state
- * and are read via {@link selectSubscriptionPricing}.
+ * and are read via {@link selectMoneyAccountPlusPricing}.
  *
- * @returns Cached pricing, fetch status, and a retry callback.
+ * @returns Mapped Plus pricing, fetch status, and a retry callback.
  */
 export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
-  const pricing = useSelector(selectSubscriptionPricing);
+  const plusPricing = useSelector(selectMoneyAccountPlusPricing);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const inFlightRef = useRef(false);
@@ -76,7 +76,7 @@ export const useSubscriptionPricing = (): UseSubscriptionPricingResult => {
   }, [fetchPricing]);
 
   return {
-    pricing,
+    plusPricing,
     isLoading,
     hasError,
     retry: fetchPricing,
