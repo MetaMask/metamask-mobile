@@ -113,14 +113,26 @@ describe('applyBridgeQuote', () => {
     });
   });
 
-  it('leaves same-chain swaps with bridge history on the regular keyring mapping', () => {
+  it('enriches a same-chain send as a swap without overriding keyring status', () => {
     const item = applyBridgeQuote(
       mapKeyringTransaction({
-        transaction: makeKeyringTx({ type: TransactionType.Swap }),
+        transaction: makeKeyringTx(),
       }) as ActivityListItem,
-      makeBridgeHistory({ destChainId: solanaChainId }),
+      makeBridgeHistory({
+        destChainId: solanaChainId,
+        bridgeStatus: StatusTypes.PENDING,
+      }),
+      'from-address',
     );
 
-    expect(item).toMatchObject({ type: 'swap', status: 'success' });
+    expect(item).toMatchObject({
+      type: 'swap',
+      status: 'success',
+      data: {
+        from: 'from-address',
+        sourceToken: { symbol: 'SOL', direction: 'out' },
+        destinationToken: { symbol: 'ETH', direction: 'in' },
+      },
+    });
   });
 });

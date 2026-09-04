@@ -233,6 +233,38 @@ describe('SwapDetails', () => {
     );
   });
 
+  it('does not mark quote-backed atomic amounts as human-readable on non-EVM swaps', () => {
+    const solAssetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    render(
+      <SwapDetails
+        item={
+          {
+            ...makeItem('swap', {
+              sourceToken: {
+                direction: 'out',
+                amount: '1000000000',
+                assetId: solAssetId,
+                decimals: 9,
+                symbol: 'SOL',
+              },
+            }),
+            chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          } as never
+        }
+      />,
+    );
+
+    expect(capturedSentToken).toEqual(
+      expect.objectContaining({
+        amount: '1000000000',
+        decimals: 9,
+        symbol: 'SOL',
+      }),
+    );
+    expect(capturedSentToken?.amountIsHumanReadable).toBeUndefined();
+  });
+
   describe('call-to-action', () => {
     it('renders "Lend again" instead of "Swap again" for a lending deposit', () => {
       arrangeLendAgain(true);

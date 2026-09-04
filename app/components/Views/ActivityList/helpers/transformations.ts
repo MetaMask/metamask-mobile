@@ -11,7 +11,6 @@ import {
   type V1TransactionByHashResponse,
   type V4MultiAccountTransactionsResponse,
 } from '@metamask/core-backend';
-import { isCrossChain } from '@metamask/bridge-controller';
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import type { InfiniteData } from '@tanstack/react-query';
@@ -201,13 +200,8 @@ export function mapNonEvmTransactions(
       raw: { type: 'keyringTransaction' as const, data: transaction },
     } as ActivityListItem);
     const bridgeHistoryItem = getBridgeHistoryItem?.(transaction.id);
-    const quote = bridgeHistoryItem?.quote;
 
-    if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
-      return applyBridgeQuote(activity, bridgeHistoryItem, subjectAddress);
-    }
-
-    return activity;
+    return applyBridgeQuote(activity, bridgeHistoryItem, subjectAddress);
   });
 }
 

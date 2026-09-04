@@ -28,7 +28,6 @@ import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
 import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
-import { isCrossChain } from '@metamask/bridge-controller';
 import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TabEmptyState } from '../../../component-library/components-temp/TabEmptyState';
@@ -250,11 +249,7 @@ const MultichainTransactionsView = ({
         const bridgeHistoryItem =
           bridgeHistoryItemsBySrcTxHash[transaction.id] ??
           bridgeHistoryItemsByDestTxHash[transaction.id];
-        const quote = bridgeHistoryItem?.quote;
-
-        if (quote && isCrossChain(quote.srcChainId, quote.destChainId)) {
-          activity = applyBridgeQuote(activity, bridgeHistoryItem, address);
-        }
+        activity = applyBridgeQuote(activity, bridgeHistoryItem, address);
 
         sourceTransactions.set(activity, transaction);
         return activity;
