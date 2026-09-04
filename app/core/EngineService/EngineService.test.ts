@@ -1136,7 +1136,7 @@ describe('EngineService', () => {
       expect(ControllerStorage.getAllPersistedState).not.toHaveBeenCalled();
     });
 
-    it('falls back to existing-user path when filesystem read fails during safety check', async () => {
+    it('falls back to existing-install path when filesystem read fails during safety check', async () => {
       // Arrange — existingUser false, but getItemStrict throws (I/O error, permission denied)
       mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
@@ -1161,7 +1161,7 @@ describe('EngineService', () => {
       expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Safety-check filesystem read failed — falling back to existing-user path',
+          'Safety-check filesystem read failed — falling back to existing-install path',
         ),
       );
     });
