@@ -422,6 +422,7 @@ const Routes = {
   SOCIAL_LEADERBOARD: {
     ROOT: 'SocialLeaderboard',
     VIEW: 'TopTradersView',
+    TAB: 'SocialLeaderboardTab',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
     ONBOARDING: 'SocialLeaderboardOnboarding',
