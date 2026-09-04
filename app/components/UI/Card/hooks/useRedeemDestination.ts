@@ -14,10 +14,10 @@ import type { RootState } from '../../../../reducers';
 import type { CardFundingToken } from '../types';
 import {
   hasApprovedFundingFor,
-  isMoneyAccountPriorityEntry,
   networkToCaipChainId,
-  resolveReceivingPriorityEntry,
+  resolveRedeemReceivingEntry,
 } from '../util/redeemDestination';
+import { MONEY_ACCOUNT_DELEGATION_NETWORK } from '../util/vedaToken';
 
 interface RedeemDestination {
   caipChainId: CaipChainId | undefined;
@@ -47,8 +47,6 @@ const useRedeemDestination = ({
   );
   const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const redeemsToMoneyAccount =
-    !isResidencyBlocked && Boolean(primaryMoneyAccount);
 
   const params = useMemo(
     () => ({ caipChainId, symbol }),
@@ -59,26 +57,40 @@ const useRedeemDestination = ({
   );
 
   return useMemo(() => {
+    const isMonadRedeem = network === MONEY_ACCOUNT_DELEGATION_NETWORK;
+    // Monad redemptions can only land in the Money Account vault, and residents
+    // of blocked regions have no Money Account, so Monad is not withdrawable
+    // for them even when the estimation names it.
+    const isUnavailableNetwork = isMonadRedeem && isResidencyBlocked;
+
+    const isMoneyAccountDestination = isMonadRedeem && !isUnavailableNetwork;
+
+    const receivingEntry = isUnavailableNetwork
+      ? undefined
+      : resolveRedeemReceivingEntry({
+          priorities: externalWalletPriority,
+          network,
+          vedaConfig,
+        });
+    const receivingAddress = isMoneyAccountDestination
+      ? (receivingEntry?.address ?? primaryMoneyAccount?.address)
+      : receivingEntry?.address;
+
+    // Resolved means the estimation named a supported network+currency.
+    // Addressability is separate: a missing receiving wallet triggers setup,
+    // not an endless loading state.
     const isResolved = Boolean(caipChainId && symbol);
-
-    const receivingEntry = resolveReceivingPriorityEntry(
-      externalWalletPriority,
-      network,
-    );
-    const receivingAddress = receivingEntry?.address;
-
-    const isMoneyAccountDestination = receivingEntry
-      ? isMoneyAccountPriorityEntry(receivingEntry, vedaConfig)
-      : redeemsToMoneyAccount && Boolean(delegationToken?.isMoneyAccountEntry);
 
     const hasFunding = hasApprovedFundingFor(
       fundingTokens,
       caipChainId,
       symbol,
     );
-    const hasApprovedDestination = isMoneyAccountDestination
-      ? isAnyMoneyAccountDelegated
-      : hasFunding || isAnyMoneyAccountDelegated;
+    const hasApprovedDestination =
+      Boolean(receivingAddress) &&
+      (isMoneyAccountDestination
+        ? isAnyMoneyAccountDelegated
+        : hasFunding || isAnyMoneyAccountDelegated);
 
     return {
       caipChainId,
@@ -98,7 +110,8 @@ const useRedeemDestination = ({
     externalWalletPriority,
     vedaConfig,
     isAnyMoneyAccountDelegated,
-    redeemsToMoneyAccount,
+    isResidencyBlocked,
+    primaryMoneyAccount,
   ]);
 };
 
