@@ -104,9 +104,10 @@
   },
   {
     "name": "test-shared-infra-impact",
-    "description": "Changes to flows, page-objects, selectors, or locators — find impacted smoke specs and run their tags",
+    "description": "Changes to flows, page-objects, selectors, or locators — find impacted smoke specs, union tags from smoke specs changed in the same PR, and run those tags",
     "trigger": {
       "type": "extractTagsFromImportGraph",
+      "includeChangedSpecs": true,
       "sourcePrefixes": [
         "tests/flows/",
         "tests/page-objects/",

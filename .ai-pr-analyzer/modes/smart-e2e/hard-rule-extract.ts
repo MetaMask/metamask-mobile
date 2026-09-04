@@ -264,6 +264,7 @@ export function evaluateExtractTagsFromImportGraph(
     hop?: number;
     catalogGroup?: string;
     tagsImportRegex?: string;
+    includeChangedSpecs?: boolean;
   };
   const gate = trigger.onlyIfRemainingChangesMatch;
   if (gate && !remainingChangesAllowed(changedFiles, gate, normalize)) {
@@ -275,16 +276,21 @@ export function evaluateExtractTagsFromImportGraph(
   const sourcePrefixes = trigger.sourcePrefixes ?? [];
   const intermediatePrefixes = trigger.intermediatePrefixes ?? [];
   const hops = trigger.hop ?? 1;
+  const includeChangedSpecs = trigger.includeChangedSpecs !== false;
   const firstSearchPrefixes = [...specPrefixes, ...intermediatePrefixes];
 
   const specFiles = new Set<string>();
+  const changedSpecFiles: string[] = [];
+  let sawSharedSource = false;
   for (const source of changedFiles.map((file) => normalize(file))) {
-    if (
-      !sourcePrefixes.some((prefix) => source.startsWith(prefix)) ||
-      isSpecFile(source, specPrefixes, specPattern)
-    ) {
+    if (isSpecFile(source, specPrefixes, specPattern)) {
+      changedSpecFiles.push(source);
       continue;
     }
+    if (!sourcePrefixes.some((prefix) => source.startsWith(prefix))) {
+      continue;
+    }
+    sawSharedSource = true;
     const stem = fileStem(source);
     if (!stem) {
       continue;
@@ -319,6 +325,15 @@ export function evaluateExtractTagsFromImportGraph(
           specFiles.add(hopMatch);
         }
       }
+    }
+  }
+
+  // `continue: true` seeds AI from this rule; later extract-spec rules do not
+  // refill the floor. Union smoke specs changed in the same PR, matching the
+  // previous test-shared-infra-impact handler.
+  if (includeChangedSpecs && sawSharedSource) {
+    for (const specPath of changedSpecFiles) {
+      specFiles.add(specPath);
     }
   }
 

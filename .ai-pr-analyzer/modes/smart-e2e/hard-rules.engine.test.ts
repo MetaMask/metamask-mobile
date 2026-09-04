@@ -111,6 +111,20 @@ describe('smart-e2e hard-rules.json on the analyzer engine', () => {
   );
 
   testFn(
+    'unions an unrelated changed smoke spec tag with import-graph tags',
+    () => {
+      const result = resultOf(
+        evaluate([
+          'tests/page-objects/wallet/AccountListBottomSheet.ts',
+          'tests/smoke-appium/perps/perps-edit-tpsl-trigger.spec.ts',
+        ]),
+      );
+      assert.ok((result.selected_tags as string[]).includes('SmokeAccounts'));
+      assert.ok((result.selected_tags as string[]).includes('SmokePerps'));
+    },
+  );
+
+  testFn(
     'includes smoke spec tags when a shared page object affects smoke importers',
     () => {
       const evaluation = evaluate([

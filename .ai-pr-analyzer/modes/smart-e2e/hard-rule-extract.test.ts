@@ -143,12 +143,18 @@ describe('evaluateExtractTagsFromChangedSpecs', () => {
 const TOKEN_SPEC = 'tests/smoke-appium/tokens.spec.ts';
 const TOKEN_PAGE = 'tests/page-objects/TokenPage.ts';
 const TOKEN_SELECTORS = 'tests/page-objects/TokenSelectors.ts';
+const ACCOUNTS_SPEC = 'tests/smoke-appium/accounts.spec.ts';
 const TOKEN_SPEC_SOURCE = `import { TokenPage } from '../../page-objects/TokenPage';
 import { SmokeTokens } from '../../tags.js';
 `;
+const ACCOUNTS_SPEC_SOURCE = `import { SmokeAccounts } from '../../tags.js';
+`;
 
 const tokensCatalog: TagCatalog = {
-  e2e: [{ id: 'SmokeTokens', description: 'Token flows' }],
+  e2e: [
+    { id: 'SmokeTokens', description: 'Token flows' },
+    { id: 'SmokeAccounts', description: 'Accounts flows' },
+  ],
 };
 
 function importGraphRule(extras: Record<string, unknown> = {}) {
@@ -305,5 +311,68 @@ import { SmokeTokens } from '../../tags.js';
     );
     const out = run([TOKEN_PAGE], importGraphRule(), tokensCatalog, baseDir);
     assert.equal(out, null);
+  });
+
+  it('unions tags from an unrelated smoke spec changed in the same PR', () => {
+    const baseDir = makeTemp();
+    writeDirectImportTree(baseDir);
+    writeFileSync(join(baseDir, ACCOUNTS_SPEC), ACCOUNTS_SPEC_SOURCE);
+    const out = run(
+      [TOKEN_PAGE, ACCOUNTS_SPEC],
+      importGraphRule(),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.ok(out);
+    assert.deepEqual(
+      [...out.selectedTags].sort(),
+      ['SmokeAccounts', 'SmokeTokens'],
+    );
+  });
+
+  it('reads tags from a changed spec when the page-object has no smoke importers', () => {
+    const baseDir = makeTemp();
+    mkdirSync(join(baseDir, 'tests', 'page-objects'), { recursive: true });
+    mkdirSync(join(baseDir, 'tests', 'smoke-appium'), { recursive: true });
+    writeFileSync(
+      join(baseDir, TOKEN_PAGE),
+      'export const TokenPage = true;\n',
+    );
+    writeFileSync(join(baseDir, ACCOUNTS_SPEC), ACCOUNTS_SPEC_SOURCE);
+    const out = run(
+      [TOKEN_PAGE, ACCOUNTS_SPEC],
+      importGraphRule(),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.ok(out);
+    assert.deepEqual(out.selectedTags, ['SmokeAccounts']);
+  });
+
+  it('does not steal spec-only PRs when includeChangedSpecs is enabled', () => {
+    const baseDir = makeTemp();
+    writeDirectImportTree(baseDir);
+    writeFileSync(join(baseDir, ACCOUNTS_SPEC), ACCOUNTS_SPEC_SOURCE);
+    const out = run(
+      [ACCOUNTS_SPEC],
+      importGraphRule(),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.equal(out, null);
+  });
+
+  it('omits changed spec tags when includeChangedSpecs is false', () => {
+    const baseDir = makeTemp();
+    writeDirectImportTree(baseDir);
+    writeFileSync(join(baseDir, ACCOUNTS_SPEC), ACCOUNTS_SPEC_SOURCE);
+    const out = run(
+      [TOKEN_PAGE, ACCOUNTS_SPEC],
+      importGraphRule({ includeChangedSpecs: false }),
+      tokensCatalog,
+      baseDir,
+    );
+    assert.ok(out);
+    assert.deepEqual(out.selectedTags, ['SmokeTokens']);
   });
 });
