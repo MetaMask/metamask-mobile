@@ -166,6 +166,14 @@ export function main(): void {
   console.log(`\nWrote ${RESULT_PATH}: ${result.manual.length} advisor${result.manual.length === 1 ? 'y' : 'ies'} pending review.`);
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
+// Node strips types and reparses this file as an ES module, where `require` is
+// undefined, so a CommonJS-only guard never fires and main() never runs.
+// Fall back to matching the invoked script path.
+const invokedPath = process.argv[1] ?? '';
+const isDirectRun =
+  (typeof require !== 'undefined' && require.main === module) ||
+  /collect-audit-advisories(\.[jt]s)?$/u.test(invokedPath);
+
+if (isDirectRun) {
   main();
 }
