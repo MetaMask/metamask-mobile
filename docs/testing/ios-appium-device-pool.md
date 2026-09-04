@@ -36,11 +36,14 @@ warm WDA on default port 8100. No `ios-device-pool` line. Playwright omits
 `appium:wdaLocalPort` / `appium:mjpegServerPort`.
 
 **N>1:** shutdown base if booted → delete clones named
-`${IOS_SIMULATOR_NAME} Appium Pool ${i}` → clone → parallel boot → WDA prebuild
-once → per-UDID WDA + app install (parallel across UDIDs) → warm WDA
-sequentially on the shared Appium server with ports `8100+i` / `9100+i`. Pool
-mode fails closed on missing WDA artifacts, failed simctl install, or warm-up
-failure (N=1 may fall back to xcodebuild).
+`${IOS_SIMULATOR_NAME} Appium Pool ${i}` (shutdown-before-delete if a stale
+clone is still Booted; delete failures fail closed) → clone → parallel boot →
+WDA prebuild once → per-UDID WDA + app install (parallel across UDIDs) → warm
+WDA sequentially on the shared Appium server with ports `8100+i` / `9100+i`.
+Pool mode fails closed on missing WDA artifacts, failed simctl install, or
+warm-up failure (N=1 may fall back to xcodebuild). Playwright also fails closed
+if `IOS_WDA_PREINSTALLED` is not `true`, so workers cannot race concurrent
+xcodebuild against the shared `derivedDataPath`.
 
 | Worker | UDID                        | `wdaLocalPort` | `mjpegServerPort` |
 | ------ | --------------------------- | -------------: | ----------------: |
@@ -141,6 +144,7 @@ N=2 is partial overlap on one runner — not 2× throughput.
 | Failure                                      | Behavior                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------ |
 | Pool / workers mismatch                      | Throw in global setup                                              |
+| Missing `IOS_WDA_PREINSTALLED` when size >1  | Throw in global setup                                              |
 | Empty / short `IOS_DEVICE_POOL` when size >1 | Throw in `deviceForWorker`                                         |
 | Prepare clone / WDA / warm-up                | Non-zero exit; job fails                                           |
 | Sim dies mid-run                             | That worker fails; sibling untouched; retries keep `parallelIndex` |

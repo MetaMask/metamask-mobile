@@ -1,5 +1,7 @@
 import {
+  deleteIosSimulatorByName,
   iosPoolSimulatorName,
+  isIosSimulatorBooted,
   parseIosDevicePoolSize,
   prepareIosSimulatorPool,
 } from './ios-simulator-lib.mjs';
@@ -17,6 +19,7 @@ const BASE_NAME = 'iPhone 16 Pro';
 const BASE_UDID = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const CLONE_UDID_0 = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const CLONE_UDID_1 = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+const STALE_CLONE_UDID_0 = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 
 interface RecordedCall {
   command: string;
@@ -36,6 +39,10 @@ function makeListDevicesJson(
 function createFakeExecFile(
   listDevicesJson: string,
   cloneUdids: string[],
+  options: {
+    deleteError?: Error;
+    bootErrorForUdid?: string;
+  } = {},
 ): { execFileImpl: ExecFileImpl; calls: RecordedCall[] } {
   const calls: RecordedCall[] = [];
   let cloneIndex = 0;
@@ -60,6 +67,9 @@ function createFakeExecFile(
       case 'shutdown':
         return { stdout: '', stderr: '' };
       case 'delete':
+        if (options.deleteError) {
+          throw options.deleteError;
+        }
         return { stdout: '', stderr: '' };
       case 'clone': {
         const newUdid = cloneUdids[cloneIndex];
@@ -70,6 +80,9 @@ function createFakeExecFile(
         return { stdout: `${newUdid}\n`, stderr: '' };
       }
       case 'boot':
+        if (options.bootErrorForUdid && subArgs[0] === options.bootErrorForUdid) {
+          throw new Error(`boot failed for ${options.bootErrorForUdid}`);
+        }
         return { stdout: '', stderr: '' };
       case 'bootstatus':
         return { stdout: 'Device already booted\n', stderr: '' };
@@ -124,6 +137,125 @@ describe('parseIosDevicePoolSize', () => {
       );
     },
   );
+});
+
+describe('isIosSimulatorBooted', () => {
+  it('returns true when the simulator is Booted', async () => {
+    const { execFileImpl } = createFakeExecFile(
+      makeListDevicesJson([
+        { name: BASE_NAME, udid: BASE_UDID, state: 'Booted' },
+      ]),
+      [],
+    );
+
+    await expect(isIosSimulatorBooted(BASE_UDID, execFileImpl)).resolves.toBe(
+      true,
+    );
+  });
+
+  it('returns false when the simulator is Shutdown', async () => {
+    const { execFileImpl } = createFakeExecFile(
+      makeListDevicesJson([
+        { name: BASE_NAME, udid: BASE_UDID, state: 'Shutdown' },
+      ]),
+      [],
+    );
+
+    await expect(isIosSimulatorBooted(BASE_UDID, execFileImpl)).resolves.toBe(
+      false,
+    );
+  });
+
+  it('logs and rethrows when simctl list fails', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const execFileImpl: ExecFileImpl = async () => {
+      throw new Error('simctl list exploded');
+    };
+
+    await expect(isIosSimulatorBooted(BASE_UDID, execFileImpl)).rejects.toThrow(
+      'simctl list exploded',
+    );
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Failed to check boot state for iOS simulator ${BASE_UDID}`,
+      ),
+    );
+    warnSpy.mockRestore();
+  });
+
+  it('logs and rethrows when device JSON is invalid', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const execFileImpl: ExecFileImpl = async () => ({
+      stdout: 'not-json',
+      stderr: '',
+    });
+
+    await expect(isIosSimulatorBooted(BASE_UDID, execFileImpl)).rejects.toThrow();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Failed to parse simctl device list while checking ${BASE_UDID}`,
+      ),
+    );
+    warnSpy.mockRestore();
+  });
+});
+
+describe('deleteIosSimulatorByName', () => {
+  it('no-ops when no simulator matches the name', async () => {
+    const { execFileImpl, calls } = createFakeExecFile(
+      makeListDevicesJson([]),
+      [],
+    );
+
+    await deleteIosSimulatorByName(
+      iosPoolSimulatorName(BASE_NAME, 0),
+      execFileImpl,
+    );
+
+    expect(calls.some((call) => call.args[1] === 'delete')).toBe(false);
+    expect(calls.some((call) => call.args[1] === 'shutdown')).toBe(false);
+  });
+
+  it('shuts down a booted match before delete', async () => {
+    const cloneName = iosPoolSimulatorName(BASE_NAME, 0);
+    const { execFileImpl, calls } = createFakeExecFile(
+      makeListDevicesJson([
+        { name: cloneName, udid: STALE_CLONE_UDID_0, state: 'Booted' },
+      ]),
+      [],
+    );
+
+    await deleteIosSimulatorByName(cloneName, execFileImpl);
+
+    const shutdownIndex = calls.findIndex((call) => call.args[1] === 'shutdown');
+    const deleteIndex = calls.findIndex((call) => call.args[1] === 'delete');
+    expect(shutdownIndex).toBeGreaterThanOrEqual(0);
+    expect(deleteIndex).toBeGreaterThan(shutdownIndex);
+    expect(simctlArgs(calls, 'shutdown')).toEqual([STALE_CLONE_UDID_0]);
+    expect(simctlArgs(calls, 'delete')).toEqual([STALE_CLONE_UDID_0]);
+  });
+
+  it('logs and rethrows when delete fails after a match is found', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const cloneName = iosPoolSimulatorName(BASE_NAME, 0);
+    const { execFileImpl } = createFakeExecFile(
+      makeListDevicesJson([
+        { name: cloneName, udid: STALE_CLONE_UDID_0, state: 'Shutdown' },
+      ]),
+      [],
+      { deleteError: new Error('disk full') },
+    );
+
+    await expect(
+      deleteIosSimulatorByName(cloneName, execFileImpl),
+    ).rejects.toThrow('disk full');
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `Failed to delete iOS simulator "${cloneName}" (${STALE_CLONE_UDID_0})`,
+      ),
+    );
+    warnSpy.mockRestore();
+  });
 });
 
 describe('prepareIosSimulatorPool', () => {
@@ -198,19 +330,16 @@ describe('prepareIosSimulatorPool', () => {
     const shutdownIndex = calls.findIndex(
       (call) => call.args[1] === 'shutdown',
     );
-    const firstDeleteIndex = calls.findIndex((call) => call.args[1] === 'delete');
     const firstCloneIndex = calls.findIndex((call) => call.args[1] === 'clone');
     const firstBootIndex = calls.findIndex((call) => call.args[1] === 'boot');
 
     expect(shutdownIndex).toBeGreaterThanOrEqual(0);
-    expect(firstDeleteIndex).toBeGreaterThan(shutdownIndex);
-    expect(firstCloneIndex).toBeGreaterThan(firstDeleteIndex);
+    expect(firstCloneIndex).toBeGreaterThan(shutdownIndex);
     expect(firstBootIndex).toBeGreaterThan(firstCloneIndex);
 
     expect(simctlArgs(calls, 'shutdown')).toEqual([BASE_UDID]);
-
-    const deleteCalls = calls.filter((call) => call.args[1] === 'delete');
-    expect(deleteCalls).toHaveLength(2);
+    // No stale clones in the device list → delete is a no-op.
+    expect(calls.some((call) => call.args[1] === 'delete')).toBe(false);
 
     const cloneCalls = calls.filter((call) => call.args[1] === 'clone');
     expect(cloneCalls).toHaveLength(2);
@@ -228,5 +357,69 @@ describe('prepareIosSimulatorPool', () => {
       .map((call) => call.args[2]);
     expect(bootedUdids).toEqual([CLONE_UDID_0, CLONE_UDID_1]);
     expect(bootedUdids).not.toContain(BASE_UDID);
+  });
+
+  it('shuts down and deletes stale booted clones before recreating the pool', async () => {
+    const cloneName0 = iosPoolSimulatorName(BASE_NAME, 0);
+    const cloneName1 = iosPoolSimulatorName(BASE_NAME, 1);
+    const listJson = makeListDevicesJson([
+      { name: BASE_NAME, udid: BASE_UDID, state: 'Shutdown' },
+      { name: cloneName0, udid: STALE_CLONE_UDID_0, state: 'Booted' },
+      {
+        name: cloneName1,
+        udid: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+        state: 'Shutdown',
+      },
+    ]);
+    const { execFileImpl, calls } = createFakeExecFile(listJson, [
+      CLONE_UDID_0,
+      CLONE_UDID_1,
+    ]);
+
+    await prepareIosSimulatorPool(
+      { baseName: BASE_NAME, poolSize: 2 },
+      execFileImpl,
+    );
+
+    const shutdownUdids = calls
+      .filter((call) => call.args[1] === 'shutdown')
+      .map((call) => call.args[2]);
+    expect(shutdownUdids).toContain(STALE_CLONE_UDID_0);
+    expect(shutdownUdids).not.toContain(BASE_UDID);
+
+    const deletedUdids = calls
+      .filter((call) => call.args[1] === 'delete')
+      .map((call) => call.args[2]);
+    expect(deletedUdids).toEqual([
+      STALE_CLONE_UDID_0,
+      'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+    ]);
+  });
+
+  it('awaits every clone boot and aggregates partial failures', async () => {
+    const listJson = makeListDevicesJson([
+      { name: BASE_NAME, udid: BASE_UDID, state: 'Shutdown' },
+    ]);
+    const { execFileImpl, calls } = createFakeExecFile(
+      listJson,
+      [CLONE_UDID_0, CLONE_UDID_1],
+      { bootErrorForUdid: CLONE_UDID_0 },
+    );
+
+    await expect(
+      prepareIosSimulatorPool(
+        { baseName: BASE_NAME, poolSize: 2 },
+        execFileImpl,
+      ),
+    ).rejects.toThrow(
+      `Failed to boot 1/2 iOS pool simulator(s): boot failed for ${CLONE_UDID_0}`,
+    );
+
+    const bootedUdids = calls
+      .filter((call) => call.args[1] === 'boot')
+      .map((call) => call.args[2]);
+    expect(bootedUdids).toEqual(
+      expect.arrayContaining([CLONE_UDID_0, CLONE_UDID_1]),
+    );
   });
 });

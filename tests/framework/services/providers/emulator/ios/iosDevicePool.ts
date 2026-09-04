@@ -30,6 +30,9 @@ export function resolveIosDevicePoolSize(
  * Pool mode requires one Playwright worker per simulator. Playwright reads its
  * worker count before global setup, so changing E2E_WORKERS during boot cannot
  * repair a mismatch.
+ *
+ * Pool mode also requires IOS_WDA_PREINSTALLED=true so workers do not race on a
+ * shared Appium derivedDataPath via concurrent xcodebuild.
  */
 export function assertIosDevicePoolMatchesWorkers(
   env: Record<string, string | undefined> = process.env,
@@ -45,6 +48,11 @@ export function assertIosDevicePoolMatchesWorkers(
   if ((poolSize > 1 || workers > 1) && poolSize !== workers) {
     throw new Error(
       `IOS_DEVICE_POOL_SIZE (${poolSize}) must match E2E_WORKERS (${workers}) in pool mode.`,
+    );
+  }
+  if (poolSize > 1 && env.IOS_WDA_PREINSTALLED !== 'true') {
+    throw new Error(
+      'IOS_WDA_PREINSTALLED=true is required when IOS_DEVICE_POOL_SIZE > 1 to avoid concurrent WDA xcodebuild on a shared derivedDataPath.',
     );
   }
 }

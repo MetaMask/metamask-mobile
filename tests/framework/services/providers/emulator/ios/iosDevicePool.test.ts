@@ -29,11 +29,12 @@ describe('iosDevicePool', () => {
   });
 
   describe('assertIosDevicePoolMatchesWorkers', () => {
-    it('accepts matching pool and worker counts', () => {
+    it('accepts matching pool and worker counts when WDA is preinstalled', () => {
       expect(() =>
         assertIosDevicePoolMatchesWorkers({
           IOS_DEVICE_POOL_SIZE: '2',
           E2E_WORKERS: '2',
+          IOS_WDA_PREINSTALLED: 'true',
         }),
       ).not.toThrow();
     });
@@ -43,9 +44,21 @@ describe('iosDevicePool', () => {
         assertIosDevicePoolMatchesWorkers({
           IOS_DEVICE_POOL_SIZE: '2',
           E2E_WORKERS: '1',
+          IOS_WDA_PREINSTALLED: 'true',
         }),
       ).toThrow(
         'IOS_DEVICE_POOL_SIZE (2) must match E2E_WORKERS (1) in pool mode.',
+      );
+    });
+
+    it('rejects pool mode without IOS_WDA_PREINSTALLED', () => {
+      expect(() =>
+        assertIosDevicePoolMatchesWorkers({
+          IOS_DEVICE_POOL_SIZE: '2',
+          E2E_WORKERS: '2',
+        }),
+      ).toThrow(
+        'IOS_WDA_PREINSTALLED=true is required when IOS_DEVICE_POOL_SIZE > 1',
       );
     });
   });

@@ -102,8 +102,12 @@ export function assertBootedUdids(bootedLines, requiredUdids) {
 }
 
 /**
+ * @typedef {(command: string) => Promise<{ stdout: string; stderr: string }>} ExecImpl
+ */
+
+/**
  * @param {{
- *   execImpl?: typeof execAsync;
+ *   execImpl?: ExecImpl;
  *   iosDevicePoolSize?: string;
  *   iosDevicePool?: string;
  *   iosSimulatorUdid?: string;

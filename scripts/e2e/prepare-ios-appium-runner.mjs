@@ -2,12 +2,14 @@
 /* eslint-disable import-x/no-nodejs-modules */
 /**
  * Prepares the iOS Appium runner before Playwright tests:
- * 1. Boot simulator (must complete before WDA prebuild so xcodebuild has a destination)
+ * 1. Boot the simulator pool (N=1 uses the base sim; N>1 clones + boots in parallel)
  * 2. Post-boot settle (SpringBoard / system UI — mirrors Android emulator settle)
- * 3. Prebuild WDA into ~/appium-wda on cache miss
- * 4. simctl install WebDriverAgentRunner + MetaMask.app (sequential — same UDID)
- * 5. Grant common simulator permissions + warm-launch MetaMask once
- * 6. Warm WDA via a throwaway Appium session; leaves Appium running for tests
+ * 3. Prebuild WDA into ~/appium-wda on cache miss (once, using the primary UDID)
+ * 4. Per simulator: simctl install WebDriverAgentRunner + MetaMask.app
+ *    (sequential per UDID; parallel across UDIDs in pool mode)
+ * 5. Grant common simulator permissions + warm-launch MetaMask (once per simulator)
+ * 6. Warm WDA via throwaway Appium session(s); leaves Appium running for tests
+ *    (sequential across pool UDIDs to avoid shared-server races)
  *
  * Sets GITHUB_OUTPUT: ios-simulator-udid, ios-wda-preinstalled, ios-wda-bundle-id.
  * Pool mode also sets ios-device-pool and fails closed on WDA preparation.
@@ -21,6 +23,12 @@ import {
   prepareIosSimulatorPool,
   warmLaunchIosApp,
 } from './ios-simulator-lib.mjs';
+import {
+  assertPoolModeAppPath,
+  assertPoolModeWdaArtifacts,
+  buildPrepareIosGithubOutput,
+  resolvePoolWdaPreinstallState,
+} from './prepare-ios-appium-runner-lib.mjs';
 import {
   ensureWdaPrebuilt,
   findWdaArtifacts,
@@ -64,23 +72,15 @@ if (appPath && !existsSync(appPath)) {
   console.error(`IOS_APP_PATH does not exist: ${appPath}`);
   process.exit(1);
 }
-if (poolSize > 1 && !appPath) {
-  throw new Error('IOS_APP_PATH is required for iOS device pool mode.');
-}
+assertPoolModeAppPath(poolSize, appPath);
 
-let iosWdaPreinstalled = 'false';
-let iosWdaBundleIdBase = '';
 let wdaApp;
 
 if (hasUsableWdaArtifacts()) {
   ({ wdaApp } = findWdaArtifacts(getDerivedDataPath()));
 }
 
-if (poolSize > 1 && !wdaApp) {
-  throw new Error(
-    'WDA artifacts are required for iOS device pool mode, but none were found.',
-  );
-}
+assertPoolModeWdaArtifacts(poolSize, wdaApp);
 
 /**
  * WDA and app installs stay sequential per simulator. Different simulators are
@@ -124,17 +124,29 @@ if (!wdaApp) {
 
 const installedWdaBundleIds =
   poolSize > 1
-    ? await Promise.all(udids.map((udid) => prepareSimulator(udid)))
+    ? await (async () => {
+        const results = await Promise.allSettled(
+          udids.map((udid) => prepareSimulator(udid)),
+        );
+        const failures = results.filter((result) => result.status === 'rejected');
+        if (failures.length > 0) {
+          const messages = failures.map((result) =>
+            result.reason instanceof Error
+              ? result.reason.message
+              : String(result.reason),
+          );
+          throw new Error(
+            `Failed to prepare ${failures.length}/${udids.length} iOS pool simulator(s): ${messages.join('; ')}`,
+          );
+        }
+        return results.map((result) =>
+          result.status === 'fulfilled' ? result.value : '',
+        );
+      })()
     : [await prepareSimulator(primaryUdid)];
 
-if (poolSize > 1 && !installedWdaBundleIds.every(Boolean)) {
-  throw new Error('WDA must be preinstalled on every iOS pool simulator.');
-}
-
-if (installedWdaBundleIds.every(Boolean)) {
-  iosWdaPreinstalled = 'true';
-  iosWdaBundleIdBase = installedWdaBundleIds[0];
-}
+const { iosWdaPreinstalled, iosWdaBundleIdBase } =
+  resolvePoolWdaPreinstallState(poolSize, installedWdaBundleIds);
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {
   if (poolSize > 1) {
@@ -168,20 +180,14 @@ if (iosWdaPreinstalled === 'true') {
 if (process.env.GITHUB_OUTPUT) {
   appendFileSync(
     process.env.GITHUB_OUTPUT,
-    `ios-simulator-udid=${primaryUdid}\nios-wda-preinstalled=${iosWdaPreinstalled}\n`,
+    buildPrepareIosGithubOutput({
+      primaryUdid,
+      poolSize,
+      udids,
+      iosWdaPreinstalled,
+      iosWdaBundleIdBase,
+    }),
   );
-  if (poolSize > 1) {
-    appendFileSync(
-      process.env.GITHUB_OUTPUT,
-      `ios-device-pool=${udids.join(',')}\n`,
-    );
-  }
-  if (iosWdaBundleIdBase) {
-    appendFileSync(
-      process.env.GITHUB_OUTPUT,
-      `ios-wda-bundle-id=${iosWdaBundleIdBase}\n`,
-    );
-  }
 }
 
 console.log('iOS Appium runner ready.');

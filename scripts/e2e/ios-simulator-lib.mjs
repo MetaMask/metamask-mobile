@@ -185,9 +185,9 @@ export async function getIosSimulatorUdid(deviceName, execFileImpl) {
 /**
  * @param {string} deviceName
  * @param {ExecFileImpl} [execFileImpl]
- * @returns {Promise<string | undefined>}
+ * @returns {Promise<{ udid: string; state: string } | undefined>}
  */
-async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
+async function findIosSimulatorByName(deviceName, execFileImpl) {
   const exec = resolveExecFileImpl(execFileImpl);
   const { stdout } = await exec('xcrun', [
     'simctl',
@@ -201,7 +201,7 @@ async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
   for (const devices of Object.values(list.devices)) {
     for (const device of devices) {
       if (device.name === deviceName) {
-        return device.udid;
+        return { udid: device.udid, state: device.state };
       }
     }
   }
@@ -214,25 +214,41 @@ async function findIosSimulatorUdidByName(deviceName, execFileImpl) {
  * @param {ExecFileImpl} [execFileImpl]
  * @returns {Promise<boolean>}
  */
-async function isIosSimulatorBooted(udid, execFileImpl) {
+export async function isIosSimulatorBooted(udid, execFileImpl) {
   const exec = resolveExecFileImpl(execFileImpl);
+  let stdout;
   try {
-    const { stdout } = await exec('xcrun', [
+    ({ stdout } = await exec('xcrun', [
       'simctl',
       'list',
       'devices',
       'available',
       '-j',
-    ]);
-    const list = JSON.parse(stdout);
-    for (const devices of Object.values(list.devices)) {
-      const sim = devices.find((d) => d.udid === udid);
-      if (sim) {
-        return sim.state === 'Booted';
-      }
+    ]));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Failed to check boot state for iOS simulator ${udid}: ${message}`,
+    );
+    throw error;
+  }
+
+  let list;
+  try {
+    list = JSON.parse(stdout);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Failed to parse simctl device list while checking ${udid}: ${message}`,
+    );
+    throw error;
+  }
+
+  for (const devices of Object.values(list.devices)) {
+    const sim = devices.find((d) => d.udid === udid);
+    if (sim) {
+      return sim.state === 'Booted';
     }
-  } catch {
-    return false;
   }
   return false;
 }
@@ -271,7 +287,9 @@ export async function shutdownIosSimulator(udid, execFileImpl) {
 }
 
 /**
- * Best-effort delete of a simulator matched by device name.
+ * Delete a simulator matched by device name. No-ops when absent. Shuts down a
+ * booted match before delete so stale pool clones cannot block recreation.
+ * Failures after a match is found are logged and rethrown (fail closed).
  *
  * @param {string} name
  * @param {ExecFileImpl} [execFileImpl]
@@ -279,11 +297,42 @@ export async function shutdownIosSimulator(udid, execFileImpl) {
  */
 export async function deleteIosSimulatorByName(name, execFileImpl) {
   const exec = resolveExecFileImpl(execFileImpl);
+
+  let match;
   try {
-    const udid = await findIosSimulatorUdidByName(name, exec);
-    await exec('xcrun', ['simctl', 'delete', udid ?? name]);
-  } catch {
-    // Best-effort — stale clones or concurrent cleanup are non-fatal.
+    match = await findIosSimulatorByName(name, exec);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Failed to look up iOS simulator "${name}" before delete: ${message}`,
+    );
+    throw error;
+  }
+
+  if (!match) {
+    return;
+  }
+
+  if (match.state === 'Booted') {
+    try {
+      await shutdownIosSimulator(match.udid, exec);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(
+        `Failed to shut down iOS simulator "${name}" (${match.udid}) before delete: ${message}`,
+      );
+      throw error;
+    }
+  }
+
+  try {
+    await exec('xcrun', ['simctl', 'delete', match.udid]);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(
+      `Failed to delete iOS simulator "${name}" (${match.udid}): ${message}`,
+    );
+    throw error;
   }
 }
 
@@ -346,9 +395,23 @@ export async function prepareIosSimulatorPool(
     cloneUdids.push(await cloneIosSimulator(baseUdid, cloneName, exec));
   }
 
-  await Promise.all(
+  // Await every boot (allSettled) so a single rejection cannot orphan siblings.
+  const bootResults = await Promise.allSettled(
     cloneUdids.map((udid) => bootIosSimulatorByUdid(udid, exec)),
   );
+  const bootFailures = bootResults.filter(
+    (result) => result.status === 'rejected',
+  );
+  if (bootFailures.length > 0) {
+    const messages = bootFailures.map((result) =>
+      result.reason instanceof Error
+        ? result.reason.message
+        : String(result.reason),
+    );
+    throw new Error(
+      `Failed to boot ${bootFailures.length}/${cloneUdids.length} iOS pool simulator(s): ${messages.join('; ')}`,
+    );
+  }
 
   return cloneUdids;
 }
