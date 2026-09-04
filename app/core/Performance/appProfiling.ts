@@ -9,10 +9,7 @@
  * `react-native-release-profiler` in app code, gated to performance APKs.
  */
 
-import {
-  startProfiling,
-  stopProfiling,
-} from 'react-native-release-profiler';
+import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 
 export const isPerformanceProfilingEnabled =
   process.env.IS_PERFORMANCE_TEST === 'true';

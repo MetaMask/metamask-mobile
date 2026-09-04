@@ -8,10 +8,7 @@ import {
   stopAppProfiling,
   subscribeAppProfilingStatus,
 } from './appProfiling';
-import {
-  startProfiling,
-  stopProfiling,
-} from 'react-native-release-profiler';
+import { startProfiling, stopProfiling } from 'react-native-release-profiler';
 
 jest.mock('react-native-release-profiler', () => ({
   startProfiling: jest.fn(),
