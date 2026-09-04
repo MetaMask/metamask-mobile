@@ -27,6 +27,7 @@ import {
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
   selectCardRedemptionDestinationIsMoneyAccount,
+  selectCardRedeemWithdrawal,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -151,6 +152,33 @@ const createMockRootState = (
   }) as unknown as RootState;
 
 describe('CardController selectors', () => {
+  describe('selectCardRedeemWithdrawal', () => {
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns null when redeemWithdrawal is null', () => {
+      const state = createMockRootState({ redeemWithdrawal: null });
+      expect(selectCardRedeemWithdrawal(state)).toBeNull();
+    });
+
+    it('returns the redeemWithdrawal state', () => {
+      const redeemWithdrawal = {
+        mode: 'cashback' as const,
+        status: 'monitoring' as const,
+        txHash: '0xabc',
+        chainId: '0xe708',
+        submittedAt: 1,
+        error: null,
+      };
+      const state = createMockRootState({ redeemWithdrawal });
+      expect(selectCardRedeemWithdrawal(state)).toEqual(redeemWithdrawal);
+    });
+  });
+
   describe('selectIsMoneyAccountCardLinkInProgress', () => {
     it('returns false when CardController state is undefined', () => {
       const state = {

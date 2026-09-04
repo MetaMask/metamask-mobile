@@ -297,6 +297,7 @@ export enum TraceName {
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
   CardHomeDataFetch = 'Card Home Data Fetch',
+  CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards
   /** Tap Rewards tab → onboarding content or enrolled dashboard shell. */
   RewardsTabTimeToContent = 'Rewards Tab Time To Content',
