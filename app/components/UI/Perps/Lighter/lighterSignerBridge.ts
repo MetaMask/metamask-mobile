@@ -138,9 +138,8 @@ async function executeWithDeadline(
 /** Connect the executor after the WASM page reports ready. */
 export function connectLighterExecutor(newExecutor: LighterExecutor): void {
   if (unavailableError) {
-    armReadiness();
+    return;
   }
-  unavailableError = null;
   executor = newExecutor;
   readyResolve();
 }
