@@ -4,6 +4,7 @@ import type {
   EarnRateStatus,
 } from '../../types/earnAssets';
 import { getEarnAssetFiatNumber, hasEarnAssetBalance } from '../earnAssets';
+import { getHighestReadyRateEntry } from '../earnRate';
 
 /** Maximum number of assets displayed in the horizontal Earn section. */
 export const EARN_SECTION_ASSET_LIMIT = 5;
@@ -42,29 +43,15 @@ const getRateStatus = (
   return 'unavailable';
 };
 
-const getHighestRatePercent = (experiences: readonly EarnExperience[]) =>
-  experiences.reduce<number | undefined>((highest, { rate }) => {
-    if (rate.status !== 'ready' || !Number.isFinite(rate.percentage)) {
-      return highest;
-    }
-    return highest === undefined
-      ? rate.percentage
-      : Math.max(highest, rate.percentage);
-  }, undefined);
-
 const getHighestRateExperience = (experiences: readonly EarnExperience[]) =>
-  experiences.reduce<EarnExperience | undefined>((highest, experience) => {
-    if (
-      experience.rate.status !== 'ready' ||
-      !Number.isFinite(experience.rate.percentage)
-    ) {
-      return highest;
-    }
-    return highest?.rate.status === 'ready' &&
-      highest.rate.percentage >= experience.rate.percentage
-      ? highest
-      : experience;
-  }, undefined);
+  getHighestReadyRateEntry(experiences, ({ rate }) => rate);
+
+const getHighestRatePercent = (experiences: readonly EarnExperience[]) => {
+  const highestRateExperience = getHighestRateExperience(experiences);
+  return highestRateExperience?.rate.status === 'ready'
+    ? highestRateExperience.rate.percentage
+    : undefined;
+};
 
 const compareKnownNumbersDescending = (
   first: number | undefined,

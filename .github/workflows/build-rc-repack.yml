@@ -187,13 +187,14 @@ jobs:
           repository: ${{ github.repository }}
           run-id: ${{ inputs.donor_run_id }}
 
-      # The output keeps the donor's filename so the published artifact is
-      # indistinguishable from a native build's for anything downstream.
+      # Rewrite the donor filename's trailing build-number segment to this build's
+      # number, so it doesn't lie about the version patched into the binary below.
       - name: Locate donor artifact
         id: donor
         env:
           PLATFORM: ${{ inputs.platform }}
           DONOR_RUN_ID: ${{ inputs.donor_run_id }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
         run: |
           set -euo pipefail
           EXT=$([ "$PLATFORM" = "ios" ] && echo ipa || echo apk)
@@ -203,13 +204,18 @@ jobs:
             exit 1
           fi
           NAME=$(basename "$FILE")
+          OUT_NAME=$(printf '%s' "$NAME" | sed -E "s/-[0-9]+\.${EXT}\$/-${BUILD_NUMBER}.${EXT}/")
+          if [ "$OUT_NAME" = "$NAME" ] && [ "${NAME%-"${BUILD_NUMBER}"."${EXT}"}" = "$NAME" ]; then
+            echo "::warning::Donor filename '$NAME' does not end in -<build number>.$EXT; keeping it as is."
+          fi
           mkdir -p repacked
           {
             echo "path=$PWD/$FILE"
-            echo "name=$NAME"
-            echo "output=$PWD/repacked/$NAME"
+            echo "name=$OUT_NAME"
+            echo "output=$PWD/repacked/$OUT_NAME"
           } >> "$GITHUB_OUTPUT"
           echo "Donor artifact: $FILE ($(du -h "$FILE" | cut -f1)) from run $DONOR_RUN_ID"
+          echo "Repacked artifact will be named: $OUT_NAME (build number $BUILD_NUMBER)"
 
       - name: Read release version
         id: version

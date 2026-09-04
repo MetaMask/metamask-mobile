@@ -4853,7 +4853,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ethersproject/providers@npm:^5.7.0, @ethersproject/providers@npm:^5.7.2, @ethersproject/providers@npm:^5.8.0":
+"@ethersproject/providers@npm:^5.7.0, @ethersproject/providers@npm:^5.7.2":
   version: 5.8.0
   resolution: "@ethersproject/providers@npm:5.8.0"
   dependencies:
@@ -7952,247 +7952,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/ansi@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "@inquirer/ansi@npm:2.0.3"
-  checksum: 10/846bf48acc4a89e62c2be49af74c014311e5a575a46875fe3066c28ac241671132fb16518e859bd63db6a2be326a6a7160c9a79f60013b1a2c6a1c1d620a98ac
-  languageName: node
-  linkType: hard
-
-"@inquirer/checkbox@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/checkbox@npm:5.0.4"
-  dependencies:
-    "@inquirer/ansi": "npm:^2.0.3"
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/figures": "npm:^2.0.3"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/43ce1c429bdba2ec88c978a7a32068d7802775b67b9971dedbb3ef374f1a66e918a5999a02dfb244fd5f0e80728a623b3332051f3fce4c569367100ec583b79e
-  languageName: node
-  linkType: hard
-
-"@inquirer/confirm@npm:^6.0.4":
-  version: 6.0.4
-  resolution: "@inquirer/confirm@npm:6.0.4"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/ff3c544ebb8ec45f77641c37565f838cf9502c5af9ace7b789c57897829f700e0ac3a4a2b2a700ba563942b20f1878dfa39bf656f8f92a19860d5541ddc04238
-  languageName: node
-  linkType: hard
-
-"@inquirer/core@npm:^11.1.1":
-  version: 11.1.1
-  resolution: "@inquirer/core@npm:11.1.1"
-  dependencies:
-    "@inquirer/ansi": "npm:^2.0.3"
-    "@inquirer/figures": "npm:^2.0.3"
-    "@inquirer/type": "npm:^4.0.3"
-    cli-width: "npm:^4.1.0"
-    mute-stream: "npm:^3.0.0"
-    signal-exit: "npm:^4.1.0"
-    wrap-ansi: "npm:^9.0.2"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/a4f084fe7f536240f48175baf4dcf761651810b0547c5661dd92032b37139c14ff9da2c6b2dc3245f99a68d42c70d0bf0e9f240dda2cd64d8085cd5511d63882
-  languageName: node
-  linkType: hard
-
-"@inquirer/editor@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/editor@npm:5.0.4"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/external-editor": "npm:^2.0.3"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/c339613eb46359c4cb07ed53f41bb96e6d6872b92e2de26471a11742a7ce11da41e92eccabe3dcfae94f50ed2e9489111e2da6a4f83a3e2e766c0751d7b17fdc
-  languageName: node
-  linkType: hard
-
-"@inquirer/expand@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/expand@npm:5.0.4"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/5487b02d0175ebf30ed8ea4e21075a9e3bb54c724abf5e5c2ce601f1b5bf1ccf05c447d1bbaecda146bc79c8504f204ddfd048a9333f11274d04cabd5fd01443
-  languageName: node
-  linkType: hard
-
-"@inquirer/external-editor@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "@inquirer/external-editor@npm:2.0.3"
-  dependencies:
-    chardet: "npm:^2.1.1"
-    iconv-lite: "npm:^0.7.2"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/cd055ef96c04d0af0a06c5beb1d26e08a2a83f1785851ec1e60c52eb619bf19bc90232c367f98bf9e61ae77555bddfce98b0daeae5be1e1cbf746375ab48a56f
-  languageName: node
-  linkType: hard
-
-"@inquirer/figures@npm:^2.0.3":
-  version: 2.0.3
-  resolution: "@inquirer/figures@npm:2.0.3"
-  checksum: 10/d1496081e28e8fb5f50790fdbf7fb5f437933de557092a3eaac7f290190f9597ff9d75693bbb6d94e3da71b4dae567f2e88d3c54557b280b7b832219ff26e072
-  languageName: node
-  linkType: hard
-
-"@inquirer/input@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/input@npm:5.0.4"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/bf57758c632ec05bd9018da97a78a8d9d7ffa92200a54b380c39eee442d53c98fdf278597395a32b665851ef0572337402a0ba9180889ded049437a01810946f
-  languageName: node
-  linkType: hard
-
-"@inquirer/number@npm:^4.0.4":
-  version: 4.0.4
-  resolution: "@inquirer/number@npm:4.0.4"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/63af377551ccced477ffd71527d5e88927b79ab0171bdbfa13ab011beff10b6df1799caef2f3d91ccdf894a9f5532851a5c62b62f576e7f7ad1ccfcd31d19f3f
-  languageName: node
-  linkType: hard
-
-"@inquirer/password@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/password@npm:5.0.4"
-  dependencies:
-    "@inquirer/ansi": "npm:^2.0.3"
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/1d38173b1cf457679f0ff3f6bcaa1d1ebb9b3669cee391fcedad1892520c2922438dd88e3f499911dce55cbb6557606954bf9c0080bb4c29f39bb96214c64ba0
-  languageName: node
-  linkType: hard
-
-"@inquirer/prompts@npm:^8.2.0":
-  version: 8.2.0
-  resolution: "@inquirer/prompts@npm:8.2.0"
-  dependencies:
-    "@inquirer/checkbox": "npm:^5.0.4"
-    "@inquirer/confirm": "npm:^6.0.4"
-    "@inquirer/editor": "npm:^5.0.4"
-    "@inquirer/expand": "npm:^5.0.4"
-    "@inquirer/input": "npm:^5.0.4"
-    "@inquirer/number": "npm:^4.0.4"
-    "@inquirer/password": "npm:^5.0.4"
-    "@inquirer/rawlist": "npm:^5.2.0"
-    "@inquirer/search": "npm:^4.1.0"
-    "@inquirer/select": "npm:^5.0.4"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/4677fdf41b7aee3043d9428bfb148958992204176c70dee09fb60953b0bea296828d451ff1aadbd688f87fa3b2851cecadd0fce8df9c027613f5f8c393e0cb33
-  languageName: node
-  linkType: hard
-
-"@inquirer/rawlist@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "@inquirer/rawlist@npm:5.2.0"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/b5fe38ab047047eba4f9a2d2697570e67cf43b7b6a43cb0e0399613510e273a79585c334887b17be5717f51823ed09bd2b4a752da49ed47d906b1bfedba94a5b
-  languageName: node
-  linkType: hard
-
-"@inquirer/search@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@inquirer/search@npm:4.1.0"
-  dependencies:
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/figures": "npm:^2.0.3"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/71829d5bd946c3545ecde4ec18fa1ecdcd5f1acebf0c5c69dc226bb633a5e0e0754c2d182e3e78a51be4dfed5a763cbe38d23ee0d13e74519eb307cee03052f5
-  languageName: node
-  linkType: hard
-
-"@inquirer/select@npm:^5.0.4":
-  version: 5.0.4
-  resolution: "@inquirer/select@npm:5.0.4"
-  dependencies:
-    "@inquirer/ansi": "npm:^2.0.3"
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/figures": "npm:^2.0.3"
-    "@inquirer/type": "npm:^4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/06027a2c035774d1299b4a33d4829bc8a53db07da4c6d369a2a7a5b007fe42c32d629cda1eaa3b676a01f6a66227010fbb79558e57749d85539f9eb5ba36ed7f
-  languageName: node
-  linkType: hard
-
-"@inquirer/type@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "@inquirer/type@npm:4.0.3"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/93166fc35dbb597067341c125090a51b1c8d0d57308ec14ad601727513d0aefa33643cff28aa52e7e6796a866bb2f60b4e49820774970110fe8454a276ac7c4c
-  languageName: node
-  linkType: hard
-
 "@inversifyjs/common@npm:1.5.0":
   version: 1.5.0
   resolution: "@inversifyjs/common@npm:1.5.0"
@@ -9997,10 +9756,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bitcoin-wallet-snap@npm:^1.14.2":
-  version: 1.14.2
-  resolution: "@metamask/bitcoin-wallet-snap@npm:1.14.2"
-  checksum: 10/1d109536bdbf2e840eb0ce7867c5c1c2416946b8e5d003b05d1b23a579eaa8c8ee023703e7c87f4096833806e8309ca1eb846cde5a450c28b0ae9f81c6abf561
+"@metamask/bitcoin-wallet-snap@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@metamask/bitcoin-wallet-snap@npm:2.0.1"
+  checksum: 10/ed8c92f6959f2e9a51a3496373217cff8d6a3ca248211aad6f2fe87739d6d9f389f7f526f7e5166acac657bf81d6dd169487288d686067a9b91eed30f79222e5
   languageName: node
   linkType: hard
 
@@ -10017,9 +9776,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:80.1.0":
-  version: 80.1.0
-  resolution: "@metamask/bridge-controller@npm:80.1.0"
+"@metamask/bridge-controller@npm:^80.1.0, @metamask/bridge-controller@npm:^80.1.1":
+  version: 80.1.1
+  resolution: "@metamask/bridge-controller@npm:80.1.1"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -10046,40 +9805,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/be595e0853a9bc352e4d9c00665a786706ed7f065433714da24a52183179310ddb72427612860bbc99a09e1693473c204ec171c6a1de5c7b062a60a831bb9d62
-  languageName: node
-  linkType: hard
-
-"@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch":
-  version: 80.1.0
-  resolution: "@metamask/bridge-controller@patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch::version=80.1.0&hash=6c192b"
-  dependencies:
-    "@ethersproject/address": "npm:^5.7.0"
-    "@ethersproject/bignumber": "npm:^5.7.0"
-    "@ethersproject/constants": "npm:^5.7.0"
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/accounts-controller": "npm:^39.1.1"
-    "@metamask/assets-controller": "npm:^14.0.2"
-    "@metamask/assets-controllers": "npm:^111.1.3"
-    "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/gas-fee-controller": "npm:^26.3.2"
-    "@metamask/keyring-api": "npm:^24.0.0"
-    "@metamask/messenger": "npm:^2.0.0"
-    "@metamask/metamask-eth-abis": "npm:^3.1.1"
-    "@metamask/multichain-network-controller": "npm:^3.2.4"
-    "@metamask/network-controller": "npm:^36.0.0"
-    "@metamask/polling-controller": "npm:^16.0.9"
-    "@metamask/profile-sync-controller": "npm:^29.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^6.1.0"
-    "@metamask/snaps-controllers": "npm:^19.0.0"
-    "@metamask/transaction-controller": "npm:^69.6.1"
-    "@metamask/utils": "npm:^11.11.0"
-    bignumber.js: "npm:^9.1.2"
-    reselect: "npm:^5.1.1"
-    uuid: "npm:^8.3.2"
-  checksum: 10/1db2c5ff2c6f7ecf0f9c24b7ab7e34c536e133ee242c8068ba5d5b341c7ab39bfd5963ccd73058f558f293c4fdf8974309627fe13812719ec1dba319501b069c
+  checksum: 10/a7618c114e3ba634041dd917b6aa763fe627b4dbf6c359863b350bdc8fa1dadad44c1d9b3d109a2bdde884d274d1b48ade14e6539cb8b5e769809e350e8262da
   languageName: node
   linkType: hard
 
@@ -10383,10 +10109,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/delegation-deployments@npm:^1.0.0, @metamask/delegation-deployments@npm:^1.4.0":
+"@metamask/delegation-deployments@npm:^1.4.0":
   version: 1.4.0
   resolution: "@metamask/delegation-deployments@npm:1.4.0"
   checksum: 10/e5e7b83e27daec5b1b61482647d43d4b685954818ff02687e2dbe8169a4dfe199cc8d2ed444242b60425ac2e7d2cf2a5ca29f3e69936abe6a8391f578ec693bb
+  languageName: node
+  linkType: hard
+
+"@metamask/delegation-deployments@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/delegation-deployments@npm:2.0.0"
+  checksum: 10/7f2712ab5e48551880f2ce49d6bd6434b7587772b5053504b1186ae1a894313e9a30ef7ba94cceb7ee80a91c31764ca1a92aec9d8a30de925524a6314f163a7d
   languageName: node
   linkType: hard
 
@@ -10442,15 +10175,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/device-mcp@npm:^0.3.0, @metamask/device-mcp@npm:^0.3.2":
-  version: 0.3.2
-  resolution: "@metamask/device-mcp@npm:0.3.2"
+"@metamask/device-mcp@npm:^0.3.2, @metamask/device-mcp@npm:^0.3.3":
+  version: 0.3.3
+  resolution: "@metamask/device-mcp@npm:0.3.3"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.12.1"
     zod: "npm:^4.4.3"
   bin:
     device-mcp: ./dist/cli/device-mcp.mjs
-  checksum: 10/62bd0e0f4138f66c161b827dca5fa076b8d14237764c8ee62f9ccda4711ac495f1508802bbdaf5b28c9afec7118c3ff6b1c59969be0b4e3957709d1d591d36c2
+  checksum: 10/14bca177989ba947c0700933adb6c17975ae960f6ad1d792d85b629b4991d44b8969f355b7b0ce0a21a70e74db332ab0ea3c966cfd5dbc88494aff612a78709f
   languageName: node
   linkType: hard
 
@@ -11655,25 +11388,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^15.1.0":
-  version: 15.1.0
-  resolution: "@metamask/perps-controller@npm:15.1.0"
+"@metamask/perps-controller@npm:^16.1.0":
+  version: 16.1.0
+  resolution: "@metamask/perps-controller@npm:16.1.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/messenger": "npm:^2.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^11.11.0"
-    "@myx-trade/sdk": "npm:^0.1.265"
+    "@metamask/utils": "npm:^11.12.0"
     "@nktkas/hyperliquid": "npm:^0.33.1"
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  dependenciesMeta:
-    "@myx-trade/sdk":
-      optional: true
-  checksum: 10/d8cb6d4c1121aa08042d198740acdca042ba14711a26a847ed3686596d53aece25a48f9fc69daef7561edaff517fa1202d68d1811567f794e4e3bc7534a0bdbd
+  checksum: 10/e28bc78339c140ae2d714f14c72480a782212e391be7f57bb5485d4528737c638f2d8dea6d16b90a0c599edf11c811815ebef397bd37a9e407e086633832f779
   languageName: node
   linkType: hard
 
@@ -12065,7 +11794,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
+"@metamask/scure-bip39@npm:^2.0.3, @metamask/scure-bip39@npm:^2.1.0, @metamask/scure-bip39@npm:^2.1.1":
   version: 2.1.1
   resolution: "@metamask/scure-bip39@npm:2.1.1"
   dependencies:
@@ -12723,11 +12452,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
-  version: 11.11.0
-  resolution: "@metamask/utils@npm:11.11.0"
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.12.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
+  version: 11.12.1
+  resolution: "@metamask/utils@npm:11.12.1"
   dependencies:
     "@ethereumjs/tx": "npm:^4.2.0"
+    "@metamask/scure-bip39": "npm:^2.0.3"
     "@metamask/superstruct": "npm:^3.1.0"
     "@noble/hashes": "npm:^1.3.1"
     "@scure/base": "npm:^1.1.3"
@@ -12738,7 +12468,7 @@ __metadata:
     pony-cause: "npm:^2.1.10"
     semver: "npm:^7.5.4"
     uuid: "npm:^9.0.1"
-  checksum: 10/c4381b9e451a9616bde84ac659bc0d1848ef06b6e605f877bfa065b78c8ed5015706683ea88a3387de5eaeb3a50d1af9af0994f04f9e06258d992598fe2be3bf
+  checksum: 10/2d91b1d5338929f7a7c0e272ea564426d229e4d5bc33f7b124043245b3d14afb0f01ca15fcee70c434fa1cd537eb82c537ea575489a8672a10ea3da6ae74da81
   languageName: node
   linkType: hard
 
@@ -12871,28 +12601,6 @@ __metadata:
     outvariant: "npm:^1.4.3"
     strict-event-emitter: "npm:^0.5.1"
   checksum: 10/96b6c535fd27c8aed57f2dad380ea31e09026bf6ef960420bc0e30a2ccff269c8121f21f20423f4edd2ef1ed7db6173295950a3c4529693e6bca12eca1be4347
-  languageName: node
-  linkType: hard
-
-"@myx-trade/sdk@npm:^0.1.265":
-  version: 0.1.265
-  resolution: "@myx-trade/sdk@npm:0.1.265"
-  dependencies:
-    "@ethersproject/bytes": "npm:^5.8.0"
-    "@ethersproject/providers": "npm:^5.8.0"
-    "@types/ws": "npm:^8.18.1"
-    crypto-js: "npm:^4.2.0"
-    dayjs: "npm:^1.11.13"
-    ethers: "npm:^6.15.0"
-    ethers-decode-error: "npm:^2.1.3"
-    inquirer: "npm:^13.2.0"
-    lodash-es: "npm:^4.17.21"
-    mitt: "npm:^3.0.1"
-    reconnecting-websocket: "npm:^4.4.0"
-    viem: "npm:^2.36.0"
-    wretch: "npm:^2.11.0"
-    ws: "npm:^8.18.3"
-  checksum: 10/0390eafdb6607e0f344747f0b959173117b2ab6e87e0ed2da6052645ea7977e46fc2cb69457653c20e32f3bac5a897a60e1626b56163a452dd9be3688cb24477
   languageName: node
   linkType: hard
 
@@ -15093,119 +14801,119 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-clean@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-clean@npm:20.0.0"
+"@react-native-community/cli-clean@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-clean@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     execa: "npm:^5.0.0"
     fast-glob: "npm:^3.3.2"
-  checksum: 10/56a261a83eb4fc60e81778659ace53997cc5d045fc09c7e7a3a991eaae60347a7349868bcc5b45db73d3234fc714fe6adbaf641669eddd94cfcfe1037dd616c1
+    picocolors: "npm:^1.1.1"
+  checksum: 10/d929c541e07e8d703c5633bce1a7f2c4ff249f5a5e508b8c11f2fcbf97d5bc27eff706cb36b56973f0405e3592e67bc04f4a7d736956427f129a8c88f9c2cfa5
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-config-android@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-config-android@npm:20.0.0"
+"@react-native-community/cli-config-android@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-config-android@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     fast-glob: "npm:^3.3.2"
     fast-xml-parser: "npm:^4.4.1"
-  checksum: 10/fbd897df48793b050429e77114b8fcf42364b8847a199873818977cb8102ce303bb3e4fbf1842fd66608d96409e27835111e19e80c670dc6067066e53d4c500f
+    picocolors: "npm:^1.1.1"
+  checksum: 10/d14b6c5d172c54a9a4ff7fda8feb91d2f644ca50f2bd1d5109b77d0cfd51c808aca4e6fd957500bb6aaf01bdb7b916ea6028a4658b46b2f8f72ee54bea3dfdd2
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-config-apple@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-config-apple@npm:20.0.0"
+"@react-native-community/cli-config-apple@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-config-apple@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     execa: "npm:^5.0.0"
     fast-glob: "npm:^3.3.2"
-  checksum: 10/7c4e01c894199db48c15265d6d336ece4e103bf23e282e09f08eaa9e03b2237e8dae659e41a2f5fe7f091c9b31f22b3756bdd0f92b8eb6483d279c71b7fc6c99
+    picocolors: "npm:^1.1.1"
+  checksum: 10/5097011bb1831b9eff8d7e1f2964fe265bab3bb7e97ad681985368dc41a853811c474d235ea793edf5e31ad49810744f16bbfff3623e7629ef757eb80858a832
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-config@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-config@npm:20.0.0"
+"@react-native-community/cli-config@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-config@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     cosmiconfig: "npm:^9.0.0"
     deepmerge: "npm:^4.3.0"
     fast-glob: "npm:^3.3.2"
     joi: "npm:^17.2.1"
-  checksum: 10/aaf5e5cb07105abe0eb179b2ed230f24546068780cee02986b5d71447f928f5bff0e2fbc84e02302cf60f2795da8fa919eb204da41f9421f2cfaec9dc53c98c7
+    picocolors: "npm:^1.1.1"
+  checksum: 10/8d53c31641527a245be566992c6a13dc6711d8cfee4f65293ba169e0466c45c71af08a36e00dd550edfa74c1207f702293a8f07acd9a09a36320440e5922bb51
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-doctor@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-doctor@npm:20.0.0"
+"@react-native-community/cli-doctor@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-doctor@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-config": "npm:20.0.0"
-    "@react-native-community/cli-platform-android": "npm:20.0.0"
-    "@react-native-community/cli-platform-apple": "npm:20.0.0"
-    "@react-native-community/cli-platform-ios": "npm:20.0.0"
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-config": "npm:20.1.0"
+    "@react-native-community/cli-platform-android": "npm:20.1.0"
+    "@react-native-community/cli-platform-apple": "npm:20.1.0"
+    "@react-native-community/cli-platform-ios": "npm:20.1.0"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     command-exists: "npm:^1.2.8"
     deepmerge: "npm:^4.3.0"
     envinfo: "npm:^7.13.0"
     execa: "npm:^5.0.0"
     node-stream-zip: "npm:^1.9.1"
     ora: "npm:^5.4.1"
+    picocolors: "npm:^1.1.1"
     semver: "npm:^7.5.2"
     wcwidth: "npm:^1.0.1"
     yaml: "npm:^2.2.1"
-  checksum: 10/c78de0b83287c1db03e780123a83c3f26a8883dc54b5b3a1c34e2d3ed1050e39fbf597b95d8899f878b5ef61a89e05493c62d644e84293008eb4da73a4feb2a8
+  checksum: 10/65101ca2da9d970245bcb09c4ce19ec9b75d9d8fac3dd3dfd857ed09a4e5336e4d4f10815b1a0e6211dfbfb66ef601a3df614aa20f2a57a869a09b71cd9850d8
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-platform-android@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-platform-android@npm:20.0.0"
+"@react-native-community/cli-platform-android@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-platform-android@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-config-android": "npm:20.0.0"
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-config-android": "npm:20.1.0"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     execa: "npm:^5.0.0"
     logkitty: "npm:^0.7.1"
-  checksum: 10/a5b4da7a329e3723d4285f60b18068e78a18451cc948ef79088f1dfbfffc22413a7e94a3c3cc91aee27cf9438bb6b57212b5275e7e5d7af7db41011c4c628f12
+    picocolors: "npm:^1.1.1"
+  checksum: 10/a98faac2a41272041d4643e81cd9950002b555a50bfb53567f72b4ea3e64295a0e5cb79c66fd06f1162a3c367d07114067a446a8849b71c8c4a1f8f0bdf7b199
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-platform-apple@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-platform-apple@npm:20.0.0"
+"@react-native-community/cli-platform-apple@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-platform-apple@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-config-apple": "npm:20.0.0"
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-config-apple": "npm:20.1.0"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     execa: "npm:^5.0.0"
     fast-xml-parser: "npm:^4.4.1"
-  checksum: 10/a1a4c0fcdf9e3c819e0804de2447aed230d1f16c36107728374121deda60acd644550c0f5aeb98f6cd25846da9e6358617c67aaf895eab6e9a81cff1030cf8dd
+    picocolors: "npm:^1.1.1"
+  checksum: 10/8785ffa90d7c5398c1fa00dad37ad8e11b008bec56d6910b1d7d845e90a5b850da9fa51fd8296e7a604771d2e8623654e898f12c4c473ec027d02fc35e682f3b
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-platform-ios@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-platform-ios@npm:20.0.0"
+"@react-native-community/cli-platform-ios@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-platform-ios@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-platform-apple": "npm:20.0.0"
-  checksum: 10/c7fc89332a7cb9fa71c1c5d4fe928d39b0514c74fdcc85251a7a35344f1f5e9e3b4cd23a85a70ce447dded6e6552a5edfa848cf07d8b26127a0c3b05ce3e1768
+    "@react-native-community/cli-platform-apple": "npm:20.1.0"
+  checksum: 10/da425c68bb20ade47f6283eba247d210206ddd651c9f80191c1b6e92ee5978a35b69df7a96c323dad9a0cf4dce7236ab84f34d9a6c51aa1d776d61de48f657eb
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-server-api@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-server-api@npm:20.0.0"
+"@react-native-community/cli-server-api@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-server-api@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-tools": "npm:20.0.0"
+    "@react-native-community/cli-tools": "npm:20.1.0"
     body-parser: "npm:^1.20.3"
     compression: "npm:^1.7.1"
     connect: "npm:^3.6.5"
@@ -15215,7 +14923,7 @@ __metadata:
     pretty-format: "npm:^29.7.0"
     serve-static: "npm:^1.13.1"
     ws: "npm:^6.2.3"
-  checksum: 10/1d58c5a4a451c861db13065898f6c825b8c811fb37fa588fc76edede10d4899fd786055137339eda4033335db97630419017b4f843f4f36a1b00b37296710f47
+  checksum: 10/cfa0fe00cb459459f254b94a770c85693b544e26f708a0ccf0b13bda76cfe8102a038ad9c81e2cf752b7abd4356c383180bdbb140ac2f9b063fdf53e48c411bf
   languageName: node
   linkType: hard
 
@@ -15255,55 +14963,55 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-tools@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-tools@npm:20.0.0"
+"@react-native-community/cli-tools@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-tools@npm:20.1.0"
   dependencies:
     "@vscode/sudo-prompt": "npm:^9.0.0"
     appdirsjs: "npm:^1.2.4"
-    chalk: "npm:^4.1.2"
     execa: "npm:^5.0.0"
     find-up: "npm:^5.0.0"
     launch-editor: "npm:^2.9.1"
     mime: "npm:^2.4.1"
     ora: "npm:^5.4.1"
+    picocolors: "npm:^1.1.1"
     prompts: "npm:^2.4.2"
     semver: "npm:^7.5.2"
-  checksum: 10/5418844eb46e159d05d6ca4af38e054ffd157ae016576eed4d10bb3bdc345bdb8ca30e3cc5a27aff4a7a49727fd4b1da88f7855469ebbfbbdd042ad58951b764
+  checksum: 10/f773a183a078fe2077a14405370840fb16a96b77ce2f0b3789b3383840d425657979f64793f8b38e6e9051106a9fa0cca7d062919479e24b1bd3df1692435578
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-types@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli-types@npm:20.0.0"
+"@react-native-community/cli-types@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli-types@npm:20.1.0"
   dependencies:
     joi: "npm:^17.2.1"
-  checksum: 10/b64b03ff09eb3952c37ba96544156f0b6ffa76e616361a48254e645f914beaa844943ff77ee1fba46445ef8b45f726109fc9ad249afb9d360602cb03db846368
+  checksum: 10/1ae86701a98ac21d0e67f2fcce3859e44c2315c55076aaf82cf80ebf19e91fe95f177208803fddd562f6578549f6ee816356406b5ce106fa0a4e7d30f5aafcdc
   languageName: node
   linkType: hard
 
-"@react-native-community/cli@npm:20.0.0":
-  version: 20.0.0
-  resolution: "@react-native-community/cli@npm:20.0.0"
+"@react-native-community/cli@npm:20.1.0":
+  version: 20.1.0
+  resolution: "@react-native-community/cli@npm:20.1.0"
   dependencies:
-    "@react-native-community/cli-clean": "npm:20.0.0"
-    "@react-native-community/cli-config": "npm:20.0.0"
-    "@react-native-community/cli-doctor": "npm:20.0.0"
-    "@react-native-community/cli-server-api": "npm:20.0.0"
-    "@react-native-community/cli-tools": "npm:20.0.0"
-    "@react-native-community/cli-types": "npm:20.0.0"
-    chalk: "npm:^4.1.2"
+    "@react-native-community/cli-clean": "npm:20.1.0"
+    "@react-native-community/cli-config": "npm:20.1.0"
+    "@react-native-community/cli-doctor": "npm:20.1.0"
+    "@react-native-community/cli-server-api": "npm:20.1.0"
+    "@react-native-community/cli-tools": "npm:20.1.0"
+    "@react-native-community/cli-types": "npm:20.1.0"
     commander: "npm:^9.4.1"
     deepmerge: "npm:^4.3.0"
     execa: "npm:^5.0.0"
     find-up: "npm:^5.0.0"
     fs-extra: "npm:^8.1.0"
     graceful-fs: "npm:^4.1.3"
+    picocolors: "npm:^1.1.1"
     prompts: "npm:^2.4.2"
     semver: "npm:^7.5.2"
   bin:
     rnc-cli: build/bin.js
-  checksum: 10/9f52dce4f6c25d414ba4549153b70daef7708f5603f88f90147c9ec4dd29118f62995294eb20cb3f7c4018367bda66dac344d25ed0e9ffaad6b62a94b29ba75b
+  checksum: 10/edd3e93b45b68c3a1f3cd623d350293505a256bdac39e4dc5760c27ca9bc0cc7330e31f95688a8a068fd32edff91a9bf620b2ed8fdb2ee8b53b362c18a022d59
   languageName: node
   linkType: hard
 
@@ -22099,6 +21807,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10/a0ce595db8a987904badd21fc50f9f444cb73069f4b95a76cc222e0a17b3ff180669059c763ec314bc4c3ce284379177a9da80e83c5f650c6c1310cafbfaa8e6
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.1
   resolution: "@types/jsdom@npm:20.0.1"
@@ -24267,10 +23982,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xmldom/xmldom@npm:^0.8.13, @xmldom/xmldom@npm:^0.8.8":
-  version: 0.8.13
-  resolution: "@xmldom/xmldom@npm:0.8.13"
-  checksum: 10/f8f3d56fa91d5026885c0c5c00b07eae47647bda0d742ecbf8e51e06bb287ab30222977b20529ee15c364031606225ebca58907a8ecc76a3add6b3f10e6ddfc6
+"@xmldom/xmldom@npm:^0.8.15, @xmldom/xmldom@npm:^0.8.8":
+  version: 0.8.15
+  resolution: "@xmldom/xmldom@npm:0.8.15"
+  checksum: 10/521d8e5a9798a47dddb28237d112e47637d638e4f3d60ce1eefa1f397d2439af5a00f781c956b5affc251ef8a1bbc1f8325161d32f7b27c89aacf5ff84f14cf7
   languageName: node
   linkType: hard
 
@@ -27600,13 +27315,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chardet@npm:^2.1.1":
-  version: 2.1.1
-  resolution: "chardet@npm:2.1.1"
-  checksum: 10/d56913b65e45c5c86f331988e2ef6264c131bfeadaae098ee719bf6610546c77740e37221ffec802dde56b5e4466613a4c754786f4da6b5f6c5477243454d324
-  languageName: node
-  linkType: hard
-
 "charenc@npm:0.0.2":
   version: 0.0.2
   resolution: "charenc@npm:0.0.2"
@@ -27920,13 +27628,6 @@ __metadata:
     slice-ansi: "npm:^5.0.0"
     string-width: "npm:^7.0.0"
   checksum: 10/d5149175fd25ca985731bdeec46a55ec237475cf74c1a5e103baea696aceb45e372ac4acbaabf1316f06bd62e348123060f8191ffadfeedebd2a70a2a7fb199d
-  languageName: node
-  linkType: hard
-
-"cli-width@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "cli-width@npm:4.1.0"
-  checksum: 10/b58876fbf0310a8a35c79b72ecfcf579b354e18ad04e6b20588724ea2b522799a758507a37dfe132fafaf93a9922cafd9514d9e1598e6b2cd46694853aed099f
   languageName: node
   linkType: hard
 
@@ -32348,15 +32049,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers-decode-error@npm:^2.1.3":
-  version: 2.1.3
-  resolution: "ethers-decode-error@npm:2.1.3"
-  peerDependencies:
-    ethers: ^6.0.0
-  checksum: 10/c4af3dadb94f68a4839254fe7acc6a2e156f5070ede8e2c2e4d2aadff06ae5a6f0ca4ab8c269ae144b15488db7ff568199af9d53735c2f3c1594f35b273c4196
-  languageName: node
-  linkType: hard
-
 "ethers@npm:^5.0.14":
   version: 5.7.2
   resolution: "ethers@npm:5.7.2"
@@ -32395,7 +32087,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ethers@npm:^6.15.0, ethers@npm:^6.16.0":
+"ethers@npm:^6.16.0":
   version: 6.17.0
   resolution: "ethers@npm:6.17.0"
   dependencies:
@@ -36173,26 +35865,6 @@ __metadata:
   version: 0.2.7
   resolution: "inline-style-parser@npm:0.2.7"
   checksum: 10/cdfe719bd694b53bfbad20a645a9a4dda89c3ff56ee2b95945ad4eea86c541501f49f852d23bc2f73cd8127b6b62ea9027f697838e323a7f7d0d9b760e27a632
-  languageName: node
-  linkType: hard
-
-"inquirer@npm:^13.2.0":
-  version: 13.2.2
-  resolution: "inquirer@npm:13.2.2"
-  dependencies:
-    "@inquirer/ansi": "npm:^2.0.3"
-    "@inquirer/core": "npm:^11.1.1"
-    "@inquirer/prompts": "npm:^8.2.0"
-    "@inquirer/type": "npm:^4.0.3"
-    mute-stream: "npm:^3.0.0"
-    run-async: "npm:^4.0.6"
-    rxjs: "npm:^7.8.2"
-  peerDependencies:
-    "@types/node": ">=18"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: 10/6daf275730ce4bf872d94d404a8a61020cc586391db4f32a9dae644b922a03eda9af56134f9c52cbabae024c59859404292000225bfb1cd747e68aa2cee542d6
   languageName: node
   linkType: hard
 
@@ -40063,9 +39735,9 @@ __metadata:
     "@metamask/auto-changelog": "npm:^6.2.0"
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/base-data-service": "npm:^1.0.0"
-    "@metamask/bitcoin-wallet-snap": "npm:^1.14.2"
+    "@metamask/bitcoin-wallet-snap": "npm:^2.0.1"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
-    "@metamask/bridge-controller": "patch:@metamask/bridge-controller@npm%3A80.1.0#~/.yarn/patches/@metamask-bridge-controller-npm-80.1.0-ea41d41dd2.patch"
+    "@metamask/bridge-controller": "npm:^80.1.1"
     "@metamask/bridge-status-controller": "npm:^75.4.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/browser-playground": "npm:0.8.1"
@@ -40082,11 +39754,11 @@ __metadata:
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/core-backend": "npm:^9.0.0"
     "@metamask/delegation-controller": "npm:^3.0.2"
-    "@metamask/delegation-deployments": "npm:^1.0.0"
+    "@metamask/delegation-deployments": "npm:^2.0.0"
     "@metamask/design-system-react-native": "npm:^0.42.1"
     "@metamask/design-system-twrnc-preset": "npm:^0.10.0"
     "@metamask/design-tokens": "npm:^10.0.0"
-    "@metamask/device-mcp": "npm:^0.3.0"
+    "@metamask/device-mcp": "npm:^0.3.3"
     "@metamask/earn-controller": "npm:^12.2.5"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
@@ -40145,7 +39817,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^26.0.0"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^13.1.1"
-    "@metamask/perps-controller": "npm:^15.1.0"
+    "@metamask/perps-controller": "npm:^16.1.0"
     "@metamask/phishing-controller": "npm:^17.3.1"
     "@metamask/platform-api-docs": "npm:^0.1.0"
     "@metamask/post-message-stream": "npm:^10.0.0"
@@ -40200,7 +39872,6 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^3.2.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^12.0.1"
-    "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.33.1"
     "@noble/curves": "npm:1.9.6"
@@ -40215,9 +39886,9 @@ __metadata:
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-clipboard/clipboard": "npm:^1.16.1"
     "@react-native-community/checkbox": "npm:^0.5.20"
-    "@react-native-community/cli": "npm:20.0.0"
-    "@react-native-community/cli-platform-android": "npm:20.0.0"
-    "@react-native-community/cli-platform-ios": "npm:20.0.0"
+    "@react-native-community/cli": "npm:20.1.0"
+    "@react-native-community/cli-platform-android": "npm:20.1.0"
+    "@react-native-community/cli-platform-ios": "npm:20.1.0"
     "@react-native-community/cli-server-api": "npm:^17.0.0"
     "@react-native-community/datetimepicker": "npm:^8.5.1"
     "@react-native-community/netinfo": "npm:11.5.2"
@@ -40264,6 +39935,7 @@ __metadata:
     "@types/i18n-js": "npm:^3.8.4"
     "@types/is-url": "npm:^1.2.30"
     "@types/jest": "npm:^29.5.12"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/koa": "npm:^2.15.0"
     "@types/lodash": "npm:^4.14.184"
     "@types/luxon": "npm:^3.4.2"
@@ -40297,7 +39969,7 @@ __metadata:
     "@walletconnect/utils": "npm:^2.23.0"
     "@wdio/protocols": "npm:^9.27.0"
     "@welldone-software/why-did-you-render": "npm:^8.0.1"
-    "@xmldom/xmldom": "npm:^0.8.13"
+    "@xmldom/xmldom": "npm:^0.8.15"
     "@yarnpkg/types": "npm:^4.0.1"
     agent-device: "npm:^0.14.8"
     appium: "npm:3.6.0"
@@ -40418,7 +40090,7 @@ __metadata:
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
-    qs: "npm:6.15.2"
+    qs: "npm:6.16.0"
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
     react: "npm:19.2.0"
@@ -40459,7 +40131,7 @@ __metadata:
     react-native-material-textfield: "npm:0.16.1"
     react-native-mmkv: "npm:^3.2.0"
     react-native-modal: "npm:^14.0.0-rc.1"
-    react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch"
+    react-native-nitro-fetch: "patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch"
     react-native-nitro-modules: "npm:0.35.10"
     react-native-nitro-text-decoder: "npm:^0.2.0"
     react-native-nitro-websockets: "npm:^1.0.3"
@@ -41994,13 +41666,6 @@ __metadata:
   version: 0.0.8
   resolution: "mute-stream@npm:0.0.8"
   checksum: 10/a2d2e79dde87e3424ffc8c334472c7f3d17b072137734ca46e6f221131f1b014201cc593b69a38062e974fb2394d3d1cb4349f80f012bbf8b8ac1b28033e515f
-  languageName: node
-  linkType: hard
-
-"mute-stream@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "mute-stream@npm:3.0.0"
-  checksum: 10/bee5db5c996a4585dbffc49e51fea10f3582d7f65441db9bc63126f16269541713c6ccb5a6fe37e08f627967b6eb28dd6b35e54a8dce53cf3837d7e010917b43
   languageName: node
   linkType: hard
 
@@ -45706,12 +45371,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.15.2":
-  version: 6.15.2
-  resolution: "qs@npm:6.15.2"
+"qs@npm:6.16.0":
+  version: 6.16.0
+  resolution: "qs@npm:6.16.0"
   dependencies:
-    side-channel: "npm:^1.1.0"
-  checksum: 10/7a934b2dba40654cf9878dab7c1e7ad56c6186265509727fbece67dadc38fd5d67715b61b6ef938e5a0475faeee701d18ec0a7ce420ad64367caad7f1bdb66e2
+    es-define-property: "npm:^1.0.1"
+    side-channel: "npm:^1.1.1"
+  checksum: 10/7fbf9c2eb9c9bbd8997700caecc4b057ac259635873deefd5027fb26d06d79426cf468da55da87ffd147a24e93d3641352d8ac6664bd84688ad5b2f0b8d04828
   languageName: node
   linkType: hard
 
@@ -46551,37 +46217,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-fetch@npm:1.3.3":
-  version: 1.3.3
-  resolution: "react-native-nitro-fetch@npm:1.3.3"
+"react-native-nitro-fetch@npm:1.5.1":
+  version: 1.5.1
+  resolution: "react-native-nitro-fetch@npm:1.5.1"
   dependencies:
     web-streams-polyfill: "npm:^4.2.0"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: ^0.35.2
-    react-native-worklets: ^0.8.0
+    react-native-worklets: ">=0.8.0"
   peerDependenciesMeta:
     react-native-worklets:
       optional: true
-  checksum: 10/cc7aecf2edd1ae8568e145e7959aa5f72d029f872a7bb2baac7eda24989fc27f98489cae6b550448f2b8e064ab30a8ab99843af37967f304c139740e17e7d904
+  checksum: 10/c3bf55b1837298ad0bcd09a40ea66f8720998ca3efa7192a5662b64de4696c655c1e2e89e5a3aac653d5b522b6903b6b61d9ed27e69dfd7338cb8b5ef13e4b49
   languageName: node
   linkType: hard
 
-"react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch":
-  version: 1.3.3
-  resolution: "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.3.3#~/.yarn/patches/react-native-nitro-fetch-npm-1.3.3-b43385194a.patch::version=1.3.3&hash=3bc776"
+"react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch":
+  version: 1.5.1
+  resolution: "react-native-nitro-fetch@patch:react-native-nitro-fetch@npm%3A1.5.1#~/.yarn/patches/react-native-nitro-fetch-npm-1.5.1-a04fdec326.patch::version=1.5.1&hash=5bfa17"
   dependencies:
     web-streams-polyfill: "npm:^4.2.0"
   peerDependencies:
     react: "*"
     react-native: "*"
     react-native-nitro-modules: ^0.35.2
-    react-native-worklets: ^0.8.0
+    react-native-worklets: ">=0.8.0"
   peerDependenciesMeta:
     react-native-worklets:
       optional: true
-  checksum: 10/1e6c3f1567cca3899884161fd0f62e4881af624cfa5556e50e7693b2d216baa74ea95c65b13614d9856a68ba800640593730af0722780a97e3ea3068d5360d89
+  checksum: 10/00b0c140f413e7029b003ffc3c540d393cf83bb5e311505e41d1260b6820a731f3bc10ba2ed9902a4a432e02fb881e6af3d2d52c37c8a3c3e09eb937d4eb8879
   languageName: node
   linkType: hard
 
@@ -47787,13 +47453,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"reconnecting-websocket@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "reconnecting-websocket@npm:4.4.0"
-  checksum: 10/542b09b4604c4050833017e9602867d2dd76631de1790d46238e5a5857a41183e09faf38d373406e4ed7fef8614b43bf43c89aac677104997ccbbf6fa071338c
-  languageName: node
-  linkType: hard
-
 "redent@npm:^3.0.0":
   version: 3.0.0
   resolution: "redent@npm:3.0.0"
@@ -48718,13 +48377,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"run-async@npm:^4.0.6":
-  version: 4.0.6
-  resolution: "run-async@npm:4.0.6"
-  checksum: 10/d23929e36d0422b871a8964d5cfcb1b88295950ea5f72e1dfed458d4c3f3a33a7395e08167d8a4446f2110cfaac7d7653d9c804d2becab8afa8a63e16b97da81
-  languageName: node
-  linkType: hard
-
 "run-parallel@npm:^1.1.9":
   version: 1.2.0
   resolution: "run-parallel@npm:1.2.0"
@@ -49622,13 +49274,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"side-channel-list@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "side-channel-list@npm:1.0.0"
+"side-channel-list@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "side-channel-list@npm:1.0.1"
   dependencies:
     es-errors: "npm:^1.3.0"
-    object-inspect: "npm:^1.13.3"
-  checksum: 10/603b928997abd21c5a5f02ae6b9cc36b72e3176ad6827fab0417ead74580cc4fb4d5c7d0a8a2ff4ead34d0f9e35701ed7a41853dac8a6d1a664fcce1a044f86f
+    object-inspect: "npm:^1.13.4"
+  checksum: 10/3499671cd52adaee739eac1e14d07530b8e3530192741aeb05e7fe4ad1b51d1368ceea2cd3c21b0f62b05410a5c70a7c4d997ba4b143303ef73d0c65dfd1c252
   languageName: node
   linkType: hard
 
@@ -49657,16 +49309,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"side-channel@npm:^1.0.4, side-channel@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "side-channel@npm:1.1.0"
+"side-channel@npm:^1.0.4, side-channel@npm:^1.1.0, side-channel@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "side-channel@npm:1.1.1"
   dependencies:
     es-errors: "npm:^1.3.0"
-    object-inspect: "npm:^1.13.3"
-    side-channel-list: "npm:^1.0.0"
+    object-inspect: "npm:^1.13.4"
+    side-channel-list: "npm:^1.0.1"
     side-channel-map: "npm:^1.0.1"
     side-channel-weakmap: "npm:^1.0.2"
-  checksum: 10/7d53b9db292c6262f326b6ff3bc1611db84ece36c2c7dc0e937954c13c73185b0406c56589e2bb8d071d6fee468e14c39fb5d203ee39be66b7b8174f179afaba
+  checksum: 10/5fa6393ff6ad25d8b4a38e9ba095481e498c8ebe5ab78481c1455146255a3d18ca37a6f936595cc671a6149134cdc295bbd2fa017620bdc73cbc7380634fa2fc
   languageName: node
   linkType: hard
 
@@ -54132,7 +53784,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrap-ansi@npm:^9.0.0, wrap-ansi@npm:^9.0.2":
+"wrap-ansi@npm:^9.0.0":
   version: 9.0.2
   resolution: "wrap-ansi@npm:9.0.2"
   dependencies:
@@ -54147,13 +53799,6 @@ __metadata:
   version: 1.0.2
   resolution: "wrappy@npm:1.0.2"
   checksum: 10/159da4805f7e84a3d003d8841557196034155008f817172d4e986bd591f74aa82aa7db55929a54222309e01079a65a92a9e6414da5a6aa4b01ee44a511ac3ee5
-  languageName: node
-  linkType: hard
-
-"wretch@npm:^2.11.0":
-  version: 2.11.1
-  resolution: "wretch@npm:2.11.1"
-  checksum: 10/36fbe1889bbfbbe6174be7fde5c2897e4414f911aed15e337b1f4b18b294f0aba49c99415e7d5c3ceced2e93d4214c9c96a239c2d519a7f5332f1aa2237639ee
   languageName: node
   linkType: hard
 
@@ -54200,7 +53845,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:*, ws@npm:8.21.1, ws@npm:^8.0.0, ws@npm:^8.11.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.18.3, ws@npm:^8.19.0, ws@npm:^8.5.0, ws@npm:^8.8.0":
+"ws@npm:*, ws@npm:8.21.1, ws@npm:^8.0.0, ws@npm:^8.11.0, ws@npm:^8.12.1, ws@npm:^8.13.0, ws@npm:^8.18.0, ws@npm:^8.19.0, ws@npm:^8.5.0, ws@npm:^8.8.0":
   version: 8.21.1
   resolution: "ws@npm:8.21.1"
   peerDependencies:

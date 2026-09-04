@@ -30,7 +30,11 @@ import path from 'path';
 
 const COMMENT_MARKER = '<!-- app-profiling-check -->';
 const DEFAULT_BASELINE_BRANCH = 'main';
-const DEFAULT_WORKFLOW = 'run-performance-e2e.yml';
+// Baselines come from the scheduled main runs, which are dispatched by
+// run-performance-e2e-manual.yml. run-performance-e2e.yml is `workflow_call`
+// only, so its invocations are jobs of the caller run and never appear in
+// `gh run list --workflow run-performance-e2e.yml`.
+const BASELINE_WORKFLOW = 'run-performance-e2e-manual.yml';
 /** Current may be up to baseline + 10% without being highlighted as a regression. */
 const RELATIVE_WARN_THRESHOLD = 0.1;
 
@@ -43,7 +47,7 @@ function parseArgs(argv) {
     device: null,
     all: false,
     baselineBranch: DEFAULT_BASELINE_BRANCH,
-    workflow: DEFAULT_WORKFLOW,
+    workflow: BASELINE_WORKFLOW,
     repo: process.env.GITHUB_REPOSITORY || null,
     dryRun: false,
     /** When set, use this local aggregated-reports dir instead of downloading the current run. */
@@ -268,7 +272,15 @@ function downloadAggregatedReports(runId, destDir, repo, { runGhFn = runGh } = {
   return { reused: false };
 }
 
+/** Candidate runs are identical for every scenario of a run, so list them once. */
+const baselineCandidateCache = new Map();
+
 function listBaselineCandidateRuns({ repo, workflow, branch, limit = 40 }) {
+  const cacheKey = `${repo}|${workflow}|${branch}|${limit}`;
+  if (baselineCandidateCache.has(cacheKey)) {
+    return baselineCandidateCache.get(cacheKey);
+  }
+
   const raw = runGh([
     'run',
     'list',
@@ -283,7 +295,9 @@ function listBaselineCandidateRuns({ repo, workflow, branch, limit = 40 }) {
     '--json',
     'databaseId,conclusion,createdAt,headSha,url,displayTitle',
   ]);
-  return JSON.parse(raw || '[]');
+  const runs = JSON.parse(raw || '[]');
+  baselineCandidateCache.set(cacheKey, runs);
+  return runs;
 }
 
 function flattenPerformanceResults(results) {
@@ -933,6 +947,7 @@ export {
   findBaselineScenario,
   findProfilingArtifacts,
   parseArgs,
+  BASELINE_WORKFLOW,
   COMMENT_MARKER,
 };
 

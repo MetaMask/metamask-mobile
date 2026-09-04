@@ -125,16 +125,19 @@ module.exports = function (baseConfig) {
         !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
 
       /**
-       * E2E Metro redirects under tests/module-mocking.
-       * Enables both: @metamask/seedless-onboarding-controller + OAuthLoginHandlers mocks.
-       * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
-       * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-       * even though hasTestOverrides is false (preventing real OAuth calls to production).
+       * Seedless / OAuth Metro redirects under tests/module-mocking.
+       *
+       * Split intentionally:
+       * - E2E CI (`HAS_TEST_OVERRIDES`): mock SeedlessOnboardingController so TOPRF
+       *   stays mocked/offline in smoke tests (plus Mockttp TOPRF SSS mocks).
+       * - Performance (`E2E_MOCK_OAUTH` + `IS_PERFORMANCE_TEST`): mock only
+       *   OAuthLoginHandlers to skip native Google/Apple UI; keep the real
+       *   SeedlessOnboardingController so onboarding perf hits live UAT TOPRF.
        */
       const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-      const e2eAllowsSeedlessOAuthMetroMocks =
-        hasTestOverrides || isE2EMockOAuth;
+      const e2eMocksSeedlessController = hasTestOverrides;
+      const e2eMocksOAuthHandlers = hasTestOverrides || isE2EMockOAuth;
 
       // For less powerful machines, leave room to do other tasks. For instance,
       // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -241,16 +244,6 @@ module.exports = function (baseConfig) {
                   type: 'empty',
                 };
               }
-              // MYXProvider is intentionally excluded from @metamask/perps-controller's
-              // published dist (extension-only). The dynamic import() uses webpackIgnore
-              // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
-              // to resolve it statically. Return an empty module stub.
-              if (
-                moduleName === './providers/MYXProvider' &&
-                isPerpsControllerOrigin(context)
-              ) {
-                return { type: 'empty' };
-              }
               // @metamask/perps-controller@9.2.1's CJS build (standaloneInfoClient.cjs,
               // HyperLiquidClientService.cjs) contains a leftover absolute file:// require
               // from the package's own CI build machine instead of `@nktkas/hyperliquid`
@@ -324,7 +317,7 @@ module.exports = function (baseConfig) {
                   };
                 }
               }
-              if (e2eAllowsSeedlessOAuthMetroMocks) {
+              if (e2eMocksSeedlessController) {
                 // Wallet owns SeedlessOnboardingController construction, so E2E
                 // replaces the package class. Importers under
                 // tests/module-mocking/seedless still resolve the real package
@@ -351,7 +344,9 @@ module.exports = function (baseConfig) {
                     ),
                   };
                 }
-                // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+              }
+              if (e2eMocksOAuthHandlers) {
+                // Skips native Google/Apple UI; see module mock for token path.
                 if (
                   moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
                   moduleName.endsWith(

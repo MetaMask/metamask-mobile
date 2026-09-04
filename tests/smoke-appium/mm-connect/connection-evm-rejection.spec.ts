@@ -19,9 +19,8 @@ import {
 } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -42,15 +41,11 @@ const playgroundServer = new DappServer({
 // Skipped (flaky): https://consensyssoftware.atlassian.net/browse/WAPI-1511 — un-skip tracked in https://consensyssoftware.atlassian.net/browse/MMQA-2062
 appiumTest.describe.skip(SmokeMMConnect('EVM rejection'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   // Test steps (in order):

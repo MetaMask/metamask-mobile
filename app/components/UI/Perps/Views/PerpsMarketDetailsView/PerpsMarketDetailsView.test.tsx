@@ -4934,7 +4934,7 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(getByTestId('compact-order-standalone-tpsl')).toBeOnTheScreen();
-      expect(getByText('Take profit limit close long')).toBeOnTheScreen();
+      expect(getByText('Take limit close long')).toBeOnTheScreen();
     });
 
     it('shows synthetic TP/SL rows when parent metadata exists and size matches existing position', () => {

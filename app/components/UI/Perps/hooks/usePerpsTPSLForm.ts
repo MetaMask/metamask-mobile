@@ -20,6 +20,7 @@ import {
   getTakeProfitErrorDirection,
   hasExceededSignificantFigures,
   hasTPSLValuesChanged,
+  isPositiveTriggerPrice,
   isStopLossSafeFromLiquidation,
   isValidStopLossPrice,
   isValidTakeProfitPrice,
@@ -105,6 +106,32 @@ export interface UsePerpsTPSLFormReturn {
   validation: TPSLFormValidation;
   display: TPSLFormDisplay;
 }
+
+/**
+ * Resolves the inline error for one trigger price field.
+ *
+ * A non-positive price is reported first: it is rejected by the protocol
+ * regardless of which side of the reference price it falls on, and the
+ * direction rules on their own would let it through.
+ *
+ * @param price - The current trigger price value, empty when the field is unset
+ * @param isOnValidSide - Whether the price sits on the correct side of the reference price
+ * @param getWrongSideMessage - Builds the direction-specific message for a wrong-side price
+ * @returns The message to show under the field, or an empty string when there is nothing to report
+ */
+const resolveTriggerPriceError = (
+  price: string,
+  isOnValidSide: boolean,
+  getWrongSideMessage: () => string,
+): string => {
+  if (!price) return '';
+
+  if (!isPositiveTriggerPrice(price)) {
+    return strings('perps.tpsl.trigger_price_must_be_positive');
+  }
+
+  return isOnValidSide ? '' : getWrongSideMessage();
+};
 
 /**
  * Custom hook to manage TPSL form state, validation, and business logic
@@ -889,28 +916,32 @@ export function usePerpsTPSLForm(
   );
 
   // Take Profit Errors
-  const takeProfitError =
-    !isValidTakeProfitPrice(takeProfitPrice, {
+  const takeProfitError = resolveTriggerPriceError(
+    takeProfitPrice,
+    isValidTakeProfitPrice(takeProfitPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && takeProfitPrice
-      ? strings('perps.tpsl.take_profit_invalid_price', {
-          direction: getTakeProfitErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.take_profit_invalid_price', {
+        direction: getTakeProfitErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   // Stop Loss Errors
-  const stopLossError =
-    !isValidStopLossPrice(stopLossPrice, {
+  const stopLossError = resolveTriggerPriceError(
+    stopLossPrice,
+    isValidStopLossPrice(stopLossPrice, {
       currentPrice: referencePrice,
       direction: actualDirection,
-    }) && stopLossPrice
-      ? strings('perps.tpsl.stop_loss_invalid_price', {
-          direction: getStopLossErrorDirection(actualDirection),
-          priceType,
-        })
-      : '';
+    }),
+    () =>
+      strings('perps.tpsl.stop_loss_invalid_price', {
+        direction: getStopLossErrorDirection(actualDirection),
+        priceType,
+      }),
+  );
 
   const stopLossLiquidationError =
     !isStopLossSafeFromLiquidation(
