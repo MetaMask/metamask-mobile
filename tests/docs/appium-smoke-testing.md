@@ -32,7 +32,7 @@ EmulatorProvider → Appium → iOS Simulator / Android Emulator
 - **Login:** `loginToAppPlaywright({ scenarioType: 'e2e' })`.
 - **Fixture arg:** Pass `currentDeviceDetails` from the Playwright test into `withFixtures`.
 
-See [E2E testing guidelines](./e2e-testing.md) for spec templates and POM patterns.
+See [E2E testing guidelines](../../docs/testing/e2e-testing.md) for spec templates and POM patterns.
 
 ## Required build
 
@@ -260,7 +260,7 @@ CI uploads per-suite artifacts as `appium-smoke-report-<suite>`, `appium-timings
 
 - [iOS Appium device pool](./ios-appium-device-pool.md) — default N=2 clone/WDA port map for all iOS smoke suites
 - [Android Appium device pool](./android-appium-device-pool.md) — default N=3 emulator pool for Android smoke suites
-- [E2E testing guidelines](./e2e-testing.md) — POM, Matchers, Gestures, Assertions
-- [E2E setup](../readme/e2e-testing.md) — Metro, debug builds, smoke
-- [Playwright local emulator](../../tests/docs/PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
-- [E2E architecture (Appium)](../../tests/docs/UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`
+- [E2E testing guidelines](../../docs/testing/e2e-testing.md) — POM, Matchers, Gestures, Assertions
+- [E2E setup](../../docs/readme/e2e-testing.md) — Metro, debug builds, smoke
+- [Playwright local emulator](./PLAYWRIGHT_LOCAL_EMULATOR.md) — `buildPath`, reinstall behavior
+- [E2E architecture (Appium)](./UNIFIED_E2E_ARCHITECTURE.md) — layers, `resolve()`
