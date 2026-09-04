@@ -88,7 +88,7 @@ exports[`SnapUIDateTimePicker can show an error 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Inter-Medium",
+                      "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
@@ -960,7 +960,7 @@ exports[`SnapUIDateTimePicker renders inside a field 1`] = `
                   [
                     {
                       "color": "#131416",
-                      "fontFamily": "Inter-Medium",
+                      "fontFamily": "Geist-Medium",
                       "fontSize": 16,
                       "letterSpacing": 0,
                       "lineHeight": 24,
