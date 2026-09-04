@@ -37,8 +37,8 @@ describe('swapQuoteFetchTrace', () => {
 
   it('starts a quote trace with request correlation and route data', () => {
     const traceId = swapQuoteFetchTrace.start({
-      sourceToken,
-      destToken: crossChainDestinationToken,
+      srcChainId: sourceToken.chainId,
+      destChainId: crossChainDestinationToken.chainId,
       isRefresh: true,
     });
 
@@ -60,8 +60,8 @@ describe('swapQuoteFetchTrace', () => {
 
   it('ends the active quote trace with an explicit result', () => {
     swapQuoteFetchTrace.start({
-      sourceToken,
-      destToken: sameChainDestinationToken,
+      srcChainId: sourceToken.chainId,
+      destChainId: sameChainDestinationToken.chainId,
       isRefresh: false,
     });
 
