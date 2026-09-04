@@ -23,6 +23,7 @@ export { defaultCardFeatureFlag, defaultCardUkMigrationFlag } from './defaults';
 export * from './types';
 export {
   CARD_PROVIDER_FLAGS,
+  CARD_UK_MIGRATION_COUNTRY_CODE,
   FALLBACK_CARD_PROVIDER_ID,
   isCardUkMigrationEligible,
   readCardFeatureFlag,

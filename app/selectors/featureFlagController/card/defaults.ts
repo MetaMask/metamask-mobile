@@ -183,7 +183,6 @@ export const DEFAULT_IMMERSVE_COUNTRIES: string[] = ['GB'];
 export const defaultCardUkMigrationFlag: CardUkMigrationFlag = {
   enabled: false,
   minimumVersion: '0.0.0',
-  countries: ['GB'],
 };
 
 /**

@@ -505,7 +505,6 @@ jest.mock('../../hooks/useCardUkMigrationState', () => ({
       phase: 'off',
       isActive: false,
       deadline: null,
-      countries: ['GB'],
     },
     refresh: jest.fn(),
   })),
@@ -824,7 +823,6 @@ function setupMockSelectors(
       phase: 'off' | 'soft' | 'forced';
       isActive: boolean;
       deadline: Date | null;
-      countries: string[];
     };
     cardHomeDataStatus: 'idle' | 'loading' | 'success' | 'error';
     primaryMoneyAccount: { address: string } | undefined;
@@ -851,7 +849,6 @@ function setupMockSelectors(
       phase: 'off' as const,
       isActive: false,
       deadline: null,
-      countries: ['GB'],
     },
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
@@ -7000,7 +6997,6 @@ describe('CardHome Component', () => {
           phase: 'soft',
           isActive: true,
           deadline: new Date('2026-09-30T23:59:59.999Z'),
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({
@@ -7029,7 +7025,6 @@ describe('CardHome Component', () => {
           phase: 'soft',
           isActive: true,
           deadline: new Date('2026-09-30T23:59:59.999Z'),
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({
@@ -7056,7 +7051,6 @@ describe('CardHome Component', () => {
           phase: 'soft',
           isActive: true,
           deadline: null,
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({
@@ -7085,7 +7079,6 @@ describe('CardHome Component', () => {
           phase: 'forced',
           isActive: true,
           deadline: new Date('2026-09-30T23:59:59.999Z'),
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({
@@ -7121,7 +7114,6 @@ describe('CardHome Component', () => {
           phase: 'forced',
           isActive: true,
           deadline: new Date('2026-09-30T23:59:59.999Z'),
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({
@@ -7152,7 +7144,6 @@ describe('CardHome Component', () => {
           phase: 'forced',
           isActive: true,
           deadline: new Date('2026-09-30T23:59:59.999Z'),
-          countries: ['GB'],
         },
       });
       setupLoadCardDataMock({

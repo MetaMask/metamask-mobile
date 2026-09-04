@@ -13,14 +13,13 @@ export type CardUkMigrationPhase = 'off' | 'soft' | 'forced';
 /** Remote `cardUkMigration` flag — version gate plus migration schedule.
  * Both `startDate` and `endDate` are required for any active phase; missing,
  * invalid, or inverted (`startDate >= endDate`) dates resolve to off
- * (same as `enabled: false`).
+ * (same as `enabled: false`). Eligibility is fixed to GB (UK) Baanx users.
  */
 export interface CardUkMigrationFlag {
   enabled: boolean;
   minimumVersion: string;
   startDate?: string;
   endDate?: string;
-  countries?: string[];
 }
 
 export interface CardUkMigrationState {
@@ -29,7 +28,6 @@ export interface CardUkMigrationState {
   isActive: boolean;
   /** Parsed from `endDate` for sheet / blocking copy. */
   deadline: Date | null;
-  countries: string[];
 }
 
 export interface SupportedToken {

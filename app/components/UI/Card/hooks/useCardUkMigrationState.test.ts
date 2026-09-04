@@ -30,14 +30,12 @@ describe('useCardUkMigrationState', () => {
         minimumVersion: '0.0.0',
         startDate: '2026-09-01T00:00:00.000Z',
         endDate: '2026-09-30T23:59:59.999Z',
-        countries: ['GB'],
       },
     });
     mockResolve.mockReturnValue({
       phase: 'soft',
       isActive: true,
       deadline: new Date('2026-09-30T23:59:59.999Z'),
-      countries: ['GB'],
     });
     // Do not auto-run focus callbacks; tests call refresh explicitly.
     mockUseFocusEffect.mockImplementation(() => undefined);
@@ -55,7 +53,6 @@ describe('useCardUkMigrationState', () => {
       phase: mockResolve.mock.calls.length <= 1 ? 'soft' : 'forced',
       isActive: true,
       deadline: new Date('2026-09-30T23:59:59.999Z'),
-      countries: ['GB'],
     }));
 
     const { result } = renderHook(() => useCardUkMigrationState());

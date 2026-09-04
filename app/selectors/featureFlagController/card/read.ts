@@ -276,7 +276,7 @@ const normalizeCardUkMigrationFlag = (
     return null;
   }
 
-  const { enabled, minimumVersion, startDate, endDate, countries } = source;
+  const { enabled, minimumVersion, startDate, endDate } = source;
 
   if (typeof enabled !== 'boolean' || typeof minimumVersion !== 'string') {
     return null;
@@ -287,10 +287,6 @@ const normalizeCardUkMigrationFlag = (
     minimumVersion,
     ...(typeof startDate === 'string' ? { startDate } : {}),
     ...(typeof endDate === 'string' ? { endDate } : {}),
-    ...(Array.isArray(countries) &&
-    countries.every((entry): entry is string => typeof entry === 'string')
-      ? { countries }
-      : {}),
   };
 };
 
@@ -309,6 +305,9 @@ const parseIsoDate = (value: string | undefined): Date | null => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+/** ISO country code for UK Card migration eligibility (Baanx GB only). */
+export const CARD_UK_MIGRATION_COUNTRY_CODE = 'GB';
+
 /**
  * Resolves migration phase from the remote flag bag.
  * `endDate` is the deadline (soft → forced), not a feature-off time.
@@ -321,15 +320,12 @@ export function resolveCardUkMigrationState(
 ): CardUkMigrationState {
   const remoteFlag = readCardUkMigrationFlag(flags);
   const flag = remoteFlag ?? defaultCardUkMigrationFlag;
-  const countries =
-    flag.countries && flag.countries.length > 0 ? flag.countries : ['GB'];
   const start = parseIsoDate(flag.startDate);
   const end = parseIsoDate(flag.endDate);
   const inactiveState: CardUkMigrationState = {
     phase: 'off',
     isActive: false,
     deadline: end,
-    countries,
   };
 
   const localEnabled = process.env.MM_CARD_UK_MIGRATION_ENABLED === 'true';
@@ -350,7 +346,6 @@ export function resolveCardUkMigrationState(
       phase: 'forced',
       isActive: true,
       deadline: end,
-      countries,
     };
   }
 
@@ -358,7 +353,6 @@ export function resolveCardUkMigrationState(
     phase: 'soft',
     isActive: true,
     deadline: end,
-    countries,
   };
 }
 
@@ -377,9 +371,5 @@ export function isCardUkMigrationEligible(
   if (params.providerId !== CardProviderIds.Baanx) {
     return false;
   }
-  const region = params.regionCode?.toUpperCase();
-  if (!region) {
-    return false;
-  }
-  return state.countries.some((country) => country.toUpperCase() === region);
+  return params.regionCode?.toUpperCase() === CARD_UK_MIGRATION_COUNTRY_CODE;
 }

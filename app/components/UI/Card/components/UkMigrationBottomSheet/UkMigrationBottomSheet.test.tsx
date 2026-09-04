@@ -25,7 +25,6 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => ({
     phase: 'soft',
     isActive: true,
     deadline: new Date('2026-09-30T23:59:59.999Z'),
-    countries: ['GB'],
   })),
 }));
 
@@ -112,7 +111,6 @@ describe('UkMigrationBottomSheet', () => {
       phase: 'soft',
       isActive: true,
       deadline: remoteDeadline,
-      countries: ['GB'],
     });
   });
 
@@ -155,7 +153,6 @@ describe('UkMigrationBottomSheet', () => {
       phase: 'off',
       isActive: false,
       deadline: null,
-      countries: ['GB'],
     });
 
     const { getByTestId } = renderSheet();

@@ -348,7 +348,6 @@ describe('card feature flag readers', () => {
               minimumVersion: '0.0.0',
               startDate: '2026-09-01T00:00:00.000Z',
               endDate: '2026-09-30T23:59:59.999Z',
-              countries: ['GB'],
             },
           },
         }),
@@ -357,7 +356,25 @@ describe('card feature flag readers', () => {
         minimumVersion: '0.0.0',
         startDate: '2026-09-01T00:00:00.000Z',
         endDate: '2026-09-30T23:59:59.999Z',
-        countries: ['GB'],
+      });
+    });
+
+    it('ignores a remote countries field when present', () => {
+      expect(
+        readCardUkMigrationFlag({
+          cardUkMigration: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+            startDate: '2026-09-01T00:00:00.000Z',
+            endDate: '2026-09-30T23:59:59.999Z',
+            countries: ['US', 'GB'],
+          },
+        }),
+      ).toEqual({
+        enabled: true,
+        minimumVersion: '0.0.0',
+        startDate: '2026-09-01T00:00:00.000Z',
+        endDate: '2026-09-30T23:59:59.999Z',
       });
     });
   });
@@ -368,7 +385,6 @@ describe('card feature flag readers', () => {
       minimumVersion: '0.0.0',
       startDate: '2026-09-01T00:00:00.000Z',
       endDate: '2026-09-30T23:59:59.999Z',
-      countries: ['GB'],
     };
 
     it('is off when the flag is absent', () => {
@@ -417,7 +433,6 @@ describe('card feature flag readers', () => {
         phase: 'soft',
         isActive: true,
         deadline: new Date('2026-09-30T23:59:59.999Z'),
-        countries: ['GB'],
       });
     });
 
@@ -499,16 +514,6 @@ describe('card feature flag readers', () => {
         ).phase,
       ).toBe('off');
     });
-
-    it('defaults countries to GB when omitted', () => {
-      const { countries: _countries, ...withoutCountries } = softFlag;
-      expect(
-        resolveCardUkMigrationState(
-          { cardUkMigration: withoutCountries },
-          new Date('2026-09-15T12:00:00.000Z'),
-        ).countries,
-      ).toEqual(['GB']);
-    });
   });
 
   describe('isCardUkMigrationEligible', () => {
@@ -516,10 +521,9 @@ describe('card feature flag readers', () => {
       phase: 'soft' as const,
       isActive: true,
       deadline: new Date('2026-09-30T23:59:59.999Z'),
-      countries: ['GB'],
     };
 
-    it('requires an active phase, Baanx provider, and matching region', () => {
+    it('requires an active phase, Baanx provider, and GB region', () => {
       expect(
         isCardUkMigrationEligible(activeState, {
           providerId: 'baanx',
