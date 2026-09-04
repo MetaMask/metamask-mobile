@@ -295,43 +295,6 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
 );
 
 /**
- * Resolve whether the MYX provider is enabled.
- * Pure utility so that both the Redux selector and the controller
- * (which reads RemoteFeatureFlagController state directly) share
- * the same logic.
- *
- * Local env var takes priority — if set to "true", MYX is always enabled
- * regardless of remote flag. Remote flag only used as fallback when
- * local is not explicitly enabled.
- */
-export function resolvePerpsMyxProviderEnabled(
-  remoteFeatureFlags: Record<string, unknown> | undefined,
-): boolean {
-  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
-
-  // Local override always wins
-  if (localFlag) {
-    return true;
-  }
-
-  const remoteFlag =
-    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
-
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-}
-
-/**
- * Selector for MYX Provider enabled flag
- * Controls whether MYX is available as a provider option
- *
- * @returns boolean - true if MYX provider should be available, false otherwise
- */
-export const selectPerpsMYXProviderEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
-);
-
-/**
  * Selector for Perps Products section feature flag
  * Controls visibility of the category pills grid on Perps home screen
  *

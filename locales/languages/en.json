@@ -26,6 +26,10 @@
     "description_line2": "If you believe this is an error, contact support to request a review.",
     "contact_support": "Contact support"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
   },
@@ -1788,6 +1792,8 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Limit price must be set before configuring TP/SL",
         "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
         "limit_price_far_warning": "Limit price is far from current market price",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Limit price is above current price. Your order may execute as a market order.",
         "limit_price_below_warning": "Limit price is below current price. Your order may execute as a market order.",
         "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
@@ -3703,7 +3709,7 @@
       "fund_subtitle": "No one likes an empty wallet. Easily add funds to start trading.",
       "fund_primary": "Add funds",
       "trade_title": "Make your first trade",
-      "trade_subtitle": "Trade trending tokens across multiple networks  to grow your portfolio.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "Trade",
       "notifications_title": "Turn on notifications",
       "notifications_subtitle": "Stay up to date on shifts in the market to make the best moves for your portfolio.",
@@ -8125,7 +8131,6 @@
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
-      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "Unlinking your card",
       "unlink_success_title": "Your card was unlinked",
       "unlink_error": "Something went wrong unlinking your card",
@@ -8892,7 +8897,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "You get",
@@ -9373,7 +9385,9 @@
       "set_up": "Set up",
       "secret_recovery_phrase": "Secret Recovery Phrase",
       "back_up": "Back up",
-      "remove_account": "Remove account"
+      "remove_account": "Remove account",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Addresses",
@@ -9635,6 +9649,7 @@
         "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
         "clickwrap_and": " and ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Unable to load legal documents."
       },
       "confirm_email": {
@@ -10155,8 +10170,7 @@
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
         "configuration_error": "Service is temporarily unavailable. Please try again later.",
-        "forbidden_error": "This action isn't available for your account.",
-        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
