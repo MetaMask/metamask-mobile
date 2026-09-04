@@ -36,13 +36,7 @@ jest.mock(
   }),
 );
 
-const mockRefetchPreferences = jest.fn();
-jest.mock('./hooks/useNotificationStoragePreferences', () => ({
-  useNotificationStoragePreferences: () => ({
-    refetch: mockRefetchPreferences,
-  }),
-}));
-
+beforeEach(() => jest.clearAllMocks());
 // Un-spy the notification hook modules between tests (clearAllMocks does not).
 afterEach(() => jest.restoreAllMocks());
 
@@ -246,8 +240,6 @@ describe('useNotificationAccountListProps', () => {
     return { mocks, hook };
   };
 
-  beforeEach(() => jest.clearAllMocks());
-
   it('returns correct loading state', async () => {
     const addresses = ['0x123', '0x456'];
     const { hook } = arrange(addresses);
@@ -369,14 +361,31 @@ describe('useNotificationAccountListProps', () => {
     });
   });
 
-  it('refetches the preferences blob alongside account settings', async () => {
-    const { hook } = arrange(['0x123', '0x456']);
-
-    await act(async () => hook.result.current.refetchAccountSettings());
-
-    await waitFor(() => {
-      expect(mockRefetchPreferences).toHaveBeenCalledTimes(1);
+  it('surfaces a failed read with no settings to show', async () => {
+    const { hook } = arrange(['0x123', '0x456'], (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        error: 'Failed to get account settings',
+      });
     });
+
+    expect(hook.result.current.accountSettingsError).toBe(
+      'Failed to get account settings',
+    );
+    expect(hook.result.current.shouldDisableSwitches).toBe(true);
+  });
+
+  it('keeps switches interactive when a failed read has earlier settings to show', async () => {
+    const { hook } = arrange(['0x123', '0x456'], (m) => {
+      m.mockUseFetchAccountNotifications.mockReturnValue({
+        ...m.createUseFetchAccountNotificationsReturn(),
+        data: { '0x123': true },
+        error: 'Failed to get account settings',
+      });
+    });
+
+    expect(hook.result.current.accountSettingsError).toBeNull();
+    expect(hook.result.current.shouldDisableSwitches).toBe(false);
   });
 });
 
@@ -497,8 +506,6 @@ describe('useWalletActivityAccountSelection', () => {
       mockUpdate,
     };
   };
-
-  beforeEach(() => jest.clearAllMocks());
 
   it('deselects all visible EVM accounts when any account is enabled', async () => {
     const mocks = arrangeMocks({
