@@ -370,6 +370,7 @@
     "tokenDisplayData": []
   },
   "TransactionController": {
+    "batchTransactionCounts": {},
     "lastFetchedBlockNumbers": {},
     "methodData": {},
     "submitHistory": [],
@@ -541,8 +542,8 @@
     "perpsBalances": {},
     "proLayoutPreferences": {
       "chartExpanded": true,
-      "orderBookExpanded": false,
-      "orderBookPosition": "left",
+      "orderBookExpanded": true,
+      "orderBookPosition": "right",
       "orderFormPosition": "right",
       "ordersSideFilter": "all",
       "ordersSortDirection": "desc",
@@ -915,10 +916,7 @@
     "otp": null,
     "error": null
   },
-  "AiDigestController": {
-    "marketInsights": {},
-    "marketOverview": null
-  },
+  "AiDigestController": {},
   "RampsController": {
     "userRegion": null,
     "countries": {

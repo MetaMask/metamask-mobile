@@ -3,6 +3,7 @@ import { OAuthError, OAuthErrorType } from '../../error';
 import { AndroidGoogleLoginHandler } from './google';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { signInWithGoogle } from '@metamask/react-native-acm';
+import Logger from '../../../../util/Logger';
 
 jest.mock('@metamask/react-native-acm', () => ({
   signInWithGoogle: jest.fn(),
@@ -10,6 +11,7 @@ jest.mock('@metamask/react-native-acm', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
+  error: jest.fn(),
 }));
 
 const mockSignInWithGoogle = signInWithGoogle as jest.Mock;
@@ -34,18 +36,29 @@ describe('AndroidGoogleLoginHandler', () => {
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.UserCancelled,
       });
+
       expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
-    it('treats "no credential" as UserCancelled', async () => {
-      mockSignInWithGoogle.mockRejectedValue(
-        new Error('Legacy sign-in returned no credential'),
-      );
+    it('throws UserCancelled when ACM returns no credential', async () => {
+      const nativeError = new Error('Legacy sign-in returned no credential');
+      mockSignInWithGoogle.mockRejectedValue(nativeError);
 
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.UserCancelled,
       });
+
       expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        nativeError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            acm_error: 'no_credential',
+            view: 'AndroidGoogleLogin',
+          }),
+        }),
+      );
     });
 
     it('treats American spelling "canceled" as UserCancelled', async () => {
@@ -68,16 +81,28 @@ describe('AndroidGoogleLoginHandler', () => {
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.UserCancelled,
       });
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('throws GoogleLoginOneTapFailure for One Tap failure without cancel wording', async () => {
-      mockSignInWithGoogle.mockRejectedValue(
-        new Error('During begin signin, failure response from one tap'),
+      const nativeError = new Error(
+        'During begin signin, failure response from one tap',
       );
+      mockSignInWithGoogle.mockRejectedValue(nativeError);
 
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.GoogleLoginOneTapFailure,
       });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        nativeError,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            acm_error: 'one_tap_failure',
+          }),
+        }),
+      );
     });
 
     it('throws GoogleLoginNoMatchingCredential when One Tap failure includes matching credential', async () => {
@@ -105,10 +130,11 @@ describe('AndroidGoogleLoginHandler', () => {
         new Error('user disabled the feature'),
       );
 
-      await expect(handler.login()).rejects.toThrow(OAuthError);
       await expect(handler.login()).rejects.toMatchObject({
         code: OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
       });
+
+      expect(Logger.error).not.toHaveBeenCalled();
     });
 
     it('throws GoogleLoginNoProviderDependencies when provider dependencies not found', async () => {

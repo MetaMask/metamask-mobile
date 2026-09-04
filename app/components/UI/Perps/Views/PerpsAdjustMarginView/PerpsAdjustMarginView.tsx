@@ -296,9 +296,14 @@ const PerpsAdjustMarginView: React.FC = () => {
     ? strings('perps.adjust_margin.add_margin')
     : strings('perps.adjust_margin.reduce_margin');
 
+  // The route snapshot outlives the position, so once the live stream has
+  // loaded without it there is nothing left to adjust margin on.
+  const isPositionGone = !isLoading && !position;
+
   const isConfirmDisabled =
     marginAmount <= 0 ||
     isAdjusting ||
+    isPositionGone ||
     marginAmount > flooredMaxAmount ||
     Boolean(validationErrors.length);
 

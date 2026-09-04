@@ -207,12 +207,12 @@ export const DefaultSwapDestTokens: Partial<
   },
   [NETWORK_CHAIN_ID.ROBINHOOD_CHAIN]: {
     '*': {
-      symbol: 'USDe',
-      name: 'Ethena USDe',
-      address: '0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34',
-      decimals: 18,
+      symbol: 'USDG',
+      name: 'Global Dollar',
+      address: '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168',
+      decimals: 6,
       image:
-        'https://static.cx.metamask.io/api/v1/tokenIcons/4663/0x5d3a1ff2b6bab83b63cd9ad0787074081a52ef34.png',
+        'https://static.cx.metamask.io/api/v1/tokenIcons/4663/0x5fc5360d0400a0fd4f2af552add042d716f1d168.png',
       chainId: NETWORK_CHAIN_ID.ROBINHOOD_CHAIN,
     },
   },

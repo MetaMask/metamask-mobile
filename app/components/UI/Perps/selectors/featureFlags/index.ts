@@ -64,6 +64,24 @@ export const selectPerpsOrderBookEnabledFlag = createSelector(
 );
 
 /**
+ * Client-config / Redux key for Chase orders.
+ * LaunchDarkly key (kebab-case): `perps-mobile-chase`.
+ */
+export const PERPS_MOBILE_CHASE_FLAG_KEY = 'perpsMobileChase' as const;
+
+/** Chase is default-off and may only be exposed to supported app versions. */
+export const selectPerpsMobileChaseEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_CHASE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Client-config / Redux key for the Perps advanced chart feature flag.
  * LaunchDarkly key (kebab-case): `perps-advanced-chart-enabled-v2`
  */
@@ -277,43 +295,6 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
 );
 
 /**
- * Resolve whether the MYX provider is enabled.
- * Pure utility so that both the Redux selector and the controller
- * (which reads RemoteFeatureFlagController state directly) share
- * the same logic.
- *
- * Local env var takes priority — if set to "true", MYX is always enabled
- * regardless of remote flag. Remote flag only used as fallback when
- * local is not explicitly enabled.
- */
-export function resolvePerpsMyxProviderEnabled(
-  remoteFeatureFlags: Record<string, unknown> | undefined,
-): boolean {
-  const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
-
-  // Local override always wins
-  if (localFlag) {
-    return true;
-  }
-
-  const remoteFlag =
-    remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
-
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-}
-
-/**
- * Selector for MYX Provider enabled flag
- * Controls whether MYX is available as a provider option
- *
- * @returns boolean - true if MYX provider should be available, false otherwise
- */
-export const selectPerpsMYXProviderEnabledFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
-);
-
-/**
  * Selector for Perps Products section feature flag
  * Controls visibility of the category pills grid on Perps home screen
  *
@@ -425,6 +406,30 @@ export const selectPerpsProTriggeredOrdersEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.perpsProTriggeredOrdersEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
+ * Client-config / Redux key for the Pro Scale order feature flag.
+ * LaunchDarkly key (kebab-case): `perps-mobile-scale`.
+ */
+export const PERPS_MOBILE_SCALE_FLAG_KEY = 'perpsMobileScale' as const;
+
+/**
+ * Selector for Scale orders in the Perps Pro order form.
+ * Defaults to false so entry and placement can be rolled back without hiding
+ * already-resting child limit orders from either Lite or Pro order lists.
+ *
+ * @returns boolean - true if Scale order entry and placement are enabled
+ */
+export const selectPerpsMobileScaleEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag = remoteFeatureFlags?.[
+      PERPS_MOBILE_SCALE_FLAG_KEY
+    ] as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

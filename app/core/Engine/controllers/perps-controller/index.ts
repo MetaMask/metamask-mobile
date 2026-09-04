@@ -9,6 +9,7 @@ import {
   createMobileInfrastructure,
   createMobileClientConfig,
 } from '../../../../components/UI/Perps/adapters/mobileInfrastructure';
+import { MOBILE_PRO_LAYOUT_DEFAULTS } from '../../../../components/UI/Perps/constants/perpsConfig';
 
 /**
  * Initialize the PerpsController.
@@ -22,8 +23,14 @@ export const perpsControllerInit: MessengerClientInitFunction<
 > = (request) => {
   const { controllerMessenger, persistedState } = request;
 
-  const perpsControllerState =
-    persistedState.PerpsController ?? getDefaultPerpsControllerState();
+  const defaultState = getDefaultPerpsControllerState();
+  const perpsControllerState = persistedState.PerpsController ?? {
+    ...defaultState,
+    proLayoutPreferences: {
+      ...defaultState.proLayoutPreferences,
+      ...MOBILE_PRO_LAYOUT_DEFAULTS,
+    },
+  };
 
   const controller = new PerpsController({
     messenger: controllerMessenger,

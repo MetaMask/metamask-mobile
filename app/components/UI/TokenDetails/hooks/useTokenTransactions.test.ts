@@ -1076,5 +1076,58 @@ describe('useTokenTransactions', () => {
         'swap-mixed',
       ]);
     });
+
+    it('replaces a pending unknown row when the same non-EVM transaction confirms', async () => {
+      const pendingTx = {
+        id: 'tron-swap-1',
+        chain: SOLANA_CHAIN_ID,
+        type: 'unknown',
+        status: 'unconfirmed',
+        time: 2,
+        from: [createSolanaMovement(SOL_ASSET_ID, 'SOL')],
+        to: [],
+      };
+
+      setupNonEvmMocks([pendingTx]);
+
+      const { result, rerender } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'SOL',
+            name: 'Solana',
+            isNative: true,
+            address: SOL_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactions).toHaveLength(1);
+      });
+
+      expect(result.current.transactions[0]).toMatchObject({
+        id: 'tron-swap-1',
+        type: 'unknown',
+        status: 'unconfirmed',
+      });
+
+      setupNonEvmMocks([
+        {
+          ...pendingTx,
+          type: 'send',
+          status: TX_CONFIRMED,
+          to: [createSolanaMovement(USDC_ASSET_ID, 'USDC')],
+        },
+      ]);
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.transactions[0]).toMatchObject({
+          id: 'tron-swap-1',
+          type: 'send',
+          status: TX_CONFIRMED,
+        });
+      });
+    });
   });
 });

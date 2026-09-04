@@ -1,6 +1,7 @@
 {
   "asyncState": {
     "@MetaMask:OptinMetaMetricsUISeen": "true",
+    "@MetaMask:PUSH_PRE_PROMPT_SHOWN": "true",
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
@@ -36,19 +37,19 @@
         "steps": [],
         "totalSteps": 0
       },
-      "recurring": {
-        "everyValue": "1",
-        "everyUnit": "hour",
-        "repeatCount": "10"
-      },
       "isDestTokenManuallySet": false,
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
       "isMaxSourceAmount": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
+      "isSlippageUserOverride": false,
       "isSubmittingTx": false,
-      "slippage": "0.5"
+      "recurring": {
+        "everyUnit": "hour",
+        "everyValue": "1",
+        "repeatCount": "10"
+      }
     },
     "browser": {
       "activeTab": 1692550481062,
@@ -65,12 +66,14 @@
       "whitelist": []
     },
     "card": {
+      "cardArrivalAnimationSeen": false,
+      "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
-      "hasViewedCardButton": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
         "contactVerificationId": null,
+        "immersveFundingSourceId": null,
         "onboardingId": null
       },
       "pendingMoneyAccountCardLink": null
@@ -147,21 +150,9 @@
         },
         "CardController": {
           "activeProviderId": "baanx",
-          "cardHomeData": {
-            "account": null,
-            "actions": [
-              {
-                "enabled": true,
-                "type": "add_funds"
-              }
-            ],
-            "alerts": [],
-            "availableFundingAssets": [],
-            "card": null,
-            "delegationSettings": null,
-            "fundingAssets": [],
-            "primaryFundingAsset": null
-          },
+          "cardHomeData": null,
+          "cardHomeDataAddress": null,
+          "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
           "cardHomeDataError": null,
           "cardholderAccounts": [],
@@ -169,7 +160,16 @@
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
+          "providerUserId": null,
           "selectedCountry": null
+        },
+        "ClaimsController": {
+          "claims": [],
+          "claimsConfigurations": {
+            "supportedNetworks": ["0x1", "0xe708"],
+            "validSubmissionWindowDays": 21
+          },
+          "drafts": []
         },
         "ClientController": {
           "isUiOpen": false
@@ -208,10 +208,13 @@
           "nonRPCGasFeeApisDisabled": false
         },
         "GeolocationController": {
+          "country": "US",
           "error": null,
           "lastFetchedAt": 1775751316942,
           "location": "UNKNOWN",
-          "status": "idle"
+          "region": "CA",
+          "status": "idle",
+          "timezone": null
         },
         "KeyringController": {
           "keyrings": [
@@ -226,7 +229,9 @@
         "MoneyAccountController": {
           "moneyAccounts": {}
         },
-        "MoneyAccountUpgradeController": {},
+        "MoneyAccountUpgradeController": {
+          "upgradedAccounts": {}
+        },
         "MultichainAssetsController": {
           "accountsAssets": {},
           "assetsMetadata": {}
@@ -318,6 +323,10 @@
           },
           "networksWithTransactionActivity": {},
           "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
+        },
+        "NetworkConnectionBannerController": {
+          "networkConnectionBannerNetwork": null,
+          "networkConnectionBannerStatus": "available"
         },
         "NetworkController": {
           "networkConfigurationsByChainId": {
@@ -465,7 +474,7 @@
           "lastCompletedWithdrawalTxHashes": [],
           "lastDepositResult": null,
           "lastDepositTransactionId": null,
-          "lastError": null,
+          "lastError": "CLIENT_NOT_INITIALIZED",
           "lastUpdateTimestamp": 0,
           "lastWithdrawResult": null,
           "marketFilterPreferences": {
@@ -473,6 +482,10 @@
             "optionId": "volume"
           },
           "mode": "lite",
+          "orderBookPreferences": {
+            "currency": "usd",
+            "metric": "total"
+          },
           "perpsBalances": {},
           "proLayoutPreferences": {
             "chartExpanded": false,
@@ -490,11 +503,13 @@
             "mainnet": [],
             "testnet": []
           },
+          "selectedOrderType": "market",
           "selectedPaymentToken": null,
           "tradeConfigurations": {
             "mainnet": {},
             "testnet": {}
           },
+          "visibleCandleCount": 30,
           "watchlistMarkets": {
             "mainnet": [],
             "testnet": []
@@ -642,6 +657,28 @@
           "userRegion": null
         },
         "RemoteFeatureFlagController": {
+          "featureFlagThresholdGroups": {
+            "assetsASSETS3205AbtestAmbientPriceColor": "treatment",
+            "assetsASSETS3380AbtestExploreQuickBuy": "control",
+            "backendWebSocketConnection": "feature is ON",
+            "cardCARD338AbtestAttentionBadge": "control",
+            "confirmationsCONF1775AbtestMoneyAccountDepositPrefill": "control",
+            "coreMCU747AbtestPredictPositionsEmptyState": "treatment",
+            "homeTMCU1103AbtestActionButtonsGrid": "control",
+            "homeTMCU610AbtestWalletHomePostOnboardingSteps": "postOnboardingSteps",
+            "homeTMCU725AbtestHomepagePerpsPillsEmptyState": "treatment",
+            "homeTMCU926AbtestDiscoveryPills": "control",
+            "socialAiTSA531AbtestWhatsHappeningExplore": "control",
+            "socialAiTSA612AbtestQuickBuy": "control",
+            "socialAiTSA901AbtestTopTradersBuyAction": "treatment",
+            "stxMigrationBatchStatus": "sentinel on",
+            "stxMigrationCancel": "sentinel on",
+            "stxMigrationGetFees": "sentinel on",
+            "stxMigrationSubmitTransactions": "sentinel on",
+            "swapsSWAPS4825AbtestChainValueOrder": "control",
+            "tokenDetailsV2AbTest": "Control is OFF",
+            "trendingTokens": "feature is ON"
+          },
           "localOverrides": {},
           "remoteFeatureFlags": {
             "bitcoinAccounts": {
@@ -666,11 +703,19 @@
             }
           }
         },
+        "ShieldController": {
+          "coverageResults": {},
+          "orderedTransactionHistory": []
+        },
         "SnapController": {},
         "SocialController": {
           "followingAddresses": [],
           "followingProfileIds": [],
           "leaderboardEntries": []
+        },
+        "SubscriptionController": {
+          "subscriptions": [],
+          "trialedProducts": []
         },
         "TokenBalancesController": {
           "tokenBalances": {}
@@ -692,6 +737,7 @@
       }
     },
     "experimentalSettings": {
+      "mmPayDebugEnabled": false,
       "securityAlertsEnabled": true
     },
     "fiatOrders": {
@@ -750,6 +796,7 @@
       "networkId": "1"
     },
     "legalNotices": {
+      "arcUsageNoticeShown": true,
       "isPna25Acknowledged": true,
       "newPrivacyPolicyToastClickedOrClosed": true,
       "newPrivacyPolicyToastShownDate": 1684232000000
@@ -762,14 +809,12 @@
       "signMessageModalVisible": true
     },
     "moneyBalance": {
-      "lastKnownBalance": null
+      "lastKnownBalance": null,
+      "redeemable": null
     },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
-    },
-    "networkConnectionBanner": {
-      "visible": false
     },
     "networkOnboarded": {
       "networkOnboardedState": {},
@@ -795,6 +840,7 @@
       "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
       "pendingSocialLoginMarketingConsentBackfill": null,
+      "pushNotificationOsPromptRequested": false,
       "walletHomeOnboardingSkipInitialBalanceWait": false,
       "walletHomeOnboardingSteps": {
         "stepIndex": 0,
@@ -851,10 +897,22 @@
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "dismissedCampaignOutcomeToasts": {},
+      "firstPredictionOnUsInteraction": {
+        "marketId": null,
+        "offerViewed": false,
+        "orderStatus": null,
+        "outcome": null,
+        "predictAccountAddress": null,
+        "skipped": false,
+        "transactionHash": null
+      },
       "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
       "isVipReferee": false,
+      "moneyAccountSweepstakesDrawProofs": {},
+      "moneyAccountSweepstakesPrizePools": {},
+      "moneyAccountSweepstakesStats": {},
       "nextTier": null,
       "nextTierPointsNeeded": null,
       "onboardingActiveStep": "INTRO",
@@ -868,6 +926,10 @@
       "optinAllowedForGeoError": false,
       "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
+      "pendingMasSeriesOptIn": {
+        "needsRetry": false,
+        "subscriptionId": null
+      },
       "perpsTradingCampaignLeaderboardPositions": {},
       "perpsTradingCampaignLeaderboards": {},
       "perpsTradingCampaignVolumes": {},
@@ -905,7 +967,8 @@
       "vipRefereeDashboardError": false,
       "vipRefereeDashboardLoading": false,
       "vipRefereeSplashAccepted": {},
-      "vipSplashAccepted": {}
+      "vipSplashAccepted": {},
+      "vipTransactions": {}
     },
     "rpcEvents": {
       "signingEvent": {
@@ -931,6 +994,7 @@
     "settings": {
       "avatarAccountType": "Maskicon",
       "basicFunctionalityEnabled": true,
+      "isBasicFunctionalityConsolidatedEnabled": false,
       "deepLinkModalDisabled": false,
       "deviceNotificationEnabled": false,
       "hapticsEnabled": true,
@@ -950,6 +1014,7 @@
       "hasOnboarded": false,
       "isLive": true
     },
+    "terminalOrderAnalytics": {},
     "user": {
       "ambiguousAddressEntries": {},
       "appInstallEventFired": true,
@@ -966,8 +1031,11 @@
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
       "multichainAccountsIntroModalSeen": true,
+      "musdConversionAssetDetailCtasSeen": {},
+      "musdConversionEducationSeen": false,
       "onboardingStepperProgress": {},
       "passwordSet": true,
+      "pendingAppInstall": null,
       "protectWalletModalVisible": false,
       "seedphraseBackedUp": true,
       "tokenIndicators": [],

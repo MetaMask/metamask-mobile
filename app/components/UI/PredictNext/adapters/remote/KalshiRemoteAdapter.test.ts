@@ -1,3 +1,4 @@
+import { PREDICT_MARKET_TYPES } from '../../constants';
 import { PredictErrorCode } from '../../errors';
 import type {
   PredictEntityId,
@@ -87,6 +88,62 @@ describe('KalshiRemoteAdapter', () => {
     const result = await adapter.marketData.fetchFeed(feedId, { limit: 20 });
 
     expect(result.events[0].markets[0].outcomes[0].askPrice).toBe('0.42');
+  });
+
+  it('preserves grouped Market metadata from the Predict API', async () => {
+    const group = {
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: PREDICT_MARKET_TYPES.TOTAL,
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    };
+    client.fetchEvent.mockResolvedValue(
+      createEvent({
+        markets: [{ ...createEvent().markets[0], group }],
+      }),
+    );
+
+    const result = await adapter.marketData.fetchEvent(eventId);
+
+    expect(result.markets[0].group).toEqual(group);
+  });
+
+  it('parses combined moneyline, total, and spread Markets', async () => {
+    const totalGroup = {
+      key: 'total-points',
+      groupType: 'marketSelector',
+      marketType: 'total',
+      option: { type: 'number', value: 220.5 },
+      displayOrder: 0,
+    };
+    const spreadGroup = {
+      key: 'spread-home',
+      groupType: 'marketSelector',
+      marketType: PREDICT_MARKET_TYPES.SPREAD,
+      option: { type: 'number', value: 1.5 },
+      displayOrder: 0,
+    };
+    const baseMarkets = createEvent().markets;
+
+    client.fetchEvent.mockResolvedValue(
+      createEvent({
+        markets: [
+          baseMarkets[0],
+          { ...baseMarkets[0], id: 'total-market', group: totalGroup },
+          { ...baseMarkets[0], id: 'spread-market', group: spreadGroup },
+        ],
+      }),
+    );
+
+    const result = await adapter.marketData.fetchEvent(eventId);
+
+    expect(result.markets).toHaveLength(3);
+    expect(result.markets.map((market) => market.group?.marketType)).toEqual([
+      undefined,
+      PREDICT_MARKET_TYPES.TOTAL,
+      PREDICT_MARKET_TYPES.SPREAD,
+    ]);
   });
 
   it('forwards Event query parameters and cancellation', async () => {
