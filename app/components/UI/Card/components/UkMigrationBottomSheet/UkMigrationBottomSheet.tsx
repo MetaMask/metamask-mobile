@@ -16,9 +16,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { createNavigationDetails } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import I18n, { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { strings } from '../../../../../../locales/i18n';
 import { selectCardUkMigrationState } from '../../../../../selectors/featureFlagController/card';
+import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
 
 export const createUkMigrationBottomSheetNavigationDetails =
@@ -26,13 +26,6 @@ export const createUkMigrationBottomSheetNavigationDetails =
     Routes.CARD.MODALS.ID,
     Routes.CARD.MODALS.UK_MIGRATION,
   );
-
-const formatUkMigrationDeadline = (deadline: Date): string =>
-  getIntlDateTimeFormatter(I18n.locale, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(deadline);
 
 const MIGRATION_STEP_KEYS = [
   'card.uk_migration_bottom_sheet.steps.reverify_identity',
@@ -57,7 +50,7 @@ const UkMigrationBottomSheet = () => {
       return strings('card.uk_migration_bottom_sheet.description_no_deadline');
     }
     return strings('card.uk_migration_bottom_sheet.description', {
-      deadline: formatUkMigrationDeadline(deadline),
+      deadline: formatUkMigrationDeadline(deadline, { includeYear: true }),
     });
   }, [deadline]);
 

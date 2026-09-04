@@ -5,8 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import UkMigrationBottomSheet from './UkMigrationBottomSheet';
 import { UkMigrationBottomSheetSelectors } from './UkMigrationBottomSheet.testIds';
 import { selectCardUkMigrationState } from '../../../../../selectors/featureFlagController/card';
-import I18n from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import Routes from '../../../../../constants/navigation/Routes';
 
 const mockOnCloseBottomSheet = jest.fn();
@@ -14,11 +13,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
 const remoteDeadline = new Date('2026-09-30T23:59:59.999Z');
-const expectedDeadlineLabel = getIntlDateTimeFormatter(I18n.locale, {
-  month: 'short',
-  day: 'numeric',
-  year: 'numeric',
-}).format(remoteDeadline);
+const expectedDeadlineLabel = formatUkMigrationDeadline(remoteDeadline, {
+  includeYear: true,
+});
 
 const mockStore = configureMockStore()({});
 

@@ -38,7 +38,6 @@ import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
 import I18n, { strings } from '../../../../../../locales/i18n';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import {
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
@@ -89,6 +88,7 @@ import {
   IMMERSVE_SUPPORT_EMAIL,
   IMMERSVE_TERMS_URL,
 } from '../../constants';
+import { formatUkMigrationDeadline } from '../../utils/formatUkMigrationDeadline';
 import { CardHomeSelectors } from './CardHome.testIds';
 import CardAlertSection from './components/CardAlertSection';
 import CardActionsButtons from './components/CardActionsButtons';
@@ -436,10 +436,7 @@ const CardHome = () => {
     if (!ukMigrationState.deadline) {
       return null;
     }
-    return getIntlDateTimeFormatter(I18n.locale, {
-      month: 'short',
-      day: 'numeric',
-    }).format(ukMigrationState.deadline);
+    return formatUkMigrationDeadline(ukMigrationState.deadline);
   }, [ukMigrationState.deadline]);
 
   const showUkMigrationSoftBanner =
