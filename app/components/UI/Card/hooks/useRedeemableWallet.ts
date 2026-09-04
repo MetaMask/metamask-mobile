@@ -101,15 +101,19 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
     redeemWithdrawal?.status === 'submitting' ||
     redeemWithdrawal?.status === 'monitoring';
 
-  const monitoringStatus =
+  let monitoringStatus: 'monitoring' | 'success' | 'failed' | 'idle';
+  if (
     modeWithdrawal?.status === 'submitting' ||
     modeWithdrawal?.status === 'monitoring'
-      ? 'monitoring'
-      : modeWithdrawal?.status === 'success'
-        ? 'success'
-        : modeWithdrawal?.status === 'failed'
-          ? 'failed'
-          : 'idle';
+  ) {
+    monitoringStatus = 'monitoring';
+  } else if (modeWithdrawal?.status === 'success') {
+    monitoringStatus = 'success';
+  } else if (modeWithdrawal?.status === 'failed') {
+    monitoringStatus = 'failed';
+  } else {
+    monitoringStatus = 'idle';
+  }
 
   // Stable identity so consumers don't re-toast on every render while failed.
   const monitoringErrorReason =
