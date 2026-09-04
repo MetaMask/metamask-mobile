@@ -7753,7 +7753,7 @@
   },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
-    "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
+    "ipfs_gateway_banner_content1": "This is an IPFS website. To see this site, you need to turn on",
     "ipfs_gateway_banner_content2": "IPFS gateway",
     "ipfs_gateway_banner_content3": "in",
     "ipfs_gateway_banner_content4": "Settings."
