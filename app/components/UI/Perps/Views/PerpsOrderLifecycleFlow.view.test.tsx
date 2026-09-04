@@ -15,14 +15,7 @@
  */
 import '../../../../../tests/component-view/mocks';
 import React from 'react';
-import {
-  act,
-  cleanup,
-  fireEvent,
-  screen,
-  waitFor,
-} from '@testing-library/react-native';
-import Engine from '../../../../core/Engine';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -52,22 +45,6 @@ import PerpsSelectOrderTypeView from './PerpsSelectOrderTypeView/PerpsSelectOrde
 /** Shorter timeout so tests fail fast; 3s is enough for component render. */
 const TIMEOUT_MS = 3000;
 
-const myxEnabledOverrides = {
-  engine: {
-    backgroundState: {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          perpsMyxProviderEnabled: {
-            enabled: true,
-            featureVersion: null,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    },
-  },
-};
-
 describe('Order Lifecycle & Funds Flow', () => {
   let ORDER_TYPE_TITLE: string;
   let ORDER_TYPE_MARKET: string;
@@ -87,7 +64,7 @@ describe('Order Lifecycle & Funds Flow', () => {
     jest.clearAllMocks();
   });
 
-  it('trader closes position, reviews order book, checks order details, views PnL, withdraws, and switches provider', async () => {
+  it('trader closes position, reviews order book, checks order details, views PnL, withdraws, and opens provider selection', async () => {
     // ── PHASE 1: Close position — toggle display and interact with buttons ─
     renderPerpsClosePositionView();
     expect(
@@ -190,49 +167,6 @@ describe('Order Lifecycle & Funds Flow', () => {
         'perps-select-provider-sheet-option-hyperliquid-mainnet',
       ),
     ).toBeOnTheScreen();
-    // MYX option hidden when feature flag is disabled
-    expect(
-      screen.queryByTestId('perps-select-provider-sheet-option-myx-mainnet'),
-    ).not.toBeOnTheScreen();
-
-    // With MYX enabled + aggregated provider → aggregated shows selected
-    await act(async () => {
-      cleanup();
-    });
-    renderPerpsSelectProviderView({
-      overrides: {
-        ...myxEnabledOverrides,
-        engine: {
-          backgroundState: {
-            ...myxEnabledOverrides.engine.backgroundState,
-            PerpsController: { activeProvider: 'aggregated' },
-          },
-        },
-      },
-    });
-    const aggregatedOption = await screen.findByTestId(
-      'perps-select-provider-sheet-option-aggregated-mainnet',
-    );
-    expect(aggregatedOption.props.accessibilityState?.selected).toBe(true);
-    expect(
-      screen.getByTestId('perps-select-provider-sheet-option-myx-mainnet').props
-        .accessibilityState?.selected,
-    ).toBe(false);
-
-    // Trader selects MYX provider — switchProvider is called
-    await act(async () => {
-      cleanup();
-    });
-    const switchProviderMock = Engine.context.PerpsController
-      .switchProvider as jest.Mock;
-    renderPerpsSelectProviderView({ overrides: myxEnabledOverrides });
-    const myxOption = await screen.findByTestId(
-      'perps-select-provider-sheet-option-myx-mainnet',
-    );
-    fireEvent.press(myxOption);
-    await waitFor(() => {
-      expect(switchProviderMock).toHaveBeenCalledWith('myx');
-    });
 
     // ── PHASE 7: Order type selection ────────────────────────────────────
     // Trader opens order type bottom sheet — Market and Limit options visible

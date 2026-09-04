@@ -6,7 +6,7 @@ import {
   formatAddressToCaipReference,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 import useIsInsufficientBalance from '../useInsufficientBalance';
 import { BigNumber as EthersBigNumber } from 'ethers';
@@ -52,7 +52,8 @@ export const useValidQuotes = ({
   latestSourceAtomicBalance,
   quoteParams,
 }: UseValidQuotesParams) => {
-  const { recommendedQuote, sortedQuotes } = useSelector(selectBridgeQuotes);
+  const quotes = useSelector(selectBridgeQuotes);
+  const recommendedQuote = quotes?.recommendedQuote;
   const { quotesLoadingStatus, quotesLastFetched, quotesRefreshCount } =
     useSelector(selectBridgeControllerState);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
@@ -83,7 +84,10 @@ export const useValidQuotes = ({
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isNoQuotesAvailable = quoteStreamComplete?.hasQuotes === false;
 
-  const allQuotes = useMemo(() => sortedQuotes ?? [], [sortedQuotes]);
+  const allQuotes = useMemo(
+    () => quotes?.sortedQuotes ?? [],
+    [quotes?.sortedQuotes],
+  );
 
   // Determine the active quote:
   // 1. If user manually selected a quote, use that
