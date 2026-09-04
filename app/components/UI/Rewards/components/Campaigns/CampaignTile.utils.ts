@@ -79,10 +79,12 @@ export function getLatestActiveOrUpcomingCampaignOfType(
     (campaign) => getCampaignStatus(campaign) === 'active',
   );
   if (active.length > 0) {
-    return active.reduce((latest, campaign) =>
-      new Date(campaign.startDate) > new Date(latest.startDate)
-        ? campaign
-        : latest,
+    return active.reduce(
+      (latest, campaign) =>
+        new Date(campaign.startDate) > new Date(latest.startDate)
+          ? campaign
+          : latest,
+      active[0],
     );
   }
 
@@ -90,10 +92,12 @@ export function getLatestActiveOrUpcomingCampaignOfType(
     (campaign) => getCampaignStatus(campaign) === 'upcoming',
   );
   if (upcoming.length > 0) {
-    return upcoming.reduce((soonest, campaign) =>
-      new Date(campaign.startDate) < new Date(soonest.startDate)
-        ? campaign
-        : soonest,
+    return upcoming.reduce(
+      (soonest, campaign) =>
+        new Date(campaign.startDate) < new Date(soonest.startDate)
+          ? campaign
+          : soonest,
+      upcoming[0],
     );
   }
 
