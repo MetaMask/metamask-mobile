@@ -1,10 +1,6 @@
 import { NativeModules } from 'react-native';
 import Logger from '../../util/Logger';
-import {
-  assertBrazePushUnregistered,
-  isBrazePushUnregistered,
-  unregisterBrazePush,
-} from './unregisterPush';
+import { unregisterBrazePush } from './unregisterPush';
 
 jest.mock('../../util/test/utils', () => ({
   hasTestOverrides: false,
@@ -28,201 +24,39 @@ describe('unregisterBrazePush', () => {
     };
   });
 
-  it('returns success when the native module unregisters the token', async () => {
-    mockUnregisterPush.mockResolvedValue({ success: true });
+  it('resolves after the native module unregisters push', async () => {
+    mockUnregisterPush.mockResolvedValue(undefined);
 
-    const result = await unregisterBrazePush();
+    await unregisterBrazePush();
 
     expect(mockUnregisterPush).toHaveBeenCalledTimes(1);
-    expect(result).toEqual({ success: true });
     expect(Logger.log).toHaveBeenCalledWith(
       '[Braze] Unregistered this device from Braze push',
     );
   });
 
-  it('returns isRetriable false when Braze reports a non-retriable failure', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: false,
-      code: 'NO_PUSH_TOKEN',
-      message: 'No push token is stored',
-    });
-
-    const result = await unregisterBrazePush();
-
-    expect(result).toEqual({
-      success: false,
-      isRetriable: false,
-      code: 'NO_PUSH_TOKEN',
-      message: 'No push token is stored',
-    });
-  });
-
-  it('maps REQUEST_FAILED with a no-token message to NO_PUSH_TOKEN', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: false,
-      code: 'REQUEST_FAILED',
-      message: 'Cannot unregister push because no push token is registered.',
-    });
-
-    const result = await unregisterBrazePush();
-
-    expect(result).toEqual({
-      success: false,
-      isRetriable: false,
-      code: 'NO_PUSH_TOKEN',
-      message: 'Cannot unregister push because no push token is registered.',
-    });
-    expect(Logger.log).toHaveBeenCalledWith(
-      '[Braze] Push already unregistered code=NO_PUSH_TOKEN Cannot unregister push because no push token is registered.',
-    );
-    expect(Logger.error).not.toHaveBeenCalled();
-  });
-
-  it('returns isRetriable true when Braze reports a retriable failure', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: true,
-      code: 'REQUEST_FAILED',
-      message: 'HTTP 429',
-    });
-
-    const result = await unregisterBrazePush();
-
-    expect(result).toEqual({
-      success: false,
-      isRetriable: true,
-      code: 'REQUEST_FAILED',
-      message: 'HTTP 429',
-    });
-  });
-
-  it('maps an unknown native failure code to UNKNOWN', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: false,
-      code: 'SOMETHING_NEW',
-      message: 'new sdk error',
-    });
-
-    const result = await unregisterBrazePush();
-
-    expect(result).toEqual({
-      success: false,
-      isRetriable: false,
-      code: 'UNKNOWN',
-      message: 'new sdk error',
-    });
-  });
-
-  it('returns SDK_UNAVAILABLE when the native module is missing', async () => {
+  it('throws when the native module is missing', async () => {
     delete NativeModules.BrazePushModule;
 
-    const result = await unregisterBrazePush();
+    await expect(unregisterBrazePush()).rejects.toThrow(
+      'BrazePushModule is not available',
+    );
 
-    expect(mockUnregisterPush).not.toHaveBeenCalled();
-    expect(result).toEqual({
-      success: false,
-      isRetriable: false,
-      code: 'SDK_UNAVAILABLE',
-      message: 'BrazePushModule is not available',
-    });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      '[Braze] Native unregisterPush module is missing',
+    );
   });
 
-  it('returns UNKNOWN when the native module throws', async () => {
-    mockUnregisterPush.mockRejectedValue(new Error('bridge exploded'));
+  it('throws when native unregistration fails', async () => {
+    const nativeError = new Error('Request failed');
+    mockUnregisterPush.mockRejectedValue(nativeError);
 
-    const result = await unregisterBrazePush();
+    await expect(unregisterBrazePush()).rejects.toBe(nativeError);
 
-    expect(result).toEqual({
-      success: false,
-      isRetriable: false,
-      code: 'UNKNOWN',
-      message: 'bridge exploded',
-    });
-  });
-});
-
-describe('isBrazePushUnregistered', () => {
-  it('returns true when unregister succeeded', () => {
-    const result = isBrazePushUnregistered({ success: true });
-
-    expect(result).toBe(true);
-  });
-
-  it.each(['NO_PUSH_TOKEN', 'SDK_UNAVAILABLE', 'SDK_DISABLED'] as const)(
-    'returns true when Braze reports %s',
-    (code) => {
-      const result = isBrazePushUnregistered({
-        success: false,
-        isRetriable: false,
-        code,
-        message: code,
-      });
-
-      expect(result).toBe(true);
-    },
-  );
-
-  it('returns false when Braze still holds a token', () => {
-    const result = isBrazePushUnregistered({
-      success: false,
-      isRetriable: true,
-      code: 'REQUEST_FAILED',
-      message: 'HTTP 429',
-    });
-
-    expect(result).toBe(false);
-  });
-});
-
-describe('assertBrazePushUnregistered', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    NativeModules.BrazePushModule = {
-      unregisterPush: mockUnregisterPush,
-    };
-  });
-
-  it('resolves when unregister succeeds', async () => {
-    mockUnregisterPush.mockResolvedValue({ success: true });
-
-    await expect(assertBrazePushUnregistered()).resolves.toBeUndefined();
-  });
-
-  it('resolves when Braze has no stored push token', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: false,
-      code: 'NO_PUSH_TOKEN',
-      message: 'No push token is stored',
-    });
-
-    await expect(assertBrazePushUnregistered()).resolves.toBeUndefined();
-  });
-
-  it('resolves when Braze reports REQUEST_FAILED because no token is registered', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: false,
-      code: 'REQUEST_FAILED',
-      message: 'Cannot unregister push because no push token is registered.',
-    });
-
-    await expect(assertBrazePushUnregistered()).resolves.toBeUndefined();
-  });
-
-  it('throws when Braze still holds a token', async () => {
-    mockUnregisterPush.mockResolvedValue({
-      success: false,
-      isRetriable: true,
-      code: 'REQUEST_FAILED',
-      message: 'HTTP 429',
-    });
-
-    await expect(assertBrazePushUnregistered()).rejects.toThrow(
-      'Failed to unregister Braze push: REQUEST_FAILED HTTP 429',
+    expect(Logger.error).toHaveBeenCalledWith(
+      nativeError,
+      '[Braze] Failed to unregister push',
     );
   });
 });

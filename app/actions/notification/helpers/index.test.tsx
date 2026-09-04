@@ -17,7 +17,7 @@ import {
   type subscribeToContentPreviewToken as subscribeToContentPreviewTokenFn,
 } from '.';
 import Engine from '../../../core/Engine';
-import { assertBrazePushUnregistered } from '../../../core/Braze/unregisterPush';
+import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => true,
 }));
@@ -38,6 +38,11 @@ jest.mock('../../../core/Engine', () => ({
       enablePushNotifications: jest.fn(),
       disablePushNotifications: jest.fn(),
     },
+    NotificationServicesPushController: {
+      state: {
+        fcmToken: '',
+      },
+    },
   },
   controllerMessenger: {
     call: jest.fn(),
@@ -45,11 +50,12 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../core/Braze/unregisterPush', () => ({
-  assertBrazePushUnregistered: jest.fn().mockResolvedValue(undefined),
+  unregisterBrazePush: jest.fn().mockResolvedValue(undefined),
 }));
 
 beforeEach(() => {
   jest.clearAllMocks();
+  Engine.context.NotificationServicesPushController.state.fcmToken = '';
 });
 
 describe('helpers - enableNotificationServices()', () => {
@@ -238,15 +244,15 @@ describe('helpers - enablePushNotifications()', () => {
 });
 
 describe('helpers - disablePushNotifications()', () => {
-  it('unregisters Braze push before disabling NaaP push', async () => {
+  it('unregisters Braze directly when NaaP has no FCM token', async () => {
     await disablePushNotifications();
 
-    expect(assertBrazePushUnregistered).toHaveBeenCalled();
+    expect(unregisterBrazePush).toHaveBeenCalled();
     expect(
       Engine.context.NotificationServicesController.disablePushNotifications,
     ).toHaveBeenCalled();
     expect(
-      jest.mocked(assertBrazePushUnregistered).mock.invocationCallOrder[0],
+      jest.mocked(unregisterBrazePush).mock.invocationCallOrder[0],
     ).toBeLessThan(
       jest.mocked(
         Engine.context.NotificationServicesController.disablePushNotifications,
@@ -254,9 +260,21 @@ describe('helpers - disablePushNotifications()', () => {
     );
   });
 
-  it('does not disable NaaP push when Braze unregister fails', async () => {
+  it('delegates Braze unregistration to token deletion when FCM has a token', async () => {
+    Engine.context.NotificationServicesPushController.state.fcmToken =
+      'fcm-token';
+
+    await disablePushNotifications();
+
+    expect(unregisterBrazePush).not.toHaveBeenCalled();
+    expect(
+      Engine.context.NotificationServicesController.disablePushNotifications,
+    ).toHaveBeenCalled();
+  });
+
+  it('does not disable NaaP push when direct Braze unregister fails', async () => {
     jest
-      .mocked(assertBrazePushUnregistered)
+      .mocked(unregisterBrazePush)
       .mockRejectedValueOnce(new Error('Failed to unregister Braze push'));
 
     await expect(disablePushNotifications()).rejects.toThrow(

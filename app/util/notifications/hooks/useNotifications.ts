@@ -182,12 +182,23 @@ export function useDisableNotifications() {
   const disableNotifications = useCallback(async () => {
     assertIsFeatureEnabled();
     setError(undefined);
-    await togglePushNotification(false);
-    await disableNotificationsHelper().catch((e) => {
-      Logger.error(e);
-      setError(`Failed to disable push notifications`);
-    });
+    const pushDisabled = await togglePushNotification(false);
+    if (!pushDisabled) {
+      const errorMessage = 'Failed to disable push notifications';
+      setError(errorMessage);
+      return false;
+    }
+
+    try {
+      await disableNotificationsHelper();
+    } catch (e) {
+      Logger.error(e instanceof Error ? e : new Error(String(e)));
+      setError('Failed to disable notifications');
+      return false;
+    }
+
     await setUserHasTurnedOffNotificationsOnce();
+    return true;
   }, [togglePushNotification]);
 
   return {

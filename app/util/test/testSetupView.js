@@ -590,7 +590,7 @@ NativeModules.RNTar = {
 };
 
 NativeModules.BrazePushModule = {
-  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
+  unregisterPush: jest.fn().mockResolvedValue(undefined),
 };
 
 // Mock @notifee/react-native
@@ -963,7 +963,6 @@ jest.mock('@braze/react-native-sdk', () => ({
     changeUser: jest.fn(),
     enableSDK: jest.fn(),
     wipeData: jest.fn(),
-    registerPushToken: jest.fn(),
     getInitialPushPayload: jest.fn((callback) => {
       // Call callback with null payload (no initial push)
       if (typeof callback === 'function') {

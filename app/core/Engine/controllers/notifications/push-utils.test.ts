@@ -3,22 +3,16 @@ import { type FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import FCMService from '../../../../util/notifications/services/FCMService';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { PressActionId } from '../../../../util/notifications';
-import { registerBrazePushToken } from '../../../Braze/registerPush';
-import { assertBrazePushUnregistered } from '../../../Braze/unregisterPush';
+import { unregisterBrazePush } from '../../../Braze/unregisterPush';
 import {
   WALLET_ACTIVITY_NOTIFICATION_TYPE,
-  createRegToken,
   createSubscribeToPushNotifications,
   deleteRegToken,
   shouldDisplayForegroundPushNotification,
 } from './push-utils';
 
-jest.mock('../../../Braze/registerPush', () => ({
-  registerBrazePushToken: jest.fn(),
-}));
-
 jest.mock('../../../Braze/unregisterPush', () => ({
-  assertBrazePushUnregistered: jest.fn().mockResolvedValue(undefined),
+  unregisterBrazePush: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../../../util/notifications/services/FCMService', () => ({
@@ -64,34 +58,10 @@ const setAppState = (state: AppStateStatus) => {
   });
 };
 
-describe('createRegToken', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('registers the FCM token with Braze after NaaP creates it', async () => {
-    jest.mocked(FCMService.createRegToken).mockResolvedValue('fcm-token-123');
-
-    const token = await createRegToken();
-
-    expect(token).toBe('fcm-token-123');
-    expect(registerBrazePushToken).toHaveBeenCalledWith('fcm-token-123');
-  });
-
-  it('does not register with Braze when NaaP does not return a token', async () => {
-    jest.mocked(FCMService.createRegToken).mockResolvedValue(null);
-
-    const token = await createRegToken();
-
-    expect(token).toBeNull();
-    expect(registerBrazePushToken).not.toHaveBeenCalled();
-  });
-});
-
 describe('deleteRegToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(assertBrazePushUnregistered).mockResolvedValue(undefined);
+    jest.mocked(unregisterBrazePush).mockResolvedValue(undefined);
     jest.mocked(FCMService.deleteRegToken).mockResolvedValue(true);
   });
 
@@ -99,10 +69,10 @@ describe('deleteRegToken', () => {
     const result = await deleteRegToken();
 
     expect(result).toBe(true);
-    expect(assertBrazePushUnregistered).toHaveBeenCalled();
+    expect(unregisterBrazePush).toHaveBeenCalled();
     expect(FCMService.deleteRegToken).toHaveBeenCalled();
     expect(
-      jest.mocked(assertBrazePushUnregistered).mock.invocationCallOrder[0],
+      jest.mocked(unregisterBrazePush).mock.invocationCallOrder[0],
     ).toBeLessThan(
       jest.mocked(FCMService.deleteRegToken).mock.invocationCallOrder[0],
     );
@@ -110,7 +80,7 @@ describe('deleteRegToken', () => {
 
   it('does not delete the FCM token when Braze unregister fails', async () => {
     jest
-      .mocked(assertBrazePushUnregistered)
+      .mocked(unregisterBrazePush)
       .mockRejectedValue(new Error('Failed to unregister Braze push'));
 
     await expect(deleteRegToken()).rejects.toThrow(
