@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded `@metamask/delegation-deployments` from `^1.0.0` to `^2.0.0` (#35678)
+
+### Fixed
+
+- Made Perps Add funds open the deposit confirmation immediately instead of waiting for transaction prep
+
 ## [8.10.0]
 
 ### Added

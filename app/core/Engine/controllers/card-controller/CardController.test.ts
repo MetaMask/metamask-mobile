@@ -4609,6 +4609,34 @@ describe('CardController — data pass-throughs', () => {
     });
   });
 
+  describe('getUserDetails', () => {
+    it('delegates to provider', async () => {
+      const user = {
+        id: 'u1',
+        email: 'migrating@example.com',
+        phoneNumber: '7581572277',
+        phoneCountryCode: '+44',
+      };
+      const mockGet = jest.fn().mockResolvedValue(user);
+      const provider = buildMockProvider({ getUserDetails: mockGet });
+      const { controller } = buildAuthenticatedController(provider);
+
+      const result = await controller.getUserDetails();
+
+      expect(result).toStrictEqual(user);
+      expect(mockGet).toHaveBeenCalledWith(mockTokenSet);
+    });
+
+    it('throws when unsupported', async () => {
+      const provider = buildMockProvider({ getUserDetails: undefined });
+      const { controller } = buildAuthenticatedController(provider);
+
+      await expect(controller.getUserDetails()).rejects.toThrow(
+        'User details not supported',
+      );
+    });
+  });
+
   describe('getCashbackWithdrawEstimation', () => {
     it('delegates to provider', async () => {
       const est = { estimatedAmount: '5', fee: '0.1' };

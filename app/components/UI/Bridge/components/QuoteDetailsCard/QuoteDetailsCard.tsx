@@ -206,7 +206,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             >
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
                 style={tw`text-right`}
                 numberOfLines={1}
                 ellipsizeMode="tail"
@@ -274,15 +274,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             >
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.TextDefault}
                 style={styles.strikethroughText}
               >
                 {formattedQuoteData.networkFee}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
+              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
                 {strings('bridge.included')}
               </Text>
             </Box>
@@ -305,7 +302,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               label: {
                 text: formattedQuoteData.networkFee,
                 variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
+                color: TextColorLegacy.Default,
               },
             }}
           />
@@ -334,7 +331,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               >
                 <Text
                   variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
+                  color={TextColor.TextDefault}
                 >
                   {formattedQuoteData.slippage}
                 </Text>
@@ -366,7 +363,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               label: {
                 text: `${formattedMinToTokenAmount} ${destToken?.symbol}`,
                 variant: TextVariantLegacy.BodyMD,
-                color: TextColorLegacy.Alternative,
+                color: TextColorLegacy.Default,
               },
             }}
           />

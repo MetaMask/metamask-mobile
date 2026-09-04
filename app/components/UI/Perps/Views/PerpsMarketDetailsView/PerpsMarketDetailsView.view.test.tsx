@@ -39,9 +39,11 @@ import {
   PerpsBottomSheetTooltipSelectorsIDs,
   PerpsPositionCardSelectorsIDs,
   PerpsTutorialSelectorsIDs,
-  getPerpsCandlePeriodSelector,
-  getPerpsCandlePeriodBottomSheetSelector,
 } from '../../Perps.testIds';
+import {
+  getCandlePeriodSelectorSelectors as getPerpsCandlePeriodSelector,
+  getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
+} from '../../../Charts/CandlePeriodSelector';
 import { strings } from '../../../../../../locales/i18n';
 
 const CANDLE_SELECTOR_BASE =

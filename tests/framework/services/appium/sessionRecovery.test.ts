@@ -21,10 +21,32 @@ describe('isDeviceHealthError', () => {
     ).toBe(true);
   });
 
+  it('returns true for UiAutomator2 instrumentation crashes', () => {
+    expect(
+      isDeviceHealthError(
+        new Error(
+          "'POST /element' cannot be proxied to UiAutomator2 server because the instrumentation process is not running (probably crashed).",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      isDeviceHealthError(
+        new Error('instrumentation process cannot be initialized'),
+      ),
+    ).toBe(true);
+  });
+
   it('returns false for ordinary assertion failures', () => {
     expect(
       isDeviceHealthError(
         new Error('Timed out: expected "Connected", got "Not connected"'),
+      ),
+    ).toBe(false);
+    expect(
+      isDeviceHealthError(
+        new Error(
+          'App did not reach login or wallet home within 60000ms. This may indicate rehydration issues or state corruption.',
+        ),
       ),
     ).toBe(false);
   });

@@ -10,19 +10,23 @@ describe('AppiumServer', () => {
   const hostKey = 'APPIUM_HOST';
   const portKey = 'APPIUM_PORT';
   const skipStopKey = 'SKIP_APPIUM_STOP';
+  const workersKey = 'E2E_WORKERS';
 
   let previousHost: string | undefined;
   let previousPort: string | undefined;
   let previousSkipStop: string | undefined;
+  let previousWorkers: string | undefined;
   let fetchMock: jest.SpiedFunction<typeof fetch>;
 
   beforeEach(() => {
     previousHost = process.env[hostKey];
     previousPort = process.env[portKey];
     previousSkipStop = process.env[skipStopKey];
+    previousWorkers = process.env[workersKey];
     delete process.env[hostKey];
     delete process.env[portKey];
     delete process.env[skipStopKey];
+    delete process.env[workersKey];
     fetchMock = jest.spyOn(globalThis, 'fetch');
   });
 
@@ -42,6 +46,11 @@ describe('AppiumServer', () => {
       delete process.env[skipStopKey];
     } else {
       process.env[skipStopKey] = previousSkipStop;
+    }
+    if (previousWorkers === undefined) {
+      delete process.env[workersKey];
+    } else {
+      process.env[workersKey] = previousWorkers;
     }
   });
 
@@ -87,6 +96,12 @@ describe('AppiumServer', () => {
 
     it('returns true when SKIP_APPIUM_STOP is true', () => {
       process.env[skipStopKey] = 'true';
+      expect(shouldSkipAppiumStop()).toBe(true);
+    });
+
+    it('returns true when multiple Playwright workers share one Appium server', () => {
+      process.env.E2E_WORKERS = '2';
+
       expect(shouldSkipAppiumStop()).toBe(true);
     });
   });

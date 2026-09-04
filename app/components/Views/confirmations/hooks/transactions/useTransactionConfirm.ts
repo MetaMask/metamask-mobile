@@ -25,7 +25,6 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
-import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
 import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
@@ -54,8 +53,6 @@ export function useTransactionConfirm() {
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
   const { onFiatConfirm, isFiatPaymentSelected, orderId } = useFiatConfirm();
-  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
-    useMusdConfirmNavigation();
   const navigateToPerpsHome = useNavigateToPerpsHome();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
@@ -110,8 +107,77 @@ export function useTransactionConfirm() {
     [isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken],
   );
 
+  const navigateOnConfirm = useCallback(() => {
+    if (!transactionMetadata) {
+      return;
+    }
+
+    // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+    if (type === TransactionType.perpsDepositAndOrder) {
+      return;
+    } else if (type === TransactionType.perpsDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigateToPerpsHome();
+      }
+    } else if (type === TransactionType.predictDeposit) {
+      if (payWithOption === PayWithOption.MoneyAccount) {
+        navigation.navigate(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+          { pop: true },
+        );
+      } else {
+        navigation.goBack();
+      }
+    } else if (
+      hasTransactionType(transactionMetadata, [
+        TransactionType.moneyAccountDeposit,
+      ])
+    ) {
+      navigation.navigate(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    } else if (
+      isFullScreenConfirmation &&
+      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+    ) {
+      navigateToActivityAfterConfirmation(navigation);
+    } else {
+      navigation.goBack();
+    }
+
+    tryEnableEvmNetwork(chainId);
+  }, [
+    chainId,
+    isFullScreenConfirmation,
+    navigateToPerpsHome,
+    navigation,
+    payWithOption,
+    transactionMetadata,
+    tryEnableEvmNetwork,
+    type,
+  ]);
+
   const onConfirm = useCallback(
     async (options?: {
+      deferNavigation?: boolean;
       onError?: (error: unknown) => void;
       waitForResult?: boolean;
       existingOrderId?: string;
@@ -172,86 +238,28 @@ export function useTransactionConfirm() {
         options?.onError?.(error);
       }
 
-      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-      if (type === TransactionType.perpsDepositAndOrder) {
-        return;
-      } else if (type === TransactionType.perpsDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
-        } else {
-          navigateToPerpsHome();
-        }
-      } else if (type === TransactionType.predictDeposit) {
-        if (payWithOption === PayWithOption.MoneyAccount) {
-          navigation.navigate(
-            Routes.HOME_TABS,
-            {
-              screen: Routes.MONEY.ROOT,
-              params: { screen: Routes.MONEY.HOME },
-            },
-            { pop: true },
-          );
-        } else {
-          navigation.goBack();
-        }
-      } else if (type === TransactionType.musdConversion) {
-        musdConversionNavigateOnConfirm();
-      } else if (
-        hasTransactionType(transactionMetadata, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        navigation.navigate(
-          Routes.HOME_TABS,
-          {
-            screen: Routes.MONEY.ROOT,
-            params: { screen: Routes.MONEY.HOME },
-          },
-          { pop: true },
-        );
-      } else if (
-        isFullScreenConfirmation &&
-        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-      ) {
-        navigateToActivityAfterConfirmation(navigation);
-      } else {
-        navigation.goBack();
+      if (!options?.deferNavigation) {
+        navigateOnConfirm();
       }
-
-      tryEnableEvmNetwork(chainId);
     },
     [
-      chainId,
       handleGasless7702,
       shouldDeferHwSend,
       deferHwSend,
       handleSmartTransaction,
       isFiatPaymentSelected,
-      isFullScreenConfirmation,
       isGaslessSupported,
       isGaslessSupportedSTX,
-      navigation,
-      navigateToPerpsHome,
-      musdConversionNavigateOnConfirm,
+      navigateOnConfirm,
       onFiatConfirm,
       onRequestConfirm,
       orderId,
-      payWithOption,
       selectedGasFeeToken,
       transactionMetadata,
-      tryEnableEvmNetwork,
-      type,
       waitForResult,
       isSignerHardwareWallet,
     ],
   );
 
-  return { onConfirm };
+  return { navigateOnConfirm, onConfirm };
 }

@@ -61,7 +61,11 @@ const ModeCard = ({
       accessibilityState={{ selected: isSelected }}
       testID={optionTestID}
       twClassName={(pressed) =>
-        `h-[186px] flex-1 items-stretch rounded-xl border p-4 ${
+        // Cards hug their content so longer descriptions in other locales grow
+        // the pair instead of clipping. Both overrides are required: dropping
+        // the height alone falls back to ButtonBase's own `height: 48`, and its
+        // `alignSelf: flex-start` would otherwise defeat the row's stretch.
+        `h-auto self-stretch flex-1 items-stretch rounded-xl border p-4 ${
           isSelected ? 'border-default' : 'border-transparent'
         } ${pressed ? 'bg-pressed' : 'bg-muted'}`
       }
@@ -158,6 +162,16 @@ const PerpsModeSelectionBottomSheet = ({
       >
         {strings('perps.mode.selection_title')}
       </BottomSheetHeader>
+      {/* Inset matches the card row below rather than the sheet header. */}
+      <Box paddingHorizontal={4}>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={PerpsModeSelectionBottomSheetSelectorsIDs.SUBTITLE}
+        >
+          {strings('perps.mode.selection_subtitle')}
+        </Text>
+      </Box>
       <Box
         flexDirection={BoxFlexDirection.Row}
         gap={3}
