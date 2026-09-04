@@ -11,9 +11,8 @@ import BottomSheet, {
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
-import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
+import { useBridgeQuoteDataContext } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
-import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
   selectSourceToken,
   selectDestToken,
@@ -105,14 +104,7 @@ export const TokenWarningModal = () => {
   const destToken = useSelector(selectDestToken);
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
-  const tokenBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-  });
-  const { activeQuote } = useBridgeQuoteData({
-    latestSourceAtomicBalance: tokenBalance?.atomicBalance,
-  });
+  const { activeQuote } = useBridgeQuoteDataContext();
 
   const confirmBridge = useBridgeConfirm({
     activeQuote,

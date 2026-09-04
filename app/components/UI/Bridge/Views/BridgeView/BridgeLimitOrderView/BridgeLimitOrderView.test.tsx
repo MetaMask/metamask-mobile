@@ -54,10 +54,6 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   };
 });
 
-jest.mock('../../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
-
 jest.mock('../../../hooks/useLimitOrderSwapsInput', () => ({
   useLimitOrderSwapInputs: jest.fn(),
 }));
@@ -353,10 +349,6 @@ describe('BridgeLimitOrderView', () => {
     jest
       .mocked(useBridgeQuoteData as unknown as jest.Mock)
       .mockImplementation(() => mockUseBridgeQuoteData);
-    jest.mocked(useLatestBalance).mockReturnValue({
-      displayBalance: '1.0',
-      atomicBalance: undefined,
-    });
     jest
       .mocked(useLimitOrderSwapInputs)
       .mockImplementation(() => buildSwapInputsMock());

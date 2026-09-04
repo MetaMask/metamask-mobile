@@ -4,11 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  selectBridgeBalanceRefreshKey,
   selectRecurringEveryUnit,
   selectRecurringPriceRange,
   selectRecurringScheduleValidation,
-  selectSourceToken,
   setRecurringEveryUnit,
   setRecurringPriceRange,
 } from '../../../../../../core/redux/slices/bridge';
@@ -34,11 +32,7 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useTokenFiatRate } from '../../../hooks/useTokenFiatRate';
 import { formatCurrency } from '../../../utils/currencyUtils';
 import {
@@ -53,14 +47,9 @@ import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { RECURRING_MOCK_HISTORY_TAB } from './BridgeRecurringBuyView.mockHistory';
 import { RECURRING_MOCK_OPEN_ORDERS_TAB } from './BridgeRecurringBuyView.mockOpenOrders';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
+import { useBridgeSession } from '../../../hooks/useBridgeSession/BridgeSessionContext';
 
-interface BridgeRecurringBuyViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeRecurringBuyViewContent = ({
-  latestSourceBalance,
-}: BridgeRecurringBuyViewContentProps) => {
+const BridgeRecurringBuyViewContent = () => {
   const tw = useTailwind();
   const dispatch = useDispatch();
   const inputRef = useRef<TokenInputAreaRef>(null);
@@ -71,6 +60,7 @@ const BridgeRecurringBuyViewContent = ({
     useState(false);
   const [isConfirmSheetVisible, setIsConfirmSheetVisible] = useState(false);
 
+  const { latestSourceBalance } = useBridgeSession();
   const {
     destToken,
     destTokenAmount,
@@ -325,26 +315,4 @@ const BridgeRecurringBuyViewContent = ({
   );
 };
 
-const BridgeRecurringBuyView = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeRecurringBuyViewContent
-        latestSourceBalance={latestSourceBalance}
-      />
-    </BridgeQuoteDataProvider>
-  );
-};
-
-export default BridgeRecurringBuyView;
+export default BridgeRecurringBuyViewContent;
