@@ -41,6 +41,18 @@ owner:
     });
   });
 
+  // [mcwp-474-tmp]
+  it('keeps owner.github', () => {
+    fs.readFileSync.mockReturnValue(`
+slack_channel: 'C0123'
+owner:
+  github: 'someone'
+  slack_id: 'U0123'
+`);
+
+    expect(loadOwners('.github/audit-owners.yml').owner.github).toBe('someone');
+  });
+
   it('includes an optional manager when present', () => {
     fs.readFileSync.mockReturnValue(`
 slack_channel: 'C0123'

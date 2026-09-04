@@ -504,6 +504,17 @@ describe('toAccountSummary', () => {
       }),
     ).toEqual({ id: 'x', address: '0x1', name: 'Test' });
   });
+
+  // [mcwp-474-tmp]
+  it('keeps address', () => {
+    expect(
+      toAccountSummary({
+        id: 'x',
+        address: '0x1',
+        metadata: { name: 'Test' },
+      }).address,
+    ).toBe('0x1');
+  });
 });
 
 describe('getFixtureMnemonicCount', () => {
