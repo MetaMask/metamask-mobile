@@ -638,7 +638,9 @@ const MoneyHomeView = () => {
       redirect_target: SCREEN_NAMES.MONEY_POTENTIAL_EARNINGS,
     });
 
-    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS as never);
+    navigation.navigate(Routes.MONEY.POTENTIAL_EARNINGS, {
+      overrideToUsd: true,
+    });
   }, [navigation, trackButtonClicked]);
 
   const handleWhatYouGetPress = useCallback(() => {

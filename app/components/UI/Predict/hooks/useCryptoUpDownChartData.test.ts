@@ -353,6 +353,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -361,6 +362,36 @@ describe('useCryptoUpDownChartData', () => {
       ]);
       expect(result.current.value).toBe(51500);
       expect(result.current.loading).toBe(false);
+    });
+
+    it('coalesces rapid live ticks to five React updates per second', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket();
+      historicalData = [];
+      const { result } = renderHook(() => useCryptoUpDownChartData(market), {
+        wrapper: Wrapper,
+      });
+
+      act(() => {
+        for (let index = 0; index < 20; index += 1) {
+          liveUpdateHandler?.({
+            symbol: 'btc/usd',
+            price: 51000 + index,
+            timestamp: 100 + index,
+          });
+          jest.advanceTimersByTime(50);
+        }
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 51000 },
+        { time: 103, value: 51003 },
+        { time: 107, value: 51007 },
+        { time: 111, value: 51011 },
+        { time: 115, value: 51015 },
+        { time: 119, value: 51019 },
+      ]);
+      expect(result.current.value).toBe(51019);
     });
 
     it('keeps loading true until the live chart has enough points to render', () => {
@@ -390,6 +421,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -424,6 +456,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52000,
           timestamp: 1040,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -439,6 +472,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 52500,
           timestamp: 1055,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -584,11 +618,13 @@ describe('useCryptoUpDownChartData', () => {
           price: 51000,
           timestamp: 100,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 51500,
           timestamp: 130,
         });
+        jest.advanceTimersByTime(200);
         liveUpdateHandler?.({
           symbol: 'btcusdt',
           price: 52000,
@@ -1231,6 +1267,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51600,
           timestamp: 270,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.data).toEqual([
@@ -1283,6 +1320,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       rerender({ targetPrice: undefined });
@@ -1378,6 +1416,50 @@ describe('useCryptoUpDownChartData', () => {
 
       expect(result.current.isLive).toBe(false);
       expect(result.current.data).toEqual([{ time: 100, value: 50000 }]);
+    });
+
+    it('commits a pending update when the chart freezes before its timer runs', () => {
+      const { Wrapper } = createWrapper();
+      const market = createMarket({
+        endDate: '2026-01-01T00:00:00.100Z',
+      });
+      historicalData = [];
+      const { result, rerender } = renderHook(
+        ({ activeMarket }: { activeMarket: TestMarket }) =>
+          useCryptoUpDownChartData(activeMarket),
+        {
+          initialProps: { activeMarket: market },
+          wrapper: Wrapper,
+        },
+      );
+
+      act(() => {
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 50000,
+          timestamp: 100,
+        });
+        liveUpdateHandler?.({
+          symbol: 'btc/usd',
+          price: 51000,
+          timestamp: 101,
+        });
+      });
+      act(() => {
+        jest.setSystemTime(new Date('2026-01-01T00:00:00.101Z'));
+        rerender({ activeMarket: market });
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
+
+      expect(result.current.data).toEqual([
+        { time: 100, value: 50000 },
+        { time: 101, value: 51000 },
+      ]);
+      expect(result.current.value).toBe(51000);
+      expect(result.current.isLive).toBe(false);
     });
 
     it('accepts live updates after switching from an expired market', () => {
@@ -1832,6 +1914,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.loading).toBe(false);
@@ -2049,6 +2132,7 @@ describe('useCryptoUpDownChartData', () => {
           price: 51500,
           timestamp: 110,
         });
+        jest.advanceTimersByTime(200);
       });
 
       expect(result.current.connectionError).toBe(false);

@@ -111,7 +111,7 @@ export const defaultPerpsPositionMock: Position = {
   },
   liquidationPrice: '2500.00',
   maxLeverage: 50,
-  returnOnEquity: '10.3',
+  returnOnEquity: '0.103',
   cumulativeFunding: {
     allTime: '0',
     sinceOpen: '0',

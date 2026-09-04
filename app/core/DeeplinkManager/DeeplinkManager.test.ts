@@ -27,6 +27,11 @@ import {
   subscribeToBrazePushOpens,
 } from '../Braze/BrazeDeeplinks';
 import { AppStateEventProcessor } from '../AppStateEventListener';
+import {
+  startDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  cancelDeeplinkProcessedTrace,
+} from '../Performance/DeeplinkPerformance';
 
 jest.mock('./handlers/legacy/handleApproveUrl');
 jest.mock('./handlers/handleEthereumUrl');
@@ -51,6 +56,11 @@ jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+jest.mock('../Performance/DeeplinkPerformance', () => ({
+  startDeeplinkProcessedTrace: jest.fn(),
+  endDeeplinkProcessedTrace: jest.fn(),
+  cancelDeeplinkProcessedTrace: jest.fn(),
 }));
 
 // Branch and Linking mocks for DeeplinkManager.start tests
@@ -152,6 +162,114 @@ describe('DeeplinkManager', () => {
       url,
       origin,
       mode: 'resolve',
+    });
+  });
+
+  describe('Deeplink Processed instrumentation', () => {
+    const url = 'https://link.metamask.io/trending';
+    const origin = 'testOrigin';
+    const mockParseDeeplink = jest.mocked(parseDeeplink);
+    const mockStartProcessed = jest.mocked(startDeeplinkProcessedTrace);
+    const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
+    const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
+
+    it('starts a trace and threads the token into parseDeeplink, which owns the trace lifecycle', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(true);
+      mockStartProcessed.mockReturnValueOnce(42);
+
+      await deeplinkManager.parse(url, { origin });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'parse',
+        appStartType: 'warm',
+      });
+      // Token threaded into parseDeeplink; parseDeeplink is now solely
+      // responsible for ending/cancelling the trace in execute mode.
+      expect(mockParseDeeplink).toHaveBeenCalledWith(
+        expect.objectContaining({ processedTraceToken: 42 }),
+      );
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('stamps Processed as cold when parse is the leftover cold-start execute', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(true);
+
+      await deeplinkManager.parse(url, { origin, appStartType: 'cold' });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'parse',
+        appStartType: 'cold',
+      });
+    });
+
+    it('does not cancel the trace directly — parseDeeplink owns the cancel in execute mode', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(false);
+      mockStartProcessed.mockReturnValueOnce(42);
+
+      await deeplinkManager.parse(url, { origin });
+
+      // parseDeeplink (mocked here) is responsible for cancelling; DeeplinkManager.parse no longer does.
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('starts on resolve and leaves the span open for the pre_navigate seam', async () => {
+      const intent = { target: { type: 'home-tab', routeName: 'Trending' } };
+      mockParseDeeplink.mockResolvedValueOnce(
+        intent as Awaited<ReturnType<typeof parseDeeplink>>,
+      );
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'resolve',
+        appStartType: 'cold',
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('stamps resolve Processed with the unlock-session app start type', async () => {
+      const intent = { target: { type: 'home-tab', routeName: 'Trending' } };
+      mockParseDeeplink.mockResolvedValueOnce(
+        intent as Awaited<ReturnType<typeof parseDeeplink>>,
+      );
+
+      await deeplinkManager.resolve(url, { origin, appStartType: 'warm' });
+
+      expect(mockStartProcessed).toHaveBeenCalledWith({
+        url,
+        source: 'resolve',
+        appStartType: 'warm',
+      });
+    });
+
+    it('cancels as rejected when resolve is declined at the interstitial', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(false);
+      mockStartProcessed.mockReturnValueOnce(42);
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 42,
+      });
+    });
+
+    it('cancels as unresolved when resolve yields no intent', async () => {
+      mockParseDeeplink.mockResolvedValueOnce(null);
+      mockStartProcessed.mockReturnValueOnce(42);
+
+      await deeplinkManager.resolve(url, { origin });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'unresolved',
+        traceToken: 42,
+      });
     });
   });
 });

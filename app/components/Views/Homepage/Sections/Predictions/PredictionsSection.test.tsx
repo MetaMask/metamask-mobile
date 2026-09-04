@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MAX_POSITIONS_DISPLAYED } from './predictionsSectionConstants';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -127,6 +128,11 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
   selectPredictUpDownEnabledFlag: jest.fn(() => true),
+  selectPredictFeeCollectionFlag: jest.fn(() => ({
+    enabled: true,
+    metamaskFee: 0.02,
+    providerFee: 0.02,
+  })),
 }));
 
 jest.mock('../../../../UI/Predict/hooks/useLiveCryptoPrices', () => ({
@@ -328,6 +334,17 @@ describe('PredictionsSection', () => {
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
   });
 
+  it('limits active homepage positions', () => {
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+      maxPositions: MAX_POSITIONS_DISPLAYED,
+      enabled: true,
+    });
+  });
+
   it('skips trending market fetches for treatment discovery', () => {
     renderWithProvider(
       <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
@@ -473,8 +490,8 @@ describe('PredictionsSection', () => {
         expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
       });
 
-      expect(screen.getByText('$99')).toBeOnTheScreen();
-      expect(screen.getByText('890%')).toBeOnTheScreen();
+      expect(screen.getByText('$95.04')).toBeOnTheScreen();
+      expect(screen.getByText('850.4%')).toBeOnTheScreen();
       expect(screen.queryByText('$12')).not.toBeOnTheScreen();
     });
 
@@ -943,6 +960,7 @@ describe('PredictionsSection', () => {
       );
 
       expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+        maxPositions: MAX_POSITIONS_DISPLAYED,
         enabled: true,
       });
       expect(mockUsePredictPositionsForHomepage).not.toHaveBeenCalledWith(
