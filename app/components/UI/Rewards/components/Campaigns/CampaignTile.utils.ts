@@ -57,6 +57,50 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
 }
 
 /**
+ * Resolves the campaign of a given type that a type-scoped entry point (deeplink,
+ * banner) should target: the most recently started `active` campaign, or the
+ * soonest `upcoming` one when none is running.
+ *
+ * Callers must not fall back to "first campaign of this type in API order" —
+ * once a second campaign of the same type exists, that silently resolves to a
+ * past one.
+ *
+ * @param campaigns - The full campaign list.
+ * @param type - The campaign type to resolve.
+ * @returns The resolved campaign, or null when only complete campaigns exist.
+ */
+export function getLatestActiveOrUpcomingCampaignOfType(
+  campaigns: CampaignDto[],
+  type: CampaignType,
+): CampaignDto | null {
+  const ofType = campaigns.filter((campaign) => campaign.type === type);
+
+  const active = ofType.filter(
+    (campaign) => getCampaignStatus(campaign) === 'active',
+  );
+  if (active.length > 0) {
+    return active.reduce((latest, campaign) =>
+      new Date(campaign.startDate) > new Date(latest.startDate)
+        ? campaign
+        : latest,
+    );
+  }
+
+  const upcoming = ofType.filter(
+    (campaign) => getCampaignStatus(campaign) === 'upcoming',
+  );
+  if (upcoming.length > 0) {
+    return upcoming.reduce((soonest, campaign) =>
+      new Date(campaign.startDate) < new Date(soonest.startDate)
+        ? campaign
+        : soonest,
+    );
+  }
+
+  return null;
+}
+
+/**
  * Formats a date for display in campaign tiles (localized month and day).
  *
  * @param date - The date to format

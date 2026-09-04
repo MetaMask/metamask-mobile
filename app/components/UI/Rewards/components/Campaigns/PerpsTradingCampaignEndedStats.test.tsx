@@ -121,6 +121,32 @@ describe('PerpsTradingCampaignEndedStats', () => {
     });
   });
 
+  it('uses numberOfWinners from the API instead of the fallback constant', () => {
+    render(
+      <PerpsTradingCampaignEndedStats
+        leaderboard={{ ...makeLeaderboard(10, 100), numberOfWinners: 10 }}
+        totalNotionalVolume="1000000"
+        isLeaderboardLoading={false}
+        isVolumeLoading={false}
+      />,
+    );
+
+    expect(latestProps?.totalWinners.value).toBe('10');
+  });
+
+  it('shows dash when entries fall short of the API numberOfWinners', () => {
+    render(
+      <PerpsTradingCampaignEndedStats
+        leaderboard={{ ...makeLeaderboard(25, 100), numberOfWinners: 30 }}
+        totalNotionalVolume="1000000"
+        isLeaderboardLoading={false}
+        isVolumeLoading={false}
+      />,
+    );
+
+    expect(latestProps?.totalWinners.value).toBe('-');
+  });
+
   it('shows dash for winners when leaderboard has fewer than 20 entries', () => {
     render(
       <PerpsTradingCampaignEndedStats

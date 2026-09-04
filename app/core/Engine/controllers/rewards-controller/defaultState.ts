@@ -29,6 +29,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   perpsTradingCampaignLeaderboard: {},
   perpsTradingCampaignLeaderboardPositions: {},
   perpsTradingCampaignVolume: {},
+  perpsTradingCampaignPrizePool: {},
   predictThePitchLeaderboard: {},
   predictThePitchLeaderboardPositions: {},
   predictThePitchPositions: {},
