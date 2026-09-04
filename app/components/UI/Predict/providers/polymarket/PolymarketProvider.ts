@@ -2342,27 +2342,46 @@ export class PolymarketProvider implements PredictProvider {
       ownerAddress: signer.address,
     });
 
-    if (accountState.walletType !== 'deposit-wallet') {
-      return undefined;
+    if (accountState.walletType === 'deposit-wallet') {
+      DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
+        operation: 'deposit_wallet_claim_before_sign',
+        walletType: 'deposit-wallet',
+        signerAddress: signer.address,
+        depositWalletAddress: accountState.address,
+        transactionId: transactionMeta.id,
+        positionCount: positions.length,
+      });
+
+      return {
+        updateTransaction: (transaction: TransactionMeta) => {
+          transaction.isExternalSign = true;
+          transaction.selectedGasFeeToken = undefined;
+          transaction.isGasFeeTokenIgnoredIfBalance = false;
+          delete transaction.txParams.nonce;
+        },
+      };
     }
 
-    DevLogger.log('PolymarketProvider: Deposit wallet claim beforeSign', {
-      operation: 'deposit_wallet_claim_before_sign',
-      walletType: 'deposit-wallet',
-      signerAddress: signer.address,
-      depositWalletAddress: accountState.address,
-      transactionId: transactionMeta.id,
-      positionCount: positions.length,
-    });
+    const { gasFeeTokens, isGasFeeTokenIgnoredIfBalance, selectedGasFeeToken } =
+      transactionMeta;
 
-    return {
-      updateTransaction: (transaction: TransactionMeta) => {
-        transaction.isExternalSign = true;
-        transaction.selectedGasFeeToken = undefined;
-        transaction.isGasFeeTokenIgnoredIfBalance = false;
-        delete transaction.txParams.nonce;
-      },
-    };
+    const isSelectedGasFeeTokenUnavailable =
+      Boolean(selectedGasFeeToken) &&
+      Boolean(isGasFeeTokenIgnoredIfBalance) &&
+      gasFeeTokens !== undefined &&
+      !gasFeeTokens.some(
+        (token) =>
+          token.tokenAddress.toLowerCase() ===
+          selectedGasFeeToken?.toLowerCase(),
+      );
+
+    if (isSelectedGasFeeTokenUnavailable) {
+      throw new Error(
+        'Insufficient POL and pUSD to pay network fees for this claim',
+      );
+    }
+
+    return undefined;
   }
 
   public async publishClaim({

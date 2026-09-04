@@ -4400,7 +4400,39 @@ describe('PredictController', () => {
             disableHook: true,
             disableSequential: true,
             gasFeeToken: MATIC_CONTRACTS_V2.collateral,
-            skipInitialGasEstimate: true,
+          }),
+        );
+      });
+    });
+
+    it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
+      const mockBatchId = 'claim-batch-deposit-wallet';
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getAccountState.mockResolvedValue({
+          address: '0xDepositWalletAddress' as `0x${string}`,
+          isDeployed: true,
+          walletType: 'deposit-wallet' as const,
+        });
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+          },
+        ]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+
+        await controller.claimWithConfirmation({});
+
+        expect(addTransactionBatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            gasFeeToken: undefined,
           }),
         );
       });
