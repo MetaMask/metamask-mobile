@@ -104,6 +104,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
+import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import useCardDetailsToken from '../../hooks/useCardDetailsToken';
 import useCardPinToken from '../../hooks/useCardPinToken';
@@ -498,6 +499,17 @@ jest.mock('../../../../../selectors/featureFlagController/card', () => ({
   selectMetalCardCheckoutFeatureFlag: jest.fn(),
 }));
 
+jest.mock('../../hooks/useCardUkMigrationState', () => ({
+  useCardUkMigrationState: jest.fn(() => ({
+    state: {
+      phase: 'off',
+      isActive: false,
+      deadline: null,
+    },
+    refresh: jest.fn(),
+  })),
+}));
+
 // Mock bridge actions
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn((token) => ({
@@ -807,6 +819,11 @@ function setupMockSelectors(
     lastUnauthenticatedReason: 'onboarding_token_revoked' | null;
     userLocation: 'us' | 'international';
     isMetalCardCheckoutEnabled: boolean;
+    ukMigrationState: {
+      phase: 'off' | 'soft' | 'forced';
+      isActive: boolean;
+      deadline: Date | null;
+    };
     cardHomeDataStatus: 'idle' | 'loading' | 'success' | 'error';
     primaryMoneyAccount: { address: string } | undefined;
     vedaConfig: {
@@ -828,6 +845,11 @@ function setupMockSelectors(
     lastUnauthenticatedReason: null,
     userLocation: 'international' as const,
     isMetalCardCheckoutEnabled: true,
+    ukMigrationState: {
+      phase: 'off' as const,
+      isActive: false,
+      deadline: null,
+    },
     cardHomeDataStatus: 'success' as const,
     primaryMoneyAccount: { address: mockCurrentAddress },
     vedaConfig: null,
@@ -869,6 +891,11 @@ function setupMockSelectors(
 
     return [];
   });
+
+  jest.mocked(useCardUkMigrationState).mockReturnValue({
+    state: config.ukMigrationState,
+    refresh: jest.fn(),
+  });
 }
 
 // Helper: Setup useCardHomeData mock with custom values (keeps old params for compatibility)
@@ -908,6 +935,8 @@ function setupLoadCardDataMock(
     } | null;
     hasExternalWallets: boolean;
     delegationSettings: Record<string, unknown> | null;
+    countryOfResidence: string | null;
+    alerts: { type: string; dismissable: boolean }[];
   }>,
 ) {
   const defaults = {
@@ -926,6 +955,8 @@ function setupLoadCardDataMock(
     },
     hasExternalWallets: false,
     delegationSettings: null,
+    countryOfResidence: null as string | null,
+    alerts: undefined as { type: string; dismissable: boolean }[] | undefined,
   };
 
   const config = { ...defaults, ...overrides };
@@ -971,11 +1002,12 @@ function setupLoadCardDataMock(
           : 'active',
   }));
 
-  // Map alerts based on kycStatus
-  const alerts: { type: string; dismissable: boolean }[] = [];
+  // Map alerts based on kycStatus (or use explicit overrides)
+  const alerts: { type: string; dismissable: boolean }[] = config.alerts ?? [];
   if (
-    config.kycStatus?.verificationState === 'PENDING' ||
-    config.kycStatus?.verificationState === 'UNVERIFIED'
+    !config.alerts &&
+    (config.kycStatus?.verificationState === 'PENDING' ||
+      config.kycStatus?.verificationState === 'UNVERIFIED')
   ) {
     alerts.push({ type: 'kyc_pending', dismissable: false });
   }
@@ -983,8 +1015,9 @@ function setupLoadCardDataMock(
   // Map actions based on warning + kycStatus + hasExternalWallets
   const actions: { type: string; enabled?: boolean }[] = [];
   if (
-    config.warning === CardStateWarning.NeedDelegation ||
-    config.warning === CardStateWarning.NoCard
+    !config.alerts &&
+    (config.warning === CardStateWarning.NeedDelegation ||
+      config.warning === CardStateWarning.NoCard)
   ) {
     if (config.kycStatus?.verificationState === 'VERIFIED') {
       if (config.hasExternalWallets) {
@@ -1006,6 +1039,9 @@ function setupLoadCardDataMock(
       provisioningEligible: false,
       holderName: null,
       shippingAddress: null,
+      countryOfResidence: config.countryOfResidence ?? null,
+      usState: null,
+      createdAt: null,
     };
   } else if (ud) {
     // Pre-select mailing or physical address (same logic as controller)
@@ -1040,6 +1076,9 @@ function setupLoadCardDataMock(
       provisioningEligible: false,
       holderName: derivedHolderName,
       shippingAddress,
+      countryOfResidence: config.countryOfResidence ?? null,
+      usState: null,
+      createdAt: null,
     };
   }
 
@@ -6946,6 +6985,181 @@ describe('CardHome Component', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
+    });
+  });
+
+  describe('UK migration phases', () => {
+    it('auto-opens the migration sheet once during soft phase for GB Baanx users', async () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'soft',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+          screen: Routes.CARD.MODALS.UK_MIGRATION,
+        });
+      });
+      expect(
+        screen.getByTestId(CardHomeSelectors.UK_MIGRATION_SOFT_BANNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not show soft migration UI for Immersve users', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'immersve',
+        ukMigrationState: {
+          phase: 'soft',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, regionCode: 'GB' },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.UK_MIGRATION_SOFT_BANNER),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UK_MIGRATION,
+      });
+    });
+
+    it('shows the soft banner and auto-opens the sheet when deadline is missing', async () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'soft',
+          isActive: true,
+          deadline: null,
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+          screen: Routes.CARD.MODALS.UK_MIGRATION,
+        });
+      });
+      expect(
+        screen.getByTestId(CardHomeSelectors.UK_MIGRATION_SOFT_BANNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows a forced migration banner and hides card use actions after the deadline', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ORDER_METAL_CARD_ITEM),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.ADD_FUNDS_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CREDIT_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the close-to-spending-limit alert during forced migration', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+        alerts: [{ type: 'close_to_spending_limit', dismissable: true }],
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          'card.card_home.warnings.close_spending_limit.title',
+        ),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByTestId('dismiss-button')).not.toBeOnTheScreen();
+    });
+
+    it('opens the migration sheet from the forced banner CTA', () => {
+      setupMockSelectors({
+        isAuthenticated: true,
+        activeProviderId: 'baanx',
+        ukMigrationState: {
+          phase: 'forced',
+          isActive: true,
+          deadline: new Date('2026-09-30T23:59:59.999Z'),
+        },
+      });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL },
+        countryOfResidence: 'GB',
+      });
+
+      render();
+      mockNavigate.mockClear();
+
+      fireEvent.press(screen.getByTestId('confirm-button'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UK_MIGRATION,
+      });
     });
   });
 });
