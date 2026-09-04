@@ -161,6 +161,7 @@
           "moneyAccountCardLinkInProgress": false,
           "providerData": {},
           "providerUserId": null,
+          "redeemWithdrawal": null,
           "selectedCountry": null
         },
         "ClaimsController": {

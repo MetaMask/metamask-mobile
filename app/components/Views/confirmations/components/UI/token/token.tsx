@@ -20,7 +20,7 @@ import { BadgeVariant } from '../../../../../../component-library/components/Bad
 import { BadgePosition } from '../../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
 import { AccountTypeLabel } from '../account-type-label';
 import { AssetType } from '../../../types/token';
-import { getAssetTestId } from '../../../../../../../tests/selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../../../UI/AssetElement/AssetElement.testIds';
 import { formatAmount } from '../../../../../../components/UI/SimulationDetails/formatAmount';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../../constants/account-type-labels';
 import AssetLogo from '../../../../../UI/Assets/components/AssetLogo/AssetLogo';
