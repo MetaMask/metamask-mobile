@@ -32,13 +32,8 @@ const EarnSearchAssetRow = ({
   privacyMode = false,
 }: EarnSearchAssetRowProps) => {
   const { asset } = item;
-  const {
-    metadata,
-    hasSubsidizedFee,
-    hasMinDepositAmount,
-    fiatBalance,
-    highestRateCopy,
-  } = deriveEarnAssetDisplayData(asset);
+  const { metadata, hasMinDepositAmount, fiatBalance, highestRateCopy } =
+    deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
 
@@ -64,7 +59,6 @@ const EarnSearchAssetRow = ({
       testID={EarnSearchAssetRowTestIds.ROW}
       avatar={<EarnAssetIcon asset={asset} />}
       title={metadata.name}
-      titleEndAccessory={hasSubsidizedFee ? <EarnNoFeeTag /> : undefined}
       titleProps={{
         numberOfLines: 1,
       }}
