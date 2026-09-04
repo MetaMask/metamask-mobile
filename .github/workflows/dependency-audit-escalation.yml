@@ -1,0 +1,314 @@
+name: Dependency Audit Escalation
+
+# `yarn audit:ci` is advisory-only in ci.yml (dependency-audit job) — it never
+# blocks a PR. This workflow is the actual triage loop:
+#   1. scripts/collect-audit-advisories.ts parses the raw `yarn audit` output
+#      and drops anything already tracked by an open PR/issue. (Permanently
+#      accepted risks never even get this far — see
+#      npmAuditIgnoreAdvisories in .yarnrc.yml.)
+#   2. Whatever's left gets filed/updated as a single tracking issue so a
+#      human decides the fix. The audit owner (and their manager, if
+#      configured) gets pinged in Slack twice: once right after advisories
+#      are found (so they know before waiting on the tracking-issue step),
+#      and once at the end with a link to whatever issue actually got
+#      created, threaded off the first message. See .github/audit-owners.yml
+#      (owner) and npmAuditIgnoreAdvisories in .yarnrc.yml (accepting a risk
+#      instead of fixing it).
+#
+# No schedule: ci.yml's `dependency-audit` job already runs `yarn audit:ci`
+# on every push/PR/hourly-schedule run ci.yml itself has, so re-running the
+# same check again on a separate cron would just be redundant. Instead,
+# ci.yml calls this workflow (via workflow_call) only on runs where that job
+# actually found advisories.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dependency-audit-escalation:
+    name: Triage dependency audit advisories
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # tsconfig.json sets `module: "preserve"`, so `ts-node --transpile-only`
+      # emits raw `import`/`export` syntax. Every script here is invoked
+      # directly (not required from another CJS module) with no
+      # "type": "module" in package.json, so Node's own module-syntax
+      # detection reparses the transpiled output as ESM — which makes
+      # `require` undefined, so each script's `require.main === module` "am I
+      # the entry point" guard silently evaluates to false and its main()
+      # never runs, with no error (just whatever happens to try reading a
+      # file that was never written, e.g. "Collect advisories" failing on a
+      # missing audit-fix-result.json). Forcing CommonJS output here keeps
+      # that guard meaningful.
+      TS_NODE_COMPILER_OPTIONS: '{"module":"commonjs","moduleResolution":"node"}'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
+
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+
+      - name: Run dependency audit
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          yarn audit:ci --json > audit.ndjson 2> audit.stderr
+          EXIT="$?"
+          set -e
+          cat audit.stderr >&2 || true
+          # Exit 0 = clean, non-zero = advisories found. Either way audit.ndjson
+          # is what matters; a truncated/empty file on a non-zero exit is a real
+          # script error and should fail the job instead of silently no-oping.
+          if [[ "$EXIT" -ne 0 && ! -s audit.ndjson ]]; then
+            echo "::error::yarn npm audit exited $EXIT with no output; treating as a script failure, not a clean audit."
+            exit "$EXIT"
+          fi
+          if [[ -s audit.ndjson ]]; then
+            echo "has-advisories=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-advisories=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Idempotent: `gh label create --force` edits the label in place if it
+      # already exists instead of erroring, so this is safe to run every time
+      # rather than only on first setup.
+      - name: Ensure dependency-audit labels exist
+        id: labels
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create dependency-audit --repo "$GITHUB_REPOSITORY" --color '0e8a16' \
+            --description 'Auto-fix PR opened by dependency-audit-escalation.yml' --force
+          gh label create dependency-audit-manual --repo "$GITHUB_REPOSITORY" --color 'd93f0b' \
+            --description 'Tracking issue for an advisory dependency-audit-escalation.yml could not auto-fix' --force
+
+      - name: Build skip-list from open PRs/issues
+        id: skip-list
+        # Advisories the owner has permanently accepted as risk are handled
+        # by .yarnrc.yml's npmAuditIgnoreAdvisories instead — those never
+        # reach `yarn npm audit`'s output at all, so there's nothing to skip
+        # here for them. This step only dedupes against advisories that are
+        # mid-flight (already tracked by an open fix PR or manual-review
+        # issue from a previous run).
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          {
+            gh pr list --repo "$GITHUB_REPOSITORY" --label dependency-audit --state open --json body --jq '.[].body'
+            gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json body --jq '.[].body'
+          } | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' | tr ',' '\n' \
+            > skip-ids.txt || true
+
+          node -e "
+            const fs = require('fs');
+            const ids = fs.existsSync('skip-ids.txt')
+              ? fs.readFileSync('skip-ids.txt', 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)
+              : [];
+            fs.writeFileSync('skip-ids.json', JSON.stringify([...new Set(ids)]));
+          "
+          echo "Skip list: $(cat skip-ids.json)"
+
+      - name: Collect advisories for review
+        id: collect
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        run: |
+          yarn ts-node --transpile-only scripts/collect-audit-advisories.ts audit.ndjson skip-ids.json
+          MANUAL_COUNT=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.length)")
+          echo "manual-count=$MANUAL_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack (detected)
+        id: notify-detected
+        # Fires right away, before the tracking-issue step runs, so the
+        # owner doesn't have to wait for that (or notice a run at all) just
+        # to learn something was found.
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        # This notification is explicitly best-effort (see this script's own
+        # docblock): the tracking issue below is what actually matters. Every
+        # later step in the success path is gated on success(), so without
+        # continue-on-error a Slack hiccup or ts-node crash here would skip
+        # filing the tracking issue too — the opposite of "Slack is
+        # non-critical".
+        continue-on-error: true
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_STAGE: detected
+          AUDIT_RESULT_PATH: audit-fix-result.json
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          yarn ts-node --transpile-only scripts/slack-audit-notification.ts
+          # slack-audit-notification.ts already only ever writes this file
+          # when Slack's response matched its own `<digits>.<digits>`
+          # timestamp shape (see SLACK_TS_PATTERN), but re-validate here too
+          # before trusting it as a step output: an unescaped value with a
+          # newline in it could otherwise inject extra lines into
+          # $GITHUB_OUTPUT.
+          if [[ -f slack-message-ts.txt ]] && grep -Eq '^[0-9]+\.[0-9]+$' slack-message-ts.txt; then
+            echo "thread-ts=$(cat slack-message-ts.txt)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Read audit owner
+        id: owner
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        shell: bash
+        run: |
+          OWNER_GH=$(node -e "console.log(require('js-yaml').load(require('fs').readFileSync('.github/audit-owners.yml','utf8')).owner.github)")
+          echo "github=$OWNER_GH" >> "$GITHUB_OUTPUT"
+
+      - name: File or update tracking issue for advisories needing manual review
+        id: manual-issue
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER_GH: ${{ steps.owner.outputs.github }}
+        run: |
+          set -euo pipefail
+          NEW_IDS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual.map((e) => e.id).join(','))")
+          NEW_SECTION="$(mktemp)"
+          node -e "
+            const entries = JSON.parse(require('fs').readFileSync('audit-fix-result.json','utf8')).manual;
+            for (const e of entries) {
+              console.log(\`- **\${e.pkg}** (\${e.severity}) — [\${e.id}](\${e.url || ''}): \${e.title}\`);
+              console.log(\`  - Reason: \${e.reason}\`);
+            }
+          " > "$NEW_SECTION"
+
+          EXISTING=$(gh issue list --repo "$GITHUB_REPOSITORY" --label dependency-audit-manual --state open --json number --jq '.[0].number // empty')
+          if [[ -n "$EXISTING" ]]; then
+            # The skip-list step (above) only scans issue *bodies* for the
+            # `<!-- audit-ids: ... -->` marker, not comments. Posting a
+            # comment alone would leave every ID mentioned only there
+            # invisible to that dedupe, so it gets re-collected on every
+            # subsequent run even though it's already tracked here. Rewrite
+            # the body instead, merging this run's IDs into the existing
+            # marker — the comment below is just for a human-readable
+            # changelog of what changed.
+            OLD_BODY=$(gh issue view "$EXISTING" --repo "$GITHUB_REPOSITORY" --json body --jq '.body')
+            OLD_IDS=$(printf '%s' "$OLD_BODY" | grep -o '<!-- audit-ids: [^>]*-->' | sed -E 's/<!-- audit-ids: (.*) -->/\1/' || true)
+            MERGED_IDS=$(OLD_IDS="$OLD_IDS" NEW_IDS="$NEW_IDS" node -e "
+              const old = (process.env.OLD_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              const fresh = (process.env.NEW_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+              console.log([...new Set([...old, ...fresh])].join(','));
+            ")
+            BODY_FILE="$(mktemp)"
+            {
+              printf '%s' "$OLD_BODY" | sed -E '/<!-- audit-ids: .* -->/d'
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${MERGED_IDS} -->"
+            } > "$BODY_FILE"
+            # --add-assignee (not --assignee, which replaces the whole list)
+            # so a human who already claimed this issue isn't bumped by a
+            # re-run — this only ever adds the owner, never removes anyone.
+            gh issue edit "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$BODY_FILE" --add-assignee "$OWNER_GH"
+            gh issue comment "$EXISTING" --repo "$GITHUB_REPOSITORY" --body-file "$NEW_SECTION"
+            ISSUE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/issues/${EXISTING}"
+          else
+            BODY_FILE="$(mktemp)"
+            {
+              echo "\`yarn audit:ci\` found advisories that [dependency-audit-escalation](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) could not fix automatically. See .github/audit-owners.yml for the owner, or add the ID to npmAuditIgnoreAdvisories in .yarnrc.yml (with a comment explaining why) to accept this as a risk instead of fixing it."
+              echo
+              cat "$NEW_SECTION"
+              echo
+              echo "<!-- audit-ids: ${NEW_IDS} -->"
+            } > "$BODY_FILE"
+            ISSUE_URL=$(gh issue create \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Dependency audit: manual review needed" \
+              --body-file "$BODY_FILE" \
+              --label dependency-audit-manual \
+              --assignee "$OWNER_GH")
+          fi
+          echo "issue-url=$ISSUE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack (result)
+        # `success()` (not always()) is deliberate: a bare `if:` on a custom
+        # expression drops GitHub Actions' implicit success-only gate
+        # entirely, so without spelling it out here this step would still
+        # fire even after e.g. "Read audit owner" failed, misleadingly
+        # implying the run finished when the tracking issue never ran at
+        # all. "Notify Slack (failure)" below covers every one of those
+        # failure cases with its own dedicated alert instead.
+        if: ${{ success() && steps.audit.outputs.has-advisories == 'true' && steps.collect.outputs.manual-count != '0' }}
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          AUDIT_RESULT_PATH: audit-fix-result.json
+          ISSUE_URL: ${{ steps.manual-issue.outputs.issue-url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Threads off the "detected" message when it fired, so both land
+          # together in Slack. Empty when notify-detected was skipped/failed —
+          # slack-audit-notification.ts then just posts top-level.
+          SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
+        run: yarn ts-node --transpile-only scripts/slack-audit-notification.ts
+
+      # "Notify Slack (result)" above uses success(), so it skips itself on
+      # ANY upstream failure (see its own comment). This step exists purely
+      # to close the resulting gap: `failure()` mirrors that same "any
+      # previous step failed" check, so the owner still gets a dedicated
+      # alert instead of just the "detected" message with no follow-up.
+      #
+      # Deliberately does NOT also check steps.collect.outputs.manual-count:
+      # if "Collect advisories" itself is what failed, that output was never
+      # set, and GitHub Actions silently evaluates the *whole* `if:` to false
+      # when a later step's condition references an output from a step that
+      # failed before setting it — even with failure() also present. That
+      # would skip this exact alert in exactly the case it exists for.
+      # has-advisories == 'true' is enough: nothing past "Run dependency
+      # audit" can fail without it.
+      - name: Notify Slack (failure)
+        if: ${{ failure() && steps.audit.outputs.has-advisories == 'true' }}
+        shell: bash
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_STAGE: failure
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SLACK_THREAD_TS: ${{ steps.notify-detected.outputs.thread-ts }}
+          STEP_LABELS: ${{ steps.labels.outcome }}
+          STEP_SKIP_LIST: ${{ steps.skip-list.outcome }}
+          STEP_COLLECT: ${{ steps.collect.outcome }}
+          STEP_OWNER: ${{ steps.owner.outcome }}
+          STEP_MANUAL_ISSUE: ${{ steps['manual-issue'].outcome }}
+        run: |
+          # Picks the first step (in job order) whose outcome is "failure" so
+          # the alert names something more useful than "an unknown step".
+          FAILED_STEP=$(node -e "
+            const steps = [
+              ['STEP_LABELS', 'Ensure dependency-audit labels exist'],
+              ['STEP_SKIP_LIST', 'Build skip-list from open PRs/issues'],
+              ['STEP_COLLECT', 'Collect advisories for review'],
+              ['STEP_OWNER', 'Read audit owner'],
+              ['STEP_MANUAL_ISSUE', 'File or update tracking issue for advisories needing manual review'],
+            ];
+            const failed = steps.find(([key]) => process.env[key] === 'failure');
+            console.log(failed ? failed[1] : '');
+          ")
+          FAILED_STEP="$FAILED_STEP" yarn ts-node --transpile-only scripts/slack-audit-notification.ts
