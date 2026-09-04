@@ -212,6 +212,42 @@ describe('EarnStrategySelectionModal', () => {
     expect(goBack).toHaveBeenCalledTimes(1);
   });
 
+  it('does not track a close when Get Started dismisses the sheet for deposit navigation', async () => {
+    const earnAsset = createEarnAsset([
+      createExperience('MONEY_ACCOUNT_DEPOSIT', 'money:usdc'),
+    ]);
+    mockUseRoute.mockReturnValue({
+      params: { earnAsset },
+    } as unknown as ReturnType<typeof useRoute>);
+
+    render(<EarnStrategySelectionModal />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.STRATEGY_CARD('money:usdc'),
+        ).props.accessibilityState,
+      ).toEqual({ selected: true });
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          EarnStrategySelectionModalTestIds.GET_STARTED_BUTTON,
+        ),
+      );
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(navigateToDepositForExperience).toHaveBeenCalledWith(
+        earnAsset,
+        expect.objectContaining({ id: 'money:usdc' }),
+      );
+    });
+    expect(mockTrackSurfaceClicked).not.toHaveBeenCalled();
+  });
+
   it('renders fallback info copy for an unavailable money strategy', () => {
     mockUseRoute.mockReturnValue({
       params: {

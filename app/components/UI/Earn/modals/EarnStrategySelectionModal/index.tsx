@@ -171,6 +171,7 @@ const renderNonMoneyStrategyCard = (
 
 const EarnStrategySelectionModal = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const isNavigatingToDepositRef = useRef(false);
   const [isNavigatingToDeposit, setIsNavigatingToDeposit] = useState(false);
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tw = useTailwind();
@@ -215,14 +216,15 @@ const EarnStrategySelectionModal = () => {
 
   const handleGoBack = useCallback(() => {
     /**
-     * Tracks event any time the bottom sheet is closed (e.g. close icon, clicking bottom sheet overlay above bottom sheet).
-     * No need for separate component_name for distinct closing action.
-     * What's worth tracking is closes vs. "Get started" (proceeding to deposit screen).
+     * Get Started also closes the bottom sheet before navigating to deposit.
+     * Track only user-initiated non-deposit dismissals as close events.
      */
-    trackSurfaceClicked({
-      component_name:
-        EARN_MODULE_COMPONENT_NAMES.EARN_STRATEGY_SELECTION_MODAL_CLOSE_ICON,
-    });
+    if (!isNavigatingToDepositRef.current) {
+      trackSurfaceClicked({
+        component_name:
+          EARN_MODULE_COMPONENT_NAMES.EARN_STRATEGY_SELECTION_MODAL_CLOSE_ICON,
+      });
+    }
     navigation.goBack();
   }, [navigation, trackSurfaceClicked]);
 
@@ -290,6 +292,7 @@ const EarnStrategySelectionModal = () => {
         isOnboardingRedirectNeeded,
       ),
     });
+    isNavigatingToDepositRef.current = true;
     setIsNavigatingToDeposit(true);
     sheetRef.current?.onCloseBottomSheet(handleGetStartedAfterClose);
   }, [
