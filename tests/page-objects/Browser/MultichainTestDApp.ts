@@ -329,9 +329,16 @@ class MultichainTestDApp {
   }
 
   async tapConfirmButton(): Promise<void> {
+    // assets-controller@15.0.0's RpcFallbackMiddleware now also runs on
+    // regular background polls (previously forced-refresh only), adding a
+    // real RPC round trip to the local test chain's node on every poll tick.
+    // That competes with TransactionController's own gas-estimation RPC
+    // calls on the same node, so gas fee resolution needs more headroom than
+    // AppiumGestures.waitAndTap's 10s default.
     await Gestures.waitAndTap(
       Matchers.getElementByID(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
       {
+        timeout: 45_000,
         checkForDisplayed: true,
         checkEnabled: true,
         elemDescription: 'MultichainTestDApp confirm button',
