@@ -41,12 +41,6 @@ owner:
     });
   });
 
-  // [mcwp-474-tmp]
-  it('waits with a real timer', async () => {
-    await new Promise((r) => setTimeout(r, 50));
-    expect(true).toBe(true);
-  });
-
   it('includes an optional manager when present', () => {
     fs.readFileSync.mockReturnValue(`
 slack_channel: 'C0123'
