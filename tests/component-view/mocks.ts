@@ -102,6 +102,8 @@ jest.mock('../../app/core/Engine', () => {
       CardController: {
         fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
         logout: jest.fn().mockResolvedValue(undefined),
+        clearRedeemWithdrawal: jest.fn(),
+        withdrawRedeemable: jest.fn().mockResolvedValue({ txHash: '0xmock' }),
         getCapabilities: jest.fn().mockReturnValue({
           authMethod: 'otp',
           supportsOTP: true,

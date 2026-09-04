@@ -243,6 +243,45 @@ describe('useRedeemableWallet', () => {
 
     expect(result.current.monitoringStatus).toBe('failed');
     expect(result.current.monitoringError?.message).toBe('no_polling_chain');
+    expect(result.current.withdrawError).toBeNull();
+  });
+
+  it('keeps monitoringError identity stable across rerenders while failed', async () => {
+    mockGetCashbackWallet.mockResolvedValue({
+      id: 'w1',
+      balance: '5.00',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'reward',
+    });
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectIsCardAuthenticated) return true;
+      if (selector === selectCardRedeemWithdrawal) {
+        return {
+          mode: 'cashback',
+          status: 'failed',
+          txHash: '0xabc',
+          chainId: null,
+          submittedAt: Date.now(),
+          error: {
+            reason: 'tx_reverted',
+            code: 'unknown',
+            statusCode: null,
+          },
+        };
+      }
+      return null;
+    });
+
+    const { Wrapper } = createWrapper();
+    const { result, rerender } = renderHook(
+      () => useRedeemableWallet('cashback'),
+      { wrapper: Wrapper },
+    );
+
+    const firstError = result.current.monitoringError;
+    rerender({});
+    expect(result.current.monitoringError).toBe(firstError);
   });
 
   it('resetWithdraw clears controller state', async () => {
