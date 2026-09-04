@@ -11,6 +11,10 @@ import {
   executeHardwareWalletOperation,
   useHardwareWallet,
 } from '../../../../core/HardwareWallet';
+import {
+  INTERNAL_ABORT_MESSAGES,
+  isDeviceUserRejection,
+} from '../../../../core/HardwareWallet/errors/helpers';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import {
   HardwareWalletsSwapsStepKind,
@@ -67,6 +71,30 @@ import {
   type TrackingStrategy,
   NO_ACTION,
 } from './hw-batch-sign/tracking-strategy';
+
+/**
+ * TransactionController records a device-side reject as `failed` (approval
+ * was already accepted; signing then failed), not `rejected`. Reconstruct an
+ * Error so {@link isDeviceUserRejection} can parse the stored message/name.
+ */
+function isDeviceRejectionFromFailedTx(error?: {
+  message?: string;
+  name?: string;
+}): boolean {
+  if (!error?.message) {
+    return false;
+  }
+  if (error.message === KEYSTONE_TX_CANCELED) {
+    return true;
+  }
+  const wrapped = new Error(error.message);
+  if (error.name) {
+    wrapped.name = error.name;
+  }
+  return isDeviceUserRejection(wrapped, {
+    excludedMessages: INTERNAL_ABORT_MESSAGES,
+  });
+}
 
 /**
  * Drives hardware-wallet signing for a multi-step bridge/swap batch.
@@ -482,8 +510,16 @@ export function useHwBatchSignTracker({
                     }),
                   );
                 }
-                const isKeystoneCancel = message === KEYSTONE_TX_CANCELED;
-                if (isKeystoneCancel) {
+                // Device-side user rejections (Ledger 0x6985, Keystone cancel,
+                // message patterns) must surface INLINE as Rejected — not the
+                // generic TransactionFailed that handleApprovalRejection
+                // otherwise dispatches. Internal abort messages that merely
+                // look like cancellations are excluded so they stay Failed.
+                const isDeviceRejection =
+                  isDeviceUserRejection(error, {
+                    excludedMessages: INTERNAL_ABORT_MESSAGES,
+                  }) || message === KEYSTONE_TX_CANCELED;
+                if (isDeviceRejection) {
                   didDispatchCancellationRejection = true;
                   latestValuesRef.current.dispatch(
                     updateHardwareWalletsSwaps({
@@ -494,7 +530,7 @@ export function useHwBatchSignTracker({
 
                 return (
                   isStxSubmissionFailure ||
-                  isKeystoneCancel ||
+                  isDeviceRejection ||
                   message === BATCH_CANCELLED_ERROR
                 );
               },
@@ -783,7 +819,13 @@ export function useHwBatchSignTracker({
     };
 
     const classifyFinished: SignedEventClassifier = (meta) => {
-      if (meta.status === TransactionStatus.failed)
+      if (meta.status === TransactionStatus.failed) {
+        // Device rejects arrive as `failed` because acceptRequest already
+        // consumed the approval; signing then threw. Classify before the
+        // generic Failed path so the progress screen shows Rejected.
+        if (isDeviceRejectionFromFailedTx(meta.error)) {
+          return classifyRejected(meta);
+        }
         return {
           event: { type: HardwareWalletsSwapsEventType.TransactionFailed },
           shouldTrackAsPending: false,
@@ -791,6 +833,7 @@ export function useHwBatchSignTracker({
           shouldEnqueueApprovals: false,
           shouldTrackCancellation: false,
         };
+      }
       return classifyStatusUpdate(meta);
     };
 
