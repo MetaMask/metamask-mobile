@@ -8,7 +8,7 @@ import type { RewardsMoneyControllerMethodActions } from './RewardsMoneyControll
 export const REWARDS_MONEY_CONTROLLER_NAME = 'RewardsMoneyController' as const;
 
 // ─── API contract ─────────────────────────────────────────────────────────────
-// These mirror the referral-program consumer surface exactly. All monetary
+// These mirror the Rewards Money consumer surface exactly. All monetary
 // values cross the boundary as mUSD base-unit decimal strings: they exceed
 // Number.MAX_SAFE_INTEGER and the claim rail settles in base units, so a
 // JS number would be wrong in both directions.

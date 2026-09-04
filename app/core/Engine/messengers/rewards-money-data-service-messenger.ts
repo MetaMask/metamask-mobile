@@ -9,7 +9,7 @@ import type { RewardsMoneyDataServiceMessenger } from '../controllers/rewards-mo
 /**
  * Get the messenger for the rewards money data service. This is scoped to the
  * actions the service handles, plus `AuthenticationController:getBearerToken`
- * which supplies the Hydra token the referral-program API authenticates with.
+ * which supplies the Hydra token the Rewards Money API authenticates with.
  *
  * @param rootMessenger - The root messenger.
  * @returns The RewardsMoneyDataServiceMessenger.

@@ -1,7 +1,7 @@
 import { Messenger } from '@metamask/messenger';
 import {
   ClaimAlreadyOpenError,
-  ReferralProgramAuthorizationError,
+  RewardsMoneyAuthorizationError,
   RewardsMoneyDataService,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
@@ -11,7 +11,7 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '1.2.3'),
 }));
 
-const BASE_URL = 'https://referral-program.test';
+const BASE_URL = 'https://rewards-money.test';
 
 const createResponse = (
   body: unknown,
@@ -117,7 +117,7 @@ describe('RewardsMoneyDataService', () => {
       const { service } = createService({ fetchFn, getBearerToken });
 
       await expect(service.getReferralMe()).rejects.toThrow(
-        ReferralProgramAuthorizationError,
+        RewardsMoneyAuthorizationError,
       );
       expect(fetchFn).not.toHaveBeenCalled();
     });
@@ -129,7 +129,7 @@ describe('RewardsMoneyDataService', () => {
       const { service } = createService({ fetchFn });
 
       await expect(service.getReferralMe()).rejects.toThrow(
-        ReferralProgramAuthorizationError,
+        RewardsMoneyAuthorizationError,
       );
     });
 

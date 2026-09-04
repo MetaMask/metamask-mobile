@@ -1,6 +1,6 @@
 export {
   RewardsMoneyDataService,
-  ReferralProgramAuthorizationError,
+  RewardsMoneyAuthorizationError,
   ClaimAlreadyOpenError,
   buildOriginTypeQuery,
   EARNINGS_LEDGER_PAGE_SIZE,

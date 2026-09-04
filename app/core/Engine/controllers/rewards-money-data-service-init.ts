@@ -3,13 +3,13 @@ import {
   RewardsMoneyDataService,
   type RewardsMoneyDataServiceMessenger,
 } from './rewards-money-controller/services';
-import { getReferralProgramApiBaseUrl } from './rewards-money-controller/utils/referral-program-api-url';
+import { getRewardsMoneyApiBaseUrl } from './rewards-money-controller/utils/rewards-money-api-url';
 import I18n from '../../../../locales/i18n';
 
 /**
  * Initialize the rewards money data service.
  *
- * The referral-program API takes a Hydra `Authorization: Bearer` token whose
+ * The Rewards Money API takes a Hydra `Authorization: Bearer` token whose
  * `sub` is the profile id, sourced from the AuthenticationController — not the
  * rewards subscription-token vault. `getBearerToken` is injected rather than
  * called inside the service so tests can supply a plain `jest.fn()`.
@@ -29,7 +29,7 @@ export const rewardsMoneyDataServiceInit: MessengerClientInitFunction<
       );
     } catch {
       // Signed out, or the wallet is locked. The data service turns a missing
-      // token into a ReferralProgramAuthorizationError so the UI can prompt a
+      // token into a RewardsMoneyAuthorizationError so the UI can prompt a
       // sign-in rather than showing a transport failure.
       return undefined;
     }
@@ -38,7 +38,7 @@ export const rewardsMoneyDataServiceInit: MessengerClientInitFunction<
   const controller = new RewardsMoneyDataService({
     messenger: controllerMessenger,
     fetch,
-    baseUrl: getReferralProgramApiBaseUrl(),
+    baseUrl: getRewardsMoneyApiBaseUrl(),
     getBearerToken,
     locale: I18n.locale,
   });

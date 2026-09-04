@@ -27,7 +27,7 @@ describe('getRewardsMoneyDataServiceMessenger', () => {
     expect(messenger).toBeInstanceOf(Messenger);
   });
 
-  it('delegates the bearer-token action the referral-program API needs', () => {
+  it('delegates the bearer-token action the Rewards Money API needs', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 

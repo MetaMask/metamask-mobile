@@ -27,7 +27,7 @@ export type { RewardsMoneyControllerMessenger };
 const controllerName = REWARDS_MONEY_CONTROLLER_NAME;
 
 /**
- * All three reads share a 60s TTL. The referral-program data moves on a
+ * All three reads share a 60s TTL. The Rewards Money data moves on a
  * per-trade cadence, so a minute is short enough that a pull-to-refresh is
  * rarely needed and long enough that tab switching does not re-fetch.
  */
@@ -182,7 +182,7 @@ const MESSENGER_EXPOSED_METHODS = [
 ] as const;
 
 /**
- * Controller for the referral-program consumer surface: the bootstrap read
+ * Controller for the Rewards Money consumer surface: the bootstrap read
  * that decides which screen renders, the scoped earnings summary and ledger,
  * and claim initiation.
  */

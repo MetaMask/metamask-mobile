@@ -34,7 +34,7 @@ const ERC20_APPROVE_ABI = ['function approve(address spender, uint256 amount)'];
 
 /**
  * EIP-3009. The signature-bytes overload matches the 65-byte signature the
- * referral-program claim voucher carries, rather than split `v, r, s`.
+ * Rewards Money claim voucher carries, rather than split `v, r, s`.
  */
 const EIP_3009_ABI = [
   'function receiveWithAuthorization(address from, address to, uint256 value, uint256 validAfter, uint256 validBefore, bytes32 nonce, bytes signature)',
@@ -45,7 +45,7 @@ const NO_REFERRAL_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 /**
  * The EIP-3009 authorization that funds the money account inside the claim
- * batch. Supplied by the referral-program claim voucher.
+ * batch. Supplied by the Rewards Money claim voucher.
  */
 export interface ClaimDepositAuthorization {
   /** Treasury address the mUSD is drawn from. */

@@ -3,7 +3,7 @@ import type { EarningOriginType } from '../../../core/Engine/controllers/rewards
 /**
  * Local feature flag, off by default.
  *
- * The referral-program backend is not deployed anywhere the app points at yet,
+ * The Rewards Money backend is not deployed anywhere the app points at yet,
  * so this is a build-time constant rather than a remote flag — there is nothing
  * for a remote flag to turn on. Flip it (or set `MM_REWARDS_MONEY_ENABLED`) to
  * exercise the surface against a local backend.

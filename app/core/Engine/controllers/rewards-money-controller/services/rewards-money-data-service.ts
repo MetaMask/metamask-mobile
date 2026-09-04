@@ -12,21 +12,21 @@ import Logger from '../../../../../util/Logger';
 
 const SERVICE_NAME = 'RewardsMoneyDataService';
 
-/** Default timeout for all referral-program API requests. */
+/** Default timeout for all Rewards Money API requests. */
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 
 /** The ledger page size the client asks for. */
 export const EARNINGS_LEDGER_PAGE_SIZE = 20;
 
 /**
- * The referral-program API rejected the Hydra bearer token, or none was
+ * The Rewards Money API rejected the Hydra bearer token, or none was
  * available. Distinct from a transport failure so the UI can prompt a sign-in
  * rather than a retry.
  */
-export class ReferralProgramAuthorizationError extends Error {
+export class RewardsMoneyAuthorizationError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'ReferralProgramAuthorizationError';
+    this.name = 'RewardsMoneyAuthorizationError';
   }
 }
 
@@ -86,7 +86,7 @@ function trimTrailingSlashes(url: string): string {
 }
 
 /**
- * The referral-program API authenticates with a Hydra bearer token whose `sub`
+ * The Rewards Money API authenticates with a Hydra bearer token whose `sub`
  * is the profile id, so the data service is allowed to call the
  * AuthenticationController. It deliberately does NOT touch the rewards
  * subscription-token vault.
@@ -101,7 +101,7 @@ export type RewardsMoneyDataServiceMessenger = Messenger<
 >;
 
 /**
- * Data service for the referral-program consumer API.
+ * Data service for the Rewards Money consumer API.
  *
  * Auth is a Hydra `Authorization: Bearer` token whose `sub` is the profile id.
  * This is deliberately NOT the rewards subscription-token vault — the two
@@ -164,7 +164,7 @@ export class RewardsMoneyDataService {
     );
   }
 
-  /** The resolved referral-program base URL, exposed for diagnostics. */
+  /** The resolved Rewards Money base URL, exposed for diagnostics. */
   getBaseUrl(): string {
     return this.#baseUrl;
   }
@@ -286,8 +286,8 @@ export class RewardsMoneyDataService {
 
     const token = await this.#getBearerToken();
     if (!token) {
-      throw new ReferralProgramAuthorizationError(
-        'No bearer token available for the referral program API',
+      throw new RewardsMoneyAuthorizationError(
+        'No bearer token available for the Rewards Money API',
       );
     }
     headers.Authorization = `Bearer ${token}`;
@@ -308,7 +308,7 @@ export class RewardsMoneyDataService {
       });
 
       if (response.status === 401 || response.status === 403) {
-        throw new ReferralProgramAuthorizationError(
+        throw new RewardsMoneyAuthorizationError(
           `Authorization failed: ${response.status}`,
         );
       }

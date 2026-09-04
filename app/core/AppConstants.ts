@@ -257,9 +257,11 @@ export default {
     UAT: 'https://rewards.uat-api.cx.metamask.io',
     PRD: 'https://rewards.api.cx.metamask.io',
   },
-  // Referral program: no builds.yml entry yet, so the env override is the local
+  // Rewards Money: no builds.yml entry yet, so the env override is the local
   // escape hatch. UAT has no namespace deployed, hence DEV/PRD only.
-  REFERRAL_PROGRAM_API_URL: {
+  // Hosts still carry the service's former `referral-program` name — the
+  // renamed ingress is not provisioned yet, so these are the URLs that answer.
+  REWARDS_MONEY_API_URL: {
     DEV: 'https://referral-program.dev-api.cx.metamask.io',
     PRD: 'https://referral-program.api.cx.metamask.io',
   },

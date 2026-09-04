@@ -1,11 +1,11 @@
 import AppConstants from '../../../../AppConstants';
 
 /**
- * Resolves the referral-program API base URL for a MetaMask environment.
+ * Resolves the Rewards Money API base URL for a MetaMask environment.
  *
- * `REFERRAL_PROGRAM_API_URL` overrides everything so the app can be pointed at
+ * `REWARDS_MONEY_API_URL` overrides everything so the app can be pointed at
  * a locally running backend. Otherwise the environment picks the DEV or PRD
- * host. UAT deliberately has no branch: the referral-program namespace is not
+ * host. UAT deliberately has no branch: the service's namespace is not
  * deployed there, so a UAT build falls back to DEV rather than resolving to a
  * host that answers nothing.
  *
@@ -18,9 +18,9 @@ import AppConstants from '../../../../AppConstants';
  * @param overrideUrl - Explicit base URL that wins over the environment map.
  * @returns The base URL, with no trailing slash.
  */
-export function getReferralProgramApiBaseUrl(
+export function getRewardsMoneyApiBaseUrl(
   metaMaskEnv: string | undefined = process.env.METAMASK_ENVIRONMENT,
-  overrideUrl: string | undefined = process.env.REFERRAL_PROGRAM_API_URL,
+  overrideUrl: string | undefined = process.env.REWARDS_MONEY_API_URL,
 ): string {
   if (overrideUrl) {
     return overrideUrl;
@@ -31,8 +31,8 @@ export function getReferralProgramApiBaseUrl(
     case 'beta':
     case 'pre-release':
     case 'rc':
-      return AppConstants.REFERRAL_PROGRAM_API_URL.PRD;
+      return AppConstants.REWARDS_MONEY_API_URL.PRD;
     default:
-      return AppConstants.REFERRAL_PROGRAM_API_URL.DEV;
+      return AppConstants.REWARDS_MONEY_API_URL.DEV;
   }
 }
