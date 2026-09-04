@@ -35,13 +35,16 @@ export const BridgeSessionProvider = ({
 
   const sourceToken = useSelector(selectSourceToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
+  const latestSourceBalance = useLatestBalance(
+    {
+      address: sourceToken?.address,
+      decimals: sourceToken?.decimals,
+      chainId: sourceToken?.chainId,
+      balance: sourceToken?.balance,
+      refreshKey: balanceRefreshKey,
+    },
+    featureId,
+  );
 
   const value = useMemo(
     () => ({

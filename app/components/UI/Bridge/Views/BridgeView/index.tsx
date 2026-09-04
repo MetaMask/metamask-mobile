@@ -16,20 +16,27 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
+import { FeatureId } from '@metamask/bridge-controller';
 import {
   resetBridgeDestToken,
   resetBridgeState,
   resetBridgeTokenInputs,
   selectBridgeViewMode,
+  selectDestAddress,
   selectDestToken,
+  selectSlippage,
+  selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { BridgeViewMode } from '../../types';
 import {
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyTabEnabledFlag,
 } from '../../../../../selectors/bridge/featureFlags';
-import { BridgeTabKey } from './BridgeView.constants';
+import { BridgeQuoteDataProvider } from '../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { SwapQuotesProvider } from '../../hooks/useSwapQuotes/SwapQuotesContext';
+import { BridgeTabKey, DEBOUNCE_WAIT } from './BridgeView.constants';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import BridgeMarketView from './BridgeMarketView';
 import BridgeLimitOrderView from './BridgeLimitOrderView';
@@ -49,6 +56,10 @@ const BridgeView = () => {
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
+  const slippage = useSelector(selectSlippage);
+  const walletAddress = useSelector(selectSourceWalletAddress);
+  const destAddress = useSelector(selectDestAddress);
   const isLimitOrderTabEnabled = useSelector(
     selectBridgeLimitOrderTabEnabledFlag,
   );
@@ -249,13 +260,35 @@ const BridgeView = () => {
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
           {renderedTab === BridgeTabKey.Market ? (
-            <BridgeMarketView latestSourceBalance={latestSourceBalance} />
+            <BridgeQuoteDataProvider
+              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+            >
+              <BridgeMarketView />
+            </BridgeQuoteDataProvider>
           ) : null}
           {renderedTab === BridgeTabKey.Limit ? (
-            <BridgeLimitOrderView latestSourceBalance={latestSourceBalance} />
+            <SwapQuotesProvider
+              quoteParams={{
+                srcAmount: sourceAmount,
+                srcToken: sourceToken,
+                destToken,
+                slippage,
+                walletAddress,
+                destWalletAddress: destAddress,
+              }}
+              debounceWait={DEBOUNCE_WAIT}
+              featureId={FeatureId.LIMIT_ORDER}
+              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+            >
+              <BridgeLimitOrderView />
+            </SwapQuotesProvider>
           ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView latestSourceBalance={latestSourceBalance} />
+            <BridgeQuoteDataProvider
+              latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+            >
+              <BridgeRecurringBuyView />
+            </BridgeQuoteDataProvider>
           ) : null}
         </Box>
       </GestureDetector>
