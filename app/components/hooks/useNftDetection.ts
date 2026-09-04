@@ -1,11 +1,11 @@
 import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import type { Hex } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import { endTrace, trace, TraceName } from '../../util/trace';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { useAnalytics } from './useAnalytics/useAnalytics';
-import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { getDecimalChainId } from '../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import Logger from '../../util/Logger';
@@ -26,7 +26,6 @@ export const useNftDetection = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const getNftDetectionAnalyticsParams = useCallback((nft: Nft) => {
     try {
@@ -44,8 +43,12 @@ export const useNftDetection = () => {
   }, []);
 
   const detectNfts = useCallback(
-    async (firstPageOnly = true, showLoadingIndicator = true) => {
-      if (!selectedAddress) return;
+    async (
+      chainIds: Hex[],
+      firstPageOnly = true,
+      showLoadingIndicator = true,
+    ) => {
+      if (!selectedAddress || chainIds.length === 0) return;
 
       const { NftDetectionController, NftController, PreferencesController } =
         Engine.context;
@@ -84,7 +87,7 @@ export const useNftDetection = () => {
           dispatch(showNftFetchingLoadingIndicator());
         }
 
-        await NftDetectionController.detectNfts(chainIdsToDetectNftsFor, {
+        await NftDetectionController.detectNfts(chainIds, {
           firstPageOnly,
           signal: abortController.signal,
         });
@@ -122,7 +125,6 @@ export const useNftDetection = () => {
     },
     [
       selectedAddress,
-      chainIdsToDetectNftsFor,
       dispatch,
       trackEvent,
       createEventBuilder,
@@ -137,5 +139,5 @@ export const useNftDetection = () => {
     }
   }, []);
 
-  return { detectNfts, abortDetection, chainIdsToDetectNftsFor };
+  return { detectNfts, abortDetection };
 };

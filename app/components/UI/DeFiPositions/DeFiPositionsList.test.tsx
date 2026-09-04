@@ -16,10 +16,16 @@ jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
 }));
 
+// Backing value for the mocked `makeSelectDefiPositionsByChainIds` selector
+// factory below. Jest's "mock"-prefix naming allows referencing this
+// let-bound variable inside the hoisted jest.mock factory.
+let mockChainFilteredPositions: unknown;
 jest.mock('../../../selectors/defiPositionsController', () => ({
   ...jest.requireActual('../../../selectors/defiPositionsController'),
   selectDeFiPositionsByAddress: jest.fn(),
-  selectDefiPositionsByEnabledNetworks: jest.fn(),
+  makeSelectDefiPositionsByChainIds: jest.fn(
+    () => () => mockChainFilteredPositions,
+  ),
 }));
 
 jest.mock('../../../selectors/deFiPositionsV2SectionEnabled', () => ({
@@ -245,9 +251,9 @@ describe('DeFiPositionsList', () => {
       allPositions,
     );
     // Network Manager is now always enabled, so mock returns only enabled chain (0x1)
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
+    mockChainFilteredPositions = {
       [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
-    });
+    };
   });
 
   it('renders protocol name and aggregated value for selected account and chain', async () => {
@@ -276,12 +282,7 @@ describe('DeFiPositionsList', () => {
     const allPositions =
       mockInitialState.engine.backgroundState.DeFiPositionsController
         .allDeFiPositions[MOCK_ADDRESS_1] || {};
-    const defiPositionsModule = jest.requireMock(
-      '../../../selectors/defiPositionsController',
-    );
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      allPositions,
-    );
+    mockChainFilteredPositions = allPositions;
 
     const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
@@ -330,9 +331,7 @@ describe('DeFiPositionsList', () => {
       '../../../selectors/defiPositionsController',
     );
     defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(undefined);
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      undefined,
-    );
+    mockChainFilteredPositions = undefined;
 
     const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
@@ -352,9 +351,7 @@ describe('DeFiPositionsList', () => {
       '../../../selectors/defiPositionsController',
     );
     defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(null);
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      null,
-    );
+    mockChainFilteredPositions = null;
 
     const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
@@ -375,9 +372,7 @@ describe('DeFiPositionsList', () => {
       '../../../selectors/defiPositionsController',
     );
     defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
-    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-      {},
-    );
+    mockChainFilteredPositions = {};
 
     const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
@@ -399,7 +394,7 @@ describe('DeFiPositionsList', () => {
   });
 
   describe('Network Manager Integration', () => {
-    it('uses defiPositionsByEnabledNetworks selector', async () => {
+    it('uses the chain-filtered positions selector', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
@@ -451,9 +446,7 @@ describe('DeFiPositionsList', () => {
         },
       };
 
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        mockDefiPositionsByEnabledNetworks,
-      );
+      mockChainFilteredPositions = mockDefiPositionsByEnabledNetworks;
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
         mockInitialState.engine.backgroundState.DeFiPositionsController
           .allDeFiPositions[MOCK_ADDRESS_1],
@@ -479,13 +472,11 @@ describe('DeFiPositionsList', () => {
       expect(await findByText('$100.00')).toBeOnTheScreen();
     });
 
-    it('shows no positions when defiPositionsByEnabledNetworks returns empty data', async () => {
+    it('shows no positions when the chain-filtered selector returns empty data', async () => {
       const defiPositionsModule = jest.requireMock(
         '../../../selectors/defiPositionsController',
       );
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        {},
-      );
+      mockChainFilteredPositions = {};
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
         mockInitialState.engine.backgroundState.DeFiPositionsController
           .allDeFiPositions[MOCK_ADDRESS_1],
@@ -563,9 +554,7 @@ describe('DeFiPositionsList', () => {
         },
       };
 
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        singleProtocolData,
-      );
+      mockChainFilteredPositions = singleProtocolData;
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
         singleProtocolData,
       );
@@ -641,9 +630,7 @@ describe('DeFiPositionsList', () => {
         '../../../selectors/defiPositionsController',
       );
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        {},
-      );
+      mockChainFilteredPositions = {};
 
       const { findByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" isFullView />,
@@ -682,9 +669,7 @@ describe('DeFiPositionsList', () => {
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
         undefined,
       );
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        undefined,
-      );
+      mockChainFilteredPositions = undefined;
 
       const { findByText } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" isFullView />,
@@ -752,9 +737,7 @@ describe('DeFiPositionsList', () => {
         '../../../selectors/defiPositionsController',
       );
       defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
-        {},
-      );
+      mockChainFilteredPositions = {};
 
       const { findByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,
@@ -772,13 +755,10 @@ describe('DeFiPositionsList', () => {
       const allPositions =
         mockInitialState.engine.backgroundState.DeFiPositionsController
           .allDeFiPositions[MOCK_ADDRESS_1] || {};
-      const defiPositionsModule = jest.requireMock(
-        '../../../selectors/defiPositionsController',
-      );
-      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue({
+      mockChainFilteredPositions = {
         [MOCK_CHAIN_ID_1]: allPositions[MOCK_CHAIN_ID_1],
         [MOCK_CHAIN_ID_2]: allPositions[MOCK_CHAIN_ID_2],
-      });
+      };
 
       const { findByTestId, findByText, queryByTestId } = renderWithProvider(
         <DeFiPositionsList tabLabel="DeFi" />,

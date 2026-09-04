@@ -295,6 +295,30 @@ describe('RpcSelectionModal', () => {
     expect(defaultProps.closeRpcModal).toHaveBeenCalled();
   });
 
+  it('calls onLocalNetworkSelect with the selected network when provided', () => {
+    const mockOnLocalNetworkSelect = jest.fn();
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal
+        {...defaultProps}
+        onLocalNetworkSelect={mockOnLocalNetworkSelect}
+      />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+
+    fireEvent.press(rpcUrlElement);
+
+    expect(mockOnLocalNetworkSelect).toHaveBeenCalledWith(['eip155:1']);
+  });
+
+  it('does not throw when onLocalNetworkSelect is not provided', () => {
+    const { getByText } = renderWithProvider(
+      <RpcSelectionModal {...defaultProps} />,
+    );
+    const rpcUrlElement = getByText('mainnet.infura.io/v3');
+
+    expect(() => fireEvent.press(rpcUrlElement)).not.toThrow();
+  });
+
   it('should handle no RPC endpoints gracefully', () => {
     const { queryByText } = renderWithProvider(
       <RpcSelectionModal

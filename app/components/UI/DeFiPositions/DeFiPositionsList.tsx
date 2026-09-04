@@ -11,7 +11,7 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import {
   selectDeFiPositionsByAddress,
-  selectDefiPositionsByEnabledNetworks,
+  makeSelectDefiPositionsByChainIds,
 } from '../../../selectors/defiPositionsController';
 import { selectDeFiPositionsV2SectionEnabled } from '../../../selectors/deFiPositionsV2SectionEnabled';
 import styleSheet from './DeFiPositionsList.styles';
@@ -21,6 +21,10 @@ import {
   selectTokenSortConfig,
 } from '../../../selectors/preferencesController';
 import { toHex } from '@metamask/controller-utils';
+import {
+  useLocalNetworkFilter,
+  useEvmChainIdsForLocalFilter,
+} from '../../hooks/useLocalNetworkFilter/useLocalNetworkFilter';
 import { sortAssets } from '../Tokens/util';
 import DeFiPositionsListItem from './DeFiPositionsListItem';
 import DeFiPositionsControlBar from './DeFiPositionsControlBar';
@@ -57,9 +61,16 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
   const hasTrackedScreenViewRef = useRef(false);
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const defiPositions = useSelector(selectDeFiPositionsByAddress);
-  const defiPositionsByEnabledNetworks = useSelector(
-    selectDefiPositionsByEnabledNetworks,
+
+  const [networkFilter, setNetworkFilter] = useLocalNetworkFilter();
+  const evmChainIdsToFilterBy = useEvmChainIdsForLocalFilter(networkFilter);
+
+  const selectDeFiPositionsByChainIds = useMemo(
+    () => makeSelectDefiPositionsByChainIds(evmChainIdsToFilterBy),
+    [evmChainIdsToFilterBy],
   );
+  const defiPositionsByChainIds = useSelector(selectDeFiPositionsByChainIds);
+
   const privacyMode = useSelector(selectPrivacyMode);
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -70,7 +81,7 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
       return defiPositions;
     }
 
-    const chainFilteredDeFiPositions = defiPositionsByEnabledNetworks as {
+    const chainFilteredDeFiPositions = defiPositionsByChainIds as {
       [key: Hex]: GroupedDeFiPositions;
     };
 
@@ -99,7 +110,7 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
     };
 
     return sortAssets(defiPositionsList, defiSortConfig);
-  }, [defiPositions, tokenSortConfig, defiPositionsByEnabledNetworks]);
+  }, [defiPositions, tokenSortConfig, defiPositionsByChainIds]);
 
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -220,7 +231,10 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
       style={isFullView ? styles.wrapper : undefined}
       testID={WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER}
     >
-      <DeFiPositionsControlBar />
+      <DeFiPositionsControlBar
+        networkFilter={networkFilter}
+        onNetworkFilterChange={setNetworkFilter}
+      />
       <ConditionalScrollView
         isScrollEnabled={isFullView}
         scrollViewProps={isFullView ? scrollViewProps : undefined}
@@ -235,7 +249,9 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
  * DeFiPositionsList - homepage / full-view list of DeFi positions.
  *
  * Feature-flag switch: renders the V2 implementation when the V2 flag is on,
- * otherwise the (unchanged) V1 implementation.
+ * otherwise the V1 implementation. Both keep their own local (Redux-free)
+ * network filter for this list - see NetworkMultiSelector's
+ * onLocalNetworkSelect.
  */
 const DeFiPositionsList: React.FC<DeFiPositionsListProps> = (props) => {
   const isV2Enabled = useSelector(selectDeFiPositionsV2SectionEnabled);

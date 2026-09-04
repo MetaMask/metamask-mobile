@@ -91,9 +91,16 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
           await Browser.tapCloseBrowserButton();
           await TabBarComponent.tapWallet();
 
+          // The network filter is local to TokensFullView, so backing out to
+          // the homepage above reset it back to "All popular networks".
           await NetworkManager.navigateToTokensFullView();
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM,
+          await Assertions.expectElementToHaveLabel(
+            NetworkManager.openNetworkManagerButton,
+            'Popular networks',
+            {
+              description:
+                'network filter should show "Popular networks" after re-entering TokensFullView',
+            },
           );
         },
       );
