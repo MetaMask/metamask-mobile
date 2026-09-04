@@ -74,7 +74,7 @@ export const usePredictActionGuard = ({
         iconName: IconName.Error,
         iconColor: theme.colors.error.default,
         backgroundColor: theme.colors.accent04.normal,
-        hasNoTimeout: false,
+        hasNoTimeout: true,
         linkButtonOptions: {
           label: strings('predict.error.retry'),
           onPress: () => {

@@ -1,13 +1,12 @@
 import Assertions from '../../framework/Assertions';
+import Matchers from '../../framework/Matchers';
+import { ToastSelectorsIDs } from '../../../app/component-library/components/Toast/ToastModal.testIds';
 import { PredictConnectionErrorSelectorsIDs } from '../../../app/components/UI/Predict/Predict.testIds';
 import { type AppiumElement } from '../../framework';
-import Matchers from '../../framework/Matchers';
 
 class PredictConnectionErrorView {
-  get title(): Promise<AppiumElement> {
-    // Avoid the apostrophe in "Couldn't connect..." — Android XPath
-    // cannot parse the escaped quote that getElementByText emits.
-    return Matchers.getElementByText('connect to Predictions');
+  get toast(): Promise<AppiumElement> {
+    return Matchers.getElementByID(ToastSelectorsIDs.CONTAINER);
   }
 
   get retryButton(): Promise<AppiumElement> {
@@ -17,8 +16,8 @@ class PredictConnectionErrorView {
   }
 
   async expectVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.title, {
-      description: 'Predict connection error title visible',
+    await Assertions.expectElementToBeVisible(this.toast, {
+      description: 'Predict connection error toast visible',
     });
     await Assertions.expectElementToBeVisible(this.retryButton, {
       description: 'Predict connection error Try again visible',

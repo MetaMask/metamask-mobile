@@ -211,12 +211,16 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
  * geo-restriction.
  */
 export const POLYMARKET_GEO_UNAVAILABLE_MOCKS = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: 'https://polymarket.com/api/geoblock',
-    responseCode: 500,
-    response: { error: 'geoblock unavailable' },
-  });
+  await setupMockRequest(
+    mockServer,
+    {
+      requestMethod: 'GET',
+      url: 'https://polymarket.com/api/geoblock',
+      responseCode: 500,
+      response: { error: 'geoblock unavailable' },
+    },
+    1000,
+  );
 };
 
 export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (mockServer: Mockttp) => {
