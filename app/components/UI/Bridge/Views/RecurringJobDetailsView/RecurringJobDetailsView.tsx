@@ -232,7 +232,9 @@ function RecurringJobDetailsView() {
         <Box twClassName="mx-4 border-t-[1px] border-muted" />
 
         <Box
-          paddingVertical={3}
+          gap={2}
+          paddingTop={2}
+          paddingBottom={2}
           testID={RecurringJobDetailsViewSelectorsIDs.SUMMARY}
         >
           <DetailRow label={strings('bridge.recurring.filled')}>
