@@ -572,7 +572,7 @@ describe('Login', () => {
         'Android BAD_DECRYPT',
       ],
       ['error in DoCipher, status: 2', 'Android DoCipher'],
-      ['Password is incorrect, try again.', 'incorrect password'],
+      ['Incorrect password. Try again.', 'incorrect password'],
     ])('displays invalid password error for %s', async (errorMessage) => {
       mockUnlockWallet.mockRejectedValueOnce(new Error(errorMessage));
       const { getByTestId } = renderWithProvider(<Login />);
