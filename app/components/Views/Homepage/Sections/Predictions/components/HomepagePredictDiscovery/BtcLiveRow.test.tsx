@@ -42,6 +42,7 @@ describe('BtcLiveRow', () => {
     expect(useCurrentCryptoUpDownMarketData).toHaveBeenCalledWith({
       series,
       enabled: true,
+      withChartData: false,
     });
   });
 });
