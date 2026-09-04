@@ -8,6 +8,7 @@ export const REWARDS_ENV_CHANGE_ALLOWED = [
   'exp',
   'beta',
   'rc',
+  'rc-nightly',
   'test',
 ];
 
@@ -37,6 +38,7 @@ export const getDefaultRewardsApiBaseUrlForMetaMaskEnv = (
     case 'beta':
     case 'pre-release':
     case 'rc':
+    case 'rc-nightly':
       return [AppConstants.REWARDS_API_URL.PRD, canChange];
     case 'dev':
     case 'local':

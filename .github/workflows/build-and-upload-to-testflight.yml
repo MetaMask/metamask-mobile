@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (dev, exp, beta, rc)'
+        description: 'Build environment / track (dev, exp, beta, rc, rc-nightly)'
         required: true
         type: string
       testflight_group:
@@ -46,6 +46,7 @@ on:
           - exp
           - beta
           - rc
+          - rc-nightly
         default: rc
       testflight_group:
         description: 'TestFlight external testing group'

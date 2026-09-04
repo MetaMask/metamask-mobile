@@ -1,16 +1,29 @@
-## OTA Updates for Nightly EXP Builds
+## OTA Updates for Nightly Builds
 
 This document explains how to use OTA (EAS Update) to update **nightly builds** without cutting a new native build.
+
+For how Main nightly (`rc-nightly`) differs from official RC in Mixpanel / LaunchDarkly, see [rc-nightly.md](./rc-nightly.md).
+
+### Expo receive channels
+
+Nightly native binaries listen on existing Expo channels — there is **no** separate `rc-nightly` Expo channel:
+
+| Nightly track | Native `METAMASK_ENVIRONMENT` | Expo receive channel | Push OTA Update `channel` input                                                                     |
+| ------------- | ----------------------------- | -------------------- | --------------------------------------------------------------------------------------------------- |
+| Main nightly  | `rc-nightly`                  | **`rc`**             | `rc` or `rc-nightly` (both use the RC Expo signer; JS env `rc-nightly` still publishes to **`rc`**) |
+| Exp nightly   | `exp`                         | **`exp`**            | `exp`                                                                                               |
+
+Prefer `channel: rc` when publishing onto Main nightly devices. `rc-nightly` is accepted so CI can load `main-rc-nightly` from `builds.yml` without inventing a new Expo channel.
 
 ---
 
 ### Overview
 
-- **Goal**: Deliver JS-only changes to the **nightly channel** built from `chore/temp-nightly`.
-- **Baseline branch**: `chore/temp-nightly` (represents the code used for the current nightly native build).
+- **Goal**: Deliver JS-only changes to a nightly Expo channel (`exp` or `rc`) without a new native build.
+- **Baseline branch**: historically `chore/temp-nightly` (represents the code used for the current nightly native build). Confirm the fingerprint baseline matches the binary you intend to update.
 - **Guardrail**: The **Expo fingerprint must match** between:
   - the OTA PR branch, and
-  - `chore/temp-nightly`
+  - the chosen `base_branch` (often `chore/temp-nightly` or `main`)
     or the workflow will fail and no update is published.
 
 ---
@@ -90,6 +103,7 @@ Once the PR is ready:
    - **`pr_number`**: The PR number for `chore/temp-ota-updates-nightly` → `chore/temp-nightly`.
    - **`base_branch`**: `chore/temp-nightly`
      (this is the baseline used for Expo fingerprint comparison).
+   - **`channel`**: `exp` for Exp nightly, or `rc` / `rc-nightly` for Main nightly (see table above).
 
 6. Click **“Run workflow”**.
 
@@ -110,9 +124,10 @@ Once the PR is ready:
 - **Push EAS Update**:
   - Checks out the PR branch.
   - Runs `yarn setup:github-ci`.
-  - Uses `EXPO_TOKEN`, `EXPO_PROJECT_ID`, and `EXPO_CHANNEL` (nightly channel) to run `yarn run eas update` and publish the OTA.
+  - Uses `EXPO_TOKEN`, `EXPO_PROJECT_ID`, and the Expo signer for the selected channel (`exp` / `rc` / production; `rc-nightly` → RC signer) to publish the OTA.
+  - Main nightly binaries still **receive** on the **`rc`** channel (`scripts/update-expo-channel.js`).
 
-On success, devices on the **nightly channel** receive the new OTA on next app launch.
+On success, devices on that Expo receive channel get the update on next app launch.
 
 ---
 

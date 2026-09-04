@@ -145,6 +145,7 @@ jest.mock('../../../../util/intl', () => ({
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectVipProgramEnabled.mockReturnValue(true);
   });
 
   describe('performance tracing', () => {
@@ -569,6 +570,12 @@ describe('getTerminalApiUrl', () => {
 
   it('returns prd URL for rc environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'rc';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+  });
+
+  it('returns prd URL for rc-nightly environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
     process.env.METAMASK_BUILD_TYPE = 'main';
     expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
   });

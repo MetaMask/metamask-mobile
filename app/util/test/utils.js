@@ -46,4 +46,12 @@ export const getFixturesServerPortInApp = () =>
 export const getCommandQueueServerPortInApp = () =>
   testConfig.commandQueueServerPort ?? FALLBACK_COMMAND_QUEUE_SERVER_PORT;
 
-export const isRc = process.env.METAMASK_ENVIRONMENT === 'rc';
+/**
+ * Official RC and Main nightly. Nightly is RC-like except the Mixpanel suffix.
+ *
+ * @param {string | undefined} env
+ * @returns {boolean}
+ */
+export const isRcEnvironment = (env) => env === 'rc' || env === 'rc-nightly';
+
+export const isRc = isRcEnvironment(process.env.METAMASK_ENVIRONMENT);

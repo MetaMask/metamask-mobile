@@ -32,7 +32,11 @@ export function resolveTerminalApiUrl(
   if (buildType === 'beta') {
     return TERMINAL_API_URLS.UAT;
   }
-  if (environment === 'production' || environment === 'rc') {
+  if (
+    environment === 'production' ||
+    environment === 'rc' ||
+    environment === 'rc-nightly'
+  ) {
     return TERMINAL_API_URLS.PRD;
   }
   return TERMINAL_API_URLS.UAT;

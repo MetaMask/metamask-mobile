@@ -557,6 +557,8 @@ export function deriveSentryEnvironment(
         return 'main-beta';
       case 'rc':
         return 'main-rc';
+      case 'rc-nightly':
+        return 'main-rc-nightly';
       case 'exp':
         return 'main-exp';
       case 'e2e':

@@ -15,6 +15,7 @@ function getRemoteFFEnv(env: string | undefined): string {
     case 'production':
       return 'prod';
     case 'rc':
+    case 'rc-nightly':
       return 'rc';
     case 'beta':
       return 'beta';
