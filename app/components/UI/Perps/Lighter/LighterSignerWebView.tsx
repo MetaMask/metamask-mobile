@@ -14,7 +14,6 @@ import {
   connectLighterExecutor,
   resetLighterBridge,
   setLighterBridgeUnavailable,
-  LIGHTER_SIGNER_TIMEOUT_MS,
   type LighterExecutorCall,
   type LighterExecutor,
 } from './lighterSignerBridge';
@@ -22,11 +21,9 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isTestEnvironment } from '../../../../util/test/utils';
 
 /**
- * Dev-only synthetic signer round-trip: derives a throwaway venue key through
- * the real postMessage + WASM path so on-device signing latency is measurable
- * without touching any account (pure offline WASM computation).
+ * Log dev-only signer readiness without mutating the page's live WASM client.
  */
-function runWarmupProbe(mountedAt: number, execute: LighterExecutor): void {
+function logReadyLatency(mountedAt: number): void {
   if (!__DEV__ || isTestEnvironment) {
     return;
   }
@@ -34,22 +31,6 @@ function runWarmupProbe(mountedAt: number, execute: LighterExecutor): void {
   DevLogger.log(
     `[LighterSignerBridge] perf mount→ready ${readyAt - mountedAt}ms`,
   );
-  const startedAt = Date.now();
-  execute(
-    {
-      function: '_createClient',
-      params: ['ab'.repeat(32), 300, 0, 0, 254],
-    },
-    LIGHTER_SIGNER_TIMEOUT_MS,
-  )
-    .then(() => {
-      DevLogger.log(
-        `[LighterSignerBridge] perf warmup _createClient ${Date.now() - startedAt}ms`,
-      );
-    })
-    .catch((error: unknown) => {
-      DevLogger.log('[LighterSignerBridge] perf warmup failed', String(error));
-    });
 }
 
 const styles = StyleSheet.create({
@@ -255,108 +236,105 @@ export const LighterSignerWebView = () => {
     };
   }, []);
 
-  const onMessage = useCallback(
-    (event: WebViewMessageEvent) => {
-      const message = parseLighterPageMessage(event.nativeEvent.data);
-      if (!message) {
-        DevLogger.log(
-          '[LighterSignerWebView] Invalid message',
-          event.nativeEvent.data,
-        );
-        return;
-      }
+  const onMessage = useCallback((event: WebViewMessageEvent) => {
+    const message = parseLighterPageMessage(event.nativeEvent.data);
+    if (!message) {
+      DevLogger.log(
+        '[LighterSignerWebView] Invalid message',
+        event.nativeEvent.data,
+      );
+      return;
+    }
 
-      switch (message.type) {
-        case 'ready': {
-          if (reloadTimerRef.current || isUnavailable) {
-            return;
+    switch (message.type) {
+      case 'ready': {
+        if (reloadTimerRef.current || isUnavailableRef.current) {
+          return;
+        }
+        DevLogger.log('[LighterSignerWebView] WASM signer ready');
+        const execute: LighterExecutor = (call, timeoutMs) => {
+          const webview = webviewRef.current;
+          if (!webview) {
+            return Promise.reject(
+              new Error('Lighter signer WebView is not mounted'),
+            );
           }
-          DevLogger.log('[LighterSignerWebView] WASM signer ready');
-          const execute: LighterExecutor = (call, timeoutMs) => {
-            const webview = webviewRef.current;
-            if (!webview) {
-              return Promise.reject(
-                new Error('Lighter signer WebView is not mounted'),
+          return new Promise((resolve, reject) => {
+            const executeId = `${call.function}_${Date.now()}_${Math.random()
+              .toString(36)
+              .slice(2)}`;
+            const timer = setTimeout(() => {
+              delete executePromises[executeId];
+              reject(
+                new Error(
+                  `Lighter signer call ${call.function} timed out after ${timeoutMs}ms`,
+                ),
+              );
+            }, timeoutMs);
+            executePromises[executeId] = {
+              resolve,
+              reject,
+              timer,
+              functionName: call.function,
+            };
+            try {
+              webview.postMessage(
+                JSON.stringify({ type: 'execute', ...call, executeId }),
+              );
+            } catch (error) {
+              clearTimeout(timer);
+              delete executePromises[executeId];
+              reject(error);
+            }
+          });
+        };
+        connectLighterExecutor(execute);
+        logReadyLatency(mountedAtRef.current);
+        break;
+      }
+      case 'executeResult':
+        {
+          const pendingResult = executePromises[message.executeId];
+          if (pendingResult) {
+            clearTimeout(pendingResult.timer);
+            if (
+              isValidLighterSignerResult(
+                pendingResult.functionName,
+                message.result,
+              )
+            ) {
+              pendingResult.resolve(message.result);
+            } else {
+              pendingResult.reject(
+                new Error(
+                  `Invalid Lighter signer result for ${pendingResult.functionName}`,
+                ),
               );
             }
-            return new Promise((resolve, reject) => {
-              const executeId = `${call.function}_${Date.now()}_${Math.random()
-                .toString(36)
-                .slice(2)}`;
-              const timer = setTimeout(() => {
-                delete executePromises[executeId];
-                reject(
-                  new Error(
-                    `Lighter signer call ${call.function} timed out after ${timeoutMs}ms`,
-                  ),
-                );
-              }, timeoutMs);
-              executePromises[executeId] = {
-                resolve,
-                reject,
-                timer,
-                functionName: call.function,
-              };
-              try {
-                webview.postMessage(
-                  JSON.stringify({ type: 'execute', ...call, executeId }),
-                );
-              } catch (error) {
-                clearTimeout(timer);
-                delete executePromises[executeId];
-                reject(error);
-              }
-            });
-          };
-          connectLighterExecutor(execute);
-          runWarmupProbe(mountedAtRef.current, execute);
-          break;
+          }
+          delete executePromises[message.executeId];
         }
-        case 'executeResult':
-          {
-            const pendingResult = executePromises[message.executeId];
-            if (pendingResult) {
-              clearTimeout(pendingResult.timer);
-              if (
-                isValidLighterSignerResult(
-                  pendingResult.functionName,
-                  message.result,
-                )
-              ) {
-                pendingResult.resolve(message.result);
-              } else {
-                pendingResult.reject(
-                  new Error(
-                    `Invalid Lighter signer result for ${pendingResult.functionName}`,
-                  ),
-                );
-              }
-            }
-            delete executePromises[message.executeId];
+        break;
+      case 'executeError':
+        {
+          const pendingError = executePromises[message.executeId];
+          if (pendingError) {
+            clearTimeout(pendingError.timer);
+            pendingError.reject(new Error(message.message));
           }
-          break;
-        case 'executeError':
-          {
-            const pendingError = executePromises[message.executeId];
-            if (pendingError) {
-              clearTimeout(pendingError.timer);
-              pendingError.reject(new Error(message.message));
-            }
-            delete executePromises[message.executeId];
-          }
-          break;
-        case 'log':
-        case 'warn':
-        case 'error':
-          DevLogger.log(
-            `[LighterSignerWebView] page ${message.type}:`,
-            message.message,
-          );
-          break;
-      }
-    },
-    [isUnavailable],
-  );
+          delete executePromises[message.executeId];
+        }
+        break;
+      case 'log':
+      case 'warn':
+      case 'error':
+        DevLogger.log(
+          `[LighterSignerWebView] page ${message.type}:`,
+          message.message,
+        );
+        break;
+    }
+  }, []);
 
   if (isUnavailable) {
     return null;
