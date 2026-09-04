@@ -378,6 +378,11 @@ async function main(): Promise<void> {
     // snippet represents the same source without it. Ignore terminal line
     // breaks only; all code and indentation must still match verbatim.
     const normalizedSnippet = finding.snippet.replace(/(?:\r?\n)+$/, '');
+    if (normalizedSnippet.length === 0) {
+      core.warning(`Dropping AI finding for ${finding.file}: snippet contains no code`);
+      return false;
+    }
+
     const sourceLines = readFileSync(sourcePath, 'utf8').split(/\r?\n/);
     const snippetLines = normalizedSnippet.split(/\r?\n/);
     const actualSnippet = sourceLines
