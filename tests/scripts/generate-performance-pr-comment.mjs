@@ -30,13 +30,13 @@ import {
   findMatchingArtifact,
   findBaselineScenario,
   buildEmbeddedProfilingSection,
+  BASELINE_WORKFLOW,
   COMMENT_MARKER as APP_PROFILING_MARKER,
 } from './diff-app-profiling.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
 const OUTPUT_FILE = process.argv[3] || 'performance-pr-comment.md';
 const DEFAULT_BASELINE_BRANCH = 'main';
-const DEFAULT_WORKFLOW = 'run-performance-e2e.yml';
 
 async function main() {
   if (!fs.existsSync(SUMMARY_FILE)) {
@@ -228,7 +228,7 @@ async function main() {
         try {
           const baseline = findBaselineScenario({
             repo,
-            workflow: DEFAULT_WORKFLOW,
+            workflow: BASELINE_WORKFLOW,
             baselineBranch: DEFAULT_BASELINE_BRANCH,
             currentRunId: runId,
             testName: test.testName,

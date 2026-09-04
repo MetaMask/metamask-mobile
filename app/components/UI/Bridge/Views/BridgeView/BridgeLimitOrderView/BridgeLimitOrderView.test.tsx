@@ -300,6 +300,7 @@ function buildPriceAdjustMock() {
     onAmountTypeTogglePress: undefined,
     onQuoteUnitPress: jest.fn(),
     quotedSymbol: 'USDC',
+    quotedToken: mockSourceToken,
     secondaryValue: undefined,
     value: '1',
   };

@@ -146,7 +146,7 @@ describe('PerpsProTwapFillRow', () => {
         fill: buildFill({ fillId: 'shared-fill' }),
       },
       {
-        twapOrder: { ...twapOrder, providerId: 'myx' },
+        twapOrder: { ...twapOrder, providerId: 'lighter' },
         fill: buildFill({ fillId: 'shared-fill' }),
       },
       {

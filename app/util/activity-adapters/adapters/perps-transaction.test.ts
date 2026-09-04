@@ -572,7 +572,7 @@ describe('mapPerpsTransaction', () => {
         'stopMarketCloseLong',
       ],
       [
-        'Stop loss close long (MYX)',
+        'Stop loss close long (Lighter)',
         {
           orderType: 'market',
           side: 'sell',
