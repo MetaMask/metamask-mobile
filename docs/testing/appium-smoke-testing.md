@@ -132,7 +132,7 @@ open -a Simulator
 # 2. Prepare WDA + install app (first run can take several minutes)
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_NAME="iPhone 16 Pro" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 # 3. Export UDID
 export IOS_SIMULATOR_UDID=$(xcrun simctl list devices booted -j | node -e "

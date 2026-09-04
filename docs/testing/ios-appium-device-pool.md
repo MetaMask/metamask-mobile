@@ -81,7 +81,7 @@ read_prepare() { grep "^$1=" "$GITHUB_OUTPUT" | cut -d= -f2-; }
 IOS_APP_PATH="$IOS_APP_PATH" \
 IOS_SIMULATOR_NAME="$IOS_SIMULATOR_NAME" \
 GITHUB_OUTPUT="$GITHUB_OUTPUT" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 export IOS_SIMULATOR_UDID="$(read_prepare ios-simulator-udid)"
 export IOS_WDA_PREINSTALLED="$(read_prepare ios-wda-preinstalled)"
@@ -104,7 +104,7 @@ IOS_APP_PATH="$IOS_APP_PATH" \
 IOS_SIMULATOR_NAME="$IOS_SIMULATOR_NAME" \
 IOS_DEVICE_POOL_SIZE=2 \
 GITHUB_OUTPUT="$GITHUB_OUTPUT" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 export IOS_SIMULATOR_UDID="$(read_prepare ios-simulator-udid)"
 export IOS_DEVICE_POOL="$(read_prepare ios-device-pool)"
@@ -124,7 +124,7 @@ SKIP_APP_REINSTALL=true \
 yarn appium-smoke:ios --grep SmokeAccounts
 ```
 
-Optional: `IOS_DEVICE_POOL_SIZE=2 IOS_DEVICE_POOL="$IOS_DEVICE_POOL" yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios`
+Optional: `IOS_DEVICE_POOL_SIZE=2 IOS_DEVICE_POOL="$IOS_DEVICE_POOL" yarn tsx .github/scripts/qa-automation/appium-runner-prep/verify-appium-runner-connectivity.mjs ios`
 
 Use the Node version in `.nvmrc`.
 

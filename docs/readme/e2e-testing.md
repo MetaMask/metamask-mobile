@@ -144,7 +144,7 @@ gh run download RUN_ID --repo MetaMask/metamask-mobile \
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_NAME="iPhone 16 Pro" \
-node scripts/e2e/prepare-ios-appium-runner.mjs
+node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
 
 IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
 IOS_SIMULATOR_UDID="$(xcrun simctl list devices booted -j | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));console.log(Object.values(d.devices).flat().find(x=>x.state==='Booted')?.udid||'')")" \
@@ -326,7 +326,7 @@ The API Spec tests use `@open-rpc/test-coverage` against the in-app Test Dapp We
 
    ```bash
    set -a && source .e2e.env && set +a
-   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node scripts/e2e/prepare-ios-appium-runner.mjs
+   IOS_APP_PATH=build/ci-main-e2e/MetaMask.app node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
    ```
 
 3. **Run API Spec Tests**:

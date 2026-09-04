@@ -303,7 +303,7 @@ jobs:
 
       - name: Install ffmpeg for XCUITest screen recording
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        run: bash scripts/e2e/ensure-ffmpeg-ci.sh
+        run: bash .github/scripts/qa-automation/appium-runner-prep/ensure-ffmpeg-ci.sh
         shell: bash
 
       - name: Determine Android artifact paths
@@ -428,7 +428,7 @@ jobs:
       - name: Resolve XCUITest driver version for WDA cache key
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: xcuitest-version
-        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(node .github/scripts/qa-automation/appium-runner-prep/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
 
       - name: Get Xcode version for WDA cache key
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
@@ -463,7 +463,7 @@ jobs:
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
         id: prepare-ios-appium
         timeout-minutes: 30
-        run: node scripts/e2e/prepare-ios-appium-runner.mjs
+        run: node .github/scripts/qa-automation/appium-runner-prep/prepare-ios-appium-runner.mjs
         env:
           IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
           IOS_SIMULATOR_NAME: iPhone 16 Pro
@@ -475,7 +475,7 @@ jobs:
 
       - name: Verify Appium runner connectivity (iOS)
         if: ${{ inputs.platform == 'ios' && steps.select-specs.outputs.spec_count != '0' }}
-        run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
+        run: yarn tsx .github/scripts/qa-automation/appium-runner-prep/verify-appium-runner-connectivity.mjs ios
         env:
           IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
           IOS_DEVICE_POOL: ${{ steps.prepare-ios-appium.outputs.ios-device-pool }}

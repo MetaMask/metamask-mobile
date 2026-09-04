@@ -5,7 +5,7 @@
  * Validates the booted simulator before Playwright starts.
  *
  * Usage:
- *   node scripts/e2e/verify-appium-runner-connectivity.mjs ios
+ *   node .github/scripts/qa-automation/appium-runner-prep/verify-appium-runner-connectivity.mjs ios
  *
  * Env:
  *   IOS_DEVICE_POOL_SIZE — requested simulator count (defaults to 1)
@@ -158,7 +158,7 @@ async function main() {
 
   if (platform !== 'ios') {
     console.error(
-      'Usage: node scripts/e2e/verify-appium-runner-connectivity.mjs ios',
+      'Usage: node .github/scripts/qa-automation/appium-runner-prep/verify-appium-runner-connectivity.mjs ios',
     );
     process.exit(1);
   }
