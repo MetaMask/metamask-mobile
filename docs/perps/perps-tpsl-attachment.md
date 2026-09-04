@@ -77,35 +77,38 @@ leave orphan reduce-only triggers if the parent never fills.
 Used by the Auto close sheet on a position card, the stop-loss prompt banner, and the Pro
 positions panel — all cases where the position already exists.
 
-Since **perps-controller 15.1.0** it resolves the position like this
-(`dist/providers/HyperLiquidProvider.mjs`):
+Since **perps-controller 16.1.0** ([core#10101](https://github.com/MetaMask/core/pull/10101))
+`updatePositionTPSL` opts the lookup into one HTTP revalidation when the requested symbol is
+absent from the current DEX slice:
 
 ```js
-const currentPositions = await #getPositionsForOperation(parseAssetName(symbol).dex ?? '');
+const currentPositions = await #getPositionsForOperation(
+  parseAssetName(symbol).dex ?? '',
+  { revalidateMissingSymbol: symbol },
+);
 const position = currentPositions.find((pos) => pos.symbol === symbol);
 if (livePosition && position && sizes differ) { debugLog(...) }
 if (!position) { throw new Error(PERPS_ERROR_CODES.POSITION_NOT_FOUND); }
 ```
 
-Two things matter enormously:
+Two things still matter:
 
 1. **The `position` you pass is diagnostic only.** It is read for a size-mismatch debug log and
    nothing else. Passing a freshly-observed position does **not** make the lookup succeed.
    (Before 15.1.0 it did — the caller's snapshot decided the outcome.)
-2. **The lookup is cache-first and fails closed.** `#getPositionsForOperation` returns the
-   cached per-DEX slice whenever `getCachedPositionsForDex(dex)` is non-null, and only falls
-   back to REST when it is `null`. "Fresh" is a **connection-epoch** check
-   (`stampedEpoch === getConnectionEpoch()`), not a recency check — a slice published seconds
-   ago stays "fresh" until reconnect. A populated-but-stale slice therefore fails in ~1 ms with
-   no network call.
+2. **A cache hit is still WebSocket-only.** `#getPositionsForOperation` returns the cached
+   per-DEX slice when the symbol is present. "Fresh" is a **connection-epoch** check
+   (`stampedEpoch === getConnectionEpoch()`), not a recency check, so a stale _size_ on a
+   symbol that is already in the slice is unchanged. Close and margin operations do not opt in.
+   Only a missing symbol on this one path pays for an HTTP read.
 
 ## The trap: "filled" is not "visible"
 
 For market orders, `usePerpsOrderExecution` waits up to
 `PERPS_CUF_STREAM_CONFIRM_RACE_MS` (**1000 ms**, `constants/perpsCufTags.ts`) for the position
-to render on the stream — then **proceeds regardless of the outcome**. If the fill has not
-reached the stream within that window, the subsequent `updatePositionTPSL` reads an
-epoch-fresh but pre-fill slice and fails immediately.
+to render on the stream — then **proceeds regardless of the outcome**. Before 16.1.0, if the
+fill had not reached the stream within that window, the subsequent `updatePositionTPSL` read
+an epoch-fresh but pre-fill slice and failed immediately.
 
 Measured on an iOS testnet slot:
 
@@ -124,6 +127,8 @@ An empty cache result has **two indistinguishable meanings**:
 
 The connection epoch guards against _reconnect staleness_, not _propagation latency_.
 **Any code calling `updatePositionTPSL` shortly after `placeOrder` sits inside that window.**
+16.1.0 closes it for this one path by revalidating over HTTP when the symbol is missing.
+A cache hit, and every other position operation, still uses the table above.
 
 ## Error-string versions
 
@@ -209,5 +214,6 @@ Neither can be settled from source:
 - Mobile picked it up in
   [#35609](https://github.com/MetaMask/metamask-mobile/pull/35609) (`b9afc6b1f6e`, 2026-09-02);
   TAT-3916 was filed two days later.
-
-See `temp/tasks/fix/tat-3916-0904-094306/artifacts/blame-report.md` for the full bisect.
+- **16.1.0** ([core#10101](https://github.com/MetaMask/core/pull/10101)) lets only
+  `updatePositionTPSL` revalidate once over HTTP when the requested symbol is missing from the
+  current DEX slice. A cache hit is unchanged. Close and margin operations stay fail-closed.
