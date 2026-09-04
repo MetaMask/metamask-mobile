@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
+  isRampActivityKind,
   preferLocalOrApiActivityItem,
 } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
@@ -92,17 +93,25 @@ function isProviderBackedItem(item: ActivityListItem): boolean {
   );
 }
 
+function getDomainIdentifier(item: ActivityListItem): string | undefined {
+  if (isRampActivityKind(item.type)) {
+    return item.hash;
+  }
+  if (
+    item.raw?.type === 'perpsTransaction' ||
+    item.raw?.type === 'predictActivity'
+  ) {
+    return item.raw.data.id;
+  }
+  return undefined;
+}
+
 function buildItemsByIdentifier(
   items: ActivityListItem[],
 ): Map<string, ActivityListItem> {
   const byIdentifier = buildItemsByHash(items);
   for (const item of items) {
-    const domainId =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
+    const domainId = getDomainIdentifier(item);
     const normalizedDomainId = domainId?.toLowerCase();
     if (normalizedDomainId && !byIdentifier.has(normalizedDomainId)) {
       byIdentifier.set(normalizedDomainId, item);
