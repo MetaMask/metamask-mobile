@@ -81,14 +81,20 @@ jest.mock('../../store/getPersistentState/getPersistentState', () => ({
   getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
 }));
 
-// Spy on InteractionManager.runAfterInteractions (perf_fix: coldstart-v1 uses it)
-import { InteractionManager } from 'react-native';
-const mockRunAfterInteractions = jest
-  .spyOn(InteractionManager, 'runAfterInteractions')
-  .mockImplementation((cb) => {
-    if (typeof cb === 'function') cb();
-    return { then: jest.fn(), done: jest.fn(), cancel: jest.fn() } as never;
-  });
+jest.mock('../../util/scheduleAfterPaint', () => ({
+  scheduleAfterPaint: jest.fn((cb: () => void) => {
+    if (typeof cb === 'function') {
+      cb();
+    }
+    return { cancel: jest.fn() };
+  }),
+}));
+
+import { scheduleAfterPaint } from '../../util/scheduleAfterPaint';
+
+const mockScheduleAfterPaint = scheduleAfterPaint as jest.MockedFunction<
+  typeof scheduleAfterPaint
+>;
 
 // Mock ControllerStorage and createPersistController
 jest.mock('../../store/persistConfig', () => ({
@@ -217,6 +223,14 @@ describe('EngineService', () => {
     jest.resetAllMocks();
     // Use fake timers to prevent timeout issues after Jest teardown
     jest.useFakeTimers();
+
+    // Restore default deferred-persistence scheduler after resetAllMocks
+    mockScheduleAfterPaint.mockImplementation((cb: () => void) => {
+      if (typeof cb === 'function') {
+        cb();
+      }
+      return { cancel: jest.fn() };
+    });
 
     // Mock the store getter by setting the store directly
     const mockStore = {
@@ -377,15 +391,13 @@ describe('EngineService', () => {
   });
 
   it('cancels deferred persistence before vault recovery to prevent stale callback race', async () => {
-    // Arrange — start() as new user defers persistence via InteractionManager
+    // Arrange — start() as new user defers persistence via scheduleAfterPaint
     jest.useRealTimers();
     const mockCancel = jest.fn();
-    mockRunAfterInteractions.mockClear();
-    mockRunAfterInteractions.mockImplementation(
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation(
       () =>
         ({
-          then: jest.fn(),
-          done: jest.fn(),
           cancel: mockCancel,
         }) as never,
     );
@@ -405,7 +417,7 @@ describe('EngineService', () => {
     await engineService.start();
 
     // The deferred handle should have been created
-    expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+    expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
     expect(mockCancel).not.toHaveBeenCalled();
 
     // Act — vault recovery triggers before deferred callback executes
@@ -445,12 +457,10 @@ describe('EngineService', () => {
     // Arrange — new user path: initializeControllers sets a deferred handle,
     // then hydrateSocialFollowing throws, landing in the catch block.
     const mockCancel = jest.fn();
-    mockRunAfterInteractions.mockClear();
-    mockRunAfterInteractions.mockImplementation(
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation(
       () =>
         ({
-          then: jest.fn(),
-          done: jest.fn(),
           cancel: mockCancel,
         }) as never,
     );
@@ -474,7 +484,7 @@ describe('EngineService', () => {
     await engineService.start();
 
     // Assert — deferred handle was created by initializeControllers
-    expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
+    expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
     // Assert — catch block cancelled the stale deferred persistence
     expect(mockCancel).toHaveBeenCalledTimes(1);
     expect(Logger.error).toHaveBeenCalledWith(
@@ -486,16 +496,15 @@ describe('EngineService', () => {
     (hydrateSocialFollowing as jest.Mock).mockReset();
   });
 
-  it('logs deferred persistence setup failures without crashing or vault recovery', async () => {
+  it('routes deferred persistence setup failures to vault recovery', async () => {
     // Arrange — new-user path defers setupEnginePersistence; force it to throw
-    mockRunAfterInteractions.mockClear();
-    mockRunAfterInteractions.mockImplementation((cb) => {
+    jest.useFakeTimers();
+    mockScheduleAfterPaint.mockClear();
+    mockScheduleAfterPaint.mockImplementation((cb) => {
       if (typeof cb === 'function') cb();
       return {
-        then: jest.fn(),
-        done: jest.fn(),
         cancel: jest.fn(),
-      } as never;
+      };
     });
 
     const mockGetState = jest.fn().mockReturnValue({
@@ -518,15 +527,17 @@ describe('EngineService', () => {
       throw new Error('persist setup boom');
     };
 
-    // Act — must not reject / route to vault recovery
+    // Act — start itself must not reject; deferred failure fails closed
     await engineService.start();
+    jest.advanceTimersByTime(150);
 
-    // Assert
+    // Assert — critical persistence failure must not leave onboarding running
+    // without filesystem subscriptions
     expect(Logger.error).toHaveBeenCalledWith(
       expect.any(Error),
       expect.stringContaining('Deferred persistence setup failed'),
     );
-    expect(NavigationService.navigation?.reset).not.toHaveBeenCalledWith({
+    expect(NavigationService.navigation?.reset).toHaveBeenCalledWith({
       routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
     });
   });
@@ -895,9 +906,9 @@ describe('EngineService', () => {
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
     });
 
-    it('defers persistence setup via InteractionManager for new users (perf_fix: coldstart-v1)', async () => {
+    it('defers persistence setup via scheduleAfterPaint for new users (perf_fix: coldstart-v1)', async () => {
       // Arrange
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
       });
@@ -914,16 +925,14 @@ describe('EngineService', () => {
       // Act
       await engineService.start();
 
-      // Assert — persistence setup was scheduled via InteractionManager
-      expect(mockRunAfterInteractions).toHaveBeenCalledTimes(1);
-      expect(mockRunAfterInteractions).toHaveBeenCalledWith(
-        expect.any(Function),
-      );
+      // Assert — persistence setup was scheduled via scheduleAfterPaint
+      expect(mockScheduleAfterPaint).toHaveBeenCalledTimes(1);
+      expect(mockScheduleAfterPaint).toHaveBeenCalledWith(expect.any(Function));
     });
 
     it('does not defer persistence setup for existing users', async () => {
       // Arrange
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: true },
         engine: {
@@ -943,7 +952,7 @@ describe('EngineService', () => {
       await engineService.start();
 
       // Assert — persistence setup runs synchronously, not deferred
-      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
     });
 
     it('treats undefined existingUser as existing user defensively (reads persisted state)', async () => {
@@ -967,7 +976,7 @@ describe('EngineService', () => {
 
     it('treats missing user state as existing user defensively', async () => {
       // Arrange — user key is missing entirely from redux state
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({});
 
       Object.defineProperty(ReduxService.store, 'getState', {
@@ -981,12 +990,12 @@ describe('EngineService', () => {
 
       // Assert — does not defer, does not skip reads
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
-      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
     });
 
     it('overrides isNewUser when existingUser is false but vault exists on disk (flag/storage mismatch)', async () => {
       // Arrange — Redux flag lost but vault still on disk (e.g. Redux persist corruption)
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
       });
@@ -1019,7 +1028,7 @@ describe('EngineService', () => {
         'persist:KeyringController',
       );
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
-      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining(
           'existingUser flag is false but KeyringController vault found on disk',
@@ -1042,7 +1051,7 @@ describe('EngineService', () => {
 
     it('falls back to existing-user path when KeyringController data is corrupted JSON', async () => {
       // Arrange — existingUser false, but getItem returns unparseable data
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
       });
@@ -1062,7 +1071,7 @@ describe('EngineService', () => {
 
       // Assert — corrupted data → safe fallback to full read
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
-      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -1074,7 +1083,7 @@ describe('EngineService', () => {
       'falls back to existing-user path when KeyringController JSON parses to %s',
       async (_label, payload) => {
         // Arrange — parseable but not a KeyringController object
-        mockRunAfterInteractions.mockClear();
+        mockScheduleAfterPaint.mockClear();
         const mockGetState = jest.fn().mockReturnValue({
           user: { existingUser: false },
         });
@@ -1095,7 +1104,7 @@ describe('EngineService', () => {
         // Assert — malformed-but-valid JSON → full read to avoid skipping
         // other controller files that may still hold real state
         expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
-        expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+        expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
         expect(Logger.log).toHaveBeenCalledWith(
           expect.stringContaining(
             'KeyringController file is not a valid object',
@@ -1129,7 +1138,7 @@ describe('EngineService', () => {
 
     it('falls back to existing-user path when filesystem read fails during safety check', async () => {
       // Arrange — existingUser false, but getItemStrict throws (I/O error, permission denied)
-      mockRunAfterInteractions.mockClear();
+      mockScheduleAfterPaint.mockClear();
       const mockGetState = jest.fn().mockReturnValue({
         user: { existingUser: false },
       });
@@ -1149,7 +1158,7 @@ describe('EngineService', () => {
 
       // Assert — cannot confirm file is absent, so full read must happen
       expect(ControllerStorage.getAllPersistedState).toHaveBeenCalledTimes(1);
-      expect(mockRunAfterInteractions).not.toHaveBeenCalled();
+      expect(mockScheduleAfterPaint).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         expect.stringContaining(
           'Safety-check filesystem read failed — falling back to existing-user path',

@@ -29,7 +29,7 @@ try {
 
 import * as Sentry from '@sentry/react-native'; // eslint-disable-line import-x/no-namespace
 import { setupSentry } from './app/util/sentry/utils';
-import { AppRegistry, InteractionManager, LogBox } from 'react-native';
+import { AppRegistry, LogBox } from 'react-native';
 import Root from './app/components/Views/Root';
 import { name } from './app.config.js';
 import { hasTestOverrides } from './app/util/test/utils.js';
@@ -38,6 +38,7 @@ import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
+import { scheduleAfterPaint } from './app/util/scheduleAfterPaint';
 
 import { enableFreeze } from 'react-native-screens';
 
@@ -126,16 +127,15 @@ AppRegistry.registerComponent(name, () =>
   hasTestOverrides ? Root : Sentry.wrap(Root),
 );
 
-// perf_fix: coldstart-v1 — Defer Performance observers until after the current
-// interaction completes. This keeps the JS thread free for the first paint of
-// the onboarding/login screen. Performance observers use buffered: true so
+// perf_fix: coldstart-v1 — Defer Performance observers until after the next
+// paint. This keeps the JS thread free for the first paint of the
+// onboarding/login screen. Performance observers use buffered: true so
 // startup marks are still captured even when registered after they fire.
 //
-// InteractionManager is deprecated but is the only cross-platform RN API that
-// schedules work after the current native interaction (touch, animation)
-// completes. requestIdleCallback is not available on Android.
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-InteractionManager.runAfterInteractions(() => {
+// Uses scheduleAfterPaint (double requestAnimationFrame) instead of
+// InteractionManager.runAfterInteractions: on RN 0.83+ InteractionManager is a
+// setImmediate stub and does not wait for interactions or paint.
+scheduleAfterPaint(() => {
   Performance.setupPerformanceObservers();
 });
 

@@ -1,7 +1,4 @@
-import {
-  unstable_batchedUpdates as batchFunc,
-  InteractionManager,
-} from 'react-native';
+import { unstable_batchedUpdates as batchFunc } from 'react-native';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import UntypedEngine from '../Engine';
 import { Engine as TypedEngine } from '../Engine/Engine';
@@ -34,6 +31,10 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+import {
+  scheduleAfterPaint,
+  type ScheduleAfterPaintHandle,
+} from '../../util/scheduleAfterPaint';
 
 /**
  * Reads the AnalyticsController's own persisted copy of the analytics identity.
@@ -48,7 +49,7 @@ export class EngineService {
 
   // perf_fix: coldstart-v1 — Handle to the deferred persistence task so it can
   // be canceled if EngineService is torn down before it executes.
-  private deferredPersistenceHandle: { cancel: () => void } | null = null;
+  private deferredPersistenceHandle: ScheduleAfterPaintHandle | null = null;
 
   /**
    * Cancels any pending deferred persistence setup. Must be called before
@@ -60,6 +61,18 @@ export class EngineService {
       this.deferredPersistenceHandle.cancel();
       this.deferredPersistenceHandle = null;
     }
+  }
+
+  /**
+   * Navigates to vault recovery after a critical Engine/persistence failure.
+   * Uses a short delay so the navigation stack can finish mounting.
+   */
+  private navigateToVaultRecovery() {
+    setTimeout(() => {
+      NavigationService.navigation.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    }, 150);
   }
 
   private updateBatcher = new Batcher<string>((keys) =>
@@ -84,7 +97,7 @@ export class EngineService {
    *
    * @param engine - The initialized Engine instance
    * @param initialState - Optional initial state loaded from persistence. If provided, controllers whose state changed during Engine.init() will be persisted.
-   * @param deferPersistence - When true, persistence setup runs after the current interaction completes (perf_fix: coldstart-v1). Safe for fresh installs where no state exists yet.
+   * @param deferPersistence - When true, persistence setup runs after the next paint (perf_fix: coldstart-v1). Safe for fresh installs where no state exists yet.
    */
   private initializeControllers = (
     engine: TypedEngine,
@@ -146,30 +159,35 @@ export class EngineService {
     // Pass initialState to detect and persist any state changes that occurred during Engine.init()
     //
     // perf_fix: coldstart-v1 — For fresh installs, defer persistence setup
-    // until after the current interaction completes. No persisted state exists
-    // yet, so the comparison/initial-persist pass is pure overhead on the path
-    // to the first onboarding screen.
+    // until after the next paint. No persisted state exists yet, so the
+    // comparison/initial-persist pass is pure overhead on the path to the
+    // first onboarding screen. Uses scheduleAfterPaint (double rAF) — not
+    // InteractionManager — because RN 0.83+ stubs InteractionManager as
+    // setImmediate and it does not wait for interactions or paint.
     this.cancelDeferredPersistence();
     if (deferPersistence) {
-      this.deferredPersistenceHandle =
-        // InteractionManager is deprecated but is the only cross-platform RN API
-        // that schedules work after the current native interaction (touch, animation)
-        // completes. requestIdleCallback is not available on Android.
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
-          // NOSONAR - intentional use of deprecated API (no cross-platform alternative)
-          this.deferredPersistenceHandle = null;
-          // Outside start()'s try/catch — must handle locally. Do not route new
-          // users to vault recovery; log so persistence setup failures are visible.
-          try {
-            this.setupEnginePersistence(initialState);
-          } catch (error) {
-            Logger.error(
-              error as Error,
-              `${LOG_TAG}: Deferred persistence setup failed`,
-            );
-          }
-        });
+      this.deferredPersistenceHandle = scheduleAfterPaint(() => {
+        this.deferredPersistenceHandle = null;
+        // Outside start()'s try/catch — must handle locally. Persistence setup
+        // failure is critical: without filesystem subscriptions, later wallet
+        // changes may never reach disk. Match the sync path and fail closed.
+        try {
+          this.setupEnginePersistence(initialState);
+        } catch (error) {
+          trackVaultCorruption((error as Error).message, {
+            error_type: 'deferred_persistence_setup_failure',
+            context: 'engine_service_deferred_persistence',
+            has_existing_state: Boolean(
+              initialState && Object.keys(initialState).length > 0,
+            ),
+          });
+          Logger.error(
+            error as Error,
+            `${LOG_TAG}: Deferred persistence setup failed! Falling back to vault recovery.`,
+          );
+          this.navigateToVaultRecovery();
+        }
+      });
     } else {
       this.setupEnginePersistence(initialState);
     }
@@ -329,11 +347,7 @@ export class EngineService {
 
       // Give the navigation stack a chance to load
       // This can be removed if the vault recovery flow is moved higher up in the stack
-      setTimeout(() => {
-        NavigationService.navigation.reset({
-          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-        });
-      }, 150);
+      this.navigateToVaultRecovery();
     }
     endTrace({ name: TraceName.EngineInitialization });
   };
