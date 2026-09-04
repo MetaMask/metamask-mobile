@@ -13,9 +13,8 @@ import AppiumUtilities from '../../framework/AppiumUtilities.js';
 import { DappServer, DappVariants, TestDapps } from '../../framework/index.js';
 import {
   getDappUrlForBrowser,
-  setupAdbReverse,
-  cleanupAdbReverse,
-  waitForDappServerReady,
+  startLocalDappServerOnWorker,
+  stopLocalDappServerOnWorker,
 } from './utils.js';
 import {
   launchMobileBrowser,
@@ -38,15 +37,11 @@ const scopeCardTestId = (scope: string): string =>
 
 appiumTest.describe.skip(SmokeMMConnect('Multichain browser connect'), () => {
   appiumTest.beforeAll(async () => {
-    playgroundServer.setServerPort(DAPP_PORT);
-    await playgroundServer.start();
-    await waitForDappServerReady(DAPP_PORT);
-    setupAdbReverse(DAPP_PORT);
+    await startLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest.afterAll(async () => {
-    cleanupAdbReverse(DAPP_PORT);
-    await playgroundServer.stop();
+    await stopLocalDappServerOnWorker(playgroundServer, DAPP_PORT);
   });
 
   appiumTest(

@@ -435,6 +435,41 @@ describe('PerpsProOrderBookPanel', () => {
     expect(playSelection).toHaveBeenCalledTimes(2);
   });
 
+  it('reports the price the tapped row displays, not the venue level behind it', () => {
+    // Hyperliquid returns BTC levels as "64120.0". The ladder renders them
+    // without that decimal — and so does the market price — so tapping
+    // "$64,120" must not fill a price the user never saw.
+    const trailingDecimalBook: OrderBookData = {
+      ...mockOrderBook,
+      bids: [{ ...mockOrderBook.bids[0], price: '64120.0' }],
+      asks: [{ ...mockOrderBook.asks[0], price: '64130.0' }],
+      midPrice: '64125.0',
+    };
+    mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+      orderBook: trailingDecimalBook,
+      isLoading: false,
+      error: null,
+      connectionStatus: 'connected',
+      reconnect: mockReconnect,
+    }));
+    const onSelectPrice = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <PerpsProOrderBookPanel
+        symbol="BTC"
+        marketPrice={64125}
+        szDecimals={5}
+        onSelectPrice={onSelectPrice}
+      />,
+      { state: { engine: { backgroundState } } },
+    );
+
+    fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+    expect(onSelectPrice).toHaveBeenCalledWith('64120');
+
+    fireEvent.press(getByTestId(`${testID}-ask-row-0`));
+    expect(onSelectPrice).toHaveBeenLastCalledWith('64130');
+  });
+
   it('renders static, non-interactive rows when onSelectPrice is omitted', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsProOrderBookPanel symbol="BTC" marketPrice={50000} />,

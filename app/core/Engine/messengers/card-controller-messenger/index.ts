@@ -33,7 +33,6 @@ export function getCardControllerMessenger(
       'RemoteFeatureFlagController:getState',
       'KeyringController:signPersonalMessage',
       'NetworkController:findNetworkClientIdByChainId',
-      'NetworkController:getNetworkClientById',
       'TransactionController:addTransaction',
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',

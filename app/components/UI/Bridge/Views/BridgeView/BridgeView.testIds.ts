@@ -12,6 +12,8 @@ export const BridgeViewSelectorsIDs = {
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
+  OFF_HOURS_TRADING_BANNER: 'bridge-off-hours-trading-banner',
+  MARKET_CLOSED_BANNER: 'bridge-market-closed-banner',
   TABS_BAR: 'bridge-tabs-bar',
   TABS_CONTENT: 'bridge-tabs-content',
   TABS_SWIPE_GESTURE: 'bridge-tabs-swipe-gesture',
