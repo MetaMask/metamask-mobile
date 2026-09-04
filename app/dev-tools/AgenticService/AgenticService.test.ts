@@ -258,17 +258,35 @@ function makeFiber(
     disabled?: boolean;
     isDisabled?: boolean;
     accessibilityState?: { disabled?: boolean };
+    activityState?: number;
+    style?: unknown;
   } = {},
 ): FiberNode {
-  const { testID, onPress, disabled, isDisabled, accessibilityState, ...rest } =
-    overrides;
+  const {
+    testID,
+    onPress,
+    disabled,
+    isDisabled,
+    accessibilityState,
+    activityState,
+    style,
+    ...rest
+  } = overrides;
   return {
     child: null,
     sibling: null,
     return: null,
     memoizedProps:
-      testID || onPress
-        ? { testID, onPress, disabled, isDisabled, accessibilityState }
+      testID || onPress || activityState !== undefined || style !== undefined
+        ? {
+            testID,
+            onPress,
+            disabled,
+            isDisabled,
+            accessibilityState,
+            activityState,
+            style,
+          }
         : null,
     stateNode: null,
     ...rest,
@@ -345,6 +363,24 @@ describe('findFiberByTestId', () => {
     const root = makeFiber({ child: makeFiber({ testID: 'other' }) });
     expect(findFiberByTestId(root, 'missing')).toBeNull();
   });
+
+  it('finds the active duplicate outside a retained hidden route', () => {
+    const hiddenTarget = makeFiber({ testID: 'shared-button' });
+    const hiddenRoute = makeFiber({
+      activityState: 0,
+      child: hiddenTarget,
+    });
+    const activeTarget = makeFiber({ testID: 'shared-button' });
+    const root = makeFiber({ child: hiddenRoute });
+    hiddenTarget.return = hiddenRoute;
+    hiddenRoute.return = root;
+    hiddenRoute.sibling = activeTarget;
+    activeTarget.return = root;
+
+    const result = findFiberByTestId(root, 'shared-button');
+
+    expect(result).toBe(activeTarget);
+  });
 });
 
 describe('findMeasurableStateNode', () => {
@@ -373,6 +409,18 @@ describe('findMeasurableStateNode', () => {
     const result = findMeasurableStateNode(flattenedHost);
 
     expect(result).toBe(measurableParent.stateNode);
+  });
+
+  it('does not use a measurable sibling outside the target subtree', () => {
+    const measurableStateNode = {
+      measureInWindow: jest.fn(),
+    } as FiberNode['stateNode'];
+    const target = makeFiber();
+    target.sibling = makeFiber({ stateNode: measurableStateNode });
+
+    const result = findMeasurableStateNode(target, false);
+
+    expect(result).toBeNull();
   });
 });
 
@@ -705,43 +753,43 @@ describe('AgenticService.install', () => {
   });
 
   describe('pressTestId', () => {
-    it('presses a component found by testID', () => {
+    it('presses a component found by testID', async () => {
       const onPress = jest.fn();
       const fiber = makeFiber({
         child: makeFiber({ testID: 'my-btn', onPress }),
       });
       installFiberHook(fiber);
 
-      const result = bridge().pressTestId('my-btn');
+      const result = await bridge().pressTestId('my-btn');
 
       expect(result).toEqual({ ok: true, testId: 'my-btn' });
       expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('returns error when testID not found', () => {
+    it('returns error when testID not found', async () => {
       installFiberHook(makeFiber());
 
-      const result = bridge().pressTestId('missing');
+      const result = await bridge().pressTestId('missing');
 
       expect(result.ok).toBe(false);
       expect(result.error).toContain('missing');
     });
 
-    it('returns error when hook is not installed', () => {
+    it('returns error when hook is not installed', async () => {
       globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = undefined;
 
-      const result = bridge().pressTestId('any');
+      const result = await bridge().pressTestId('any');
 
       expect(result.ok).toBe(false);
     });
 
-    it('returns error when component has no onPress', () => {
+    it('returns error when component has no onPress', async () => {
       const fiber = makeFiber({
         child: makeFiber({ testID: 'no-press' }),
       });
       installFiberHook(fiber);
 
-      const result = bridge().pressTestId('no-press');
+      const result = await bridge().pressTestId('no-press');
 
       expect(result.ok).toBe(false);
       expect(result.error).toContain('no-press');
@@ -751,30 +799,216 @@ describe('AgenticService.install', () => {
       { disabled: true },
       { isDisabled: true },
       { accessibilityState: { disabled: true } },
-    ])('does not press a disabled component', (disabledProps) => {
+    ])('does not press a disabled component', async (disabledProps) => {
       const onPress = jest.fn();
       installFiberHook(
         makeFiber({ testID: 'disabled-button', onPress, ...disabledProps }),
       );
 
-      const result = bridge().pressTestId('disabled-button');
+      const result = await bridge().pressTestId('disabled-button');
 
       expect(result.ok).toBe(false);
       expect(result.error).toContain('disabled');
       expect(onPress).not.toHaveBeenCalled();
     });
 
-    it('handles deeply nested components', () => {
+    it('handles deeply nested components', async () => {
       const onPress = jest.fn();
       const deep = makeFiber({ testID: 'deep', onPress });
       const mid = makeFiber({ child: deep });
       const root = makeFiber({ child: mid });
       installFiberHook(root);
 
-      const result = bridge().pressTestId('deep');
+      const result = await bridge().pressTestId('deep');
 
       expect(result).toEqual({ ok: true, testId: 'deep' });
       expect(onPress).toHaveBeenCalled();
+    });
+
+    it('presses the active duplicate outside a retained hidden route', async () => {
+      const hiddenPress = jest.fn();
+      const activePress = jest.fn();
+      const hiddenTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: hiddenPress,
+      });
+      const hiddenRoute = makeFiber({
+        style: { display: 'none' },
+        child: hiddenTarget,
+      });
+      const activeTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: activePress,
+      });
+      const root = makeFiber({ child: hiddenRoute });
+      hiddenTarget.return = hiddenRoute;
+      hiddenRoute.return = root;
+      hiddenRoute.sibling = activeTarget;
+      activeTarget.return = root;
+      installFiberHook(root);
+
+      const result = await bridge().pressTestId('shared-button');
+
+      expect(result).toEqual({ ok: true, testId: 'shared-button' });
+      expect(hiddenPress).not.toHaveBeenCalled();
+      expect(activePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('presses the viewport-visible duplicate in the active route', async () => {
+      const hiddenPress = jest.fn();
+      const visiblePress = jest.fn();
+      const hiddenTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: hiddenPress,
+        stateNode: {
+          measureInWindow: (callback) => callback(0, 0, 0, 0),
+        } as FiberNode['stateNode'],
+      });
+      const visibleTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: visiblePress,
+        stateNode: {
+          measureInWindow: (callback) => callback(10, 10, 40, 40),
+        } as FiberNode['stateNode'],
+      });
+      const root = makeFiber({ child: hiddenTarget });
+      hiddenTarget.return = root;
+      hiddenTarget.sibling = visibleTarget;
+      visibleTarget.return = root;
+      installFiberHook(root);
+
+      const result = await bridge().pressTestId('shared-button');
+
+      expect(result).toEqual({ ok: true, testId: 'shared-button' });
+      expect(hiddenPress).not.toHaveBeenCalled();
+      expect(visiblePress).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not borrow a visible frame from a duplicate sibling', async () => {
+      const unmeasurablePress = jest.fn();
+      const visiblePress = jest.fn();
+      const unmeasurableTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: unmeasurablePress,
+      });
+      const visibleTarget = makeFiber({
+        testID: 'shared-button',
+        onPress: visiblePress,
+        stateNode: {
+          measureInWindow: (callback) => callback(10, 10, 40, 40),
+        } as FiberNode['stateNode'],
+      });
+      const root = makeFiber({ child: unmeasurableTarget });
+      unmeasurableTarget.return = root;
+      unmeasurableTarget.sibling = visibleTarget;
+      visibleTarget.return = root;
+      installFiberHook(root);
+
+      const result = await bridge().pressTestId('shared-button');
+
+      expect(result).toEqual({ ok: true, testId: 'shared-button' });
+      expect(unmeasurablePress).not.toHaveBeenCalled();
+      expect(visiblePress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('pressText', () => {
+    it('presses an enabled component by text', () => {
+      const onPress = jest.fn();
+      installFiberHook(
+        makeFiber({ memoizedProps: { children: 'Place order', onPress } }),
+      );
+
+      const result = bridge().pressText('Place order');
+
+      expect(result).toEqual({ ok: true, text: 'Place order' });
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      { disabled: true },
+      { isDisabled: true },
+      { accessibilityState: { disabled: true } },
+    ])('does not press text on a disabled component', (disabledProps) => {
+      const onPress = jest.fn();
+      installFiberHook(
+        makeFiber({
+          memoizedProps: {
+            children: 'Place order',
+            onPress,
+            ...disabledProps,
+          },
+        }),
+      );
+
+      const result = bridge().pressText('Place order');
+
+      expect(result).toEqual({
+        ok: false,
+        text: 'Place order',
+        error: 'Pressable for text="Place order" is disabled',
+      });
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('presses active text outside a retained hidden route', () => {
+      const hiddenPress = jest.fn();
+      const activePress = jest.fn();
+      const hiddenTarget = makeFiber({
+        memoizedProps: { children: 'Place order', onPress: hiddenPress },
+      });
+      const hiddenRoute = makeFiber({
+        activityState: 0,
+        child: hiddenTarget,
+      });
+      const activeTarget = makeFiber({
+        memoizedProps: { children: 'Place order', onPress: activePress },
+      });
+      const root = makeFiber({ child: hiddenRoute });
+      hiddenTarget.return = hiddenRoute;
+      hiddenRoute.return = root;
+      hiddenRoute.sibling = activeTarget;
+      activeTarget.return = root;
+      installFiberHook(root);
+
+      const result = bridge().pressText('Place order');
+
+      expect(result).toEqual({ ok: true, text: 'Place order' });
+      expect(hiddenPress).not.toHaveBeenCalled();
+      expect(activePress).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('queryUiTarget', () => {
+    it('measures the active duplicate outside a retained hidden route', async () => {
+      const hiddenTarget = makeFiber({ testID: 'shared-target' });
+      const hiddenRoute = makeFiber({
+        activityState: 0,
+        child: hiddenTarget,
+      });
+      const activeTarget = makeFiber({
+        testID: 'shared-target',
+        stateNode: {
+          measureInWindow: (callback) => callback(10, 10, 40, 40),
+        } as FiberNode['stateNode'],
+      });
+      const root = makeFiber({ child: hiddenRoute });
+      hiddenTarget.return = hiddenRoute;
+      hiddenRoute.return = root;
+      hiddenRoute.sibling = activeTarget;
+      activeTarget.return = root;
+      installFiberHook(root);
+
+      const result = await bridge().queryUiTarget({
+        testId: 'shared-target',
+        visibility: 'viewport',
+      });
+
+      expect(result).toMatchObject({
+        present: true,
+        visible: true,
+        rect: { x: 10, y: 10, width: 40, height: 40 },
+      });
     });
   });
 
