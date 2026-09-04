@@ -134,8 +134,10 @@ jobs:
       # Shared golden strategy: prime and every shard use the 4-core shape.
       # This intentionally invalidates the old 8-core cache once.
       ANDROID_EMULATOR_CI_CORES: '4'
-      ANDROID_DEVICE_POOL_SIZE: ${{ inputs.android-device-pool-size }}
-      IOS_DEVICE_POOL_SIZE: ${{ inputs.ios-device-pool-size }}
+      # Platform-gate pool sizes: a leaked ANDROID_DEVICE_POOL_SIZE on ios-smoke
+      # makes mm-connect invent emulator serials and fail closed on missing adb.
+      ANDROID_DEVICE_POOL_SIZE: ${{ inputs.platform == 'android' && inputs.android-device-pool-size || '' }}
+      IOS_DEVICE_POOL_SIZE: ${{ inputs.platform == 'ios' && inputs.ios-device-pool-size || '' }}
 
     steps:
       - name: Checkout (Namespace)
