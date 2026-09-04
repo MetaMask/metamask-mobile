@@ -31,10 +31,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockReturnValue(undefined),
-}));
-
 jest.mock('../../hooks/useBridgeConfirm', () => ({
   useBridgeConfirm: jest.fn(),
 }));
@@ -74,9 +70,10 @@ const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
 >;
-const mockUseBridgeQuoteData = useBridgeQuoteDataContext as jest.MockedFunction<
-  typeof useBridgeQuoteDataContext
->;
+const mockUseBridgeQuoteDataContext =
+  useBridgeQuoteDataContext as jest.MockedFunction<
+    typeof useBridgeQuoteDataContext
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockConfirmBridge = jest.fn();
@@ -157,7 +154,7 @@ describe('TokenWarningModal', () => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(defaultWarningParams);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
-    mockUseBridgeQuoteData.mockReturnValue({
+    mockUseBridgeQuoteDataContext.mockReturnValue({
       ...defaultBridgeQuoteData,
       activeQuote: mockActiveQuote,
     });
@@ -378,7 +375,7 @@ describe('TokenWarningModal', () => {
     });
 
     it('navigates to MissingPriceModal when activeQuote has no priceImpact', async () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: undefined } },
         },
@@ -399,7 +396,7 @@ describe('TokenWarningModal', () => {
     });
 
     it('navigates to MissingPriceModal when price data is unavailable', async () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: { priceData: undefined },
         },
@@ -420,7 +417,7 @@ describe('TokenWarningModal', () => {
     });
 
     it('navigates to PriceImpactModal when price impact meets error threshold', async () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: {
             priceData: { priceImpact: { amount: '0.25' } }, // exactly at threshold
@@ -444,7 +441,7 @@ describe('TokenWarningModal', () => {
     });
 
     it('does not call confirmBridge when price impact exceeds threshold', async () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: {
             priceData: { priceImpact: { amount: '0.90' } },
@@ -470,7 +467,7 @@ describe('TokenWarningModal', () => {
           return { priceImpactThreshold: { error: 0.5, warning: 0.05 } };
         return undefined;
       });
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: {
             priceData: { priceImpact: { amount: '0.40' } },

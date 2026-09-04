@@ -156,9 +156,10 @@ const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
 >;
-const mockUseBridgeQuoteData = useBridgeQuoteDataContext as jest.MockedFunction<
-  typeof useBridgeQuoteDataContext
->;
+const mockUseBridgeQuoteDataContext =
+  useBridgeQuoteDataContext as jest.MockedFunction<
+    typeof useBridgeQuoteDataContext
+  >;
 const mockUsePriceImpactViewData =
   usePriceImpactViewData as jest.MockedFunction<typeof usePriceImpactViewData>;
 const mockPriceImpactHeader = PriceImpactHeader as jest.MockedFunction<
@@ -200,7 +201,7 @@ describe('PriceImpactModal', () => {
     mockUseSelector.mockReturnValue(undefined);
     mockUseParams.mockReturnValue(defaultParams);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
-    mockUseBridgeQuoteData.mockReturnValue({
+    mockUseBridgeQuoteDataContext.mockReturnValue({
       formattedQuoteData: undefined,
     } as ReturnType<typeof useBridgeQuoteDataContext>);
     mockUsePriceImpactViewData.mockReturnValue(
@@ -273,7 +274,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes formattedPriceImpact to PriceImpactDescription when formattedQuoteData has it', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         formattedQuoteData: { priceImpact: '5%' },
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
@@ -286,7 +287,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes undefined formattedPriceImpact to PriceImpactDescription when formattedQuoteData is absent', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         formattedQuoteData: undefined,
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
@@ -299,7 +300,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes formattedPriceImpactFiat to PriceImpactDescription when formattedQuoteData has it', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         formattedQuoteData: { priceImpact: '5%', priceImpactFiat: '$3.50' },
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
@@ -312,7 +313,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes undefined formattedPriceImpactFiat when formattedQuoteData is absent', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         formattedQuoteData: undefined,
       } as ReturnType<typeof useBridgeQuoteDataContext>);
 
@@ -325,7 +326,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes isDanger=true to PriceImpactDescription when price impact exceeds error threshold', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: { amount: '0.96' } } },
         },
@@ -341,7 +342,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('passes isDanger=false to PriceImpactDescription when price impact is below error threshold', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: { amount: '0.05' } } },
         },
@@ -443,7 +444,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('calls usePriceImpactViewData with the raw priceImpact from activeQuote', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: {
           quote: { priceData: { priceImpact: { amount: '0.12' } } },
         },
@@ -456,7 +457,7 @@ describe('PriceImpactModal', () => {
     });
 
     it('calls usePriceImpactViewData with undefined when activeQuote is absent', () => {
-      mockUseBridgeQuoteData.mockReturnValue({
+      mockUseBridgeQuoteDataContext.mockReturnValue({
         activeQuote: undefined,
         formattedQuoteData: undefined,
       } as ReturnType<typeof useBridgeQuoteDataContext>);

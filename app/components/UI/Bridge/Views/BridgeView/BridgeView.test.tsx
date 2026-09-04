@@ -308,7 +308,6 @@ jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
     '../../hooks/useBridgeQuoteData',
   );
   return {
-    BridgeQuoteDataProvider: ({ children }: { children: unknown }) => children,
     useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteData()),
   };
 });

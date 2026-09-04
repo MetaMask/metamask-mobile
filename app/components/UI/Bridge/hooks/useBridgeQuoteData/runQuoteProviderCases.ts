@@ -118,7 +118,7 @@ export const runQuoteProviderCases = ({
       });
     });
 
-    it('throws when used outside BridgeQuoteDataProvider', () => {
+    it('throws when used outside its quote provider', () => {
       jest.spyOn(console, 'error').mockImplementation();
 
       const renderOutsideProvider = () => renderWithoutProvider();

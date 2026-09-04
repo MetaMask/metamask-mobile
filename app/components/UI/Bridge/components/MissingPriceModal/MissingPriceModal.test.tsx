@@ -74,9 +74,10 @@ const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
 const mockUseBridgeConfirm = useBridgeConfirm as jest.MockedFunction<
   typeof useBridgeConfirm
 >;
-const mockUseBridgeQuoteData = useBridgeQuoteDataContext as jest.MockedFunction<
-  typeof useBridgeQuoteDataContext
->;
+const mockUseBridgeQuoteDataContext =
+  useBridgeQuoteDataContext as jest.MockedFunction<
+    typeof useBridgeQuoteDataContext
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const mockConfirmBridge = jest.fn();
@@ -101,7 +102,7 @@ describe('MissingPriceModal', () => {
     mockUseParams.mockReturnValue({
       location: MetaMetricsSwapsEventSource.MainView,
     });
-    mockUseBridgeQuoteData.mockReturnValue({
+    mockUseBridgeQuoteDataContext.mockReturnValue({
       activeQuote: mockQuoteWithMetadata,
     } as ReturnType<typeof useBridgeQuoteDataContext>);
     mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);

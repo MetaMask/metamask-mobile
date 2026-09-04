@@ -60,8 +60,6 @@ jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   );
 
   return {
-    BridgeQuoteDataProvider: ({ children }: { children: React.ReactNode }) =>
-      children,
     useBridgeQuoteDataContext: jest.fn(() => useBridgeQuoteDataMock()),
   };
 });
