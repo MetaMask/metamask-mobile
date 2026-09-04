@@ -10,10 +10,33 @@ import {
   type PlanId,
 } from './Benefits.constants';
 import { strings } from '../../../../../../locales/i18n';
+import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+
+jest.mock('./hooks/useSubscriptionPricing', () => ({
+  useSubscriptionPricing: jest.fn(),
+}));
+
+const mockUseSubscriptionPricing = jest.mocked(useSubscriptionPricing);
+const mockRetry = jest.fn();
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+
+const mockPricingState = ({
+  isLoading = false,
+  hasError = false,
+}: {
+  isLoading?: boolean;
+  hasError?: boolean;
+} = {}) => {
+  mockUseSubscriptionPricing.mockReturnValue({
+    pricing: undefined,
+    isLoading,
+    hasError,
+    retry: mockRetry,
+  });
+};
 
 const renderBenefits = (initialPlan?: PlanId) =>
   render(<Benefits onSuccess={mockOnSuccess} initialPlan={initialPlan} />);
@@ -23,6 +46,7 @@ const renderBenefits = (initialPlan?: PlanId) =>
 describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPricingState();
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -357,6 +381,65 @@ describe('Benefits', () => {
           strings('pro_subscription.benefits_description.atm_fees.description'),
         ),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  // ── Pricing fetch states ───────────────────────────────────────────────────
+
+  describe('Pricing fetch states', () => {
+    it('shows a plan card skeleton per plan instead of plan cards while pricing is fetching', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getAllByTestId, getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_LOADING)).toBeOnTheScreen();
+      expect(getAllByTestId(BenefitsTestIds.PLAN_CARD_SKELETON)).toHaveLength(
+        PLANS.length,
+      );
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+      expect(queryByTestId(BenefitsTestIds.PRICING_ERROR)).toBeNull();
+    });
+
+    it('shows an error and retry control when pricing fetch fails', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_ERROR)).toBeOnTheScreen();
+      expect(
+        getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeNull();
+    });
+
+    it('calls retry when the retry control is pressed', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PRICING_RETRY_BUTTON));
+
+      expect(mockRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onSuccess when the CTA is pressed while pricing is loading', () => {
+      mockPricingState({ isLoading: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+    });
+
+    it('does not call onSuccess when the CTA is pressed after a pricing error', () => {
+      mockPricingState({ hasError: true });
+
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });

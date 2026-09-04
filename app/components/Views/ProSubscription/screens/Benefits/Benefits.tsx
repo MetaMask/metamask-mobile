@@ -11,6 +11,8 @@ import {
   ButtonVariant,
   ButtonSize,
   FontWeight,
+  BannerAlert,
+  BannerAlertSeverity,
 } from '@metamask/design-system-react-native';
 import {
   BENEFITS,
@@ -24,7 +26,9 @@ import { BenefitsTestIds } from './Benefits.testIds';
 import { BenefitRow } from '../../../shared/pro';
 import BenefitDetails from './components/BenefitDetails';
 import PlanSelectorCard from './components/PlanSelectorCard';
+import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
+import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
 
 interface BenefitsProps {
   onSuccess: () => void;
@@ -32,6 +36,7 @@ interface BenefitsProps {
 }
 
 const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
+  const { isLoading, hasError, retry } = useSubscriptionPricing();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
@@ -51,6 +56,13 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
   const handleBenefitDetailSheetClose = useCallback(() => {
     setIsBenefitDetailSheetOpen(false);
   }, []);
+
+  const handleCtaPress = useCallback(() => {
+    if (isLoading || hasError) {
+      return;
+    }
+    onSuccess();
+  }, [hasError, isLoading, onSuccess]);
 
   return (
     <Box
@@ -98,20 +110,56 @@ const Benefits = ({ onSuccess, initialPlan }: BenefitsProps) => {
 
       {/* Plan selector */}
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
-        {PLANS.map((plan) => (
-          <PlanSelectorCard
-            key={plan.id}
-            plan={plan}
-            isSelected={selectedPlan === plan.id}
-            onPress={setSelectedPlan}
-          />
-        ))}
+        {isLoading ? (
+          <Box
+            twClassName="flex flex-col gap-y-4"
+            testID={BenefitsTestIds.PRICING_LOADING}
+            accessibilityLabel={strings('pro_subscription.pricing.loading')}
+          >
+            {PLANS.map((plan) => (
+              <PlanSelectorCardSkeleton key={plan.id} />
+            ))}
+          </Box>
+        ) : null}
+
+        {hasError ? (
+          <Box
+            twClassName="flex flex-col gap-y-3"
+            testID={BenefitsTestIds.PRICING_ERROR}
+          >
+            <BannerAlert
+              severity={BannerAlertSeverity.Danger}
+              description={strings('pro_subscription.pricing.error')}
+            />
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={retry}
+              testID={BenefitsTestIds.PRICING_RETRY_BUTTON}
+              isFullWidth
+            >
+              {strings('pro_subscription.pricing.retry')}
+            </Button>
+          </Box>
+        ) : null}
+
+        {!isLoading && !hasError
+          ? PLANS.map((plan) => (
+              <PlanSelectorCard
+                key={plan.id}
+                plan={plan}
+                isSelected={selectedPlan === plan.id}
+                onPress={setSelectedPlan}
+              />
+            ))
+          : null}
 
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={onSuccess}
+          onPress={handleCtaPress}
           testID={BenefitsTestIds.CTA_BUTTON}
+          isDisabled={isLoading || hasError}
           isFullWidth
         >
           {strings('pro_subscription.join_pro')}
