@@ -1,10 +1,10 @@
 # iOS Appium device pool
 
-iOS Appium smoke can run two Playwright workers on two cloned simulators (`N=2`).
-`ci.yml` sets `ios-device-pool-size: 2` on the `appium-smoke-tests-ios` job (mirroring
-Android's `android-device-pool-size: 2`), so every iOS smoke suite runs `N=2`.
-`run-appium-smoke-tests-ios.yml` forwards the input to each suite; callers that omit it
-default to `1`. `total_splits` is unchanged for all suites.
+iOS Appium smoke runs two Playwright workers on two cloned simulators (`N=2`)
+by default. `run-appium-e2e-workflow.yml` / `run-appium-smoke-tests-ios.yml`
+default `ios-device-pool-size` to `2`, so `ci.yml` does not need to override it.
+Callers can still pass `1` (or another size) via `workflow_dispatch` / `with:`.
+`total_splits` is unchanged for all suites.
 
 ## Why iOS differs from Android
 
@@ -135,11 +135,6 @@ Logs: `iOS device pool size=2 workers=2`, `iOS pool worker 0/1` with UDID and
 pool** records pool size/workers, Playwright outcome, and `duration_ms` from
 `playwright-report.json` (`stats.duration`).
 
-Namespace profile `namespace-profile-metamask-ios-e2e` is **6 CPU × 14 GB** (observed 2026-09-03);
-two sims + two WDAs risk RAM pressure and ~15m preemptions. Compare pooled
-SmokeAccounts shards to `main` N=1 on wall clock, `duration_ms`, prepare time,
-peak CPU/RAM, and flakes before expanding suites or reducing `total_splits`.
-N=2 is partial overlap on one runner — not 2× throughput.
 
 | Failure                                      | Behavior                                                           |
 | -------------------------------------------- | ------------------------------------------------------------------ |

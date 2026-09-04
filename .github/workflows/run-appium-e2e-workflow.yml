@@ -87,12 +87,12 @@ on:
         description: 'Android emulator count and Playwright worker count'
         required: false
         type: number
-        default: 1
+        default: 3
       ios-device-pool-size:
         description: 'iOS simulator count and Playwright worker count'
         required: false
         type: number
-        default: 1
+        default: 2
 
 permissions:
   contents: read
