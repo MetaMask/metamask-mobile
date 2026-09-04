@@ -18,56 +18,34 @@ import {
   getManageAccountAddAccountFooterId,
 } from './ManageAccounts.testIds';
 
-/**
- * One wallet section of the management list.
- *
- * The view layer decides each row's trailing-action variant from account
- * type (entropy/HD → hide; hardware → hide + remove; imported → remove;
- * snap → none) and injects it per group — the row only renders what it's
- * given.
- */
+/** One wallet section of the management list. */
 export interface ManageAccountsSection {
   /** Wallet display name, rendered as the section header. */
   walletName: string;
   /** Account groups belonging to this wallet, in display order. */
   groups: AccountGroupObject[];
-  /**
-   * Account-wallet ID backing this section. Required for the "Add account"
-   * footer (the footer resolves the keyring from the wallets map by this ID).
-   */
+  /** Wallet ID used by the "Add account" footer to resolve the keyring. */
   walletId?: string;
   /**
-   * Trailing-action variant per group ID of this section. Groups without an
-   * entry fall back to the hide toggle (Phase 1 behavior) — the wiring lane
-   * owns the account-type → variant mapping and should map every group
-   * explicitly (entropy/HD → Hide, hardware → HideAndRemove, imported →
-   * Remove, snap → None).
+   * Trailing-action variant per group ID. Groups without an entry
+   * fall back to the hide toggle.
    */
   rowVariantByGroupId?: Partial<
     Record<AccountGroupId, ManageAccountRowVariant>
   >;
-  /** Whether the wallet's entropy is locked (renders the Locked header state). */
+  /** Whether the wallet is locked (renders the Locked header state). */
   isLocked?: boolean;
-  /**
-   * Optional wallet-level remove handler. When provided, the section header
-   * renders its Remove control (hardware-section use). Omit for unlocked
-   * entropy wallets (design-TBD) and imported sections (no wallet-level
-   * removal in Figma).
-   */
+  /** When provided, the section header renders its Remove control. */
   onRemoveWallet?: () => void;
   /**
-   * Whether to render the "Add account" footer for this section
-   * (entropy / hardware wallets only — spec §6 keeps it out of
-   * imported-accounts-only sections). Requires `walletId`.
+   * Whether to render the "Add account" footer for this section.
+   * Requires `walletId`.
    */
   showsAddAccountFooter?: boolean;
 }
 
 export interface ManageAccountsViewProps {
-  /**
-   * Wallet sections in display order. Arrives pre-computed from the
-   * integration lane (selectors own the pinned/wallet section model).
-   */
+  /** Wallet sections in display order. */
   sections: ManageAccountsSection[];
   /** Hidden flag per account group ID; missing key means visible. */
   isHiddenByGroupId: Partial<Record<AccountGroupId, boolean>>;
@@ -76,37 +54,27 @@ export interface ManageAccountsViewProps {
    * (`true` = hide, `false` = unhide).
    */
   onToggleHidden: (groupId: AccountGroupId, nextHidden: boolean) => void;
-  /**
-   * Optional row-level remove handler, forwarded to rows whose variant
-   * includes the remove affordance.
-   */
+  /** Row-level remove handler, used when the row variant includes remove. */
   onRemoveAccount?: (groupId: AccountGroupId) => void;
   /**
-   * Optional "Add account" handler. Its existence gates the per-section
-   * "Add account" footers (entropy / hardware sections only — imported
-   * sections never opt in, spec §6). The reused `AccountListFooter` owns the
-   * creation flow itself; this callback is invoked with the section's wallet
-   * name when the footer reports a newly created account group.
+   * Called with the wallet name after a new account is created.
+   * Required for the per-section "Add account" footer to render.
    */
   onAddAccount?: (walletName: string) => void;
-  /** Optional Add-wallet CTA handler. Renders the button only when provided. */
+  /** Add-wallet CTA handler. Renders the button only when provided. */
   onAddWallet?: () => void;
   /** User's avatar preference, forwarded to every row. */
   avatarAccountType: AccountAvatarVariant;
-  /** Back action (wired to `navigation.goBack()` by the integration lane). */
+  /** Back action. */
   onBack: () => void;
   testID?: string;
 }
 
-/**
- * Manage accounts screen — visuals only.
- *
- * Visual host: sections, hidden flags, trailing-action variants and handlers
- * are injected via props (no Engine, no Redux, no route registration here).
- * Every new affordance (add-account footer, add-wallet CTA, remove controls)
- * renders only when its callback/flag is supplied, so the wiring lane can
- * adopt them incrementally.
- */
+const shouldShowSectionDivider = (
+  sectionIndex: number,
+  sectionCount: number,
+): boolean => sectionIndex < sectionCount - 1;
+
 const ManageAccountsView = ({
   sections,
   isHiddenByGroupId,
@@ -174,11 +142,9 @@ const ManageAccountsView = ({
                 />
               </Box>
             ) : null}
-            {/* Section divider (spec token: border-muted). Rendered between
-                wallet blocks only, matching the Figma rhythm. */}
-            {sectionIndex < sections.length - 1 ? (
+            {shouldShowSectionDivider(sectionIndex, sections.length) && (
               <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
-            ) : null}
+            )}
           </Box>
         ))}
       </ScrollView>
