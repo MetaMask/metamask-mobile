@@ -119,7 +119,8 @@ export const enablePushNotifications = async () => {
  * - Allows us to disable push notifications
  * When NaaP has no FCM token, unregisters Braze here because the push
  * controller otherwise returns before invoking its token-deletion callback.
- * @throws if Braze push cannot be unregistered for this device
+ * Retriable failures persist for retry on the next app launch.
+ * @throws if Braze push fails permanently for this device
  */
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();

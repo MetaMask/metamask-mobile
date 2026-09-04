@@ -622,7 +622,7 @@ NativeModules.RNTar = {
 
 NativeModules.BrazePushModule = {
   registerPush: jest.fn().mockResolvedValue(undefined),
-  unregisterPush: jest.fn().mockResolvedValue(undefined),
+  unregisterPush: jest.fn().mockResolvedValue({ success: true }),
 };
 
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => {

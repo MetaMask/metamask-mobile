@@ -1,6 +1,8 @@
 package io.metamask.nativeModules
 
 import com.braze.Braze
+import com.braze.push.BrazePushUnregistrationException
+import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
@@ -31,13 +33,13 @@ class BrazePushModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
             Braze.getInstance(reactApplicationContext).unregisterPush { result ->
                 result.fold(
                     onSuccess = {
-                        promise.resolve(null)
+                        promise.resolve(successResult())
                     },
                     onFailure = { error ->
                         if (isNoPushTokenError(error)) {
-                            promise.resolve(null)
+                            promise.resolve(successResult())
                         } else {
-                            promise.reject(CODE_UNREGISTER_FAILED, error.message, error)
+                            promise.resolve(failureResult(error))
                         }
                     },
                 )
@@ -50,9 +52,22 @@ class BrazePushModule(context: ReactApplicationContext) : ReactContextBaseJavaMo
     private fun isNoPushTokenError(error: Throwable): Boolean =
         error.message?.contains("no push token", ignoreCase = true) == true
 
+    private fun successResult() =
+        Arguments.createMap().apply {
+            putBoolean("success", true)
+        }
+
+    private fun failureResult(error: Throwable) =
+        Arguments.createMap().apply {
+            val pushError = error as? BrazePushUnregistrationException
+            putBoolean("success", false)
+            putString("message", error.message ?: "Failed to unregister Braze push")
+            putBoolean("isRetriable", pushError?.isRetriable == true)
+            pushError?.httpStatusCode?.let { putInt("httpStatusCode", it) }
+        }
+
     companion object {
         private const val CODE_INVALID_TOKEN = "INVALID_TOKEN"
         private const val CODE_SDK_UNAVAILABLE = "SDK_UNAVAILABLE"
-        private const val CODE_UNREGISTER_FAILED = "UNREGISTER_FAILED"
     }
 }

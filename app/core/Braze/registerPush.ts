@@ -1,6 +1,10 @@
 import { NativeModules, Platform } from 'react-native';
 import Logger from '../../util/Logger';
 import { hasTestOverrides } from '../../util/test/utils';
+import {
+  clearPendingBrazePushUnregistration,
+  runLatestBrazePushOperation,
+} from './pushRegistrationState';
 
 interface BrazePushNativeModule {
   registerPush: (fcmToken?: string) => Promise<void>;
@@ -39,13 +43,20 @@ export async function registerBrazePush(fcmToken: string): Promise<void> {
   }
 
   try {
-    if (Platform.OS === 'ios') {
-      await brazePushModule.registerPush();
-    } else if (Platform.OS === 'android') {
-      await brazePushModule.registerPush(fcmToken);
-    } else {
-      throw new Error(`Unsupported Braze push platform: ${Platform.OS}`);
-    }
+    await runLatestBrazePushOperation({
+      key: `register:${Platform.OS}:${Platform.OS === 'android' ? fcmToken : ''}`,
+      supersededResult: undefined,
+      operation: async () => {
+        await clearPendingBrazePushUnregistration();
+        if (Platform.OS === 'ios') {
+          await brazePushModule.registerPush();
+        } else if (Platform.OS === 'android') {
+          await brazePushModule.registerPush(fcmToken);
+        } else {
+          throw new Error(`Unsupported Braze push platform: ${Platform.OS}`);
+        }
+      },
+    });
     Logger.log('[Braze] Registered this device for Braze push');
   } catch (nativeError) {
     const error = toError(nativeError);

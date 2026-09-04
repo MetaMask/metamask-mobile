@@ -12,7 +12,7 @@ import {
 } from './push-utils';
 
 jest.mock('../../../Braze/unregisterPush', () => ({
-  unregisterBrazePush: jest.fn().mockResolvedValue(undefined),
+  unregisterBrazePush: jest.fn().mockResolvedValue(true),
 }));
 
 jest.mock('../../../../util/notifications/services/FCMService', () => ({
@@ -61,7 +61,7 @@ const setAppState = (state: AppStateStatus) => {
 describe('deleteRegToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(unregisterBrazePush).mockResolvedValue(undefined);
+    jest.mocked(unregisterBrazePush).mockResolvedValue(true);
     jest.mocked(FCMService.deleteRegToken).mockResolvedValue(true);
   });
 
@@ -76,6 +76,14 @@ describe('deleteRegToken', () => {
     ).toBeLessThan(
       jest.mocked(FCMService.deleteRegToken).mock.invocationCallOrder[0],
     );
+  });
+
+  it('deletes the FCM token while Braze unregistration is pending retry', async () => {
+    jest.mocked(unregisterBrazePush).mockResolvedValue(false);
+
+    await expect(deleteRegToken()).resolves.toBe(true);
+
+    expect(FCMService.deleteRegToken).toHaveBeenCalled();
   });
 
   it('does not delete the FCM token when Braze unregister fails', async () => {

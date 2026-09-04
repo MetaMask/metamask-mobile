@@ -14,6 +14,17 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
+const mockClearPendingBrazePushUnregistration = jest.fn();
+jest.mock('./pushRegistrationState', () => ({
+  clearPendingBrazePushUnregistration: () =>
+    mockClearPendingBrazePushUnregistration(),
+  runLatestBrazePushOperation: ({
+    operation,
+  }: {
+    operation: () => Promise<unknown>;
+  }) => operation(),
+}));
+
 const mockRegisterPush = jest.fn();
 const originalPlatform = Platform.OS;
 
@@ -23,6 +34,7 @@ describe('registerBrazePush', () => {
     NativeModules.BrazePushModule = {
       registerPush: mockRegisterPush,
     };
+    mockClearPendingBrazePushUnregistration.mockResolvedValue(undefined);
     mockRegisterPush.mockResolvedValue(undefined);
   });
 
@@ -42,6 +54,7 @@ describe('registerBrazePush', () => {
     await registerBrazePush('fcm-token');
 
     expect(mockRegisterPush).toHaveBeenCalledWith('fcm-token');
+    expect(mockClearPendingBrazePushUnregistration).toHaveBeenCalledTimes(1);
     expect(Logger.log).toHaveBeenCalledWith(
       '[Braze] Registered this device for Braze push',
     );

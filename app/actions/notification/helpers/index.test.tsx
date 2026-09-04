@@ -50,7 +50,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../core/Braze/unregisterPush', () => ({
-  unregisterBrazePush: jest.fn().mockResolvedValue(undefined),
+  unregisterBrazePush: jest.fn().mockResolvedValue(true),
 }));
 
 beforeEach(() => {
