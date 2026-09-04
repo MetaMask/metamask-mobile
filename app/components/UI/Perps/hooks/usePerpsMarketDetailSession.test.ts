@@ -387,7 +387,7 @@ describe('usePerpsMarketDetailSession', () => {
   });
 
   it.each([
-    ['provider', () => (mockProvider = 'myx')],
+    ['provider', () => (mockProvider = 'lighter')],
     ['network', () => (mockNetwork = 'mainnet')],
     ['HIP-3 configuration', () => (mockHip3ConfigVersion = 2)],
   ])(
