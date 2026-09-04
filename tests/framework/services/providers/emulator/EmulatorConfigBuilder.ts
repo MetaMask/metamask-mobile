@@ -88,6 +88,14 @@ export class EmulatorConfigBuilder {
     const androidMjpegServerPort = readOptionalPort(
       'ANDROID_MJPEG_SERVER_PORT',
     );
+    const iosWdaLocalPort =
+      platformName === Platform.IOS
+        ? readOptionalPort('IOS_WDA_LOCAL_PORT')
+        : undefined;
+    const iosMjpegServerPort =
+      platformName === Platform.IOS
+        ? readOptionalPort('IOS_MJPEG_SERVER_PORT')
+        : undefined;
 
     return {
       hostname: getAppiumHost(),
@@ -122,6 +130,12 @@ export class EmulatorConfigBuilder {
             }
           : {
               'appium:bundleId': this.project.use.app?.appId,
+              ...(iosWdaLocalPort === undefined
+                ? {}
+                : { 'appium:wdaLocalPort': iosWdaLocalPort }),
+              ...(iosMjpegServerPort === undefined
+                ? {}
+                : { 'appium:mjpegServerPort': iosMjpegServerPort }),
             }),
         platformName,
         'appium:newCommandTimeout': 300,

@@ -1602,7 +1602,6 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
-      android-device-pool-size: 3
     secrets: inherit
 
   appium-smoke-tests-ios:
