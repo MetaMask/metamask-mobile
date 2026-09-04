@@ -102,4 +102,21 @@ describe('OndoAfterHoursSheet', () => {
     );
     expect(queryByText('2h 30m')).toBeNull();
   });
+
+  it('renders custom title and confirm label when provided', () => {
+    const { getByText, getByTestId } = render(
+      <OndoAfterHoursSheet
+        onClose={mockOnClose}
+        nextOpenAt={null}
+        title="Market is closed"
+        content="The market that backs this token is currently closed."
+        confirmLabel="Done"
+        testID="ondo-market-closed-sheet"
+      />,
+    );
+
+    expect(getByTestId('ondo-market-closed-sheet-title')).toBeDefined();
+    expect(getByText('Market is closed')).toBeDefined();
+    expect(getByText('Done')).toBeDefined();
+  });
 });

@@ -1,6 +1,7 @@
 import {
   PERPS_CONSTANTS,
   PERFORMANCE_CONFIG,
+  type TwapOrder,
 } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -22,6 +23,7 @@ import {
   getPerpsLifecycleContext,
   settlePerpsForegroundOnSpan,
 } from './perpsLifecycleContext';
+import { getTwapOrderProviderId } from './twapOrderUtils';
 
 /**
  * Helpers for the Perps user-perceived CUF spans. These measure from the user
@@ -39,6 +41,7 @@ const CUF_META = {
   SYMBOL: 'symbol',
   WATCH: 'watch',
   ORDER_ID: 'orderId',
+  PROVIDER_ID: 'providerId',
   ORDER_IDS: 'orderIds',
   SNAPSHOT: 'snapshot',
   // True when the positions cache was not loaded at submit, so the pre-order
@@ -62,6 +65,7 @@ const PERPS_CUF_WATCH = {
   /** TP/SL update: the position's take-profit or stop-loss value changed. */
   TPSL_CHANGED: 'tpsl_changed',
   ORDER_ABSENT: 'order_absent',
+  TWAP_TERMINAL: 'twap_terminal',
   /** Limit place: the order rests in the orders stream OR fills into a position. */
   ORDER_PRESENT_OR_FILLED: 'order_present_or_filled',
   /** Edit: the order's resting limit price updated to the requested value. */
@@ -108,6 +112,7 @@ export function isPerpsFillRendered(
 
 /** Open CUF spans: unique op id -> metadata handed from starter to ender. */
 const pendingCufMeta = new Map<string, Record<string, TraceValue>>();
+const pendingCufEndListeners = new Map<string, () => void>();
 let cufOpCounter = 0;
 
 /** Mint a unique, greppable op id for a span start. */
@@ -172,6 +177,29 @@ export interface EndPerpsCufTraceOptions {
 }
 
 /**
+ * Register operation-local cleanup that runs whichever path ends the span.
+ * This is intentionally keyed by the unique op id so stream confirmation,
+ * timeout, request failure, and disconnect teardown all release the same
+ * caller-owned state without retaining successful operations until unmount.
+ */
+export function registerPerpsCufTraceEndListener(
+  opId: string,
+  listener: () => void,
+): () => void {
+  if (!pendingCufMeta.has(opId)) {
+    listener();
+    return () => undefined;
+  }
+
+  pendingCufEndListeners.set(opId, listener);
+  return () => {
+    if (pendingCufEndListeners.get(opId) === listener) {
+      pendingCufEndListeners.delete(opId);
+    }
+  };
+}
+
+/**
  * End a CUF span once the flow has rendered. Idempotent: no-ops unless the op
  * is still pending, so a fallback end after a stream end is harmless, and a
  * fallback for a superseded op cannot touch a newer one (distinct op ids).
@@ -186,6 +214,9 @@ export function endPerpsCufTrace({
     return;
   }
   pendingCufMeta.delete(id);
+  const endListener = pendingCufEndListeners.get(id);
+  pendingCufEndListeners.delete(id);
+  endListener?.();
   const name = meta[CUF_META.NAME] as TraceName;
   DevLogger?.log?.(
     `${PERFORMANCE_CONFIG.LoggingMarkers.SentryPerformance} PerpsCUF: ${name} completed ${JSON.stringify(data ?? {})}`,
@@ -355,6 +386,7 @@ export function clearPendingPerpsCufTraces(
 /** Test-only: drop all pending spans and place-order state between tests. */
 export function resetPerpsCufTraceForTests(): void {
   pendingCufMeta.clear();
+  pendingCufEndListeners.clear();
   placeOrderRendered = null;
   placeOrderResolver = null;
   placeOrderOpId = null;
@@ -459,6 +491,21 @@ export function watchPerpsCufOrderAbsent(opId: string, orderId: string): void {
   setPerpsCufMeta(opId, {
     [CUF_META.WATCH]: PERPS_CUF_WATCH.ORDER_ABSENT,
     [CUF_META.ORDER_ID]: orderId,
+    [CUF_META.AWAIT_ACCEPT]: true,
+  });
+}
+
+/** Watch reconciled TWAP data for a schedule to become terminal or disappear. */
+export function watchPerpsCufTwapTerminal(
+  opId: string,
+  orderId: string,
+  providerId?: TwapOrder['providerId'],
+): void {
+  const normalizedProviderId = getTwapOrderProviderId({ orderId, providerId });
+  setPerpsCufMeta(opId, {
+    [CUF_META.WATCH]: PERPS_CUF_WATCH.TWAP_TERMINAL,
+    [CUF_META.ORDER_ID]: orderId,
+    [CUF_META.PROVIDER_ID]: normalizedProviderId,
     [CUF_META.AWAIT_ACCEPT]: true,
   });
 }
@@ -806,6 +853,54 @@ export function handlePerpsCufOrdersDelivered(
   if (flushThrottled && (toEnd.length > 0 || deferred)) {
     flushThrottled();
   }
+  for (const opId of toEnd) {
+    endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
+  }
+}
+
+interface PerpsCufTwapOrderLike {
+  orderId: string;
+  providerId?: TwapOrder['providerId'];
+  status: string;
+}
+
+/**
+ * Reconciled TWAP schedules just committed to the UI. Unlike ordinary cancel
+ * confirmation, this watches the TWAP lifecycle data rather than the resting
+ * orders stream, which never contains venue-native schedule IDs.
+ */
+export function handlePerpsCufTwapOrdersDelivered(
+  orders: readonly PerpsCufTwapOrderLike[] | null,
+): void {
+  if (!orders) {
+    return;
+  }
+
+  const toEnd: string[] = [];
+  for (const opId of pendingOpIdsForName(
+    TraceName.PerpsTerminateTwapToConfirmation,
+  )) {
+    const meta = pendingCufMeta.get(opId);
+    const orderId = meta?.[CUF_META.ORDER_ID];
+    const providerId = meta?.[CUF_META.PROVIDER_ID];
+    if (
+      meta?.[CUF_META.WATCH] !== PERPS_CUF_WATCH.TWAP_TERMINAL ||
+      typeof orderId !== 'string'
+    ) {
+      continue;
+    }
+
+    const schedule = orders.find(
+      (order) =>
+        order.orderId === orderId &&
+        (typeof providerId !== 'string' ||
+          getTwapOrderProviderId(order) === providerId),
+    );
+    if (!schedule || schedule.status !== 'active') {
+      confirmOrDefer(opId, meta, toEnd);
+    }
+  }
+
   for (const opId of toEnd) {
     endPerpsCufTrace({ id: opId, data: { ...STREAM_END_DATA } });
   }

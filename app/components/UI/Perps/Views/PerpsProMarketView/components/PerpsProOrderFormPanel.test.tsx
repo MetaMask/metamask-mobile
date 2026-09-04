@@ -92,8 +92,8 @@ const DEFAULT_SCALE_ORDER: PerpsProScaleOrderModel = {
   onSizeSkewBlur: jest.fn(),
   onSizeSkewInfoPress: jest.fn(),
   rungs: [],
-  marginRange: PERPS_CONSTANTS.FallbackPriceDisplay,
-  liquidationRange: PERPS_CONSTANTS.FallbackPriceDisplay,
+  margin: PERPS_CONSTANTS.FallbackPriceDisplay,
+  liquidationPrice: PERPS_CONSTANTS.FallbackPriceDisplay,
   fees: PERPS_CONSTANTS.FallbackPriceDisplay,
 };
 
@@ -714,12 +714,12 @@ describe('PerpsProOrderFormPanel', () => {
     );
   });
 
-  it('omits TWAP and Scale when controller v13 resolves a MYX route', () => {
+  it('omits TWAP and Scale when the controller resolves a Lighter route', () => {
     mockUsePerpsProvider.mockReturnValue({
       isLoadingOrderCapabilities: false,
       orderCapabilities: {
         status: 'ready',
-        providerId: 'myx',
+        providerId: 'lighter',
         supportedStrategies: ['twap', 'scale'],
       },
       supportsTwapOrders: true,

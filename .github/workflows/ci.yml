@@ -447,13 +447,29 @@ jobs:
             exit 0
           fi
           echo "has-advisories=true" >> "$GITHUB_OUTPUT"
-          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge."
+          echo "::warning title=Dependency audit::Production dependency advisories found at moderate severity or above. This does not block merge. The audit owner is being notified by the dependency-audit-escalation workflow."
           {
             echo '### Dependency audit'
             echo
             echo 'Advisories found at moderate severity or above. This check is advisory only and does not block merge.'
+            echo
+            echo "The [dependency-audit-escalation](../actions/workflows/dependency-audit-escalation.yml) workflow owns triage and tracking-issue escalation."
           } >> "$GITHUB_STEP_SUMMARY"
           exit 0
+
+  # Only runs when the job above actually found something — most ci.yml runs
+  # (the overwhelming majority) skip this entirely, so there's no fixed cron
+  # spinning up a fresh checkout+install+audit for nothing.
+  dependency-audit-escalation:
+    name: Dependency audit escalation
+    needs:
+      - dependency-audit
+    if: ${{ needs.dependency-audit.outputs.has-advisories == 'true' }}
+    permissions:
+      contents: read
+      issues: write
+    uses: ./.github/workflows/dependency-audit-escalation.yml
+    secrets: inherit
 
   js-bundle-size-check:
     # Stays on 8x16 (MCWP-813). It is the thinnest margin on the profile — 14.3 GB
@@ -1706,6 +1722,7 @@ jobs:
           '["ALL"]'
         }}
       changed_spec_files: ${{ needs.get_requirements.outputs.changed_spec_files }}
+      android-device-pool-size: 3
     secrets: inherit
 
   appium-smoke-tests-ios:

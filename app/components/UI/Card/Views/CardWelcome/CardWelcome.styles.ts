@@ -78,6 +78,9 @@ const createStyles = (theme: Theme, dimensions: WindowDimensions) => {
       paddingVertical: scaleVertical(16),
       zIndex: 2,
     },
+    hiddenText: {
+      opacity: 0,
+    },
     title: {
       fontFamily: 'MMPoly-Regular',
       fontWeight: '400',
