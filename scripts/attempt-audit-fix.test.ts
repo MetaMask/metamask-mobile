@@ -8,7 +8,7 @@
 const mockExecFileSync = jest.fn();
 jest.mock('child_process', () => ({ execFileSync: (...args: unknown[]) => mockExecFileSync(...args) }));
 
-import { parseAuditNdjson, parseYarnWhy, reverifyFixedBatch } from './attempt-audit-fix';
+import { isAdvisoryCleared, parseAuditNdjson, parseYarnWhy, reverifyFixedBatch } from './attempt-audit-fix';
 
 afterEach(() => {
   mockExecFileSync.mockReset();
@@ -47,6 +47,49 @@ describe('parseAuditNdjson', () => {
     const raw = ndjsonLine({ value: 'browserify-sign', children: { ID: 1094464 } });
 
     expect(parseAuditNdjson(raw)).toEqual([{ pkg: 'browserify-sign', id: '1094464' }]);
+  });
+});
+
+describe('isAdvisoryCleared', () => {
+  function throwWithStdio(stdout: string, stderr: string): never {
+    const error = new Error('command failed') as Error & { stdout?: string; stderr?: string };
+    error.stdout = stdout;
+    error.stderr = stderr;
+    throw error;
+  }
+
+  it('fails closed (not cleared) when the audit errors with genuinely no stdout', () => {
+    mockExecFileSync.mockImplementation(() => throwWithStdio('', ''));
+
+    expect(isAdvisoryCleared('lodash', 'GHSA-1')).toBe(false);
+  });
+
+  it('fails closed when an infra/network error writes only to stderr, not stdout', () => {
+    // Regression test: an infra failure almost always writes *something* to
+    // stderr (e.g. a registry FetchError) even though stdout — the only
+    // thing that ever contains real advisory data — is empty. This must
+    // still fail closed instead of reading as "no advisories remain".
+    mockExecFileSync.mockImplementation(() => throwWithStdio('', 'FetchError: request to https://registry.npmjs.org/ failed'));
+
+    expect(isAdvisoryCleared('lodash', 'GHSA-1')).toBe(false);
+  });
+
+  it('reports cleared when the re-audit fails (other advisories remain) but this id is not in stdout', () => {
+    mockExecFileSync.mockImplementation(() => throwWithStdio(ndjsonLine({ value: 'axios', children: { ID: 'GHSA-2' } }), ''));
+
+    expect(isAdvisoryCleared('lodash', 'GHSA-1')).toBe(true);
+  });
+
+  it('reports not cleared when the id is still present in stdout', () => {
+    mockExecFileSync.mockImplementation(() => throwWithStdio(ndjsonLine({ value: 'lodash', children: { ID: 'GHSA-1' } }), ''));
+
+    expect(isAdvisoryCleared('lodash', 'GHSA-1')).toBe(false);
+  });
+
+  it('reports cleared on a clean (exit 0) re-audit', () => {
+    mockExecFileSync.mockReturnValue('');
+
+    expect(isAdvisoryCleared('lodash', 'GHSA-1')).toBe(true);
   });
 });
 

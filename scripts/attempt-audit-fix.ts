@@ -100,16 +100,21 @@ const ANALYZER_ENTRY = '.ai-analyzer-action/src/index.ts';
 // produce the NDJSON this script re-checks against.
 const AUDIT_JSON_ARGS = ['audit:ci', '--json'];
 
-function tryShQuiet(cmd: string, args: string[]): { ok: boolean; output: string } {
+function tryShQuiet(cmd: string, args: string[]): { ok: boolean; output: string; stdout: string } {
   try {
-    const output = execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-    return { ok: true, output };
+    const stdout = execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    return { ok: true, output: stdout, stdout };
   } catch (error) {
-    const output =
-      error && typeof error === 'object' && 'stdout' in error
-        ? String((error as { stdout?: string }).stdout || '') + String((error as { stderr?: string }).stderr || '')
-        : String(error);
-    return { ok: false, output };
+    const hasStdio = error && typeof error === 'object' && 'stdout' in error;
+    const stdout = hasStdio ? String((error as { stdout?: string }).stdout || '') : '';
+    const stderr = hasStdio ? String((error as { stderr?: string }).stderr || '') : '';
+    // `output` (stdout+stderr, or the raw error as a last resort) is for
+    // human-facing logging only — anything that needs to fail closed on a
+    // real command failure (see isAdvisoryCleared below) must check `stdout`
+    // alone, since infra/network errors almost always write *something* to
+    // stderr, which would otherwise make `output` look non-empty even when
+    // nothing real was ever parsed from it.
+    return { ok: false, output: hasStdio ? stdout + stderr : String(error), stdout };
   }
 }
 
@@ -140,17 +145,20 @@ export function parseAuditNdjson(raw: string): AuditAdvisory[] {
 }
 
 /** Re-runs the audit and returns true if `id` no longer appears for `pkg`. */
-function isAdvisoryCleared(pkg: string, id: string): boolean {
+export function isAdvisoryCleared(pkg: string, id: string): boolean {
   const result = tryShQuiet('yarn', AUDIT_JSON_ARGS);
   // `yarn npm audit` exits non-zero whenever ANY advisory remains anywhere in
   // the tree, not just this one — so result.ok === false is the expected,
   // parseable case for a batch with more than one advisory outstanding. Only
   // treat this as a real command failure (and therefore fail closed, i.e.
-  // NOT cleared) when it produced no output at all to parse, which is what a
-  // transient/infra failure looks like; otherwise a flaky audit run could
-  // silently mark a still-vulnerable advisory as fixed.
-  if (!result.ok && !result.output.trim()) return false;
-  const remaining = parseAuditNdjson(result.output);
+  // NOT cleared) when its stdout has no advisory data to parse, which is
+  // what a transient/infra failure looks like. Checking `stdout` alone (not
+  // `output`) matters here: an infra/network error almost always writes
+  // *something* to stderr, and `output` folds that in — checking it instead
+  // would make this "empty" check pass on exactly the failures it exists to
+  // catch, silently marking a still-vulnerable advisory as fixed.
+  if (!result.ok && !result.stdout.trim()) return false;
+  const remaining = parseAuditNdjson(result.stdout);
   return !remaining.some((advisory) => advisory.pkg === pkg && advisory.id === id);
 }
 
