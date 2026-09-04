@@ -9,6 +9,8 @@ import type { SectionRefreshHandle } from '../../types';
 export interface PerpsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  /** Resolved by the caller so the reported value matches the layout decision. */
+  isActivePerpsTrader?: boolean;
   /** Empty state content rendered when there are no positions or orders. */
   emptyStateContent?: 'tiles' | 'pills';
   /** Override the section title only while rendering empty state content. */
