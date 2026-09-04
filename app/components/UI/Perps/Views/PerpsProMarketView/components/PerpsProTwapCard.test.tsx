@@ -91,6 +91,9 @@ describe('PerpsProTwapCard', () => {
       screen.getByTestId(getPerpsProTwapMarketSelector('BTC')),
     ).toHaveTextContent('BTC');
     expect(
+      screen.getByTestId(getDefaultValueTestID(ids.TWAP_MARKET)),
+    ).toHaveTextContent('BTC');
+    expect(
       screen.getByTestId(getDefaultValueTestID(ids.TWAP_SIZE)),
     ).toHaveTextContent('10 BTC');
   });

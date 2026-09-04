@@ -257,15 +257,19 @@ function makeFiber(
     onPress?: () => void;
     disabled?: boolean;
     isDisabled?: boolean;
+    accessibilityState?: { disabled?: boolean };
   } = {},
 ): FiberNode {
-  const { testID, onPress, disabled, isDisabled, ...rest } = overrides;
+  const { testID, onPress, disabled, isDisabled, accessibilityState, ...rest } =
+    overrides;
   return {
     child: null,
     sibling: null,
     return: null,
     memoizedProps:
-      testID || onPress ? { testID, onPress, disabled, isDisabled } : null,
+      testID || onPress
+        ? { testID, onPress, disabled, isDisabled, accessibilityState }
+        : null,
     stateNode: null,
     ...rest,
   };
@@ -354,7 +358,9 @@ describe('findMeasurableStateNode', () => {
       } as FiberNode['stateNode'],
     });
 
-    expect(findMeasurableStateNode(fabricHost)).toBe(publicInstance);
+    const result = findMeasurableStateNode(fabricHost);
+
+    expect(result).toBe(publicInstance);
   });
 
   it('uses a measurable ancestor for a flattened host node', () => {
@@ -364,9 +370,9 @@ describe('findMeasurableStateNode', () => {
     const flattenedHost = makeFiber({ stateNode: null });
     flattenedHost.return = measurableParent;
 
-    expect(findMeasurableStateNode(flattenedHost)).toBe(
-      measurableParent.stateNode,
-    );
+    const result = findMeasurableStateNode(flattenedHost);
+
+    expect(result).toBe(measurableParent.stateNode);
   });
 });
 
@@ -741,21 +747,22 @@ describe('AgenticService.install', () => {
       expect(result.error).toContain('no-press');
     });
 
-    it.each([{ disabled: true }, { isDisabled: true }])(
-      'does not press a disabled component',
-      (disabledProps) => {
-        const onPress = jest.fn();
-        installFiberHook(
-          makeFiber({ testID: 'disabled-button', onPress, ...disabledProps }),
-        );
+    it.each([
+      { disabled: true },
+      { isDisabled: true },
+      { accessibilityState: { disabled: true } },
+    ])('does not press a disabled component', (disabledProps) => {
+      const onPress = jest.fn();
+      installFiberHook(
+        makeFiber({ testID: 'disabled-button', onPress, ...disabledProps }),
+      );
 
-        const result = bridge().pressTestId('disabled-button');
+      const result = bridge().pressTestId('disabled-button');
 
-        expect(result.ok).toBe(false);
-        expect(result.error).toContain('disabled');
-        expect(onPress).not.toHaveBeenCalled();
-      },
-    );
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('disabled');
+      expect(onPress).not.toHaveBeenCalled();
+    });
 
     it('handles deeply nested components', () => {
       const onPress = jest.fn();
@@ -807,8 +814,11 @@ describe('AgenticService.install', () => {
 
     it('scrolls near a testID anchor', () => {
       const scrollTo = jest.fn();
+      const publicInstance = { scrollTo } as FiberNode['stateNode'];
       const scrollChild = makeFiber({
-        stateNode: { scrollTo } as FiberNode['stateNode'],
+        stateNode: {
+          canonical: { publicInstance },
+        } as FiberNode['stateNode'],
       });
       const anchor = makeFiber({
         testID: 'my-list',
@@ -828,10 +838,13 @@ describe('AgenticService.install', () => {
 
     it('scrolls the nearest ancestor of a testID anchor', () => {
       const scrollTo = jest.fn();
+      const publicInstance = { scrollTo } as FiberNode['stateNode'];
       const anchor = makeFiber({ testID: 'list-row' });
       const scrollParent = makeFiber({
         child: anchor,
-        stateNode: { scrollTo } as FiberNode['stateNode'],
+        stateNode: {
+          canonical: { publicInstance },
+        } as FiberNode['stateNode'],
       });
       anchor.return = scrollParent;
       installFiberHook(makeFiber({ child: scrollParent }));

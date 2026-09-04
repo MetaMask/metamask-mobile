@@ -197,13 +197,17 @@ const PerpsProTwapCard = ({
                   alignItems={BoxAlignItems.Center}
                   twClassName="gap-1"
                 >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    testID={getPerpsProTwapMarketSelector(displaySymbol)}
-                  >
-                    {displaySymbol}
-                  </Text>
+                  <Box testID={getPerpsProTwapMarketSelector(displaySymbol)}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                      testID={getValueTestID(
+                        PerpsProMarketViewSelectorsIDs.TWAP_MARKET,
+                      )}
+                    >
+                      {displaySymbol}
+                    </Text>
+                  </Box>
                   <Tag
                     testID={getValueTestID(
                       PerpsProMarketViewSelectorsIDs.TWAP_DIRECTION_TAG,
