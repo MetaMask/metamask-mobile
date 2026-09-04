@@ -125,6 +125,12 @@ describe('ManualBackupStep2', () => {
     global.Math = Math;
   });
 
+  // [mcwp-474-tmp]
+  it('waits with a real timer', async () => {
+    await new Promise((r) => setTimeout(r, 50));
+    expect(true).toBe(true);
+  });
+
   describe('with mockWords', () => {
     beforeEach(() => {
       Platform.OS = 'ios';
