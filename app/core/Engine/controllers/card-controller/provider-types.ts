@@ -23,7 +23,6 @@ export enum CardProviderErrorCode {
   ServerError = 'server_error',
   Timeout = 'timeout',
   Network = 'network',
-  MoneyAccountLinkedToDifferentCard = 'money_account_linked_to_different_card',
   Unknown = 'unknown',
 }
 

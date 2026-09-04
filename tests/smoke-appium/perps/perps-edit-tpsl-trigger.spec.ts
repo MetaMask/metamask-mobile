@@ -10,7 +10,7 @@ import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsProMarketView from '../../page-objects/Perps/PerpsProMarketView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
-import { TestSuiteParams, Utilities } from '../../framework/index.js';
+import { TestSuiteParams } from '../../framework/index.js';
 import {
   beginPerpsSmokeTestPlaywright,
   buildPerpsSmokeFixture,
@@ -43,19 +43,12 @@ appiumTest.describe(SmokePerps('Perps - Edit TP/SL trigger'), () => {
           await PerpsMarketDetailsView.tapAutoCloseSection();
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
 
-          await PerpsE2EModifiers.updateMarketPriceServer(
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
-          );
-
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsMarketDetailsView.expectClosePositionButtonNotVisible();
-            },
+            () => PerpsMarketDetailsView.expectClosePositionButtonNotVisible(),
             {
-              interval: 1000,
-              timeout: 30000,
               description:
                 'wait for Close position to disappear after post-entry stop loss trigger',
             },
@@ -94,21 +87,15 @@ appiumTest.describe(SmokePerps('Perps Pro - Edit TP/SL trigger'), () => {
           );
           await PerpsOrderView.enterCustomStopLossTriggerPrice('2300');
 
-          await PerpsE2EModifiers.updateMarketPriceServer(
+          await PerpsE2EModifiers.waitForCloseAfterPricePush(
             commandQueueServer,
             PERPS_SMOKE_MARKET_SYMBOL,
             '2250.00',
-          );
-
-          await Utilities.executeWithRetry(
-            async () => {
-              await PerpsProMarketView.expectPositionRowNotVisible(
+            () =>
+              PerpsProMarketView.expectPositionRowNotVisible(
                 PERPS_SMOKE_MARKET_SYMBOL,
-              );
-            },
+              ),
             {
-              interval: 1000,
-              timeout: 30000,
               description:
                 'wait for Pro long position to close after post-entry stop loss trigger',
             },

@@ -673,6 +673,9 @@ export const getPerpsProTwapRowSelector = (
     orderId,
   );
 
+export const getPerpsProTwapMarketSelector = (symbol: string) =>
+  `${PerpsProMarketViewSelectorsIDs.TWAP_MARKET}-${symbol}`;
+
 export const getPerpsProTwapTerminateSelector = (
   providerId: string,
   orderId: string,

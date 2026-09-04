@@ -26,6 +26,10 @@
     "description_line2": "If you believe this is an error, contact support to request a review.",
     "contact_support": "Contact support"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
   },
@@ -3705,7 +3709,7 @@
       "fund_subtitle": "No one likes an empty wallet. Easily add funds to start trading.",
       "fund_primary": "Add funds",
       "trade_title": "Make your first trade",
-      "trade_subtitle": "Trade trending tokens across multiple networks  to grow your portfolio.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "Trade",
       "notifications_title": "Turn on notifications",
       "notifications_subtitle": "Stay up to date on shifts in the market to make the best moves for your portfolio.",
@@ -8126,7 +8130,6 @@
       "link_pending_title": "Linking your card",
       "link_success_title": "Your card is ready to use",
       "link_error": "Something went wrong linking your card",
-      "link_error_different_card": "This wallet is already linked to a different MetaMask Card",
       "unlink_pending_title": "Unlinking your card",
       "unlink_success_title": "Your card was unlinked",
       "unlink_error": "Something went wrong unlinking your card",
@@ -9381,7 +9384,9 @@
       "set_up": "Set up",
       "secret_recovery_phrase": "Secret Recovery Phrase",
       "back_up": "Back up",
-      "remove_account": "Remove account"
+      "remove_account": "Remove account",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Addresses",
@@ -9475,6 +9480,12 @@
       "search_placeholder": "Search networks",
       "no_networks_found": "No networks found",
       "no_networks_available": "No networks available"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -10164,8 +10175,7 @@
         "timeout_error": "Request timed out. Please check your connection and try again.",
         "server_error": "Server error. Please try again later.",
         "configuration_error": "Service is temporarily unavailable. Please try again later.",
-        "forbidden_error": "This action isn't available for your account.",
-        "money_account_linked_to_different_card": "This wallet is already linked to a different MetaMask Card. Unlink it from that card before linking it here."
+        "forbidden_error": "This action isn't available for your account."
       }
     },
     "card_forgot_password": {
