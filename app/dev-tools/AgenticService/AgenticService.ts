@@ -65,15 +65,9 @@ interface FiberNode {
     testID?: string;
     onPress?: (...args: unknown[]) => unknown;
     onChangeText?: (text: string) => void;
-    disabled?: boolean;
-    isDisabled?: boolean;
-    accessibilityState?: { disabled?: boolean };
     [key: string]: unknown;
   } | null;
   stateNode: {
-    canonical?: {
-      publicInstance?: FiberNode['stateNode'];
-    };
     scrollTo?: (opts: { y: number; animated: boolean }) => void;
     scrollToOffset?: (opts: { offset: number; animated: boolean }) => void;
     measure?: (
@@ -782,8 +776,7 @@ function tryScroll(
 ): boolean {
   let current: FiberNode | null = start;
   while (current) {
-    const sn =
-      current.stateNode?.canonical?.publicInstance ?? current.stateNode;
+    const sn = current.stateNode;
     if (sn) {
       if (typeof sn.scrollTo === 'function') {
         sn.scrollTo({ y: offset, animated });
@@ -835,30 +828,19 @@ function findUiTargetFiber(
 function findMeasurableStateNode(
   fiber: FiberNode | null,
 ): FiberNode['stateNode'] | null {
-  const resolveMeasurableStateNode = (node: FiberNode) => {
-    const stateNode = node.stateNode;
-    const publicInstance = stateNode?.canonical?.publicInstance ?? stateNode;
-    return publicInstance &&
-      (typeof publicInstance.measureInWindow === 'function' ||
-        typeof publicInstance.measure === 'function')
-      ? publicInstance
-      : null;
-  };
-
   let result: FiberNode['stateNode'] | null = null;
   walkFiber(fiber, (node) => {
-    result = resolveMeasurableStateNode(node);
-    if (result) {
+    const sn = node.stateNode;
+    if (
+      sn &&
+      (typeof sn.measureInWindow === 'function' ||
+        typeof sn.measure === 'function')
+    ) {
+      result = sn;
       return true;
     }
     return false;
   });
-
-  let ancestor = fiber?.return ?? null;
-  while (!result && ancestor) {
-    result = resolveMeasurableStateNode(ancestor);
-    ancestor = ancestor.return;
-  }
   return result;
 }
 
@@ -1162,31 +1144,18 @@ const AgenticService = {
         ),
       pressTestId: (testId: string) => {
         try {
-          let disabled = false;
           const found = walkFiberRoots((rootFiber) =>
             walkFiber(rootFiber, (f) => {
               if (
                 f.memoizedProps?.testID === testId &&
                 typeof f.memoizedProps?.onPress === 'function'
               ) {
-                disabled =
-                  f.memoizedProps.disabled === true ||
-                  f.memoizedProps.isDisabled === true ||
-                  f.memoizedProps.accessibilityState?.disabled === true;
-                if (disabled) return true;
                 f.memoizedProps.onPress();
                 return true;
               }
               return false;
             }),
           );
-          if (found && disabled) {
-            return {
-              ok: false,
-              testId,
-              error: `Component with testID="${testId}" is disabled`,
-            };
-          }
           if (found) return { ok: true, testId };
           return {
             ok: false,
@@ -1256,23 +1225,7 @@ const AgenticService = {
             if (scrollTestId) {
               const anchor = findFiberByTestId(rootFiber, scrollTestId);
               if (!anchor) return false;
-              if (tryScroll(anchor, offset, animated, false)) return true;
-              let ancestor = anchor.return;
-              while (ancestor) {
-                const stateNode =
-                  ancestor.stateNode?.canonical?.publicInstance ??
-                  ancestor.stateNode;
-                if (typeof stateNode?.scrollTo === 'function') {
-                  stateNode.scrollTo({ y: offset, animated });
-                  return true;
-                }
-                if (typeof stateNode?.scrollToOffset === 'function') {
-                  stateNode.scrollToOffset({ offset, animated });
-                  return true;
-                }
-                ancestor = ancestor.return;
-              }
-              return false;
+              return tryScroll(anchor, offset, animated, false);
             }
             return tryScroll(rootFiber, offset, animated);
           });
@@ -1702,7 +1655,6 @@ export {
   findFiberByTestId,
   walkFiberRoots,
   tryScroll,
-  findMeasurableStateNode,
   toAccountSummary,
 };
 export type { FiberNode, FiberRoot, ReactDevToolsHook, AgenticBridge };
