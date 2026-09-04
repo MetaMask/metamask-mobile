@@ -3,6 +3,7 @@ import AgenticService, {
   findFiberByTestId,
   walkFiberRoots,
   tryScroll,
+  findMeasurableStateNode,
   toAccountSummary,
   getFixtureMnemonicCount,
   getFixtureAccountNames,
@@ -254,14 +255,21 @@ function makeFiber(
   overrides: Partial<FiberNode> & {
     testID?: string;
     onPress?: () => void;
+    disabled?: boolean;
+    isDisabled?: boolean;
+    accessibilityState?: { disabled?: boolean };
   } = {},
 ): FiberNode {
-  const { testID, onPress, ...rest } = overrides;
+  const { testID, onPress, disabled, isDisabled, accessibilityState, ...rest } =
+    overrides;
   return {
     child: null,
     sibling: null,
     return: null,
-    memoizedProps: testID || onPress ? { testID, onPress } : null,
+    memoizedProps:
+      testID || onPress
+        ? { testID, onPress, disabled, isDisabled, accessibilityState }
+        : null,
     stateNode: null,
     ...rest,
   };
@@ -336,6 +344,35 @@ describe('findFiberByTestId', () => {
   it('returns null when testID not found', () => {
     const root = makeFiber({ child: makeFiber({ testID: 'other' }) });
     expect(findFiberByTestId(root, 'missing')).toBeNull();
+  });
+});
+
+describe('findMeasurableStateNode', () => {
+  it('resolves the public instance from a Fabric host state node', () => {
+    const publicInstance = {
+      measureInWindow: jest.fn(),
+    } as FiberNode['stateNode'];
+    const fabricHost = makeFiber({
+      stateNode: {
+        canonical: { publicInstance },
+      } as FiberNode['stateNode'],
+    });
+
+    const result = findMeasurableStateNode(fabricHost);
+
+    expect(result).toBe(publicInstance);
+  });
+
+  it('uses a measurable ancestor for a flattened host node', () => {
+    const measurableParent = makeFiber({
+      stateNode: { measureInWindow: jest.fn() } as FiberNode['stateNode'],
+    });
+    const flattenedHost = makeFiber({ stateNode: null });
+    flattenedHost.return = measurableParent;
+
+    const result = findMeasurableStateNode(flattenedHost);
+
+    expect(result).toBe(measurableParent.stateNode);
   });
 });
 
@@ -710,6 +747,23 @@ describe('AgenticService.install', () => {
       expect(result.error).toContain('no-press');
     });
 
+    it.each([
+      { disabled: true },
+      { isDisabled: true },
+      { accessibilityState: { disabled: true } },
+    ])('does not press a disabled component', (disabledProps) => {
+      const onPress = jest.fn();
+      installFiberHook(
+        makeFiber({ testID: 'disabled-button', onPress, ...disabledProps }),
+      );
+
+      const result = bridge().pressTestId('disabled-button');
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('disabled');
+      expect(onPress).not.toHaveBeenCalled();
+    });
+
     it('handles deeply nested components', () => {
       const onPress = jest.fn();
       const deep = makeFiber({ testID: 'deep', onPress });
@@ -760,8 +814,11 @@ describe('AgenticService.install', () => {
 
     it('scrolls near a testID anchor', () => {
       const scrollTo = jest.fn();
+      const publicInstance = { scrollTo } as FiberNode['stateNode'];
       const scrollChild = makeFiber({
-        stateNode: { scrollTo } as FiberNode['stateNode'],
+        stateNode: {
+          canonical: { publicInstance },
+        } as FiberNode['stateNode'],
       });
       const anchor = makeFiber({
         testID: 'my-list',
@@ -777,6 +834,28 @@ describe('AgenticService.install', () => {
 
       expect(result.ok).toBe(true);
       expect(scrollTo).toHaveBeenCalledWith({ y: 100, animated: false });
+    });
+
+    it('scrolls the nearest ancestor of a testID anchor', () => {
+      const scrollTo = jest.fn();
+      const publicInstance = { scrollTo } as FiberNode['stateNode'];
+      const anchor = makeFiber({ testID: 'list-row' });
+      const scrollParent = makeFiber({
+        child: anchor,
+        stateNode: {
+          canonical: { publicInstance },
+        } as FiberNode['stateNode'],
+      });
+      anchor.return = scrollParent;
+      installFiberHook(makeFiber({ child: scrollParent }));
+
+      const result = bridge().scrollView({
+        testId: 'list-row',
+        offset: 500,
+      });
+
+      expect(result.ok).toBe(true);
+      expect(scrollTo).toHaveBeenCalledWith({ y: 500, animated: false });
     });
 
     it('returns error when no scrollable found', () => {
