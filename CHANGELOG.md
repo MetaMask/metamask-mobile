@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.10.1]
 
+### Removed
+
+- Removed the check that prevented linking a Money Account to a MetaMask Card when it appeared to be already linked to a different card (#35698)
+
 ## [8.10.0]
 
 ### Added
