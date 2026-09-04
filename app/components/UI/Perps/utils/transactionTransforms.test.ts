@@ -96,6 +96,46 @@ describe('transactionTransforms', () => {
         expect(result[0].direction).toBe('Close Long');
       });
 
+      it('preserves the provider on an aggregated Lighter fill', () => {
+        const firstFill = createFill({
+          direction: 'Sell',
+          pnl: '0',
+          providerId: 'lighter',
+        });
+        const secondFill = createFill({
+          orderId: 'order-2',
+          direction: 'Sell',
+          pnl: '0',
+          providerId: 'lighter',
+          timestamp: 1700000000200,
+        });
+
+        const result = aggregateFillsByTimestamp([firstFill, secondFill]);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].providerId).toBe('lighter');
+      });
+
+      it('does not aggregate fills from different providers', () => {
+        const lighterFill = createFill({
+          direction: 'Sell',
+          providerId: 'lighter',
+        });
+        const hyperliquidFill = createFill({
+          orderId: 'order-2',
+          direction: 'Sell',
+          providerId: 'hyperliquid',
+          timestamp: 1700000000200,
+        });
+
+        const result = aggregateFillsByTimestamp([
+          lighterFill,
+          hyperliquidFill,
+        ]);
+
+        expect(result).toHaveLength(2);
+      });
+
       it('aggregates split take profit fills into single fill', () => {
         const fill1 = createFill({
           orderId: 'tp-order-1',
@@ -487,7 +527,7 @@ describe('transactionTransforms', () => {
       detailedOrderType: 'Market',
     };
 
-    it('classifies a Buy fill carrying realized PnL as a close with PnL display', () => {
+    it('classifies a Lighter Buy carrying realized PnL as a close with PnL display', () => {
       // Side-only venues (Lighter) can report a short being closed as a
       // plain Buy with the realized pnl attached; it must not be
       // misclassified as a pure open that only shows the fee.
@@ -496,6 +536,7 @@ describe('transactionTransforms', () => {
         direction: 'Buy',
         pnl: '-0.012901',
         fee: '0',
+        providerId: 'lighter' as const,
       };
 
       const result = transformFillsToTransactions([lighterBuyClose]);
@@ -505,6 +546,42 @@ describe('transactionTransforms', () => {
       expect(result[0].title).toBe('Bought');
       expect(result[0].fill?.amount).toBe('-$0.01');
       expect(result[0].fill?.isPositive).toBe(false);
+    });
+
+    it('keeps a HyperLiquid Buy carrying PnL on the opening fee path', () => {
+      const hyperliquidBuy = {
+        ...mockFill,
+        direction: 'Buy',
+        pnl: '10',
+        fee: '2',
+        providerId: 'hyperliquid' as const,
+      };
+
+      const result = transformFillsToTransactions([hyperliquidBuy]);
+
+      expect(result[0].category).toBe('position_open');
+      expect(result[0].fill?.amount).toBe('-$2.00');
+    });
+
+    it('keeps an aggregated zero-PnL Lighter Sell neutral', () => {
+      const firstSell = {
+        ...mockFill,
+        orderId: 'sell-1',
+        direction: 'Sell',
+        pnl: '0',
+        fee: '1',
+        providerId: 'lighter' as const,
+      };
+      const secondSell = {
+        ...firstSell,
+        orderId: 'sell-2',
+        timestamp: mockFill.timestamp + 100,
+      };
+
+      const result = transformFillsToTransactions([firstSell, secondSell]);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].category).toBe('trade');
     });
 
     it('keeps a zero-PnL Buy fill an open on the fee display path', () => {

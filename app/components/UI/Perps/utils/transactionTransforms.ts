@@ -71,6 +71,7 @@ function getCloseDirectionForAggregation(
  *
  * Aggregation criteria:
  * - Same asset symbol
+ * - Same provider
  * - Same timestamp (truncated to the same second)
  * - Same close direction (Close Long, Close Short, Sell, or Auto-Deleveraging)
  *
@@ -92,7 +93,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   // Array to preserve non-aggregatable fills in order
   const nonAggregatableFills: OrderFill[] = [];
 
-  // Group fills by asset + timestamp (truncated to second) + close direction
+  // Group fills by provider + asset + timestamp (truncated to second) + close direction
   for (const fill of fills) {
     const closeDirection = getCloseDirectionForAggregation(fill.direction);
 
@@ -102,9 +103,9 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       continue;
     }
 
-    // Create aggregation key: asset + timestamp (truncated to second) + close direction
+    // Create aggregation key: provider + asset + timestamp + close direction
     const timestampSecond = Math.floor(fill.timestamp / 1000);
-    const aggregationKey = `${fill.symbol}-${timestampSecond}-${closeDirection}`;
+    const aggregationKey = `${fill.providerId ?? 'unknown'}-${fill.symbol}-${timestampSecond}-${closeDirection}`;
 
     const existingGroup = aggregationMap.get(aggregationKey);
     if (existingGroup) {
@@ -187,6 +188,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       liquidation: aggregatedLiquidation,
       orderType: firstFill.orderType,
       detailedOrderType: aggregatedDetailedOrderType,
+      providerId: firstFill.providerId,
     };
 
     aggregatedFills.push(aggregatedFill);
@@ -338,19 +340,24 @@ export function transformFillsToTransactions(
         .absoluteValue()
         .toString();
     }
-    // Side-only venues (e.g. Lighter) report fills as Buy/Sell with the
-    // realized PnL attached: a Buy that reduces a short realizes PnL just
-    // like a Close does. Route any fill carrying nonzero PnL through the
-    // PnL display path so it is never misclassified as a pure open.
-    const hasRealizedPnl = !BigNumber(fill.pnl || 0).isZero();
+    // Lighter reports fills as Buy/Sell with realized PnL attached: a Buy
+    // that reduces a short realizes PnL just like a Close does. Keep this
+    // heuristic provider-scoped so HyperLiquid Buy retains spot semantics.
+    const hasLighterRealizedPnl =
+      fill.providerId === 'lighter' && !BigNumber(fill.pnl || 0).isZero();
     // A zero-PnL side-only Lighter fill is genuinely ambiguous (a
     // break-even reduction and an add both fit): present it as a neutral
     // trade instead of guessing open (Buy) or close (Sell). HyperLiquid's
     // Buy/Sell keeps its spot semantics.
     const isAmbiguousSideOnly =
-      fill.providerId === 'lighter' && (isBuy || isSell) && !hasRealizedPnl;
+      fill.providerId === 'lighter' &&
+      (isBuy || isSell) &&
+      !hasLighterRealizedPnl;
     // Calculate display amount based on action type
-    if (isAmbiguousSideOnly || ((isOpened || isBuy) && !hasRealizedPnl)) {
+    if (
+      isAmbiguousSideOnly ||
+      ((isOpened || isBuy) && !hasLighterRealizedPnl)
+    ) {
       // For opening positions or buying: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
@@ -360,7 +367,7 @@ export function transformFillsToTransactions(
       isSell ||
       isFlipped ||
       isAutoDeleveraging ||
-      hasRealizedPnl
+      hasLighterRealizedPnl
     ) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
@@ -427,7 +434,7 @@ export function transformFillsToTransactions(
       // Lighter fill is ambiguous and stays a neutral trade.
       category: isAmbiguousSideOnly
         ? 'trade'
-        : (isOpened || isBuy) && !hasRealizedPnl
+        : (isOpened || isBuy) && !hasLighterRealizedPnl
           ? 'position_open'
           : 'position_close',
       title,
