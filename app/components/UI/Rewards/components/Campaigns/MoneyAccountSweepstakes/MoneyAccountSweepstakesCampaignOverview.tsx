@@ -233,56 +233,58 @@ const MoneyAccountSweepstakesCampaignOverview: React.FC<
             </Text>
           )}
           <Box twClassName="border-t border-border-muted" />
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            testID={
-              MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
-            }
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.balanceTitle}
-            </Text>
-            {showMoneyAccountBalanceSkeleton ? (
-              <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
-            ) : (
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {moneyAccountBalanceDisplay}
-              </Text>
-            )}
-          </Box>
-          {lastCheckedAt !== null && (
+          <Box twClassName="gap-1">
             <Box
               alignItems={BoxAlignItems.Center}
               flexDirection={BoxFlexDirection.Row}
               justifyContent={BoxJustifyContent.Between}
               testID={
-                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.MONEY_ACCOUNT_BALANCE_ROW
               }
             >
               <Text
-                variant={TextVariant.BodyMd}
+                variant={TextVariant.BodySm}
                 color={TextColor.TextAlternative}
               >
-                {strings('rewards.campaign_details.last_checked_at')}
+                {localizedText.balanceTitle}
               </Text>
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {lastCheckedAt}
-              </Text>
+              {showMoneyAccountBalanceSkeleton ? (
+                <Skeleton style={tw.style('h-5 w-20 rounded-md')} />
+              ) : (
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {moneyAccountBalanceDisplay}
+                </Text>
+              )}
             </Box>
-          )}
+            {lastCheckedAt !== null && (
+              <Box
+                alignItems={BoxAlignItems.Center}
+                flexDirection={BoxFlexDirection.Row}
+                justifyContent={BoxJustifyContent.Between}
+                testID={
+                  MONEY_ACCOUNT_SWEEPSTAKES_CAMPAIGN_OVERVIEW_TEST_IDS.LAST_CHECKED_ROW
+                }
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {strings('rewards.campaign_details.last_checked_at')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {lastCheckedAt}
+                </Text>
+              </Box>
+            )}
+          </Box>
           {children}
         </Box>
       </Box>
