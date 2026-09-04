@@ -349,7 +349,7 @@
     "@metamask/money-account-controller": "^1.0.0",
     "@metamask/money-account-upgrade-controller": "^3.0.0",
     "@metamask/money-account-utils": "^1.0.0",
-    "@metamask/multichain-account-service": "^13.0.1",
+    "@metamask/multichain-account-service": "^13.0.2",
     "@metamask/multichain-api-client": "^0.11.0",
     "@metamask/multichain-api-middleware": "^4.0.1",
     "@metamask/multichain-network-controller": "^3.2.3",

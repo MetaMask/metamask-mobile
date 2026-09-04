@@ -12,7 +12,6 @@ import { Messenger } from '@metamask/messenger';
 import {
   QrSyncPhases,
   QrSyncProvisioningStatuses,
-  QrSyncSecretTypes,
   QrSyncSyncFlows,
 } from './constants';
 import {
@@ -45,14 +44,23 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     mockHasTestOverrides.mockReturnValue(true);
   });
 
-  it('sets awaiting_password state for a primary mnemonic', () => {
+  it('computes the wallet payload ID matching the entropy-derived ID for the test mnemonic', async () => {
+    const controller = buildController();
+
+    await controller.applyTestSyncReadyPayload({ mnemonic: TEST_MNEMONIC });
+
+    expect(controller.state.pendingPayload?.wallets[0].id).toBe(
+      'wallet:entropy:mnemonic:94cc3e86-bcfe-43b6-8be2-d8a66fc55070',
+    );
+  });
+
+  it('sets awaiting_password state and stores AccountTreePayload for new-user', async () => {
     const controller = buildController(() => false);
 
-    controller.applyTestSyncReadyPayload({
+    await controller.applyTestSyncReadyPayload({
       mnemonic: TEST_MNEMONIC,
       walletName: 'Extension Wallet',
       accountName: 'Synced Account',
-      isPrimary: true,
     });
 
     expect(controller.state.phase).toBe(QrSyncPhases.REVIEWING_IMPORT);
@@ -60,85 +68,63 @@ describe('QrSyncController.applyTestSyncReadyPayload', () => {
     expect(controller.state.provisioningStatus).toBe(
       QrSyncProvisioningStatuses.AWAITING_PASSWORD,
     );
-    expect(controller.state.pendingSecretImports).toEqual([
-      {
-        index: 0,
-        type: QrSyncSecretTypes.MNEMONIC,
-        value: TEST_MNEMONIC,
-        isPrimary: true,
-      },
-    ]);
-    expect(controller.state.provisioningMetadata?.entries[0]).toMatchObject({
-      name: 'Extension Wallet',
-      groups: [{ groupIndex: 0, name: 'Synced Account' }],
+    expect(controller.state.pendingPayload).toMatchObject({
+      version: 1,
+      wallets: [
+        {
+          type: 'mnemonic',
+          value: expect.any(Array),
+          metadata: { name: 'Extension Wallet' },
+          groups: [{ groupIndex: 0, metadata: { name: 'Synced Account' } }],
+        },
+      ],
     });
   });
 
-  it('uses default wallet and account names when omitted', () => {
+  it('uses default wallet and account names when omitted', async () => {
     const controller = buildController(() => true);
 
-    controller.applyTestSyncReadyPayload({
+    await controller.applyTestSyncReadyPayload({
       mnemonic: `  ${TEST_MNEMONIC}  `,
     });
 
     expect(controller.state.syncFlow).toBe(QrSyncSyncFlows.EXISTING_USER);
-    expect(controller.state.pendingSecretImports?.[0]).toMatchObject({
-      value: TEST_MNEMONIC,
-      isPrimary: true,
-    });
-    expect(controller.state.provisioningMetadata?.entries[0]).toMatchObject({
-      name: 'Extension Wallet',
-      groups: [{ groupIndex: 0, name: 'Account 1' }],
+    expect(controller.state.pendingPayload?.wallets[0]).toMatchObject({
+      type: 'mnemonic',
+      value: expect.any(Array),
+      metadata: { name: 'Extension Wallet' },
+      groups: [{ groupIndex: 0, metadata: { name: 'Account 1' } }],
     });
   });
 
-  it('accepts non-primary mnemonic when onboarding is already completed', () => {
-    const controller = buildController(() => true);
-
-    controller.applyTestSyncReadyPayload({
-      mnemonic: TEST_MNEMONIC,
-      isPrimary: false,
-      walletName: 'Secondary',
-      accountName: 'Extra',
-    });
-
-    expect(controller.state.pendingSecretImports?.[0]?.isPrimary).toBe(false);
-    expect(controller.state.provisioningMetadata?.entries[0]).toMatchObject({
-      isPrimary: false,
-      name: 'Secondary',
-      groups: [{ groupIndex: 0, name: 'Extra' }],
-    });
-  });
-
-  it('rejects onboarding payloads without a primary mnemonic', () => {
+  it('rejects onboarding payloads without a primary mnemonic value', async () => {
     const controller = buildController(() => false);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
-        mnemonic: TEST_MNEMONIC,
-        isPrimary: false,
+        mnemonic: '',
       }),
-    ).toThrow(/primary mnemonic/);
+    ).rejects.toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects empty mnemonic payloads', () => {
+  it('rejects empty mnemonic payloads', async () => {
     const controller = buildController(() => true);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
         mnemonic: '   ',
       }),
-    ).toThrow(/non-empty mnemonic/);
+    ).rejects.toThrow(/non-empty mnemonic/);
   });
 
-  it('rejects when HAS_TEST_OVERRIDES is disabled', () => {
+  it('rejects when HAS_TEST_OVERRIDES is disabled', async () => {
     mockHasTestOverrides.mockReturnValue(false);
     const controller = buildController(() => true);
 
-    expect(() =>
+    await expect(
       controller.applyTestSyncReadyPayload({
         mnemonic: TEST_MNEMONIC,
       }),
-    ).toThrow(/HAS_TEST_OVERRIDES/);
+    ).rejects.toThrow(/HAS_TEST_OVERRIDES/);
   });
 });

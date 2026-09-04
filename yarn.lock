@@ -39805,7 +39805,7 @@ __metadata:
     "@metamask/money-account-controller": "npm:^1.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^3.0.0"
     "@metamask/money-account-utils": "npm:^1.0.0"
-    "@metamask/multichain-account-service": "npm:^13.0.1"
+    "@metamask/multichain-account-service": "npm:^13.0.2"
     "@metamask/multichain-api-client": "npm:^0.11.0"
     "@metamask/multichain-api-middleware": "npm:^4.0.1"
     "@metamask/multichain-network-controller": "npm:^3.2.3"

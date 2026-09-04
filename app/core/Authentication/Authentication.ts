@@ -264,6 +264,11 @@ class AuthenticationService {
       },
     );
 
+    // Force init the account-tree after creating the wallet, so this wallet will appear in the tree (before
+    // importing the remaining accounts from the payload).
+    await AccountTreeInitService.initializeAccountTree();
+    await MultichainAccountService.init();
+
     password = this.wipeSensitiveData();
     seed = this.wipeSensitiveData();
     return wallet.entropySource;
@@ -630,19 +635,12 @@ class AuthenticationService {
     isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      const primaryEntropySource = await this.newWalletVaultAndRestore(
-        password,
-        parsedSeed,
-        clearEngine,
-      );
+      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
 
       await this.clearSessionScopedProviderTokens();
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichPrimaryProvisioningEntry(
-          primaryEntropySource,
-        );
-        await Engine.context.QrSyncController.importRemainingSecrets();
+        await Engine.context.QrSyncController.finalizeVaultCreation();
       }
 
       await this.storePassword(password, authData.currentAuthType, true);
