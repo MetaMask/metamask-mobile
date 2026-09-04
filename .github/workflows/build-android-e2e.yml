@@ -83,7 +83,7 @@ jobs:
       YARN_ENABLE_GLOBAL_CACHE: 'true' # Enable Yarn global cache for faster installs
       E2E_BUILD_METADATA_ARTIFACT: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-android-build-metadata
     outputs:
-      apk-uploaded: ${{ steps.upload-apk-namespace.outcome == 'success' || steps.upload-apk.outcome == 'success' }}
+      apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       apk-target-path: ${{ steps.determine-target-paths.outputs.apk-target-path }}
       test-apk-target-path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}
       artifact_name: ${{ steps.determine-target-paths.outputs.artifact_name }}
@@ -615,36 +615,12 @@ jobs:
       # donor leaves the job without a test APK, so it falls through to a full build.
       - name: Build Android E2E APKs
         if: ${{ steps.gate.outputs.needs-native-build == 'true' && !(steps.download-late-apk.outcome == 'success' && steps.download-late-test-apk.outcome == 'success') }}
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
-        with:
-          timeout_minutes: 55
-          max_attempts: 2
-          retry_wait_seconds: 60
-          command: |
-            # The runner image only ships NDK 26; AGP auto-downloads the pinned
-            # NDK (android/build.gradle ndkVersion) during configuration. A failed
-            # download leaves a corrupt zip / partial ndk/<version> dir ("Archive
-            # is not a ZIP archive" → InstallFailedException), which poisons the
-            # next attempt. Clear incomplete installs and SDK temp zips before
-            # each attempt — same pattern as .github/workflows/build.yml.
-            SDK_ROOT="${ANDROID_SDK_ROOT:-/opt/android-sdk}"
-            NDK_ROOT="$SDK_ROOT/ndk"
-            if [ -d "$NDK_ROOT" ]; then
-              for ndk_dir in "$NDK_ROOT"/*; do
-                if [ -d "$ndk_dir" ] && [ ! -f "$ndk_dir/source.properties" ]; then
-                  echo "Removing incomplete NDK install: $ndk_dir"
-                  rm -rf "$ndk_dir"
-                fi
-              done
-            fi
-            if [ -d "$SDK_ROOT/.temp" ]; then
-              echo "Clearing Android SDK temp downloads under $SDK_ROOT/.temp"
-              find "$SDK_ROOT/.temp" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + || true
-            fi
-            echo "🏗 Building Android E2E APKs..."
-            export NODE_OPTIONS="--max-old-space-size=4096"
-            cp android/gradle.properties.github android/gradle.properties
-            yarn build:android:${{ inputs.build_type }}:e2e
+        run: |
+          echo "🏗 Building Android E2E APKs..."
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          cp android/gradle.properties.github android/gradle.properties
+          yarn build:android:${{ inputs.build_type }}:e2e
+        shell: bash
         env:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
@@ -909,67 +885,36 @@ jobs:
             }' > .e2e-build-metadata/android.json
           cat .e2e-build-metadata/android.json
 
-      - name: Upload Android APK (Namespace)
-        id: upload-apk-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
-          path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
-          retention-days: 7
-          if-no-files-found: error
-
-      # Always mirrored to the GitHub store, including on Namespace: cross-run
-      # reuse discovery lists artifacts through the GitHub API, which cannot see
-      # the Namespace store. See "Runner provider switch" in .github/CONTRIBUTING.md.
-      - name: Upload Android APK (GitHub store)
+      - name: Upload Android APK (artifact stores)
         id: upload-apk
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
-      - name: Upload Android Test APK (Namespace)
-        id: upload-test-apk-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
-          path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
-          retention-days: 7
-          if-no-files-found: error
-
-      - name: Upload Android build metadata (Namespace)
-        id: upload-metadata-namespace
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
-        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
-        with:
-          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
-          path: .e2e-build-metadata/android.json
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload Android build metadata (GitHub store)
-        id: upload-metadata
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
-          path: .e2e-build-metadata/android.json
-          retention-days: 7
-          if-no-files-found: error
-        continue-on-error: true
-
-      - name: Upload Android Test APK (GitHub store)
+      - name: Upload Android Test APK (artifact stores)
         id: upload-test-apk
-        uses: actions/upload-artifact@v4
+        uses: ./.github/actions/dual-upload-e2e-artifact
         with:
           name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+
+      - name: Upload Android build metadata (artifact stores)
+        id: upload-metadata
+        uses: ./.github/actions/dual-upload-e2e-artifact
+        with:
+          name: ${{ env.E2E_BUILD_METADATA_ARTIFACT }}
+          path: .e2e-build-metadata/android.json
+          retention-days: 7
+          if-no-files-found: error
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+        continue-on-error: true
 
       # Gradle builds every RN library module inside node_modules
       # (node_modules/<pkg>/android/build) and CMake writes to
