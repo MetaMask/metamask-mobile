@@ -33,6 +33,7 @@ import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
+import { usePerpsVisibleCandleCount } from '../../../hooks/usePerpsVisibleCandleCount';
 import { usePerpsEventTracking } from '../../../hooks/usePerpsEventTracking';
 import { useHasExistingPosition } from '../../../hooks/useHasExistingPosition';
 import { useIsPriceDeviatedAboveThreshold } from '../../../hooks/useIsPriceDeviatedAboveThreshold';
@@ -125,12 +126,13 @@ const PerpsProChartPanel = ({
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
   const { isChartExpanded, setChartExpanded } = usePerpsProChartExpanded();
+  const { visibleCandleCount, onVisibleCandleCountChange } =
+    usePerpsVisibleCandleCount(symbol);
   const [isFullscreenChartVisible, setIsFullscreenChartVisible] =
     useState(false);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
-  const visibleCandleCount = PERPS_CHART_CONFIG.CANDLE_COUNT.DEFAULT;
   const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
@@ -325,6 +327,7 @@ const PerpsProChartPanel = ({
         onResolved={handleAdvancedChartResolved}
         onFreshDelivery={onFreshDelivery}
         onError={onChartError}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         fallbackCandleData={candleData}
         fallbackDeliveryRevision={deliveryRevision}
         fallbackFetchMoreHistory={fetchMoreHistory}
@@ -349,6 +352,7 @@ const PerpsProChartPanel = ({
         coloredVolume
         onOhlcDataChange={setOhlcData}
         onNeedMoreHistory={fetchMoreHistory}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
         testID={PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT}
       />
     );
@@ -463,6 +467,7 @@ const PerpsProChartPanel = ({
           visibleCandleCount={visibleCandleCount}
           onClose={() => setIsFullscreenChartVisible(false)}
           onIntervalChange={onCandlePeriodChange}
+          onVisibleCandleCountChange={onVisibleCandleCountChange}
           isAdvancedChartEnabled={isAdvancedChartEnabled}
           symbol={symbol}
           positionSize={existingPosition?.size}
