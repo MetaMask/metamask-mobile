@@ -6,6 +6,7 @@ import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
+import { strings } from '../../../../locales/i18n';
 import type { AccountAvatarVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import AccountListFooter from '../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/AccountListFooter';
 import AddWalletButton from '../../../component-library/components-temp/MultichainAccounts/AddWalletButton';
@@ -114,7 +115,7 @@ const ManageAccountsView = ({
       testID={testID}
     >
       <HeaderStandard
-        title="Manage accounts"
+        title={strings('multichain_accounts.manage_accounts.title')}
         onBack={onBack}
         backButtonProps={{ testID: ManageAccountsViewSelectorsIDs.BACK_BUTTON }}
         includesTopInset

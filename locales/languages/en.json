@@ -9482,6 +9482,7 @@
       "no_networks_available": "No networks available"
     },
     "manage_accounts": {
+      "title": "Manage accounts",
       "locked": "Locked",
       "remove": "Remove",
       "remove_wallet": "Remove wallet"

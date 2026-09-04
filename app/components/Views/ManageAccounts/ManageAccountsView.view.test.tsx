@@ -1,12 +1,15 @@
 import '../../../../tests/component-view/mocks';
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { InteractionManager } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderComponentViewScreen } from '../../../../tests/component-view/render';
 import {
   buildMultichainAccountsFixture,
   type MultichainAccountsFixture,
 } from '../../../../tests/component-view/presets/multichainAccounts';
+import { strings } from '../../../../locales/i18n';
+import Engine from '../../../core/Engine';
 import ManageAccountsView, {
   type ManageAccountsSection,
 } from './ManageAccountsView';
@@ -20,6 +23,13 @@ import {
   getManageAccountSectionHeaderRemoveId,
   getManageAccountAddAccountFooterId,
 } from './ManageAccounts.testIds';
+
+interface ImmediateInteractionManager {
+  runAfterInteractions: (callback: () => void) => { cancel: () => void };
+}
+
+const immediateInteractionManager =
+  InteractionManager as unknown as ImmediateInteractionManager;
 
 const ACCOUNT_1_GROUP_ID = 'entropy:wallet1/0';
 const ACCOUNT_2_GROUP_ID = 'entropy:wallet1/1';
@@ -80,22 +90,45 @@ const makeViewHarness =
     );
   };
 
-const renderManageAccountsView = (options: ViewHarnessOptions) =>
-  renderComponentViewScreen(
+const syncEngineAccounts = (fixture: MultichainAccountsFixture) => {
+  const accountsController = Engine.context.AccountsController;
+  const selectedAccount = Object.keys(fixture.internalAccounts)[0] ?? '';
+  accountsController.state.internalAccounts = {
+    accounts: fixture.internalAccounts,
+    selectedAccount,
+  };
+};
+
+const renderManageAccountsView = (options: ViewHarnessOptions) => {
+  syncEngineAccounts(options.fixture);
+  return renderComponentViewScreen(
     makeViewHarness(options),
     { name: MANAGE_ACCOUNTS_VIEW_ROUTE },
     { state: options.fixture.state },
   );
+};
 
 describeForPlatforms('ManageAccountsView', () => {
+  let runAfterInteractionsSpy: jest.SpyInstance;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    runAfterInteractionsSpy = jest
+      .spyOn(immediateInteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback: () => void) => {
+        callback();
+        return { cancel: jest.fn() };
+      });
+  });
+
+  afterEach(() => {
+    runAfterInteractionsSpy.mockRestore();
   });
 
   it('renders wallet sections, section headers and account rows, and hides a visible group on eye press', () => {
     const fixture = buildMultichainAccountsFixture();
     const onToggleHidden = jest.fn();
-    const { getByTestId } = renderManageAccountsView({
+    const { getByTestId, getByText } = renderManageAccountsView({
       fixture,
       onToggleHidden,
     });
@@ -106,9 +139,14 @@ describeForPlatforms('ManageAccountsView', () => {
     const eye1 = getByTestId(
       getManageAccountRowEyeToggleId(ACCOUNT_1_GROUP_ID),
     );
-    expect(eye1.props.accessibilityLabel).toBe('Hide account');
+    expect(eye1.props.accessibilityLabel).toBe(
+      strings('multichain_accounts.account_details.hide_account'),
+    );
     fireEvent.press(eye1);
 
+    expect(
+      getByText(strings('multichain_accounts.manage_accounts.title')),
+    ).toBeOnTheScreen();
     expect(header).toBeOnTheScreen();
     expect(row1).toBeOnTheScreen();
     expect(row2).toBeOnTheScreen();
@@ -133,7 +171,9 @@ describeForPlatforms('ManageAccountsView', () => {
       getManageAccountRowEyeToggleId(ACCOUNT_2_GROUP_ID),
     );
 
-    expect(hiddenEye.props.accessibilityLabel).toBe('Unhide account');
+    expect(hiddenEye.props.accessibilityLabel).toBe(
+      strings('multichain_accounts.account_details.unhide_account'),
+    );
     expect(
       UNSAFE_getByProps({ accessibilityElementsHidden: true }),
     ).toBeTruthy();
@@ -161,12 +201,14 @@ describeForPlatforms('ManageAccountsView', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders add-account footer and add-wallet CTA when handlers are injected, without header remove', () => {
+  it('creates an account from the footer and fires add-wallet without showing header remove', async () => {
     const fixture = buildMultichainAccountsFixture();
-    const { queryByTestId, getByTestId } = renderManageAccountsView({
+    const onAddAccount = jest.fn();
+    const onAddWallet = jest.fn();
+    const { queryByTestId, getByTestId, getByText } = renderManageAccountsView({
       fixture,
-      onAddAccount: jest.fn(),
-      onAddWallet: jest.fn(),
+      onAddAccount,
+      onAddWallet,
       sectionsOverrides: [
         {
           walletId: WALLET_ID,
@@ -175,11 +217,25 @@ describeForPlatforms('ManageAccountsView', () => {
       ],
     });
 
+    fireEvent.press(
+      getByText(strings('multichain_accounts.wallet_details.create_account')),
+    );
+    fireEvent.press(
+      getByTestId(ManageAccountsViewSelectorsIDs.ADD_WALLET_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        Engine.context.MultichainAccountService
+          .createNextMultichainAccountGroup,
+      ).toHaveBeenCalledWith({
+        entropySource: 'entropy-source-1',
+      });
+      expect(onAddAccount).toHaveBeenCalledWith(WALLET_NAME);
+    });
+    expect(onAddWallet).toHaveBeenCalledTimes(1);
     expect(
       getByTestId(getManageAccountAddAccountFooterId(WALLET_NAME)),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(ManageAccountsViewSelectorsIDs.ADD_WALLET_BUTTON),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(getManageAccountSectionHeaderRemoveId(WALLET_NAME)),
@@ -204,7 +260,7 @@ describeForPlatforms('ManageAccountsView', () => {
     const fixture = buildMultichainAccountsFixture();
     const onRemoveWallet = jest.fn();
     const onAddAccount = jest.fn();
-    const { getByTestId } = renderManageAccountsView({
+    const { getByTestId, getByText } = renderManageAccountsView({
       fixture,
       onAddAccount,
       sectionsOverrides: [
@@ -222,6 +278,15 @@ describeForPlatforms('ManageAccountsView', () => {
     );
     const removeHeaderControl = getByTestId(
       getManageAccountSectionHeaderRemoveId(WALLET_NAME),
+    );
+    expect(
+      getByText(strings('multichain_accounts.manage_accounts.locked')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('multichain_accounts.manage_accounts.remove')),
+    ).toBeOnTheScreen();
+    expect(removeHeaderControl.props.accessibilityLabel).toBe(
+      strings('multichain_accounts.manage_accounts.remove_wallet'),
     );
     fireEvent.press(removeHeaderControl);
 
