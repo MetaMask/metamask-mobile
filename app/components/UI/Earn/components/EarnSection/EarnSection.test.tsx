@@ -23,6 +23,7 @@ import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance'
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
 import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
+import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
@@ -45,6 +46,7 @@ jest.mock('react-redux', () => ({
 }));
 jest.mock('@metamask/design-system-twrnc-preset');
 jest.mock('../../../../UI/Earn/hooks/useEarnSectionAssets');
+jest.mock('../../../../UI/Earn/hooks/useEarnOpportunityNavigation');
 jest.mock('../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../UI/Money/selectors/visibility');
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
@@ -64,6 +66,9 @@ const mockUseIsFocused = useIsFocused as jest.MockedFunction<
 >;
 const mockUseTailwind = useTailwind as jest.MockedFunction<typeof useTailwind>;
 const mockUseEarnSectionAssets = jest.mocked(useEarnSectionAssets);
+const mockUseEarnOpportunityNavigation = jest.mocked(
+  useEarnOpportunityNavigation,
+);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
@@ -148,6 +153,7 @@ const zeroBalanceAssetSlot: typeof assetSlot = {
   },
 };
 const navigate = jest.fn();
+const mockNavigateFromEarnAsset = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 let mockPrivacyMode = false;
@@ -170,6 +176,13 @@ const mockSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
 ) => {
   mockUseEarnSectionAssets.mockReturnValue(createSectionResult(overrides));
+};
+
+const mockEarnOpportunityNavigation = () => {
+  mockUseEarnOpportunityNavigation.mockReturnValue({
+    navigateFromEarnAsset: mockNavigateFromEarnAsset,
+    navigateToDepositForExperience: jest.fn(),
+  });
 };
 
 const getSuccessArrowIcons = () =>
@@ -219,6 +232,7 @@ describe('EarnSection', () => {
       isOnboardingRedirectNeeded: false,
       navigateToMoneyHome: jest.fn(),
     } as ReturnType<typeof useMoneyNavigation>);
+    mockEarnOpportunityNavigation();
     mockUseHomeViewedEvent.mockReturnValue({
       onLayout: jest.fn(),
     } as ReturnType<typeof useHomeViewedEvent>);
@@ -347,47 +361,6 @@ describe('EarnSection', () => {
         }),
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders No fee when a Money deposit experience is subsidized', () => {
-    mockSectionResult({
-      assetSlots: [
-        {
-          ...assetSlot,
-          asset: {
-            ...assetSlot.asset,
-            experiences: [
-              ...assetSlot.asset.experiences,
-              {
-                id: 'money:usdc',
-                type: 'MONEY_ACCOUNT_DEPOSIT',
-                role: 'funding',
-                rate: {
-                  type: 'APY',
-                  percentage: 3.5,
-                  status: 'ready',
-                },
-                isFeeSubsidized: true,
-              },
-            ],
-          },
-        },
-      ],
-    });
-
-    renderEarnSection();
-
-    expect(
-      screen.getByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides No fee when asset experiences are not subsidized', () => {
-    renderEarnSection();
-
-    expect(
-      screen.queryByTestId(EarnSectionTestIds.ASSET_NO_FEE_TAG(0)),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders New on the Money card with a zero balance', () => {
@@ -546,54 +519,28 @@ describe('EarnSection', () => {
     expect(getSuccessArrowIcons()).toHaveLength(0);
   });
 
-  it('navigates with the selected CAIP-19 asset ID', () => {
+  it('passes selected asset and source to Earn opportunity navigation', () => {
     renderEarnSection();
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      assetSlot.asset,
+      TokenDetailsSource.ExploreEarn,
+    );
   });
 
-  it('navigates zero-balance assets to Asset Overview', () => {
+  it('passes zero-balance asset and Home source to Earn opportunity navigation', () => {
     mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
 
     render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
 
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
 
-    expect(navigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        address: zeroBalanceAssetSlot.asset.asset.assetId,
-        chainId: zeroBalanceAssetSlot.asset.asset.chainId,
-        symbol: zeroBalanceAssetSlot.asset.asset.symbol,
-        name: zeroBalanceAssetSlot.asset.asset.name,
-        decimals: zeroBalanceAssetSlot.asset.asset.decimals,
-        image: zeroBalanceAssetSlot.asset.asset.image,
-        balance: '0',
-        isNative: zeroBalanceAssetSlot.asset.asset.isNative,
-        isETH: false,
-        source: TokenDetailsSource.HomeSection,
-      }),
+    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
+      zeroBalanceAssetSlot.asset,
+      TokenDetailsSource.HomeSection,
     );
-    expect(navigate).not.toHaveBeenCalledWith(
-      Routes.EARN.ROOT,
-      expect.anything(),
-    );
-  });
-
-  it('navigates funded assets to Earn strategy selection', () => {
-    renderEarnSection();
-
-    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
-
-    expect(navigate).toHaveBeenCalledWith(Routes.EARN.ROOT, {
-      screen: Routes.EARN.STRATEGY_SELECTION,
-      params: { assetId },
-    });
   });
 
   it('displays a retryable error without hiding healthy asset cards', () => {

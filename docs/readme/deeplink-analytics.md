@@ -302,6 +302,7 @@ export const detectAppInstallation = async (
 
 - [Deeplink Handling Guide](./deeplinking.md) - Main deeplink documentation
 - [Deeplink Visual Flowcharts](./deeplinking-diagrams.md) - Visual diagrams of deeplink flows
+- [Deeplink Sentry Performance](../engagement/deeplink-sentry-performance.md) - Duration CUFs (`Deeplink Processed` / `Deeplink Navigated`), not `DEEP_LINK_USED`
 
 ## Code References
 

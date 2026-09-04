@@ -163,6 +163,91 @@ describe('logs :: generateStateLogs', () => {
     expect(logs.includes("vault: 'vault mock'")).toBe(false);
   });
 
+  it('replaces CardController cardHomeData with a PII-free summary', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          CardController: {
+            ...backgroundState.CardController,
+            cardHomeDataAddress: '0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d',
+            cardHomeData: {
+              card: { id: 'card-secret', lastFour: '1234' },
+              primaryFundingAsset: {
+                address: '0xusdctoken',
+                walletAddress: '0xwallet',
+                symbol: 'USDC',
+              },
+              fundingAssets: [{ address: '0x1' }, { address: '0x2' }],
+              actions: [{ type: 'add_funds' }],
+              alerts: [{ type: 'kyc_pending' }],
+            },
+            cardHomeDataStatus: 'success',
+            cardHomeDataError: null,
+          },
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const parsed = JSON.parse(logs);
+    const card = parsed.engine.backgroundState.CardController;
+
+    expect(card.cardHomeDataAddress).toBe(true);
+    expect(card.cardHomeData).toStrictEqual({
+      hasCard: true,
+      hasPrimaryFundingAsset: true,
+      fundingAssetCount: 2,
+      actionTypes: ['add_funds'],
+      alertTypes: ['kyc_pending'],
+    });
+    expect(logs.includes('0xfe0fc6e921ab1cce1ba40efd8ef63658583dc16d')).toBe(
+      false,
+    );
+    expect(logs.includes('0xusdctoken')).toBe(false);
+    expect(logs.includes('card-secret')).toBe(false);
+  });
+
+  it('keeps cardHomeData null when CardController has no cached data', () => {
+    const mockStateInput = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          CardController: {
+            ...backgroundState.CardController,
+            cardHomeData: null,
+            cardHomeDataAddress: null,
+            cardHomeDataStatus: 'error',
+            cardHomeDataError: {
+              reason: 'no_evm_address',
+              code: null,
+              statusCode: null,
+              at: 1,
+            },
+          },
+          KeyringController: {
+            vault: 'vault mock',
+          },
+        },
+      },
+    };
+
+    const logs = generateStateLogs(mockStateInput);
+    const card = JSON.parse(logs).engine.backgroundState.CardController;
+
+    expect(card.cardHomeData).toBeNull();
+    expect(card.cardHomeDataAddress).toBe(false);
+    expect(card.cardHomeDataError).toStrictEqual({
+      reason: 'no_evm_address',
+      code: null,
+      statusCode: null,
+      at: 1,
+    });
+  });
+
   it('includes isUnlocked state from KeyringController', () => {
     const mockStateInput = {
       engine: {

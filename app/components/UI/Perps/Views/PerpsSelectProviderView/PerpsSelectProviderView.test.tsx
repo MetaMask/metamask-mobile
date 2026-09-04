@@ -29,10 +29,10 @@ jest.mock('../../../../../util/Logger', () => ({
 // Configurable option for the sheet mock — set per-test to drive onOptionSelect
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let mockSheetOption: any = {
-  id: 'myx-mainnet',
-  providerId: 'myx',
+  id: 'lighter-mainnet',
+  providerId: 'lighter',
   isTestnet: false,
-  name: 'MYX',
+  name: 'Lighter',
   network: 'Mainnet',
   description: '',
 };
@@ -81,12 +81,12 @@ beforeEach(() => {
   });
   mockSwitchProvider.mockResolvedValue({ success: true });
   mockToggleTestnet.mockResolvedValue({ success: true });
-  // Default: select myx (provider changes, no network change)
+  // Default: select Lighter (provider changes, no network change)
   mockSheetOption = {
-    id: 'myx-mainnet',
-    providerId: 'myx',
+    id: 'lighter-mainnet',
+    providerId: 'lighter',
     isTestnet: false,
-    name: 'MYX',
+    name: 'Lighter',
     network: 'Mainnet',
     description: '',
   };
@@ -134,7 +134,7 @@ describe('PerpsSelectProviderView', () => {
       fireEvent.press(getByTestId('btn-select-option'));
     });
 
-    expect(mockSwitchProvider).toHaveBeenCalledWith('myx');
+    expect(mockSwitchProvider).toHaveBeenCalledWith('lighter');
   });
 
   it('does not call switchProvider or toggleTestnet when nothing changes', async () => {

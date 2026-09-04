@@ -22,6 +22,7 @@ ios/Podfile.lock                                            @MetaMask/mobile-pla
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
 app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
 app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Nav/Main/index.js                            @MetaMask/mobile-platform
 app/components/Views/Root                                   @MetaMask/mobile-platform
 app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
@@ -394,6 +395,7 @@ tests/websocket/                                                @MetaMask/qa
 .github/workflows/run-appium-e2e-workflow.yml                   @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-android.yml            @MetaMask/qa
 .github/workflows/run-appium-smoke-tests-ios.yml                @MetaMask/qa
+.github/workflows/prime-appium-e2e-android-emulator.yml         @MetaMask/qa
 .github/workflows/run-e2e-api-specs.yml                         @MetaMask/qa
 .github/workflows/rerun-ci-on-skipped-e2e-labels.yml            @MetaMask/qa
 .github/workflows/update-e2e-fixtures.yml                       @MetaMask/qa

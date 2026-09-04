@@ -1,15 +1,17 @@
-# Upload to both Namespace and GitHub artifact stores, retrying Namespace action
+# Upload to Namespace and/or GitHub artifact stores, retrying Namespace action
 # failures up to 3 times to absorb transient CreateArtifact ECONNREFUSED
 # failures. Composite actions only expose the nested `uses:` step outcome, so
 # non-retryable Namespace errors are not distinguished here yet.
-# Both stores must succeed:
-# GitHub API consumers (qa-stats, freeze-timings, gh run download) cannot see
-# Namespace storage. See "Runner provider switch" in .github/CONTRIBUTING.md.
+# By default both stores must succeed on Namespace runners: GitHub API consumers
+# (qa-stats, freeze-timings, gh run download) cannot see Namespace storage. See
+# "Runner provider switch" in .github/CONTRIBUTING.md. Set skip-github=true for
+# large Namespace-only artifacts that no GitHub API consumer needs.
 name: 'Dual upload E2E artifact'
 description: >
   Upload an artifact to the Namespace store and the GitHub store, retrying
   Namespace action failures up to 3 times. The step fails unless every required
-  store succeeds.
+  store succeeds. Set skip-github to upload Namespace-only (GitHub is still
+  required when the runner is not Namespace).
 
 inputs:
   name:
@@ -33,6 +35,13 @@ inputs:
   runner-provider:
     description: 'Runner provider or runner label. Namespace upload is skipped unless this contains `namespace`.'
     required: true
+  skip-github:
+    description: >
+      When true, skip the GitHub store upload. Use for large artifacts that only
+      Namespace runners consume in the same workflow run. Ignored on non-Namespace
+      runners (GitHub remains the only store).
+    required: false
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -90,6 +99,8 @@ runs:
 
     - name: Upload to GitHub
       id: gh-1
+      # skip-github only applies on Namespace (GitHub is the only store otherwise).
+      if: ${{ inputs.skip-github != 'true' || !contains(inputs.runner-provider, 'namespace') }}
       continue-on-error: true
       uses: actions/upload-artifact@v4
       with:
@@ -99,7 +110,7 @@ runs:
         retention-days: ${{ inputs.retention-days }}
         overwrite: true
 
-    - name: Require both stores
+    - name: Require required stores
       shell: bash
       env:
         NS_1: ${{ steps.ns-1.outcome }}
@@ -107,4 +118,5 @@ runs:
         NS_3: ${{ steps.ns-3.outcome }}
         GH_1: ${{ steps.gh-1.outcome }}
         RUNNER_PROVIDER: ${{ inputs.runner-provider }}
+        SKIP_GITHUB: ${{ inputs.skip-github }}
       run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" require-both-stores

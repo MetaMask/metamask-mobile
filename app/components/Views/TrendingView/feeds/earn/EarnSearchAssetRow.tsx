@@ -37,7 +37,7 @@ const EarnSearchAssetRow = ({
     hasSubsidizedFee,
     hasMinDepositAmount,
     fiatBalance,
-    rateCopy,
+    highestRateCopy,
   } = deriveEarnAssetDisplayData(asset);
 
   const handlePress = useCallback(() => onPress(item), [item, onPress]);
@@ -72,7 +72,7 @@ const EarnSearchAssetRow = ({
       descriptionProps={{
         numberOfLines: 1,
       }}
-      value={rateCopy}
+      value={highestRateCopy}
       valueProps={{
         color: TextColor.SuccessDefault,
         numberOfLines: 1,
