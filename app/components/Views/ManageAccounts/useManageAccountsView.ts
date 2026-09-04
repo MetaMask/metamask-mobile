@@ -3,7 +3,6 @@ import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
 import type { AccountWalletObject } from '@metamask/account-tree-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { toHex } from '@metamask/controller-utils';
 import { selectAccountGroupsByWallet } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -11,71 +10,64 @@ import { selectInternalAccountsById } from '../../../selectors/accountsControlle
 import { selectHiddenAccountGroupIds } from '../../../selectors/multichainAccounts/manageAccounts';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import { forgetLedger } from '../../../core/Ledger/Ledger';
+import { forgetQrDevice } from '../../../core/QrKeyring/QrKeyring';
 import Engine from '../../../core/Engine';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { strings } from '../../../../locales/i18n';
 import useToggleAccountGroupHidden from './hooks/useToggleAccountGroupHidden';
 import type { ManageAccountsSection } from './ManageAccountsView';
 import { ManageAccountRowVariant } from './components/ManageAccountRow';
 import type { AccountAvatarVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 
-/*
- * Everything the presentational `ManageAccountsView` needs, sourced from
- * Redux:
- * - `sections` mapped from the UNFILTERED `selectAccountGroupsByWallet`
- *   (the management screen shows hidden groups, with their eye state), each
- *   enriched with the per-wallet affordances: `walletId`, the account-type →
- *   row-variant mapping (`rowVariantByGroupId`), the entropy lock state
- *   (`isLocked`) and the add-account footer flag (`showsAddAccountFooter`).
- * - `isHiddenByGroupId` derived from `selectHiddenAccountGroupIds`.
- * - `onToggleHidden` forwarded to `useToggleAccountGroupHidden`, which applies the
- *   inverse of the fresh store state (the authoritative source) directly via
- *   the AccountTreeController.
- * - `onRemoveAccount` — hardware groups get the confirm Alert +
- *   `KeyringController.removeAccount` flow (same copy/approach as
- *   `AccountActions`); imported groups are handed to the injected
- *   `navigateToDeleteAccount` dependency (connector owns navigation).
- * - `onAddAccount` / `avatarAccountType` — see below.
- */
-
 /**
- * Dependencies injected by the connector. Navigation stays out of this hook
- * so the Engine-backed handlers remain unit-testable.
+ * Dependencies injected into `useManageAccountsView`.
  */
 interface UseManageAccountsViewDeps {
   /**
-   * Opens the delete-account confirmation sheet for an imported account
-   * (`Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT`). Injected by
-   * the connector, which owns `useNavigation`.
+   * Opens the delete-account confirmation sheet for an imported account.
    */
   navigateToDeleteAccount?: (account: InternalAccount) => void;
 }
 
 /**
- * Keyring wallet categories that aggregate hardware-device accounts
- * (`AccountWalletType.Keyring` wallets whose keyring is device-backed).
- * Mirrors the hardware branch of the AccountActions remove flow
- * (`isHardwareAccount` defaults: qr / ledger / oneKey, plus trezor /
- * lattice which resolve the same way).
+ * Keyring types representing hardware wallet devices.
  */
-const HARDWARE_KEYRING_TYPES: readonly KeyringTypes[] = [
-  KeyringTypes.qr,
-  KeyringTypes.trezor,
-  KeyringTypes.oneKey,
-  KeyringTypes.ledger,
-  KeyringTypes.lattice,
-];
-
-const isHardwareKeyringWallet = (wallet: AccountWalletObject): boolean =>
-  wallet.type === AccountWalletType.Keyring &&
-  HARDWARE_KEYRING_TYPES.includes(wallet.metadata.keyring.type);
+const HARDWARE_KEYRING_TYPES = new Set<string>([
+  ExtendedKeyringTypes.qr,
+  ExtendedKeyringTypes.oneKey,
+  ExtendedKeyringTypes.ledger,
+]);
 
 /**
- * Account-type → trailing-action variant (spec §5 matrix):
- * - entropy/HD groups → hide toggle only.
- * - hardware groups → hide toggle + remove control.
- * - imported groups → remove control only (not hideable).
- * - snap groups and unknown wallet/keyring subtypes → no trailing action,
- * since unknowns never get a metadata-writing affordance by default.
+ * Returns whether a wallet is a hardware keyring wallet.
+ *
+ * @param wallet - The account wallet object.
+ * @returns True if the wallet is backed by a hardware keyring.
+ */
+const isHardwareKeyringWallet = (wallet: AccountWalletObject): boolean =>
+  wallet.type === AccountWalletType.Keyring &&
+  HARDWARE_KEYRING_TYPES.has(wallet.metadata.keyring.type as string);
+
+/**
+ * Returns whether a wallet is an imported private key keyring wallet.
+ *
+ * @param wallet - The account wallet object.
+ * @returns True if the wallet is backed by a simple/private-key keyring.
+ */
+const isPrivateKeyWallet = (wallet: AccountWalletObject): boolean =>
+  wallet.type === AccountWalletType.Keyring &&
+  (wallet.metadata.keyring.type as string) === ExtendedKeyringTypes.simple;
+
+/**
+ * Determines the row variant (trailing actions) for a wallet.
+ * - Entropy / HD: Hide toggle only.
+ * - Hardware: Hide toggle and remove action.
+ * - Imported private key: Remove action only.
+ * - Snap / unknown: No trailing action.
+ *
+ * @param wallet - The account wallet object.
+ * @returns The row action variant.
  */
 const getWalletRowVariant = (
   wallet: AccountWalletObject,
@@ -86,13 +78,15 @@ const getWalletRowVariant = (
     case AccountWalletType.Snap:
       return ManageAccountRowVariant.None;
     case AccountWalletType.Keyring:
-      if (wallet.metadata.keyring.type === KeyringTypes.hd) {
+      if (
+        (wallet.metadata.keyring.type as string) === ExtendedKeyringTypes.hd
+      ) {
         return ManageAccountRowVariant.Hide;
       }
-      if (wallet.metadata.keyring.type === KeyringTypes.simple) {
+      if (isPrivateKeyWallet(wallet)) {
         return ManageAccountRowVariant.Remove;
       }
-      if (HARDWARE_KEYRING_TYPES.includes(wallet.metadata.keyring.type)) {
+      if (isHardwareKeyringWallet(wallet)) {
         return ManageAccountRowVariant.HideAndRemove;
       }
       return ManageAccountRowVariant.None;
@@ -102,26 +96,79 @@ const getWalletRowVariant = (
 };
 
 /**
- * Whether the wallet's entropy is locked (renders the `Locked` header state,
- * spec §4). There is no per-wallet runtime lock state in the controller
- * state (`AccountWalletObject.status` tracks discovery/alignment progress,
- * not locking), so this is derived: entropy (SRP) wallets are always
- * reported locked — their seed phrase sits behind the password — matching
- * the Figma "Entropy (SRP), locked → Locked label" spec row. Hardware,
- * imported and snap sections report unlocked.
+ * Returns whether the wallet's entropy is locked (seed phrase behind password).
+ *
+ * @param wallet - The account wallet object.
+ * @returns True if entropy/SRP wallet, false otherwise.
  */
 const isWalletLocked = (wallet: AccountWalletObject): boolean =>
   wallet.type === AccountWalletType.Entropy;
 
 /**
- * Per spec §6 the "Add account" footer belongs to entropy and hardware
- * sections only — imported-accounts-only sections keep it out. Snap
- * sections have no add-account flow either. (The reused `AccountListFooter`
- * additionally no-ops for non-entropy wallets at render time.)
+ * Returns whether the wallet section displays the "Add account" footer.
+ * Allowed for entropy and hardware wallets.
+ *
+ * @param wallet - The account wallet object.
+ * @returns True if the section should show the add account footer.
  */
 const showsWalletAddAccountFooter = (wallet: AccountWalletObject): boolean =>
   wallet.type === AccountWalletType.Entropy || isHardwareKeyringWallet(wallet);
 
+/**
+ * Removes a hardware account, clears permissions, updates selected account
+ * if needed, and forgets the device if no accounts remain on the keyring.
+ *
+ * @param options - Account address and keyring type.
+ */
+const removeHardwareAccount = async ({
+  address,
+  keyringType,
+}: {
+  address: string;
+  keyringType: string;
+}): Promise<void> => {
+  const { AccountsController, KeyringController } = Engine.context;
+  const hexAddress = toHex(address);
+  const selectedAccountId =
+    AccountsController.state.internalAccounts.selectedAccount;
+  const selectedAddress =
+    AccountsController.state.internalAccounts.accounts[selectedAccountId]
+      ?.address;
+  const wasSelected =
+    Boolean(selectedAddress) && toHex(selectedAddress) === hexAddress;
+
+  await removeAccountsFromPermissions([hexAddress]);
+  await KeyringController.removeAccount(hexAddress);
+
+  if (wasSelected) {
+    const accounts = await KeyringController.getAccounts();
+    if (accounts.length > 0) {
+      Engine.setSelectedAddress(accounts[0]);
+    }
+  }
+
+  const updatedKeyring = KeyringController.state.keyrings.find(
+    (keyring) => keyring.type === keyringType,
+  );
+  const shouldForgetDevice =
+    !updatedKeyring || updatedKeyring.accounts.length === 0;
+  if (!shouldForgetDevice) {
+    return;
+  }
+
+  if (keyringType === ExtendedKeyringTypes.ledger) {
+    await forgetLedger();
+    return;
+  }
+
+  if (keyringType === ExtendedKeyringTypes.qr) {
+    await forgetQrDevice();
+  }
+};
+
+/**
+ * Result shape returned by `useManageAccountsView`.
+ */
 interface UseManageAccountsViewResult {
   sections: ManageAccountsSection[];
   isHiddenByGroupId: Partial<Record<AccountGroupId, boolean>>;
@@ -131,12 +178,21 @@ interface UseManageAccountsViewResult {
   avatarAccountType: AccountAvatarVariant;
 }
 
+/**
+ * Hook providing section data, hidden state map, and action handlers for the
+ * Manage Accounts screen.
+ *
+ * @param deps - Injected dependencies (e.g. navigation handlers).
+ * @returns The view model and handlers for ManageAccountsView.
+ */
 const useManageAccountsView = (
   deps: UseManageAccountsViewDeps = {},
 ): UseManageAccountsViewResult => {
   const { navigateToDeleteAccount } = deps;
   const accountSections = useSelector(selectAccountGroupsByWallet);
-  const hiddenGroupIds = useSelector(selectHiddenAccountGroupIds);
+  const hiddenGroupIds = useSelector(
+    selectHiddenAccountGroupIds,
+  ) as AccountGroupId[];
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { toggleHidden } = useToggleAccountGroupHidden();
@@ -175,9 +231,7 @@ const useManageAccountsView = (
   );
 
   /**
-   * The row passes `nextHidden` as its intent, but the applied value is
-   * derived from the fresh store state inside `toggleHidden` (never stale
-   * props) — both always agree on a render cycle.
+   * Toggles the hidden state of an account group.
    */
   const onToggleHidden = useCallback(
     (groupId: AccountGroupId) => {
@@ -187,14 +241,8 @@ const useManageAccountsView = (
   );
 
   /**
-   * Row-level remove, routed by the group's wallet type (same matrix as the
-   * variant mapping — only variants carrying the remove affordance reach
-   * here):
-   * - hardware → confirm Alert, then permissions cleanup +
-   * `KeyringController.removeAccount` (AccountActions pattern).
-   * - imported → the connector-injected delete-account sheet navigation
-   * (`Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT`), which owns
-   * the confirmation UI and the actual removal.
+   * Handles removing an account group (opens delete confirmation for imported
+   * accounts, shows alert and removes for hardware accounts).
    */
   const onRemoveAccount = useCallback(
     (groupId: AccountGroupId) => {
@@ -202,12 +250,16 @@ const useManageAccountsView = (
         data.some((group) => group.id === groupId),
       );
       const group = section?.data.find(({ id }) => id === groupId);
-      if (!section || !group) {
+      if (
+        !section ||
+        !group ||
+        section.wallet.type !== AccountWalletType.Keyring
+      ) {
         return;
       }
 
-      if (!isHardwareKeyringWallet(section.wallet)) {
-        // Imported (remove-only) group → delete-account confirmation sheet.
+      if (isPrivateKeyWallet(section.wallet)) {
+        // Imported group → delete-account confirmation sheet.
         const accountId = group.accounts[0];
         const account = accountId ? internalAccountsById[accountId] : undefined;
         if (account) {
@@ -216,40 +268,41 @@ const useManageAccountsView = (
         return;
       }
 
-      // Hardware group → confirm Alert, then remove from the keyring.
-      const accountId = group.accounts[0];
-      const account = accountId ? internalAccountsById[accountId] : undefined;
-      if (!account) {
+      if (isHardwareKeyringWallet(section.wallet)) {
+        // Hardware group → confirm Alert, then remove from the keyring.
+        const accountId = group.accounts[0];
+        const account = accountId ? internalAccountsById[accountId] : undefined;
+        if (!account) {
+          return;
+        }
+        const { type: keyringType } = section.wallet.metadata.keyring;
+        Alert.alert(
+          strings('accounts.remove_hardware_account'),
+          strings('accounts.remove_hw_account_alert_description'),
+          [
+            {
+              text: strings('accounts.remove_account_alert_cancel_btn'),
+              style: 'cancel',
+            },
+            {
+              text: strings('accounts.remove_account_alert_remove_btn'),
+              onPress: async () => {
+                await removeHardwareAccount({
+                  address: account.address,
+                  keyringType,
+                });
+              },
+            },
+          ],
+        );
         return;
       }
-      Alert.alert(
-        strings('accounts.remove_hardware_account'),
-        strings('accounts.remove_hw_account_alert_description'),
-        [
-          {
-            text: strings('accounts.remove_account_alert_cancel_btn'),
-            style: 'cancel',
-          },
-          {
-            text: strings('accounts.remove_account_alert_remove_btn'),
-            onPress: async () => {
-              const hexAddress = toHex(account.address);
-              await removeAccountsFromPermissions([hexAddress]);
-              await Engine.context.KeyringController.removeAccount(hexAddress);
-            },
-          },
-        ],
-      );
     },
     [accountSections, internalAccountsById, navigateToDeleteAccount],
   );
 
   /**
-   * Creation itself is owned by the reused `AccountListFooter` (it calls
-   * `MultichainAccountService.createNextMultichainAccountGroup` and the new
-   * group flows in through the AccountTreeController store subscription), so
-   * no extra action is needed here — the callback only needs to exist for
-   * the footers to render.
+   * Handler for the add-account footer button.
    */
   const onAddAccount = useCallback((_walletName: string) => undefined, []);
 
