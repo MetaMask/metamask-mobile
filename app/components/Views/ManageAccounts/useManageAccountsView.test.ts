@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
 import type { AccountWalletObject } from '@metamask/account-tree-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
 import Engine from '../../../core/Engine';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { RootState } from '../../../reducers';
@@ -72,6 +73,9 @@ const mockRemoveAccountsFromPermissions = jest.mocked(
   removeAccountsFromPermissions,
 );
 
+const HARDWARE_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
+const REMAINING_ADDRESS = '0x1234567890123456789012345678901234567890';
+
 const mockSelectedAccount = (address: string) => {
   Engine.context.AccountsController.state = {
     internalAccounts: {
@@ -89,6 +93,18 @@ const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
   } as unknown as typeof Engine.context.KeyringController.state;
 };
 
+const buildState = (
+  wallets: AccountWalletObject[],
+  internalAccounts: Record<
+    string,
+    ReturnType<typeof createMockInternalAccount>
+  > = {},
+) =>
+  ({
+    ...createMockState(wallets, internalAccounts),
+    settings: { avatarAccountType: 'JazzIcon' },
+  }) as unknown as RootState;
+
 const createBaseState = () => {
   const visibleGroup = createMockAccountGroup('keyring:wallet-1/1', 'Group 1');
   const hiddenGroup = createMockHiddenAccountGroup(
@@ -105,17 +121,11 @@ const createBaseState = () => {
   ]);
 
   return {
-    state: {
-      ...createMockState([wallet1, wallet2], {}),
-      settings: { avatarAccountType: 'JazzIcon' },
-    } as unknown as RootState,
+    state: buildState([wallet1, wallet2]),
     visibleGroupId: 'keyring:wallet-1/1' as AccountGroupId,
     hiddenGroupId: 'keyring:wallet-1/2' as AccountGroupId,
   };
 };
-
-const HARDWARE_ADDRESS = '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756';
-const REMAINING_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 const buildHardwareWalletState = (
   keyringType: string,
@@ -137,21 +147,28 @@ const buildHardwareWalletState = (
     'Hardware 1',
   );
 
-  return {
-    ...createMockState([hardwareWallet], {
-      'account-keyring:hw/0': internalAccount,
-    }),
-    settings: { avatarAccountType: 'JazzIcon' },
-  } as unknown as RootState;
+  return buildState([hardwareWallet], {
+    'account-keyring:hw/0': internalAccount,
+  });
 };
+
+const renderUseManageAccountsView = ({
+  state = createBaseState().state,
+  navigateToDeleteAccount,
+}: {
+  state?: RootState;
+  navigateToDeleteAccount?: (account: InternalAccount) => void;
+} = {}) =>
+  renderHookWithProvider(
+    () => useManageAccountsView({ navigateToDeleteAccount }),
+    { state },
+  );
 
 const triggerHardwareRemoveAlert = async (state: RootState) => {
   const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {
     // No-op: remove button is invoked explicitly.
   });
-  const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-    state,
-  });
+  const { result } = renderUseManageAccountsView({ state });
 
   act(() => {
     result.current.onRemoveAccount('keyring:hw/0');
@@ -182,15 +199,10 @@ describe('useManageAccountsView', () => {
   });
 
   it('maps sections from the unfiltered account groups selector', () => {
-    // Arrange
     const { state } = createBaseState();
 
-    // Act
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView({ state });
 
-    // Assert
     expect(result.current.sections).toHaveLength(2);
     expect(result.current.sections[0].walletName).toBe('Wallet 1');
     expect(result.current.sections[0].groups.map((group) => group.id)).toEqual([
@@ -206,9 +218,7 @@ describe('useManageAccountsView', () => {
   it('keeps hidden groups in sections (manage screen shows hidden groups)', () => {
     const { state, hiddenGroupId } = createBaseState();
 
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView({ state });
 
     expect(
       result.current.sections[0].groups.some(
@@ -220,9 +230,7 @@ describe('useManageAccountsView', () => {
   it('derives the hidden map from the hidden account group IDs selector', () => {
     const { state, hiddenGroupId, visibleGroupId } = createBaseState();
 
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView({ state });
 
     expect(result.current.isHiddenByGroupId).toEqual({
       [hiddenGroupId]: true,
@@ -233,55 +241,49 @@ describe('useManageAccountsView', () => {
   it('sources avatarAccountType from the settings selector', () => {
     const { state } = createBaseState();
 
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView({ state });
 
     expect(result.current.avatarAccountType).toBe('JazzIcon');
   });
 
-  it('passes toggles through to useToggleAccountGroupHidden for a visible group', () => {
-    const { state, visibleGroupId } = createBaseState();
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+  it.each([
+    {
+      description: 'a visible group',
+      getGroupId: (base: ReturnType<typeof createBaseState>) =>
+        base.visibleGroupId,
+      nextHidden: true,
+    },
+    {
+      description: 'a hidden group',
+      getGroupId: (base: ReturnType<typeof createBaseState>) =>
+        base.hiddenGroupId,
+      nextHidden: false,
+    },
+  ])(
+    'passes toggles through to useToggleAccountGroupHidden for $description',
+    ({ getGroupId, nextHidden }) => {
+      const base = createBaseState();
+      const groupId = getGroupId(base);
+      const { result } = renderUseManageAccountsView({ state: base.state });
 
-    act(() => {
-      result.current.onToggleHidden(visibleGroupId, true);
-    });
+      act(() => {
+        result.current.onToggleHidden(groupId, nextHidden);
+      });
 
-    expect(mockSetAccountGroupHidden).toHaveBeenCalledTimes(1);
-    expect(mockSetAccountGroupHidden).toHaveBeenCalledWith(
-      visibleGroupId,
-      true,
-    );
-  });
-
-  it('passes toggles through to useToggleAccountGroupHidden for a hidden group', () => {
-    const { state, hiddenGroupId } = createBaseState();
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
-
-    act(() => {
-      result.current.onToggleHidden(hiddenGroupId, false);
-    });
-
-    expect(mockSetAccountGroupHidden).toHaveBeenCalledTimes(1);
-    expect(mockSetAccountGroupHidden).toHaveBeenCalledWith(
-      hiddenGroupId,
-      false,
-    );
-  });
+      expect(mockSetAccountGroupHidden).toHaveBeenCalledTimes(1);
+      expect(mockSetAccountGroupHidden).toHaveBeenCalledWith(
+        groupId,
+        nextHidden,
+      );
+    },
+  );
 
   it('does not call syncWithUserStorage when toggling hidden state', () => {
     const { state, visibleGroupId } = createBaseState();
     const mockSyncWithUserStorage = jest.mocked(
       Engine.context.AccountTreeController.syncWithUserStorage,
     );
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView({ state });
 
     act(() => {
       result.current.onToggleHidden(visibleGroupId, true);
@@ -291,107 +293,89 @@ describe('useManageAccountsView', () => {
   });
 
   describe('per-section affordances (type → variant / lock / footer)', () => {
-    const buildVariantState = (
-      wallets: AccountWalletObject[],
-      internalAccounts: Record<
-        string,
-        ReturnType<typeof createMockInternalAccount>
-      > = {},
-    ) =>
-      ({
-        ...createMockState(wallets, internalAccounts),
-        settings: { avatarAccountType: 'JazzIcon' },
-      }) as unknown as RootState;
-
-    it('maps entropy groups to the Hide variant with footer and lock state', () => {
-      const group = createMockAccountGroup('entropy:w1/0', 'Group 1');
-      const wallet = createMockEntropyWallet('entropy:w1', 'Wallet 1', [group]);
-
-      const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-        state: buildVariantState([wallet]),
-      });
-
-      expect(result.current.sections[0]).toMatchObject({
-        walletId: 'entropy:w1',
-        isLocked: true,
-        showsAddAccountFooter: true,
-        rowVariantByGroupId: {
-          'entropy:w1/0': ManageAccountRowVariant.Hide,
+    it.each([
+      {
+        type: 'entropy',
+        wallet: createMockEntropyWallet('entropy:w1', 'Wallet 1', [
+          createMockAccountGroup('entropy:w1/0', 'Group 1'),
+        ]),
+        expected: {
+          walletId: 'entropy:w1',
+          isLocked: true,
+          showsAddAccountFooter: true,
+          rowVariantByGroupId: {
+            'entropy:w1/0': ManageAccountRowVariant.Hide,
+          },
         },
-      });
-    });
-
-    it('maps hardware groups to the HideAndRemove variant with footer and no lock state', () => {
-      const group = createMockAccountGroup('keyring:hw/0', 'Ledger 1');
-      const hardwareWallet = {
-        id: 'keyring:hw',
-        type: AccountWalletType.Keyring,
-        metadata: {
-          name: 'Ledger',
-          keyring: { type: ExtendedKeyringTypes.ledger },
+      },
+      {
+        type: 'hardware',
+        wallet: {
+          id: 'keyring:hw',
+          type: AccountWalletType.Keyring,
+          metadata: {
+            name: 'Ledger',
+            keyring: { type: ExtendedKeyringTypes.ledger },
+          },
+          groups: {
+            'keyring:hw/0': createMockAccountGroup('keyring:hw/0', 'Ledger 1'),
+          },
+        } as unknown as AccountWalletObject,
+        expected: {
+          walletId: 'keyring:hw',
+          isLocked: false,
+          showsAddAccountFooter: true,
+          rowVariantByGroupId: {
+            'keyring:hw/0': ManageAccountRowVariant.HideAndRemove,
+          },
         },
-        groups: { 'keyring:hw/0': group },
-      } as unknown as AccountWalletObject;
-
-      const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-        state: buildVariantState([hardwareWallet]),
-      });
-
-      expect(result.current.sections[0]).toMatchObject({
-        walletId: 'keyring:hw',
-        isLocked: false,
-        showsAddAccountFooter: true,
-        rowVariantByGroupId: {
-          'keyring:hw/0': ManageAccountRowVariant.HideAndRemove,
+      },
+      {
+        type: 'imported',
+        wallet: createMockWallet('keyring:imported', 'Imported', [
+          createMockAccountGroup('keyring:imported/0', 'Imported 1'),
+        ]),
+        expected: {
+          walletId: 'keyring:imported',
+          isLocked: false,
+          showsAddAccountFooter: false,
+          rowVariantByGroupId: {
+            'keyring:imported/0': ManageAccountRowVariant.Remove,
+          },
         },
-      });
-    });
-
-    it('maps imported groups to the Remove variant with no footer and no lock state', () => {
-      const group = createMockAccountGroup('keyring:imported/0', 'Imported 1');
-      const importedWallet = createMockWallet('keyring:imported', 'Imported', [
-        group,
-      ]);
-
-      const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-        state: buildVariantState([importedWallet]),
-      });
-
-      expect(result.current.sections[0]).toMatchObject({
-        walletId: 'keyring:imported',
-        isLocked: false,
-        showsAddAccountFooter: false,
-        rowVariantByGroupId: {
-          'keyring:imported/0': ManageAccountRowVariant.Remove,
+      },
+      {
+        type: 'snap',
+        wallet: {
+          id: 'snap:foo',
+          type: AccountWalletType.Snap,
+          metadata: {
+            name: 'Snap Wallet',
+            snap: { id: 'npm:@metamask/snap' },
+          },
+          groups: {
+            'snap:foo/0': createMockAccountGroup('snap:foo/0', 'Snap 1'),
+          },
+        } as unknown as AccountWalletObject,
+        expected: {
+          walletId: 'snap:foo',
+          isLocked: false,
+          showsAddAccountFooter: false,
+          rowVariantByGroupId: {
+            'snap:foo/0': ManageAccountRowVariant.None,
+          },
         },
-      });
-    });
+      },
+    ])(
+      'maps $type groups to expected variant, footer, and lock state',
+      ({ wallet, expected }) => {
+        const { result } = renderUseManageAccountsView({
+          state: buildState([wallet]),
+        });
 
-    it('maps snap groups to the None variant with no footer and no lock state', () => {
-      const group = createMockAccountGroup('snap:foo/0', 'Snap 1');
-      const snapWallet = {
-        id: 'snap:foo',
-        type: AccountWalletType.Snap,
-        metadata: {
-          name: 'Snap Wallet',
-          snap: { id: 'npm:@metamask/snap' },
-        },
-        groups: { 'snap:foo/0': group },
-      } as unknown as AccountWalletObject;
-
-      const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-        state: buildVariantState([snapWallet]),
-      });
-
-      expect(result.current.sections[0]).toMatchObject({
-        walletId: 'snap:foo',
-        isLocked: false,
-        showsAddAccountFooter: false,
-        rowVariantByGroupId: {
-          'snap:foo/0': ManageAccountRowVariant.None,
-        },
-      });
-    });
+        expect(result.current.sections[0]).toMatchObject(expected);
+      },
+    );
   });
 
   describe('onRemoveAccount', () => {
@@ -406,68 +390,93 @@ describe('useManageAccountsView', () => {
       expect(mockRemoveAccount).toHaveBeenCalledTimes(1);
     });
 
-    it('reselects a remaining account when the removed hardware account is selected', async () => {
-      mockSelectedAccount(HARDWARE_ADDRESS);
+    it.each([
+      {
+        description:
+          'reselects a remaining account when the removed hardware account is selected',
+        selectedAddress: HARDWARE_ADDRESS,
+        expectedReselect: REMAINING_ADDRESS,
+      },
+      {
+        description:
+          'does not reselect when the removed hardware account is not selected',
+        selectedAddress: REMAINING_ADDRESS,
+        expectedReselect: null,
+      },
+    ])('$description', async ({ selectedAddress, expectedReselect }) => {
+      mockSelectedAccount(selectedAddress);
       mockGetAccounts.mockResolvedValue([REMAINING_ADDRESS]);
       const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
 
       await triggerHardwareRemoveAlert(state);
 
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(REMAINING_ADDRESS);
+      if (expectedReselect) {
+        expect(mockSetSelectedAddress).toHaveBeenCalledWith(expectedReselect);
+      } else {
+        expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+      }
     });
 
-    it('does not reselect when the removed hardware account is not selected', async () => {
-      mockSelectedAccount(REMAINING_ADDRESS);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
+    it.each([
+      {
+        name: 'forgets the Ledger device when the ledger keyring is gone after removal',
+        keyringType: ExtendedKeyringTypes.ledger,
+        keyrings: [],
+        expectedForgetLedger: true,
+        expectedForgetQr: false,
+      },
+      {
+        name: 'forgets the Ledger device when the ledger keyring is empty after removal',
+        keyringType: ExtendedKeyringTypes.ledger,
+        keyrings: [{ type: ExtendedKeyringTypes.ledger, accounts: [] }],
+        expectedForgetLedger: true,
+        expectedForgetQr: false,
+      },
+      {
+        name: 'forgets the QR device when the QR keyring is empty after removal',
+        keyringType: ExtendedKeyringTypes.qr,
+        keyrings: [{ type: ExtendedKeyringTypes.qr, accounts: [] }],
+        expectedForgetLedger: false,
+        expectedForgetQr: true,
+      },
+      {
+        name: 'does not forget the hardware device when other accounts remain on the keyring',
+        keyringType: ExtendedKeyringTypes.ledger,
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.ledger,
+            accounts: [REMAINING_ADDRESS],
+          },
+        ],
+        expectedForgetLedger: false,
+        expectedForgetQr: false,
+      },
+    ])(
+      '$name',
+      async ({
+        keyringType,
+        keyrings,
+        expectedForgetLedger,
+        expectedForgetQr,
+      }) => {
+        setKeyrings(keyrings);
+        const state = buildHardwareWalletState(keyringType);
 
-      await triggerHardwareRemoveAlert(state);
+        await triggerHardwareRemoveAlert(state);
 
-      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
-    });
+        if (expectedForgetLedger) {
+          expect(forgetLedger).toHaveBeenCalledTimes(1);
+        } else {
+          expect(forgetLedger).not.toHaveBeenCalled();
+        }
 
-    it('forgets the Ledger device when the ledger keyring is gone after removal', async () => {
-      setKeyrings([]);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
-
-      await triggerHardwareRemoveAlert(state);
-
-      expect(forgetLedger).toHaveBeenCalledTimes(1);
-    });
-
-    it('forgets the Ledger device when the ledger keyring is empty after removal', async () => {
-      setKeyrings([{ type: ExtendedKeyringTypes.ledger, accounts: [] }]);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
-
-      await triggerHardwareRemoveAlert(state);
-
-      expect(forgetLedger).toHaveBeenCalledTimes(1);
-      expect(forgetQrDevice).not.toHaveBeenCalled();
-    });
-
-    it('forgets the QR device when the QR keyring is empty after removal', async () => {
-      setKeyrings([{ type: ExtendedKeyringTypes.qr, accounts: [] }]);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.qr);
-
-      await triggerHardwareRemoveAlert(state);
-
-      expect(forgetQrDevice).toHaveBeenCalledTimes(1);
-      expect(forgetLedger).not.toHaveBeenCalled();
-    });
-
-    it('does not forget the hardware device when other accounts remain on the keyring', async () => {
-      setKeyrings([
-        {
-          type: ExtendedKeyringTypes.ledger,
-          accounts: [REMAINING_ADDRESS],
-        },
-      ]);
-      const state = buildHardwareWalletState(ExtendedKeyringTypes.ledger);
-
-      await triggerHardwareRemoveAlert(state);
-
-      expect(forgetLedger).not.toHaveBeenCalled();
-      expect(forgetQrDevice).not.toHaveBeenCalled();
-    });
+        if (expectedForgetQr) {
+          expect(forgetQrDevice).toHaveBeenCalledTimes(1);
+        } else {
+          expect(forgetQrDevice).not.toHaveBeenCalled();
+        }
+      },
+    );
 
     it('navigates to the delete-account sheet for an imported group', () => {
       const group = createMockAccountGroup('keyring:imported/0', 'Imported 1');
@@ -479,17 +488,14 @@ describe('useManageAccountsView', () => {
         '0xdef',
         'Imported 1',
       );
-      const state = {
-        ...createMockState([importedWallet], {
-          'account-keyring:imported/0': internalAccount,
-        }),
-        settings: { avatarAccountType: 'JazzIcon' },
-      } as unknown as RootState;
+      const state = buildState([importedWallet], {
+        'account-keyring:imported/0': internalAccount,
+      });
       const navigateToDeleteAccount = jest.fn();
-      const { result } = renderHookWithProvider(
-        () => useManageAccountsView({ navigateToDeleteAccount }),
-        { state },
-      );
+      const { result } = renderUseManageAccountsView({
+        state,
+        navigateToDeleteAccount,
+      });
 
       act(() => {
         result.current.onRemoveAccount('keyring:imported/0');
@@ -500,57 +506,42 @@ describe('useManageAccountsView', () => {
       expect(mockRemoveAccount).not.toHaveBeenCalled();
     });
 
-    it('does nothing when the group cannot be resolved', () => {
-      const { state } = createBaseState();
+    it.each([
+      {
+        description: 'the group cannot be resolved',
+        getGroupId: () => 'entropy:unknown/0' as AccountGroupId,
+      },
+      {
+        description: 'entropy wallet groups',
+        getGroupId: () => 'entropy:wallet-2/1' as AccountGroupId,
+      },
+      {
+        description: 'HD keyring wallet groups',
+        getGroupId: (base: ReturnType<typeof createBaseState>) =>
+          base.visibleGroupId,
+      },
+    ])('ignores removal when $description', ({ getGroupId }) => {
+      const base = createBaseState();
       const navigateToDeleteAccount = jest.fn();
       const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {
         // No-op
       });
-      const { result } = renderHookWithProvider(
-        () => useManageAccountsView({ navigateToDeleteAccount }),
-        { state },
-      );
+      const { result } = renderUseManageAccountsView({
+        state: base.state,
+        navigateToDeleteAccount,
+      });
 
       act(() => {
-        result.current.onRemoveAccount('entropy:unknown/0');
+        result.current.onRemoveAccount(getGroupId(base));
       });
 
-      expect(alertSpy).not.toHaveBeenCalled();
-      expect(navigateToDeleteAccount).not.toHaveBeenCalled();
-    });
-
-    it('does not allow removing accounts from entropy or hd keyring wallets', () => {
-      const { state, visibleGroupId } = createBaseState();
-      const navigateToDeleteAccount = jest.fn();
-      const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {
-        // No-op
-      });
-      const { result } = renderHookWithProvider(
-        () => useManageAccountsView({ navigateToDeleteAccount }),
-        { state },
-      );
-
-      // Entropy group
-      act(() => {
-        result.current.onRemoveAccount('entropy:wallet-2/1' as AccountGroupId);
-      });
-      expect(alertSpy).not.toHaveBeenCalled();
-      expect(navigateToDeleteAccount).not.toHaveBeenCalled();
-
-      // HD keyring group
-      act(() => {
-        result.current.onRemoveAccount(visibleGroupId);
-      });
       expect(alertSpy).not.toHaveBeenCalled();
       expect(navigateToDeleteAccount).not.toHaveBeenCalled();
     });
   });
 
   it('exposes a stable onAddAccount for the add-account footers', () => {
-    const { state } = createBaseState();
-    const { result } = renderHookWithProvider(() => useManageAccountsView(), {
-      state,
-    });
+    const { result } = renderUseManageAccountsView();
 
     let firstResult: unknown;
     act(() => {
