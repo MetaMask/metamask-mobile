@@ -221,7 +221,7 @@ exports[`SnapUIForm will render 1`] = `
                     [
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -350,7 +350,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -468,7 +468,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -587,7 +587,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -780,7 +780,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -971,7 +971,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#131416",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
@@ -1217,7 +1217,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     [
                       {
                         "color": "#4459ff",
-                        "fontFamily": "Inter-Medium",
+                        "fontFamily": "Geist-Medium",
                         "fontSize": 16,
                         "letterSpacing": 0,
                         "lineHeight": 24,
