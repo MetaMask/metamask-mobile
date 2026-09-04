@@ -96,10 +96,19 @@ const BtcMarketValues = memo(
     </Box>
   ),
 );
-
 interface BtcLiveValuesProps {
   isSectionVisible: boolean;
 }
+
+const BtcLiveValues = forwardRef<BtcLiveValuesHandle>((_props, ref) => {
+  const isFocused = useIsFocused();
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const { marketId, market, currentPrice, priceToBeat, countdown } =
+    useCurrentCryptoUpDownMarketData({
+      series: HOMEPAGE_PREDICT_SERIES_SLOT.series,
+      enabled: isPredictEnabled && isFocused,
+      withChartData: false,
+    });
 
 const BtcLiveValues = forwardRef<BtcLiveValuesHandle, BtcLiveValuesProps>(
   ({ isSectionVisible }, ref) => {

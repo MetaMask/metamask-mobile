@@ -17,6 +17,7 @@ import type { AccountAvatarVariant } from '../../../../component-library/compone
 import { strings } from '../../../../../locales/i18n';
 import {
   getManageAccountRowId,
+  getManageAccountRowCellId,
   getManageAccountRowEyeToggleId,
   getManageAccountRowEyeIconId,
   getManageAccountRowRemoveId,
@@ -24,12 +25,11 @@ import {
 } from '../ManageAccounts.testIds';
 
 /**
- * Trailing action variant, decided by the view layer per row (type → variant
- * mapping is the wiring lane's job):
- * - `hide` — eye / eye-slash toggle (entropy & HD account rows only).
- * - `remove` — error-colored minus control (hardware & imported rows).
- * - `hideAndRemove` — both controls (hardware rows).
- * - `none` — no trailing action (snap rows).
+ * Trailing action variant for a row:
+ * - `hide` — eye / eye-slash toggle.
+ * - `remove` — minus control.
+ * - `hideAndRemove` — both controls.
+ * - `none` — no trailing action.
  */
 export enum ManageAccountRowVariant {
   Hide = 'hide',
@@ -104,6 +104,7 @@ const ManageAccountRow = ({
         pointerEvents={isHidden ? 'none' : 'auto'}
         accessibilityElementsHidden={isHidden}
         importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
+        testID={getManageAccountRowCellId(accountGroup.id)}
       >
         <AccountCell
           accountGroup={accountGroup}

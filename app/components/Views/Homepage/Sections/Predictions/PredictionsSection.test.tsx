@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PREDICT_CLAIM_BUTTON_TEST_IDS } from '../../../../UI/Predict/components/PredictActionButtons/PredictClaimButton.testIds';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MAX_POSITIONS_DISPLAYED } from './predictionsSectionConstants';
 
 const mockNavigate = jest.fn();
 const mockTrackEvent = jest.fn();
@@ -342,6 +343,17 @@ describe('PredictionsSection', () => {
     );
 
     expect(screen.getByText('Predictions')).toBeOnTheScreen();
+  });
+
+  it('limits active homepage positions', () => {
+    renderWithProvider(
+      <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+
+    expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+      maxPositions: MAX_POSITIONS_DISPLAYED,
+      enabled: true,
+    });
   });
 
   it('skips trending market fetches for treatment discovery', () => {
@@ -998,6 +1010,7 @@ describe('PredictionsSection', () => {
       );
 
       expect(mockUsePredictPositionsForHomepage).toHaveBeenCalledWith({
+        maxPositions: MAX_POSITIONS_DISPLAYED,
         enabled: true,
       });
       expect(mockUsePredictPositionsForHomepage).not.toHaveBeenCalledWith(
