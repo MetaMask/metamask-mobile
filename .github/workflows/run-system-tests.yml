@@ -116,7 +116,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
@@ -226,7 +226,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
@@ -325,7 +325,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
@@ -435,7 +435,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .metamask
-          key: .metamask-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: .metamask-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Install Foundry if cache missed
         if: steps.restore-metamask.outputs.cache-hit != 'true'
