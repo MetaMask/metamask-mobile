@@ -171,9 +171,9 @@ describe('e2eWorkerPorts', () => {
     });
 
     it('is false on Android-only env', () => {
-      expect(
-        isIosAppiumSmokeEnv({ ANDROID_DEVICE_POOL_SIZE: '3' }),
-      ).toBe(false);
+      expect(isIosAppiumSmokeEnv({ ANDROID_DEVICE_POOL_SIZE: '3' })).toBe(
+        false,
+      );
     });
   });
 });
