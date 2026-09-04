@@ -50,6 +50,10 @@ jest.mock('../../../../../util/notifications/methods/common', () => ({
   })),
 }));
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn(),
+}));
+
 runQuoteDataCases({
   name: 'useBridgeQuoteData',
   mockDispatch,

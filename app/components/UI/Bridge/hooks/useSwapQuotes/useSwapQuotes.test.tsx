@@ -130,12 +130,14 @@ const Wrapper = ({
   children,
   quoteRequestIndex,
   quoteRequestCount,
+  featureId,
   ...options
 }: {
   children: React.ReactNode;
   latestSourceAtomicBalance?: BigNumber;
   quoteRequestIndex?: number;
   quoteRequestCount?: number;
+  featureId: FeatureId;
 }) => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -147,7 +149,7 @@ const Wrapper = ({
   return (
     <SwapQuotesProvider
       isActive
-      featureId={FeatureId.UNIFIED_SWAP_BRIDGE}
+      featureId={featureId}
       debounceWait={mockDebounceMs}
       quoteRequestIndex={quoteRequestIndex}
       quoteRequestCount={quoteRequestCount}
@@ -168,6 +170,10 @@ const Wrapper = ({
   );
 };
 
+jest.mock('../useSwapsFeatureId', () => ({
+  useSwapsFeatureId: jest.fn().mockReturnValue('limit_order'),
+}));
+
 describe('useSwapQuotes', () => {
   it('throws an error if used outside of SwapQuotesProvider', () => {
     expect(() => renderHook(() => useSwapQuotes())).toThrow(
@@ -180,14 +186,18 @@ runQuoteRequestCases({
   name: 'useQuoteRequest',
   debounceMs: mockDebounceMs,
   renderHook: (options) =>
+    // @ts-expect-error - this returns a defined update function
     renderHook(
       () => {
-        // @ts-expect-error - this returns a defined update function
-        const { debouncedUpdateQuoteParams } = useSwapQuotes();
-        return debouncedUpdateQuoteParams;
+        const value = useSwapQuotes();
+        return value?.debouncedUpdateQuoteParams;
       },
       {
-        wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
+        wrapper: ({ children }) => (
+          <Wrapper {...options} featureId={FeatureId.LIMIT_ORDER}>
+            {children}
+          </Wrapper>
+        ),
       },
     ),
   featureId: FeatureId.LIMIT_ORDER,
@@ -198,9 +208,13 @@ runQuoteDataCases({
   mockDispatch,
 
   renderHook: (options) =>
-    // @ts-expect-error - this returns a defined update function
+    // @ts-expect-error - this returns quote data
     renderHook(() => useSwapQuotes(), {
-      wrapper: ({ children }) => <Wrapper {...options}>{children}</Wrapper>,
+      wrapper: ({ children }) => (
+        <Wrapper {...options} featureId={FeatureId.LIMIT_ORDER}>
+          {children}
+        </Wrapper>
+      ),
     }),
   featureId: FeatureId.LIMIT_ORDER,
 });

@@ -23,6 +23,7 @@ import * as quoteUtils from '../../utils/quoteUtils';
 import { useBridgeQuoteData } from '.';
 import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx';
 import useInsufficientBalance from '../useInsufficientBalance';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
 const defaultSelectBridgeQuotesResults: ReturnType<
   typeof bridgeSlice.selectBridgeQuotes
@@ -137,6 +138,9 @@ const mockUseValidateBridgeTx = useValidateBridgeTx as jest.MockedFunction<
 >;
 const mockValidateBridgeTx = jest.fn();
 const mockTrace = trace as jest.MockedFunction<typeof trace>;
+const mockUseSwapsFeatureId = useSwapsFeatureId as jest.MockedFunction<
+  typeof useSwapsFeatureId
+>;
 
 export const runQuoteDataCases = ({
   name,
@@ -210,6 +214,7 @@ export const runQuoteDataCases = ({
       mockUseValidateBridgeTx.mockReturnValue({
         validateBridgeTx: mockValidateBridgeTx,
       });
+      mockUseSwapsFeatureId.mockReturnValue(featureId);
     });
 
     afterEach(() => {
