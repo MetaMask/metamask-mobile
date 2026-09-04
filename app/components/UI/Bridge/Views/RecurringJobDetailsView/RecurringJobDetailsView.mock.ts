@@ -40,7 +40,7 @@ export const MOCK_RECURRING_OPEN_JOB: RecurringJob = {
   sizePerOrder: '0.0015 ETH',
   priceRange: '--',
   totalReceived: '6 USDC',
-  averageExecutionPrice: '1 ETH = 2,000 USDC',
+  averageExecutionPrice: '$2,000.00',
   startDate: 'Sep 1, 2026',
   endDate: 'Sep 5, 2026',
   orders: [
@@ -135,7 +135,7 @@ export const MOCK_RECURRING_COMPLETED_JOB: RecurringJob = {
   sizePerOrder: '0.0015 ETH',
   priceRange: '--',
   totalReceived: '15 USDC',
-  averageExecutionPrice: '1 ETH = 2,000 USDC',
+  averageExecutionPrice: '$2,000.00',
   startDate: 'Aug 27, 2026',
   endDate: 'Aug 31, 2026',
   orders: Array.from({ length: 5 }, (_, index) => ({
