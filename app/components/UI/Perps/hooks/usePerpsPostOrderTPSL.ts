@@ -102,6 +102,44 @@ const findRenderedPosition = (
     : undefined;
 };
 
+const subscribeToRenderedPosition = (
+  positionsStream: PerpsPositionStream,
+  symbol: string,
+  baselineSize: string | undefined,
+  isContextCurrent: () => boolean,
+  isSettled: () => boolean,
+  settle: (wakeResult: AttachmentWakeResult) => void,
+): (() => void) | undefined => {
+  try {
+    const unsubscribe = positionsStream.subscribe({
+      callback: (positions) => {
+        if (!isContextCurrent()) {
+          settle({ type: 'context-changed' });
+          return;
+        }
+        const position = findRenderedPosition(positions, symbol, baselineSize);
+        if (position) {
+          settle({ type: 'position', position });
+        }
+      },
+      throttleMs: 0,
+      symbols: [symbol],
+    });
+
+    // The stream may synchronously deliver cached data before subscribe()
+    // returns its cleanup callback.
+    if (isSettled()) {
+      unsubscribe();
+      return undefined;
+    }
+    return unsubscribe;
+  } catch {
+    // The controller retry schedule remains available when the stream cannot
+    // subscribe. The timer and context listener still settle this wait.
+    return undefined;
+  }
+};
+
 const waitForPositionOrDelay = (
   positionsStream: PerpsPositionStream,
   symbol: string,
@@ -124,7 +162,7 @@ const waitForPositionOrDelay = (
 
   return new Promise((resolve) => {
     let settled = false;
-    let unsubscribeFromPositions: (() => void) | undefined;
+    let unsubscribeFromPositions: () => void = () => undefined;
     let cancelDelay: () => void = () => undefined;
     let unsubscribeFromStore: () => void = () => undefined;
     const settle = (wakeResult: AttachmentWakeResult) => {
@@ -133,7 +171,7 @@ const waitForPositionOrDelay = (
       }
       settled = true;
       cancelDelay();
-      unsubscribeFromPositions?.();
+      unsubscribeFromPositions();
       unsubscribeFromStore();
       resolve(wakeResult);
     };
@@ -146,34 +184,15 @@ const waitForPositionOrDelay = (
       }
     });
 
-    try {
-      unsubscribeFromPositions = positionsStream.subscribe({
-        callback: (positions) => {
-          if (!isContextCurrent()) {
-            settle({ type: 'context-changed' });
-            return;
-          }
-          const position = findRenderedPosition(
-            positions,
-            symbol,
-            baselineSize,
-          );
-          if (position) {
-            settle({ type: 'position', position });
-          }
-        },
-        throttleMs: 0,
-        symbols: [symbol],
-      });
-      // The stream may synchronously deliver cached data before subscribe()
-      // returns its cleanup callback.
-      if (settled) {
-        unsubscribeFromPositions();
-      }
-    } catch {
-      // The controller retry schedule remains available when the stream cannot
-      // subscribe. The timer and context listener still settle this wait.
-    }
+    unsubscribeFromPositions =
+      subscribeToRenderedPosition(
+        positionsStream,
+        symbol,
+        baselineSize,
+        isContextCurrent,
+        () => settled,
+        settle,
+      ) ?? (() => undefined);
 
     if (!isContextCurrent()) {
       settle({ type: 'context-changed' });
