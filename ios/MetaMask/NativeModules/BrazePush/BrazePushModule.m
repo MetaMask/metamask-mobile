@@ -51,11 +51,23 @@ RCT_REMAP_METHOD(
     if (error == nil ||
         [error.localizedDescription rangeOfString:@"no push token"
                                            options:NSCaseInsensitiveSearch].location != NSNotFound) {
-      resolve(nil);
+      resolve(@{@"success": @YES});
       return;
     }
 
-    reject(@"UNREGISTER_FAILED", error.localizedDescription, error);
+    NSNumber *isRetriable =
+      error.userInfo[BRZPushUnregistrationErrorUserInfoKey.isRetriable] ?: @NO;
+    NSNumber *httpStatusCode =
+      error.userInfo[BRZPushUnregistrationErrorUserInfoKey.httpStatusCode];
+    NSMutableDictionary *result = [@{
+      @"success": @NO,
+      @"message": error.localizedDescription,
+      @"isRetriable": isRetriable
+    } mutableCopy];
+    if (httpStatusCode != nil) {
+      result[@"httpStatusCode"] = httpStatusCode;
+    }
+    resolve(result);
   }];
 }
 

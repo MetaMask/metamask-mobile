@@ -9,8 +9,8 @@ export const createRegToken = FCMService.createRegToken;
 
 /**
  * Unregister this device from Braze before deleting the FCM token.
- * Throws when Braze still holds a token so NaaP does not flip the in-app
- * toggle off while Braze can still target the device.
+ * Retriable failures are persisted for retry on the next app launch. Permanent
+ * failures throw so NaaP keeps the in-app toggle enabled.
  */
 export const deleteRegToken = async (): Promise<boolean> => {
   await unregisterBrazePush();

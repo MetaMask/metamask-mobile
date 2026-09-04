@@ -16,6 +16,7 @@ import {
 
 const mockSetBrazeProfileId = jest.fn();
 const mockSetLanguage = jest.fn();
+const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 
 jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
   BrazePlugin: jest.fn().mockImplementation(() => ({
@@ -26,11 +27,17 @@ jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
   })),
 }));
 
+jest.mock('./pushRegistrationState', () => ({
+  hasPendingBrazePushUnregistrationSync: () =>
+    mockHasPendingBrazePushUnregistrationSync(),
+}));
+
 const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
 
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHasPendingBrazePushUnregistrationSync.mockReturnValue(false);
     resetBrazePluginForTesting();
   });
 
@@ -55,14 +62,14 @@ describe('Braze service', () => {
   });
 
   describe('clearBrazeUser', () => {
-    it('clears the profile ID on the Braze Segment plugin', () => {
-      clearBrazeUser();
+    it('clears the profile ID on the Braze Segment plugin', async () => {
+      await clearBrazeUser();
 
       expect(mockSetBrazeProfileId).toHaveBeenCalledWith(undefined);
     });
 
-    it('wipes local Braze SDK data and re-enables the SDK', () => {
-      clearBrazeUser();
+    it('wipes local Braze SDK data and re-enables the SDK', async () => {
+      await clearBrazeUser();
 
       expect(Braze.wipeData).toHaveBeenCalledTimes(1);
       expect(Braze.enableSDK).toHaveBeenCalledTimes(1);
@@ -71,6 +78,15 @@ describe('Braze service', () => {
       ).toBeLessThan(
         (Braze.enableSDK as jest.Mock).mock.invocationCallOrder[0],
       );
+    });
+
+    it('defers wiping local data while push unregistration is pending', async () => {
+      mockHasPendingBrazePushUnregistrationSync.mockReturnValue(true);
+
+      await expect(clearBrazeUser()).resolves.toBe(false);
+
+      expect(Braze.wipeData).not.toHaveBeenCalled();
+      expect(Braze.enableSDK).not.toHaveBeenCalled();
     });
   });
 

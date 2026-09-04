@@ -1701,7 +1701,7 @@ class AuthenticationService {
    * @returns {Promise<void>}
    */
   deleteWallet = async (): Promise<void> => {
-    clearBrazeUser();
+    await clearBrazeUser();
     await this.resetWalletState();
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state

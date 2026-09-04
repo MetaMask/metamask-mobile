@@ -8,6 +8,7 @@ import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
 } from '../../constants/engagement';
+import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 
 let brazePlugin: BrazePlugin | undefined;
 
@@ -52,19 +53,31 @@ export function setBrazeUser(canonicalProfileId: string): void {
 /**
  * Clear the Braze profile identity so the plugin becomes a no-op.
  * Call on sign-out to stop attributing events to the previous user.
+ *
+ * @returns Whether local Braze data was cleared. Cleanup is deferred while a
+ * push unregistration remains pending so its device and user context survive.
  */
-export function clearBrazeUser(): void {
+export async function clearBrazeUser(): Promise<boolean> {
   if (hasTestOverrides) {
-    return;
+    return true;
   }
 
   getBrazePlugin().setBrazeProfileId(undefined);
+  if (hasPendingBrazePushUnregistrationSync()) {
+    Logger.log(
+      '[Braze] Deferred local SDK data clearing until push unregistration succeeds',
+    );
+    return false;
+  }
+
   try {
     Braze.wipeData();
     Braze.enableSDK();
     Logger.log('[Braze] Cleared Braze user identity and local SDK data');
+    return true;
   } catch (error) {
     Logger.error(error as Error, '[Braze] Failed to clear local SDK data');
+    return false;
   }
 }
 
