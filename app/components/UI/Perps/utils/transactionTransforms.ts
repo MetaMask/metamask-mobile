@@ -71,6 +71,7 @@ function getCloseDirectionForAggregation(
  *
  * Aggregation criteria:
  * - Same asset symbol
+ * - Same provider
  * - Same timestamp (truncated to the same second)
  * - Same close direction (Close Long, Close Short, Sell, or Auto-Deleveraging)
  *
@@ -92,7 +93,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
   // Array to preserve non-aggregatable fills in order
   const nonAggregatableFills: OrderFill[] = [];
 
-  // Group fills by asset + timestamp (truncated to second) + close direction
+  // Group fills by provider + asset + timestamp (truncated to second) + close direction
   for (const fill of fills) {
     const closeDirection = getCloseDirectionForAggregation(fill.direction);
 
@@ -102,9 +103,9 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       continue;
     }
 
-    // Create aggregation key: asset + timestamp (truncated to second) + close direction
+    // Create aggregation key: provider + asset + timestamp + close direction
     const timestampSecond = Math.floor(fill.timestamp / 1000);
-    const aggregationKey = `${fill.symbol}-${timestampSecond}-${closeDirection}`;
+    const aggregationKey = `${fill.providerId ?? 'unknown'}-${fill.symbol}-${timestampSecond}-${closeDirection}`;
 
     const existingGroup = aggregationMap.get(aggregationKey);
     if (existingGroup) {
@@ -187,6 +188,7 @@ export function aggregateFillsByTimestamp(fills: OrderFill[]): OrderFill[] {
       liquidation: aggregatedLiquidation,
       orderType: firstFill.orderType,
       detailedOrderType: aggregatedDetailedOrderType,
+      providerId: firstFill.providerId,
     };
 
     aggregatedFills.push(aggregatedFill);
@@ -330,18 +332,43 @@ export function transformFillsToTransactions(
     let displayAmount = '';
     let fillSize = size;
     if (isFlipped) {
-      fillSize = BigNumber(fill.startPosition || '0')
-        .minus(fill.size)
+      // startPosition is SIGNED (negative for shorts); the post-flip size
+      // is |trade size| - |position before| regardless of direction.
+      fillSize = BigNumber(fill.size)
+        .absoluteValue()
+        .minus(BigNumber(fill.startPosition || '0').absoluteValue())
         .absoluteValue()
         .toString();
     }
+    // Lighter reports fills as Buy/Sell with realized PnL attached: a Buy
+    // that reduces a short realizes PnL just like a Close does. Keep this
+    // heuristic provider-scoped so HyperLiquid Buy retains spot semantics.
+    const hasLighterRealizedPnl =
+      fill.providerId === 'lighter' && !BigNumber(fill.pnl || 0).isZero();
+    // A zero-PnL side-only Lighter fill is genuinely ambiguous (a
+    // break-even reduction and an add both fit): present it as a neutral
+    // trade instead of guessing open (Buy) or close (Sell). HyperLiquid's
+    // Buy/Sell keeps its spot semantics.
+    const isAmbiguousSideOnly =
+      fill.providerId === 'lighter' &&
+      (isBuy || isSell) &&
+      !hasLighterRealizedPnl;
     // Calculate display amount based on action type
-    if (isOpened || isBuy) {
+    if (
+      isAmbiguousSideOnly ||
+      ((isOpened || isBuy) && !hasLighterRealizedPnl)
+    ) {
       // For opening positions or buying: show fee paid (negative)
       amountBN = BigNumber(fill.fee || 0);
       displayAmount = `-$${Math.abs(amountBN.toNumber()).toFixed(2)}`;
       isPositive = false; // Fee is always a cost
-    } else if (isClosed || isSell || isFlipped || isAutoDeleveraging) {
+    } else if (
+      isClosed ||
+      isSell ||
+      isFlipped ||
+      isAutoDeleveraging ||
+      hasLighterRealizedPnl
+    ) {
       // For closing positions: show PnL minus fee
       const pnlValue = BigNumber(fill.pnl || 0);
       const feeValue = BigNumber(fill.fee || 0);
@@ -402,7 +429,14 @@ export function transformFillsToTransactions(
     acc.push({
       id: `${orderId || 'fill'}-${timestamp}-${acc.length}`,
       type: 'trade',
-      category: isOpened || isBuy ? 'position_open' : 'position_close',
+      // A side-only fill carrying realized PnL reduced a position — it is
+      // a close regardless of its Buy/Sell label; a zero-PnL side-only
+      // Lighter fill is ambiguous and stays a neutral trade.
+      category: isAmbiguousSideOnly
+        ? 'trade'
+        : (isOpened || isBuy) && !hasLighterRealizedPnl
+          ? 'position_open'
+          : 'position_close',
       title,
       subtitle: `${size} ${getPerpsDisplaySymbol(symbol)}`,
       timestamp,

@@ -70,6 +70,7 @@ describe('babel.config.js path matching', () => {
       '/node_modules/@noble/secp256k1/index.js',
       '/node_modules/@metamask/rpc-errors/dist/index.js',
       '/app/lib/snaps/SnapsExecutionWebView.tsx',
+      '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
       '/app/core/redux/ReduxService.ts',
       '/app/core/Engine/Engine.ts',
       '/app/core/NavigationService/NavigationService.ts',

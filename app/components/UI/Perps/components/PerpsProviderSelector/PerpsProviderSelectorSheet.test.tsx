@@ -58,6 +58,35 @@ describe('PerpsProviderSelectorSheet', () => {
     expect(
       queryByTestId('provider-sheet-option-hyperliquid-testnet'),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('provider-sheet-option-lighter-mainnet'),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId('provider-sheet-option-lighter-testnet'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders all matching options when all providers available', () => {
+    mockUsePerpsProvider.mockReturnValue({
+      availableProviders: ['hyperliquid', 'lighter'],
+    });
+
+    const { getByTestId } = render(
+      <PerpsProviderSelectorSheet {...defaultProps} />,
+    );
+
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-hyperliquid-testnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-mainnet'),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('provider-sheet-option-lighter-testnet'),
+    ).toBeOnTheScreen();
   });
 
   it('calls onOptionSelect when an option is pressed', async () => {

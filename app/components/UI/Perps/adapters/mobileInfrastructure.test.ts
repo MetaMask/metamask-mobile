@@ -145,6 +145,7 @@ jest.mock('../../../../util/intl', () => ({
 describe('createMobileInfrastructure', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectVipProgramEnabled.mockReturnValue(true);
   });
 
   describe('performance tracing', () => {
@@ -482,6 +483,9 @@ describe('createMobileClientConfig', () => {
       'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
       'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
       'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+      'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
+      'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      'MM_PERPS_LIGHTER_API_KEY_INDEX',
     ];
     const saved: Record<string, string | undefined> = {};
     for (const key of envVars) {
@@ -502,6 +506,11 @@ describe('createMobileClientConfig', () => {
         hyperliquid: {
           builderAddressTestnet: '',
           builderAddressMainnet: '',
+        },
+        lighter: {
+          enabled: false,
+          accountIndexTestnet: undefined,
+          apiKeyIndex: undefined,
         },
       },
     });
