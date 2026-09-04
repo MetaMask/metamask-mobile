@@ -11,6 +11,10 @@ import parseDeeplink from './parseDeeplink';
 import handleEthereumUrl from '../handlers/handleEthereumUrl';
 import handleSolanaUrl from '../handlers/handleSolanaUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+import {
+  cancelDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+} from '../../Performance/DeeplinkPerformance';
 
 jest.mock('../../../constants/deeplinks');
 jest.mock('../../../util/Logger');
@@ -21,6 +25,7 @@ jest.mock('../handlers/handleUniversalLink');
 jest.mock('../handlers/connectWithWC');
 jest.mock('../handlers/handleEthereumUrl');
 jest.mock('../handlers/handleSolanaUrl');
+jest.mock('../../Performance/DeeplinkPerformance');
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
@@ -288,6 +293,162 @@ describe('parseDeeplink', () => {
       });
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('Processed trace settlement for non-HTTP protocols', () => {
+    const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
+    const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
+
+    it('ends the trace at handler_finished for WC protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'wc://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('ends the trace at handler_finished for ethereum protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'ethereum://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('ends the trace at handler_finished for dapp protocol in execute mode', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'dapp://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as rejected for unsupported protocol', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'unsupported://example.com',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as error for invalid URL', async () => {
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'not-a-url',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'error',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('detached universal-link Processed trace settlement', () => {
+    // The universal-link flow is not awaited in execute mode (it can block on
+    // the interstitial), so the Processed trace is settled from a detached
+    // continuation. Flush it before asserting.
+    const flushDetachedFlow = () =>
+      new Promise((resolve) => setImmediate(resolve));
+
+    const mockEndProcessed = jest.mocked(endDeeplinkProcessedTrace);
+    const mockCancelProcessed = jest.mocked(cancelDeeplinkProcessedTrace);
+
+    const parseUniversalLink = async () => {
+      const result = await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'https://link.metamask.io/home',
+        origin: 'testOrigin',
+        processedTraceToken: 7,
+      });
+      await flushDetachedFlow();
+      return result;
+    };
+
+    it('ends the trace at handler_finished with the owning token when the flow completes', async () => {
+      mockHandleUniversalLinks.mockResolvedValueOnce(undefined);
+
+      await parseUniversalLink();
+
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: 7,
+      });
+      expect(mockCancelProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as rejected when the user declines the interstitial', async () => {
+      mockHandleUniversalLinks.mockResolvedValueOnce(false);
+
+      await parseUniversalLink();
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'rejected',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('cancels as error when the flow rejects', async () => {
+      mockHandleUniversalLinks.mockRejectedValueOnce(new Error('boom'));
+
+      await parseUniversalLink();
+
+      expect(mockCancelProcessed).toHaveBeenCalledWith({
+        reason: 'error',
+        traceToken: 7,
+      });
+      expect(mockEndProcessed).not.toHaveBeenCalled();
+    });
+
+    it('settles with a null token when this parse does not own the span', async () => {
+      mockHandleUniversalLinks.mockResolvedValueOnce(undefined);
+
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url: 'https://link.metamask.io/home',
+        origin: 'testOrigin',
+      });
+      await flushDetachedFlow();
+
+      // A null token makes the end a no-op inside DeeplinkPerformance — the
+      // recursive send/wc re-entry must not close the outer parse's span.
+      expect(mockEndProcessed).toHaveBeenCalledWith({
+        seam: 'handler_finished',
+        traceToken: null,
+      });
     });
   });
 });

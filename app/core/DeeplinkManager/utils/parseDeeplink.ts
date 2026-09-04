@@ -17,6 +17,11 @@ import AppConstants from '../../AppConstants';
 import handleEthereumUrl from '../handlers/handleEthereumUrl';
 import handleSolanaUrl from '../handlers/handleSolanaUrl';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
+import {
+  cancelDeeplinkProcessedTrace,
+  endDeeplinkProcessedTrace,
+  type DeeplinkTraceToken,
+} from '../../Performance/DeeplinkPerformance';
 
 export type DeeplinkParseMode = 'execute' | 'resolve';
 
@@ -27,6 +32,7 @@ async function parseDeeplink({
   browserCallBack,
   onHandled,
   mode = 'execute',
+  processedTraceToken = null,
 }: {
   deeplinkManager: DeeplinkManager;
   url: string;
@@ -34,6 +40,7 @@ async function parseDeeplink({
   browserCallBack?: (url: string) => void;
   onHandled?: () => void;
   mode?: DeeplinkParseMode;
+  processedTraceToken?: DeeplinkTraceToken | null;
 }): Promise<boolean | DeeplinkIntent | null> {
   try {
     const validatedUrl = new URL(url);
@@ -73,9 +80,35 @@ async function parseDeeplink({
           source: origin,
           mode,
         });
+
         if (mode === 'resolve') {
           return (await result) ?? null;
         }
+
+        Promise.resolve(result)
+          .then((flowResult) => {
+            if (flowResult === false) {
+              cancelDeeplinkProcessedTrace({
+                reason: 'rejected',
+                traceToken: processedTraceToken,
+              });
+            } else {
+              endDeeplinkProcessedTrace({
+                seam: 'handler_finished',
+                traceToken: processedTraceToken,
+              });
+            }
+          })
+          .catch((error) => {
+            Logger.error(
+              error as Error,
+              'DeepLinkManager: error in detached universal link flow',
+            );
+            cancelDeeplinkProcessedTrace({
+              reason: 'error',
+              traceToken: processedTraceToken,
+            });
+          });
         break;
       }
       case PROTOCOLS.WC:
@@ -83,6 +116,10 @@ async function parseDeeplink({
           return null;
         }
         connectWithWC({ handled, wcURL, origin, params });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       case PROTOCOLS.ETHEREUM:
         if (mode === 'resolve') {
@@ -94,6 +131,10 @@ async function parseDeeplink({
           origin,
         }).catch((err) => {
           Logger.error(err, 'Error handling ethereum url');
+        });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
         });
         break;
       case PROTOCOLS.SOLANA:
@@ -114,8 +155,16 @@ async function parseDeeplink({
           return createDappDeeplinkIntent({ url: getDappUrl(urlObj) });
         }
         handleDappUrl({ handled, urlObj, browserCallBack });
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         break;
       default:
+        cancelDeeplinkProcessedTrace({
+          reason: 'rejected',
+          traceToken: processedTraceToken,
+        });
         return false;
     }
 
@@ -131,13 +180,18 @@ async function parseDeeplink({
           strings('qr_scanner.unrecognized_address_qr_code_title'),
           strings('qr_scanner.unrecognized_address_qr_code_desc'),
         );
-
-        // Return true to indicate we handled this
+        endDeeplinkProcessedTrace({
+          seam: 'handler_finished',
+          traceToken: processedTraceToken,
+        });
         return true;
       }
       Alert.alert(strings('deeplink.invalid'), `Invalid URL: ${url}`);
     }
-
+    cancelDeeplinkProcessedTrace({
+      reason: 'error',
+      traceToken: processedTraceToken,
+    });
     return false;
   }
 }
