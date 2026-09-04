@@ -12,11 +12,7 @@
         "type": "object",
         "properties": {
           "file": { "type": "string" },
-          "line": {
-            "type": "number",
-            "description":
-              "1-based line where `snippet` begins in the analyzed file."
-          },
+          "line": { "type": "number" },
           "patternId": {
             "type": "string",
             "enum": [
