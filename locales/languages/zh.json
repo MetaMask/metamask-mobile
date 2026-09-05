@@ -26,6 +26,10 @@
     "description_line2": "若您认为此标记有误，请联系支持团队申请审核。",
     "contact_support": "联系支持团队"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "您的设备存储空间不足。请释放空间，以便 MetaMask 保存您的钱包数据。"
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "开始",
         "end": "结束",
         "margin": "保证金",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "仓位（{{count}}）",
       "orders": "订单",
       "orders_with_count": "订单（{{count}}）",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "仅限 {{ticker}}",
       "view_market_accessibility": "切换至 {{symbol}} 市场",
       "positions_empty": "您的持仓将显示在此处。",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "暂无未平仓的 {{ticker}} 订单。",
       "orders_empty_long": "暂无多头订单。",
       "orders_empty_short": "暂无空头订单。",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "全部方向",
         "long": "做多",
@@ -1695,6 +1714,36 @@
         "edit": "编辑",
         "edit_price": "编辑限价",
         "edit_size": "编辑规模"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "配置止盈/止损前须设定限价",
         "only_hyperliquid_usdc": "目前仅支持使用 Hyperliquid 上的 USDC 进行支付",
         "limit_price_far_warning": "限价与当前市价相差较多",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "限价高于当前价格。您的订单可能以市价订单形式执行。",
         "limit_price_below_warning": "限价低于当前价格。您的订单可能以市价订单形式执行。",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "触发价格必须高于中间价",
         "trigger_must_be_below_mid": "触发价格必须低于中间价",
         "trigger_orders_unavailable": "触发订单暂时不可用。请选择市价订单。",
@@ -2043,6 +2098,8 @@
       "success_title": "平仓成功",
       "position_closed": "仓位已平仓",
       "funds_are_available_to_trade": "资金可用于交易",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "平仓失败",
       "failed_to_partially_close_position": "部分平仓失败",
       "failed_to_place_close_order": "平仓订单下单失败",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% 亏损",
       "usd_label": "$",
       "take_profit_invalid_price": "须以 {{direction}}{{priceType}} 价格止盈",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "须以 {{direction}}{{priceType}} 价格止损",
       "stop_loss_beyond_liquidation_error": "须以 {{direction}} 清算价格止损",
       "stop_loss_order_view_warning": "以 {{direction}} 清算价格止损",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "谁都不想钱包空空如也。轻松充值即可开始交易。",
       "fund_primary": "充值",
       "trade_title": "完成您的首笔交易",
-      "trade_subtitle": "在多个网络上交易热门代币，助推您的投资组合增长。",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "交易",
       "notifications_title": "开启通知",
       "notifications_subtitle": "实时掌握市场变化，为您的投资组合做出最佳决策。",
@@ -4284,7 +4342,7 @@
       "select_all": "全部选择",
       "deselect_all": "取消全部选择",
       "select_accounts_title": "账户",
-      "select_accounts_desc": "选择您想要接收通知的账户。",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "钱包活动",
       "wallet_activity_desc": "买入、卖出、转账、兑换",
       "perps_title": "交易活动",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "让MetaMask使用第三方服务（如OpenSea）来添加您所拥有的NFT。打开自动检测NFT功能后，这些服务就可以获悉您的IP地址和账户地址。启用此功能可能会将您的IP地址与以太坊地址关联起来，并显示骗子空投的虚假NFT。您可以手动添加代币以避免此风险。",
     "display_nft_media_desc_new": "显示NFT媒体和数据，会导致您的IP地址被OpenSea或其他第三方获悉。NFT自动检测依赖于此功能，此功能关闭后即不可用。如果NFT媒体是完全位于IPFS上，则即使关闭此功能，该NFT媒体仍然可以显示。",
     "use_safe_chains_list_validation_desc_1": "MetaMask 使用第三方服务 ",
-    "use_safe_chains_list_validation_desc_2": "来显示准确和标准化的网络详情。这可减少您连接到恶意或错误网络的机会。使用此功能时，您的 IP 地址会暴露给  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snap",
       "description": "查看和管理 Snap",
@@ -5051,7 +5109,7 @@
     "bridge_description": "在不同网络间传送代币",
     "send_description": "向任何账户发送加密货币",
     "receive_description": "接收加密货币",
-    "earn_description": "通过您的代币赚取奖励",
+    "earn_description": "Put your crypto to work",
     "perps_description": "交易永续合约",
     "predict_description": "基于现实事件进行交易",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "市价 - 平掉多头仓位",
     "activity_limit_long": "限价多头仓位",
     "activity_limit_close_long": "限价 - 平掉多头仓位",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "已成交",
     "activity_order_status_canceled": "已取消",
     "activity_order_status_rejected": "已拒绝",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "正在关联您的卡",
       "link_success_title": "您的卡已可正常使用",
       "link_error": "关联您的卡时出现问题",
-      "link_error_different_card": "该钱包已关联至其他 MetaMask 卡",
       "unlink_pending_title": "正在解绑您的卡",
       "unlink_success_title": "您的卡已成功解绑",
       "unlink_error": "解绑您的卡时出错",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "您获得",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "已完成"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "兑换进行中",
       "swap_success": "兑换完成",
@@ -9082,8 +9152,8 @@
     "submit": "提交",
     "default_slippage_description": "如果价格变化超过滑移百分比，您的交易将无法成功。",
     "confirm": "确认",
-    "exceeding_upper_slippage_warning": "高滑移，这可能导致不利兑换",
-    "exceeding_lower_slippage_warning": "低滑移，这可能导致不利兑换",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "输入一个大于 {{value}}% 的值",
     "exceeding_upper_slippage_error": "您输入的数值不能大于 {{value}}%",
     "custom": "自定义",
@@ -9313,7 +9383,9 @@
       "set_up": "设置",
       "secret_recovery_phrase": "私钥助记词",
       "back_up": "备份",
-      "remove_account": "去除账户"
+      "remove_account": "去除账户",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "地址",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "搜索网络",
       "no_networks_found": "未找到网络",
       "no_networks_available": "无可用网络"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "开始",
       "remind_me_later": "稍后提醒我"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "支付页面加载失败。请重试。",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "点击“下一步”即表示您接受 Immersve 的 ",
         "clickwrap_and": " 和 ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "无法加载法律文件。"
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "请求超时。请检查您的网络连接并重试。",
         "server_error": "服务器错误。请稍后再试。",
         "configuration_error": "服务暂时不可用。请稍后再试。",
-        "forbidden_error": "此操作不适用于您的账户。",
-        "money_account_linked_to_different_card": "该钱包已关联至其他 MetaMask 卡。请先解除与该卡的关联，再在此处关联。"
+        "forbidden_error": "此操作不适用于您的账户。"
       }
     },
     "card_forgot_password": {

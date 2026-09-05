@@ -26,6 +26,10 @@
     "description_line2": "Bunun bir hata olduğuna inanıyorsanız inceleme talep etmek için destek bölümü ile iletişime geçin.",
     "contact_support": "Destek ile iletişime geç"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Cihazınızın depolama alanı azaldı. MetaMask'in cüzdan verilerinizi kaydedebilmesi için yer açın."
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "Başla",
         "end": "Sonlandır",
         "margin": "Marj",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "Pozisyonlar ({{count}})",
       "orders": "Emirler",
       "orders_with_count": "Emirler ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "Yalnızca {{ticker}}",
       "view_market_accessibility": "{{symbol}} piyasasına geç",
       "positions_empty": "Açık pozisyonlarınız burada gösterilecek.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "Açık {{ticker}} emri yok.",
       "orders_empty_long": "Long emri yok.",
       "orders_empty_short": "Short emri yok.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "Tüm yönler",
         "long": "Uzun",
@@ -1695,6 +1714,36 @@
         "edit": "Düzenle",
         "edit_price": "Limit fiyatı düzenle",
         "edit_size": "Büyüklüğü düzenle"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "KA/ZD yapılandırılmadan önce limit fiyat belirlenmelidir",
         "only_hyperliquid_usdc": "HyperLiquid’de ödeme için şu anda yalnızca USDC desteklenmektedir",
         "limit_price_far_warning": "Limit fiyat güncel piyasa fiyatından uzak",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Limit fiyatı mevcut fiyatın üzerinde. Emriniz piyasa emri olarak gerçekleşebilir.",
         "limit_price_below_warning": "Limit fiyatı mevcut fiyatın altında. Emriniz piyasa emri olarak gerçekleşebilir.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Tetikleme fiyatı orta fiyattan yüksek olmalıdır",
         "trigger_must_be_below_mid": "Tetikleme fiyatı orta fiyattan düşük olmalıdır",
         "trigger_orders_unavailable": "Tetiklemeli emirler geçici olarak kullanılamıyor. Bir piyasa emri seçin.",
@@ -2043,6 +2098,8 @@
       "success_title": "Pozisyon başarılı bir şekilde kapatıldı",
       "position_closed": "Pozisyon kapatıldı",
       "funds_are_available_to_trade": "Fonlar işlem yapmak için kullanılabilir",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "Pozisyon kapatılamadı",
       "failed_to_partially_close_position": "Kısmen pozisyon kapatma başarısız oldu",
       "failed_to_place_close_order": "Kapatma emri verilemedi",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% Zarar",
       "usd_label": "$",
       "take_profit_invalid_price": "Kazancı al emri {{direction}} yönünde {{priceType}} fiyatta olmalıdır",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "Zararda durdur emri {{direction}} yönünde {{priceType}} fiyatında olmalıdır",
       "stop_loss_beyond_liquidation_error": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında olmalıdır",
       "stop_loss_order_view_warning": "Zararda durdur emri {{direction}} yönünde likidasyon fiyatında",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "Boş bir cüzdanı kimse sevmez. İşlem yapmaya başlamak için kolayca para ekleyin.",
       "fund_primary": "Fon ekle",
       "trade_title": "İlk işleminizi yapın",
-      "trade_subtitle": "Portföyünüzü büyütmek için birden fazla ağ genelinde trend tokenlar ile işlem yapın.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "İşlem Yap",
       "notifications_title": "Bildirimleri aç",
       "notifications_subtitle": "Portföyünüzde en iyi hamleleri yapmak için piyasadaki değişimler hakkında güncel kalın.",
@@ -4284,7 +4342,7 @@
       "select_all": "Tümünü seç",
       "deselect_all": "Tümünün seçimini kaldır",
       "select_accounts_title": "Hesaplar",
-      "select_accounts_desc": "Hangi hesaplar için bildirim almak istediğinizi seçin.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "Cüzdan hareketleri",
       "wallet_activity_desc": "Alışlar, satışlar, transferler, takas işlemleri",
       "perps_title": "İşlem hareketleri",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "MetaMask'in üçüncü taraf hizmetleri (OpenSea) kullanarak size ait olan NFT'leri eklemesine izin verin. NFT'leri otomatik algılama, IP adresinizi ve hesap adresinizi bu hizmetlere ifşa eder. Bu özelliğin etkinleştirilmesi IP adresinizi Ethereum adresinizle ilişkilendirebilir ve dolandırıcılar tarafından airdrop'u gerçekleştirilen sahte NFT'leri gösterebilir. Bu riski önlemek için token'leri elle ekleyebilirsiniz.",
     "display_nft_media_desc_new": "NFT medyasını ve verilerini görüntülemek, IP adresinizin OpenSea veya diğer üçüncü taraflarla paylaşılmasına neden olabilir. NFT otomatik algılama bu özelliğe dayanır ve kapatıldığında kullanılamaz. NFT medyası tamamen IPFS'de bulunuyorsa bu özellik kapalı olduğunda bile görüntülenmeye devam edebilir.",
     "use_safe_chains_list_validation_desc_1": "MetaMask ",
-    "use_safe_chains_list_validation_desc_2": "adlı bir üçüncü taraf hizmetini kullanır. Bu, kötü amaçlı ve yanlış ağa bağlanma ihtimalinizi düşürür. Bu özelliği kullanırken IP adresiniz şununla paylaşılır:  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snap'ler",
       "description": "Snap'leriniz için genel bakış ve yönetim",
@@ -5051,7 +5109,7 @@
     "bridge_description": "Farklı ağlar arasında token transfer et",
     "send_description": "Dilediğin hesaba kripto gönderin",
     "receive_description": "Kripto alın",
-    "earn_description": "Token'lerinizden ödül kazanın",
+    "earn_description": "Put your crypto to work",
     "perps_description": "Perps sözleşmeleri ile işlem yap",
     "predict_description": "Gerçek dünya olayları üzerine işlem yap",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "Piyasa — long pozisyonu kapat",
     "activity_limit_long": "Limit long",
     "activity_limit_close_long": "Limit — long pozisyonu kapat",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Gerçekleşti",
     "activity_order_status_canceled": "İptal Edildi",
     "activity_order_status_rejected": "Reddedildi",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "Kartınız bağlanıyor",
       "link_success_title": "Kartınız kullanıma hazır",
       "link_error": "Kartınız bağlanırken bir şeyler ters gitti",
-      "link_error_different_card": "Bu cüzdan zaten farklı bir MetaMask Card'a bağlı",
       "unlink_pending_title": "Kart bağlantınız kaldırılıyor",
       "unlink_success_title": "Kartınızın bağlantısı kaldırıldı",
       "unlink_error": "Kartınız bağlantısı kaldırılırken bir şeyler ters gitti",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "Aldığınız",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Bitti"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Takas işlemi sürüyor",
       "swap_success": "Takas tamamlandı",
@@ -9082,8 +9152,8 @@
     "submit": "Gönder",
     "default_slippage_description": "Fiyat kayma yüzdesinden daha fazla değişirse işleminiz gerçekleşmez.",
     "confirm": "Onayla",
-    "exceeding_upper_slippage_warning": "Yüksek kayma; bu durum istenmeyen bir takas ile sonuçlanabilir",
-    "exceeding_lower_slippage_warning": "Düşük kayma; bu durum istenmeyen bir takas ile sonuçlanabilir",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "%{{value}} değerin üzerinde olan bir değer girin",
     "exceeding_upper_slippage_error": "%{{value}} değerin üzerinde olan bir değer giremezsiniz",
     "custom": "Özel",
@@ -9313,7 +9383,9 @@
       "set_up": "Kur",
       "secret_recovery_phrase": "Gizli Kurtarma İfadesi",
       "back_up": "Yedekle",
-      "remove_account": "Hesabı kaldır"
+      "remove_account": "Hesabı kaldır",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Adresler",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "Ağ ara",
       "no_networks_found": "Ağ bulunamadı",
       "no_networks_available": "Ağ yok"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "Başlarken",
       "remind_me_later": "Daha sonra hatırlat"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "Ödeme sayfası yüklenemedi. Lütfen tekrar deneyin.",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "\"Sonraki\" düğmesine basarak Immersve'in şu bölümünü kabul edersiniz: ",
         "clickwrap_and": " ve ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Yasal belgeler yüklenemiyor."
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "İstek zaman aşımına uğradı. Lütfen bağlantınızı kontrol edin ve tekrar deneyin.",
         "server_error": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
         "configuration_error": "Hizmet geçici olarak kullanılamıyor. Lütfen daha sonra tekrar deneyin.",
-        "forbidden_error": "Bu işlem hesabınızda kullanılamıyor.",
-        "money_account_linked_to_different_card": "Bu cüzdan zaten farklı bir MetaMask Card'a bağlı. Buraya bağlamadan önce o kartın bağlantısını kaldırın."
+        "forbidden_error": "Bu işlem hesabınızda kullanılamıyor."
       }
     },
     "card_forgot_password": {
