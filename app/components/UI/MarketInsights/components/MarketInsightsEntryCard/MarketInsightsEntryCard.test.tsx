@@ -8,6 +8,7 @@ import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
@@ -241,6 +242,23 @@ describe('MarketInsightsEntryCard', () => {
     );
 
     expect(getByText(/5h ago/)).toBeOnTheScreen();
+  });
+
+  it('omits the timestamp separator when timeAgo is empty', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo=""
+        onPress={jest.fn()}
+        source="token_details"
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    expect(
+      getByText(strings('market_insights.card_footer_disclaimer')),
+    ).toBeOnTheScreen();
+    expect(queryByText(/•/)).toBeNull();
   });
 
   it('updates card dimensions on layout and skips redundant updates', async () => {
