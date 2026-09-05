@@ -1034,6 +1034,178 @@ describe('ConnectionRegistry', () => {
       });
     });
 
+    describe('per-domain uniqueness', () => {
+      // Seeds the registry with a set of already-active connections by
+      // returning them from the cold-start resume path (store.list ->
+      // Connection.create -> resume). Mocks are cleared afterwards so
+      // assertions only see the effects of the subsequent deeplink.
+      const seedRegistryWithConnections = async (
+        seeded: ReturnType<typeof createMockConnection>[],
+      ): Promise<void> => {
+        mockStore.list.mockResolvedValue(
+          seeded.map((c) => ({
+            id: c.id,
+            metadata: c.info.metadata,
+            expiresAt: c.info.expiresAt,
+          })),
+        );
+        seeded.forEach((c) => {
+          (Connection.create as jest.Mock).mockResolvedValueOnce(c);
+        });
+
+        registry = new ConnectionRegistry(
+          RELAY_URL,
+          mockKeyManager,
+          mockHostApp,
+          mockStore,
+        );
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        jest.clearAllMocks();
+        // Restore the default resolution for the *new* connection created by
+        // the deeplink under test (clearAllMocks wipes queued *Once values).
+        (Connection.create as jest.Mock).mockResolvedValue(mockConnection);
+      };
+
+      it('evicts an existing connection that reports the same domain before creating the new one', async () => {
+        // Existing connection reports the same host as validDeeplink
+        // (https://test.dapp) but via a different path — hostnames still match.
+        const existing = createMockConnection('existing-same-domain', {
+          info: {
+            id: 'existing-same-domain',
+            metadata: {
+              dapp: { name: 'Older session', url: 'https://test.dapp/app' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 100000,
+          },
+        });
+
+        await seedRegistryWithConnections([existing]);
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        // The stale same-domain connection is fully torn down...
+        expect(existing.disconnect).toHaveBeenCalledTimes(1);
+        expect(mockStore.delete).toHaveBeenCalledWith('existing-same-domain');
+        expect(mockHostApp.revokePermissions).toHaveBeenCalledWith(
+          'existing-same-domain',
+        );
+
+        // ...and the new connection is still created and persisted.
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockConnection.connect).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('is case-insensitive when comparing domains', async () => {
+        const existing = createMockConnection('existing-mixed-case', {
+          info: {
+            id: 'existing-mixed-case',
+            metadata: {
+              dapp: { name: 'Older session', url: 'https://TEST.dapp' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 100000,
+          },
+        });
+
+        await seedRegistryWithConnections([existing]);
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(existing.disconnect).toHaveBeenCalledTimes(1);
+        expect(mockStore.delete).toHaveBeenCalledWith('existing-mixed-case');
+      });
+
+      it('evicts every existing connection sharing the domain', async () => {
+        const existingA = createMockConnection('existing-a', {
+          info: {
+            id: 'existing-a',
+            metadata: {
+              dapp: { name: 'Session A', url: 'https://test.dapp' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 100000,
+          },
+        });
+        const existingB = createMockConnection('existing-b', {
+          info: {
+            id: 'existing-b',
+            metadata: {
+              dapp: { name: 'Session B', url: 'https://test.dapp/other' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 200000,
+          },
+        });
+
+        await seedRegistryWithConnections([existingA, existingB]);
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(existingA.disconnect).toHaveBeenCalledTimes(1);
+        expect(existingB.disconnect).toHaveBeenCalledTimes(1);
+        expect(mockStore.delete).toHaveBeenCalledWith('existing-a');
+        expect(mockStore.delete).toHaveBeenCalledWith('existing-b');
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('does not evict connections that report a different domain', async () => {
+        const other = createMockConnection('other-domain', {
+          info: {
+            id: 'other-domain',
+            metadata: {
+              dapp: { name: 'Different dapp', url: 'https://other.dapp' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 100000,
+          },
+        });
+
+        await seedRegistryWithConnections([other]);
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        // The unrelated-domain connection is untouched...
+        expect(other.disconnect).not.toHaveBeenCalled();
+        expect(mockStore.delete).not.toHaveBeenCalledWith('other-domain');
+        expect(mockHostApp.revokePermissions).not.toHaveBeenCalledWith(
+          'other-domain',
+        );
+
+        // ...and the new connection is still created.
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+      });
+
+      it('still creates the new connection when a same-domain eviction fails', async () => {
+        const existing = createMockConnection('existing-evict-fails', {
+          info: {
+            id: 'existing-evict-fails',
+            metadata: {
+              dapp: { name: 'Older session', url: 'https://test.dapp' },
+              sdk: { version: '2.0.0', platform: 'JavaScript' },
+            },
+            expiresAt: Date.now() + 100000,
+          },
+          disconnect: jest.fn().mockRejectedValue(new Error('teardown failed')),
+        });
+
+        await seedRegistryWithConnections([existing]);
+
+        await registry.handleConnectDeeplink(validDeeplink);
+
+        expect(existing.disconnect).toHaveBeenCalledTimes(1);
+        // Eviction failure is swallowed; the new connection still succeeds.
+        expect(Connection.create).toHaveBeenCalledTimes(1);
+        expect(mockConnection.connect).toHaveBeenCalledTimes(1);
+        expect(mockStore.save).toHaveBeenCalledTimes(1);
+        expect(mockHostApp.showConnectionError).not.toHaveBeenCalled();
+      });
+    });
+
     it('blocks connection requests with an internal origin as dapp name', async () => {
       registry = new ConnectionRegistry(
         RELAY_URL,
