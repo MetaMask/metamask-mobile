@@ -23,10 +23,12 @@ export interface AssetListControlBarProps {
   /**
    * The secondary chip rendered after the Type chip: the network filter, the
    * Perps sub-filter, or `null`/`undefined` to render nothing (e.g. for
-   * Predictions). One slot, so adding a new secondary filter is a parent-side
+   * Predictions or Swaps). One slot, so adding a new secondary filter is a parent-side
    * concern only.
    */
   secondaryChip?: FilterChipDescriptor | null;
+  /** Extra filter pills to render to the right (e.g. Swaps Open/Closed pills). */
+  extraPills?: React.ReactNode;
   suppressTestIDs?: boolean;
 }
 
@@ -61,6 +63,7 @@ const FilterChip: React.FC<{
 const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   typeChip,
   secondaryChip,
+  extraPills,
   suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
@@ -69,12 +72,13 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
+      contentContainerStyle={tw.style('flex-row items-center gap-2 px-4 pb-4')}
     >
       <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
       {secondaryChip ? (
         <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
       ) : null}
+      {extraPills}
     </ScrollView>
   );
 };

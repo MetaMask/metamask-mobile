@@ -20,6 +20,7 @@ export const ACTIVITY_TYPE_FILTER_LABEL_KEY: Record<
   // and so chip labels keep resolving if the flag is re-enabled.
   [ActivityTypeFilter.All]: 'activity_view.type_filter.all',
   [ActivityTypeFilter.Transactions]: 'activity_view.type_filter.transactions',
+  [ActivityTypeFilter.Swaps]: 'activity_view.type_filter.swaps',
   [ActivityTypeFilter.BuySell]: 'activity_view.type_filter.buy_sell',
   [ActivityTypeFilter.Perps]: 'activity_view.type_filter.perps',
   [ActivityTypeFilter.Predictions]: 'activity_view.type_filter.predictions',
