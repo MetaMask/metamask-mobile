@@ -183,7 +183,7 @@ module.exports = {
     },
     {
       // Lighter Go/WASM signer page (base64-embedded WASM, ~10 MB) inlined as
-      // a string for the hidden signer WebView. POC — see TAT-3766.
+      // a string for the hidden signer WebView.
       test: pathIncludes(
         '/app/components/UI/Perps/Lighter/LighterSignerWebView.tsx',
       ),

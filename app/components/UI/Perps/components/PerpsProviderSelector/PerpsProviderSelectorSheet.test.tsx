@@ -89,12 +89,14 @@ describe('PerpsProviderSelectorSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onOptionSelect when an option is pressed', async () => {
+  it('selects the option and closes its navigation route when pressed', async () => {
     const onOptionSelect = jest.fn().mockResolvedValue(undefined);
+    const onClose = jest.fn();
 
     const { getByTestId } = render(
       <PerpsProviderSelectorSheet
         {...defaultProps}
+        onClose={onClose}
         onOptionSelect={onOptionSelect}
       />,
     );
@@ -109,6 +111,7 @@ describe('PerpsProviderSelectorSheet', () => {
         providerId: 'hyperliquid',
       }),
     );
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('marks the selected option as selected', () => {

@@ -78,6 +78,6 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     isTestnet: true,
     name: 'Lighter',
     network: 'Testnet',
-    description: 'zkLighter perps (POC)',
+    description: 'zkLighter perps',
   },
 ];

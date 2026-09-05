@@ -117,7 +117,10 @@ function getBuildTypeFeatures(environment = process.env) {
     featureSet.add('sample-feature');
   }
 
-  if (environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+  if (
+    environment.METAMASK_ENVIRONMENT === 'dev' ||
+    environment.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
+  ) {
     featureSet.add('lighter');
   }
 
