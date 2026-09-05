@@ -180,4 +180,82 @@ describe('useAddressBalance', () => {
     expect(mockGetERC20BalanceOf).toBeCalledTimes(0);
     expect(res.result.current.addressBalance).toStrictEqual('0.0005 TST');
   });
+
+  describe('watching the asset', () => {
+    const UNTRACKED_ASSET: Asset = {
+      address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136123',
+      symbol: 'TST2',
+      decimals: 4,
+    };
+    const mockAddToken = Engine.context.TokensController.addToken as jest.Mock;
+
+    beforeEach(() => {
+      mockAddToken.mockClear();
+    });
+
+    it('adds the token when no balance is cached for it', () => {
+      renderHook(() => useAddressBalance(UNTRACKED_ASSET, MOCK_ADDRESS_2), {
+        wrapper: Wrapper,
+      });
+
+      expect(mockAddToken).toHaveBeenCalledTimes(1);
+      expect(mockAddToken).toHaveBeenCalledWith({
+        // Checksummed form of UNTRACKED_ASSET.address.
+        address: '0x326836Cc6cd09B5aa59b81a7F72F25fcc0136123',
+        symbol: 'TST2',
+        decimals: 4,
+        image: undefined,
+        name: undefined,
+        networkClientId: 'mainnet',
+      });
+    });
+
+    it('adds the token only once across re-renders', () => {
+      const { rerender } = renderHook(
+        ({ asset }: { asset: Asset }) =>
+          useAddressBalance(asset, MOCK_ADDRESS_2),
+        { wrapper: Wrapper, initialProps: { asset: UNTRACKED_ASSET } },
+      );
+
+      rerender({ asset: { ...UNTRACKED_ASSET } });
+      rerender({ asset: { ...UNTRACKED_ASSET, name: 'Test Token 2' } });
+
+      expect(mockAddToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not add the token when dontWatchAsset is set', () => {
+      renderHook(
+        () => useAddressBalance(UNTRACKED_ASSET, MOCK_ADDRESS_2, true),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockAddToken).not.toHaveBeenCalled();
+    });
+
+    it('does not add the token when a balance is already cached for it', () => {
+      renderHook(
+        () =>
+          useAddressBalance(
+            {
+              address: '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95',
+              symbol: 'TST',
+              decimals: 4,
+            },
+            MOCK_ADDRESS_1,
+          ),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockAddToken).not.toHaveBeenCalled();
+    });
+
+    it('does not add the token for the native asset', () => {
+      renderHook(
+        () => useAddressBalance({ isETH: true } as Asset, MOCK_ADDRESS_1),
+        { wrapper: Wrapper },
+      );
+
+      expect(mockAddToken).not.toHaveBeenCalled();
+    });
+  });
 });
