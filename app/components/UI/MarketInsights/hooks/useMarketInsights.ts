@@ -6,7 +6,7 @@ import {
   digestQueryStaleTime,
 } from '../../../../constants/digestQuery';
 import Engine from '../../../../core/Engine';
-import { formatRelativeTime } from '../utils/marketInsightsFormatting';
+import { formatInsightRefreshLabel } from '../utils/marketInsightsFormatting';
 
 const MARKET_INSIGHTS_QUERY_KEY = 'market-insights';
 
@@ -22,7 +22,7 @@ export interface UseMarketInsightsResult {
   isLoading: boolean;
   /** Error message if the data fetch failed */
   error: string | null;
-  /** Relative time since the report was generated (e.g., "3m ago") */
+  /** Refresh label for the report (e.g., "3m ago", "Today"), or empty when stale */
   timeAgo: string;
 }
 
@@ -76,7 +76,7 @@ export const useMarketInsights = (
       : null;
 
   const timeAgo = useMemo(
-    () => (report ? formatRelativeTime(report.generatedAt) : ''),
+    () => (report ? formatInsightRefreshLabel(report.generatedAt) : ''),
     [report],
   );
 

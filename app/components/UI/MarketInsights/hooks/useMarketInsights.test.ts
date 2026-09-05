@@ -6,6 +6,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import type { MarketInsightsReport } from '@metamask/ai-controllers';
+import { strings } from '../../../../../locales/i18n';
 import { useMarketInsights } from './useMarketInsights';
 const mockFetchMarketInsights = jest.fn();
 
@@ -95,6 +96,79 @@ describe('useMarketInsights', () => {
     expect(result.current.reportAssetId).toBe('eip155:1/erc20:0x123');
     expect(result.current.error).toBeNull();
     expect(result.current.timeAgo).toBe('5m ago');
+  });
+
+  it('returns Today when the report was generated more than 6 hours ago', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T04:00:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValue(report);
+
+    const { result } = renderHook(
+      () => useMarketInsights('eip155:1/erc20:0x123', true),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.timeAgo).toBe(
+      strings('market_insights.refresh_today'),
+    );
+  });
+
+  it('returns Yesterday when the report was generated more than 24 hours ago', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-16T06:00:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValue(report);
+
+    const { result } = renderHook(
+      () => useMarketInsights('eip155:1/erc20:0x123', true),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.timeAgo).toBe(
+      strings('market_insights.refresh_yesterday'),
+    );
+  });
+
+  it('returns empty timeAgo when the report was generated 48 hours ago or more', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-15T10:00:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValue(report);
+
+    const { result } = renderHook(
+      () => useMarketInsights('eip155:1/erc20:0x123', true),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.timeAgo).toBe('');
   });
 
   it('returns null when controller has no insights', async () => {

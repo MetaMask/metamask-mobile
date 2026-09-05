@@ -1,4 +1,5 @@
 import type { MarketInsightsSource } from '@metamask/ai-controllers';
+import { strings } from '../../../../../locales/i18n';
 
 export interface RelativeTimeOptions {
   nowLabel?: string;
@@ -40,6 +41,30 @@ export const formatRelativeTime = (
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   return `${diffDays}d ago`;
+};
+
+const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
+
+export const formatInsightRefreshLabel = (generatedAt: string): string => {
+  const date = new Date(generatedAt);
+  if (isNaN(date.getTime())) {
+    return '';
+  }
+
+  const diffMs = Date.now() - date.getTime();
+
+  if (diffMs <= SIX_HOURS_MS) {
+    return formatRelativeTime(generatedAt);
+  }
+  if (diffMs < TWENTY_FOUR_HOURS_MS) {
+    return strings('market_insights.refresh_today');
+  }
+  if (diffMs < FORTY_EIGHT_HOURS_MS) {
+    return strings('market_insights.refresh_yesterday');
+  }
+  return '';
 };
 
 export const getNormalizedHandle = (author: string): string =>
