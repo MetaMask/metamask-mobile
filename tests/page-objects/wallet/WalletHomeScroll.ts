@@ -76,11 +76,12 @@ export class WalletHomeScroll {
     direction: 'up' | 'down' = 'down',
     maxAttempts = 16,
   ): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.walletScrollView, {
+      timeout: resolveE2EWaitTimeoutMs(10_000),
+      description: `wallet-scroll-view for ${description}`,
+    });
+
     if (this.isAndroidAppium()) {
-      await Assertions.expectElementToBeVisible(this.walletScrollView, {
-        timeout: resolveE2EWaitTimeoutMs(10_000),
-        description: `wallet-scroll-view for ${description}`,
-      });
       const scrollView = (await Promise.resolve(
         this.walletScrollView,
       )) as AppiumElement;
