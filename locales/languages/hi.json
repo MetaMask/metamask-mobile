@@ -26,6 +26,10 @@
     "description_line2": "अगर आपको लगता है कि यह एक गड़बड़ी है, तो रिव्यू के लिए सपोर्ट से संपर्क करें।",
     "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "आपके डिवाइस में स्टोरेज कम है। जगह खाली करें ताकि MetaMask आपके वॉलेट डेटा को बचा सके।"
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "शुरु करें",
         "end": "समाप्त करें",
         "margin": "मार्जिन",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "पोज़िशन्स ({{count}})",
       "orders": "ऑर्डर",
       "orders_with_count": "ऑर्डर्स ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "केवल {{ticker}}",
       "view_market_accessibility": "{{symbol}} मार्केट पर स्विच करें",
       "positions_empty": "आपकी ओपन पोज़िशन यहाँ दिखेंगी।",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "कोई खुले हुए {{ticker}} ऑर्डर नहीं हैं।",
       "orders_empty_long": "कोई लॉन्ग ऑर्डर नहीं हैं।",
       "orders_empty_short": "कोई शॉर्ट ऑर्डर नहीं हैं।",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "सभी साइड्स",
         "long": "लॉन्ग",
@@ -1695,6 +1714,36 @@
         "edit": "बदलें",
         "edit_price": "लिमिट प्राइस बदलें",
         "edit_size": "साइज़ बदलें"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "TP/SL कॉन्फ़िगर करने से पहले लिमिट प्राइस सेट किया जाना चाहिए",
         "only_hyperliquid_usdc": "वर्तमान में केवल हाइपरलिक्विड पर USDC ही भुगतान के लिए समर्थित है",
         "limit_price_far_warning": "लिमिट प्राइस वर्तमान मार्केट प्राइस से बहुत दूर है",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "लिमिट प्राइस करंट प्राइस से ज़्यादा है। आपका ऑर्डर मार्केट ऑर्डर के तौर पर एग्जीक्यूट हो सकता है।",
         "limit_price_below_warning": "लिमिट प्राइस करंट प्राइस से कम है। आपका ऑर्डर मार्केट ऑर्डर के तौर पर एग्जीक्यूट हो सकता है।",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "ट्रिगर प्राइस मिड प्राइस से ज़्यादा होना चाहिए",
         "trigger_must_be_below_mid": "ट्रिगर प्राइस मिड प्राइस से कम होना चाहिए",
         "trigger_orders_unavailable": "ट्रिगर किए गए ऑर्डर कुछ समय के लिए उपलब्ध नहीं हैं। एक मार्केट ऑर्डर चुनें।",
@@ -2043,6 +2098,8 @@
       "success_title": "पोज़िशन सफलतापूर्वक क्लोज़ हो गई",
       "position_closed": "पोज़िशन बंद किया गया",
       "funds_are_available_to_trade": "फंड्स ट्रेड करने के लिए उपलब्ध हैं",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "पोज़िशन बंद नहीं हो पाई",
       "failed_to_partially_close_position": "पोज़िशन आंशिक रूप से बंद नहीं हो पाई",
       "failed_to_place_close_order": "क्लोज़ ऑर्डर प्लेस नहीं हो पाया",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% नुकसान",
       "usd_label": "$",
       "take_profit_invalid_price": "टेक प्रॉफ़िट {{direction}} {{priceType}} प्राइस का होना चाहिए",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "स्टॉप लॉस {{direction}} {{priceType}} प्राइस का होना चाहिए",
       "stop_loss_beyond_liquidation_error": "स्टॉप लॉस {{direction}} लिक्विडेशन प्राइस का होना चाहिए",
       "stop_loss_order_view_warning": "स्टॉप लॉस {{direction}} लिक्विडेशन प्राइस का है",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "खाली वॉलेट किसी को पसंद नहीं आता। ट्रेडिंग शुरू करने के लिए आसानी से फंड जोड़ें।",
       "fund_primary": "फंड जोड़ें",
       "trade_title": "अपना पहला ट्रेड करें",
-      "trade_subtitle": "अपने पोर्टफोलियो को बढ़ाने के लिए कई नेटवर्क्स पर ट्रेंडिंग टोकन्स का ट्रेड करें।",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "ट्रेड करें",
       "notifications_title": "सूचनाएँ चालू करें",
       "notifications_subtitle": "अपने पोर्टफोलियो के लिए बेहतर फैसले लेने हेतु मार्केट में होने वाले बदलावों से अपडेट रहें।",
@@ -4284,7 +4342,7 @@
       "select_all": "सभी को चुनें",
       "deselect_all": "सभी को अचयनित करें",
       "select_accounts_title": "एकाउंट्स",
-      "select_accounts_desc": "चुनें कि आप किन एकाउंट्स के लिए सूचनाएँ प्राप्त करना चाहते हैं।",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "वॉलेट गतिविधि",
       "wallet_activity_desc": "खरीद, बिक्री, ट्रांसफर, स्वैप",
       "perps_title": "ट्रेडिंग गतिविधि",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "MetaMask को थर्ड पार्टी सर्विसेज़ (जैसे OpenSea) का उपयोग करके आपके NFTs जोड़ने दें। NFTs को ऑटोडिटेक्ट करने से आपका आईपी और अकाउंट एड्रेस इन सेवाओं के सामने आ जाता है। इस फ़ीचर को इनेबल करने से आपका आईपी ​​एड्रेस आपके Ethereum एड्रेस के साथ जुड़ सकता है और धोखाधड़ी करने वाले लोगों द्वारा एयरड्रॉप किए गए नकली NFTs दिख सकते हैं। आप मैन्युअल तरीके से टोकन जोड़कर इस ख़तरे से बच सकते हैं।",
     "display_nft_media_desc_new": "NFT मीडिया और डेटा दिखाने से आपका आईपी एड्रेस OpenSea या अन्य थर्ड पार्टी के सामने आ जाता है। NFT ऑटोडिटेक्शन की सुविधा इस फ़ीचर पर निर्भर करती है और इस फ़ीचर को बंद किए जाने पर उपलब्ध नहीं रहेगी। अगर NFT मीडिया पूरी तरह से IPFS पर स्थित है, तो इस फ़ीचर को बंद किए जाने पर भी इसे दिखाया जा सकता है।",
     "use_safe_chains_list_validation_desc_1": "MetaMask थर्ड पार्टी सेवा का उपयोग करता है जिसका नाम है ",
-    "use_safe_chains_list_validation_desc_2": "जिसे सटीक और स्टैंडर्डाइज़्ड नेटवर्क डिटेल्स दिखाने के लिए इस्तेमाल किया जाता है। इससे बुरी नीयत वाले या गलत नेटवर्क से आपके जुड़ने की संभावना कम हो जाती है। इस फ़ीचर को इस्तेमाल करते समय आपका आईपी एड्रेस    के सामने आ जाता है।",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
       "description": "अपने Snaps को ओवरव्यू करें और उन्हें मैनेज करें",
@@ -5051,7 +5109,7 @@
     "bridge_description": "अलग-अलग नेटवर्कों के बीच टोकन ट्रांसफर करें",
     "send_description": "किसी भी खाते में क्रिप्टो भेजें",
     "receive_description": "क्रिप्टो प्राप्त करें",
-    "earn_description": "अपने टोकन पर पुरस्कार अर्जित करें",
+    "earn_description": "Put your crypto to work",
     "perps_description": "ट्रेड पर्प्स कॉन्ट्रैक्ट्स",
     "predict_description": "रियल-वर्ल्ड इवेंट्स पर ट्रेड करें",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "मार्केट — लॉन्ग बंद",
     "activity_limit_long": "लिमिट लॉन्ग",
     "activity_limit_close_long": "लिमिट — लॉन्ग बंद",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "भरा गया",
     "activity_order_status_canceled": "कैंसिल किया गया",
     "activity_order_status_rejected": "रिजेक्ट किया गया",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "आपका कार्ड लिंक किया जा रहा है",
       "link_success_title": "आपका कार्ड उपयोग के लिए तैयार है",
       "link_error": "आपका कार्ड लिंक करने में कुछ समस्या हुई",
-      "link_error_different_card": "यह वॉलेट पहले से किसी दूसरे MetaMask कार्ड से लिंक है",
       "unlink_pending_title": "आपका कार्ड अनलिंक किया जा रहा है",
       "unlink_success_title": "आपका कार्ड अनलिंक कर दिया गया है",
       "unlink_error": "आपका कार्ड अनलिंक करने में कुछ समस्या हुई",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "आप पाते हैं",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "पूरा हुआ"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "स्वैप प्रगति पर है",
       "swap_success": "स्वैप पूरा हुआ",
@@ -9082,8 +9152,8 @@
     "submit": "सबमिट करें",
     "default_slippage_description": "अगर प्राइस स्लिपेज परसेंट से ज़्यादा बदल जाता है, तो आपका ट्रांसेक्शन पूरा नहीं होगा।",
     "confirm": "कन्फर्म करें",
-    "exceeding_upper_slippage_warning": "ज़्यादा स्लिपेज (slippage), इससे स्वैप बिगड़ सकता है",
-    "exceeding_lower_slippage_warning": "कम स्लिपेज (slippage), इससे स्वैप बिगड़ सकता है",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "{{value}}% से ज़्यादा वैल्यू डालें",
     "exceeding_upper_slippage_error": "आप {{value}}% से ज़्यादा वैल्यू नहीं डाल सकते",
     "custom": "कस्टम",
@@ -9313,7 +9383,9 @@
       "set_up": "सेट अप करें",
       "secret_recovery_phrase": "सीक्रेट रिकवरी फ्रेज़",
       "back_up": "बैकअप लें",
-      "remove_account": "अकाउंट हटाएं"
+      "remove_account": "अकाउंट हटाएं",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "एड्रेस",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "नेटवर्क ढूंढें",
       "no_networks_found": "कोई नेटवर्क नहीं मिला",
       "no_networks_available": "कोई नेटवर्क उपलब्ध नहीं"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "शुरू करें",
       "remind_me_later": "मुझे बाद में याद दिलाएं"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "भुगतान पेज लोड करना नहीं हो पाया। कृपया फिर से प्रयास करें।",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "\"अगला\" दबाकर, आप Immersve की  को स्वीकार करते हैं ",
         "clickwrap_and": " और ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "कानूनी दस्तावेज़ लोड नहीं हो पा रहे हैं।"
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "अनुरोध का समय समाप्त हो गया। कृपया अपना कनेक्शन जांचें और फिर से प्रयास करें।",
         "server_error": "सर्वर गड़बड़ी। कृपया बाद में फिर से प्रयास करें।",
         "configuration_error": "सेवा अस्थायी रूप से अनुपलब्ध है। कृपया बाद में फिर से प्रयास करें।",
-        "forbidden_error": "यह कार्रवाई आपके अकाउंट के लिए उपलब्ध नहीं है।",
-        "money_account_linked_to_different_card": "यह वॉलेट पहले से किसी दूसरे MetaMask कार्ड से लिंक है। इसे यहाँ लिंक करने से पहले उस कार्ड से अनलिंक करें।"
+        "forbidden_error": "यह कार्रवाई आपके अकाउंट के लिए उपलब्ध नहीं है।"
       }
     },
     "card_forgot_password": {

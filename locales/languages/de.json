@@ -26,6 +26,10 @@
     "description_line2": "Wenn Sie dies für einen Fehler halten, wenden Sie sich an den Support, um eine Überprüfung anzufordern.",
     "contact_support": "Support kontaktieren"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "Der Speicherplatz auf Ihrem Gerät ist knapp. Schaffen Sie Speicherplatz, damit MetaMask Ihre Wallet-Daten speichern kann."
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "Start",
         "end": "End",
         "margin": "Margin",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "Positionen ({{count}})",
       "orders": "Orders",
       "orders_with_count": "Orders ({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "Nur {{ticker}}",
       "view_market_accessibility": "Wechseln Sie zum {{symbol}}-Markt",
       "positions_empty": "Ihre offenen Positionen werden hier angezeigt.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "Keine offenen {{ticker}}-Orders.",
       "orders_empty_long": "Keine Long-Orders.",
       "orders_empty_short": "Keine Short-Orders.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "Alle Seiten",
         "long": "Long",
@@ -1695,6 +1714,36 @@
         "edit": "Bearbeiten",
         "edit_price": "Limitpreis bearbeiten",
         "edit_size": "Größe bearbeiten"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "Der Limit-Preis muss vor der Konfiguration von TP/SL festgelegt werden",
         "only_hyperliquid_usdc": "Auf Hyperliquid wird derzeit nur USDC als Zahlungsmittel unterstützt",
         "limit_price_far_warning": "Limit-Preis weicht stark vom aktuellen Marktpreis ab",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "Der Limitpreis liegt über dem aktuellen Kurs. Ihre Order wird möglicherweise als Marktorder ausgeführt.",
         "limit_price_below_warning": "Der Limitpreis liegt unter dem aktuellen Kurs. Ihre Order wird möglicherweise als Marktorder ausgeführt.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "Der Auslösepreis muss über dem Mittelkurs liegen",
         "trigger_must_be_below_mid": "Der Auslösepreis muss unter dem Mittelkurs liegen",
         "trigger_orders_unavailable": "Ausgelöste Orders sind derzeit nicht verfügbar. Bitte wählen Sie eine Marktorder aus.",
@@ -2043,6 +2098,8 @@
       "success_title": "Position erfolgreich geschlossen",
       "position_closed": "Position geschlossen",
       "funds_are_available_to_trade": "Gelder sind für den Handel verfügbar",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "Schließen der Position fehlgeschlagen",
       "failed_to_partially_close_position": "Teilschließung der Position fehlgeschlagen",
       "failed_to_place_close_order": "Erteilung der Close-Order fehlgeschlagen",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% Loss",
       "usd_label": "$",
       "take_profit_invalid_price": "Take-Profit muss {{direction}} {{priceType}} Preis sein",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "Stop-Loss muss {{direction}} {{priceType}} Preis sein",
       "stop_loss_beyond_liquidation_error": "Stop-Loss muss {{direction}} Liquidationspreis sein",
       "stop_loss_order_view_warning": "Stop-Loss ist {{direction}} Liquidationspreis",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "Niemand mag eine leere Wallet. Fügen Sie auf einfache Weise Geld hinzu, um mit dem Trading zu beginnen.",
       "fund_primary": "Gelder hinzufügen",
       "trade_title": "Machen Sie Ihren ersten Trade",
-      "trade_subtitle": "Handeln Sie angesagte Token über mehrere Netzwerke hinweg, um Ihr Portfolio zu erweitern.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "Trade",
       "notifications_title": "Benachrichtigungen einschalten",
       "notifications_subtitle": "Bleiben Sie über Marktveränderungen auf dem Laufenden, um die besten Entscheidungen für Ihr Portfolio zu treffen.",
@@ -4284,7 +4342,7 @@
       "select_all": "Alle auswählen",
       "deselect_all": "Alle abwählen",
       "select_accounts_title": "Konten",
-      "select_accounts_desc": "Legen Sie fest, für welche Konten Sie Benachrichtigungen erhalten möchten.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "Aktivität der Wallet",
       "wallet_activity_desc": "Kauf, Verkauf, Übertragung, Swaps",
       "perps_title": "Handelsaktivität",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "Lassen Sie MetaMask NFTs, die Sie besitzen, anhand von Drittanbieterdiensten (wie OpenSea) hinzufügen. Durch die automatische Erkennung von NFTs werden Ihre IP- und Kontoadresse für diese Dienste offengelegt. Durch die Aktivierung dieser Funktion können eventuell Ihre IP- und Ethereum-Adresse in Verbindung gebracht und gefälschte, von Betrügern per Airdropping abgesetzte NFTs anzeigt werden. Es ist möglich, Tokens manuell hinzufügen, um dieses Risiko zu vermeiden.",
     "display_nft_media_desc_new": "Durch die Anzeige von NFT-Medien und -Daten wird Ihre IP-Adresse an OpenSea oder andere Dritte weitergegeben. Die automatische NFT-Erkennung beruht auf dieser Funktion und ist nicht verfügbar, wenn sie deaktiviert ist. Wenn sich die NFT-Medien vollständig auf IPFS befinden, können sie auch dann noch angezeigt werden, wenn diese Funktion deaktiviert ist.",
     "use_safe_chains_list_validation_desc_1": "MetaMask verwendet einen Drittanbieterdienst an namens",
-    "use_safe_chains_list_validation_desc_2": "um genaue und standardisierte Netzwerkangaben anzuzeigen. Dies verringert die Wahrscheinlichkeit, dass Sie mit einem böswilligen oder falschen Netzwerk in Verbindungen treten. Wenn Sie diese Funktion benutzen, wird Ihre IP-Adresse  gegenüber offengelegt.",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snaps",
       "description": "Überblicken und verwalten Sie Ihre Snaps",
@@ -5051,7 +5109,7 @@
     "bridge_description": "Tokens zwischen Netzwerken übertragen",
     "send_description": "Krypto an ein beliebiges Konto senden",
     "receive_description": "Krypto empfangen",
-    "earn_description": "Verdienen Sie Belohnungen für Ihre Tokens",
+    "earn_description": "Put your crypto to work",
     "perps_description": "Perp-Kontrakte handeln",
     "predict_description": "Handeln Sie auf Grundlage realer Ereignisse",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "Markt – Long-Position schließen",
     "activity_limit_long": "Long-Position limitieren",
     "activity_limit_close_long": "Limit – Long-Position schließen",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "Ausgeführt",
     "activity_order_status_canceled": "Storniert",
     "activity_order_status_rejected": "Abgelehnt",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "Verknüpfung Ihrer Karte",
       "link_success_title": "Ihre Karte ist einsatzbereit",
       "link_error": "Bei der Verknüpfung Ihrer Karte ist etwas schiefgelaufen",
-      "link_error_different_card": "Diese Wallet ist bereits mit einer anderen MetaMask Card verknüpft",
       "unlink_pending_title": "Verknüpfung Ihrer Karte aufheben",
       "unlink_success_title": "Ihre Karte wurde getrennt",
       "unlink_error": "Beim Trennen Ihrer Karte ist etwas schiefgelaufen",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "Sie erhalten",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "Fertig"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "Swap läuft",
       "swap_success": "Swap abgeschlossen",
@@ -9082,8 +9152,8 @@
     "submit": "Absenden",
     "default_slippage_description": "Ihre Transaktion wird nicht durchgeführt, wenn sich der Preis um mehr als den Slippage-Prozentsatz ändert.",
     "confirm": "Bestätigen",
-    "exceeding_upper_slippage_warning": "Hohe Slippage, was zu einem ungünstigen Swap führen kann",
-    "exceeding_lower_slippage_warning": "Niedrige Slippage, was zu einem ungünstigen Swap führen kann",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "Geben Sie einen Wert ein, der größer als {{value}}% ist.",
     "exceeding_upper_slippage_error": "Sie können keinen Wert eingeben, der größer als {{value}} % ist.",
     "custom": "Benutzerdefiniert",
@@ -9313,7 +9383,9 @@
       "set_up": "Einrichten",
       "secret_recovery_phrase": "Geheime Wiederherstellungsphrase",
       "back_up": "Sichern",
-      "remove_account": "Konto entfernen"
+      "remove_account": "Konto entfernen",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "Adressen",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "Netzwerk suchen",
       "no_networks_found": "Keine Netzwerke gefunden",
       "no_networks_available": "Keine Netzwerke verfügbar"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "Erste Schritte",
       "remind_me_later": "Später erinnern"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "Die Zahlungsseite konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "Indem Sie auf „Weiter“ klicken, akzeptieren Sie die Bestimmungen von Immersve ",
         "clickwrap_and": " und ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "Die Rechtsdokumente können nicht geladen werden."
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "Verbindung abgelaufen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
         "server_error": "Serverfehler. Bitte versuchen Sie es später erneut.",
         "configuration_error": "Der Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.",
-        "forbidden_error": "Diese Funktion ist für Ihr Konto nicht verfügbar.",
-        "money_account_linked_to_different_card": "Diese Wallet ist bereits mit einer anderen MetaMask Card verknüpft. Trennen Sie die Verknüpfung, bevor Sie die Wallet hier verknüpfen."
+        "forbidden_error": "Diese Funktion ist für Ihr Konto nicht verfügbar."
       }
     },
     "card_forgot_password": {

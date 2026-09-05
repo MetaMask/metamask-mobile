@@ -26,6 +26,10 @@
     "description_line2": "오류라고 생각되면 지원팀에 문의하여 검토를 요청하세요.",
     "contact_support": "지원팀에 문의"
   },
+  "arc_usage_notice": {
+    "title": "Notice",
+    "description": "Welcome to Arc! To facilitate and verify your usage of Arc chain, we may share information with Arc team."
+  },
   "storage": {
     "device_full_alert": "기기 저장 공간이 부족합니다. MetaMask에서 지갑 데이터를 저장할 수 있도록 공간을 확보하세요."
   },
@@ -1600,7 +1604,6 @@
         "total_orders": "Order count",
         "size_skew": "Size skew",
         "size_skew_hint": "Weights ramp linearly from 1 to this ratio across the range.",
-        "range": "{{start}} → {{end}}",
         "start": "시작",
         "end": "종료",
         "margin": "증거금",
@@ -1616,7 +1619,7 @@
           "invalid_range": "Start price must be lower than end price",
           "invalid_order_count": "Order count must be between {{minOrderCount}} and {{maxOrderCount}}",
           "invalid_skew": "Size skew must be greater than 0",
-          "minimum_lot": "Every Scale order must meet the market minimum lot size",
+          "minimum_lot": "Smallest order must have minimum value of ${{minOrderValue}}",
           "unavailable": "Scale orders are temporarily unavailable. Select another order type."
         }
       },
@@ -1645,6 +1648,8 @@
       "positions_with_count": "포지션({{count}})",
       "orders": "주문",
       "orders_with_count": "주문({{count}})",
+      "twap": "TWAP",
+      "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "{{ticker}} 전용",
       "view_market_accessibility": "{{symbol}} 시장으로 전환",
       "positions_empty": "보유 중인 포지션이 여기에 표시됩니다.",
@@ -1655,6 +1660,20 @@
       "orders_empty_filtered": "미체결 {{ticker}} 주문이 없습니다.",
       "orders_empty_long": "롱 주문이 없습니다.",
       "orders_empty_short": "숏 주문이 없습니다.",
+      "twap_empty": "Your active TWAPs will appear here.",
+      "twap_empty_filtered": "No active {{ticker}} TWAPs.",
+      "twap_empty_long": "No long TWAPs.",
+      "twap_empty_short": "No short TWAPs.",
+      "twap_history_empty": "Your completed TWAPs will appear here.",
+      "twap_history_empty_filtered": "No {{ticker}} TWAP history.",
+      "twap_history_empty_long": "No long TWAP history.",
+      "twap_history_empty_short": "No short TWAP history.",
+      "twap_fill_history_empty": "Fills from your TWAPs will appear here.",
+      "twap_fill_history_empty_filtered": "No {{ticker}} TWAP fills.",
+      "twap_fill_history_empty_long": "No long TWAP fills.",
+      "twap_fill_history_empty_short": "No short TWAP fills.",
+      "twap_load_error": "Unable to load the latest TWAP schedules.",
+      "twap_retry": "Try again",
       "side_filter": {
         "all_sides": "전체 포지션 방향",
         "long": "롱",
@@ -1695,6 +1714,36 @@
         "edit": "편집",
         "edit_price": "지정가 수정",
         "edit_size": "수량 수정"
+      },
+      "twap_views": {
+        "active": "Active",
+        "history": "History",
+        "fill_history": "Fill history",
+        "previous": "Previous",
+        "next": "Next",
+        "page_count": "Page {{page}} of {{total}}"
+      },
+      "twap_card": {
+        "total_size": "Total size",
+        "filled_size": "Filled",
+        "average_price": "Avg. fill price",
+        "progress": "Progress",
+        "elapsed": "Elapsed",
+        "reduce_only": "Reduce only",
+        "randomize": "Randomized",
+        "terminate": "Terminate",
+        "status_active": "Active",
+        "status_completed": "Completed",
+        "status_completed_underfilled": "Completed underfilled",
+        "status_canceled": "Terminated",
+        "status_failed": "Failed"
+      },
+      "twap_terminate": {
+        "title": "Terminate {{symbol}} TWAP?",
+        "description": "The remaining size will not be executed. Any size already filled stays as a position.",
+        "description_reduce_only": "The remaining size will not be executed. Any size already filled has reduced your existing position.",
+        "confirm": "Terminate",
+        "cancel": "Cancel"
       }
     },
     "order": {
@@ -1743,8 +1792,14 @@
         "limit_price_must_be_set_before_configuring_tpsl": "익절/손절 구성 전에 지정가를 설정해야 합니다",
         "only_hyperliquid_usdc": "현재 Hyperliquid 결제는 USDC만 지원됩니다",
         "limit_price_far_warning": "지정가가 현재 시장 가격과 거리가 멉니다",
+        "limit_price_far_from_market_bid": "You are using a limit price that is {{percent}}% away from the best bid price.",
+        "limit_price_far_from_market_ask": "You are using a limit price that is {{percent}}% away from the best ask price.",
         "limit_price_above_warning": "지정가가 현재 가격보다 높습니다. 주문이 시장가 주문으로 체결될 수 있습니다.",
         "limit_price_below_warning": "지정가가 현재 가격보다 낮습니다. 주문이 시장가 주문으로 체결될 수 있습니다.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order and incur taker fees.",
+        "scale_price_below_partial_warning": "Part of your price range is below current price and may fill immediately as a taker order and incur taker fees.",
         "trigger_must_be_above_mid": "트리거 가격은 중간 가격보다 높아야 합니다",
         "trigger_must_be_below_mid": "트리거 가격은 중간 가격보다 낮아야 합니다",
         "trigger_orders_unavailable": "트리거 주문은 일시적으로 사용할 수 없습니다. 시장가 주문을 선택하세요.",
@@ -2043,6 +2098,8 @@
       "success_title": "포지션 종료",
       "position_closed": "포지션 종료 완료",
       "funds_are_available_to_trade": "자금을 거래에 사용할 수 있습니다",
+      "already_closed": "Position already closed",
+      "already_closed_subtitle": "This position was filled or closed already",
       "failed_to_close_position": "포지션 종료에 실패했습니다",
       "failed_to_partially_close_position": "포지션 부분 종료 실패",
       "failed_to_place_close_order": "청산 주문 제출 실패",
@@ -2112,6 +2169,7 @@
       "loss_roe_placeholder": "% 손실",
       "usd_label": "$",
       "take_profit_invalid_price": "익절은 {{direction}} {{priceType}} 가격이어야 합니다",
+      "trigger_price_must_be_positive": "Trigger price must be greater than zero",
       "stop_loss_invalid_price": "손절은 {{direction}} {{priceType}} 가격이어야 합니다",
       "stop_loss_beyond_liquidation_error": "손절은 {{direction}} 청산 가격이어야 합니다",
       "stop_loss_order_view_warning": "손절이 {{direction}} 청산 가격입니다",
@@ -3651,7 +3709,7 @@
       "fund_subtitle": "빈 지갑을 좋아하는 사람은 없습니다. 간편하게 자금을 추가하여 거래를 시작하세요.",
       "fund_primary": "자금 추가",
       "trade_title": "첫 거래 시작하기",
-      "trade_subtitle": "다양한 네트워크에서 인기 토큰을 거래하며 포트폴리오를 키워보세요.",
+      "trade_subtitle": "Trade trending tokens across multiple networks to grow your portfolio.",
       "trade_primary": "거래하기",
       "notifications_title": "알림 켜기",
       "notifications_subtitle": "시장 변화를 계속 확인하며 포트폴리오에 가장 유리한 투자 결정을 내리세요.",
@@ -4284,7 +4342,7 @@
       "select_all": "전체 선택",
       "deselect_all": "전체 선택 해제",
       "select_accounts_title": "계정",
-      "select_accounts_desc": "어느 계정에 대한 알림을 받을지 선택하세요.",
+      "select_accounts_desc": "Choose which accounts you'd like to get notifications for",
       "wallet_activity_title": "지갑 활동",
       "wallet_activity_desc": "매수, 매도, 전송, 스왑",
       "perps_title": "트레이딩 활동",
@@ -4570,7 +4628,7 @@
     "autodetect_nft_desc": "MetaMask가 타사 서비스(예: OpenSea)를 이용하여 회원님의 NFT를 추가할 수 있도록 합니다. NFT를 자동 감지하면 이러한 서비스에 IP와 계정 주소가 노출됩니다. 이 기능을 켜면 IP 주소가 이더리움 주소와 연결되고 사기꾼이 에어드랍한 가짜 NFT가 표시될 수 있습니다. 이러한 위험을 피하기 위해 수동으로 토큰을 추가할 수 있습니다.",
     "display_nft_media_desc_new": "NFT 미디어와 데이터를 표시하면 IP 주소가 OpenSea나 기타 제삼자에게 노출될 수 있습니다. NFT 자동 감지는 이 기능을 이용하기 때문에 이 기능이 꺼져 있는 경우 사용할 수 없습니다. NFT 미디어가 IPFS에 완전히 자리를 잡으면 이 기능이 꺼져 있어도 계속 표시될 수 있습니다.",
     "use_safe_chains_list_validation_desc_1": "MetaMask는 다음의 제3자 서비스를 사용하여 ",
-    "use_safe_chains_list_validation_desc_2": "정확하고 표준화된 네트워크 세부 정보를 표시합니다. 이를 통해 악성 또는 잘못된 네트워크에 연결될 가능성이 줄어듭니다. 이 기능을 사용하면 사용자의 IP 주소가 다음에 노출됩니다:  ",
+    "use_safe_chains_list_validation_desc_2": "to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to",
     "snaps": {
       "title": "Snap",
       "description": "Snap 개요 및 관리",
@@ -5051,7 +5109,7 @@
     "bridge_description": "네트워크간 토큰 전송",
     "send_description": "원하는 계정에 암호화폐 보내기",
     "receive_description": "암호화폐 수령",
-    "earn_description": "토큰으로 보상을 획득하세요",
+    "earn_description": "Put your crypto to work",
     "perps_description": "무기한 선물 계약 거래",
     "predict_description": "현실 세계의 이슈를 기반으로 거래해 보세요",
     "chart_time_period": {
@@ -5614,6 +5672,8 @@
     "activity_market_close_long": "시장가 — 롱 청산",
     "activity_limit_long": "지정가 롱",
     "activity_limit_close_long": "지정가 — 롱 청산",
+    "activity_trigger_order_open": "{{orderType}} {{direction}}",
+    "activity_trigger_order_close": "{{orderType}} — {{direction}}",
     "activity_order_status_filled": "체결됨",
     "activity_order_status_canceled": "취소됨",
     "activity_order_status_rejected": "거부됨",
@@ -8070,7 +8130,6 @@
       "link_pending_title": "카드 연결 중",
       "link_success_title": "이제 카드를 사용할 수 있습니다",
       "link_error": "카드를 연결하는 동안 오류가 발생했습니다",
-      "link_error_different_card": "이 지갑은 이미 다른 MetaMask 카드에 연결되어 있습니다",
       "unlink_pending_title": "카드 연결 해제 중",
       "unlink_success_title": "카드 연결이 해제되었습니다",
       "unlink_error": "카드 연결을 해제하는 중 문제가 발생했습니다",
@@ -8837,7 +8896,14 @@
         "week": "{{count}} week",
         "month": "{{count}} month"
       },
-      "est_network_fee": "Est. network fee"
+      "est_network_fee": "Est. network fee",
+      "create_order": "Create Order",
+      "paying": "Paying",
+      "receiving": "Receiving",
+      "trigger_condition": "Trigger condition",
+      "expiry_label": "Expiry",
+      "confirm_order": "Confirm order",
+      "edit_slippage": "Edit slippage"
     },
     "recurring": {
       "you_get": "수령 금액",
@@ -9067,6 +9133,10 @@
       "learn_more_url": "https://status.ondo.finance/market",
       "done": "완료"
     },
+    "off_hours_trading": {
+      "title": "Off-hours trading",
+      "description": "Market closed: Price is issuer-calculated, not live market data. It may differ when markets reopen at the next available trading session."
+    },
     "post_trade_modal": {
       "swap_in_progress": "스왑 진행 중",
       "swap_success": "스왑 완료",
@@ -9082,8 +9152,8 @@
     "submit": "제출",
     "default_slippage_description": "가격이 슬리피지 비율보다 더 크게 변동하면 트랜잭션이 처리되지 않습니다.",
     "confirm": "컨펌",
-    "exceeding_upper_slippage_warning": "슬리피지가 높아 스왑이 불리한 조건으로 이루어질 수 있습니다",
-    "exceeding_lower_slippage_warning": "슬리피지가 높아 스왑이 불리한 조건으로 이루어질 수 있습니다",
+    "exceeding_upper_slippage_warning": "High slippage, this may result in an unfavourable swap",
+    "exceeding_lower_slippage_warning": "Low slippage, this may result in an unfavourable swap",
     "exceeding_lower_slippage_error": "{{value}}%보다 큰 값을 입력하세요",
     "exceeding_upper_slippage_error": "{{value}}%를 초과하는 값은 입력할 수 없습니다",
     "custom": "맞춤형",
@@ -9313,7 +9383,9 @@
       "set_up": "설정",
       "secret_recovery_phrase": "비밀복구구문",
       "back_up": "백업",
-      "remove_account": "계정 제거"
+      "remove_account": "계정 제거",
+      "hide_account": "Hide account",
+      "unhide_account": "Unhide account"
     },
     "address_list": {
       "addresses": "주소",
@@ -9407,6 +9479,12 @@
       "search_placeholder": "네트워크 검색",
       "no_networks_found": "네트워크를 찾을 수 없습니다",
       "no_networks_available": "사용 가능한 네트워크가 없습니다"
+    },
+    "manage_accounts": {
+      "title": "Manage accounts",
+      "locked": "Locked",
+      "remove": "Remove",
+      "remove_wallet": "Remove wallet"
     }
   },
   "deep_link_modal": {
@@ -9531,6 +9609,7 @@
     "uk_migration_bottom_sheet": {
       "title": "Update your MetaMask Card",
       "description": "We've switched to a new card provider. To keep spending without interruption, complete these steps before {{deadline}}.",
+      "description_no_deadline": "We've switched to a new card provider. To keep spending without interruption, complete these steps.",
       "steps": {
         "reverify_identity": "Re-verify your identity",
         "get_new_card_number": "Get your new card number",
@@ -9538,6 +9617,17 @@
       },
       "get_started": "지금 시작하세요",
       "remind_me_later": "나중에 알림"
+    },
+    "uk_migration_soft": {
+      "title": "Update your MetaMask Card",
+      "description": "Set up by {{deadline}} to avoid interruptions.",
+      "description_no_deadline": "Set up your card to avoid interruptions.",
+      "confirm_button_label": "Set up card"
+    },
+    "uk_migration_required": {
+      "title": "Update required to continue",
+      "description": "Complete your MetaMask Card update to keep using your card.",
+      "confirm_button_label": "Update now"
     },
     "daimo_pay_modal": {
       "load_error": "결제 페이지를 불러오지 못했습니다. 다시 시도하세요.",
@@ -9575,6 +9665,7 @@
         "clickwrap_prefix": "'다음'을 누르면 사용자는 Immersve의 다음 항목에 동의하게 됩니다 ",
         "clickwrap_and": " 및 ",
         "clickwrap_suffix": ".",
+        "clickwrap_suffix_migration": ". Your card will be temporarily unavailable until setup is complete.",
         "legal_docs_error": "약관 문서를 불러올 수 없습니다."
       },
       "confirm_email": {
@@ -10095,8 +10186,7 @@
         "timeout_error": "요청 시간이 초과되었습니다. 연결을 확인하고 다시 시도하세요.",
         "server_error": "서버 오류입니다. 나중에 다시 시도하세요.",
         "configuration_error": "서비스를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
-        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다.",
-        "money_account_linked_to_different_card": "이 지갑은 이미 다른 MetaMask 카드에 연결되어 있습니다. 해당 카드와의 연결을 해제한 후 여기에 연결하세요."
+        "forbidden_error": "이 계정에서는 이 작업을 사용할 수 없습니다."
       }
     },
     "card_forgot_password": {
