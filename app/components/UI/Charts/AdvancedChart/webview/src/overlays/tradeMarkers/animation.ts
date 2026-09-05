@@ -2,9 +2,11 @@
 //
 // Ported from chartLogic.js `handlePulseTradeMarker` (~lines 2915-3001).
 // Decaying |sin| envelope over ~1.1s, two humps that shrink back to the
-// base size. A generation token cancels an in-flight pulse when a newer
-// pulse (or a full marker rebuild) starts, so we never leave a shape
-// stuck at the peak size.
+// base size. A per-marker generation token cancels an in-flight pulse only
+// when a newer pulse starts on the SAME marker (or a full marker rebuild
+// clears the counters), so rapid taps across different dots each pulse
+// independently and every dot's loop runs to completion and resets to the
+// base size — no dot is left stuck at the peak.
 
 import { reportErrorToRN } from '../../core/bridge';
 import { getWidget, isChartReady } from '../../core/state';
@@ -67,7 +69,7 @@ export function handlePulseTradeMarker(
   const ringShape = getShape(chart, ringId);
   if (!fillShape && !ringShape) return;
 
-  const gen = bumpPulseGeneration();
+  const gen = bumpPulseGeneration(markerId);
   const startTs = Date.now();
   // Ring grows proportionally so the rim stays even.
   const ringRatio = TRADE_MARKER_RING_SIZE / TRADE_MARKER_SIZE;
@@ -78,7 +80,7 @@ export function handlePulseTradeMarker(
   };
 
   const step = (): void => {
-    if (gen !== getPulseGeneration()) return;
+    if (gen !== getPulseGeneration(markerId)) return;
     if (!getWidget() || !isChartReady()) return;
     // Abort if the markers were rebuilt — record ids now point elsewhere.
     const current = getShapesByMarkerId().get(markerId);
