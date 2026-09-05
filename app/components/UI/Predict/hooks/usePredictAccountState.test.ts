@@ -33,13 +33,6 @@ jest.mock('../../../../core/redux', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => true),
-  }),
-);
-
 jest.mock('../utils/predictErrorHandler', () => {
   const actual = jest.requireActual('../utils/predictErrorHandler');
   return {
