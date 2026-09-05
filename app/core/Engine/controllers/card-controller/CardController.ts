@@ -121,7 +121,7 @@ const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 
 const bucketRedeemAmount = (amount: string): string => {
-  const n = parseFloat(amount);
+  const n = Number.parseFloat(amount);
   if (!Number.isFinite(n) || n <= 0) return '0';
   if (n < 1) return '<1';
   if (n < 10) return '1-10';
@@ -2320,14 +2320,17 @@ export class CardController extends BaseController<
   ): void {
     if (generation !== this.redeemGeneration) return;
     const current = this.#getRedeemWithdrawal();
+    let code: string | null;
+    if (error instanceof CardProviderError) {
+      code = error.code;
+    } else if (error instanceof CardApiError) {
+      code = error.errorCode ?? null;
+    } else {
+      code = (error as Error)?.name ?? null;
+    }
     const mapped: CardRedeemWithdrawalError = {
       reason,
-      code:
-        error instanceof CardProviderError
-          ? error.code
-          : error instanceof CardApiError
-            ? (error.errorCode ?? null)
-            : ((error as Error)?.name ?? null),
+      code,
       statusCode:
         error instanceof CardProviderError || error instanceof CardApiError
           ? (error.statusCode ?? null)
@@ -2379,12 +2382,14 @@ export class CardController extends BaseController<
     },
   ): void {
     if (isCardAuthTokenError(error)) return;
-    const code =
-      error instanceof CardProviderError
-        ? error.code
-        : error instanceof CardApiError
-          ? (error.errorCode ?? null)
-          : null;
+    let code: string | null;
+    if (error instanceof CardProviderError) {
+      code = error.code;
+    } else if (error instanceof CardApiError) {
+      code = error.errorCode ?? null;
+    } else {
+      code = null;
+    }
     const statusCode =
       error instanceof CardProviderError || error instanceof CardApiError
         ? (error.statusCode ?? null)

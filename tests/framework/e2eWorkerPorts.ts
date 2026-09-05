@@ -71,15 +71,41 @@ export function metamaskWebViewCdpForwardPort(
 /**
  * adb serial for this worker. Falls back to the pool assignment so `beforeAll`
  * hooks do not run bare `adb` against two emulators ("more than one device").
+ *
+ * Never invent Android serials on iOS jobs: shared CI env historically leaked
+ * ANDROID_DEVICE_POOL_SIZE onto ios-smoke, which made ADB reverse fail closed
+ * with `spawnSync adb ENOENT` on Mac runners that have no adb.
  */
 export function resolveWorkerAndroidSerial(
   env: Record<string, string | undefined> = process.env,
 ): string | undefined {
+  if (isIosAppiumSmokeEnv(env)) {
+    return undefined;
+  }
+
   const explicit = env.ANDROID_SERIAL?.trim();
   if (explicit) {
     return explicit;
   }
   return deviceForWorker(resolveE2eWorkerIndex(env), env)?.serial;
+}
+
+/**
+ * True when this process is an iOS Appium smoke worker (simulator UDID / pool
+ * exported by prepare-ios-appium-runner, or iOS pool size > 1).
+ */
+export function isIosAppiumSmokeEnv(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  if (env.IOS_SIMULATOR_UDID?.trim() || env.IOS_DEVICE_POOL?.trim()) {
+    return true;
+  }
+  const rawIosPoolSize = env.IOS_DEVICE_POOL_SIZE?.trim();
+  if (!rawIosPoolSize) {
+    return false;
+  }
+  const iosPoolSize = Number(rawIosPoolSize);
+  return Number.isInteger(iosPoolSize) && iosPoolSize > 1;
 }
 
 export function adbDeviceArgs(

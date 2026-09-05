@@ -1,1 +1,2 @@
 export const MAX_MARKETS_DISPLAYED = 5;
+export const MAX_POSITIONS_DISPLAYED = 5;
