@@ -25,6 +25,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(lighter)
 import { LighterSignerWebView } from '../../UI/Perps/Lighter/LighterSignerWebView';
+import { isLighterProviderEnabled } from '../../UI/Perps/utils/lighterFeatureFlags';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -113,12 +114,10 @@ const Root = ({ foxCode }: RootProps) => {
                 }
                 {
                   ///: BEGIN:ONLY_INCLUDE_IF(lighter)
-                  // Lighter Go/WASM signer host (POC, TAT-3766). Mounted like
+                  // Lighter Go/WASM signer host. Mounted like
                   // SnapsExecutionWebView: PerpsController receives the bridge
                   // at Engine init and calls queue until this page is ready.
-                  process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true' && (
-                    <LighterSignerWebView />
-                  )
+                  isLighterProviderEnabled() && <LighterSignerWebView />
                   ///: END:ONLY_INCLUDE_IF
                 }
 

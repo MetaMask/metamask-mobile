@@ -19,6 +19,10 @@ import {
   PROVIDER_CONFIG,
 } from '../constants/perpsConfig';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import {
+  isLighterProviderEnabled,
+  isPerpsProviderSelectorEnabled,
+} from '../utils/lighterFeatureFlags';
 
 interface OrderCapabilitiesState {
   requestKey?: string;
@@ -59,16 +63,14 @@ export function usePerpsProvider(
   const availableProviders = useMemo((): PerpsActiveProviderMode[] => {
     const providers: PerpsActiveProviderMode[] = ['hyperliquid'];
 
-    // Lighter POC (TAT-3766): local env gate only; babel inlines the env read.
-    if (process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true') {
+    if (isLighterProviderEnabled()) {
       providers.push('lighter');
-      if (!providers.includes('aggregated')) {
-        providers.push('aggregated');
-      }
+      providers.push('aggregated');
     }
 
     return providers;
   }, []);
+  const isProviderSelectorEnabled = isPerpsProviderSelectorEnabled();
 
   /**
    * Switch to a different provider
@@ -262,8 +264,8 @@ export function usePerpsProvider(
    * Check if multi-provider mode is enabled (more than one provider available)
    */
   const isMultiProviderEnabled = useMemo(
-    () => availableProviders.length > 1,
-    [availableProviders],
+    () => isProviderSelectorEnabled && availableProviders.length > 1,
+    [availableProviders, isProviderSelectorEnabled],
   );
 
   return {
@@ -283,6 +285,7 @@ export function usePerpsProvider(
     supportsScaleOrders,
     supportsChaseOrders,
     checkOrderCapability,
+    isProviderSelectorEnabled,
     isMultiProviderEnabled,
   };
 }
