@@ -5,6 +5,7 @@ import type { RootState } from '../../reducers';
 import {
   selectAccountGroupsByWallet,
   selectAccountGroupById,
+  selectAccountGroups,
 } from './accountTreeController';
 import type { AccountSection } from '../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 
@@ -35,3 +36,17 @@ export const selectAccountGroupHidden = (groupId: AccountGroupId) =>
     (group: AccountGroupObject | undefined): boolean =>
       Boolean(group?.metadata?.hidden),
   );
+
+/**
+ * Get the IDs of all hidden account groups across all wallets.
+ *
+ * @param state - Root redux state
+ * @returns An array of hidden account group IDs in tree order
+ */
+export const selectHiddenAccountGroupIds = createSelector(
+  [selectAccountGroups],
+  (accountGroups): AccountGroupId[] =>
+    accountGroups
+      .filter((group: AccountGroupObject) => Boolean(group.metadata?.hidden))
+      .map((group: AccountGroupObject) => group.id),
+);
