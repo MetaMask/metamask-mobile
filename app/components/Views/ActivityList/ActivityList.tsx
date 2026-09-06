@@ -125,7 +125,6 @@ import {
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToItem';
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
@@ -912,14 +911,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
               transaction: perpsTx,
             });
           }
-          return;
-        }
-
-        if (raw.type === 'predictActivity') {
-          navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
-            screen: Routes.PREDICT.ACTIVITY_DETAIL,
-            params: { activity: predictActivityToItem(raw.data) },
-          });
           return;
         }
 

@@ -17,8 +17,8 @@ function getLocalTransactionMetaId(item: ActivityListItem): string | undefined {
  *
  * Local EVM rows use `TransactionMeta.id` rather than the hash, which can change
  * on STX submission, and are stashed in `preloadedActivityItemStore` so Details
- * can recover if the live hash diverges. Provider-backed rows (Perps/Predict)
- * are stashed too, so call this only when about to navigate.
+ * can recover if the live hash diverges. Perps rows are stashed too, so call
+ * this only when about to navigate.
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,
@@ -31,9 +31,7 @@ export function getActivityDetailsRoute(
 
   const { raw } = item;
   const shouldPreload =
-    raw?.type === 'perpsTransaction' ||
-    raw?.type === 'predictActivity' ||
-    raw?.type === 'localTransaction';
+    raw?.type === 'perpsTransaction' || raw?.type === 'localTransaction';
   const preloadKey = shouldPreload
     ? stashPreloadedActivityItem(item)
     : undefined;
