@@ -16,6 +16,7 @@ import {
 import { detectAppInstallation } from '../../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../../Performance/DeeplinkPerformance';
 import Engine from '../../../Engine';
+import AppConstants from '../../../AppConstants';
 
 jest.mock('../../../../actions/user', () => ({
   checkForDeeplink: jest.fn(() => ({ type: 'CHECK_FOR_DEEPLINK' })),
@@ -193,6 +194,17 @@ describe('handleDeeplink', () => {
     expect(mockCheckForDeeplink).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith({ type: 'CHECK_FOR_DEEPLINK' });
     expect(mockLoggerError).not.toHaveBeenCalled();
+  });
+
+  it('tags iOS quick action URIs with ORIGIN_IOS_QUICK_ACTION', () => {
+    const testUri = 'metamask://quick-action/swap';
+
+    handleDeeplink({ uri: testUri, source: 'deeplink' });
+
+    expect(mockSetCurrentDeeplink).toHaveBeenCalledWith(
+      testUri,
+      AppConstants.DEEPLINKS.ORIGIN_IOS_QUICK_ACTION,
+    );
   });
 
   it('handles undefined URI without processing', () => {

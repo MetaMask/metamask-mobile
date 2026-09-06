@@ -44,7 +44,8 @@ export function resetDeeplinkDeduplication(): void {
 
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
   const isIosQuickAction =
-    opts.uri?.startsWith('metamask://quick-action/') ?? false;
+    typeof opts.uri === 'string' &&
+    opts.uri.startsWith('metamask://quick-action/');
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
   // without waiting for the app to be unlocked or fully onboarded.
