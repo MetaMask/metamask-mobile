@@ -37,6 +37,12 @@ function runHook() {
   return renderHookWithProvider(usePayTokenAccountBalance);
 }
 
+function runLiveHook() {
+  return renderHookWithProvider(() =>
+    usePayTokenAccountBalance({ requireLiveBalance: true }),
+  );
+}
+
 describe('usePayTokenAccountBalance', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const useAccountTokensMock = jest.mocked(useAccountTokens);
@@ -68,6 +74,20 @@ describe('usePayTokenAccountBalance', () => {
     });
   });
 
+  it('returns unresolved live balances when no pay token is selected', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+      setPayToken: jest.fn(),
+    });
+
+    const { result } = runLiveHook();
+
+    expect(result.current).toStrictEqual({
+      balanceUsd: undefined,
+      balanceRaw: undefined,
+    });
+  });
+
   it('computes balance from matching account token and USD rate', () => {
     const { result } = runHook();
 
@@ -83,6 +103,47 @@ describe('usePayTokenAccountBalance', () => {
     expect(result.current).toStrictEqual({
       balanceUsd: PAY_TOKEN_MOCK.balanceUsd,
       balanceRaw: PAY_TOKEN_MOCK.balanceRaw,
+    });
+  });
+
+  it('keeps a missing live account-token balance unresolved', () => {
+    useAccountTokensMock.mockReturnValue([]);
+
+    const { result } = runLiveHook();
+
+    expect(result.current).toStrictEqual({
+      balanceUsd: undefined,
+      balanceRaw: undefined,
+    });
+  });
+
+  it('normalizes EVM chain IDs when matching a live balance', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { ...PAY_TOKEN_MOCK, chainId: '0x01' as Hex },
+      setPayToken: jest.fn(),
+    });
+
+    const { result } = runLiveHook();
+
+    expect(result.current).toStrictEqual({
+      balanceUsd: '3400',
+      balanceRaw: '2000000000000000000',
+    });
+    expect(useTokenFiatRateMock).toHaveBeenCalledWith(
+      PAY_TOKEN_MOCK.address,
+      '0x1',
+      'usd',
+    );
+  });
+
+  it('keeps live USD balance unresolved until its fiat rate is available', () => {
+    useTokenFiatRateMock.mockReturnValue(undefined);
+
+    const { result } = runLiveHook();
+
+    expect(result.current).toStrictEqual({
+      balanceUsd: undefined,
+      balanceRaw: '2000000000000000000',
     });
   });
 
