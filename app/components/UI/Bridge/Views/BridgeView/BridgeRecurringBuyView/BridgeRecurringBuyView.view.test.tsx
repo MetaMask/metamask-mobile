@@ -1,8 +1,17 @@
 import '../../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  userEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { lightTheme } from '@metamask/design-tokens';
 import { strings } from '../../../../../../../locales/i18n';
-import { renderBridgeView } from '../../../../../../../tests/component-view/renderers/bridge';
+import {
+  renderBridgeView,
+  renderBridgeViewWithRecurringJobDetails,
+} from '../../../../../../../tests/component-view/renderers/bridge';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
 import { setRecurringPriceRange } from '../../../../../../core/redux/slices/bridge';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
@@ -12,7 +21,15 @@ import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/Recurr
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
+import { OpenOrderRowSelectorsIDs } from '../../../components/OpenOrderRow/OpenOrderRow.testIds';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import {
+  MOCK_RECURRING_COMPLETED_JOB,
+  MOCK_RECURRING_OPEN_JOB,
+  getRecurringJobOrderCounts,
+} from '../../RecurringJobDetailsView/RecurringJobDetailsView.mock';
+import { RecurringJobDetailsViewSelectorsIDs } from '../../RecurringJobDetailsView/RecurringJobDetailsView.testIds';
+import { type RecurringJob } from '../../RecurringJobDetailsView/RecurringJobDetailsView.types';
 import {
   applyPercentToPrice,
   formatExchangeRate,
@@ -79,6 +96,86 @@ async function openRecurringTab(
       renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
     ).toBeOnTheScreen();
   });
+}
+
+function assertRecurringJobSummary(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  job: RecurringJob,
+) {
+  const { filledPercent, totalOrderCount } = getRecurringJobOrderCounts(job);
+  const summary = within(
+    renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.SUMMARY),
+  );
+
+  expect(
+    summary.getByText(strings('bridge.recurring.filled')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.interval')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.size_per_order')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.price_range.label')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.total_received')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.average_execution_price')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.start_date')),
+  ).toBeOnTheScreen();
+  expect(
+    summary.getByText(strings('bridge.recurring.end_date')),
+  ).toBeOnTheScreen();
+  expect(
+    renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.FILLED_VALUE),
+  ).toHaveTextContent(
+    `${job.filledAmount} / ${job.totalSourceAmount} (${filledPercent}%)`,
+  );
+  expect(
+    summary.getByText(
+      strings('bridge.recurring.schedule_summary', {
+        interval: job.interval,
+        count: totalOrderCount,
+      }),
+    ),
+  ).toBeOnTheScreen();
+  expect(summary.getByText(job.sizePerOrder)).toBeOnTheScreen();
+  expect(summary.getByText(job.priceRange)).toBeOnTheScreen();
+  expect(summary.getByText(job.totalReceived)).toBeOnTheScreen();
+  expect(summary.getByText(job.averageExecutionPrice)).toBeOnTheScreen();
+  expect(summary.getByText(job.startDate)).toBeOnTheScreen();
+  expect(summary.getByText(job.endDate)).toBeOnTheScreen();
+}
+
+function assertRecurringJobOrders(
+  renderResult: ReturnType<typeof renderBridgeView>,
+  job: RecurringJob,
+) {
+  const pair = strings('bridge.recurring.pair', {
+    source: job.sourceToken.symbol,
+    dest: job.destinationToken.symbol,
+  });
+
+  for (const order of job.orders) {
+    const row = within(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.HISTORY_ROW(order.orderId),
+      ),
+    );
+
+    expect(row.getByText(pair)).toBeOnTheScreen();
+    expect(row.getByText(order.statusLabel)).toBeOnTheScreen();
+    expect(row.getByText(order.receivedAmount)).toBeOnTheScreen();
+    expect(row.getByText(order.spentAmount)).toBeOnTheScreen();
+    expect(
+      row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+    ).toBeOnTheScreen();
+  }
 }
 
 async function openEveryKeypad(
@@ -969,50 +1066,118 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('shows a filled history row after pressing the History tab', async () => {
-    const renderResult = renderBridgeView();
+  it('opens the in-progress Job details and returns to Open orders', async () => {
+    const renderResult = renderBridgeViewWithRecurringJobDetails();
 
     await openRecurringTab(renderResult);
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(
+          MOCK_RECURRING_OPEN_JOB.jobId,
+        ),
+      ),
+    );
 
-    const pair = strings('bridge.recurring.pair', {
-      source: 'ETH',
-      dest: 'USDC',
-    });
-    const scheduleSummary = strings('bridge.recurring.schedule_summary', {
-      interval: '1 day',
-      count: '5',
-    });
-
-    expect(renderResult.getAllByText(pair)).toHaveLength(2);
     expect(
-      renderResult.getByText(strings('bridge.all_networks')),
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: 2,
+          totalOrderCount: 5,
+        }),
+      ),
     ).toBeOnTheScreen();
-    expect(renderResult.getByText(scheduleSummary)).toBeOnTheScreen();
     expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.SOURCE_TOKEN_AVATAR,
+      ),
     ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.SOURCE_NETWORK_BADGE,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DESTINATION_TOKEN_AVATAR,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DESTINATION_NETWORK_BADGE,
+      ),
+    ).toBeOnTheScreen();
+    assertRecurringJobSummary(renderResult, MOCK_RECURRING_OPEN_JOB);
+    assertRecurringJobOrders(renderResult, MOCK_RECURRING_OPEN_JOB);
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
 
-    fireEvent.press(
-      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    await userEvent.press(
+      renderResult.getByTestId(RecurringJobDetailsViewSelectorsIDs.BACK_BUTTON),
     );
 
     await waitFor(() => {
-      expect(renderResult.queryByText(scheduleSummary)).toBeNull();
+      expect(
+        renderResult.queryByTestId(RecurringJobDetailsViewSelectorsIDs.SCREEN),
+      ).not.toBeOnTheScreen();
     });
     expect(
-      renderResult.queryByText(strings('bridge.orders.empty.history')),
-    ).toBeNull();
-    expect(
-      renderResult.getByText(strings('bridge.all_networks')),
+      renderResult.getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      renderResult.getAllByText(strings('bridge.tabs.recurring')).length,
-    ).toBeGreaterThan(0);
-    expect(
-      renderResult.getByText(strings('bridge.recurring.filled')),
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.OPEN_JOB_ROW(
+          MOCK_RECURRING_OPEN_JOB.jobId,
+        ),
+      ),
     ).toBeOnTheScreen();
-    expect(renderResult.getByText('+0.325 USDC')).toBeOnTheScreen();
-    expect(renderResult.getAllByText(pair)).toHaveLength(1);
+  });
+
+  it('opens the completed Job details from History', async () => {
+    const renderResult = renderBridgeViewWithRecurringJobDetails();
+
+    await openRecurringTab(renderResult);
+    await userEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+    );
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringJobDetailsViewSelectorsIDs.COMPLETED_JOB_ROW,
+      ),
+    );
+
+    expect(
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: 5,
+          totalOrderCount: 5,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    assertRecurringJobSummary(renderResult, MOCK_RECURRING_COMPLETED_JOB);
+    assertRecurringJobOrders(renderResult, MOCK_RECURRING_COMPLETED_JOB);
+    expect(
+      renderResult.getByTestId(
+        RecurringJobDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      renderResult.queryByTestId(
+        RecurringJobDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('hides the footer confirm button after opening the tab without a quote', async () => {
