@@ -414,6 +414,8 @@ const SocialTradersTabsView: React.FC = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const title = strings('homepage.sections.top_traders');
+
   return (
     // Top and bottom edges are deliberately off — see
     // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
@@ -427,7 +429,7 @@ const SocialTradersTabsView: React.FC = () => {
         includesTopInset
         scrollY={scrollY}
         titleSectionHeight={titleHeightSv}
-        title={strings('social_leaderboard.feed.title')}
+        title={title}
         titleProps={{
           testID: SocialTradersTabsViewSelectorsIDs.HEADER_TITLE,
         }}
@@ -481,7 +483,7 @@ const SocialTradersTabsView: React.FC = () => {
               color={TextColor.TextDefault}
               testID={SocialTradersTabsViewSelectorsIDs.TITLE}
             >
-              {strings('social_leaderboard.feed.title')}
+              {title}
             </Text>
           </Box>
 
