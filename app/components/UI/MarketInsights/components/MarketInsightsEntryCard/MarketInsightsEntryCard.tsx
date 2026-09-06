@@ -302,8 +302,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
                 twClassName="shrink"
               >
                 {strings('market_insights.card_footer_disclaimer')}
-                {' • '}
-                {timeAgo}
+                {timeAgo ? ` • ${timeAgo}` : ''}
               </Text>
               <ButtonIcon
                 iconName={IconName.Info}

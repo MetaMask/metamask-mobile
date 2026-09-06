@@ -2949,6 +2949,8 @@
     "a_closer_look": "A closer look",
     "whats_being_said": "What's being said",
     "card_footer_disclaimer": "AI generated",
+    "refresh_today": "Today",
+    "refresh_yesterday": "Yesterday",
     "footer_disclaimer": "AI summary for information only",
     "disclaimer_modal": {
       "title": "AI-generated content",
