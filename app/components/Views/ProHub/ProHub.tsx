@@ -1,11 +1,13 @@
 import React, { useCallback } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
   ButtonIcon,
   ButtonSize,
@@ -27,67 +29,71 @@ import { strings } from '../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { ProHubTestIds } from './ProHub.testIds';
 import { MOCK_NEXT_PAYMENT, MOCK_PRO_HUB_STATS } from './ProHub.constants';
-import PhysicalCardPreview from './components/PhysicalCardPreview';
+import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
-interface StatCardProps {
+interface MembershipBannerProps {
+  testID: string;
+}
+
+const MembershipBanner = ({ testID }: MembershipBannerProps) => (
+  <Card
+    twClassName="w-full bg-background-section rounded-xl p-5 border border-border-alternative"
+    testID={testID}
+  >
+    <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+      {strings('pro_hub.membership_brand')}
+    </Text>
+    <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+      {strings('pro_hub.membership_label')}
+    </Text>
+  </Card>
+);
+
+interface StatRowProps {
   iconName: IconName;
   label: string;
   value: string;
   testID: string;
-  onPress?: () => void;
 }
 
-const STAT_CARD_TW_CLASS_NAME =
-  'w-full bg-background-section rounded-2xl p-4 gap-y-10 border-0';
-
-const StatCard = ({
-  iconName,
-  label,
-  value,
-  testID,
-  onPress,
-}: StatCardProps) => {
-  const tw = useTailwind();
-
-  const inner = (
-    <>
-      <Icon name={iconName} size={IconSize.Lg} color={IconColor.IconDefault} />
-      <Box twClassName="gap-y-1">
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
-        <Text
-          variant={TextVariant.HeadingMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-        >
-          {value}
-        </Text>
+const StatRow = ({ iconName, label, value, testID }: StatRowProps) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Between}
+    testID={testID}
+    twClassName="py-4"
+  >
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-x-3"
+    >
+      <Box twClassName="w-10 h-10 rounded-full bg-background-section items-center justify-center">
+        <Icon
+          name={iconName}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
       </Box>
-    </>
-  );
-
-  const card = <Card twClassName={STAT_CARD_TW_CLASS_NAME}>{inner}</Card>;
-
-  return (
-    <Box twClassName="flex-1 min-w-0">
-      {onPress ? (
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          testID={testID}
-          style={tw.style('w-full')}
-        >
-          {card}
-        </Pressable>
-      ) : (
-        <Box testID={testID}>{card}</Box>
-      )}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextDefault}
+      >
+        {label}
+      </Text>
     </Box>
-  );
-};
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextDefault}
+    >
+      {value}
+    </Text>
+  </Box>
+);
 
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -103,10 +109,6 @@ const ProHub = () => {
 
   const handleGetCard = useCallback(() => {
     navigation.navigate(Routes.CARD.ROOT);
-  }, [navigation]);
-
-  const handleEarnedPress = useCallback(() => {
-    navigation.navigate(Routes.PRO_HUB.EARNED);
   }, [navigation]);
 
   return (
@@ -134,73 +136,53 @@ const ProHub = () => {
             testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
           />
         }
-      />
+      >
+        {strings('pro_hub.title')}
+      </HeaderBase>
 
       <ScrollView
         contentContainerStyle={tw.style('px-4 pt-2 pb-10')}
         showsVerticalScrollIndicator={false}
       >
-        <Text
-          variant={TextVariant.DisplayMd}
-          fontWeight={FontWeight.Bold}
-          color={TextColor.TextDefault}
-          twClassName="mb-6"
-          testID={ProHubTestIds.TITLE}
-        >
-          {strings('pro_hub.title')}
-        </Text>
+        <Box twClassName="w-full mb-4 gap-y-4">
+          <MembershipBanner testID={ProHubTestIds.MEMBERSHIP_BANNER} />
 
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          gap={3}
-          twClassName="w-full mb-16"
-        >
-          <StatCard
-            iconName={IconName.Diagram}
-            label={strings('pro_hub.earned_with_pro')}
-            value={MOCK_PRO_HUB_STATS.earned}
-            testID={ProHubTestIds.EARNED_CARD}
-            onPress={handleEarnedPress}
-          />
-          <StatCard
-            iconName={IconName.AttachMoney}
-            label={strings('pro_hub.saved_with_pro')}
-            value={MOCK_PRO_HUB_STATS.saved}
-            testID={ProHubTestIds.SAVED_CARD}
-          />
-        </Box>
-
-        <Box twClassName="flex flex-col gap-y-12">
-          <PhysicalCardPreview />
-          <Box twClassName="flex flex-col items-center justify-center gap-y-2">
+          <Box
+            twClassName="gap-y-1"
+            testID={ProHubTestIds.LIFETIME_EARNINGS_SECTION}
+          >
             <Text
-              variant={TextVariant.HeadingMd}
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('pro_hub.lifetime_earnings')}
+            </Text>
+            <Text
+              variant={TextVariant.AmountDisplayLg}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
-              twClassName="text-center"
-              testID={ProHubTestIds.PHYSICAL_CARD_TITLE}
             >
-              {strings('pro_hub.physical_card.title')}
+              {MOCK_PRO_HUB_STATS.lifetimeEarnings}
             </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              twClassName="text-center max-w-[85%]"
-              testID={ProHubTestIds.PHYSICAL_CARD_DESCRIPTION}
-            >
-              {strings('pro_hub.physical_card.description')}
-            </Text>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Md}
-              onPress={handleGetCard}
-              testID={ProHubTestIds.GET_CARD_BUTTON}
-              twClassName="mx-auto mt-1"
-            >
-              {strings('pro_hub.physical_card.cta')}
-            </Button>
+
+            <Box>
+              <StatRow
+                iconName={IconName.TrendUp}
+                label={strings('pro_hub.money_balance')}
+                value={MOCK_PRO_HUB_STATS.moneyBalance}
+                testID={ProHubTestIds.MONEY_BALANCE_ROW}
+              />
+              <StatRow
+                iconName={IconName.Card}
+                label={strings('pro_hub.musd_back')}
+                value={MOCK_PRO_HUB_STATS.musdBack}
+                testID={ProHubTestIds.MUSD_BACK_ROW}
+              />
+            </Box>
           </Box>
         </Box>
+
+        <PhysicalCardBanner onPress={handleGetCard} />
 
         <SectionDivider marginVertical={6} />
 
