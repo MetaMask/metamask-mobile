@@ -75,26 +75,6 @@ jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
   };
 });
 
-jest.mock(
-  '../../../../../../component-library/components/Avatars/Avatar',
-  () => {
-    const RN = jest.requireActual('react-native');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const RR = require('react');
-    const MockAvatar = (props: Record<string, unknown>) =>
-      RR.createElement(RN.View, {
-        testID: `mock-avatar-${props.accountAddress}`,
-      });
-    MockAvatar.displayName = 'MockAvatar';
-    return {
-      __esModule: true,
-      default: MockAvatar,
-      AvatarSize: { Sm: 'Sm', Md: 'Md' },
-      AvatarVariant: { Account: 'Account' },
-    };
-  },
-);
-
 jest.mock('@metamask/transaction-controller', () => ({
   ...jest.requireActual('@metamask/transaction-controller'),
   hasTransactionType: (meta: { type?: string } | undefined, types: string[]) =>
