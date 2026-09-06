@@ -38,6 +38,7 @@ import {
   handleCustomError,
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
+import { scheduleAfterPaint } from './app/util/scheduleAfterPaint';
 
 import { enableFreeze } from 'react-native-screens';
 
@@ -47,16 +48,20 @@ if (__DEV__) {
 
 enableFreeze(true);
 
-// Setup Sentry
+// Setup Sentry — called synchronously but internally async (fire-and-forget).
+// Sentry.init() runs in a microtask after consent check, so it doesn't block
+// bundle evaluation. Keeping it synchronous ensures the native crash handler
+// is registered as early as possible for crash coverage.
 setupSentry(__DEV__);
 
-// Setup Performance observers
-Performance.setupPerformanceObservers();
+/* Uncomment and comment regular registration below */
+// import Storybook from './.storybook';
+// AppRegistry.registerComponent(name, () => Storybook);
 
-// Ignore all logs
+// LogBox filters must be set synchronously before component registration so that
+// warnings emitted during initial mount are suppressed. These are pure
+// configuration setters with no measurable cost.
 LogBox.ignoreAllLogs();
-
-// List of warnings that we're ignoring
 LogBox.ignoreLogs([
   '{}',
   // Uncomment the below lines (21 and 22) to run browser-tests.spec.js in debug mode
@@ -108,22 +113,31 @@ LogBox.ignoreLogs([
 ]);
 
 const IGNORE_BOXLOGS_DEVELOPMENT = process.env.IGNORE_BOXLOGS_DEVELOPMENT;
-// Ignore box logs, useful for QA testing in development builds
 if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
   LogBox.ignoreAllLogs();
 }
 
-/* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
-
 /**
- * Application entry point responsible for registering root component
+ * Application entry point responsible for registering root component.
+ * perf_fix: coldstart-v1 — Register the component as early as possible so the
+ * native side can begin rendering immediately.
  */
 AppRegistry.registerComponent(name, () =>
   // Disable Sentry for E2E tests
   hasTestOverrides ? Root : Sentry.wrap(Root),
 );
+
+// perf_fix: coldstart-v1 — Defer Performance observers until after the next
+// paint. This keeps the JS thread free for the first paint of the
+// onboarding/login screen. Performance observers use buffered: true so
+// startup marks are still captured even when registered after they fire.
+//
+// Uses scheduleAfterPaint (double requestAnimationFrame) instead of
+// InteractionManager.runAfterInteractions: on RN 0.83+ InteractionManager is a
+// setImmediate stub and does not wait for interactions or paint.
+scheduleAfterPaint(() => {
+  Performance.setupPerformanceObservers();
+});
 
 function setupGlobalErrorHandler() {
   const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();

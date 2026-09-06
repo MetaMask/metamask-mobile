@@ -31,6 +31,10 @@ import { StateConstraint } from '@metamask/base-controller';
 import { hasPersistedState } from './utils/persistence-utils';
 import { setExistingUser } from '../../actions/user';
 import { hydrateSocialFollowing } from '../Engine/controllers/social-controller-hydration';
+import {
+  scheduleAfterPaint,
+  type ScheduleAfterPaintHandle,
+} from '../../util/scheduleAfterPaint';
 
 /**
  * Reads the AnalyticsController's own persisted copy of the analytics identity.
@@ -42,6 +46,34 @@ const getPersistedAnalyticsId = (state: unknown): unknown =>
 
 export class EngineService {
   private engineInitialized = false;
+
+  // perf_fix: coldstart-v1 — Handle to the deferred persistence task so it can
+  // be canceled if EngineService is torn down before it executes.
+  private deferredPersistenceHandle: ScheduleAfterPaintHandle | null = null;
+
+  /**
+   * Cancels any pending deferred persistence setup. Must be called before
+   * re-initializing the engine (vault recovery, repeated start) to prevent
+   * the stale callback from setting up persistence with outdated state.
+   */
+  private cancelDeferredPersistence() {
+    if (this.deferredPersistenceHandle) {
+      this.deferredPersistenceHandle.cancel();
+      this.deferredPersistenceHandle = null;
+    }
+  }
+
+  /**
+   * Navigates to vault recovery after a critical Engine/persistence failure.
+   * Uses a short delay so the navigation stack can finish mounting.
+   */
+  private navigateToVaultRecovery() {
+    setTimeout(() => {
+      NavigationService.navigation.reset({
+        routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
+      });
+    }, 150);
+  }
 
   private updateBatcher = new Batcher<string>((keys) =>
     batchFunc(() => {
@@ -65,10 +97,12 @@ export class EngineService {
    *
    * @param engine - The initialized Engine instance
    * @param initialState - Optional initial state loaded from persistence. If provided, controllers whose state changed during Engine.init() will be persisted.
+   * @param deferPersistence - When true, persistence setup runs after the next paint (perf_fix: coldstart-v1). Safe for fresh installs where no state exists yet.
    */
   private initializeControllers = (
     engine: TypedEngine,
     initialState?: Record<string, unknown>,
+    deferPersistence?: boolean,
   ) => {
     // coordination mechanism to prevent race conditions between engine initialization and UI rendering
     if (!engine.context) {
@@ -123,7 +157,40 @@ export class EngineService {
     // This is called automatically after Redux subscriptions to ensure
     // both Redux and filesystem are kept in sync when controller state changes
     // Pass initialState to detect and persist any state changes that occurred during Engine.init()
-    this.setupEnginePersistence(initialState);
+    //
+    // perf_fix: coldstart-v1 — For fresh installs, defer persistence setup
+    // until after the next paint. No persisted state exists yet, so the
+    // comparison/initial-persist pass is pure overhead on the path to the
+    // first onboarding screen. Uses scheduleAfterPaint (double rAF) — not
+    // InteractionManager — because RN 0.83+ stubs InteractionManager as
+    // setImmediate and it does not wait for interactions or paint.
+    this.cancelDeferredPersistence();
+    if (deferPersistence) {
+      this.deferredPersistenceHandle = scheduleAfterPaint(() => {
+        this.deferredPersistenceHandle = null;
+        // Outside start()'s try/catch — must handle locally. Persistence setup
+        // failure is critical: without filesystem subscriptions, later wallet
+        // changes may never reach disk. Match the sync path and fail closed.
+        try {
+          this.setupEnginePersistence(initialState);
+        } catch (error) {
+          trackVaultCorruption((error as Error).message, {
+            error_type: 'deferred_persistence_setup_failure',
+            context: 'engine_service_deferred_persistence',
+            has_existing_state: Boolean(
+              initialState && Object.keys(initialState).length > 0,
+            ),
+          });
+          Logger.error(
+            error as Error,
+            `${LOG_TAG}: Deferred persistence setup failed! Falling back to vault recovery.`,
+          );
+          this.navigateToVaultRecovery();
+        }
+      });
+    } else {
+      this.setupEnginePersistence(initialState);
+    }
   };
 
   /**
@@ -145,11 +212,82 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    const persistedState = await ControllerStorage.getAllPersistedState();
 
-    if (reduxState?.user?.existingUser) {
+    // perf_fix: coldstart-v1 — Determine fresh install vs. existing install.
+    // `existingUser` is set by redux-persist rehydration, which completes before
+    // startAppServices saga dispatches ON_PERSISTED_DATA_LOADED (the gate that
+    // triggers this method). Treat `undefined` as existing install defensively:
+    // a false-negative (skipping reads for an existing install) would cause data
+    // loss, whereas a false-positive (reading empty storage for a fresh install)
+    // is merely slower.
+    const existingUserFlag = reduxState?.user?.existingUser;
+    let isNewInstall = existingUserFlag === false;
+
+    // Safety check: when the Redux flag says "not an existing user" (fresh
+    // install path), verify that no vault actually exists on disk. The flag can
+    // desync from reality due to Redux persist corruption, incomplete
+    // persistence, or vault recovery flows. Overwriting a real vault with
+    // defaults would destroy the wallet.
+    //
+    // Uses getItemStrict (not getItem) so that filesystem I/O errors throw
+    // instead of being silently swallowed and treated as "file missing".
+    if (isNewInstall) {
+      try {
+        const keyringData = await ControllerStorage.getItemStrict(
+          'persist:KeyringController',
+        );
+        if (keyringData) {
+          try {
+            const parsed: unknown = JSON.parse(keyringData);
+            // JSON.parse can succeed for non-objects (`null`, arrays, strings,
+            // numbers). Those are not a valid KeyringController snapshot — fall
+            // back to a full read so we never skip past other controller files
+            // that may still hold real state.
+            if (
+              !parsed ||
+              typeof parsed !== 'object' ||
+              Array.isArray(parsed)
+            ) {
+              Logger.log(
+                `${LOG_TAG}: KeyringController file is not a valid object — falling back to existing-install path to prevent data loss`,
+              );
+              isNewInstall = false;
+            } else if (
+              'vault' in parsed &&
+              (parsed as { vault?: unknown }).vault
+            ) {
+              Logger.log(
+                `${LOG_TAG}: existingUser flag is false but KeyringController vault found on disk — overriding to existing install to prevent data loss`,
+              );
+              isNewInstall = false;
+            }
+            // Valid object without a vault (e.g. partially initialized keyring)
+            // → stay on the fresh-install optimization path.
+          } catch {
+            // Corrupted JSON — fall back to full read to be safe.
+            isNewInstall = false;
+          }
+        }
+      } catch {
+        // Filesystem read failed — cannot confirm the file is truly absent,
+        // so fall back to the existing-install path to prevent data loss.
+        Logger.log(
+          `${LOG_TAG}: Safety-check filesystem read failed — falling back to existing-install path to prevent data loss`,
+        );
+        isNewInstall = false;
+      }
+    }
+
+    // perf_fix: coldstart-v1 — For fresh installs, skip the filesystem read
+    // since no controller state has been persisted yet. This avoids async I/O
+    // for every controller name on the critical path to the onboarding screen.
+    const persistedState = isNewInstall
+      ? { backgroundState: {} }
+      : await ControllerStorage.getAllPersistedState();
+
+    if (!isNewInstall) {
       Logger.log(
-        'EngineService: Is vault defined at KeyringController before Enging init: ',
+        'EngineService: Is vault defined at KeyringController before Engine init: ',
         !!reduxState?.engine?.backgroundState?.KeyringController?.vault,
       );
     }
@@ -158,6 +296,11 @@ export class EngineService {
       op: TraceOperation.EngineInitialization,
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
+      data: {
+        perf_fix: 'coldstart-v1',
+        skipped_persisted_read: isNewInstall,
+        existing_user_flag: String(existingUserFlag),
+      },
     });
 
     const state =
@@ -183,12 +326,15 @@ export class EngineService {
       this.initializeControllers(
         Engine as unknown as TypedEngine,
         state as Record<string, unknown>,
+        isNewInstall,
       );
 
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.
       hydrateSocialFollowing();
     } catch (error) {
+      this.cancelDeferredPersistence();
+
       trackVaultCorruption((error as Error).message, {
         error_type: 'engine_initialization_failure',
         context: 'engine_service_startup',
@@ -202,11 +348,7 @@ export class EngineService {
 
       // Give the navigation stack a chance to load
       // This can be removed if the vault recovery flow is moved higher up in the stack
-      setTimeout(() => {
-        NavigationService.navigation.reset({
-          routes: [{ name: Routes.VAULT_RECOVERY.RESTORE_WALLET }],
-        });
-      }, 150);
+      this.navigateToVaultRecovery();
     }
     endTrace({ name: TraceName.EngineInitialization });
   };
@@ -361,6 +503,7 @@ export class EngineService {
       }
    */
   async initializeVaultFromBackup(): Promise<VaultBackupResult> {
+    this.cancelDeferredPersistence();
     const vaultBackupResult = await getVaultFromBackup();
     const persistedState = await ControllerStorage.getAllPersistedState();
     const state = persistedState?.backgroundState ?? {};
