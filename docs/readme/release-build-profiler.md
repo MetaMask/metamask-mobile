@@ -29,6 +29,38 @@ Notes:
 - iOS ignores "save to downloads" and always writes to Caches; use Export to share it.
 - Android copies to Downloads when profiling stops.
 
+#### Performance-test APKs (programmatic profiling)
+
+BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. Those APKs include:
+
+```ts
+import { startAppProfiling, stopAppProfiling } from 'app/core/Performance';
+
+await startAppProfiling();
+// ... flow to measure ...
+const path = await stopAppProfiling();
+```
+
+Outside performance APKs these functions no-op. On Android performance APKs,
+`stopProfilingToExternalFiles()` writes the `.cpuprofile` to app-scoped external
+storage. `PerformanceProfilerStatus` mounts
+Appium Pressables (`performance-profiler-start` / `performance-profiler-stop`)
+and exposes the path via `performance-profiler-result-ready` so tests can wait
+and `pullFile`. Do **not** use deeplinks — unknown `metamask://e2e/profiler/*`
+URLs show MetaMask’s unsupported-link UI.
+
+Appium scenarios:
+
+```ts
+await startAppProfilingFromTest();
+// ... scenario ...
+await stopAndCollectAppProfiling(testInfo, platform);
+```
+
+On Android this waits for the result hook, pulls the profile into
+`tests/reporters/reports/hermes-cpuprofiles/`, and attaches it to Playwright.
+On iOS it stops profiling only (pull not implemented).
+
 ### 3) Convert and view in Chrome tracing
 
 Chrome's tracing UI expects a JSON trace. Convert the `.cpuprofile` first:

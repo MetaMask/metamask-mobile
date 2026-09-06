@@ -1,0 +1,96 @@
+diff --git a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
+index 34f4cec7608eb12a5b78f01a40363d8da5f3f6dc..6fa1b36e959e11693fd551af32273b10c138161c 100644
+--- a/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
++++ b/android/src/main/java/com/releaseprofiler/ReleaseProfilerModule.kt
+@@ -79,6 +79,30 @@ class ReleaseProfilerModule(reactContext: ReactApplicationContext) :
+     promise.resolve(outputPath)
+   }
+ 
++  @ReactMethod
++  fun stopProfilingToExternalFiles(promise: Promise) {
++    val cacheFile = File.createTempFile(
++      "sampling-profiler-trace", ".cpuprofile", reactContext.getCacheDir())
++    val externalDirectory =
++      reactContext.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
++        ?: reactContext.getCacheDir()
++    val outputFile = File.createTempFile(
++      "sampling-profiler-trace", ".cpuprofile", externalDirectory)
++    val cachePath = cacheFile.getPath()
++    HermesSamplingProfiler.dumpSampledTraceToFile(cachePath)
++    HermesSamplingProfiler.disable()
++    cacheFile.inputStream().use { input ->
++      outputFile.outputStream().use { output ->
++        input.copyTo(output)
++      }
++    }
++    if (!outputFile.exists() || outputFile.length() == 0L) {
++      promise.reject("PROFILE_EXPORT_FAILED", "Profile copy was empty")
++      return
++    }
++    promise.resolve(outputFile.getPath())
++  }
++
+   companion object {
+     const val NAME = "ReleaseProfiler"
+   }
+diff --git a/lib/commonjs/index.js b/lib/commonjs/index.js
+index a79a437ab6b6454859132f654d7f354e6c820997..b86e5864ac51e7033cf7796f385f52da7494f2ba 100644
+--- a/lib/commonjs/index.js
++++ b/lib/commonjs/index.js
+@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
+   value: true
+ });
+ exports.startProfiling = startProfiling;
++exports.stopProfilingToExternalFiles = stopProfilingToExternalFiles;
+ exports.stopProfiling = stopProfiling;
+ var _reactNative = require("react-native");
+ const LINKING_ERROR = `The package 'react-native-release-profiler' doesn't seem to be linked. Make sure: \n\n` + _reactNative.Platform.select({
+@@ -18,6 +19,9 @@ const ReleaseProfiler = _reactNative.NativeModules.ReleaseProfiler ? _reactNativ
+ function startProfiling() {
+   return ReleaseProfiler.startProfiling();
+ }
++function stopProfilingToExternalFiles() {
++  return ReleaseProfiler.stopProfilingToExternalFiles();
++}
+ async function stopProfiling(saveToDownloads = false, _fileName = '') {
+   if (saveToDownloads && _reactNative.Platform.OS === 'android' && _reactNative.Platform.Version < 29) {
+     const result = await _reactNative.PermissionsAndroid.request(_reactNative.PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+diff --git a/lib/module/index.js b/lib/module/index.js
+index a1964f09b2bfa075b8a6acd5319fba0d147e8eb7..8e308d5e792e053edc1adea7ffcea88bb29621c1 100644
+--- a/lib/module/index.js
++++ b/lib/module/index.js
+@@ -11,6 +11,9 @@ const ReleaseProfiler = NativeModules.ReleaseProfiler ? NativeModules.ReleasePro
+ export function startProfiling() {
+   return ReleaseProfiler.startProfiling();
+ }
++export function stopProfilingToExternalFiles() {
++  return ReleaseProfiler.stopProfilingToExternalFiles();
++}
+ export async function stopProfiling(saveToDownloads = false, _fileName = '') {
+   if (saveToDownloads && Platform.OS === 'android' && Platform.Version < 29) {
+     const result = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE);
+diff --git a/lib/typescript/src/index.d.ts b/lib/typescript/src/index.d.ts
+index 2e4f5ba6180e7f7a7a6496f4feb5973a08e93a95..0030b22a9d5f4527af5409c37bc90f402fb25054 100644
+--- a/lib/typescript/src/index.d.ts
++++ b/lib/typescript/src/index.d.ts
+@@ -1,3 +1,4 @@
+ export declare function startProfiling(): boolean;
++export declare function stopProfilingToExternalFiles(): Promise<string>;
+ export declare function stopProfiling(saveToDownloads?: boolean, _fileName?: string): Promise<string>;
+ //# sourceMappingURL=index.d.ts.map
+\ No newline at end of file
+diff --git a/src/index.tsx b/src/index.tsx
+index 36f8fdf382a84d9baa59940c25220ef6c5a8646f..0be6125b6ca2c958ce3ae947a66a5d0fcc4f7357 100644
+--- a/src/index.tsx
++++ b/src/index.tsx
+@@ -21,6 +21,10 @@ export function startProfiling(): boolean {
+   return ReleaseProfiler.startProfiling();
+ }
+ 
++export function stopProfilingToExternalFiles(): Promise<string> {
++  return ReleaseProfiler.stopProfilingToExternalFiles();
++}
++
+ export async function stopProfiling(
+   saveToDownloads = false,
+   _fileName = ''
