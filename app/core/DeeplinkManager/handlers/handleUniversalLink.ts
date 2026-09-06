@@ -90,7 +90,11 @@ import branch from 'react-native-branch';
 import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
-import { handleMoney } from './legacy/handleMoney';
+import { createMoneyDeeplinkIntent, handleMoney } from './legacy/handleMoney';
+import {
+  createQuickActionDeeplinkIntent,
+  handleQuickActionUrl,
+} from './intent/handleQuickActionUrl';
 
 const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
 
@@ -131,6 +135,7 @@ const SUPPORTED_ACTIONS = {
   CONNECT: ACTIONS.CONNECT,
   MMSDK: ACTIONS.MMSDK,
   MONEY: ACTIONS.MONEY,
+  QUICK_ACTION: ACTIONS.QUICK_ACTION,
 } as const;
 
 type SUPPORTED_ACTIONS =
@@ -166,6 +171,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
   SUPPORTED_ACTIONS.ASSET,
+  SUPPORTED_ACTIONS.QUICK_ACTION,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -211,7 +217,7 @@ interface UniversalLinkActionHandler {
   execute: (context: UniversalLinkActionHandlerContext) => void | Promise<void>;
   resolve?: (
     context: UniversalLinkActionHandlerContext,
-  ) => DeeplinkIntent | Promise<DeeplinkIntent> | null;
+  ) => DeeplinkIntent | Promise<DeeplinkIntent | null> | null;
 }
 
 // perps-asset URLs carry just '?symbol=X', so inject screen=asset to reuse the
@@ -247,6 +253,22 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
         ? createDappDeeplinkIntent({ url: deeplinkUrl })
         : null;
     },
+  },
+  [SUPPORTED_ACTIONS.QUICK_ACTION]: {
+    execute: ({ actionBasedRampPath, urlObj }) =>
+      handleQuickActionUrl({
+        actionPath: actionBasedRampPath,
+        actionUrl: urlObj.href,
+      }),
+    resolve: ({ actionBasedRampPath, urlObj }) =>
+      createQuickActionDeeplinkIntent({
+        actionPath: actionBasedRampPath,
+        actionUrl: urlObj.href,
+      }),
+  },
+  [SUPPORTED_ACTIONS.MONEY]: {
+    execute: () => handleMoney(),
+    resolve: () => createMoneyDeeplinkIntent(),
   },
   [SUPPORTED_ACTIONS.REWARDS]: {
     execute: ({ actionBasedRampPath }) =>
@@ -488,28 +510,32 @@ async function handleUniversalLink({
    * Timeout and error paths are logged so we retain observability on Branch
    * being slow or broken.
    */
-  const branchParamsPromise: Promise<BranchParams | undefined> = Promise.race([
-    // Promise.resolve tolerates mocks that return a non-Promise synchronously.
-    Promise.resolve(branch.getLatestReferringParams()).then((rawParams) =>
-      rawParams &&
-      typeof rawParams === 'object' &&
-      Object.keys(rawParams).length > 0
-        ? (rawParams as BranchParams)
-        : undefined,
-    ),
-    new Promise<never>((_, reject) =>
-      setTimeout(
-        () => reject(new Error('Branch.io params fetch timeout')),
-        500,
-      ),
-    ),
-  ]).catch((error) => {
-    Logger.error(
-      error as Error,
-      'DeepLinkManager: Error getting Branch.io params',
-    );
-    return undefined;
-  });
+  const branchParamsPromise: Promise<BranchParams | undefined> =
+    action === SUPPORTED_ACTIONS.QUICK_ACTION
+      ? Promise.resolve(undefined)
+      : Promise.race([
+          // Promise.resolve tolerates mocks that return a non-Promise synchronously.
+          Promise.resolve(branch.getLatestReferringParams()).then(
+            (rawParams) =>
+              rawParams &&
+              typeof rawParams === 'object' &&
+              Object.keys(rawParams).length > 0
+                ? (rawParams as BranchParams)
+                : undefined,
+          ),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Branch.io params fetch timeout')),
+              500,
+            ),
+          ),
+        ]).catch((error) => {
+          Logger.error(
+            error as Error,
+            'DeepLinkManager: Error getting Branch.io params',
+          );
+          return undefined;
+        });
 
   // Build analytics context - determine signature status
   // Check if signature parameter exists and has a value

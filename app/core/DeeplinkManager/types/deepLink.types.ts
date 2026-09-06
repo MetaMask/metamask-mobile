@@ -75,6 +75,11 @@ export interface DeeplinkUrlParams {
   // card of the What's Happening expanded view.
   id?: string;
 
+  // iOS Home Screen quick-action fallback metadata. Clipboard contents are
+  // intentionally held by the native module and never placed in the URL.
+  fallback?: string;
+  tabId?: string;
+
   // Note: All properties are explicitly defined above
 }
 
@@ -164,6 +169,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.QUICK_ACTION,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

@@ -15,6 +15,7 @@ import {
 import { detectAppInstallation } from '../util/deeplinks/deepLinkAnalytics';
 import { startDeeplinkNavigatedTrace } from '../../Performance/DeeplinkPerformance';
 import Engine from '../../Engine';
+import AppConstants from '../../AppConstants';
 
 /**
  * Time window during which an identical deeplink is treated as a duplicate and
@@ -42,6 +43,9 @@ export function resetDeeplinkDeduplication(): void {
 }
 
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
+  const isIosQuickAction =
+    typeof opts.uri === 'string' &&
+    opts.uri.startsWith('metamask://quick-action/');
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
   // without waiting for the app to be unlocked or fully onboarded.
@@ -55,7 +59,10 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
   }
 
   const { dispatch } = ReduxService.store;
-  const { uri, source } = opts;
+  const { uri } = opts;
+  const source = isIosQuickAction
+    ? AppConstants.DEEPLINKS.ORIGIN_IOS_QUICK_ACTION
+    : opts.source;
   try {
     if (uri && typeof uri === 'string') {
       // Drop duplicate deliveries of the same deeplink (see
