@@ -1,15 +1,6 @@
-import React, { useCallback, useContext, useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { useEnableMarketingConsent } from '../../../../util/notifications/hooks/useEnableMarketingConsent';
 import { usePushPermissionNotificationSetup } from '../../../../util/notifications/hooks/usePushPermissionNotificationSetup';
 import { PushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
@@ -29,13 +20,6 @@ interface PushNotificationOnboardingProps {
   prePromptVariant: PushPrePromptVariant;
 }
 
-const styles = StyleSheet.create({
-  toastAccessory: {
-    alignSelf: 'flex-start',
-    paddingTop: 4,
-  },
-});
-
 const METRICS_OPT_IN_LOCATION = 'push_pre_prompt';
 
 const PushNotificationOnboarding = ({
@@ -50,7 +34,6 @@ const PushNotificationOnboarding = ({
   const { enableNotificationsInBackground, requestPushPermission } =
     usePushPermissionNotificationSetup();
 
-  const { toastRef } = useContext(ToastContext);
   const viewedPrePromptVariant = useRef<PushPrePromptVariant>(null);
 
   // Analytics emitters for every stage of the pre-prompt → OS prompt funnel.
@@ -94,32 +77,14 @@ const PushNotificationOnboarding = ({
       title: string;
       description: string;
     }) => {
-      const iconColor = isEnabled ? IconColor.Success : IconColor.Default;
-
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Plain,
-        labelOptions: [
-          {
-            label: title,
-            isBold: true,
-          },
-        ],
-        descriptionOptions: {
-          description,
-        },
-        startAccessory: (
-          <View style={styles.toastAccessory}>
-            <Icon
-              name={isEnabled ? IconName.Confirmation : IconName.Info}
-              size={IconSize.Lg}
-              color={iconColor}
-            />
-          </View>
-        ),
+      toast({
+        title,
+        description,
+        severity: isEnabled ? ToastSeverity.Success : ToastSeverity.Default,
         hasNoTimeout: false,
       });
     },
-    [toastRef],
+    [],
   );
 
   const showPushPermissionToast = useCallback(
