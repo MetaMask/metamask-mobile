@@ -28,6 +28,7 @@ import {
 } from '../../types';
 import { usePredictActivity } from '../../hooks/usePredictActivity';
 import { formatCents, formatPrice } from '../../utils/format';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -44,9 +45,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 interface PredictTransactionsViewProps {
   /**
-   * Actionable claimable winnings for the "Claim pending" section.
-   * Expected positions are won and have a positive current value; this view
-   * filters defensively so non-actionable positions cannot render here.
+   * Actionable claimable positions for the "Claim pending" section.
+   * Expected positions are won or redeemable; this view filters defensively
+   * so positions without a claimable status cannot render here.
    */
   claimPendingPositions?: PredictPosition[];
   onClaimPendingPositionsRefresh?: () => Promise<unknown> | void;
@@ -83,11 +84,6 @@ interface ClaimPendingPositionRowProps {
   isPrivacyMode: boolean;
   position: PredictPosition;
 }
-
-const isActionableClaimPendingPosition = (position: PredictPosition) =>
-  (position.status === PredictPositionStatus.WON ||
-    position.status === PredictPositionStatus.REDEEMABLE) &&
-  position.currentValue > 0;
 
 const getClaimPendingPositionTitle = (
   status: PredictPositionStatus,
@@ -263,7 +259,7 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   const sections: ActivitySection[] = useMemo(() => {
     const sortedClaimPendingPositions = claimPendingPositions
       ? claimPendingPositions
-          .filter(isActionableClaimPendingPosition)
+          .filter(isActionableClaimablePosition)
           .sort(
             (a, b) =>
               new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),

@@ -33,7 +33,6 @@ import {
   OPEN_PREDICT_OUTCOME_STATUS,
   PredictMarketStatus,
   PredictOutcomeToken,
-  PredictPositionStatus,
 } from '../../types';
 import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { usePredictClaim } from '../../hooks/usePredictClaim';
@@ -43,6 +42,7 @@ import PredictDetailsContentSkeleton from '../../components/PredictDetailsConten
 import PredictGameDetailsContent from '../../components/PredictGameDetailsContent';
 import PredictCryptoUpDownDetails from '../../components/PredictCryptoUpDownDetails';
 import { isCryptoUpDown } from '../../utils/cryptoUpDown';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
@@ -453,12 +453,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     }
   }, [market, tabsReady, activeTab, tabs, trackMarketDetailsOpened]);
 
-  // see if there are any positions with positive percentPnl
   const actionableClaimablePositions = claimablePositions.filter(
-    (position) =>
-      (position.status === PredictPositionStatus.WON ||
-        position.status === PredictPositionStatus.REDEEMABLE) &&
-      (position.currentValue ?? 0) > 0,
+    isActionableClaimablePosition,
   );
   const hasPositivePnl = actionableClaimablePositions.length > 0;
 

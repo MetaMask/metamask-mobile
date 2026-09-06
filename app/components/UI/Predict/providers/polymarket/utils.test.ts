@@ -43,6 +43,7 @@ import {
   getTickSizeRoundConfig,
   parsePolymarketEvents,
   parsePolymarketActivity,
+  parsePolymarketPositions,
   previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
@@ -52,6 +53,7 @@ import type {
   PolymarketApiEvent,
   PolymarketApiMarket,
   PolymarketApiTeam,
+  PolymarketPosition,
 } from './types';
 
 const mockSignTypedMessage = jest.fn();
@@ -156,31 +158,170 @@ describe('polymarket utils', () => {
       {
         claimable: false,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 0.6,
         expectedStatus: PredictPositionStatus.OPEN,
       },
       {
+        claimable: false,
+        cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.OPEN,
+      },
+      // Settled winner.
+      {
         claimable: true,
         cashPnl: 10,
+        currentValue: 20,
+        curPrice: 1,
         expectedStatus: PredictPositionStatus.WON,
       },
+      // Winner whose price has not settled yet is already in profit.
+      {
+        claimable: true,
+        cashPnl: 2699.75,
+        currentValue: 2999.75,
+        curPrice: 0.9995,
+        expectedStatus: PredictPositionStatus.WON,
+      },
+      // 50/50 push bought at 50c: pays back exactly what it cost.
       {
         claimable: true,
         cashPnl: 0,
+        currentValue: 10,
+        curPrice: 0.5,
         expectedStatus: PredictPositionStatus.REDEEMABLE,
       },
+      // 50/50 push bought above 50c (PRED-959): pays back less than it cost,
+      // still claimable. Values from a real settled Polymarket position.
+      {
+        claimable: true,
+        cashPnl: -134.4055,
+        currentValue: 2259.5,
+        curPrice: 0.5,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Winner dragged below break-even by fees still redeems for 1/share.
+      {
+        claimable: true,
+        cashPnl: -0.5,
+        currentValue: 100,
+        curPrice: 1,
+        expectedStatus: PredictPositionStatus.REDEEMABLE,
+      },
+      // Settled loser.
       {
         claimable: true,
         cashPnl: -10,
+        currentValue: 0,
+        curPrice: 0,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Loser flagged redeemable before its price settled: still carries its
+      // last traded price, so currentValue is positive. Must not be claimable.
+      // Values from real Polymarket positions observed mid-settlement.
+      {
+        claimable: true,
+        cashPnl: -304.1314,
+        currentValue: 1.5283,
+        curPrice: 0.0005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      {
+        claimable: true,
+        cashPnl: -9.9019,
+        currentValue: 0.098,
+        curPrice: 0.005,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Below break-even at an unsettled mid price: not proven redeemable.
+      {
+        claimable: true,
+        cashPnl: -2,
+        currentValue: 53,
+        curPrice: 0.53,
+        expectedStatus: PredictPositionStatus.LOST,
+      },
+      // Nothing to redeem even though P&L rounds to zero.
+      {
+        claimable: true,
+        cashPnl: 0,
+        currentValue: 0,
+        curPrice: 0,
         expectedStatus: PredictPositionStatus.LOST,
       },
     ])(
-      'returns $expectedStatus when claimable is $claimable and cashPnl is $cashPnl',
-      ({ claimable, cashPnl, expectedStatus }) => {
-        expect(getPredictPositionStatus({ claimable, cashPnl })).toBe(
-          expectedStatus,
-        );
+      'returns $expectedStatus when claimable is $claimable, cashPnl is $cashPnl, currentValue is $currentValue and curPrice is $curPrice',
+      ({ claimable, cashPnl, currentValue, curPrice, expectedStatus }) => {
+        expect(
+          getPredictPositionStatus({
+            claimable,
+            cashPnl,
+            currentValue,
+            curPrice,
+          }),
+        ).toBe(expectedStatus);
       },
     );
+  });
+
+  describe('parsePolymarketPositions', () => {
+    // Shape and values of a real settled 50/50 push bought above 50c.
+    const createRedeemablePosition = (
+      overrides: Partial<PolymarketPosition>,
+    ): PolymarketPosition => ({
+      conditionId: 'condition',
+      eventId: 'event',
+      icon: '',
+      title: 'Nippon Ham Fighters vs. Fukuoka SoftBank Hawks',
+      slug: 'slug',
+      size: 4519,
+      outcome: 'Fukuoka SoftBank Hawks',
+      outcomeIndex: 1,
+      cashPnl: -134.4055,
+      curPrice: 0.5,
+      currentValue: 2259.5,
+      percentPnl: -5.6,
+      initialValue: 2393.9055,
+      avgPrice: 0.5297,
+      redeemable: true,
+      negativeRisk: false,
+      endDate: '2026-09-01',
+      asset: 'asset',
+      realizedPnl: 0,
+      ...overrides,
+    });
+
+    it('marks a settled push bought above 50c as redeemable', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [createRedeemablePosition({})],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.REDEEMABLE);
+      expect(position.claimable).toBe(true);
+      expect(position.currentValue).toBe(2259.5);
+    });
+
+    it('does not mark a loser redeemable while its price is still settling', async () => {
+      const [position] = await parsePolymarketPositions({
+        positions: [
+          createRedeemablePosition({
+            title: 'Bitcoin Up or Down - September 2, 1:55PM-2:00PM ET',
+            outcome: 'Down',
+            size: 19.6078,
+            cashPnl: -9.9019,
+            curPrice: 0.005,
+            currentValue: 0.098,
+            initialValue: 9.9999,
+            avgPrice: 0.5099,
+          }),
+        ],
+      });
+
+      expect(position.status).toBe(PredictPositionStatus.LOST);
+      expect(position.claimable).toBe(true);
+    });
   });
 
   beforeEach(() => {
