@@ -51,10 +51,6 @@ app/util/number/index.js                                    @MetaMask/mobile-pla
 scripts/build.sh                                            @MetaMask/mobile-platform
 fingerprint.config.js                                       @MetaMask/mobile-platform
 builds.yml                                                  @MetaMask/mobile-platform
-.github/workflows/generate-build-version.yml                @MetaMask/mobile-platform
-.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
-.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
-.github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 scripts/update-expo-channel.js                              @MetaMask/mobile-admins
 certs/certificate.pem                                       @MetaMask/mobile-admins
 ios/fastlane/                                               @MetaMask/mobile-admins
@@ -62,6 +58,13 @@ scripts/setup-app-store-connect-api-key.sh                  @MetaMask/mobile-adm
 scripts/upload-to-testflight.sh                             @MetaMask/mobile-admins
 scripts/set-secrets-from-config.js                          @MetaMask/mobile-admins
 
+# DevOps Team
+.github/workflows/                                          @MetaMask/devops @MetaMask/mobile-platform
+
+# Mobile Admins overrides (more specific than DevOps Team default above)
+.github/workflows/push-eas-update.yml                       @MetaMask/mobile-admins
+.github/workflows/build-and-upload-to-testflight.yml        @MetaMask/mobile-admins
+.github/workflows/upload-to-testflight.yml                  @MetaMask/mobile-admins
 
 # Platform & Snaps Code Fencing File
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
