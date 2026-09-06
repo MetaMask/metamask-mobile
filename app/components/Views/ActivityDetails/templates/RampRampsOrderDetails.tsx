@@ -26,7 +26,6 @@ import {
 
 export type RampRampsActivityListItem = ActivityListItem & {
   type: 'buy' | 'sell';
-  raw: { type: 'rampOrder'; data: RampsOrder };
 };
 
 function isRampsSellOrder(order: RampsOrder) {
@@ -57,8 +56,8 @@ function getRampsExplorerChainId(order: RampsOrder) {
 /** Native RampsOrder ActivityDetails template — visual parity with Fiat path. */
 export function RampRampsOrderDetails({
   item,
-}: Readonly<{ item: RampRampsActivityListItem }>) {
-  const order = item.raw.data;
+  order,
+}: Readonly<{ item: RampRampsActivityListItem; order: RampsOrder }>) {
   const isSell = isRampsSellOrder(order);
   const transactionHash = getRampsOrderTransactionHash(order);
   const chainId = getRampsExplorerChainId(order);

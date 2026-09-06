@@ -13,6 +13,10 @@ export type {
 } from './types';
 export { PERPS_ORDER_KINDS, isPerpsOrderKind } from './types';
 export {
+  isRampActivityKind,
+  isRampActivityListRow,
+} from './ramp-activity-kinds';
+export {
   isNftTransferType,
   isUnlimitedApprovalAmount,
 } from './adapters/helpers';

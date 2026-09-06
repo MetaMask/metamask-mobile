@@ -93,11 +93,13 @@ import { type ActivityListItem } from './types';
 import {
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  isRampActivityListRow,
   preferLocalOrApiActivityItem,
   type ActivityKind,
   type GroupedActivityListItem,
   type TransactionGroup,
 } from '../../../util/activity-adapters';
+import { useRampOrderLookup } from './hooks/useRampOrderLookup';
 import {
   isBridgeHistoryForEvmTransaction,
   mergeTransactionsByTime,
@@ -813,6 +815,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       signLedgerTransaction,
       cancelUnsignedQRTransaction,
     } = useUnifiedTxActions();
+    const findRampOrder = useRampOrderLookup();
 
     const perpsRefetch = perpsSource.refetch;
     const predictRefetch = predictSource.refetch;
@@ -833,23 +836,26 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
         const { raw } = item;
-        if (!raw) return;
-
         // Ramp rows own their redesign gate: flag ON → ActivityDetails /
         // TemplateLoader; flag OFF → OrdersList destinations. Kept ahead of the
         // shared redesign early-return so CREATED deposits always resume buy and
         // flag-OFF never accidentally hits ActivityDetails.
         // Sell/offramp always uses legacy OrderDetails — that screen owns the
         // Continue → Send Transaction flow which ActivityDetails does not.
-        if (raw.type === 'rampOrder') {
-          if (resolveRampOrderTarget(raw.data) === 'deposit-resume-buy') {
+        if (isRampActivityListRow(item)) {
+          const rampOrder = findRampOrder(item.hash);
+          if (!rampOrder) {
+            return;
+          }
+
+          if (resolveRampOrderTarget(rampOrder) === 'deposit-resume-buy') {
             goToBuy(undefined, { surface: RAMPS_BUY_CUF_SURFACE.ACTIVITY });
             return;
           }
 
           if (item.type === 'sell') {
             navigateToRampOrderTarget({
-              data: raw.data,
+              data: rampOrder,
               navigation,
               goToBuy,
             });
@@ -861,15 +867,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
             navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
             return;
           }
-          // Mappers always set hash (txHash || id); keep the pre-native
-          // fallback keyed by order id if a row somehow lacks hash.
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
-            txIdentifier: item.hash ?? raw.data.id,
+            txIdentifier: item.hash ?? rampOrder.id,
           });
           return;
         }
 
+        if (!raw) return;
         const detailsRoute = getActivityDetailsRoute(item);
         if (detailsRoute) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
@@ -944,7 +949,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           }
         }
       },
-      [bridgeHistory, getBridgeHistoryItemByHash, goToBuy, navigation],
+      [
+        bridgeHistory,
+        findRampOrder,
+        getBridgeHistoryItemByHash,
+        goToBuy,
+        navigation,
+      ],
     );
 
     // Index of the last API-confirmed EVM item — used to trigger pagination.
