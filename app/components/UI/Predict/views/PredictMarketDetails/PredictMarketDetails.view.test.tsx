@@ -341,9 +341,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -355,9 +357,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      renderPredictMarketDetailsView({
+      const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
+
+      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -650,6 +654,10 @@ describe('PredictMarketDetails', () => {
       const { findByTestId } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
+
+      await findByTestId(
+        PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
+      );
 
       fireEvent.press(
         await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
