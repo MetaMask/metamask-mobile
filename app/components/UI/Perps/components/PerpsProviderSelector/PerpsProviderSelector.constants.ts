@@ -64,4 +64,20 @@ export const PROVIDER_NETWORK_OPTIONS: ProviderNetworkOption[] = [
     network: 'Testnet',
     description: 'High-performance L1 perps',
   },
+  {
+    id: 'lighter-mainnet',
+    providerId: 'lighter',
+    isTestnet: false,
+    name: 'Lighter',
+    network: 'Mainnet',
+    description: 'zkLighter perps',
+  },
+  {
+    id: 'lighter-testnet',
+    providerId: 'lighter',
+    isTestnet: true,
+    name: 'Lighter',
+    network: 'Testnet',
+    description: 'zkLighter perps (POC)',
+  },
 ];
