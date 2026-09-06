@@ -24,6 +24,7 @@ import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } fr
 import { withRouteMessenger } from '../../../messengers/helpers/route-messenger-helpers';
 import DeleteWalletModal from '../../UI/DeleteWalletModal';
 import Main from '../Main';
+import ReviewModal from '../../UI/ReviewModal';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
@@ -1152,6 +1153,14 @@ const AppFlow = () => {
       }}
     >
       <NativeStack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
+      <NativeStack.Screen
+        name="ReviewModal"
+        component={ReviewModal}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
       <NativeStack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
       <NativeStack.Screen
         name={Routes.ONBOARDING.LOGIN}

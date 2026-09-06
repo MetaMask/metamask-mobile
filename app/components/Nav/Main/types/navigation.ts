@@ -236,13 +236,3 @@ export type HomeTabsParamList = {
 export type MainStackParamList = {
   Home: NavigatorScreenParams<HomeTabsParamList> | undefined;
 };
-
-/**
- * Param list for `MainFlow` (`Routes.MAIN_FLOW` / `Main` on the root stack).
- */
-// ParamListBase requires `type`; `interface` cannot satisfy it.
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type MainFlowParamList = {
-  Main: NavigatorScreenParams<MainStackParamList> | undefined;
-  ReviewModal: undefined;
-};
