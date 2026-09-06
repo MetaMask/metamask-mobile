@@ -16,6 +16,7 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useGetPerpsTradingCampaignLeaderboard } from '../hooks/useGetPerpsTradingCampaignLeaderboard';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import { useGetPerpsTradingCampaignVolume } from '../hooks/useGetPerpsTradingCampaignVolume';
+import { useGetPerpsTradingCampaignPrizePool } from '../hooks/useGetPerpsTradingCampaignPrizePool';
 import { usePerpsTradingCampaignParticipantOutcome } from '../hooks/usePerpsTradingCampaignParticipantOutcome';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -309,6 +310,12 @@ const mockUseGetPerpsTradingCampaignVolume =
     typeof useGetPerpsTradingCampaignVolume
   >;
 
+jest.mock('../hooks/useGetPerpsTradingCampaignPrizePool');
+const mockUseGetPerpsTradingCampaignPrizePool =
+  useGetPerpsTradingCampaignPrizePool as jest.MockedFunction<
+    typeof useGetPerpsTradingCampaignPrizePool
+  >;
+
 jest.mock('../hooks/usePerpsTradingCampaignParticipantOutcome');
 const mockUsePerpsTradingCampaignParticipantOutcome =
   usePerpsTradingCampaignParticipantOutcome as jest.MockedFunction<
@@ -452,6 +459,13 @@ function setupHooks(
   mockUseGetPerpsTradingCampaignVolume.mockReturnValue({
     ...defaultVolumeHook,
   } as ReturnType<typeof useGetPerpsTradingCampaignVolume>);
+
+  mockUseGetPerpsTradingCampaignPrizePool.mockReturnValue({
+    prizePool: null,
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
+  } as ReturnType<typeof useGetPerpsTradingCampaignPrizePool>);
 
   mockUsePerpsTradingCampaignParticipantOutcome.mockReturnValue({
     outcome,
@@ -893,5 +907,61 @@ describe('PerpsTradingCampaignDetailsView', () => {
       Routes.REWARDS_CAMPAIGN_MECHANICS,
       { campaignId: 'resolved-by-type' },
     );
+  });
+
+  it('prefers the active campaign over a completed one when route has no campaignId', () => {
+    mockRouteState.params = {};
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          id: 'perps-completed',
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2024-02-01T00:00:00.000Z',
+        }),
+        buildPerpsCampaign({ id: 'perps-active' }),
+      ],
+    });
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    fireEvent.press(getByTestId('perps-details-mechanics-button'));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.REWARDS_CAMPAIGN_MECHANICS,
+      { campaignId: 'perps-active' },
+    );
+  });
+
+  it('renders no campaign content when only a completed campaign exists and route has no campaignId', () => {
+    mockRouteState.params = {};
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          id: 'perps-completed',
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2024-02-01T00:00:00.000Z',
+        }),
+      ],
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(queryByTestId('campaign-status')).not.toBeOnTheScreen();
+  });
+
+  it('still resolves the exact campaign by route id even when it is completed', () => {
+    mockRouteState.params = { campaignId: 'perps-completed' };
+    setupHooks({
+      campaigns: [
+        buildPerpsCampaign({
+          id: 'perps-completed',
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2024-02-01T00:00:00.000Z',
+        }),
+      ],
+    });
+
+    const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
+
+    expect(getByTestId('campaign-status')).toBeOnTheScreen();
   });
 });

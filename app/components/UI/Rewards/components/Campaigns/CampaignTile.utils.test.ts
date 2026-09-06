@@ -4,6 +4,7 @@
 
 import {
   getCampaignStatus,
+  getLatestActiveOrUpcomingCampaignOfType,
   formatCampaignStatusLabel,
   formatCampaignDateRange,
   getCampaignPillLabel,
@@ -322,6 +323,128 @@ describe('CampaignTile.utils', () => {
           'en-US',
         ),
       ).toBe('Jul 28–Aug 3');
+    });
+  });
+
+  describe('getLatestActiveOrUpcomingCampaignOfType', () => {
+    const NOW = new Date('2026-07-15T00:00:00.000Z');
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(NOW);
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const past = buildCampaignDto({
+      id: 'perps-past',
+      type: CampaignType.PERPS_TRADING,
+      startDate: '2026-05-01T00:00:00.000Z',
+      endDate: '2026-06-01T00:00:00.000Z',
+    });
+    const active = buildCampaignDto({
+      id: 'perps-active',
+      type: CampaignType.PERPS_TRADING,
+      startDate: '2026-07-01T00:00:00.000Z',
+      endDate: '2026-08-01T00:00:00.000Z',
+    });
+    const upcoming = buildCampaignDto({
+      id: 'perps-upcoming',
+      type: CampaignType.PERPS_TRADING,
+      startDate: '2026-09-01T00:00:00.000Z',
+      endDate: '2026-10-01T00:00:00.000Z',
+    });
+
+    it('returns null when no campaign of the type exists', () => {
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [buildCampaignDto({ type: CampaignType.ONDO_HOLDING })],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBeNull();
+    });
+
+    it('returns null when only complete campaigns of the type exist', () => {
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [past],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBeNull();
+    });
+
+    it('prefers the active campaign over a past one listed first', () => {
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [past, active],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBe(active);
+    });
+
+    it('prefers the active campaign over an upcoming one', () => {
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [upcoming, active],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBe(active);
+    });
+
+    it('returns the most recently started campaign when several are active', () => {
+      const earlierActive = buildCampaignDto({
+        id: 'perps-active-earlier',
+        type: CampaignType.PERPS_TRADING,
+        startDate: '2026-06-15T00:00:00.000Z',
+        endDate: '2026-08-01T00:00:00.000Z',
+      });
+
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [active, earlierActive],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBe(active);
+    });
+
+    it('returns the soonest upcoming campaign when none is active', () => {
+      const laterUpcoming = buildCampaignDto({
+        id: 'perps-upcoming-later',
+        type: CampaignType.PERPS_TRADING,
+        startDate: '2026-11-01T00:00:00.000Z',
+        endDate: '2026-12-01T00:00:00.000Z',
+      });
+
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [past, laterUpcoming, upcoming],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBe(upcoming);
+    });
+
+    it('ignores active campaigns of a different type', () => {
+      const otherType = buildCampaignDto({
+        id: 'ondo-active',
+        type: CampaignType.ONDO_HOLDING,
+        startDate: '2026-07-10T00:00:00.000Z',
+        endDate: '2026-08-01T00:00:00.000Z',
+      });
+
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType(
+          [otherType, upcoming],
+          CampaignType.PERPS_TRADING,
+        ),
+      ).toBe(upcoming);
+    });
+
+    it('returns null for an empty campaign list', () => {
+      expect(
+        getLatestActiveOrUpcomingCampaignOfType([], CampaignType.PERPS_TRADING),
+      ).toBeNull();
     });
   });
 });

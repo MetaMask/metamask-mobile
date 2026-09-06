@@ -50,6 +50,8 @@ import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweeps
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { resolveMoneyAccountSweepstakesEntryRoute } from '../utils/moneyAccountSweepstakesSeries';
 import { navigateToRewardsRoute } from '../utils';
+import { getLatestActiveOrUpcomingCampaignOfType } from '../components/Campaigns/CampaignTile.utils';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
@@ -87,6 +89,7 @@ const RewardsDashboard: React.FC = () => {
 
   const isMoneyCampaignDeeplink = pendingDeeplink?.campaign === 'money';
   const {
+    campaigns,
     hasLoaded: campaignsHasLoaded,
     hasError: campaignsHasError,
     isLoading: isCampaignsLoading,
@@ -136,10 +139,31 @@ const RewardsDashboard: React.FC = () => {
         Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
       );
     } else if (pendingDeeplink.campaign === 'perps-comp') {
-      navigateToRewardsRoute(
-        navigation,
-        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
-      );
+      // The deeplink carries no campaign id, so it has to be resolved against
+      // the campaign list. Failed and in-flight fetches also flip
+      // campaignsHasLoaded, so an empty list is only trustworthy once a
+      // successful fetch has settled.
+      const waitingForCampaigns =
+        !campaignsHasLoaded ||
+        (campaigns.length === 0 && (campaignsHasError || isCampaignsLoading));
+
+      if (waitingForCampaigns) {
+        handled = false;
+      } else {
+        const perpsCampaign = getLatestActiveOrUpcomingCampaignOfType(
+          campaigns,
+          CampaignType.PERPS_TRADING,
+        );
+        if (perpsCampaign) {
+          navigateToRewardsRoute(
+            navigation,
+            Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+            { campaignId: perpsCampaign.id },
+          );
+        }
+        // No active or upcoming perps campaign: stay on the dashboard, which is
+        // rewards home. Navigating would surface a past campaign.
+      }
     } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
       navigateToRewardsRoute(
         navigation,
@@ -201,6 +225,7 @@ const RewardsDashboard: React.FC = () => {
     navigation,
     dispatch,
     pendingDeeplink,
+    campaigns,
     campaignsHasLoaded,
     campaignsHasError,
     isCampaignsLoading,

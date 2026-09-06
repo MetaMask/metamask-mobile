@@ -36,8 +36,10 @@ const PerpsTradingCampaignEndedStats: React.FC<
     const totalParticipants = leaderboard.totalParticipants;
     const topPnl =
       entries.length > 0 ? Math.max(...entries.map((e) => e.pnl)) : null;
-    const hasFullLeaderboard = entries.length >= PERPS_TRADING_MAX_WINNERS;
-    return { totalParticipants, topPnl, hasFullLeaderboard };
+    const numberOfWinners =
+      leaderboard.numberOfWinners ?? PERPS_TRADING_MAX_WINNERS;
+    const hasFullLeaderboard = entries.length >= numberOfWinners;
+    return { totalParticipants, topPnl, numberOfWinners, hasFullLeaderboard };
   }, [leaderboard]);
 
   const hasStats = stats != null;
@@ -79,9 +81,7 @@ const PerpsTradingCampaignEndedStats: React.FC<
       }}
       totalWinners={{
         label: strings('rewards.campaign_ended_stats.total_winners'),
-        value: stats?.hasFullLeaderboard
-          ? String(PERPS_TRADING_MAX_WINNERS)
-          : '-',
+        value: stats?.hasFullLeaderboard ? String(stats.numberOfWinners) : '-',
         isLoading: isStatsLoading,
       }}
       hasError={hasError}

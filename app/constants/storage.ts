@@ -88,7 +88,8 @@ export const PERPS_GTM_MODAL_SHOWN = `${prefix}perpsGTMModalShown`;
 
 export const PERPS_MODE_SELECTION_COMPLETED = `${prefix}perpsModeSelectionCompleted`;
 
-export const PERPS_COMPETITION_BANNER_DISMISSED = `${prefix}perpsCompetitionBannerDismissed`;
+export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
+  `${prefix}perpsCompetitionBannerDismissed:${campaignId}`;
 
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 
