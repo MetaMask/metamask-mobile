@@ -12,7 +12,7 @@ import {
   MOCK_GET_VAULT_RESPONSE,
   MOCK_STAKED_ETH_MAINNET_ASSET,
 } from '../../__mocks__/stakeMockData';
-import StakingBalance from './StakingBalance';
+import StakingOverview from './StakingOverview';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { earnSelectors } from '../../../../../selectors/earnController';
 import { mockNetworkState } from '../../../../../util/test/network';
@@ -193,7 +193,7 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-describe('StakingBalance', () => {
+describe('StakingOverview', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
@@ -248,12 +248,12 @@ describe('StakingBalance', () => {
     });
 
     const { getByTestId, getByText, queryByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
     // Assert: component renders
-    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByTestId('staking-overview-container')).toBeOnTheScreen();
 
     // Assert: claim/unstake banners remain visible even if ineligible
     expect(getByTestId('unstaking-banner')).toBeOnTheScreen();
@@ -263,17 +263,28 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
   });
 
-  it('renders staking balance container', () => {
+  it('renders staking overview container', () => {
     const { getByTestId } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByTestId('staking-overview-container')).toBeOnTheScreen();
+  });
+
+  it('hides active staking UI for native ETH', () => {
+    const { queryByTestId, queryByText } = renderWithProvider(
+      <StakingOverview asset={MOCK_ETH_MAINNET_ASSET} />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId('staking-overview-container')).not.toBeOnTheScreen();
+    expect(queryByText(strings('stake.stake_more'))).not.toBeOnTheScreen();
+    expect(queryByText(strings('stake.your_earnings'))).not.toBeOnTheScreen();
   });
 
   it('redirects to StakeInputView on stake button click', async () => {
     const { getByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
@@ -285,14 +296,14 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: MOCK_ETH_MAINNET_ASSET,
+        token: mockEarnTokenPair.earnToken,
       },
     });
   });
 
   it('redirects to UnstakeInputView on unstake button click', async () => {
     const { getByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
@@ -312,12 +323,12 @@ describe('StakingBalance', () => {
 
   it('should not render if asset chainId is not a staking supporting chain', () => {
     const { queryByText, queryByTestId } = renderWithProvider(
-      <StakingBalance
+      <StakingOverview
         asset={{ ...MOCK_STAKED_ETH_MAINNET_ASSET, chainId: '0x4' }}
       />,
       { state: mockInitialState },
     );
-    expect(queryByTestId('staking-balance-container')).toBeNull();
+    expect(queryByTestId('staking-overview-container')).toBeNull();
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.unstake'))).toBeNull();
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeNull();
@@ -329,20 +340,20 @@ describe('StakingBalance', () => {
     ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByTestId('staking-overview-container')).toBeOnTheScreen();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 
   it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
     const { queryByText, queryByTestId } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       {
         state: {
           ...mockInitialState,
@@ -364,7 +375,7 @@ describe('StakingBalance', () => {
       },
     );
 
-    expect(queryByTestId('staking-balance-container')).toBeTruthy();
+    expect(queryByTestId('staking-overview-container')).toBeTruthy();
     expect(queryByText(strings('stake.stake_more'))).toBeTruthy();
     expect(queryByText(strings('stake.unstake'))).toBeTruthy();
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeTruthy();
@@ -377,14 +388,14 @@ describe('StakingBalance', () => {
     ).mockReturnValue(false);
 
     const { getByText, getByTestId, queryByText } = renderWithProvider(
-      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      <StakingOverview asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
 
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
 
-    expect(getByTestId('staking-balance-container')).toBeOnTheScreen();
+    expect(getByTestId('staking-overview-container')).toBeOnTheScreen();
     expect(getByText(`${strings('stake.claim')} ETH`)).toBeOnTheScreen();
   });
 });

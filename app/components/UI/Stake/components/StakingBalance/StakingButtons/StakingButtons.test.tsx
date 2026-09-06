@@ -16,7 +16,10 @@ import {
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
-import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
+import {
+  MOCK_ETH_MAINNET_ASSET,
+  MOCK_STAKED_ETH_MAINNET_ASSET,
+} from '../../../__mocks__/stakeMockData';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -24,6 +27,8 @@ import {
 import { TokenI } from '../../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
+import { earnSelectors } from '../../../../../../selectors/earnController';
+import Logger from '../../../../../../util/Logger';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 
@@ -105,6 +110,13 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
+
 jest.mock('../../../hooks/useStakingChain', () => ({
   __esModule: true,
   default: jest.fn(() => ({
@@ -120,6 +132,9 @@ jest.mock('../../../hooks/useStakingEligibility', () => ({
 const mockUseStakingEligibility = useStakingEligibility as jest.MockedFunction<
   typeof useStakingEligibility
 >;
+const mockSelectEarnTokenPair =
+  earnSelectors.selectEarnTokenPair as unknown as jest.Mock;
+const mockLoggerError = jest.mocked(Logger.error);
 
 const mockInitialState = {
   engine: {
@@ -267,7 +282,7 @@ describe('StakingButtons', () => {
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        token: MOCK_ETH_MAINNET_ASSET,
+        token: mockEarnTokenPair.earnToken,
       },
     });
   });
@@ -299,5 +314,63 @@ describe('StakingButtons', () => {
       },
       screen: Routes.STAKING.UNSTAKE,
     });
+  });
+
+  it('does not navigate to stake when the underlying token is unavailable', async () => {
+    mockSelectEarnTokenPair.mockReturnValue({
+      earnToken: undefined,
+      outputToken: mockEarnTokenPair.outputToken,
+    });
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: false,
+      asset: MOCK_STAKED_ETH_MAINNET_ASSET,
+    };
+    const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
+      state: mockInitialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Stake more'));
+    });
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        action: 'stake',
+      }),
+    );
+  });
+
+  it('does not navigate to unstake when the output token is unavailable', async () => {
+    mockSelectEarnTokenPair.mockReturnValue({
+      earnToken: mockEarnTokenPair.earnToken,
+      outputToken: undefined,
+    });
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_STAKED_ETH_MAINNET_ASSET,
+    };
+    const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
+      state: mockInitialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Unstake'));
+    });
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        action: 'unstake',
+      }),
+    );
   });
 });
