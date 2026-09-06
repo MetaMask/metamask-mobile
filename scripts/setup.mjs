@@ -259,6 +259,88 @@ const expoBuildLinks = {
   },
 };
 
+// Listr trims each captured console.log chunk, so a trailing newline, space or
+// tab is removed and the next task's output butts against this one. A zero-width
+// space is not in JavaScript's whitespace set, so it survives the trim while
+// rendering as nothing — giving one blank line of separation.
+const TRAILING_BLANK_LINE = '\u200b';
+
+/**
+ * Report which agent skills are installed.
+ *
+ * Skills are installed by `postinstall`, whose output Yarn swallows into a build
+ * log — so without this the base set arrives silently and nobody learns that
+ * team skills are opt-in. This only reads what is already on disk; it never runs
+ * a sync, so `yarn setup` does not install twice.
+ */
+const reportAgentSkillsTask = {
+  title: 'Report agent skills',
+  task: async (_, task) => {
+    // Agent skills are developer tooling. `postinstall` already skips installing
+    // them in CI, so there would be nothing to report and the output is noise.
+    if (IS_CI || IS_NODE) {
+      return task.skip('Skipping agent skills report.');
+    }
+
+    const skillsDir = path.join(process.cwd(), '.claude', 'skills');
+
+    let installed = [];
+    try {
+      installed = fs
+        .readdirSync(skillsDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        // Only skills this tooling manages. Personal skills living in the same
+        // directory would otherwise inflate the count.
+        .filter((name) => name.startsWith('mms-'));
+    } catch (error) {
+      // ENOENT just means nothing has been installed yet — a fresh clone before
+      // postinstall, or SKILLS_AUTO_UPDATE=0. Fall through to the empty-state
+      // branch below, which points at `yarn skills`.
+      //
+      // Anything else (EACCES after a stray `sudo yarn`, ENOTDIR if a file
+      // shadows the directory) means the state is unknown rather than empty, and
+      // "none installed, run `yarn skills`" would send the reader at a command
+      // that fails the same way without naming the cause.
+      //
+      // Reported, NOT thrown. This list runs with exitOnError, and `tasks.run()`
+      // is unguarded, so throwing from a purely informational step would abort
+      // Husky, the Expo build links and the whole iOS / Terms-of-Use stage that
+      // follow it — over a skill count. That would also break the promise in
+      // README: "Skipping `yarn skills` is fine — it only affects agent tooling,
+      // not the app build."
+      if (error.code !== 'ENOENT') {
+        task.title = `Report agent skills — could not read ${skillsDir} (${error.code}); skills may be installed but unreadable.`;
+        return undefined;
+      }
+    }
+
+    if (installed.length === 0) {
+      // NOT task.skip(): rendererOptions sets showSkipMessage: false, so a skip
+      // message is swallowed and the user sees only "[SKIPPED]". Retitling is the
+      // only way this guidance actually reaches them — and on a fresh clone this
+      // is the path most likely to be taken.
+      task.title =
+        'Report agent skills — none installed. Run `yarn skills` to install them.';
+      return undefined;
+    }
+
+    // Project-scope skills are written to .claude/skills, .cursor/rules and
+    // .agents/skills, so Claude Code and Cursor see this set. Codex only ever
+    // receives `scope: user` skills, which install to $HOME and are deliberately
+    // not counted here.
+    console.log(`
+     You have ${installed.length} agent skill(s) installed for Claude Code and Cursor.
+
+     The base set installs automatically; yarn skills adds every domain:
+      🔎 Pick specific domains:       yarn skills --select
+      📖 Inspect one:                 yarn metamask-skills describe <domain>/<skill>
+      🔄 Refresh after pulling main:  yarn skills
+${TRAILING_BLANK_LINE}`);
+    return undefined;
+  },
+};
+
 const updateGitSubmodulesTask = {
   title: 'Init git submodules',
   task: async (_, task) => {
@@ -351,6 +433,7 @@ const prepareDependenciesTask = {
         runLavamoatAllowScriptsTask,
         patchPackageTask,
         installFoundryTask,
+        reportAgentSkillsTask,
         expoBuildLinks,
         installHuskyTask,
       ],
