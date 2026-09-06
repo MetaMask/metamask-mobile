@@ -4,6 +4,7 @@ import type {
   NotificationServicesControllerEnableNotificationsOptions,
 } from '@metamask/notification-services-controller/notification-services';
 import Engine from '../../../core/Engine';
+import { unregisterBrazePush } from '../../../core/Braze/unregisterPush';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 
 const CLIENT_TYPE = 'mobile' as const;
@@ -116,9 +117,16 @@ export const enablePushNotifications = async () => {
 /**
  * Push Notifications Switch
  * - Allows us to disable push notifications
+ * When NaaP has no FCM token, unregisters Braze here because the push
+ * controller otherwise returns before invoking its token-deletion callback.
+ * Retriable failures persist for retry on the next app launch.
+ * @throws if Braze push fails permanently for this device
  */
 export const disablePushNotifications = async () => {
   assertIsFeatureEnabled();
+  if (!Engine.context.NotificationServicesPushController.state.fcmToken) {
+    await unregisterBrazePush();
+  }
   await Engine.context.NotificationServicesController.disablePushNotifications();
 };
 

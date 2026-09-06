@@ -232,7 +232,7 @@ describe('useNotifications - useDisableNotifications()', () => {
     const mockDisableNotifications = jest.spyOn(
       Actions,
       'disableNotifications',
-    );
+    ).mockResolvedValue(undefined);
     const mockSelectLoading = jest.spyOn(
       Selectors,
       'selectIsUpdatingMetamaskNotifications',
@@ -259,28 +259,51 @@ describe('useNotifications - useDisableNotifications()', () => {
 
     // Act
     const hook = renderHookWithProvider(() => useDisableNotifications());
-    await act(() => hook.result.current.disableNotifications());
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await hook.result.current.disableNotifications();
+    });
     await waitFor(() =>
       expect(mocks.mockDisableNotifications).toHaveBeenCalled(),
     );
 
-    return { mocks, hook };
+    return { mocks, hook, result };
   };
 
-  it('successfully invokes action', async () => {
-    const { mocks } = await arrangeAct();
+  it('returns true after disabling push and global notifications', async () => {
+    const { mocks, result } = await arrangeAct();
+
+    expect(result).toBe(true);
     expect(mocks.mockUsePushNotificationsToggle).toHaveBeenCalled();
     expect(mocks.mockTogglePushNotification).toHaveBeenCalled();
     expect(mocks.mockSelectLoading).toHaveBeenCalled();
     expect(mocks.mockSelectData).toHaveBeenCalled();
   });
 
-  it('creates an error when fails', async () => {
-    const { hook } = await arrangeAct((m) => {
+  it('returns false when global notification disable fails', async () => {
+    const { hook, result } = await arrangeAct((m) => {
       m.mockDisableNotifications.mockRejectedValue(new Error('Test Error'));
     });
 
+    expect(result).toBe(false);
     expect(hook.result.current.error).toBeDefined();
+  });
+
+  it('does not disable global notifications when push disable fails', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockTogglePushNotification.mockResolvedValue(false);
+    const hook = renderHookWithProvider(() => useDisableNotifications());
+
+    let result: boolean | undefined;
+    await act(async () => {
+      result = await hook.result.current.disableNotifications();
+    });
+
+    expect(result).toBe(false);
+    expect(mocks.mockDisableNotifications).not.toHaveBeenCalled();
+    expect(hook.result.current.error).toBe(
+      'Failed to disable push notifications',
+    );
   });
 });
 
