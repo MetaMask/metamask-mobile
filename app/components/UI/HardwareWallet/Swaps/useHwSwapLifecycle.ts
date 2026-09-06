@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
@@ -20,7 +13,6 @@ import {
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { PostTradeStatus } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import {
   hidePostTradeNotificationSurface,
@@ -104,7 +96,6 @@ export function useHwSwapLifecycle({
   const dispatch = useDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const isFocused = useIsFocused();
-  const toastRef = useContext(ToastContext)?.toastRef;
 
   const progress = useSelector(selectHardwareWalletsSwaps);
   const progressRef = useRef(progress);
@@ -211,7 +202,7 @@ export function useHwSwapLifecycle({
     const completeWithoutModal = () => {
       hasAutoNavigatedRef.current = true;
       clearCachedSubmission();
-      completeHwSwapSuccess({ dispatch, navigation, toastRef });
+      completeHwSwapSuccess({ dispatch, navigation });
     };
 
     if (strategy.isSendFlow) {
@@ -266,7 +257,6 @@ export function useHwSwapLifecycle({
     strategy.isSendFlow,
     strategy.submitOptions.submissionParams?.postTradeModalParams,
     submittedTransaction,
-    toastRef,
   ]);
 
   const reconcileStuckFlowProgress = useCallback(() => {

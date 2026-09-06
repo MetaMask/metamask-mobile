@@ -148,13 +148,13 @@ jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
   default: () => ({ approvalRequest: mockApprovalRequestValue }),
 }));
 
-jest.mock('../../../../component-library/components/Toast', () => {
-  const R = require('react'); // eslint-disable-line @typescript-eslint/no-require-imports
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   return {
-    ToastContext: R.createContext({
-      toastRef: { current: { showToast: jest.fn(), closeToast: jest.fn() } },
+    ...actual,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
     }),
-    ToastVariants: { Icon: 'Icon' },
   };
 });
 

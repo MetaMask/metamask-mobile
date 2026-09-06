@@ -447,6 +447,7 @@ describe('AddressList', () => {
         expect(toast).toHaveBeenCalledWith({
           title: strings('notifications.address_copied_to_clipboard'),
           hasNoTimeout: false,
+          showCloseButton: false,
         });
       });
     });
