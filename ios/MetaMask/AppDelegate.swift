@@ -25,6 +25,13 @@ final class MetaMaskReactNativeDelegate: ExpoReactNativeFactoryDelegate {
 class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
 
+  private enum QuickAction {
+    static let prefix = "io.metamask.quick-action."
+    static let contextual = "\(prefix)contextual"
+    static let fallbackKey = "fallback"
+    static let tabIdKey = "tabId"
+  }
+
   private var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   private var reactNativeFactory: RCTReactNativeFactory?
   private weak var displacedNotificationCenterDelegate: UNUserNotificationCenterDelegate?
@@ -48,6 +55,13 @@ class AppDelegate: ExpoAppDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem
+    let shortcutURL = shortcutItem.flatMap(quickActionURL)
+    var reactLaunchOptions = launchOptions ?? [:]
+    if let shortcutURL {
+      reactLaunchOptions[.url] = shortcutURL
+    }
+
     let delegate = MetaMaskReactNativeDelegate()
     let factory = ExpoReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -113,7 +127,7 @@ class AppDelegate: ExpoAppDelegate {
       withModuleName: "MetaMask",
       in: window,
       initialProperties: initialProps,
-      launchOptions: launchOptions
+      launchOptions: reactLaunchOptions
     )
 
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -124,7 +138,9 @@ class AppDelegate: ExpoAppDelegate {
     // messaging().onMessage() in JS. We reassert on every foreground entry (see below).
     claimNotificationCenterDelegate()
 
-    return superResult
+    // Returning false prevents iOS from delivering the same cold-start shortcut
+    // again through performActionFor after React Native consumes the initial URL.
+    return shortcutURL == nil ? superResult : false
   }
 
   override func applicationDidBecomeActive(_ application: UIApplication) {
@@ -134,6 +150,51 @@ class AppDelegate: ExpoAppDelegate {
     // (via NotifeeCoreUNUserNotificationCenter.instance()) rather than through Notifee's
     // own delegate chain, so holding this slot does not break Notifee press events.
     claimNotificationCenterDelegate()
+  }
+
+  override func application(
+    _ application: UIApplication,
+    performActionFor shortcutItem: UIApplicationShortcutItem,
+    completionHandler: @escaping (Bool) -> Void
+  ) {
+    guard let url = quickActionURL(shortcutItem) else {
+      super.application(
+        application,
+        performActionFor: shortcutItem,
+        completionHandler: completionHandler)
+      return
+    }
+
+    let handled = RCTLinkingManager.application(application, open: url, options: [:])
+    completionHandler(handled)
+  }
+
+  private func quickActionURL(_ shortcutItem: UIApplicationShortcutItem) -> URL? {
+    guard shortcutItem.type.hasPrefix(QuickAction.prefix) else {
+      return nil
+    }
+
+    let action = String(shortcutItem.type.dropFirst(QuickAction.prefix.count))
+    var components = URLComponents()
+    components.scheme = "metamask"
+    components.host = "quick-action"
+    components.path = "/\(action)"
+
+    if shortcutItem.type == QuickAction.contextual {
+      RCTQuickActions.storePendingClipboard(UIPasteboard.general.string)
+      var queryItems: [URLQueryItem] = []
+      if let fallback = shortcutItem.userInfo?[QuickAction.fallbackKey] as? String {
+        queryItems.append(URLQueryItem(name: QuickAction.fallbackKey, value: fallback))
+      }
+      if let tabId = shortcutItem.userInfo?[QuickAction.tabIdKey] as? String {
+        queryItems.append(URLQueryItem(name: QuickAction.tabIdKey, value: tabId))
+      }
+      components.queryItems = queryItems
+    } else {
+      RCTQuickActions.storePendingClipboard(nil)
+    }
+
+    return components.url
   }
 
   private func claimNotificationCenterDelegate() {

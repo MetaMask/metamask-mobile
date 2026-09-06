@@ -59,6 +59,7 @@ import {
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+import QuickActionsService from '../../core/QuickActions';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -504,6 +505,9 @@ export function* startAppServices() {
 
   // Start DeeplinkManager and process branch deeplinks
   SharedDeeplinkManager.start();
+
+  // Register iOS Home Screen quick actions after persisted controller state is available.
+  QuickActionsService.start();
 
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();

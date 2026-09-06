@@ -1,6 +1,25 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
 
+const shouldApplyBalanceBreakdownDevOverrides =
+  __DEV__ && process.env.NODE_ENV !== 'test';
+
+// Temporary local-development overrides for visually validating TMCU-1317.
+// Keep these out of API-mocking fixtures so simulator builds receive them too.
+const BALANCE_BREAKDOWN_DEV_OVERRIDES = {
+  assetsDefiPositionsEnabled: true,
+  defiControllerV2: { enabled: false },
+  homeTMCU1103AbtestActionButtonsGrid: 'control',
+  homeTMCU1209AbtestHomepageBalanceBreakdown: 'iconsWithArrows',
+  homeTMCU610AbtestWalletHomePostOnboardingSteps: 'control',
+  homepageRedesignV1: { enabled: true, minimumVersion: '7.59' },
+  homepageSectionsV1: { enabled: true, minimumVersion: '7.70.0' },
+  moneyEnableMoneyAccount: { enabled: true, minimumVersion: '0.0.0' },
+  perpsPerpTradingEnabled: { enabled: true, minimumVersion: '7.56.0' },
+  predictTradingEnabled: { enabled: true, minimumVersion: '7.60.0' },
+  walletHomeOnboardingSteps: { enabled: false, minimumVersion: '0.0.0' },
+} as const;
+
 // Access the controller state directly
 export const selectRemoteFeatureFlagControllerState = (
   state: StateWithPartialEngine,
@@ -25,8 +44,14 @@ const selectRemoteFeatureFlagsMerged = createSelector(
   selectRemoteFeatureFlagControllerState,
   // `remoteFeatureFlags` already has `localOverrides` applied, so consumers
   // receive the effective flag values with no app-side merge needed.
-  (remoteFeatureFlagControllerState) =>
-    remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {},
+  (remoteFeatureFlagControllerState) => {
+    const remoteFeatureFlags =
+      remoteFeatureFlagControllerState?.remoteFeatureFlags ?? {};
+
+    return shouldApplyBalanceBreakdownDevOverrides
+      ? { ...remoteFeatureFlags, ...BALANCE_BREAKDOWN_DEV_OVERRIDES }
+      : remoteFeatureFlags;
+  },
 );
 
 /**

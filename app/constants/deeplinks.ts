@@ -56,6 +56,7 @@ export enum ACTIONS {
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
   MONEY = 'money',
+  QUICK_ACTION = 'quick-action',
 }
 
 export const PREFIXES = {
@@ -97,5 +98,6 @@ export const PREFIXES = {
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
   [ACTIONS.MONEY]: '',
+  [ACTIONS.QUICK_ACTION]: '',
   METAMASK: 'metamask://',
 };

@@ -33,6 +33,14 @@
   "storage": {
     "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
   },
+  "quick_actions": {
+    "show_qr_code": "Show account QR code",
+    "scan_qr_code": "Scan QR code",
+    "swap": "Swap",
+    "send": "Send",
+    "open": "Open",
+    "money": "Money"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
