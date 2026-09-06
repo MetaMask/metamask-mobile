@@ -1,5 +1,11 @@
 import React from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 /**
  * Shared primitives for the Activity-redesign step timeline: a small
@@ -30,6 +36,21 @@ export function StepDot({
     <Box
       testID={testID}
       twClassName={`w-2 h-2 rounded-full ${DOT_CLASS_BY_STATUS[status]}`}
+    />
+  );
+}
+
+/**
+ * Failure marker shown in place of a step's {@link StepDot}, matching the cross
+ * the pre-redesign transaction details screen uses for a failed leg.
+ */
+export function StepFailureIcon({ testID }: { testID?: string }) {
+  return (
+    <Icon
+      testID={testID}
+      name={IconName.CircleX}
+      size={IconSize.Sm}
+      color={IconColor.ErrorDefault}
     />
   );
 }

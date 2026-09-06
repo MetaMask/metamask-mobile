@@ -17,6 +17,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   StepConnector,
   StepDot,
+  StepFailureIcon,
   type StepDotStatus,
 } from '../../../UI/StepTimeline';
 import {
@@ -24,7 +25,9 @@ import {
   type ActivityExplorerLink,
 } from '../hooks/useActivityBlockExplorer';
 import { ActivityDetailSection } from './ActivityDetailsLayout';
+import { ActivityDetailsStepFailureSheet } from './ActivityDetailsStepFailureSheet';
 import {
+  getActivityDetailsStepFailureTestId,
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
 } from '../ActivityDetails.testIds';
@@ -39,6 +42,8 @@ export interface ActivityDetailsStep {
   label: string;
   subtext?: string;
   status: ActivityDetailsStepStatus;
+  failureMessage?: string;
+  failureExplorerTarget?: ActivityDetailsStepExplorerTarget;
 }
 
 export interface ActivityDetailsStepExplorerTarget {
@@ -46,9 +51,12 @@ export interface ActivityDetailsStepExplorerTarget {
   hash: string;
 }
 
-const DOT_STATUS: Record<ActivityDetailsStepStatus, StepDotStatus> = {
+/** Failed steps are drawn as a cross, so they have no dot status. */
+const DOT_STATUS: Record<
+  Exclude<ActivityDetailsStepStatus, 'failed'>,
+  StepDotStatus
+> = {
   completed: 'success',
-  failed: 'error',
   pending: 'warning',
   upcoming: 'muted',
 };
@@ -99,6 +107,15 @@ export function ActivityDetailsStepTimeline({
     explorerTarget?.hash,
   );
   const openExplorer = useOpenExplorer(explorerLink);
+  const [failureIndex, setFailureIndex] = React.useState<number | undefined>();
+  const dismissFailure = React.useCallback(
+    () => setFailureIndex(undefined),
+    [],
+  );
+  const shownFailureStep =
+    failureIndex !== undefined && steps[failureIndex]?.status === 'failed'
+      ? steps[failureIndex]
+      : undefined;
 
   return (
     <ActivityDetailSection>
@@ -112,18 +129,29 @@ export function ActivityDetailsStepTimeline({
       <Box twClassName="gap-0">
         {steps.map((step, index) => {
           const isLast = index === steps.length - 1;
+          const failureMessage =
+            step.status === 'failed' ? step.failureMessage : undefined;
+          const showsExplorer = step.status !== 'upcoming' && explorerLink;
 
           return (
             <Pressable
               key={`${step.label}-${index}`}
-              disabled={!explorerLink}
-              onPress={openExplorer}
+              disabled={!failureMessage && !showsExplorer}
+              onPress={
+                failureMessage ? () => setFailureIndex(index) : openExplorer
+              }
               testID={getActivityDetailsStepTestId(index)}
             >
               <Box twClassName="flex-row items-start gap-3">
                 <Box twClassName="items-center">
-                  <Box twClassName="h-6 items-center justify-center">
-                    <StepDot status={DOT_STATUS[step.status]} />
+                  <Box twClassName="h-6 w-4 items-center justify-center">
+                    {step.status === 'failed' ? (
+                      <StepFailureIcon
+                        testID={getActivityDetailsStepFailureTestId(index)}
+                      />
+                    ) : (
+                      <StepDot status={DOT_STATUS[step.status]} />
+                    )}
                   </Box>
                   {!isLast ? <StepConnector /> : null}
                 </Box>
@@ -144,7 +172,14 @@ export function ActivityDetailsStepTimeline({
                     </Text>
                   ) : null}
                 </Box>
-                {explorerLink ? (
+                {failureMessage ? (
+                  <Icon
+                    name={IconName.ArrowRight}
+                    size={IconSize.Sm}
+                    color={IconColor.IconAlternative}
+                    testID={getActivityDetailsStepIconTestId(index)}
+                  />
+                ) : showsExplorer ? (
                   <Icon
                     name={IconName.Export}
                     size={IconSize.Sm}
@@ -157,6 +192,18 @@ export function ActivityDetailsStepTimeline({
           );
         })}
       </Box>
+      {shownFailureStep?.failureMessage ? (
+        <ActivityDetailsStepFailureSheet
+          chainId={
+            (shownFailureStep.failureExplorerTarget ?? explorerTarget)?.chainId
+          }
+          hash={
+            (shownFailureStep.failureExplorerTarget ?? explorerTarget)?.hash
+          }
+          message={shownFailureStep.failureMessage}
+          onClose={dismissFailure}
+        />
+      ) : null}
     </ActivityDetailSection>
   );
 }
