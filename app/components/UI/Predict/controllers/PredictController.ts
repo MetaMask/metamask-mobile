@@ -64,6 +64,7 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
@@ -104,6 +105,7 @@ import {
   PredictBuyAttemptContext,
   PredictClaim,
   PredictClaimStatus,
+  PredictEligibility,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
@@ -154,10 +156,7 @@ import { withTrace, type TraceableController } from './utils/withTrace';
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictControllerState = {
-  eligibility: {
-    eligible: boolean;
-    country?: string;
-  };
+  eligibility: PredictEligibility;
 
   // Error handling
   lastError: string | null;
@@ -210,7 +209,7 @@ export type PredictControllerState = {
  * Get default PredictController state
  */
 export const getDefaultPredictControllerState = (): PredictControllerState => ({
-  eligibility: { eligible: false },
+  eligibility: { status: 'checking', eligible: false },
   lastError: null,
   lastUpdateTimestamp: 0,
   balances: {},
@@ -518,6 +517,7 @@ export class PredictController extends BaseController<
   PredictControllerMessenger
 > {
   private provider: PolymarketProvider;
+  private eligibilityRefreshPromise: Promise<PredictEligibility> | null = null;
 
   private pendingOrderPreviews: {
     [transactionId: string]: PendingOrderPreview;
@@ -579,7 +579,7 @@ export class PredictController extends BaseController<
     });
 
     this.analytics = new PredictAnalytics({
-      getEligibility: () => this.state.eligibility ?? { eligible: false },
+      getEligibility: () => this.state.eligibility,
     });
 
     this.messenger.subscribe(
@@ -587,22 +587,8 @@ export class PredictController extends BaseController<
       this.handleTransactionStatusUpdate.bind(this),
     );
 
-    this.refreshEligibility().catch((error) => {
-      DevLogger.log('PredictController: Error refreshing eligibility', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
-
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility', {
-          provider: POLYMARKET_PROVIDER_ID,
-        }),
-      );
-    });
+    // refreshEligibility owns failure state and logging.
+    this.refreshEligibility().catch(() => undefined);
   }
 
   /**
@@ -2908,50 +2894,99 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Refresh eligibility status
+   * Refresh eligibility status.
+   *
+   * Concurrent callers share one in-flight request. A definitive result
+   * requires a country; failures and incomplete responses become
+   * `unavailable` so they are never described as a geo-restriction.
    */
-  public async refreshEligibility(): Promise<void> {
+  public async refreshEligibility(): Promise<PredictEligibility> {
+    if (this.eligibilityRefreshPromise) {
+      return this.eligibilityRefreshPromise;
+    }
+
+    this.eligibilityRefreshPromise = this.performEligibilityRefresh().finally(
+      () => {
+        this.eligibilityRefreshPromise = null;
+      },
+    );
+    return this.eligibilityRefreshPromise;
+  }
+
+  private async performEligibilityRefresh(): Promise<PredictEligibility> {
     DevLogger.log('PredictController: Refreshing eligibility');
+    this.update((state) => {
+      state.eligibility = { status: 'checking', eligible: false };
+    });
+
+    if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
+      const eligibility: PredictEligibility = {
+        status: 'eligible',
+        country: 'N/A',
+        eligible: true,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    }
+
     try {
       const geoBlockResponse = await this.provider.isEligible();
-      if (geoBlockResponse.isEligible && geoBlockResponse.country) {
-        const isLocallyGeoblocked = this.isLocallyGeoblocked({
-          country: geoBlockResponse.country,
-        });
-        geoBlockResponse.isEligible = !isLocallyGeoblocked;
+      const country = geoBlockResponse.country?.trim();
+      if (!country) {
+        throw new Error('Geoblock check returned an incomplete response');
       }
-      if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
-        geoBlockResponse.isEligible = true;
-        geoBlockResponse.country = 'N/A';
-      }
-      this.update((state) => {
-        state.eligibility = {
-          eligible: geoBlockResponse.isEligible,
-          country: geoBlockResponse.country,
-        };
-      });
-    } catch (error) {
-      this.update((state) => {
-        state.eligibility = {
-          eligible: false,
-          country: undefined,
-        };
-      });
-      DevLogger.log('PredictController: Eligibility refresh failed', {
-        error:
-          error instanceof Error
-            ? error.message
-            : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
-        timestamp: new Date().toISOString(),
-      });
 
-      Logger.error(
-        ensureError(error),
-        this.getErrorContext('refreshEligibility.provider', {
-          providerId: POLYMARKET_PROVIDER_ID,
-        }),
-      );
+      const status =
+        geoBlockResponse.isEligible && !this.isLocallyGeoblocked({ country })
+          ? 'eligible'
+          : 'ineligible';
+      const eligibility: PredictEligibility = {
+        status,
+        country,
+        eligible: status === 'eligible',
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      return eligibility;
+    } catch (error) {
+      const eligibility: PredictEligibility = {
+        status: 'unavailable',
+        eligible: false,
+      };
+      this.update((state) => {
+        state.eligibility = eligibility;
+      });
+      this.reportEligibilityRefreshFailure(error);
+      return eligibility;
     }
+  }
+
+  private reportEligibilityRefreshFailure(error: unknown): void {
+    const errorContext = this.getErrorContext('refreshEligibility.provider', {
+      providerId: POLYMARKET_PROVIDER_ID,
+    });
+
+    DevLogger.log('PredictController: Eligibility refresh failed', {
+      error:
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (isExpectedPolymarketRequestAbort(error)) {
+      Logger.log(
+        'Predict geoblock request ended by expected timeout/cancellation:',
+        error instanceof Error ? error.message : String(error),
+        errorContext,
+      );
+      return;
+    }
+
+    Logger.error(ensureError(error), errorContext);
   }
 
   /**
