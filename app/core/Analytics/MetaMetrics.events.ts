@@ -467,6 +467,10 @@ enum EVENT_NAME {
   EARN_LENDING_DEPOSIT_MORE_BUTTON_CLICKED = 'Earn Lending Deposit More Button Clicked',
   EARN_LENDING_WITHDRAW_BUTTON_CLICKED = 'Earn Lending Withdraw Button Clicked',
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED = 'Earn Lending Withdraw Confirmation Back Clicked',
+  // Earn Module
+  EARN_MODULE_SURFACE_VIEWED = 'Earn Module Surface Viewed',
+  EARN_MODULE_SURFACE_CLICKED = 'Earn Module Surface Clicked',
+  EARN_MODULE_BUTTON_CLICKED = 'Earn Module Button Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -1670,6 +1674,15 @@ const events = {
   ),
   EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED: generateOpt(
     EVENT_NAME.EARN_LENDING_WITHDRAW_CONFIRMATION_BACK_CLICKED,
+  ),
+  EARN_MODULE_SURFACE_VIEWED: generateOpt(
+    EVENT_NAME.EARN_MODULE_SURFACE_VIEWED,
+  ),
+  EARN_MODULE_SURFACE_CLICKED: generateOpt(
+    EVENT_NAME.EARN_MODULE_SURFACE_CLICKED,
+  ),
+  EARN_MODULE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.EARN_MODULE_BUTTON_CLICKED,
   ),
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(

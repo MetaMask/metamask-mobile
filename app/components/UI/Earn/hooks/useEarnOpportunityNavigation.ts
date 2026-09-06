@@ -22,8 +22,104 @@ import { MoneyPostOnboardingRedirectType } from '../../Money/types/navigation';
 import { useMoneyAccountDeposit } from '../../Money/hooks/useMoneyAccount';
 import Logger from '../../../../util/Logger';
 import useEarnToasts from './useEarnToasts';
+import { EARN_MODULE_REDIRECT_TARGETS } from '../constants/earnModuleEvents';
+import type { EarnModuleNavigationContext } from '../types/earnModuleEvents.types';
 
 const LOG_PREFIX = '[useEarnOpportunityNavigation]';
+
+export type EarnOpportunityDestination =
+  | EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
+  | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET;
+
+export type EarnOpportunityRedirectTarget =
+  | EarnOpportunityDestination
+  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING;
+
+type EarnExperienceDepositDestination = Exclude<
+  EarnOpportunityDestination,
+  | EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS
+  | EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET
+>;
+
+const EARN_EXPERIENCE_DESTINATIONS: Record<
+  EarnExperience['type'],
+  EarnExperienceDepositDestination
+> = {
+  MONEY_ACCOUNT_DEPOSIT: EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT,
+  [EARN_EXPERIENCES.POOLED_STAKING]:
+    EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT,
+  [EARN_EXPERIENCES.STABLECOIN_LENDING]:
+    EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT,
+  [EARN_EXPERIENCES.TRX_STAKING]:
+    EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT,
+};
+
+const getEarnExperienceDestination = (
+  experienceType: EarnExperience['type'],
+): EarnExperienceDepositDestination => {
+  const destination = EARN_EXPERIENCE_DESTINATIONS[experienceType];
+
+  if (!destination) {
+    throw new Error(
+      `${LOG_PREFIX} Unsupported Earn experience: ${experienceType}`,
+    );
+  }
+
+  return destination;
+};
+
+export const getEarnOpportunityDestination = (
+  earnAsset: EarnAsset,
+): EarnOpportunityDestination => {
+  if (isEarnAssetBalanceBelowMinDepositAmount(earnAsset)) {
+    return EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS;
+  }
+
+  if (earnAsset.experiences.length === 0) {
+    throw new Error(`${LOG_PREFIX} Earn asset has no eligible experiences`);
+  }
+
+  if (earnAsset.experiences.length > 1) {
+    return EARN_MODULE_REDIRECT_TARGETS.STRATEGY_SELECTION_BOTTOM_SHEET;
+  }
+
+  const singleSupportedExperience = earnAsset.experiences[0];
+
+  return getEarnExperienceDestination(singleSupportedExperience.type);
+};
+
+export const getEarnOpportunityRedirectTarget = (
+  earnAsset: EarnAsset,
+  isMoneyOnboardingRedirectNeeded: boolean,
+): EarnOpportunityRedirectTarget => {
+  const destination = getEarnOpportunityDestination(earnAsset);
+
+  return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+    isMoneyOnboardingRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+    : destination;
+};
+
+export const getEarnExperienceRedirectTarget = (
+  experience: EarnExperience,
+  isMoneyOnboardingRedirectNeeded: boolean,
+):
+  | EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+  | EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT
+  | EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT => {
+  const destination = getEarnExperienceDestination(experience.type);
+
+  return destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT &&
+    isMoneyOnboardingRedirectNeeded
+    ? EARN_MODULE_REDIRECT_TARGETS.MONEY_ONBOARDING
+    : destination;
+};
 
 /**
  * Navigates an Earn opportunity to strategy selection or Token Details based
@@ -173,12 +269,18 @@ const useEarnOpportunityNavigation = () => {
   );
 
   const navigateFromEarnAsset = useCallback(
-    (asset: EarnAsset, tokenDetailsSource?: TokenDetailsSource) => {
+    (
+      asset: EarnAsset,
+      tokenDetailsSource?: TokenDetailsSource,
+      analyticsContext?: EarnModuleNavigationContext,
+    ) => {
       if (!asset) {
         return;
       }
 
-      if (isEarnAssetBalanceBelowMinDepositAmount(asset)) {
+      const destination = getEarnOpportunityDestination(asset);
+
+      if (destination === EARN_MODULE_REDIRECT_TARGETS.TOKEN_DETAILS) {
         const token = earnAssetToToken(asset);
         navigation.navigate('Asset', {
           ...token,
@@ -187,9 +289,13 @@ const useEarnOpportunityNavigation = () => {
         return;
       }
 
-      const hasSingleStrategy = asset.experiences.length === 1;
-
-      if (hasSingleStrategy) {
+      if (
+        destination === EARN_MODULE_REDIRECT_TARGETS.POOLED_STAKING_DEPOSIT ||
+        destination ===
+          EARN_MODULE_REDIRECT_TARGETS.STABLECOIN_LENDING_DEPOSIT ||
+        destination === EARN_MODULE_REDIRECT_TARGETS.TRX_STAKING_DEPOSIT ||
+        destination === EARN_MODULE_REDIRECT_TARGETS.MONEY_DEPOSIT
+      ) {
         navigateToDepositForExperience(asset, asset.experiences[0]).catch(
           (error: Error) => {
             showToast(
@@ -206,7 +312,10 @@ const useEarnOpportunityNavigation = () => {
 
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.STRATEGY_SELECTION,
-        params: { earnAsset: asset },
+        params: {
+          earnAsset: asset,
+          ...(analyticsContext ? { analyticsContext } : {}),
+        },
       });
     },
     [
