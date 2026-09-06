@@ -321,6 +321,42 @@ describe('DeviceCommandHandler', () => {
     });
   });
 
+  it('treats a missing iOS app data container directory as already cleared', async () => {
+    const appDataPath =
+      '/Users/runner/Library/Developer/CoreSimulator/Devices/FD56728B-6F33-432A-B3DD-E90EA0C1E1D9/data/Containers/Data/Application/01235757-20FE-41D6-BCAB-FD0077C40AB3';
+    mockExecFileResponses([{ stdout: '' }, { stdout: `${appDataPath}\n` }]);
+    const missingContainer = Object.assign(
+      new Error(`ENOENT: no such file or directory, scandir '${appDataPath}'`),
+      { code: 'ENOENT' },
+    );
+    readdirMock.mockRejectedValue(missingContainer);
+
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: iosDevice(),
+      }).clearAppData(),
+    ).resolves.toBeUndefined();
+
+    expect(readdirMock).toHaveBeenCalledWith(appDataPath);
+    expect(rmMock).not.toHaveBeenCalled();
+  });
+
+  it('rethrows non-ENOENT failures while reading the iOS app data container', async () => {
+    const appDataPath = '/Users/me/Containers/Data/Application/abc';
+    mockExecFileResponses([{ stdout: '' }, { stdout: `${appDataPath}\n` }]);
+    readdirMock.mockRejectedValue(
+      Object.assign(new Error('EACCES'), { code: 'EACCES' }),
+    );
+
+    await expect(
+      new DeviceCommandHandler({
+        currentDeviceDetails: iosDevice(),
+      }).clearAppData(),
+    ).rejects.toThrow('EACCES');
+
+    expect(rmMock).not.toHaveBeenCalled();
+  });
+
   it('rejects empty iOS app data container paths', async () => {
     mockExecFileResponses([{ stdout: '' }, { stdout: '\n' }]);
 
