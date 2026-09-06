@@ -7745,7 +7745,7 @@
   },
   "show_display_nft_media": {
     "show_display_nft_media_title": "Display NFT media",
-    "show_display_nft_media_content_1": "To see an NFT, you need turn on",
+    "show_display_nft_media_content_1": "To see an NFT, you need to turn on",
     "show_display_nft_media_content_2": "Display NFT media.",
     "show_display_nft_media_content_3": "Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when this is turned off.",
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
