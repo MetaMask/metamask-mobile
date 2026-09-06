@@ -2954,28 +2954,159 @@ describe('PredictController', () => {
     });
 
     it('does not preserve a previous eligible result after a failed refresh', async () => {
-      await withController(
-        async ({ controller }) => {
-          await controller.refreshEligibility();
-          mockPolymarketProvider.isEligible.mockClear();
-          mockPolymarketProvider.isEligible.mockRejectedValue(
-            new Error('Eligibility check failed'),
-          );
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
 
-          const result = await controller.refreshEligibility();
+        const result = await controller.refreshEligibility();
 
-          expect(result).toEqual({ status: 'unavailable', eligible: false });
-          expect(controller.state.eligibility).toEqual({
-            status: 'unavailable',
-            eligible: false,
-          });
-        },
-        {
-          state: {
-            eligibility: { status: 'eligible', country: 'US', eligible: true },
-          },
-        },
-      );
+        expect(result).toEqual({ status: 'unavailable', eligible: false });
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+      });
+    });
+
+    it('keeps a confirmed eligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: true,
+          country: 'US',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        // A slow re-check must not drop the user into `checking`, which the
+        // action guard treats as a connectivity failure.
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'PT' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'PT',
+          eligible: true,
+        });
+      });
+    });
+
+    it('keeps a confirmed ineligible result while a re-check is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockResolvedValue({
+          isEligible: false,
+          country: 'DE',
+        });
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'ineligible',
+          country: 'DE',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+        expect(controller.state.eligibility).toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
+    });
+
+    it('reports checking while a retry after an unavailable result is in flight', async () => {
+      await withController(async ({ controller }) => {
+        await controller.refreshEligibility();
+        mockPolymarketProvider.isEligible.mockRejectedValue(
+          new Error('Eligibility check failed'),
+        );
+        await controller.refreshEligibility();
+        expect(controller.state.eligibility).toEqual({
+          status: 'unavailable',
+          eligible: false,
+        });
+
+        let resolveEligible:
+          | ((value: { isEligible: boolean; country: string }) => void)
+          | undefined;
+        mockPolymarketProvider.isEligible.mockReturnValue(
+          new Promise((resolve) => {
+            resolveEligible = resolve;
+          }),
+        );
+
+        const refresh = controller.refreshEligibility();
+
+        expect(controller.state.eligibility).toEqual({
+          status: 'checking',
+          eligible: false,
+        });
+
+        resolveEligible?.({ isEligible: true, country: 'US' });
+        await expect(refresh).resolves.toEqual({
+          status: 'eligible',
+          country: 'US',
+          eligible: true,
+        });
+      });
     });
 
     it('shares one provider request across concurrent refreshes', async () => {

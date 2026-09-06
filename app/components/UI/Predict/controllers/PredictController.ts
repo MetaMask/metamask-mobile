@@ -2896,7 +2896,11 @@ export class PredictController extends BaseController<
   /**
    * Refresh eligibility status.
    *
-   * Concurrent callers share one in-flight request. A definitive result
+   * Concurrent callers share one in-flight request. A confirmed
+   * `eligible` / `ineligible` result stays in state while a re-check is in
+   * flight, so a routine foreground refresh or a slow geoblock check never
+   * blocks a user who was already confirmed; only the first check (or a
+   * retry after `unavailable`) reports `checking`. A definitive result
    * requires a country; failures and incomplete responses become
    * `unavailable` so they are never described as a geo-restriction.
    */
@@ -2915,9 +2919,14 @@ export class PredictController extends BaseController<
 
   private async performEligibilityRefresh(): Promise<PredictEligibility> {
     DevLogger.log('PredictController: Refreshing eligibility');
-    this.update((state) => {
-      state.eligibility = { status: 'checking', eligible: false };
-    });
+    const { status: previousStatus } = this.state.eligibility;
+    const hasConfirmedResult =
+      previousStatus === 'eligible' || previousStatus === 'ineligible';
+    if (!hasConfirmedResult) {
+      this.update((state) => {
+        state.eligibility = { status: 'checking', eligible: false };
+      });
+    }
 
     if (process.env.MM_PREDICT_SKIP_GEOBLOCK === 'true') {
       const eligibility: PredictEligibility = {

@@ -227,7 +227,11 @@ export type PredictControllerConfirmClaimAction = {
 /**
  * Refresh eligibility status.
  *
- * Concurrent callers share one in-flight request. A definitive result
+ * Concurrent callers share one in-flight request. A confirmed
+ * `eligible` / `ineligible` result stays in state while a re-check is in
+ * flight, so a routine foreground refresh or a slow geoblock check never
+ * blocks a user who was already confirmed; only the first check (or a
+ * retry after `unavailable`) reports `checking`. A definitive result
  * requires a country; failures and incomplete responses become
  * `unavailable` so they are never described as a geo-restriction.
  */

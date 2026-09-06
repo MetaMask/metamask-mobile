@@ -92,17 +92,22 @@ export const usePredictActionGuard = ({
       action: () => void | Promise<void>,
       attemptedAction?: string,
     ) => {
+      // The connection toast is persistent (hasNoTimeout), so a definitive
+      // retry result must dismiss it before the action runs or the regional
+      // sheet opens. An unavailable result re-shows it instead.
       if (result.status === 'eligible') {
+        toastRef?.current?.closeToast();
         await action();
         return;
       }
       if (result.status === 'ineligible') {
+        toastRef?.current?.closeToast();
         handleIneligible(attemptedAction);
         return;
       }
       showConnectionErrorToast(action, attemptedAction);
     },
-    [handleIneligible, showConnectionErrorToast],
+    [handleIneligible, showConnectionErrorToast, toastRef],
   );
 
   const retryGuardedAction = useCallback(

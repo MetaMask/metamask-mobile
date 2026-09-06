@@ -43,10 +43,11 @@ const mockTrackGeoBlockTriggered = Engine.context.PredictController
   .trackGeoBlockTriggered as jest.Mock;
 
 const mockShowToast = jest.fn();
+const mockCloseToast = jest.fn();
 const mockToastRef = {
   current: {
     showToast: mockShowToast,
-    closeToast: jest.fn(),
+    closeToast: mockCloseToast,
   },
 };
 
@@ -265,6 +266,12 @@ describe('usePredictActionGuard', () => {
       expect(mockAction).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockTrackGeoBlockTriggered).not.toHaveBeenCalled();
+      // The persistent toast is dismissed before the action runs.
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast.mock.invocationCallOrder[0]).toBeLessThan(
+        mockAction.mock.invocationCallOrder[0],
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
     it('opens the regional sheet when retry returns ineligible', async () => {
@@ -297,6 +304,12 @@ describe('usePredictActionGuard', () => {
       expect(mockTrackGeoBlockTriggered).toHaveBeenCalledWith({
         attemptedAction: 'buy',
       });
+      // The persistent toast is dismissed before the regional sheet opens.
+      expect(mockCloseToast).toHaveBeenCalledTimes(1);
+      expect(mockCloseToast.mock.invocationCallOrder[0]).toBeLessThan(
+        mockNavigate.mock.invocationCallOrder[0],
+      );
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
 
     it('shows the connection toast again when retry stays unavailable', async () => {
@@ -323,6 +336,7 @@ describe('usePredictActionGuard', () => {
       );
       expect(mockAction).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(2);
+      expect(mockCloseToast).not.toHaveBeenCalled();
       expect(mockTrackGeoBlockTriggered).not.toHaveBeenCalled();
     });
 
