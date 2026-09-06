@@ -894,27 +894,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           }
         }
 
-        // Perps rows route to the dedicated perps detail screens, mirroring the
-        // legacy perps transactions view (trade → position, funding → funding,
-        // order → order). Deposits/withdrawals have no detail screen.
-        if (raw.type === 'perpsTransaction') {
-          const perpsTx = raw.data;
-          if (perpsTx.type === 'trade') {
-            navigation.navigate(Routes.PERPS.POSITION_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'funding') {
-            navigation.navigate(Routes.PERPS.FUNDING_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          } else if (perpsTx.type === 'order') {
-            navigation.navigate(Routes.PERPS.ORDER_TRANSACTION, {
-              transaction: perpsTx,
-            });
-          }
-          return;
-        }
-
         if (raw.type === 'predictActivity') {
           navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.ACTIVITY_DETAIL,
