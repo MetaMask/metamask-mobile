@@ -4,9 +4,15 @@ import { getSdkEnvironment } from './getSdkEnvironment';
 describe('getSdkEnvironment', () => {
   const originalProcessEnv = process.env;
   const originalRampsEnvironment = process.env.RAMPS_ENVIRONMENT;
+  const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
   beforeEach(() => {
     delete process.env.RAMPS_ENVIRONMENT;
+    if (originalMetamaskEnvironment === undefined) {
+      delete process.env.METAMASK_ENVIRONMENT;
+    } else {
+      process.env.METAMASK_ENVIRONMENT = originalMetamaskEnvironment;
+    }
   });
 
   afterAll(() => {
@@ -52,6 +58,11 @@ describe('getSdkEnvironment', () => {
 
     it('returns Production environment for rc', () => {
       process.env.METAMASK_ENVIRONMENT = 'rc';
+      expect(getSdkEnvironment()).toBe(Environment.Production);
+    });
+
+    it('returns Production environment for rc-nightly', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
       expect(getSdkEnvironment()).toBe(Environment.Production);
     });
   });
@@ -154,6 +165,7 @@ describe('getSdkEnvironment', () => {
       { env: 'production', expected: Environment.Production },
       { env: 'beta', expected: Environment.Production },
       { env: 'rc', expected: Environment.Production },
+      { env: 'rc-nightly', expected: Environment.Production },
       { env: 'dev', expected: Environment.Staging },
       { env: 'exp', expected: Environment.Staging },
       { env: 'test', expected: Environment.Staging },

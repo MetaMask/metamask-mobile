@@ -22,6 +22,7 @@ export const getDefaultCardApiBaseUrlForMetaMaskEnv = (
       return AppConstants.CARD_API_URL.UAT;
     case 'production':
     case 'rc':
+    case 'rc-nightly':
     default:
       return AppConstants.CARD_API_URL.PRD;
   }

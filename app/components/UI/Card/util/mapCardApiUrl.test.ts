@@ -47,11 +47,14 @@ describe('getDefaultCardApiBaseUrlForMetaMaskEnv', () => {
       delete process.env.CARD_API_URL;
     });
 
-    it('returns AppConstants.CARD_API_URL.PRD for production/rc', () => {
+    it('returns AppConstants.CARD_API_URL.PRD for production/rc/rc-nightly', () => {
       expect(getDefaultCardApiBaseUrlForMetaMaskEnv('production')).toBe(
         AppConstants.CARD_API_URL.PRD,
       );
       expect(getDefaultCardApiBaseUrlForMetaMaskEnv('rc')).toBe(
+        AppConstants.CARD_API_URL.PRD,
+      );
+      expect(getDefaultCardApiBaseUrlForMetaMaskEnv('rc-nightly')).toBe(
         AppConstants.CARD_API_URL.PRD,
       );
     });

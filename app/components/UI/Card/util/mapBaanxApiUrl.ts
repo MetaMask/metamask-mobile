@@ -22,6 +22,7 @@ export const getDefaultBaanxApiBaseUrlForMetaMaskEnv = (
       return AppConstants.BAANX_API_URL.UAT;
     case 'production':
     case 'rc':
+    case 'rc-nightly':
     default:
       return AppConstants.BAANX_API_URL.PRD;
   }

@@ -23,7 +23,8 @@ function getBaseUrl(): string {
   const isProduction =
     metamaskEnvironment === 'production' ||
     metamaskEnvironment === 'beta' ||
-    metamaskEnvironment === 'rc';
+    metamaskEnvironment === 'rc' ||
+    metamaskEnvironment === 'rc-nightly';
 
   return isProduction ? TOKEN_API_URL.PRODUCTION : TOKEN_API_URL.STAGING;
 }

@@ -193,6 +193,14 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('main-rc');
   });
 
+  it('returns main-rc-nightly for rc-nightly environment and main build type', async () => {
+    const METAMASK_ENVIRONMENT = 'rc-nightly';
+    const isDev = false;
+
+    const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT, 'main');
+    expect(env).toBe('main-rc-nightly');
+  });
+
   it('returns main-beta for beta environment and main build type', async () => {
     const METAMASK_ENVIRONMENT = 'beta';
     const isDev = false;

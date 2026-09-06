@@ -16,7 +16,7 @@ on:
         type: string
         required: true
       channel:
-        description: 'OTA channel (exp, rc, production)'
+        description: 'OTA channel (exp, rc, rc-nightly, production). rc-nightly uses the RC signer and receive channel.'
         type: string
         required: true
       message:
@@ -138,7 +138,7 @@ jobs:
             exp)
               SECRET_NAME="metamask-exp-expo-signer"
               ;;
-            rc)
+            rc|rc-nightly)
               SECRET_NAME="metamask-rc-expo-signer"
               ;;
             production)
@@ -247,6 +247,11 @@ jobs:
               ;;
             rc)
               yarn run build:expo-update:main:rc
+              ;;
+            rc-nightly)
+              # JS env is rc-nightly (Mixpanel *-rc-nightly). update-expo-channel.js
+              # still publishes to the existing rc receive channel — no new Expo channel.
+              yarn run build:expo-update:main:rc-nightly
               ;;
             production)
               yarn run build:expo-update:main:prod

@@ -345,7 +345,8 @@ android {
                 signingConfig signingConfigs.mainE2e
             } else if (env == 'production') {
                 signingConfig signingConfigs.mainProd
-            } else if (env == 'rc') {
+            } else if (env == 'rc' || env == 'rc-nightly') {
+                // Main nightly is RC-signed so it can update over existing RC nightlies.
                 signingConfig signingConfigs.mainRc
             } else if (env == 'beta') {
                 signingConfig signingConfigs.mainBeta

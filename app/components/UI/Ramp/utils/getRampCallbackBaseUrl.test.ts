@@ -31,6 +31,7 @@ describe('getRampCallbackBaseUrl', () => {
     ['production', PRODUCTION_CALLBACK],
     ['beta', PRODUCTION_CALLBACK],
     ['rc', PRODUCTION_CALLBACK],
+    ['rc-nightly', PRODUCTION_CALLBACK],
     ['dev', DEVELOPMENT_CALLBACK],
     ['exp', STAGING_CALLBACK],
     ['test', STAGING_CALLBACK],

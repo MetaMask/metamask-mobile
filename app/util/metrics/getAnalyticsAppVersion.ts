@@ -2,6 +2,8 @@ import { getVersion } from 'react-native-device-info';
 
 const ENVIRONMENT_SUFFIXES: Record<string, string> = {
   rc: 'release-candidate',
+  // Exact key only — must not match `rc` or Mixpanel would emit *-release-candidate.
+  'rc-nightly': 'rc-nightly',
   exp: 'experimental',
   dev: 'development',
 };

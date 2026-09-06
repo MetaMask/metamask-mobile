@@ -140,9 +140,9 @@ checkParameters(){
 	fi
 
 	# Check if the METAMASK_ENVIRONMENT is valid
-	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|exp|test|e2e|dev"
+	VALID_METAMASK_ENVIRONMENTS="production|beta|rc|rc-nightly|exp|test|e2e|dev"
 	case "${METAMASK_ENVIRONMENT}" in
-		production|beta|rc|exp|test|e2e|dev)
+		production|beta|rc|rc-nightly|exp|test|e2e|dev)
 			# Valid environment - continue
 			;;
 		*)
@@ -268,11 +268,45 @@ prebuild_android(){
 	fi
 }
 
+# Prefer ANDROID_DEVICE (AVD name). Expo `--device` matches AVD names, not
+# adb serials like emulator-5554. Bare `--device` prompts after Gradle and
+# fails in non-interactive terminals.
+resolveAndroidDeviceId() {
+	if [ -n "${ANDROID_DEVICE:-}" ]; then
+		echo "$ANDROID_DEVICE"
+		return
+	fi
+
+	local serial="${ANDROID_SERIAL:-${ADB_SERIAL:-}}"
+	if [ -z "$serial" ]; then
+		serial="$(adb devices 2>/dev/null | awk '/[[:space:]]device$/{print $1; exit}')"
+	fi
+	if [ -z "$serial" ]; then
+		return
+	fi
+
+	local avd_name
+	avd_name="$(adb -s "$serial" emu avd name 2>/dev/null | head -1 | tr -d '\r')"
+	if [ -n "$avd_name" ] && [ "$avd_name" != "OK" ]; then
+		echo "$avd_name"
+		return
+	fi
+
+	echo "$serial"
+}
+
 # Builds and installs the Main APK for local development
 buildAndroidMainLocal(){
 	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+	local android_device
+	android_device="$(resolveAndroidDeviceId)"
+	if [ -n "$android_device" ]; then
+		echo "Installing on Android device: $android_device"
+		yarn expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device "$android_device"
+	else
+		echo "No Android device found via adb. Start an emulator (e.g. Pixel_9) and retry."
+		exit 1
+	fi
 }
 
 # Builds and installs the Flask APK for local development

@@ -54,6 +54,12 @@ describe('getSdkEnvironment', () => {
       const result = getSdkEnvironment();
       expect(result).toBe(SdkEnvironment.Production);
     });
+
+    it('returns Production for rc-nightly environment', () => {
+      process.env.METAMASK_ENVIRONMENT = 'rc-nightly';
+      const result = getSdkEnvironment();
+      expect(result).toBe(SdkEnvironment.Production);
+    });
   });
 
   describe('Staging Environment', () => {
