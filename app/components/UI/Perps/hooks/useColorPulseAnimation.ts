@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { ViewStyle } from 'react-native';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -6,6 +7,7 @@ import {
   withSequence,
   cancelAnimation,
   interpolateColor,
+  AnimatedStyle,
 } from 'react-native-reanimated';
 import { useStyles } from '../../../../component-library/hooks';
 
@@ -23,10 +25,7 @@ interface UseColorPulseAnimationOptions {
 }
 
 interface UseColorPulseAnimationReturn {
-  getAnimatedStyle: {
-    opacity: number;
-    backgroundColor: string;
-  };
+  getAnimatedStyle: AnimatedStyle<ViewStyle>;
   startPulseAnimation: (pulseColor: PulseColor) => void;
   stopAnimation: () => void;
 }
