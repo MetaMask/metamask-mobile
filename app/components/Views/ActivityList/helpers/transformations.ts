@@ -21,6 +21,7 @@ import {
   classifyPooledStakingActivity,
 } from '../../../../util/activity-adapters';
 import { mergeActivityItems } from '../../../../util/activity-adapters/adapters/dedup';
+import { normalizeActivityItemTokenDecimals } from '../../../../util/activity-adapters/adapters/normalize-token-decimals';
 import { equalsIgnoreCase } from '../../../../util/string';
 import { applyBridgeQuote } from './apply-bridge-quote';
 
@@ -161,7 +162,11 @@ function transformApiTransactions(
       ...mapApiTransaction({ subjectAddress, transaction: tx }),
       raw: { type: 'apiEvmTransaction' as const, data: tx },
     } as ActivityListItem;
-    items.push(classifyPooledStakingActivity(tx, activity));
+    items.push(
+      normalizeActivityItemTokenDecimals(
+        classifyPooledStakingActivity(tx, activity),
+      ),
+    );
   }
 
   return items;
