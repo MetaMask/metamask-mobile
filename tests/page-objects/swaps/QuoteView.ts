@@ -6,12 +6,15 @@ import {
   sleep,
   type AppiumElement,
 } from '../../framework';
-import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { getAssetTestId } from '../../../app/components/UI/AssetElement/AssetElement.testIds';
 import {
-  QuoteViewSelectorIDs,
   QuoteViewSelectorText,
   getChainIdForNetwork,
 } from '../../selectors/Bridge/QuoteView.selectors';
+import { BridgeViewSelectorsIDs } from '../../../app/components/UI/Bridge/Views/BridgeView/BridgeView.testIds';
+import { BridgeTokenSelectorTestIds } from '../../../app/components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector.testIds';
+import { QuoteDetailsCardTestIds } from '../../../app/components/UI/Bridge/components/QuoteDetailsCard/QuoteDetailsCard.testIds';
+import { KeypadTestIds } from '../../../app/components/Base/Keypad/Keypad.testIds';
 
 const TIMEOUT = {
   SWAP_SCREEN_VISIBLE: 10000,
@@ -29,38 +32,40 @@ class QuoteView {
   }
 
   get confirmBridge(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
   get confirmSwap(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.CONFIRM_BUTTON);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.CONFIRM_BUTTON);
   }
 
   get sourceTokenArea(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_AREA);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA);
   }
 
   get amountInput(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.SOURCE_TOKEN_INPUT);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT);
   }
 
   get destinationTokenArea(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_AREA);
+    return Matchers.getElementByID(
+      BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA,
+    );
   }
 
   get destinationTokenInput(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
+      BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT,
     );
   }
 
   get searchToken(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
-        `//*[@name='${QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
+        `//*[@name='${BridgeTokenSelectorTestIds.SEARCH_INPUT}' or @name='textfieldsearch' or contains(@label,'Enter token name') or contains(@name,'Enter token name')]`,
       );
     }
-    return Matchers.getElementByID(QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT);
+    return Matchers.getElementByID(BridgeTokenSelectorTestIds.SEARCH_INPUT);
   }
 
   get seeAllButton(): Promise<AppiumElement> {
@@ -68,7 +73,7 @@ class QuoteView {
   }
 
   get backButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.BACK_BUTTON);
+    return Matchers.getElementByID(BridgeTokenSelectorTestIds.BACK_BUTTON);
   }
 
   get moreNetworksButton(): Promise<AppiumElement> {
@@ -80,23 +85,23 @@ class QuoteView {
   }
 
   get bridgeViewScroll(): Promise<AppiumElement> {
-    return Matchers.getElementByID(QuoteViewSelectorIDs.BRIDGE_VIEW_SCROLL);
+    return Matchers.getElementByID(BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL);
   }
 
   /** Fee disclaimer (e.g. "Includes 0.875% MetaMask fee") - used for isQuoteDisplayed. */
   get feeDisclaimerLabel(): Promise<AppiumElement> {
     return Matchers.getElementByID(
-      QuoteViewSelectorIDs.PRICE_IMPACT_INFO_BUTTON,
+      QuoteDetailsCardTestIds.PRICE_IMPACT_INFO_BUTTON,
     );
   }
 
   get keypadDeleteButton(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
       return Matchers.getElementByNativeXPath(
-        `//*[contains(@name,'${QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON}')]`,
+        `//*[contains(@name,'${KeypadTestIds.DELETE_BUTTON}')]`,
       );
     }
-    return Matchers.getElementByID(QuoteViewSelectorIDs.KEYPAD_DELETE_BUTTON);
+    return Matchers.getElementByID(KeypadTestIds.DELETE_BUTTON);
   }
 
   get maxLink(): Promise<AppiumElement> {
@@ -178,7 +183,7 @@ class QuoteView {
           // (matches prior AppiumGestures.scrollIntoView direction: 'up').
           await Gestures.scrollToElement(
             tokenElement,
-            Matchers.scrollContainer(QuoteViewSelectorIDs.TOKEN_LIST),
+            Matchers.scrollContainer(BridgeTokenSelectorTestIds.TOKEN_LIST),
             {
               direction: 'down',
               elemDescription: `Scroll to token symbol ${symbol}`,
@@ -440,7 +445,7 @@ class QuoteView {
     const timeout = 60000;
     const message = QuoteViewSelectorText.RWA_GEO_RESTRICTED_MESSAGE;
     const banner = Matchers.getElementByID(
-      QuoteViewSelectorIDs.NO_QUOTES_BANNER,
+      BridgeViewSelectorsIDs.NO_QUOTES_BANNER,
     );
 
     await Assertions.expectElementToBeVisible(banner, {

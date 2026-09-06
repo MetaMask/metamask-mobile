@@ -64,6 +64,7 @@ import NoSearchResultsDark from '../../../../../images/predictions-no-search-res
 import { SkeletonItem } from '../SkeletonItem';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
 import { TokenSelectorItem } from '../TokenSelectorItem';
+import { BridgeTokenSelectorTestIds } from './BridgeTokenSelector.testIds';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { type BridgeToken, TokenSelectorType } from '../../types';
 import { usePopularTokens } from '../../hooks/usePopularTokens';
@@ -184,7 +185,7 @@ const BridgeTokenSelectorSearchEmptyState = React.memo(
     NoSearchResultsIcon,
   }: BridgeTokenSelectorSearchEmptyStateProps) => (
     <TabEmptyState
-      testID="bridge-token-selector-empty-state"
+      testID={BridgeTokenSelectorTestIds.EMPTY_STATE}
       icon={<NoSearchResultsIcon width={72} height={78} />}
       description={strings('bridge.no_tokens_found')}
       descriptionProps={{
@@ -992,13 +993,16 @@ export const BridgeTokenSelector: React.FC = () => {
         title={strings('bridge.select_token')}
         onBack={() => navigation.goBack()}
         includesTopInset
+        backButtonProps={{
+          testID: BridgeTokenSelectorTestIds.BACK_BUTTON,
+        }}
       />
       <Box twClassName="px-4 pb-3">
         <TextFieldSearch
           value={searchString}
           onChangeText={handleSearchTextChange}
           placeholder={strings('swaps.search_token')}
-          testID="bridge-token-search-input"
+          testID={BridgeTokenSelectorTestIds.SEARCH_INPUT}
           autoComplete="off"
           autoCorrect={false}
           autoCapitalize="none"
@@ -1027,7 +1031,7 @@ export const BridgeTokenSelector: React.FC = () => {
       ) : (
         <FlashList
           ref={flatListRef}
-          testID="bridge-token-list"
+          testID={BridgeTokenSelectorTestIds.TOKEN_LIST}
           style={styles.tokensList}
           contentContainerStyle={styles.tokensListContainer}
           data={displayData}
