@@ -734,6 +734,11 @@
           "swapsTransactions": {},
           "transactions": []
         },
+        "UiSlotsController": {
+          "activeConfigurations": {},
+          "enabled": false,
+          "screenConfigurations": {}
+        },
         "UserStorageController": {}
       }
     },

@@ -16,12 +16,13 @@ import {
 } from '../../../../abTestConfig';
 import { usePredictNavigation } from '../../../../../../UI/Predict/hooks/usePredictNavigation';
 import {
-  HOMEPAGE_PREDICT_EVENT_SLOTS,
-  HOMEPAGE_PREDICT_MARKET_SLOTS,
-  HOMEPAGE_PREDICT_SERIES_SLOT,
+  type HomepagePredictMarketSlot,
   isHomepagePredictEventSlot,
 } from '../../constants/homepagePredictMarketSlots';
-import type { PredictMarket } from '../../../../../../UI/Predict/types';
+import type {
+  PredictMarket,
+  PredictSeries,
+} from '../../../../../../UI/Predict/types';
 import type { UseHomepagePredictMarketSlotsResult } from '../../hooks/useHomepagePredictMarketSlots';
 import type { PredictionsTrendingHeaderTestId } from '../../predictionsSectionTypes';
 import type { TransactionActiveAbTestEntry } from '../../../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -34,6 +35,7 @@ export interface HomepagePredictDiscoveryProps {
     transactionActiveAbTests?: TransactionActiveAbTestEntry[],
   ) => void;
   headerTestIdKey: PredictionsTrendingHeaderTestId;
+  slots: readonly HomepagePredictMarketSlot[];
   marketSlots: UseHomepagePredictMarketSlotsResult;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   onTreatmentCtaClick?: (
@@ -46,6 +48,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
   title,
   onViewAll,
   headerTestIdKey,
+  slots,
   marketSlots,
   transactionActiveAbTests,
   onTreatmentCtaClick,
@@ -54,7 +57,11 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
   const { navigateToMarketDetails } = usePredictNavigation();
   const eventSlotStateById = useMemo(() => {
     const states = new Map<string, ChampionshipRowState>();
-    for (const { id, slug } of HOMEPAGE_PREDICT_EVENT_SLOTS) {
+    for (const slot of slots) {
+      if (!isHomepagePredictEventSlot(slot)) {
+        continue;
+      }
+      const { id, slug } = slot;
       const market = marketSlots.marketData.find(
         (candidate) => candidate.id === id && candidate.slug === slug,
       );
@@ -68,10 +75,11 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
       }
     }
     return states;
-  }, [marketSlots.isFetching, marketSlots.marketData]);
+  }, [marketSlots.isFetching, marketSlots.marketData, slots]);
 
   const handleBtcRow = useCallback(
     (
+      series: PredictSeries,
       btcMarketId: string | undefined,
       btcWindowMarket: PredictMarket | undefined,
     ) => {
@@ -84,9 +92,7 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
           {
             marketId: btcMarketId,
             entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
-            title:
-              btcWindowMarket?.title ??
-              HOMEPAGE_PREDICT_SERIES_SLOT.series.title,
+            title: btcWindowMarket?.title ?? series.title,
             image: btcWindowMarket?.image,
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
@@ -139,9 +145,15 @@ const HomepagePredictDiscovery: React.FC<HomepagePredictDiscoveryProps> = ({
         entryPoint={PredictEventValues.ENTRY_POINT.HOME_SECTION}
       >
         <Box twClassName="px-4">
-          {HOMEPAGE_PREDICT_MARKET_SLOTS.map((slot, index) => {
+          {slots.map((slot, index) => {
             if (!isHomepagePredictEventSlot(slot)) {
-              return <BtcLiveRow key={slot.series.id} onPress={handleBtcRow} />;
+              return (
+                <BtcLiveRow
+                  key={slot.series.id}
+                  series={slot.series}
+                  onPress={handleBtcRow}
+                />
+              );
             }
             return (
               <ChampionshipRow
